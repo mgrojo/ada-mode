@@ -6,6 +6,8 @@
 
 --EMACSCMD:(setq skip-reindent-test t)
 
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+
 procedure Put
 is
    use Ada.Containers;

@@ -124,6 +124,7 @@ COMPILE_FILES := $(filter-out slow_recover_1.adb, $(COMPILE_FILES))
 # GNAT GPL 2016 complains about compiling these; not clear why
 COMPILE_FILES := $(filter-out test_private.ads, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
+COMPILE_FILES := $(filter-out virtual_renames.adb, $(COMPILE_FILES))
 
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 

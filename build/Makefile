@@ -37,6 +37,7 @@ docs : info html
 
 # this updates elisp and related executables after any source change,
 # without running the tests.
+update-elisp : autoloads
 update-elisp : ../ada-elisp.el
 update-elisp : ../gpr-elisp.el
 update-elisp : install_ada_executables
@@ -104,21 +105,22 @@ test-wisi :: subprograms.input.diff
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += aspects.ads
+ONE_TEST_FILES += ada_mode-nominal-child.ads
 #one : build_ada_executables
 #one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-one : RUNTEST := run-indent-test-process-gpr_query.el
+#one : RUNTEST := run-indent-test-elisp-gpr_query.el
+one : RUNTEST := run-indent-test-elisp-gpr_query.el
 one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 #one : $(addsuffix .input.diff, $(ONE_TEST_FILES))
 
 #two : RUN_ARGS ?= --verbosity 1
-two : RUN_ARGS ?= --repeat_count 5
+#two : RUN_ARGS ?= --repeat_count 5
 #two : export Standard_Common_Build := Debug
 two : build_ada_executables
-	../run_ada_parse.exe ../test/slow_recover_1.adb Face $(RUN_ARGS)
+	../run_ada_parse.exe ../test/bug_2017_12_12_01.adb Indent $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables
@@ -402,12 +404,12 @@ $(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gp
 	gprinstall -f -p -P ../run_ada_mode_parser.gpr --install-name=run_gpr_mode_parser
 
 # eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
+# eval: (unless dvc-doing-ediff-p (load-file "wisi_parse.el"))
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
 # eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "c:/Projects/org.wisitoken/build"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_elisp_prj.el"))
-# eval: (unless dvc-doing-ediff-p (load-file "wisi_parse.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))
 # end:
 # end of file

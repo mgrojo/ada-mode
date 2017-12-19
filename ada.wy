@@ -405,16 +405,13 @@ accept_statement
 ;; same as access_type_definition for our purposes
 access_definition
   : null_exclusion_opt ACCESS general_access_modifier_opt name
-    (progn
-      (wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face])
-      (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))
+    (wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face])
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
  ;; test/ada_mode-nomina.ads
  ;; type Procedure_Access_Type_8 is access
  ;;   protected procedure
  ;;     (A_Param : out Integer);
-    (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                                           (wisi-anchored% 4 ada-indent-broken)])
+    (wisi-indent-action [0 0 0 0 (wisi-anchored% 4 ada-indent-broken)])
 
   | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
  ;; test/ada_mode-nominal.ads
@@ -422,8 +419,7 @@ access_definition
  ;;   protected function
  ;;     (A_Param : in Float)
  ;;     return Standard.Float;
-    (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                                           (wisi-anchored%- 4 ada-indent-broken)])
+    (wisi-indent-action [0 0 0 0 (wisi-anchored%- 4 ada-indent-broken)])
   ;
 
 actual_parameter_part
@@ -468,13 +464,11 @@ and_interface_list_opt
 array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
-    (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
-                                           ada-indent-broken])
+    (wisi-indent-action [0 0 (wisi-anchored 2 1) (wisi-anchored 2 0) 0 0])
 
   | ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; constrained_array_definition
-    (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
-                                           ada-indent-broken])
+    (wisi-indent-action [0 0 (wisi-anchored 2 1) (wisi-anchored 2 0) 0 0])
   ;
 
 aspect_clause
@@ -866,14 +860,9 @@ delay_statement
 
 derived_type_definition
   : abstract_limited_opt NEW name and_interface_list_opt WITH record_definition
-    (progn
-      (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
-      (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                                             [ada-indent-broken ada-indent-record-rel-type] 0]))
+    (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
   | abstract_limited_opt NEW name constraint_opt
-    (progn
-      (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
-      (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))
+    (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
   ;
 
 direct_name
@@ -1030,7 +1019,7 @@ enumeration_representation_clause
 
 enumeration_type_definition
   : LEFT_PAREN enumeration_literal_list RIGHT_PAREN
-    (wisi-indent-action [ada-indent-broken (wisi-anchored 1 1) (wisi-anchored 1 0)])
+    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
   ;
 
 exception_choice : name | OTHERS ;
@@ -1204,7 +1193,8 @@ formal_type_declaration
       (wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-containing-action 1 5) ;; for goto-declaration-start
       (wisi-face-apply-action [2 nil font-lock-type-face])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken
+                             ada-indent-broken ada-indent-broken 0]))
   | TYPE IDENTIFIER discriminant_part_opt IS TAGGED aspect_specification_opt SEMICOLON
  ;; formal_incomplete_type_declaration
     (progn
@@ -1268,13 +1258,11 @@ full_type_declaration
       (wisi-containing-action 1 5) ;; for goto-declaration-start
       (wisi-face-apply-action [2 nil font-lock-type-face])
 
-      ;; Indentation of 'type_definition' done there, for
-      ;; ada-indent-record-rel-type.
-      ;;
-      ;; FIXME: indentation of comment after 'is' should be
-      ;; ada-indent-record if type_definition is a record. Worse if
+      ;; FIXME: indentation of comment after 'is' (and 'with' in
+      ;; derived_type_definition) should be ada-indent-record-rel-type
+      ;; if type_definition is a record. Worse if
       ;; ada-indent-comment-gnat is t. Need 'anchor to next line'.
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken [ada-indent-broken ada-indent-broken] 0 0 0]))
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken [ada-indent-broken ada-indent-broken] ada-indent-broken 0 0]))
   | task_type_declaration
   | protected_type_declaration
   ;
@@ -1762,13 +1750,13 @@ object_declaration
     (progn
       (wisi-statement-action [1 statement-start 9 statement-end])
       (wisi-containing-action 1 5) ;; for goto-declaration-start
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 ada-indent-broken
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                              (wisi-anchored% 6 ada-indent-broken) ada-indent-broken 0]))
   | identifier_list COLON aliased_opt constant_opt array_type_definition aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-containing-action 1 5) ;; for goto-declaration-start
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 ada-indent-broken 0]))
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   | single_task_declaration
   | single_protected_declaration
   ;
@@ -2157,7 +2145,6 @@ record_definition
                          (ada-indent-record* 'TYPE 1 0)
                          0])
   | NULL RECORD
-    (wisi-indent-action [ada-indent-broken ada-indent-broken])
   ;
 
 record_representation_clause
@@ -2607,18 +2594,12 @@ type_declaration
 type_definition
   : enumeration_type_definition
   | RANGE simple_expression DOT_DOT simple_expression ;; integer_type_definition
-    (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken])
   | MOD expression_opt
-    (wisi-indent-action [ada-indent-broken ada-indent-broken])
   | DIGITS expression_opt real_range_specification_opt ;; real_type_definition, floating_point_type_definition
-    (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken])
   | DELTA expression_opt real_range_specification_opt ;; ordinary_fixed_point_definition
-    (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken])
   | DELTA expression_opt DIGITS expression_opt real_range_specification_opt ;; decimal_fixed_point_definition
-    (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken])
   | array_type_definition
   | abstract_tagged_limited_opt record_definition ;;record_type_definition
-    (wisi-indent-action [ada-indent-broken 0])
   | access_definition ;; access_type_definition
   | derived_type_definition
   | interface_type_definition

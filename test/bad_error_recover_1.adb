@@ -9,6 +9,8 @@
 
 --EMACSCMD:(setq skip-recase-test t)
 
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+
 pragma License (Modified_GPL);
 
 with Ada.Text_IO;
