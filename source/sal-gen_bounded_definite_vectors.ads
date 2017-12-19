@@ -18,12 +18,11 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers;
 with Ada.Iterator_Interfaces;
 generic
    type Index_Type is range <>;
    type Element_Type is private;
-   Capacity : in Ada.Containers.Count_Type;
+   Capacity : in SAL.Peek_Type;
 package SAL.Gen_Bounded_Definite_Vectors is
 
    subtype Extended_Index is Index_Type'Base
@@ -39,7 +38,7 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
    Empty_Vector : constant Vector;
 
-   function Length (Container : in Vector) return Ada.Containers.Count_Type;
+   function Length (Container : in Vector) return SAL.Base_Peek_Type;
 
    procedure Clear (Container : in out Vector);
 
@@ -73,7 +72,7 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
 private
 
-   type Array_Type is array (Ada.Containers.Count_Type range 1 .. Capacity) of aliased Element_Type;
+   type Array_Type is array (SAL.Peek_Type range 1 .. Capacity) of aliased Element_Type;
 
    type Vector is tagged
    record

@@ -39,7 +39,7 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
    overriding procedure Finalize (Container : in out List);
    --  Free all items in List.
 
-   function Length (Container : in List) return Ada.Containers.Count_Type;
+   function Length (Container : in List) return Base_Peek_Type;
 
    procedure Append (Container : in out List; Element : in Element_Type);
 
@@ -87,9 +87,9 @@ private
    procedure Free is new Ada.Unchecked_Deallocation (Node_Type, Node_Access);
 
    type List is new Ada.Finalization.Controlled with record
-      Head  : Node_Access               := null;
-      Tail  : Node_Access               := null;
-      Count : Ada.Containers.Count_Type := 0;
+      Head  : Node_Access        := null;
+      Tail  : Node_Access        := null;
+      Count : SAL.Base_Peek_Type := 0;
    end record;
 
    type Cursor is record

@@ -18,7 +18,8 @@
 
 pragma License (GPL);
 
-with AUnit.Checks.Containers;
+with AUnit.Checks;
+with SAL.AUnit;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate;
 package body Test_Definite_Doubly_Linked_Lists is
 
@@ -35,7 +36,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       pragma Unreferenced (T);
 
       use AUnit.Checks;
-      use AUnit.Checks.Containers;
+      use SAL.AUnit;
 
       List : Integer_Lists.List;
       Cur : Cursor;

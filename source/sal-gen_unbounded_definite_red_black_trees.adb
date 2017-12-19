@@ -147,14 +147,18 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       return null;
    end Find;
 
-   procedure Free_Tree (Item : in out Node_Access)
+   procedure Free_Tree (Item : in out Node_Access; Nil : in Node_Access)
    is begin
-      if Item.Left /= null then
-         Free_Tree (Item.Left);
+      if Item = null then
+         return;
       end if;
 
-      if Item.Right /= null then
-         Free_Tree (Item.Right);
+      if Item.Left /= Nil then
+         Free_Tree (Item.Left, Nil);
+      end if;
+
+      if Item.Right /= Nil then
+         Free_Tree (Item.Right, Nil);
       end if;
 
       Free (Item);
@@ -282,7 +286,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       if Object.Root /= null then
          Object.Nil.Left  := null;
          Object.Nil.Right := null;
-         Free_Tree (Object.Root);
+         Free_Tree (Object.Root, Object.Nil);
+         Free (Object.Nil);
       end if;
    end Finalize;
 

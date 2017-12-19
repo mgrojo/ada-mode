@@ -70,14 +70,14 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       Container.Tail := null;
    end Finalize;
 
-   function Length (Container : in List) return Ada.Containers.Count_Type
+   function Length (Container : in List) return SAL.Base_Peek_Type
    is begin
       return Container.Count;
    end Length;
 
    procedure Append (Container : in out List; Element : in Element_Type)
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       New_Node : constant Node_Access := new Node_Type'
         (Element => Element,
          Prev    => Container.Tail,
@@ -95,7 +95,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Prepend (Container : in out List; Element : in Element_Type)
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       New_Node : constant Node_Access := new Node_Type'
         (Element => Element,
          Prev    => null,
@@ -156,7 +156,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Delete (Container : in out List; Position : in out Cursor)
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       Node : Node_Access renames Position.Ptr;
    begin
       if Node.Next = null then

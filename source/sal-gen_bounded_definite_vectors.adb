@@ -19,13 +19,11 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Bounded_Definite_Vectors is
 
-   use all type Ada.Containers.Count_Type;
-
-   function Length (Container : in Vector) return Ada.Containers.Count_Type
+   function Length (Container : in Vector) return SAL.Base_Peek_Type
    is begin
       --  We assume the type ranges are sensible, so no exceptions occur
       --  here.
-      return Ada.Containers.Count_Type (Container.Last - Index_Type'First + 1);
+      return SAL.Base_Peek_Type (Container.Last - Index_Type'First + 1);
    end Length;
 
    procedure Clear (Container : in out Vector)
@@ -35,7 +33,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    function Element (Container : Vector; Index : Index_Type) return Element_Type
    is begin
-      return Container.Elements (Ada.Containers.Count_Type (Index - Index_Type'First + 1));
+      return Container.Elements (SAL.Peek_Type (Index - Index_Type'First + 1));
    end Element;
 
    function Last_Index (Container : Vector) return Extended_Index
@@ -45,7 +43,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    procedure Append (Container : in out Vector; New_Item : in Element_Type)
    is
-      J : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type (Container.Last + 1 - Index_Type'First + 1);
+      J : constant SAL.Peek_Type := SAL.Peek_Type (Container.Last + 1 - Index_Type'First + 1);
    begin
       Container.Elements (J) := New_Item;
       Container.Last := Container.Last + 1;
@@ -53,7 +51,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type)
    is
-      J : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type (Container.Last + 1 - Index_Type'First + 1);
+      J : constant SAL.Peek_Type := SAL.Peek_Type (Container.Last + 1 - Index_Type'First + 1);
    begin
       Container.Elements (2 .. J) := Container.Elements (1 .. J - 1);
       Container.Elements (1) := New_Item;
@@ -62,7 +60,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
    is
-      J : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type (Index - Index_Type'First + 1);
+      J : constant SAL.Peek_Type := SAL.Peek_Type (Index - Index_Type'First + 1);
    begin
       return (Element => Container.Elements (J)'Access);
    end Constant_Reference;
@@ -125,7 +123,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    function Constant_Reference (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
    is
-      J : constant Ada.Containers.Count_Type := Ada.Containers.Count_Type (Position.Index - Index_Type'First + 1);
+      J : constant SAL.Peek_Type := SAL.Peek_Type (Position.Index - Index_Type'First + 1);
    begin
       return (Element => Container.Elements (J)'Access);
    end Constant_Reference;
