@@ -1,6 +1,8 @@
 --  Test that ada_indent_renames_0 handles
 --  subp_tok with null region
 
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+
 procedure Put
 is
    use Ada.Containers;

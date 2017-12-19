@@ -74,6 +74,8 @@ COMPILE_FILES := $(filter-out ada_mode-recover_align_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_2.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_3.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_pattern_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_pattern_2.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_virtual.adb, $(COMPILE_FILES))
 
@@ -96,6 +98,7 @@ SYNTAX_FILES  := $(SYNTAX_FILES) adacore_8529_012.ads
 COMPILE_FILES := $(filter-out aspects.ads, $(COMPILE_FILES))# complicated aspects
 SYNTAX_FILES  := $(SYNTAX_FILES) aspects.ads
 
+COMPILE_FILES := $(filter-out bad_error_recover_1.adb, $(COMPILE_FILES))# deliberate error
 COMPILE_FILES := $(filter-out bug_2016_11_21_01.adb, $(COMPILE_FILES))# missing declarations
 COMPILE_FILES := $(filter-out g-comlin.adb, $(COMPILE_FILES))# copied from gnat runtime; gnat won't compile it!
 COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))# could run thru gnatprep, but it's not worth it.
@@ -116,10 +119,12 @@ SYNTAX_FILES  := $(SYNTAX_FILES) prime-volatilities.adb
 
 # deliberate errors to test error recovery
 COMPILE_FILES := $(filter-out slow_recover_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out slow_recover_2.adb, $(COMPILE_FILES))
 
 # GNAT GPL 2016 complains about compiling these; not clear why
 COMPILE_FILES := $(filter-out test_private.ads, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
+COMPILE_FILES := $(filter-out virtual_renames.adb, $(COMPILE_FILES))
 
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
