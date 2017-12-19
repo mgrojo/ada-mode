@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with Ada.Task_Identification;
+with GNAT.Traceback.Symbolic;
 with SAL.Gen_Unbounded_Definite_Queues;
 with System.Multiprocessors;
 package body WisiToken.LR.McKenzie_Recover is
@@ -232,7 +233,9 @@ package body WisiToken.LR.McKenzie_Recover is
             end if;
 
          when Ready =>
-            if Parser_Data (I).Config_Heap.Min_Key <= Parser_Data (I).Results.Min_Key then
+            if Parser_Data (I).Config_Heap.Count > 0 and then
+              Parser_Data (I).Config_Heap.Min_Key <= Parser_Data (I).Results.Min_Key
+            then
                --  Still more to check.
                return True;
 
@@ -308,10 +311,17 @@ package body WisiToken.LR.McKenzie_Recover is
             Active_Workers (I)          := Active_Workers (I) + 1;
          end Set_Outputs;
 
+         procedure Set_All_Done
+         is begin
+            Parser_Index := SAL.Base_Peek_Type'First;
+            Parser_Label := Natural'First;
+            Config       := Default_Configuration;
+            Status       := All_Done;
+         end Set_All_Done;
+
       begin
          if Fatal_Called or All_Parsers_Done then
-            Parser_Index := Parser_Data'First - 1;
-            Status       := All_Done;
+            Set_All_Done;
             return;
          end if;
 
@@ -345,7 +355,9 @@ package body WisiToken.LR.McKenzie_Recover is
                end if;
 
             when Ready =>
-               if Parser_Data (I).Config_Heap.Min_Key <= Parser_Data (I).Results.Min_Key then
+               if Parser_Data (I).Config_Heap.Count > 0 and then
+                  Parser_Data (I).Config_Heap.Min_Key <= Parser_Data (I).Results.Min_Key
+               then
                   --  Still more to check.
                   Set_Outputs (I);
                   return;
@@ -365,8 +377,7 @@ package body WisiToken.LR.McKenzie_Recover is
                Trace.Put_Line ("Supervisor: done, " & (if Success_Count > 0 then "succeed" else "fail"));
             end if;
 
-            Parser_Index     := Parser_Data'First - 1;
-            Status           := All_Done;
+            Set_All_Done;
             All_Parsers_Done := True;
          else
             raise Programmer_Error with "Get_Barrier and Get logic do not match";
@@ -465,6 +476,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Error_ID       := Exception_Identity (E);
          Error_Message  := +Exception_Message (E);
          Trace.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
+         Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       end Fatal;
 
       entry Done (Error_ID : out Ada.Exceptions.Exception_Id; Message : out Ada.Strings.Unbounded.Unbounded_String)

@@ -10,24 +10,26 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
-update NEWS.text
-
-need case-insensitive compare in match-names
-    UTF-8 version
-    ASCII bytes do not appear in UTF-8 unless they are valid, so to_lower (Character) is safe
-
-why does test_mckenzie_recover.adb Match_Name fail at eof with check_limit < 4?
-    similar question for slow_recover_2.adb
-
 move token_line_comment into wisitoken.semantic_state.token; no need for dispatching/classwide token type
     augmented_token_array can be definite
 
 delete Index from Semantic_Action
 
+Use correction cost to pick parser in terminate duplicate
+
+update NEWS.text
+
+Can compute max tokens length for actions from grammar - use fixed array size
+    may cause generic explosion
+
+Fixed size stack speed mckenzie?
+
+need case-insensitive compare in match-names
+    UTF-8 version
+    ASCII bytes do not appear in UTF-8 unless they are valid, so to_lower (Character) is safe
+
 if full parse fails, go back to successful error recover and find more expensive solutions
     save full config_heap after successful error recover
-
-try kim-choe for ada_mode/test/slow_recover_2.adb (before name matching)
 
 reorganize into three package hierarchies:
     wisitoken.parse - parser runtime

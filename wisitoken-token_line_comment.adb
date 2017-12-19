@@ -96,7 +96,7 @@ package body WisiToken.Token_Line_Comment is
       if State.All_Tokens (Current).Line >= Line then
          --  Search backwards
          loop
-            exit when Current = State.All_Tokens.First_Index or
+            exit when Current = State.All_Tokens.First_Index or else
               (State.All_Tokens (Current - 1).Line = Line and
                  State.All_Tokens (Current - 1).ID = State.Trace.Descriptor.New_Line_ID);
             Current := Current - 1;
@@ -110,11 +110,14 @@ package body WisiToken.Token_Line_Comment is
       else
          --  Search forwards
          loop
-            exit when State.All_Tokens (Current).ID = State.Trace.Descriptor.New_Line_ID;
+            exit when Current = State.All_Tokens.Last_Index or else
+              State.All_Tokens (Current).ID = State.Trace.Descriptor.New_Line_ID;
             Current := Current + 1;
          end loop;
 
-         if State.All_Tokens (Current + 1).ID = State.Trace.Descriptor.New_Line_ID then
+         if Current = State.All_Tokens.Last_Index then
+            return Current;
+         elsif State.All_Tokens (Current + 1).ID = State.Trace.Descriptor.New_Line_ID then
             return Current;
          else
             return Current + 1;
