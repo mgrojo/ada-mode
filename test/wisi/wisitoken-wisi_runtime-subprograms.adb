@@ -57,13 +57,14 @@ package body WisiToken.Wisi_Runtime.Subprograms is
    end Initialize;
 
    function Function_1
-     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Semantic_State.Augmented_Token_Array;
-      Indenting : in     Token_Line_Comment.Token;
-      Args      : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      pragma Unreferenced (Data, Tokens, Indenting, Args);
+      pragma Unreferenced (Data, Tokens, Indenting, Indenting_Comment, Args);
    begin
       --  subprograms.el subp-indent-function
       return (Simple, (Int, Subp_Indent_Broken));

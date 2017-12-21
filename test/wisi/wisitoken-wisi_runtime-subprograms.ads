@@ -38,10 +38,11 @@ package WisiToken.Wisi_Runtime.Subprograms is
    --  represented by 0 | 1. Parameter values are space delimited.
 
    function Function_1
-     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Semantic_State.Augmented_Token_Array;
-      Indenting : in     Token_Line_Comment.Token;
-      Args      : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
 
 end WisiToken.Wisi_Runtime.Subprograms;

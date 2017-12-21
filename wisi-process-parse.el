@@ -72,6 +72,13 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	parser
      )))
 
+(defun wisi-process-parse-set-exec (label exec-file)
+  "Change the EXEC-FILE for parsers with LABEL."
+  (let ((parser (cdr (assoc label wisi-process--alist))))
+    (when parser
+      (wisi-parse-kill parser)
+      (setf (wisi-process--parser-exec-file parser) exec-file))))
+
 (defvar wisi-process-parse-exec-opts nil
   "List of command-line options for external parse executable.")
 
@@ -384,7 +391,8 @@ complete."
 	    (wisi-process-parse--send-parse parser line-count)
 
 	    ;; We reset the elisp lexer, because post-parse actions may use it.
-	    (wisi-elisp-lexer-reset line-count wisi--lexer)
+	    (when wisi--lexer
+	      (wisi-elisp-lexer-reset line-count wisi--lexer))
 	    )
 
 	  (set-buffer response-buffer)

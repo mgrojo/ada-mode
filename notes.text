@@ -35,9 +35,21 @@ run test from emacs -Q using source:
 wisitoken-token_line_comment.adb:101:31: already at outermost
     fix in o.e.a.s-2
 
+which-function in mckenzie supervisor.get returns supervisor
+
 interactive_1, _2 crash process
     try Debian
     change to module
+
+delete wisi-wisi_runtime-ada.ads Record_ID?
+    use enum!
+
+clean up gpr-mode; delete 'we reuse ada' comments
+
+clean up Makefile, common.make
+    see wisi_grammar
+
+add wisi-forward-anchor, use for comments after 'is', 'when' in record type
 
 emacs occasionally hangs
     kill ada_mode_wisi_parse.exe via task manager fixes it
@@ -595,8 +607,9 @@ Add Ada parser to gnu global?
 gdb run_ada_parse
     in wisitoken-wisi_runtime.adb Indent_Action_0:
         break on 'if token.first_indent_line then' line 981
-        p ada_process.descriptor.image (nonterm.id)
-        p ada_process.descriptor.image (token.id)
+        p data.semantic_state.trace.descriptor.image (nonterm.id)
+        p data.semantic_state.trace.descriptor.image (token.id)
+        p token.char_region
 
         p data.indents.elements.ea
 

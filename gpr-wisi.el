@@ -83,15 +83,6 @@
 
       )))
 
-;;; debugging
-(defun gpr-wisi-debug-keys ()
-  "Add debug key definitions to `gpr-mode-map'."
-  (interactive)
-  (define-key gpr-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
-  (define-key gpr-mode-map "\M-j" 'wisi-show-cache)
-  (define-key gpr-mode-map "\M-k" 'wisi-show-token)
-  )
-
 ;;;;
 
 (cl-defstruct (gpr-wisi-parser (:include wisi-process--parser))

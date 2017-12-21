@@ -1011,7 +1011,10 @@ Called with BEGIN END.")
     (while (and (not (eobp))
 		(< (point) end))
       (forward-line 1)
-      (indent-line-to col))))
+      (indent-line-to col)
+      (when (bobp)
+	;; single line in buffer; terminate loop
+	(goto-char (point-max))))))
 
 (defun wisi--set-line-begin (line-count)
   "Return a vector of line-beginning positions, with length LINE-COUNT."

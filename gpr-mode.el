@@ -233,8 +233,7 @@ of the package or project point is in or just after, or nil.")
   (ada-select-prj-file (or file (buffer-file-name))))
 
 (defun gpr-syntax-propertize (start end)
-  "Assign `syntax-table' properties in accessible part of buffer.
-In particular, character constants are set to have string syntax."
+  "Assign `syntax-table' properties in accessible part of buffer."
   ;; (info "(elisp)Syntax Properties")
   ;;
   ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
