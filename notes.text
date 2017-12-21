@@ -10,6 +10,10 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
+move name propagation into a check action
+    specify in grammar
+    "check" may have no side effects; executed during error correction speculative parse
+
 move token_line_comment into wisitoken.semantic_state.token; no need for dispatching/classwide token type
     augmented_token_array can be definite
 

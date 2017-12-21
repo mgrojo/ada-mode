@@ -39,7 +39,7 @@ package body WisiToken.Token_Region is
          --  No parens for consistency with previous unit test results.
          return ID_Image;
 
-      elsif Item.Line /= Invalid_Line_Number then
+      elsif Item.Line /= Invalid_Line_Number and Trace_Parse <= Detail then
          return "(" & ID_Image & Name_Image &
            Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
 

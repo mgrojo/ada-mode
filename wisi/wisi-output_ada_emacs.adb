@@ -502,7 +502,12 @@ is
                else
                   --  wisi lisp function call
                   Function_Name := +Indent_Label (-Function_Name);
-                  if Slice (Function_Name, 1, 4) = "Hang" then
+                  if Length (Function_Name) = 0 then
+                     --  not a recognized function
+                     Last := 1 + Index (Params, ")", Last);
+                     return "";
+
+                  elsif Slice (Function_Name, 1, 4) = "Hang" then
                      --  Arguments are 2 Simple_Indent_Param
                      Args := +Ensure_Simple_Indent (Expression (Last + 1));
                      Args := Args & ", " & Ensure_Simple_Indent (Expression (Last + 1));
@@ -533,7 +538,11 @@ is
          is begin
             --  Return an aggregate for Indent_Param. Item can be anything
             --  Expression returns.
-            if Item'Length >= 5 and then Item (Item'First .. Item'First + 4) = "(Hang" then
+            if Item'Length = 0 then
+               --  Expression could not find an indent function
+               return Item;
+
+            elsif Item'Length >= 5 and then Item (Item'First .. Item'First + 4) = "(Hang" then
                return Item;
 
             elsif Item (Item'First) = '(' then

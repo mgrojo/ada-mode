@@ -30,9 +30,16 @@ package body Wisi.Utils is
       loop
          declare
             Line      : constant String  := Standard.Ada.Text_IO.Get_Line (File);
-            Comment   : constant Integer := Standard.Ada.Strings.Fixed.Index (Pattern => ";;", Source => Line);
+            Comment   : Integer := Standard.Ada.Strings.Fixed.Index (Pattern => ";;", Source => Line);
             Non_Blank : constant Integer := Standard.Ada.Strings.Fixed.Index_Non_Blank (Line);
          begin
+            if (Comment - 1 > Line'First and Comment + 2 <= Line'Last) and then
+              (Line (Comment - 1) = '"' and Line (Comment + 2) = '"')
+            then
+               --  Special case: this language has the same comment delimiter as wisi.
+               Comment := 0;
+            end if;
+
             if Non_Blank > 0 then
                if Comment = 0 then
                   return Trim (Line, Both);

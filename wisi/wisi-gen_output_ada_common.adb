@@ -378,6 +378,34 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("#define YYRESTORECTX() lexer->cursor = lexer->context; lexer->char_pos = lexer->context_pos");
       New_Line;
 
+      if Is_In (Tokens.Tokens, "delimited-text") then
+         Indent_Line ("static void skip_to(wisi_lexer* lexer, char* target, int target_length)");
+         Indent_Line ("{");
+         Indent_Line ("  int i;");
+         New_Line;
+         Indent_Line ("  while (lexer->cursor <= lexer->buffer_last)");
+         Indent_Line ("    {");
+         Indent_Line ("      if (*lexer->cursor == target[0])");
+         Indent_Line ("      {");
+         Indent_Line ("        i = 0;");
+         Indent_Line ("        do");
+         Indent_Line ("          {");
+         Indent_Line ("            i++;");
+         Indent_Line ("            skip(lexer);");
+         Indent_Line ("          }");
+         Indent_Line ("        while (i < target_length &&");
+         Indent_Line ("               lexer->cursor <= lexer->buffer_last &&");
+         Indent_Line ("               *lexer->cursor == target[i]);");
+         New_Line;
+         Indent_Line ("        if (i == target_length)");
+         Indent_Line ("            break;");
+         Indent_Line ("      }");
+         Indent_Line ("      skip(lexer);");
+         Indent_Line ("    };");
+         Indent_Line ("}");
+         New_Line;
+      end if;
+
       ----------
       --  next_token
       Indent_Line ("int " & Output_File_Name_Root & "_next_token");
@@ -434,6 +462,10 @@ package body Wisi.Gen_Output_Ada_Common is
                --  trailing context syntax; forbidden in definitions
                null;
 
+            elsif Kind (I) = "delimited-text" then
+               --  not declared in definitions
+               null;
+
             elsif Kind (I) = "keyword" and Params.Keywords_Case_Insensitive then
                Indent_Line (Name (I) & " = '" & Strip_Quotes (Val) & "';");
 
@@ -457,6 +489,17 @@ package body Wisi.Gen_Output_Ada_Common is
             if Kind (I) = "non-reporting" then
                Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
                Indent_Line ("    lexer->char_token_start = lexer->char_pos; continue; }");
+
+            elsif Kind (I) = "delimited-text" then
+               --  Val contains the start and end strings, separated by space
+               declare
+                  Start_Last : constant Integer := Index (Val, " ");
+               begin
+                  Indent_Line
+                    (Val (1 .. Start_Last - 1) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
+                     "; skip_to(lexer, " & Val (Start_Last + 1 .. Val'Last) & "," &
+                       Integer'Image (Val'Last - Start_Last - 2) & "); continue;}");
+               end;
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
                Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
