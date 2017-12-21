@@ -1,0 +1,9 @@
+need delimited-text token code for PREAMBLE
+    in wisi_grammar.re2c-save; copy to wisi-gen_output_ada.adb
+
+syntax_error on wisi-number-p
+    need'-' in declaration_item
+    exception handler crashes?
+        recompile after clean
+
+need face on declarations
