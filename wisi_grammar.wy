@@ -1,0 +1,171 @@
+;;; Wisi grammar for Wisi grammar.
+
+;; Copyright (C) 2017 Free Software Foundation, Inc.
+;;
+;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;;; Discussion:
+;;
+;; The main goal is to provide indentation and navigation, which does
+;; not require a full semantic understanding of the contents of the
+;; file. We do not support generating grammars by parsing the source
+;; file with this grammar - that's what the Ada package WisiToken is
+;; for.
+;;
+;; Therefore we define a generic declaration, and a simple model of
+;; nonterminals.
+
+%{
+%}
+
+%keyword PERCENT "%"
+%keyword PERCENT_PERCENT "%%"
+
+%token <punctuation> BAR "|"
+%token <punctuation> COLON ":"
+%token <punctuation> GREATER ">"
+%token <punctuation> LESS "<"
+%token <punctuation> LEFT_BRACKET "["
+%token <punctuation> LEFT_PAREN "("
+%token <punctuation> PLUS "+"
+%token <punctuation> RIGHT_BRACKET "]"
+%token <punctuation> RIGHT_PAREN ")"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> STAR "*"
+
+%elisp_regexp wisi-number-p [0-9][0-9]*
+%token <number> NUMERIC_LITERAL wisi-number-p
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]+
+
+%token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
+
+%token <misc> CHARSET "["[^\]]+"]"
+
+%token <delimited-text> PREAMBLE "%{" "%}"
+
+%non_grammar <non-reporting> WHITESPACE [ \t]
+%non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
+%non_grammar <comment> COMMENT ";;"[^\n]*
+
+%elisp_face font-lock-function-name-face
+%elisp_face nil
+
+%parser_algorithm LALR
+%start compilation_unit
+
+%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token STRING_LITERAL
+%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token CHARSET
+%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token PLUS
+%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token STAR
+%conflict SHIFT/REDUCE in state action, action_item_list  on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state action_item, action_item_list  on token RIGHT_BRACKET
+
+%%
+;;;; grammar rules
+
+declaration
+: PERCENT IDENTIFIER declaration_item_list
+;
+
+declaration_list
+: declaration
+| declaration_list declaration
+;
+
+declaration_item_list
+: declaration_item
+| declaration_item_list declaration_item
+;
+
+declaration_item
+: IDENTIFIER
+| LESS IDENTIFIER GREATER
+| regexp_list ;; includes STRING_LITERAL
+;
+
+regexp_list
+: regexp
+| regexp_list regexp
+;
+
+regexp
+: STRING_LITERAL
+| CHARSET
+| LEFT_PAREN
+| PLUS
+| RIGHT_PAREN
+| STAR
+;
+
+nonterminal
+: IDENTIFIER COLON rhs_list SEMICOLON
+(progn
+(wisi-statement-action [1 name])
+(wisi-face-apply-action [1 nil font-lock-function-name-face])
+(wisi-indent-action [0 2 2 2]))
+;
+
+nonterminal_list
+: nonterminal
+| nonterminal_list nonterminal
+;
+
+rhs_list
+: rhs
+| rhs_list BAR rhs
+;
+
+rhs
+: token_list
+| token_list action
+(wisi-indent-action [(wisi-hanging 0 2) 2])
+| token_list action action
+(wisi-indent-action [(wisi-hanging 0 2) 2 2])
+;
+
+token_list
+: IDENTIFIER
+| token_list IDENTIFIER
+;
+
+action
+: LEFT_PAREN action_item_list RIGHT_PAREN
+(wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1)])
+;
+
+action_item_list
+: action_item
+| action_item_list
+;
+
+action_item
+: IDENTIFIER
+| NUMERIC_LITERAL
+| LEFT_BRACKET action_item_list RIGHT_BRACKET
+(wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1)])
+| action
+;
+
+compilation_unit
+: PREAMBLE declaration_list PERCENT_PERCENT nonterminal_list PERCENT_PERCENT
+;
+
+%%
+;; end of file
