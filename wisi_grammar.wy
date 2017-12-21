@@ -36,25 +36,28 @@
 %keyword PERCENT "%"
 %keyword PERCENT_PERCENT "%%"
 
+%token <punctuation> BACKSLASH "\\"
 %token <punctuation> BAR "|"
+%token <punctuation> CARET "^"
 %token <punctuation> COLON ":"
+%token <punctuation> COMMA ","
 %token <punctuation> GREATER ">"
 %token <punctuation> LESS "<"
 %token <punctuation> LEFT_BRACKET "["
 %token <punctuation> LEFT_PAREN "("
+%token <punctuation> MINUS "-"
 %token <punctuation> PLUS "+"
 %token <punctuation> RIGHT_BRACKET "]"
 %token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
 %token <punctuation> STAR "*"
 
 %elisp_regexp wisi-number-p [0-9][0-9]*
 %token <number> NUMERIC_LITERAL wisi-number-p
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]+
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_-]*
 
 %token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
-
-%token <misc> CHARSET "["[^\]]+"]"
 
 %token <delimited-text> PREAMBLE "%{" "%}"
 
@@ -67,15 +70,6 @@
 
 %parser_algorithm LALR
 %start compilation_unit
-
-%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token STRING_LITERAL
-%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token CHARSET
-%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token LEFT_PAREN
-%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token PLUS
-%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state regexp_list, declaration_item  on token STAR
-%conflict SHIFT/REDUCE in state action, action_item_list  on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state action_item, action_item_list  on token RIGHT_BRACKET
 
 %%
 ;;;; grammar rules
@@ -94,24 +88,27 @@ declaration_item_list
 | declaration_item_list declaration_item
 ;
 
+;; Declaring a separate regexp_item_list is redundant. Also, we can't
+;; define CHARSET as a token, because that hides lisp arrays as
+;; action_items. So we include the components of a charset, and other
+;; regexp components, in declaration_item.
 declaration_item
 : IDENTIFIER
-| LESS IDENTIFIER GREATER
-| regexp_list ;; includes STRING_LITERAL
-;
-
-regexp_list
-: regexp
-| regexp_list regexp
-;
-
-regexp
-: STRING_LITERAL
-| CHARSET
+| BACKSLASH
+| BAR
+| CARET
+| COMMA
+| LEFT_BRACKET
 | LEFT_PAREN
+| LESS IDENTIFIER GREATER
+| MINUS
+| NUMERIC_LITERAL
 | PLUS
+| RIGHT_BRACKET
 | RIGHT_PAREN
+| SLASH
 | STAR
+| STRING_LITERAL
 ;
 
 nonterminal
@@ -152,7 +149,7 @@ action
 
 action_item_list
 : action_item
-| action_item_list
+| action_item_list action_item
 ;
 
 action_item

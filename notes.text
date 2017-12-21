@@ -1,9 +1,9 @@
-need delimited-text token code for PREAMBLE
-    in wisi_grammar.re2c-save; copy to wisi-gen_output_ada.adb
+Makefile
 
-syntax_error on wisi-number-p
-    need'-' in declaration_item
-    exception handler crashes?
-        recompile after clean
-
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.stephe_leake.makerules")
+  (xmtn . "c:/Projects/org.stephe_leake.sal")
+  (xmtn . "c:/Projects/org.wisitoken")
+  (xmtn . "c:/Projects/org.wisitoken.grammar_mode/")))
+
 need face on declarations

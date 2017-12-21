@@ -1,0 +1,5 @@
+^.*\.exe$
+^autoloads\.el$
+^obj$
+^wisi_grammar\.ada_parse_table$
+^wisi_grammar\.re2c$
