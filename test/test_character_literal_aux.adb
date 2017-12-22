@@ -15,7 +15,6 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks;
-with Ada.Containers;
 with Character_Literal;
 with SAL;
 with WisiToken.AUnit;
@@ -113,7 +112,6 @@ package body Test_Character_Literal_Aux is
    procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
-      use Ada.Containers;
       use Character_Literal;
       use WisiToken.AUnit;
       use WisiToken;
@@ -129,6 +127,9 @@ package body Test_Character_Literal_Aux is
                case I is
                when 1 =>
                   Check ("statement_1 1 1.First", Token.First, True);
+                  Check ("statement_1 1 1.Line", Token.Line, 17);
+                  Check ("statement_1 1 1.Byte_Region", Token.Byte_Region, (248, 255)); -- π occupies 2 bytes
+                  Check ("statement_1 1 1.Char_Region", Token.Char_Region, (247, 253));
                when 2 =>
                   Check ("statement_1 1 2.First", Token.First, False);
                when 3 =>
@@ -174,7 +175,6 @@ package body Test_Character_Literal_Aux is
    procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
-      use Ada.Containers;
       use Character_Literal;
       use WisiToken.AUnit;
       use WisiToken;

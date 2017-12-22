@@ -103,6 +103,15 @@ is
       end loop;
    end Update_Paren_Count;
 
+   procedure Report_Error
+   is begin
+      if Error then
+         Standard.Ada.Text_IO.New_Line (Standard.Ada.Text_IO.Standard_Error);
+         Standard.Ada.Text_IO.Put_Line (Standard.Ada.Text_IO.Standard_Error, "Errors; aborting");
+         raise Syntax_Error;
+      end if;
+   end Report_Error;
+
 begin
    --  Actions start on a new line starting with (, and are terminated
    --  by ). Those delimiters are stripped here.
@@ -214,6 +223,7 @@ begin
                   RHS.Production.Clear;
                   RHS.Action.Clear;
                   RHS.Check.Clear;
+                  RHS.Source_Line := Standard.Ada.Text_IO.Line (Input_File) - 1;
 
                   Token_Count := 0;
 
@@ -228,6 +238,7 @@ begin
                   end if;
 
                   Token_Count := 0;
+                  RHS.Source_Line := Standard.Ada.Text_IO.Line (Input_File) - 1;
 
                   Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                   Need_New_Line := Cursor = 0;
@@ -395,15 +406,13 @@ begin
             Put_Error (Input_File, Exception_Message (E));
             --  Keep going to find more errors
          end;
-      when Standard.Ada.Text_IO.End_Error =>
-         Put_Error (Input_File, "unexpected end of file");
-         Error := True;
       end;
    end loop;
 
-   if Error then
-      Standard.Ada.Text_IO.New_Line (Standard.Ada.Text_IO.Standard_Error);
-      Standard.Ada.Text_IO.Put_Line (Standard.Ada.Text_IO.Standard_Error, "Errors; aborting");
-      raise Syntax_Error;
-   end if;
+   Report_Error;
+exception
+when Standard.Ada.Text_IO.End_Error =>
+   Put_Error (Input_File, "unexpected end of file");
+   Error := True;
+   Report_Error;
 end Wisi.Rules;

@@ -512,8 +512,7 @@ package body WisiToken.LR.Parser is
                            Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": succeed");
                         end if;
                      else
-                        --  We called Semantic_State.Error earlier, now we need to call Terminate_Parser.
-                        Shared_Parser.Semantic_State.Terminate_Parser (Current_Parser.Label);
+                        Terminate_Parser (Current_Parser);
                      end if;
                      Current_Parser.Next;
                      exit when Current_Parser.Is_Done;

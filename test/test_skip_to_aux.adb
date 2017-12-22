@@ -1,0 +1,37 @@
+--  Abstract :
+--
+--  See spec.
+--
+--  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--
+--  This library is free software;  you can redistribute it and/or modify it
+--  under terms of the  GNU General Public License  as published by the Free
+--  Software  Foundation;  either version 3,  or (at your  option) any later
+--  version. This library is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
+--  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+pragma License (GPL);
+
+with Ada.Text_IO;
+with WisiToken.AUnit;
+with WisiToken.Token_Line_Comment;
+package body Test_Skip_To_Aux is
+
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class)
+   is
+      use WisiToken.AUnit;
+      Nonterm_Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token (Nonterm);
+   begin
+      if Enable then
+         if WisiToken.Trace_Parse > WisiToken.Outline then
+            Ada.Text_IO.Put_Line ("Test_Declaration_0");
+         end if;
+
+         Check ("declaration_0 1 char region", Nonterm_Token.Char_Region, (8, 25));
+         Check ("declaration_0 1 byte region", Nonterm_Token.Byte_Region, (11, 28)); -- DOS line endings
+         Check ("declaration_0 1 line", Nonterm_Token.Line, 4);
+      end if;
+   end Test_Declaration_0;
+
+end Test_Skip_To_Aux;

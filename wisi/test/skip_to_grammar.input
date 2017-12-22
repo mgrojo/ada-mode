@@ -1,0 +1,6 @@
+%{
+%}
+
+%token RANGE range
+
+;; end of file

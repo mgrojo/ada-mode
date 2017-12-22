@@ -1,0 +1,54 @@
+;; Small grammar for testing lexer 'skip_to' function
+;;
+;; Tests run by test_skip_to.ads
+
+%{
+%%
+%%
+with Test_Skip_To_Aux; use Test_Skip_To_Aux;
+%}
+
+%keyword PERCENT "%"
+%token <delimited-text> PREAMBLE "%{" "%}"
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_-]*
+%non_grammar <non-reporting> WHITESPACE [ \t]
+%non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
+%non_grammar <comment> COMMENT ";;"[^\x0a\x04]*
+
+%output_language Ada
+%lexer re2c
+%parser_algorithm LALR
+
+%start compilation_unit_list
+
+%conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token PERCENT
+%conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token PREAMBLE
+
+%%
+
+declaration
+  : PERCENT IDENTIFIER declaration_item_list
+  (Test_Declaration_0 (Nonterm);)
+;
+
+  declaration_item_list
+  : declaration_item
+  | declaration_item_list declaration_item
+  ;
+  
+  declaration_item
+  : IDENTIFIER
+  ;
+
+  compilation_unit
+  : PREAMBLE 
+  | declaration
+;
+
+compilation_unit_list
+: ;; empty, just comments
+| compilation_unit
+  | compilation_unit_list compilation_unit
+;
+%%
+;; end of file

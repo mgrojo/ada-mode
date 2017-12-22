@@ -272,6 +272,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("unsigned char* byte_token_start; // byte position at start of current token");
       Indent_Line ("size_t         char_pos;         // character position of current character");
       Indent_Line ("size_t         char_token_start; // character position at start of current token");
+      Indent_Line ("int            line;             // 1 indexed");
+      Indent_Line ("int            line_token_start; // line at start of current token");
       Indent_Line ("unsigned char* marker;           // saved cursor");
       Indent_Line ("size_t         marker_pos;       // saved character position");
       Indent_Line ("unsigned char* context;          // saved cursor");
@@ -306,6 +308,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("result->buffer_last = input + length - 1;");
       Indent_Line ("result->cursor      = input;");
       Indent_Line ("result->char_pos    = 1;");
+      Indent_Line ("result->line        = 1;");
       Indent_Line ("result->verbosity   = verbosity;");
       Indent_Line ("return result;");
       Indent := Indent - 3;
@@ -328,6 +331,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
       Indent_Line ("lexer->cursor   = lexer->buffer;");
       Indent_Line ("lexer->char_pos = 1;");
+      Indent_Line ("lexer->line     = 1;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;
@@ -367,6 +371,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor;");
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
       Indent_Line ("   if (DO_COUNT) ++lexer->char_pos;");
+      Indent_Line ("if (*lexer->cursor == 0x0A) ++lexer->line;");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Start ("#define YYSKIP() skip(lexer)");
@@ -414,7 +419,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("   size_t* byte_position,");
       Indent_Line ("   size_t* byte_length,");
       Indent_Line ("   size_t* char_position,");
-      Indent_Line ("   size_t* char_length)");
+      Indent_Line ("   size_t* char_length,");
+      Indent_Line ("   int*    line_start)");
       Indent_Line ("{");
       Indent := Indent + 3;
 
@@ -429,6 +435,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("*byte_length   = 0;");
       Indent_Line ("*char_position = lexer->char_token_start;");
       Indent_Line ("*char_length   = 0;");
+      Indent_Line ("*line_start    = lexer->line;");
       Indent_Line ("return status;");
       Indent := Indent - 3;
       Indent_Line ("}");
@@ -439,6 +446,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("   lexer->char_token_start = lexer->char_pos;");
       Indent_Line ("else");
       Indent_Line ("   lexer->char_token_start = lexer->char_pos + 1;");
+      Indent_Line ("   lexer->line_token_start = lexer->line;");
       New_Line;
 
       Indent_Line ("while (*id == 0 && status == 0)");
@@ -528,6 +536,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("   *char_length = lexer->char_pos - lexer->char_token_start;");
       Indent_Line ("else");
       Indent_Line ("   *char_length = lexer->char_pos - lexer->char_token_start + 1;");
+      Indent_Line ("*line_start     = lexer->line_token_start;");
       Indent_Line ("return status;");
       Indent_Line ("}");
       Indent := Indent - 3;
@@ -584,7 +593,8 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("   Byte_Position :    out Interfaces.C.size_t;");
          Indent_Line ("   Byte_Length   :    out Interfaces.C.size_t;");
          Indent_Line ("   Char_Position :    out Interfaces.C.size_t;");
-         Indent_Line ("   Char_Length   :    out Interfaces.C.size_t)");
+         Indent_Line ("   Char_Length   :    out Interfaces.C.size_t;");
+         Indent_Line ("   Line_Start    :    out Interfaces.C.int)");
          Indent_Line ("  return Interfaces.C.int");
          Indent_Line ("with Import        => True,");
          Indent_Line ("     Convention    => C,");

@@ -216,7 +216,7 @@ package body Test_McKenzie_Recover is
       Parse_Text ("procedure Debug is begin A; ", Test.Debug);
       --  Missing "end;"
       --
-      --  Inserts 'loop', continues to EOF, inserts 'end;', succeeds
+      --  Inserts 'end;', continues to EOF, succeeds
       --  Test hitting EOF and Accept_It in error recovery
       Check ("errors.length", State.Active_Error_List.Length, 1);
 

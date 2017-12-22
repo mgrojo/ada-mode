@@ -48,16 +48,16 @@ generic
       Byte_Position :    out Interfaces.C.size_t;
       Byte_Length   :    out Interfaces.C.size_t;
       Char_Position :    out Interfaces.C.size_t;
-      Char_Length   :    out Interfaces.C.size_t)
+      Char_Length   :    out Interfaces.C.size_t;
+      Line_Start    :    out Interfaces.C.int)
      return Interfaces.C.int;
    --  *_Position and *_Length give the position and length in bytes and
    --  characters of the token from the start of the buffer, 0 indexed.
    --
-   --  Line gives the line number in the source file that the token is
-   --  in, 1 indexed. Char_Line_Start gives the character position of the
-   --  line start relative to the file start.
+   --  Line_Start gives the line number in the source file that the first
+   --  character of the token is in, 1 indexed.
    --
-   --  Result values: (see wisi-gen_output_ada_common.adb create_re2c)
+   --  Result values:
    --
    --  0 - no error
    --  1 - there is an unrecognized character at Position.

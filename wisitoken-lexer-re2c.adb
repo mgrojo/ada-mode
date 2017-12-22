@@ -138,14 +138,12 @@ package body WisiToken.Lexer.re2c is
             Byte_Position => Interfaces.C.size_t (Lexer.Byte_Position),
             Byte_Length   => Interfaces.C.size_t (Lexer.Byte_Length),
             Char_Position => Interfaces.C.size_t (Lexer.Char_Position),
-            Char_Length   => Interfaces.C.size_t (Lexer.Char_Length));
+            Char_Length   => Interfaces.C.size_t (Lexer.Char_Length),
+            Line_Start    => Interfaces.C.int (Lexer.Line));
       begin
          case Status is
          when 0 =>
-            if Lexer.Trace.Descriptor.New_Line_ID /= Invalid_Token_ID and then
-              Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID
-            then
-               Lexer.Line            := Lexer.Line + 1;
+            if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID then
                Lexer.Char_Line_Start := Lexer.Char_Position + 1;
             end if;
             return Lexer.ID;

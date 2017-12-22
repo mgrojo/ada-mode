@@ -668,6 +668,7 @@ package body WisiToken.LR is
          exit when Token.ID >= Semantic_State.Trace.Descriptor.First_Terminal;
       end loop;
       return Token;
+      --  FIXME: catch lexer Syntax_Error here, add to Semantic_State.Errors.
    end Next_Grammar_Token;
 
    procedure Reduce_Stack
