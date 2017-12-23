@@ -1,5 +1,9 @@
+^.*\.diff$
+^.*\.elc$
 ^.*\.exe$
+^.*\.stamp$
 ^autoloads\.el$
 ^obj$
+^test\.log$
 ^wisi_grammar\.ada_parse_table$
 ^wisi_grammar\.re2c$

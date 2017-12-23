@@ -5,5 +5,19 @@ Makefile
   (xmtn . "c:/Projects/org.stephe_leake.sal")
   (xmtn . "c:/Projects/org.wisitoken")
   (xmtn . "c:/Projects/org.wisitoken.grammar_mode/")))
+
+(progn
+ (require 'wisi-grammar-mode)
+ (wisi-grammar-set-exec "c:/Projects/org.wisitoken.grammar_mode/wisi_grammar_mode_parse.exe"))
 
-need face on declarations
+
+add mckenzie
+
+page up/down stop at %%?
+
+move parse_table_mode to o.w.g_m?
+
+use ( for elisp, { for other language?
+    set 'wisi-grammar-action-language' in file-local-var, use multi-major-mode
+    change Ada parser to allow 'statement' as compilation_unit
+        don't widen in wisi-indent-region

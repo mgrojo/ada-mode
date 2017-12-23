@@ -9,13 +9,17 @@
   [WHITESPACE
    NEW_LINE
    COMMENT
+   END
+   IF
+   KEYWORD
    PERCENT
    PERCENT_PERCENT
-   BACKSLASH
+   TOKEN
    BAR
-   CARET
    COLON
+   COLON_EQUAL
    COMMA
+   EQUAL
    GREATER
    LESS
    LEFT_BRACKET
@@ -27,18 +31,20 @@
    SEMICOLON
    SLASH
    STAR
+   TICK
    NUMERIC_LITERAL
    IDENTIFIER
+   REGEXP_CONTENT
    STRING_LITERAL
    PREAMBLE
+   CONFLICT
    Wisi_EOI
    wisitoken_accept
    declaration
-   declaration_list
+   token_keyword_punctuation
    declaration_item_list
    declaration_item
    nonterminal
-   nonterminal_list
    rhs_list
    rhs
    token_list
@@ -46,11 +52,16 @@
    action_item_list
    action_item
    compilation_unit
+   compilation_unit_list
    ])
 
 (defconst wisi_grammar-process-face-table
   [
+   font-lock-constant-face
    font-lock-function-name-face
+   font-lock-keyword-face
+   font-lock-string-face
+   font-lock-type-face
    nil
    ])
 
