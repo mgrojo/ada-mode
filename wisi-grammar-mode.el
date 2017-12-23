@@ -84,21 +84,26 @@ Otherwise insert a plain new line."
   (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
   (when (> (wisi-cache-max 'navigate) (point))
-    (let ((cache (wisi-backward-cache))
-	  done)
-      (while (and cache (not done))
-	;; find nonterminal containing point (if any)
-	(cond
-	 ((eq (wisi-cache-class cache) 'name)
-	  (setq done t))
-	 )
-	(wisi-backward-cache))
+    (save-excursion
+      (let ((cache (wisi-backward-cache)))
+	;; Find terminal or nonterminal containing point (if any)
+	(while
+	    (and
+	     cache
+	     (not (bobp))
+	     (not
+	      (or
+	       (and (eq (wisi-cache-class cache) 'statement-start)
+		    (eq (wisi-cache-nonterm cache) 'nonterminal))
+	       (and (eq (wisi-cache-class cache) 'name)
+		    (eq (wisi-cache-nonterm cache) 'declaration)))))
+	  (setq cache (wisi-backward-cache)))
 
-      (when done
-	;; We don’t define an elisp lexer, so we can’t use wisi-forward-token
-	(buffer-substring (point) (progn (skip-syntax-forward "w_") (point))); name
+	(when cache
+	  ;; We don’t define an elisp lexer, so we can’t use wisi-forward-token
+	  (buffer-substring-no-properties (point) (progn (skip-syntax-forward "w_") (point))); name
 
-	))))
+	  )))))
 
 (defun wisi-grammar-add-log-current-function ()
   "For `add-log-current-defun-function'; return name of current non-terminal or declaration."

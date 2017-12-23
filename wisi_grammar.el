@@ -1,4 +1,4 @@
-;; Project definitions for compiling wisi_grammar_mode_parse.adb
+;; Project definitions for compiling wisi_grammar_mode_parse.adb -*- no-byte-compile: t -*-
 
 (require 'ada-project)
 (require 'xref-ada)
@@ -11,8 +11,4 @@
 ;; Ada mode adds another layer of project selection
 (project-menu-select "Ada mode")
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
-;;
 ;; end of file
