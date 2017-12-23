@@ -497,8 +497,8 @@ Prompt user if more than one."
 	   t)
 
 	  ((or
-	    (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced$"))
-	    (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated$"))
+	    (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced"))
+	    (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated"))
 	    (looking-at "warning: redundant with clause"))
 	   ;; just delete the 'with'; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)

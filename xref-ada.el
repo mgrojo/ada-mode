@@ -10,7 +10,7 @@
   'xref-ada)
 
 (cl-defmethod xref-backend-definitions ((_backend (eql xref-ada)) identifier)
-  (let* ((t-prop (get-text-property 0 'xref-ada-identifier identifier))
+  (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
 	 ;; t-prop is nil when identifier is from prompt, in which
 	 ;; case the line number is incuded in the identifier wrapped
 	 ;; in <>
@@ -61,7 +61,7 @@
 	(let ((ident (ada-identifier-at-point))) ;; moves point to start of ident
 	  (put-text-property
 	   0 1
-	   'xref-ada-identifier
+	   'xref-identifier
 	   (list ':file (buffer-file-name)
 		 ':line (line-number-at-pos)
 		 ':column (current-column))
@@ -97,6 +97,10 @@
 		  package_specification
 		  subtype_declaration
 		  type_declaration))
+	  ;; We can’t store location data in a string text property -
+	  ;; it does not survive completion. So we include the line
+	  ;; number in the identifier string. This also serves to
+	  ;; disambiguate overloaded identifiers.
 	  (push
 	   (format "%s<%d>"
 	    (wisi-cache-text cache)

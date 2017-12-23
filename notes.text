@@ -614,7 +614,6 @@ gdb run_ada_parse
         p data.indents.elements.ea
 
 to change process executable for all current and future buffers:
-    however, this may cause elisp/Ada mismatch!
 
     in any *.adb buffer:
     (setf (wisi-process--parser-exec-file wisi--parser)
@@ -625,6 +624,13 @@ to change process executable for all current and future buffers:
       (setf (wisi-process--parser-exec-file wisi--parser)
         "ada_mode_wisi_parse.exe")
     M-x wisi-kill-parser
+
+    if *-process.el has changed:
+    in *-process.el: M-x eval-buffer
+    in *.<lang> buffer:
+    (wisi-kill-parser
+    (setq wisi-process--alist nil)
+    M-x <lang>-mode
 
 Edebug displays
 

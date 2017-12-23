@@ -491,19 +491,28 @@ Menu displays currently parsed Ada mode projects."
       )
     (nreverse menu)))
 
+(defvar makefile-gmake-mode-map nil);; make-mode.el
 (defun ada-project-menu-install ()
   "Install the Ada project menu as a submenu."
-  (define-key-after
-    (lookup-key ada-mode-map [menu-bar Ada]);; map to put menu in
-    [ada-prj-select]          ;; key (a menu entry)
-    (easy-menu-binding        ;; binding
-     (easy-menu-create-menu
-      "Select Project"
-      (ada-project-menu-compute)))
+  (when (memq major-mode '(ada-mode compilation-mode makefile-gmake-mode))
+    (define-key-after
+      (cl-case major-mode
+	(ada-mode
+	 (lookup-key ada-mode-map [menu-bar Ada]))
+	(compilation-mode
+	 (lookup-key compilation-mode-map [menu-bar compilation]))
+	(makefile-gmake-mode
+	 (lookup-key makefile-gmake-mode-map [menu-bar makefile-mode]))) ;; map to put menu in
+      [ada-prj-select]          ;; key to insert (a menu entry)
+      (easy-menu-binding
+       (easy-menu-create-menu
+	"Select Project"
+	(ada-project-menu-compute)));; binding
+      nil;; after
 
-    ;; IMPROVEME: this doesn’t work; "Select Project" is at end
-    (lookup-key ada-mode-map [menu-bar Ada Project\ files]) ;; after
-    ))
+      ;; IMPROVEME: this doesn’t work for ’after’; "Select Project" is at end
+      ;; (lookup-key ada-mode-map [menu-bar Ada Build])
+      )))
 
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"

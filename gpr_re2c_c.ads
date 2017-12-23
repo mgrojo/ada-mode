@@ -47,7 +47,8 @@ package gpr_re2c_c is
       Byte_Position :    out Interfaces.C.size_t;
       Byte_Length   :    out Interfaces.C.size_t;
       Char_Position :    out Interfaces.C.size_t;
-      Char_Length   :    out Interfaces.C.size_t)
+      Char_Length   :    out Interfaces.C.size_t;
+      Line_Start    :    out Interfaces.C.int)
      return Interfaces.C.int
    with Import        => True,
         Convention    => C,
