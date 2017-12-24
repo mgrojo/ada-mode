@@ -158,7 +158,7 @@ complete."
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      line-count
 		      (1- wisi-debug)
-		      (if wisi-mckenzie-enable 1 0)
+		      (if wisi-mckenzie-disable 1 0)
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
 		      (if wisi-mckenzie-check-limit wisi-mckenzie-check-limit -1)
 		      (1- (position-bytes (point-max)))

@@ -69,16 +69,6 @@ byte-compile-clean :
 
 # IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
-
-# The various gnatxref tests no longer work with any GPL version of GNAT.
-# But some customers still manage to use them, so we rely on their
-# testing.
-#
-# GPL 2016: 'gnatlist' does not include system libraries
-# GPL 2015: 'gnatfind -pada_mode_parent.gpr' can't find ada_mode-nominal.ali
-# GPL 2014: can't compile ada_mode-nominal.ads protected type
-# test : test-ada-gnatxref.stamp
-
 test : test-ada-elisp-gpr_query.stamp
 test : test-ada-process-gpr_query.stamp
 test : test-ada-gps.stamp

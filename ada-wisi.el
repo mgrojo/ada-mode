@@ -743,8 +743,6 @@ TOKEN-TEXT; move point to just past token."
 
     (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
 
-    (setq wisi-mckenzie-enable t)
-
     (wisi-setup
      :indent-calculate '(ada-wisi-comment)
      :post-indent-fail 'ada-wisi-post-parse-fail

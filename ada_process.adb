@@ -467,7 +467,7 @@ package body Ada_Process is
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (4, Motion), (8, Statement_End)));
          Containing_Action (Parse_Data, Nonterm, Tokens, 2, 3);
          Containing_Action (Parse_Data, Nonterm, Tokens, 2, 5);
-         Motion_Action (Parse_Data, Nonterm, Tokens, ((2, Empty_IDs) & (5, Empty_IDs) & (5, 26 & 72) & (8, Empty_IDs)));
+         Motion_Action (Parse_Data, Nonterm, Tokens, ((2, Empty_IDs) & (4, Empty_IDs) & (5, 26 & 72) & (8, Empty_IDs)));
       when Face =>
          null;
       when Indent =>

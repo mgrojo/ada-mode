@@ -1718,46 +1718,48 @@ Indexed by project variable xref_tool.")
   "Alist of functions to call for xref-tool specific project file deselection.
 Indexed by project variable xref_tool.")
 
-(defun ada-select-prj-file (prj-file)
+(defun ada-select-prj-file (prj-file &optional no-force)
   "Select PRJ-FILE as the current project file."
   (interactive)
   (setq prj-file (expand-file-name prj-file))
 
-  (setq ada-prj-current-project (cdr (assoc prj-file ada-prj-alist)))
+  (when (or (not no-force)
+	    (not (string-equal prj-file ada-prj-current-project)))
+    (setq ada-prj-current-project (cdr (assoc prj-file ada-prj-alist)))
 
-  (when (null ada-prj-current-project)
-    (setq ada-prj-current-file nil)
-    (error "Project file '%s' was not previously parsed." prj-file))
+    (when (null ada-prj-current-project)
+      (setq ada-prj-current-file nil)
+      (error "Project file '%s' was not previously parsed." prj-file))
 
-  (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-deselect-prj-compiler))))
-    (when func (funcall func)))
+    (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-deselect-prj-compiler))))
+      (when func (funcall func)))
 
-  (let ((func (cdr (assq (ada-prj-get 'xref_tool) ada-deselect-prj-xref-tool))))
-    (when func (funcall func)))
+    (let ((func (cdr (assq (ada-prj-get 'xref_tool) ada-deselect-prj-xref-tool))))
+      (when func (funcall func)))
 
-  (setq ada-prj-current-file prj-file)
+    (setq ada-prj-current-file prj-file)
 
-  ;; Project file should fully specify what compilers are used,
-  ;; including what compilation filters they need. There may be more
-  ;; than just an Ada compiler.
-  (setq compilation-error-regexp-alist nil)
-  (setq compilation-filter-hook nil)
+    ;; Project file should fully specify what compilers are used,
+    ;; including what compilation filters they need. There may be more
+    ;; than just an Ada compiler.
+    (setq compilation-error-regexp-alist nil)
+    (setq compilation-filter-hook nil)
 
-  (when (ada-prj-get 'el_file)
-    (load-file (ada-prj-get 'el_file)))
+    (when (ada-prj-get 'el_file)
+      (load-file (ada-prj-get 'el_file)))
 
-  (ada-case-read-all-exceptions)
+    (ada-case-read-all-exceptions)
 
-  (setq compilation-search-path (ada-prj-get 'src_dir))
+    (setq compilation-search-path (ada-prj-get 'src_dir))
 
-  (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-select-prj-compiler))))
-    (when func (funcall func)))
+    (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-select-prj-compiler))))
+      (when func (funcall func)))
 
-  (let ((func (cdr (assq (ada-prj-get 'xref_tool) ada-select-prj-xref-tool))))
-    (when func (funcall func)))
+    (let ((func (cdr (assq (ada-prj-get 'xref_tool) ada-select-prj-xref-tool))))
+      (when func (funcall func)))
 
-  ;; return 't', for decent display in message buffer when called interactively
-  t)
+    ;; return 't', for decent display in message buffer when called interactively
+    t))
 
 (defun ada-create-select-default-prj (&optional directory)
   "Create a default project with src_dir set to DIRECTORY (default current directory), select it."
@@ -2830,7 +2832,6 @@ The paragraph is indented on the first line."
   (setq major-mode 'ada-mode)
   (setq mode-name "Ada")
   (use-local-map ada-mode-map)
-  (add-hook 'menu-bar-update-hook #'ada-project-menu-install)
 
   (set-syntax-table ada-mode-syntax-table)
   (define-abbrev-table 'ada-mode-abbrev-table ())
@@ -2993,6 +2994,8 @@ gps: gps external parser.")
 (provide 'ada-mode)
 
 ;;;;; Global initializations
+
+(add-hook 'menu-bar-update-hook #'ada-project-menu-install)
 
 (require 'ada-build)
 

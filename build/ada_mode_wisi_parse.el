@@ -3,8 +3,10 @@
 (require 'ada-project)
 (require 'xref-ada)
 
-(ada-parse-prj-file "ada_mode_wisi_parse.prj")
-(ada-select-prj-file "ada_mode_wisi_parse.prj")
+(let ((prj-file "ada_mode_wisi_parse.prj"))
+  (ada-parse-prj-file prj-file)
+  (ada-select-prj-file prj-file)
+  (push (cons default-directory (cons 'ada-mode (concat default-directory prj-file))) sal-project-dir-alist))
 
 (setq project-find-functions '(project-menu-prj))
 

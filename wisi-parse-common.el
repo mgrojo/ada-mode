@@ -78,8 +78,8 @@ Allows timing parse separate from actions.")
 (defvar-local wisi-panic-enable nil
   "If non-nil, enable panic mode error recovery.")
 
-(defvar-local wisi-mckenzie-enable nil
-  "If non-nil, enable McKenzie error recovery.")
+(defvar-local wisi-mckenzie-disable nil
+  "If non-nil, disable McKenzie error recovery. Otherwise, use parser default.")
 
 (defcustom wisi-mckenzie-cost-limit nil
   "If integer, sets McKenzie recover algorithm limit.
