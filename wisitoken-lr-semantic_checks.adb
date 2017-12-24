@@ -60,4 +60,25 @@ package body WisiToken.LR.Semantic_Checks is
       end if;
    end Match_Names;
 
+   function Propagate_Name
+     (Nonterm    : in out Base_Token;
+      Tokens     : in     Base_Token_Arrays.Vector;
+      Name_Index : in     Positive_Index_Type)
+     return Semantic_Status
+   is begin
+      Nonterm.Name := Tokens (Name_Index).Name;
+      return Ok;
+   end Propagate_Name;
+
+   function Merge_Names
+     (Nonterm     : in out Base_Token;
+      Tokens      : in     Base_Token_Arrays.Vector;
+      First_Index : in     Positive_Index_Type;
+      Last_Index  : in     Positive_Index_Type)
+     return Semantic_Status
+   is begin
+      Nonterm.Name := Tokens (First_Index).Name and Tokens (Last_Index).Name;
+      return Ok;
+   end Merge_Names;
+
 end WisiToken.LR.Semantic_Checks;

@@ -156,7 +156,7 @@ package body WisiToken.Gen_Token_Enum is
                Name        => Nonterm.Name,
                Enum_ID     => Enum_Nonterm_ID,
                Virtual     => False),
-            Index, Augmented_Tokens);
+            Augmented_Tokens);
       end if;
    end Reduce_Stack;
 

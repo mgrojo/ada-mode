@@ -1,0 +1,215 @@
+ 0: 0: PACKAGE : shift and goto state 2
+ 0: 2: BODY : shift and goto state 21
+ 0: 21: (IDENTIFIER, (85 . 90)) : shift and goto state 18
+ 0: 18: DOT : reduce 1 tokens to name
+check OK
+(name (85 . 90) 85 . 90) <= ((IDENTIFIER (85 . 90) 85 . 90))
+ ... goto state 32
+ 0: 32: DOT : shift and goto state 26
+ 0: 26: (IDENTIFIER, (92 . 96)) : shift and goto state 109
+ 0: 109: IS : reduce 3 tokens to selected_component
+check OK
+(selected_component (85 . 96) 85 . 96) <= ((name (85 . 90) 85 . 90), (DOT 91 . 91), (IDENTIFIER (92 . 96) 92 . 96))
+ ... goto state 20
+ 0: 20: IS : reduce 1 tokens to name
+check OK
+(name (85 . 96) 85 . 96) <= ((selected_component (85 . 96) 85 . 96))
+ ... goto state 32
+ 0: 32: IS : reduce 0 tokens to aspect_specification_opt
+(aspect_specification_opt) <= ()
+ ... goto state 102
+ 0: 102: IS : shift and goto state 123
+ 0: 123: PROCEDURE : shift and goto state 84
+ 0: 84: (IDENTIFIER, (134 . 137)) : shift and goto state 18
+ 0: 18: LEFT_PAREN : reduce 1 tokens to name
+check OK
+(name (134 . 137) 134 . 137) <= ((IDENTIFIER (134 . 137) 134 . 137))
+ ... goto state 130
+ 0: 130: LEFT_PAREN : shift and goto state 24
+ 0: 24: (IDENTIFIER, (140 . 140)) : shift and goto state 111
+ 0: 111: COLON : shift and goto state 116
+ 0: 116: (IDENTIFIER, (144 . 150)) : shift and goto state 180
+ 0: 180: RIGHT_PAREN : reduce 3 tokens to parameter_specification
+(parameter_specification 140 . 150) <= ((IDENTIFIER (140 . 140) 140 . 140), (COLON 142 . 142), (IDENTIFIER (144 . 150) 144 . 150))
+ ... goto state 112
+ 0: 112: RIGHT_PAREN : reduce 1 tokens to parameter_specification_list
+(parameter_specification_list 140 . 150) <= ((parameter_specification 140 . 150))
+ ... goto state 113
+ 0: 113: RIGHT_PAREN : shift and goto state 114
+ 0: 114: IS : reduce 3 tokens to formal_part
+(formal_part 139 . 151) <= ((LEFT_PAREN 139 . 139), (parameter_specification_list 140 . 150), (RIGHT_PAREN 151 . 151))
+ ... goto state 34
+ 0: 34: IS : reduce 1 tokens to parameter_profile_opt
+(parameter_profile_opt 139 . 151) <= ((formal_part 139 . 151))
+ ... goto state 35
+ 0: 35: IS : reduce 3 tokens to procedure_specification
+check OK
+(procedure_specification (134 . 137) 124 . 151) <= ((PROCEDURE 124 . 132), (name (134 . 137) 134 . 137), (parameter_profile_opt 139 . 151))
+ ... goto state 10
+ 0: 10: IS : reduce 1 tokens to subprogram_specification
+check OK
+(subprogram_specification (134 . 137) 124 . 151) <= ((procedure_specification (134 . 137) 124 . 151))
+ ... goto state 99
+spawn parser from 0 (2 active)
+ 1: 99: IS : reduce 0 tokens to aspect_specification_opt
+ ... goto state 16
+ 0: 99: IS : shift and goto state 125
+ 1: 16: IS : shift and goto state 36
+ 1: 36: BEGIN : reduce 0 tokens to declarative_part_opt
+ ... goto state 91
+ 0: 125: BEGIN : ERROR
+ 0: expecting: SEPARATE
+ 0: zombie
+ 1: 91: BEGIN : shift and goto state 126
+ 0: zombie
+ 1: 126: END : reduce 0 tokens to sequence_of_statements_opt
+ ... goto state 169
+ 0: zombie
+ 1: 169: END : reduce 1 tokens to handled_sequence_of_statements
+ ... goto state 161
+ 0: zombie
+ 1: 161: END : shift and goto state 192
+ 0: zombie
+ 1: 192: (IDENTIFIER, (166 . 169)) : shift and goto state 18
+ 0: zombie
+ 1: 18: SEMICOLON : reduce 1 tokens to name
+check OK
+ ... goto state 235
+ 0: terminate (1 active)
+ 1: execute pending
+(aspect_specification_opt) <= ()
+(declarative_part_opt) <= ()
+(sequence_of_statements_opt) <= ()
+(handled_sequence_of_statements) <= ((sequence_of_statements_opt))
+(name (166 . 169) 166 . 169) <= ((IDENTIFIER (166 . 169) 166 . 169))
+ 1: 235: SEMICOLON : reduce 1 tokens to name_opt
+check OK
+(name_opt (166 . 169) 166 . 169) <= ((name (166 . 169) 166 . 169))
+ ... goto state 236
+ 1: 236: SEMICOLON : shift and goto state 253
+ 1: 253: PROCEDURE : reduce 9 tokens to subprogram_body
+check OK
+subprogram_body_0: (subprogram_body 124 . 170) <= ((subprogram_specification (134 . 137) 124 . 151), (aspect_specification_opt), (IS 153 . 154), (declarative_part_opt), (BEGIN 156 . 160), (handled_sequence_of_statements), (END 162 . 164), (name_opt (166 . 169) 166 . 169), (SEMICOLON 170 . 170))
+ ... goto state 96
+ 1: 96: PROCEDURE : reduce 1 tokens to proper_body
+(proper_body 124 . 170) <= ((subprogram_body 124 . 170))
+ ... goto state 95
+ 1: 95: PROCEDURE : reduce 1 tokens to body_g
+(body_g 124 . 170) <= ((proper_body 124 . 170))
+ ... goto state 87
+ 1: 87: PROCEDURE : reduce 1 tokens to declaration
+(declaration 124 . 170) <= ((body_g 124 . 170))
+ ... goto state 89
+ 1: 89: PROCEDURE : reduce 1 tokens to declarations
+(declarations 124 . 170) <= ((declaration 124 . 170))
+ ... goto state 90
+ 1: 90: PROCEDURE : shift and goto state 84
+ 1: 84: (IDENTIFIER, (257 . 262)) : shift and goto state 18
+ 1: 18: IS : reduce 1 tokens to name
+check OK
+(name (257 . 262) 257 . 262) <= ((IDENTIFIER (257 . 262) 257 . 262))
+ ... goto state 130
+ 1: 130: IS : reduce 0 tokens to parameter_profile_opt
+(parameter_profile_opt) <= ()
+ ... goto state 35
+ 1: 35: IS : reduce 3 tokens to procedure_specification
+check OK
+(procedure_specification (257 . 262) 247 . 262) <= ((PROCEDURE 247 . 255), (name (257 . 262) 257 . 262), (parameter_profile_opt))
+ ... goto state 10
+ 1: 10: IS : reduce 1 tokens to subprogram_specification
+check OK
+(subprogram_specification (257 . 262) 247 . 262) <= ((procedure_specification (257 . 262) 247 . 262))
+ ... goto state 99
+spawn parser from 1 (2 active)
+ 2: 99: IS : reduce 0 tokens to aspect_specification_opt
+ ... goto state 16
+ 1: 99: IS : shift and goto state 125
+ 2: 16: IS : shift and goto state 36
+ 2: 36: BEGIN : reduce 0 tokens to declarative_part_opt
+ ... goto state 91
+ 1: 125: BEGIN : ERROR
+ 1: expecting: SEPARATE
+ 1: zombie
+ 2: 91: BEGIN : shift and goto state 126
+ 1: zombie
+ 2: 126: END : reduce 0 tokens to sequence_of_statements_opt
+ ... goto state 169
+ 1: zombie
+ 2: 169: END : reduce 1 tokens to handled_sequence_of_statements
+ ... goto state 161
+ 1: zombie
+ 2: 161: END : shift and goto state 192
+ 1: zombie
+ 2: 192: (IDENTIFIER, (277 . 280)) : shift and goto state 18
+ 1: zombie
+ 2: 18: SEMICOLON : reduce 1 tokens to name
+check OK
+ ... goto state 235
+ 1: terminate (1 active)
+ 2: execute pending
+(aspect_specification_opt) <= ()
+(declarative_part_opt) <= ()
+(sequence_of_statements_opt) <= ()
+(handled_sequence_of_statements) <= ((sequence_of_statements_opt))
+(name (277 . 280) 277 . 280) <= ((IDENTIFIER (277 . 280) 277 . 280))
+ 2: 235: SEMICOLON : reduce 1 tokens to name_opt
+check OK
+(name_opt (277 . 280) 277 . 280) <= ((name (277 . 280) 277 . 280))
+ ... goto state 236
+ 2: 236: SEMICOLON : shift and goto state 253
+ 2: 253: END : reduce 9 tokens to subprogram_body
+check ERROR
+subprogram_body_0: (subprogram_body 247 . 281) <= ((subprogram_specification (257 . 262) 247 . 262), (aspect_specification_opt), (IS 264 . 265), (declarative_part_opt), (BEGIN 267 . 271), (handled_sequence_of_statements), (END 273 . 275), (name_opt (277 . 280) 277 . 280), (SEMICOLON 281 . 281))
+ ... goto state 96
+ 2: 96: END : reduce 1 tokens to proper_body
+(proper_body 247 . 281) <= ((subprogram_body 247 . 281))
+ ... goto state 95
+ 2: 95: END : reduce 1 tokens to body_g
+(body_g 247 . 281) <= ((proper_body 247 . 281))
+ ... goto state 87
+ 2: 87: END : reduce 1 tokens to declaration
+(declaration 247 . 281) <= ((body_g 247 . 281))
+ ... goto state 127
+ 2: 127: END : reduce 2 tokens to declarations
+(declarations 124 . 281) <= ((declarations 124 . 170), (declaration 247 . 281))
+ ... goto state 90
+ 2: 90: END : reduce 1 tokens to declarative_part_opt
+(declarative_part_opt 124 . 281) <= ((declarations 124 . 281))
+ ... goto state 175
+ 2: 175: END : shift and goto state 185
+ 2: 185: (IDENTIFIER, (288 . 293)) : shift and goto state 18
+ 2: 18: DOT : reduce 1 tokens to name
+check OK
+(name (288 . 293) 288 . 293) <= ((IDENTIFIER (288 . 293) 288 . 293))
+ ... goto state 235
+ 2: 235: DOT : shift and goto state 26
+ 2: 26: (IDENTIFIER, (295 . 299)) : shift and goto state 109
+ 2: 109: SEMICOLON : reduce 3 tokens to selected_component
+check OK
+(selected_component (288 . 299) 288 . 299) <= ((name (288 . 293) 288 . 293), (DOT 294 . 294), (IDENTIFIER (295 . 299) 295 . 299))
+ ... goto state 20
+ 2: 20: SEMICOLON : reduce 1 tokens to name
+check OK
+(name (288 . 299) 288 . 299) <= ((selected_component (288 . 299) 288 . 299))
+ ... goto state 235
+ 2: 235: SEMICOLON : reduce 1 tokens to name_opt
+check OK
+(name_opt (288 . 299) 288 . 299) <= ((name (288 . 299) 288 . 299))
+ ... goto state 243
+ 2: 243: SEMICOLON : shift and goto state 247
+ 2: 247: Wisi_EOI : reduce 9 tokens to package_body
+check OK
+(package_body 72 . 300) <= ((PACKAGE 72 . 78), (BODY 80 . 83), (name (85 . 96) 85 . 96), (aspect_specification_opt), (IS 98 . 99), (declarative_part_opt 124 . 281), (END 284 . 286), (name_opt (288 . 299) 288 . 299), (SEMICOLON 300 . 300))
+ ... goto state 9
+ 2: 9: Wisi_EOI : reduce 1 tokens to library_item
+(library_item 72 . 300) <= ((package_body 72 . 300))
+ ... goto state 8
+ 2: 8: Wisi_EOI : reduce 1 tokens to compilation_unit
+(compilation_unit 72 . 300) <= ((library_item 72 . 300))
+ ... goto state 4
+ 2: 4: Wisi_EOI : reduce 1 tokens to compilation_unit_list
+(compilation_unit_list 72 . 300) <= ((compilation_unit 72 . 300))
+ ... goto state 5
+ 2: 5: Wisi_EOI : accept it
+(wisitoken_accept 72 . 300) <= ((compilation_unit_list 72 . 300))
+ 2: succeed

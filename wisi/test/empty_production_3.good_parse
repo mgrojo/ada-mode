@@ -6,6 +6,7 @@ LALR_Parser parse:
  ... goto state 7
  1: 7: (IDENTIFIER, (8 . 13)) : shift and goto state 8
  1: 8: (IDENTIFIER, (15 . 17)) : reduce 1 tokens to name
+check OK
 (name (8 . 13) 8 . 13) <= ((IDENTIFIER (8 . 13) 8 . 13))
  ... goto state 9
  1: 9: (IDENTIFIER, (15 . 17)) : reduce 3 tokens to parameter_specification
@@ -17,6 +18,7 @@ LALR_Parser parse:
  ... goto state 7
  1: 7: (IDENTIFIER, (19 . 30)) : shift and goto state 8
  1: 8: Wisi_EOI : reduce 1 tokens to name
+check OK
 (name (19 . 30) 19 . 30) <= ((IDENTIFIER (19 . 30) 19 . 30))
  ... goto state 9
  1: 9: Wisi_EOI : reduce 3 tokens to parameter_specification
@@ -37,6 +39,7 @@ LR1_Parser parse:
  ... goto state 8
  1: 8: (IDENTIFIER, (8 . 13)) : shift and goto state 9
  1: 9: (IDENTIFIER, (15 . 17)) : reduce 1 tokens to name
+check OK
 (name (8 . 13) 8 . 13) <= ((IDENTIFIER (8 . 13) 8 . 13))
  ... goto state 10
  1: 10: (IDENTIFIER, (15 . 17)) : reduce 3 tokens to parameter_specification
@@ -48,6 +51,7 @@ LR1_Parser parse:
  ... goto state 11
  1: 11: (IDENTIFIER, (19 . 30)) : shift and goto state 12
  1: 12: Wisi_EOI : reduce 1 tokens to name
+check OK
 (name (19 . 30) 19 . 30) <= ((IDENTIFIER (19 . 30) 19 . 30))
  ... goto state 13
  1: 13: Wisi_EOI : reduce 3 tokens to parameter_specification

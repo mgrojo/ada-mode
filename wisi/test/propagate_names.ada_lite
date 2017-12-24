@@ -1,0 +1,15 @@
+--  Test name propagation in Check actions, by examining parse trace.
+
+package body Parent.Child is
+
+--  These names match
+procedure Proc (A : Integer)
+is begin
+end Proc;
+
+--  These names do not match. Parse succeeds, but trace shows check fail.
+procedure Proc_2
+is begin
+end Proc;
+
+end Parent.Child;

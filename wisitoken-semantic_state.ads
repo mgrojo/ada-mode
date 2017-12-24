@@ -59,7 +59,6 @@ package WisiToken.Semantic_State is
 
    type Semantic_Action is access procedure
      (Nonterm : in Augmented_Token'Class;
-      Index   : in Natural;
       Tokens  : in Augmented_Token_Array);
    --  Routines of this type are called by the parser when it reduces
    --  a production to Nonterm. Index indicates which production for

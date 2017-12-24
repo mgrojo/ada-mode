@@ -63,7 +63,11 @@ identifier_list
 
 name
   : IDENTIFIER
+    ()
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   | STRING_LITERAL  ;; operator_symbol
+    ()
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   ;
 
 name_list
@@ -73,7 +77,11 @@ name_list
 
 selector_name
   : IDENTIFIER
+    ()
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   | STRING_LITERAL  ;; operator_symbol
+    ()
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   ;
 
 %%

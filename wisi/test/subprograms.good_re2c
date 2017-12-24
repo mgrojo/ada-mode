@@ -15,6 +15,8 @@ typedef struct wisi_lexer
    unsigned char* byte_token_start; // byte position at start of current token
    size_t         char_pos;         // character position of current character
    size_t         char_token_start; // character position at start of current token
+   int            line;             // 1 indexed
+   int            line_token_start; // line at start of current token
    unsigned char* marker;           // saved cursor
    size_t         marker_pos;       // saved character position
    unsigned char* context;          // saved cursor
@@ -35,6 +37,7 @@ wisi_lexer* subprograms_new_lexer
    result->buffer_last = input + length - 1;
    result->cursor      = input;
    result->char_pos    = 1;
+   result->line        = 1;
    result->verbosity   = verbosity;
    return result;
 }
@@ -51,6 +54,7 @@ subprograms_reset_lexer(wisi_lexer* lexer)
 {
    lexer->cursor   = lexer->buffer;
    lexer->char_pos = 1;
+   lexer->line     = 1;
 }
 
 static void debug(wisi_lexer* lexer, int state, unsigned char ch)
@@ -75,6 +79,7 @@ static void skip(wisi_lexer* lexer)
    if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor;
    if (lexer->cursor <= lexer->buffer_last)
       if (DO_COUNT) ++lexer->char_pos;
+   if (*lexer->cursor == 0x0A) ++lexer->line;
 }
 #define YYSKIP() skip(lexer)
 #define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos
@@ -88,7 +93,8 @@ int subprograms_next_token
    size_t* byte_position,
    size_t* byte_length,
    size_t* char_position,
-   size_t* char_length)
+   size_t* char_length,
+   int*    line_start)
 {
    int status = NO_ERROR;
    *id = 0;
@@ -99,6 +105,7 @@ int subprograms_next_token
       *byte_length   = 0;
       *char_position = lexer->char_token_start;
       *char_length   = 0;
+      *line_start    = lexer->line;
       return status;
    }
 
@@ -107,6 +114,7 @@ int subprograms_next_token
       lexer->char_token_start = lexer->char_pos;
    else
       lexer->char_token_start = lexer->char_pos + 1;
+      lexer->line_token_start = lexer->line;
 
    while (*id == 0 && status == 0)
    {
@@ -165,5 +173,6 @@ int subprograms_next_token
       *char_length = lexer->char_pos - lexer->char_token_start;
    else
       *char_length = lexer->char_pos - lexer->char_token_start + 1;
+   *line_start     = lexer->line_token_start;
    return status;
    }

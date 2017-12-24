@@ -32,6 +32,8 @@ mode
 
 name
   : IDENTIFIER
+    ()
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   ;
 
 parameter_specification

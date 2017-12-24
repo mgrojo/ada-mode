@@ -53,6 +53,8 @@ attribute_designator
 
 name
   : IDENTIFIER
+    ()
+    (return Propagate_Name (Nonterm, Tokens, 1);) 
   | attribute_reference
   | qualified_expression
   ;

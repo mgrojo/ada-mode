@@ -35,11 +35,8 @@ package body Subprograms_Process is
 
    procedure block_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((3, Motion), (4, Motion)));
@@ -52,11 +49,8 @@ package body Subprograms_Process is
 
    procedure loop_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -69,11 +63,8 @@ package body Subprograms_Process is
 
    procedure name_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -84,13 +75,21 @@ package body Subprograms_Process is
       end case;
    end name_0;
 
+   function name_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Propagate_Name (Lexer, Tokens, 1);
+   end name_0_check;
+
    procedure name_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -101,13 +100,21 @@ package body Subprograms_Process is
       end case;
    end name_1;
 
+   function name_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Merge_Names (Lexer, Tokens, 1, 3);
+   end name_1_check;
+
    procedure parameter_list_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Misc), (2, Misc)));
@@ -120,11 +127,8 @@ package body Subprograms_Process is
 
    procedure parameter_list_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (2, Misc)));
@@ -137,11 +141,8 @@ package body Subprograms_Process is
 
    procedure subprogram_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (3, Misc), (4, Motion), (5, Statement_End)));
@@ -157,11 +158,8 @@ package body Subprograms_Process is
 
    procedure subprogram_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (6, Statement_End)));
@@ -174,20 +172,20 @@ package body Subprograms_Process is
    end subprogram_1;
 
    function subprogram_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 5, True);
    end subprogram_1_check;
 
    procedure subtype_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -200,11 +198,8 @@ package body Subprograms_Process is
 
    procedure use_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -357,13 +352,13 @@ package body Subprograms_Process is
       Add_Action (Table.States (9), 12, Reduce, 23, 1,  2, null, null);
       Add_Action (Table.States (9), 19, Reduce, 23, 1,  2, null, null);
       Add_Error (Table.States (9));
-      Add_Action (Table.States (10), 3, Reduce, 26, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (10), 4, Reduce, 26, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (10), 9, Reduce, 26, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (10), 13, Reduce, 26, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (10), 15, Reduce, 26, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (10), 16, Reduce, 26, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (10), 17, Reduce, 26, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (10), 3, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 4, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 9, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 13, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 15, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 16, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 17, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (10));
       Add_Action (Table.States (11), 15, Reduce, 27, 0,  1, null, null);
       Add_Action (Table.States (11), 16, 16);
@@ -413,13 +408,13 @@ package body Subprograms_Process is
       Add_Goto (Table.States (23), 25, 32);
       Add_Action (Table.States (24), 17, 29);
       Add_Error (Table.States (24));
-      Add_Action (Table.States (25), 3, Reduce, 26, 1,  3, name_1'Access, null);
-      Add_Action (Table.States (25), 4, Reduce, 26, 1,  3, name_1'Access, null);
-      Add_Action (Table.States (25), 9, Reduce, 26, 1,  3, name_1'Access, null);
-      Add_Action (Table.States (25), 13, Reduce, 26, 1,  3, name_1'Access, null);
-      Add_Action (Table.States (25), 15, Reduce, 26, 1,  3, name_1'Access, null);
-      Add_Action (Table.States (25), 16, Reduce, 26, 1,  3, name_1'Access, null);
-      Add_Action (Table.States (25), 17, Reduce, 26, 1,  3, name_1'Access, null);
+      Add_Action (Table.States (25), 3, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 4, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 9, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 13, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 15, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 16, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 17, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
       Add_Error (Table.States (25));
       Add_Action (Table.States (26), 3, Reduce, 28, 0,  2, parameter_list_0'Access, null);
       Add_Action (Table.States (26), 4, Reduce, 28, 0,  2, parameter_list_0'Access, null);

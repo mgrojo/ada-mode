@@ -33,6 +33,7 @@ endif
 tests : wisi-generate.exe
 tests : ada_lite_re2c.c
 tests : character_literal_re2c.c
+tests : skip_to_grammar_re2c.c
 tests : test_all_harness.diff
 
 # from ../wisi/test

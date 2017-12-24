@@ -32,7 +32,10 @@ accept_statement
     (null; -- wisi-statement-actions [1 statement-start 4 statement-end])
   ;
 
-name : IDENTIFIER ;
+name : IDENTIFIER
+    ()
+    (return Propagate_Name (Nonterm, Tokens, 1);)
+  ;
 
 parameter_profile
   : ;; empty
