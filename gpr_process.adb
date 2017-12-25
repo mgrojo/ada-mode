@@ -33,11 +33,8 @@ package body Gpr_Process is
 
    procedure aggregate_g_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -50,11 +47,8 @@ package body Gpr_Process is
 
    procedure attribute_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -67,11 +61,8 @@ package body Gpr_Process is
 
    procedure attribute_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
@@ -84,11 +75,8 @@ package body Gpr_Process is
 
    procedure attribute_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
@@ -101,11 +89,8 @@ package body Gpr_Process is
 
    procedure case_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -119,11 +104,8 @@ package body Gpr_Process is
 
    procedure case_item_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Motion)));
@@ -136,11 +118,8 @@ package body Gpr_Process is
 
    procedure package_spec_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -154,11 +133,8 @@ package body Gpr_Process is
 
    procedure package_extension_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
@@ -172,11 +148,8 @@ package body Gpr_Process is
 
    procedure package_renaming_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -189,11 +162,8 @@ package body Gpr_Process is
 
    procedure project_extension_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
@@ -207,11 +177,8 @@ package body Gpr_Process is
 
    procedure simple_declarative_item_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -224,11 +191,8 @@ package body Gpr_Process is
 
    procedure simple_declarative_item_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -241,11 +205,8 @@ package body Gpr_Process is
 
    procedure simple_declarative_item_4
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_End)));
@@ -258,11 +219,8 @@ package body Gpr_Process is
 
    procedure simple_project_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -276,11 +234,8 @@ package body Gpr_Process is
 
    procedure typed_string_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));

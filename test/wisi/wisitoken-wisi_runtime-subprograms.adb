@@ -38,18 +38,23 @@ package body WisiToken.Wisi_Runtime.Subprograms is
       Wisi_Runtime.Initialize
         (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Source_File_Name, Parse_Action, Line_Count, "");
 
-      Subp_Indent := Integer'Value (Params (First .. Last));
+      if Params /= "" then
+         Subp_Indent := Integer'Value (Params (First .. Last));
 
-      First := Last;
-      Last  := Index (Source => Params, Pattern => " ", From => Last + 1);
+         First := Last;
+         Last  := Index (Source => Params, Pattern => " ", From => Last + 1);
 
-      Subp_Indent_Broken := Integer'Value (Params (First .. Last));
+         Subp_Indent_Broken := Integer'Value (Params (First .. Last));
 
-      First := Last;
-      Last  := Params'Last;
+         First := Last;
+         Last  := Params'Last;
 
-      Temp := Integer'Value (Params (First .. Last));
-      Subp_Indent_Comment_Col_0 := (if Temp = 1 then True else False);
+         Temp := Integer'Value (Params (First .. Last));
+         Subp_Indent_Comment_Col_0 := (if Temp = 1 then True else False);
+      end if;
+
+      Data.Indent_Comment_Col_0 := Subp_Indent_Comment_Col_0;
+
    exception
       when E : Constraint_Error =>
          raise Constraint_Error with "params '" & Params & "' raised Constraint_Error: " &

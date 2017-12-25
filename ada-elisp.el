@@ -294,7 +294,7 @@
         (wisi-statement-action [1 statement-start 2 misc 4 motion 8 statement-end])
         (wisi-containing-action 2 3)
         (wisi-containing-action 2 5)
-        (wisi-motion-action [2 5 [5 EXCEPTION WHEN] 8])
+        (wisi-motion-action [2 4 [5 EXCEPTION WHEN] 8])
         (wisi-indent-action [0 0 [ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0 0])))
        ((block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON )
         (progn

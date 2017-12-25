@@ -134,6 +134,7 @@ ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
 vpath %.adb   ../test ../test/ada-gps ../test/subdir ../test/wisi
 vpath %.ads   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.re2c  ../test/wisi
 vpath %.el    ../ ../test/wisi
 vpath %.gpr   ../test/gpr
 vpath %.input ../test/wisi

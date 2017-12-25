@@ -46,7 +46,8 @@ is
       Put_Line ("usage: " & Name & "_wisi_parse <file_name> <parse_action> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
       Put_Line ("options:");
-      Put_Line ("--verbosity n :");
+      Put_Line ("--verbosity n m :");
+      Put_Line ("   n: parser; m: mckenzie");
       Put_Line ("   0 - only report parse errors");
       Put_Line ("   1 - shows each parser cycle, spawn/terminate parallel parsers, error recovery enter/exit");
       Put_Line ("   2 - add parse stack in each cycle, error recovery enqueue/check");
@@ -99,8 +100,9 @@ begin
          exit when Arg > Argument_Count;
 
          if Argument (Arg) = "--verbosity" then
-            WisiToken.Trace_Parse := Integer'Value (Argument (Arg + 1));
-            Arg := Arg + 2;
+            WisiToken.Trace_Parse    := Integer'Value (Argument (Arg + 1));
+            WisiToken.Trace_McKenzie := Integer'Value (Argument (Arg + 2));
+            Arg                      := Arg + 3;
 
          elsif Argument (Arg) = "--cost_limit" then
             Parser.Table.McKenzie_Param.Cost_Limit := Integer'Value (Argument (Arg + 1));

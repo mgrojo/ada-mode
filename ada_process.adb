@@ -34,11 +34,8 @@ package body Ada_Process is
 
    procedure abstract_subprogram_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (6, Statement_End)));
@@ -51,11 +48,8 @@ package body Ada_Process is
 
    procedure accept_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Motion), (9, Statement_End)));
@@ -70,20 +64,20 @@ package body Ada_Process is
    end accept_statement_0;
 
    function accept_statement_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 7, True);
    end accept_statement_0_check;
 
    procedure accept_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -97,11 +91,8 @@ package body Ada_Process is
 
    procedure access_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -114,11 +105,8 @@ package body Ada_Process is
 
    procedure access_definition_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -131,11 +119,8 @@ package body Ada_Process is
 
    procedure access_definition_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -148,11 +133,8 @@ package body Ada_Process is
 
    procedure actual_parameter_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -165,11 +147,8 @@ package body Ada_Process is
 
    procedure actual_parameter_part_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -182,11 +161,8 @@ package body Ada_Process is
 
    procedure aggregate_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -199,11 +175,8 @@ package body Ada_Process is
 
    procedure aggregate_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -216,11 +189,8 @@ package body Ada_Process is
 
    procedure aggregate_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -233,11 +203,8 @@ package body Ada_Process is
 
    procedure aggregate_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -250,11 +217,8 @@ package body Ada_Process is
 
    procedure array_type_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -267,11 +231,8 @@ package body Ada_Process is
 
    procedure array_type_definition_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -284,11 +245,8 @@ package body Ada_Process is
 
    procedure aspect_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -301,11 +259,8 @@ package body Ada_Process is
 
    procedure aspect_specification_opt_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -318,11 +273,8 @@ package body Ada_Process is
 
    procedure assignment_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -336,11 +288,8 @@ package body Ada_Process is
 
    procedure association_opt_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -353,11 +302,8 @@ package body Ada_Process is
 
    procedure association_opt_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -370,11 +316,8 @@ package body Ada_Process is
 
    procedure association_opt_4
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -387,11 +330,8 @@ package body Ada_Process is
 
    procedure association_opt_5
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -404,11 +344,8 @@ package body Ada_Process is
 
    procedure asynchronous_select_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (8, Statement_End)));
@@ -423,11 +360,8 @@ package body Ada_Process is
 
    procedure at_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -440,11 +374,8 @@ package body Ada_Process is
 
    procedure block_label_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -455,13 +386,32 @@ package body Ada_Process is
       end case;
    end block_label_0;
 
+   function block_label_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end block_label_0_check;
+
+   function block_label_opt_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end block_label_opt_1_check;
+
    procedure block_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (4, Motion), (8, Statement_End)));
@@ -476,20 +426,20 @@ package body Ada_Process is
    end block_statement_0;
 
    function block_statement_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 1, 7, True);
    end block_statement_0_check;
 
    procedure block_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (6, Statement_End)));
@@ -503,20 +453,20 @@ package body Ada_Process is
    end block_statement_1;
 
    function block_statement_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 1, 5, True);
    end block_statement_1_check;
 
    procedure case_expression_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -529,11 +479,8 @@ package body Ada_Process is
 
    procedure case_expression_alternative_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -546,11 +493,8 @@ package body Ada_Process is
 
    procedure case_expression_alternative_list_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -563,11 +507,8 @@ package body Ada_Process is
 
    procedure case_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
@@ -582,11 +523,8 @@ package body Ada_Process is
 
    procedure case_statement_alternative_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Motion)));
@@ -599,11 +537,8 @@ package body Ada_Process is
 
    procedure component_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
@@ -616,11 +551,8 @@ package body Ada_Process is
 
    procedure component_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -634,11 +566,8 @@ package body Ada_Process is
 
    procedure component_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -652,11 +581,8 @@ package body Ada_Process is
 
    procedure component_list_4
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_End)));
@@ -669,11 +595,8 @@ package body Ada_Process is
 
    procedure conditional_entry_call_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
@@ -688,11 +611,8 @@ package body Ada_Process is
 
    procedure declaration_9
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -706,11 +626,8 @@ package body Ada_Process is
 
    procedure delay_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -723,11 +640,8 @@ package body Ada_Process is
 
    procedure delay_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -740,11 +654,8 @@ package body Ada_Process is
 
    procedure derived_type_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -757,11 +668,8 @@ package body Ada_Process is
 
    procedure derived_type_definition_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -774,11 +682,8 @@ package body Ada_Process is
 
    procedure discriminant_part_opt_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -791,11 +696,8 @@ package body Ada_Process is
 
    procedure elsif_expression_item_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Motion), (3, Motion)));
@@ -808,11 +710,8 @@ package body Ada_Process is
 
    procedure elsif_statement_item_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Motion), (3, Motion)));
@@ -825,11 +724,8 @@ package body Ada_Process is
 
    procedure entry_body_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (6, Motion), (8, Motion), (12, Statement_End)));
@@ -845,20 +741,20 @@ package body Ada_Process is
    end entry_body_0;
 
    function entry_body_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 11, True);
    end entry_body_0_check;
 
    procedure entry_body_formal_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -871,11 +767,8 @@ package body Ada_Process is
 
    procedure entry_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (8, Statement_End)));
@@ -889,11 +782,8 @@ package body Ada_Process is
 
    procedure entry_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (6, Statement_End)));
@@ -907,11 +797,8 @@ package body Ada_Process is
 
    procedure enumeration_representation_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -924,11 +811,8 @@ package body Ada_Process is
 
    procedure enumeration_type_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -941,11 +825,8 @@ package body Ada_Process is
 
    procedure exception_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -958,11 +839,8 @@ package body Ada_Process is
 
    procedure exception_handler_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Motion)));
@@ -975,11 +853,8 @@ package body Ada_Process is
 
    procedure exception_handler_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Motion)));
@@ -992,11 +867,8 @@ package body Ada_Process is
 
    procedure exit_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -1009,11 +881,8 @@ package body Ada_Process is
 
    procedure exit_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -1026,11 +895,8 @@ package body Ada_Process is
 
    procedure expression_function_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (6, Statement_End)));
@@ -1043,11 +909,8 @@ package body Ada_Process is
 
    procedure extended_return_object_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1060,11 +923,8 @@ package body Ada_Process is
 
    procedure extended_return_object_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1077,11 +937,8 @@ package body Ada_Process is
 
    procedure extended_return_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
@@ -1096,11 +953,8 @@ package body Ada_Process is
 
    procedure extended_return_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -1113,11 +967,8 @@ package body Ada_Process is
 
    procedure formal_object_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
@@ -1130,11 +981,8 @@ package body Ada_Process is
 
    procedure formal_object_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1147,11 +995,8 @@ package body Ada_Process is
 
    procedure formal_object_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
@@ -1164,11 +1009,8 @@ package body Ada_Process is
 
    procedure formal_object_declaration_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -1181,11 +1023,8 @@ package body Ada_Process is
 
    procedure formal_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Misc)));
@@ -1198,11 +1037,8 @@ package body Ada_Process is
 
    procedure formal_subprogram_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -1215,11 +1051,8 @@ package body Ada_Process is
 
    procedure formal_subprogram_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -1232,11 +1065,8 @@ package body Ada_Process is
 
    procedure formal_subprogram_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1249,11 +1079,8 @@ package body Ada_Process is
 
    procedure formal_subprogram_declaration_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -1266,11 +1093,8 @@ package body Ada_Process is
 
    procedure formal_type_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1284,11 +1108,8 @@ package body Ada_Process is
 
    procedure formal_type_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1301,11 +1122,8 @@ package body Ada_Process is
 
    procedure formal_type_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -1318,11 +1136,8 @@ package body Ada_Process is
 
    procedure formal_derived_type_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1335,11 +1150,8 @@ package body Ada_Process is
 
    procedure formal_derived_type_definition_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1352,11 +1164,8 @@ package body Ada_Process is
 
    procedure formal_package_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
@@ -1369,11 +1178,8 @@ package body Ada_Process is
 
    procedure full_type_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (7, Statement_End)));
@@ -1387,11 +1193,8 @@ package body Ada_Process is
 
    procedure function_specification_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name)));
@@ -1405,11 +1208,8 @@ package body Ada_Process is
 
    procedure generic_formal_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Statement_Start)));
@@ -1422,11 +1222,8 @@ package body Ada_Process is
 
    procedure generic_formal_part_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Statement_Start)));
@@ -1439,11 +1236,8 @@ package body Ada_Process is
 
    procedure generic_instantiation_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1456,11 +1250,8 @@ package body Ada_Process is
 
    procedure generic_instantiation_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (8, Statement_End)));
@@ -1473,11 +1264,8 @@ package body Ada_Process is
 
    procedure generic_instantiation_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (8, Statement_End)));
@@ -1490,11 +1278,8 @@ package body Ada_Process is
 
    procedure generic_package_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (3, Statement_End)));
@@ -1508,11 +1293,8 @@ package body Ada_Process is
 
    procedure generic_renaming_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1525,11 +1307,8 @@ package body Ada_Process is
 
    procedure generic_renaming_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1542,11 +1321,8 @@ package body Ada_Process is
 
    procedure generic_renaming_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -1559,11 +1335,8 @@ package body Ada_Process is
 
    procedure generic_subprogram_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Motion), (4, Statement_End)));
@@ -1577,11 +1350,8 @@ package body Ada_Process is
 
    procedure goto_label_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1594,11 +1364,8 @@ package body Ada_Process is
 
    procedure handled_sequence_of_statements_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (2, Motion)));
@@ -1611,11 +1378,8 @@ package body Ada_Process is
 
    procedure identifier_list_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1626,13 +1390,21 @@ package body Ada_Process is
       end case;
    end identifier_list_1;
 
+   function identifier_opt_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end identifier_opt_1_check;
+
    procedure if_expression_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (6, Motion)));
@@ -1647,11 +1419,8 @@ package body Ada_Process is
 
    procedure if_expression_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion)));
@@ -1666,11 +1435,8 @@ package body Ada_Process is
 
    procedure if_expression_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (5, Motion)));
@@ -1685,11 +1451,8 @@ package body Ada_Process is
 
    procedure if_expression_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion)));
@@ -1704,11 +1467,8 @@ package body Ada_Process is
 
    procedure if_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (6, Motion), (10, Statement_End)));
@@ -1726,11 +1486,8 @@ package body Ada_Process is
 
    procedure if_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (8, Statement_End)));
@@ -1747,11 +1504,8 @@ package body Ada_Process is
 
    procedure if_statement_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (5, Motion), (9, Statement_End)));
@@ -1768,11 +1522,8 @@ package body Ada_Process is
 
    procedure if_statement_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
@@ -1788,11 +1539,8 @@ package body Ada_Process is
 
    procedure incomplete_type_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -1805,11 +1553,8 @@ package body Ada_Process is
 
    procedure incomplete_type_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -1822,11 +1567,8 @@ package body Ada_Process is
 
    procedure index_constraint_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1839,11 +1581,8 @@ package body Ada_Process is
 
    procedure interface_list_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1856,11 +1595,8 @@ package body Ada_Process is
 
    procedure interface_list_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1873,11 +1609,8 @@ package body Ada_Process is
 
    procedure iteration_scheme_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1890,11 +1623,8 @@ package body Ada_Process is
 
    procedure iteration_scheme_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1907,11 +1637,8 @@ package body Ada_Process is
 
    procedure iterator_specification_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1924,11 +1651,8 @@ package body Ada_Process is
 
    procedure iterator_specification_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -1941,11 +1665,8 @@ package body Ada_Process is
 
    procedure loop_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (3, Motion), (8, Statement_End)));
@@ -1959,20 +1680,20 @@ package body Ada_Process is
    end loop_statement_0;
 
    function loop_statement_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 1, 7, True);
    end loop_statement_0_check;
 
    procedure loop_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (7, Statement_End)));
@@ -1985,20 +1706,20 @@ package body Ada_Process is
    end loop_statement_1;
 
    function loop_statement_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 1, 6, True);
    end loop_statement_1_check;
 
    procedure name_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2009,13 +1730,21 @@ package body Ada_Process is
       end case;
    end name_0;
 
+   function name_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end name_0_check;
+
    procedure name_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2026,13 +1755,21 @@ package body Ada_Process is
       end case;
    end name_2;
 
+   function name_3_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end name_3_check;
+
    procedure name_5
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Misc)));
@@ -2044,13 +1781,32 @@ package body Ada_Process is
       end case;
    end name_5;
 
+   function name_7_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end name_7_check;
+
+   function name_opt_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end name_opt_1_check;
+
    procedure null_exclusion_opt_name_type_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2063,11 +1819,8 @@ package body Ada_Process is
 
    procedure null_exclusion_opt_name_type_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2080,11 +1833,8 @@ package body Ada_Process is
 
    procedure null_exclusion_opt_name_type_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2097,11 +1847,8 @@ package body Ada_Process is
 
    procedure null_exclusion_opt_name_type_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2114,11 +1861,8 @@ package body Ada_Process is
 
    procedure null_procedure_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (6, Statement_End)));
@@ -2131,11 +1875,8 @@ package body Ada_Process is
 
    procedure object_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
@@ -2149,11 +1890,8 @@ package body Ada_Process is
 
    procedure object_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -2166,11 +1904,8 @@ package body Ada_Process is
 
    procedure object_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
@@ -2184,11 +1919,8 @@ package body Ada_Process is
 
    procedure object_declaration_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -2202,11 +1934,8 @@ package body Ada_Process is
 
    procedure object_declaration_4
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (9, Statement_End)));
@@ -2220,11 +1949,8 @@ package body Ada_Process is
 
    procedure object_declaration_5
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -2238,11 +1964,8 @@ package body Ada_Process is
 
    procedure object_renaming_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
@@ -2255,11 +1978,8 @@ package body Ada_Process is
 
    procedure object_renaming_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -2273,11 +1993,8 @@ package body Ada_Process is
 
    procedure object_renaming_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -2290,11 +2007,8 @@ package body Ada_Process is
 
    procedure overriding_indicator_opt_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override)));
@@ -2307,11 +2021,8 @@ package body Ada_Process is
 
    procedure overriding_indicator_opt_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Statement_Start)));
@@ -2324,11 +2035,8 @@ package body Ada_Process is
 
    procedure package_body_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (5, Motion), (7, Motion), (11, Statement_End)));
@@ -2343,20 +2051,20 @@ package body Ada_Process is
    end package_body_0;
 
    function package_body_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 3, 10, True);
    end package_body_0_check;
 
    procedure package_body_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (5, Motion), (9, Statement_End)));
@@ -2370,20 +2078,20 @@ package body Ada_Process is
    end package_body_1;
 
    function package_body_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 3, 8, True);
    end package_body_1_check;
 
    procedure package_body_stub_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -2396,11 +2104,8 @@ package body Ada_Process is
 
    procedure package_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_End)));
@@ -2414,11 +2119,8 @@ package body Ada_Process is
 
    procedure package_renaming_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -2431,11 +2133,8 @@ package body Ada_Process is
 
    procedure package_specification_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (4, Motion), (6, Motion)));
@@ -2451,20 +2150,20 @@ package body Ada_Process is
    end package_specification_0;
 
    function package_specification_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 9, True);
    end package_specification_0_check;
 
    procedure package_specification_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (4, Motion)));
@@ -2479,20 +2178,20 @@ package body Ada_Process is
    end package_specification_1;
 
    function package_specification_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 7, True);
    end package_specification_1_check;
 
    procedure parameter_and_result_profile_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2505,11 +2204,8 @@ package body Ada_Process is
 
    procedure parameter_specification_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2522,11 +2218,8 @@ package body Ada_Process is
 
    procedure parameter_specification_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2539,11 +2232,8 @@ package body Ada_Process is
 
    procedure parameter_specification_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2556,11 +2246,8 @@ package body Ada_Process is
 
    procedure parameter_specification_4
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2573,11 +2260,8 @@ package body Ada_Process is
 
    procedure parameter_specification_list_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (2, Motion)));
@@ -2590,11 +2274,8 @@ package body Ada_Process is
 
    procedure paren_expression_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2607,11 +2288,8 @@ package body Ada_Process is
 
    procedure paren_expression_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2624,11 +2302,8 @@ package body Ada_Process is
 
    procedure paren_expression_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2641,11 +2316,8 @@ package body Ada_Process is
 
    procedure pragma_g_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -2658,11 +2330,8 @@ package body Ada_Process is
 
    procedure pragma_g_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -2675,11 +2344,8 @@ package body Ada_Process is
 
    procedure pragma_g_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -2692,11 +2358,8 @@ package body Ada_Process is
 
    procedure primary_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2709,11 +2372,8 @@ package body Ada_Process is
 
    procedure primary_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2726,11 +2386,8 @@ package body Ada_Process is
 
    procedure primary_4
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2743,11 +2400,8 @@ package body Ada_Process is
 
    procedure private_extension_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (12, Statement_End)));
@@ -2760,11 +2414,8 @@ package body Ada_Process is
 
    procedure private_type_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (8, Statement_End)));
@@ -2777,11 +2428,8 @@ package body Ada_Process is
 
    procedure procedure_call_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_End)));
@@ -2794,11 +2442,8 @@ package body Ada_Process is
 
    procedure procedure_specification_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name)));
@@ -2812,11 +2457,8 @@ package body Ada_Process is
 
    procedure protected_body_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (5, Motion), (9, Statement_End)));
@@ -2830,20 +2472,20 @@ package body Ada_Process is
    end protected_body_0;
 
    function protected_body_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 3, 8, True);
    end protected_body_0_check;
 
    procedure protected_body_stub_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -2856,11 +2498,8 @@ package body Ada_Process is
 
    procedure protected_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (2, Motion)));
@@ -2872,20 +2511,20 @@ package body Ada_Process is
    end protected_definition_0;
 
    function protected_definition_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
-      return Match_Names (Lexer, Tokens, 1, 5, True);
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 5);
    end protected_definition_0_check;
 
    procedure protected_definition_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2897,20 +2536,20 @@ package body Ada_Process is
    end protected_definition_1;
 
    function protected_definition_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
-      return Match_Names (Lexer, Tokens, 1, 3, True);
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 3);
    end protected_definition_1_check;
 
    procedure protected_type_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (9, Motion), (11, Statement_End)));
@@ -2923,13 +2562,21 @@ package body Ada_Process is
       end case;
    end protected_type_declaration_0;
 
+   function protected_type_declaration_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 3, 10, True);
+   end protected_type_declaration_0_check;
+
    procedure protected_type_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (8, Statement_End)));
@@ -2942,13 +2589,21 @@ package body Ada_Process is
       end case;
    end protected_type_declaration_1;
 
+   function protected_type_declaration_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 3, 7, True);
+   end protected_type_declaration_1_check;
+
    procedure qualified_expression_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2961,11 +2616,8 @@ package body Ada_Process is
 
    procedure quantified_expression_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2978,11 +2630,8 @@ package body Ada_Process is
 
    procedure raise_expression_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -2995,11 +2644,8 @@ package body Ada_Process is
 
    procedure raise_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_End)));
@@ -3012,11 +2658,8 @@ package body Ada_Process is
 
    procedure raise_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (5, Statement_End)));
@@ -3030,11 +2673,8 @@ package body Ada_Process is
 
    procedure raise_statement_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -3047,11 +2687,8 @@ package body Ada_Process is
 
    procedure range_g_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3064,11 +2701,8 @@ package body Ada_Process is
 
    procedure record_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3081,11 +2715,8 @@ package body Ada_Process is
 
    procedure record_representation_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -3098,11 +2729,8 @@ package body Ada_Process is
 
    procedure requeue_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -3115,11 +2743,8 @@ package body Ada_Process is
 
    procedure requeue_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -3132,11 +2757,8 @@ package body Ada_Process is
 
    procedure result_profile_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3149,11 +2771,8 @@ package body Ada_Process is
 
    procedure result_profile_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3166,11 +2785,8 @@ package body Ada_Process is
 
    procedure selected_component_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3181,13 +2797,21 @@ package body Ada_Process is
       end case;
    end selected_component_0;
 
+   function selected_component_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Merge_Names (Nonterm, Tokens, 1, 3);
+   end selected_component_0_check;
+
    procedure selected_component_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3200,11 +2824,8 @@ package body Ada_Process is
 
    procedure selected_component_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3215,13 +2836,21 @@ package body Ada_Process is
       end case;
    end selected_component_2;
 
+   function selected_component_2_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Merge_Names (Nonterm, Tokens, 1, 3);
+   end selected_component_2_check;
+
    procedure selected_component_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3234,11 +2863,8 @@ package body Ada_Process is
 
    procedure selective_accept_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (7, Statement_End)));
@@ -3254,11 +2880,8 @@ package body Ada_Process is
 
    procedure selective_accept_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -3272,11 +2895,8 @@ package body Ada_Process is
 
    procedure select_alternative_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Motion)));
@@ -3289,11 +2909,8 @@ package body Ada_Process is
 
    procedure select_alternative_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Motion)));
@@ -3306,11 +2923,8 @@ package body Ada_Process is
 
    procedure select_alternative_4
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Motion), (4, Statement_Start), (5, Statement_End)));
@@ -3323,11 +2937,8 @@ package body Ada_Process is
 
    procedure select_alternative_5
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_End)));
@@ -3340,11 +2951,8 @@ package body Ada_Process is
 
    procedure select_alternative_list_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3357,11 +2965,8 @@ package body Ada_Process is
 
    procedure select_alternative_list_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (2, Motion)));
@@ -3374,11 +2979,8 @@ package body Ada_Process is
 
    procedure simple_return_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -3392,11 +2994,8 @@ package body Ada_Process is
 
    procedure simple_statement_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_End)));
@@ -3409,11 +3008,8 @@ package body Ada_Process is
 
    procedure simple_statement_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -3426,11 +3022,8 @@ package body Ada_Process is
 
    procedure simple_statement_8
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -3443,11 +3036,8 @@ package body Ada_Process is
 
    procedure single_protected_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (4, Motion), (7, Motion), (9, Statement_End)));
@@ -3460,13 +3050,21 @@ package body Ada_Process is
       end case;
    end single_protected_declaration_0;
 
+   function single_protected_declaration_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 2, 8, True);
+   end single_protected_declaration_0_check;
+
    procedure single_protected_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (4, Motion), (6, Statement_End)));
@@ -3479,13 +3077,21 @@ package body Ada_Process is
       end case;
    end single_protected_declaration_1;
 
+   function single_protected_declaration_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 2, 5, True);
+   end single_protected_declaration_1_check;
+
    procedure single_task_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (7, Motion), (11, Statement_End)));
@@ -3499,20 +3105,20 @@ package body Ada_Process is
    end single_task_declaration_0;
 
    function single_task_declaration_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 10, True);
    end single_task_declaration_0_check;
 
    procedure single_task_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (8, Statement_End)));
@@ -3526,20 +3132,20 @@ package body Ada_Process is
    end single_task_declaration_1;
 
    function single_task_declaration_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 7, True);
    end single_task_declaration_1_check;
 
    procedure single_task_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -3552,11 +3158,8 @@ package body Ada_Process is
 
    procedure subprogram_body_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (4, Motion), (6, Motion), (10, Statement_End)));
@@ -3572,20 +3175,20 @@ package body Ada_Process is
    end subprogram_body_0;
 
    function subprogram_body_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 2, 9, True);
    end subprogram_body_0_check;
 
    procedure subprogram_body_stub_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (6, Statement_End)));
@@ -3598,11 +3201,8 @@ package body Ada_Process is
 
    procedure subprogram_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (4, Statement_End)));
@@ -3615,11 +3215,8 @@ package body Ada_Process is
 
    procedure subprogram_default_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3632,11 +3229,8 @@ package body Ada_Process is
 
    procedure subprogram_renaming_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Statement_Override), (6, Statement_End)));
@@ -3649,11 +3243,8 @@ package body Ada_Process is
 
    procedure subtype_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (6, Statement_End)));
@@ -3666,11 +3257,8 @@ package body Ada_Process is
 
    procedure subtype_indication_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3683,11 +3271,8 @@ package body Ada_Process is
 
    procedure subtype_indication_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3700,11 +3285,8 @@ package body Ada_Process is
 
    procedure subtype_indication_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3717,11 +3299,8 @@ package body Ada_Process is
 
    procedure subtype_indication_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3734,11 +3313,8 @@ package body Ada_Process is
 
    procedure subunit_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Motion)));
@@ -3751,11 +3327,8 @@ package body Ada_Process is
 
    procedure task_body_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (5, Motion), (7, Motion), (11, Statement_End)));
@@ -3770,20 +3343,20 @@ package body Ada_Process is
    end task_body_0;
 
    function task_body_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 3, 10, True);
    end task_body_0_check;
 
    procedure task_body_stub_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -3796,11 +3369,8 @@ package body Ada_Process is
 
    procedure task_definition_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (2, Motion)));
@@ -3814,11 +3384,8 @@ package body Ada_Process is
 
    procedure task_definition_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
@@ -3831,11 +3398,8 @@ package body Ada_Process is
 
    procedure task_type_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (9, Motion), (13, Statement_End)));
@@ -3849,20 +3413,20 @@ package body Ada_Process is
    end task_type_declaration_0;
 
    function task_type_declaration_0_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 3, 12, True);
    end task_type_declaration_0_check;
 
    procedure task_type_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Motion), (10, Statement_End)));
@@ -3876,20 +3440,20 @@ package body Ada_Process is
    end task_type_declaration_1;
 
    function task_type_declaration_1_check
-    (Lexer  : in WisiToken.Lexer.Handle;
-     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
-   is begin
+   is
+      pragma Unreferenced (Nonterm);
+   begin
       return Match_Names (Lexer, Tokens, 3, 9, True);
    end task_type_declaration_1_check;
 
    procedure task_type_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Name), (6, Statement_End)));
@@ -3902,11 +3466,8 @@ package body Ada_Process is
 
    procedure timed_entry_call_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Motion), (6, Statement_End)));
@@ -3921,11 +3482,8 @@ package body Ada_Process is
 
    procedure variant_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (7, Statement_End)));
@@ -3939,11 +3497,8 @@ package body Ada_Process is
 
    procedure variant_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Motion)));
@@ -3956,11 +3511,8 @@ package body Ada_Process is
 
    procedure use_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -3973,11 +3525,8 @@ package body Ada_Process is
 
    procedure use_clause_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -3990,11 +3539,8 @@ package body Ada_Process is
 
    procedure use_clause_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -4007,11 +3553,8 @@ package body Ada_Process is
 
    procedure with_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (5, Statement_End)));
@@ -4024,11 +3567,8 @@ package body Ada_Process is
 
    procedure with_clause_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -4041,11 +3581,8 @@ package body Ada_Process is
 
    procedure with_clause_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Statement_End)));
@@ -4058,11 +3595,8 @@ package body Ada_Process is
 
    procedure with_clause_3
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
+   is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
@@ -9198,133 +8732,133 @@ package body Ada_Process is
       Add_Action (Table.States (46), 74, Reduce, 150, 1,  2, null, null);
       Add_Action (Table.States (46), 107, Reduce, 150, 1,  2, null, null);
       Add_Error (Table.States (46));
-      Add_Action (Table.States (47), 4, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 5, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 10, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 13, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 15, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 17, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 18, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 20, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 21, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 22, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 23, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 27, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 28, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 31, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 32, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 33, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 35, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 37, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 38, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 40, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 41, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 42, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 43, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 48, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 52, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 53, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 55, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 56, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 57, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 58, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 61, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 68, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 71, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 73, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 74, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 75, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 76, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 77, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 78, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 79, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 82, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 83, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 84, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 85, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 86, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 87, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 88, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 89, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 91, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 92, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 93, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 94, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 95, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 96, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 97, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 98, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 99, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 100, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 102, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 104, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 105, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (47), 106, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (47), 4, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 5, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 10, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 13, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 15, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 17, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 18, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 20, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 21, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 22, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 23, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 27, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 28, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 31, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 32, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 33, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 35, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 37, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 38, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 40, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 41, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 42, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 43, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 48, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 52, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 53, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 55, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 56, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 57, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 58, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 61, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 68, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 71, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 73, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 74, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 75, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 77, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 78, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 79, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 82, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 83, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 85, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 86, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 87, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 88, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 89, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 91, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 92, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 93, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 94, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 95, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 96, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 97, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 98, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 99, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 100, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 104, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 105, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (47), 106, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (47));
-      Add_Action (Table.States (48), 4, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 5, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 10, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 13, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 15, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 17, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 18, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 20, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 21, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 22, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 23, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 27, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 28, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 31, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 32, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 33, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 35, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 37, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 38, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 40, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 41, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 42, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 43, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 48, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 52, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 53, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 55, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 56, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 57, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 58, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 61, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 68, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 71, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 73, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 74, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 75, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 76, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 77, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 78, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 79, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 82, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 83, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 84, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 85, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 86, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 87, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 88, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 89, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 91, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 92, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 93, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 94, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 95, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 96, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 97, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 98, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 99, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 100, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 101, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 102, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 104, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 105, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (48), 106, Reduce, 250, 7,  1, null, null);
+      Add_Action (Table.States (48), 4, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 5, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 10, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 13, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 15, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 17, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 18, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 20, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 21, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 22, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 23, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 27, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 28, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 31, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 32, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 33, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 35, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 37, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 38, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 40, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 41, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 42, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 43, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 48, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 52, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 53, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 55, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 56, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 57, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 58, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 61, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 68, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 71, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 73, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 74, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 75, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 76, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 77, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 78, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 79, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 82, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 83, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 84, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 85, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 86, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 87, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 88, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 89, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 91, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 92, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 93, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 94, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 95, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 96, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 97, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 98, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 99, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 100, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 101, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 102, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 104, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 105, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (48), 106, Reduce, 250, 7,  1, null, name_7_check'Access);
       Add_Error (Table.States (48));
       Add_Action (Table.States (49), 4, Reduce, 250, 1,  1, null, null);
       Add_Action (Table.States (49), 5, Reduce, 250, 1,  1, null, null);
@@ -9530,69 +9064,69 @@ package body Ada_Process is
       Add_Action (Table.States (53), 105, Reduce, 250, 6,  1, null, null);
       Add_Action (Table.States (53), 106, Reduce, 250, 6,  1, null, null);
       Add_Error (Table.States (53));
-      Add_Action (Table.States (54), 4, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 5, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 10, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 13, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 15, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 17, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 18, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 20, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 21, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 22, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 23, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 27, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 28, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 31, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 32, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 33, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 35, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 37, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 38, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 40, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 41, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 42, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 43, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 48, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 52, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 53, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 55, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 56, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 57, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 58, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 61, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 68, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 71, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 73, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 74, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 75, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 76, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 77, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 78, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 79, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 82, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 83, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 84, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 85, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 86, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 87, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 88, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 89, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 91, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 92, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 93, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 94, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 95, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 96, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 97, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 98, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 99, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 100, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 101, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 102, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 104, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 105, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (54), 106, Reduce, 250, 3,  1, null, null);
+      Add_Action (Table.States (54), 4, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 5, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 10, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 13, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 15, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 17, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 18, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 20, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 21, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 22, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 23, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 27, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 28, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 31, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 32, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 33, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 35, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 37, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 38, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 40, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 41, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 42, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 43, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 48, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 52, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 53, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 55, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 56, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 57, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 58, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 61, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 68, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 71, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 73, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 74, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 75, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 76, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 77, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 78, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 79, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 82, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 83, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 84, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 85, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 86, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 87, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 88, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 89, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 91, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 92, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 93, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 94, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 95, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 96, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 97, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 98, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 99, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 100, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 101, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 102, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 104, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 105, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (54), 106, Reduce, 250, 3,  1, null, name_3_check'Access);
       Add_Error (Table.States (54));
       Add_Action (Table.States (55), 69, 125);
       Add_Error (Table.States (55));
@@ -12190,133 +11724,259 @@ package body Ada_Process is
       Add_Action (Table.States (223), 105, Reduce, 304, 3,  3, selected_component_3'Access, null);
       Add_Action (Table.States (223), 106, Reduce, 304, 3,  3, selected_component_3'Access, null);
       Add_Error (Table.States (223));
-      Add_Action (Table.States (224), 4, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 5, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 10, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 13, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 15, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 17, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 18, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 20, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 21, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 22, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 23, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 27, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 28, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 31, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 32, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 33, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 35, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 37, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 38, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 40, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 41, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 42, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 43, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 48, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 52, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 53, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 55, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 56, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 57, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 58, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 61, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 68, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 71, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 73, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 74, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 75, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 76, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 77, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 78, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 79, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 82, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 83, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 84, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 85, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 86, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 87, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 88, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 89, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 91, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 92, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 93, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 94, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 95, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 96, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 97, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 98, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 99, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 100, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 101, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 102, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 104, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 105, Reduce, 304, 0,  3, selected_component_0'Access, null);
-      Add_Action (Table.States (224), 106, Reduce, 304, 0,  3, selected_component_0'Access, null);
+      Add_Action (Table.States (224), 4, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 5, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 10, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 13, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 15, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 17, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 18, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 20, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 21, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 22, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 23, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 27, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 28, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 31, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 32, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 33, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 35, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 37, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 38, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 40, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 41, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 42, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 43, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 48, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 52, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 53, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 55, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 56, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 57, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 58, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 61, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 68, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 71, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 73, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 74, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 75, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 76, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 77, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 78, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 79, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 82, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 83, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 84, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 85, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 86, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 87, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 88, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 89, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 91, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 92, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 93, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 94, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 95, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 96, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 97, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 98, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 99, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 100, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 101, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 102, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 104, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 105, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
+      Add_Action (Table.States (224), 106, Reduce, 304, 0,  3, selected_component_0'Access,
+        selected_component_0_check'Access);
       Add_Error (Table.States (224));
-      Add_Action (Table.States (225), 4, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 5, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 10, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 13, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 15, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 17, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 18, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 20, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 21, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 22, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 23, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 27, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 28, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 31, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 32, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 33, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 35, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 37, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 38, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 40, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 41, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 42, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 43, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 48, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 52, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 53, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 55, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 56, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 57, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 58, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 61, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 68, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 71, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 73, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 74, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 75, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 76, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 77, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 78, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 79, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 82, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 83, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 84, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 85, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 86, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 87, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 88, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 89, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 91, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 92, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 93, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 94, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 95, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 96, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 97, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 98, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 99, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 100, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 101, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 102, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 104, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 105, Reduce, 304, 2,  3, selected_component_2'Access, null);
-      Add_Action (Table.States (225), 106, Reduce, 304, 2,  3, selected_component_2'Access, null);
+      Add_Action (Table.States (225), 4, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 5, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 10, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 13, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 15, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 17, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 18, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 20, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 21, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 22, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 23, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 27, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 28, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 31, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 32, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 33, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 35, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 37, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 38, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 40, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 41, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 42, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 43, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 48, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 52, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 53, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 55, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 56, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 57, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 58, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 61, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 68, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 71, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 73, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 74, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 75, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 76, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 77, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 78, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 79, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 82, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 83, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 84, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 85, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 86, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 87, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 88, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 89, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 91, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 92, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 93, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 94, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 95, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 96, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 97, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 98, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 99, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 100, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 101, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 102, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 104, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 105, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
+      Add_Action (Table.States (225), 106, Reduce, 304, 2,  3, selected_component_2'Access,
+        selected_component_2_check'Access);
       Add_Error (Table.States (225));
       Add_Action (Table.States (226), 4, Reduce, 304, 1,  3, selected_component_1'Access, null);
       Add_Action (Table.States (226), 5, Reduce, 304, 1,  3, selected_component_1'Access, null);
@@ -12382,36 +12042,37 @@ package body Ada_Process is
       Add_Action (Table.States (226), 105, Reduce, 304, 1,  3, selected_component_1'Access, null);
       Add_Action (Table.States (226), 106, Reduce, 304, 1,  3, selected_component_1'Access, null);
       Add_Error (Table.States (226));
-      Add_Action (Table.States (227), 10, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 33, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 38, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 40, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 43, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 53, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 55, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 75, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 76, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 77, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 78, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 79, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (227), 10, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 33, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 38, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 40, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 43, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 53, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 55, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 75, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 77, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 78, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 79, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (227), 81, Reduce, 227, 0,  1, null, null);
-      Add_Action (Table.States (227), 83, Reduce, 227, 0,  1, null, null, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 84, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 85, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 86, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 87, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 88, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 89, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 91, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 92, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 94, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 95, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 97, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 98, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 99, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 100, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (227), 102, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (227), 83, Reduce, 227, 0,  1, null, null, 250, 0,  1, name_0'Access,
+        name_0_check'Access);
+      Add_Action (Table.States (227), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 85, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 86, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 87, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 88, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 89, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 91, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 92, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 94, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 95, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 97, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 98, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 99, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 100, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (227), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (227));
       Add_Action (Table.States (228), 81, 240);
       Add_Action (Table.States (228), 83, 98);
@@ -12460,15 +12121,15 @@ package body Ada_Process is
       Add_Error (Table.States (234));
       Add_Goto (Table.States (234), 216, 524);
       Add_Goto (Table.States (234), 281, 525);
-      Add_Action (Table.States (235), 21, Reduce, 251, 1,  1, null, null);
-      Add_Action (Table.States (235), 35, Reduce, 251, 1,  1, null, null);
-      Add_Action (Table.States (235), 56, Reduce, 251, 1,  1, null, null);
-      Add_Action (Table.States (235), 74, Reduce, 251, 1,  1, null, null);
+      Add_Action (Table.States (235), 21, Reduce, 251, 1,  1, null, name_opt_1_check'Access);
+      Add_Action (Table.States (235), 35, Reduce, 251, 1,  1, null, name_opt_1_check'Access);
+      Add_Action (Table.States (235), 56, Reduce, 251, 1,  1, null, name_opt_1_check'Access);
+      Add_Action (Table.States (235), 74, Reduce, 251, 1,  1, null, name_opt_1_check'Access);
       Add_Action (Table.States (235), 76, 111);
-      Add_Action (Table.States (235), 77, Reduce, 251, 1,  1, null, null);
-      Add_Action (Table.States (235), 82, Reduce, 251, 1,  1, null, null);
+      Add_Action (Table.States (235), 77, Reduce, 251, 1,  1, null, name_opt_1_check'Access);
+      Add_Action (Table.States (235), 82, Reduce, 251, 1,  1, null, name_opt_1_check'Access);
       Add_Action (Table.States (235), 84, 89);
-      Add_Action (Table.States (235), 96, Reduce, 251, 1,  1, null, null);
+      Add_Action (Table.States (235), 96, Reduce, 251, 1,  1, null, name_opt_1_check'Access);
       Add_Action (Table.States (235), 101, 90);
       Add_Action (Table.States (235), 102, 91);
       Add_Error (Table.States (235));
@@ -16416,17 +16077,18 @@ package body Ada_Process is
       Add_Goto (Table.States (471), 250, 571);
       Add_Goto (Table.States (471), 283, 53);
       Add_Goto (Table.States (471), 304, 54);
-      Add_Action (Table.States (472), 71, Reduce, 171, 0,  1, null, null, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (472), 76, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (472), 84, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (472), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (472), 102, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (472), 71, Reduce, 171, 0,  1, null, null, 250, 0,  1, name_0'Access,
+        name_0_check'Access);
+      Add_Action (Table.States (472), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (472), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (472), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (472), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (472));
-      Add_Action (Table.States (473), 71, Reduce, 171, 1,  1, null, null, 250, 7,  1, null, null);
-      Add_Action (Table.States (473), 76, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (473), 84, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (473), 101, Reduce, 250, 7,  1, null, null);
-      Add_Action (Table.States (473), 102, Reduce, 250, 7,  1, null, null);
+      Add_Action (Table.States (473), 71, Reduce, 171, 1,  1, null, null, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (473), 76, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (473), 84, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (473), 101, Reduce, 250, 7,  1, null, name_7_check'Access);
+      Add_Action (Table.States (473), 102, Reduce, 250, 7,  1, null, name_7_check'Access);
       Add_Error (Table.States (473));
       Add_Action (Table.States (474), 71, 570, 250, 4,  1, null, null);
       Add_Action (Table.States (474), 76, Reduce, 250, 4,  1, null, null);
@@ -16904,13 +16566,13 @@ package body Ada_Process is
       Add_Error (Table.States (557));
       Add_Action (Table.States (558), 41, 773);
       Add_Error (Table.States (558));
-      Add_Action (Table.States (559), 76, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (559), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (559), 77, Reduce, 253, 0,  1, null_exclusion_opt_name_type_0'Access, null);
       Add_Action (Table.States (559), 82, Reduce, 253, 0,  1, null_exclusion_opt_name_type_0'Access, null);
-      Add_Action (Table.States (559), 84, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (559), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (559), 96, Reduce, 253, 0,  1, null_exclusion_opt_name_type_0'Access, null);
-      Add_Action (Table.States (559), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (559), 102, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (559), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (559), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (559));
       Add_Action (Table.States (560), 77, Reduce, 178, 4,  3, null, null);
       Add_Action (Table.States (560), 82, 772);
@@ -16927,13 +16589,13 @@ package body Ada_Process is
       Add_Action (Table.States (562), 82, 771);
       Add_Action (Table.States (562), 96, Reduce, 178, 2,  3, null, null);
       Add_Error (Table.States (562));
-      Add_Action (Table.States (563), 76, Reduce, 250, 3,  1, null, null);
+      Add_Action (Table.States (563), 76, Reduce, 250, 3,  1, null, name_3_check'Access);
       Add_Action (Table.States (563), 77, Reduce, 253, 1,  1, null_exclusion_opt_name_type_1'Access, null);
       Add_Action (Table.States (563), 82, Reduce, 253, 1,  1, null_exclusion_opt_name_type_1'Access, null);
-      Add_Action (Table.States (563), 84, Reduce, 250, 3,  1, null, null);
+      Add_Action (Table.States (563), 84, Reduce, 250, 3,  1, null, name_3_check'Access);
       Add_Action (Table.States (563), 96, Reduce, 253, 1,  1, null_exclusion_opt_name_type_1'Access, null);
-      Add_Action (Table.States (563), 101, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (563), 102, Reduce, 250, 3,  1, null, null);
+      Add_Action (Table.States (563), 101, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (563), 102, Reduce, 250, 3,  1, null, name_3_check'Access);
       Add_Error (Table.States (563));
       Add_Action (Table.States (564), 13, Reduce, 223, 1,  7, generic_renaming_declaration_1'Access, null);
       Add_Action (Table.States (564), 24, Reduce, 223, 1,  7, generic_renaming_declaration_1'Access, null);
@@ -17915,13 +17577,13 @@ package body Ada_Process is
       Add_Goto (Table.States (635), 341, 191);
       Add_Action (Table.States (636), 104, 681);
       Add_Error (Table.States (636));
-      Add_Action (Table.States (637), 76, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (637), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (637), 81, 680);
-      Add_Action (Table.States (637), 82, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (637), 84, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (637), 96, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (637), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (637), 102, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (637), 82, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (637), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (637), 96, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (637), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (637), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (637));
       Add_Action (Table.States (638), 4, Reduce, 158, 5,  1, null, null);
       Add_Action (Table.States (638), 5, Reduce, 158, 5,  1, null, null);
@@ -18013,11 +17675,11 @@ package body Ada_Process is
       Add_Action (Table.States (640), 105, Reduce, 309, 3,  1, null, null);
       Add_Action (Table.States (640), 106, Reduce, 309, 3,  1, null, null);
       Add_Error (Table.States (640));
-      Add_Action (Table.States (641), 13, Reduce, 132, 1,  1, null, null);
-      Add_Action (Table.States (641), 17, Reduce, 132, 1,  1, null, null);
-      Add_Action (Table.States (641), 28, Reduce, 132, 1,  1, null, null);
-      Add_Action (Table.States (641), 37, Reduce, 132, 1,  1, null, null);
-      Add_Action (Table.States (641), 73, Reduce, 132, 1,  1, null, null);
+      Add_Action (Table.States (641), 13, Reduce, 132, 1,  1, null, block_label_opt_1_check'Access);
+      Add_Action (Table.States (641), 17, Reduce, 132, 1,  1, null, block_label_opt_1_check'Access);
+      Add_Action (Table.States (641), 28, Reduce, 132, 1,  1, null, block_label_opt_1_check'Access);
+      Add_Action (Table.States (641), 37, Reduce, 132, 1,  1, null, block_label_opt_1_check'Access);
+      Add_Action (Table.States (641), 73, Reduce, 132, 1,  1, null, block_label_opt_1_check'Access);
       Add_Error (Table.States (641));
       Add_Action (Table.States (642), 13, 676);
       Add_Action (Table.States (642), 17, 677);
@@ -19043,11 +18705,11 @@ package body Ada_Process is
       Add_Goto (Table.States (678), 334, 666);
       Add_Action (Table.States (679), 37, 930);
       Add_Error (Table.States (679));
-      Add_Action (Table.States (680), 13, Reduce, 131, 0,  2, block_label_0'Access, null);
-      Add_Action (Table.States (680), 17, Reduce, 131, 0,  2, block_label_0'Access, null);
-      Add_Action (Table.States (680), 28, Reduce, 131, 0,  2, block_label_0'Access, null);
-      Add_Action (Table.States (680), 37, Reduce, 131, 0,  2, block_label_0'Access, null);
-      Add_Action (Table.States (680), 73, Reduce, 131, 0,  2, block_label_0'Access, null);
+      Add_Action (Table.States (680), 13, Reduce, 131, 0,  2, block_label_0'Access, block_label_0_check'Access);
+      Add_Action (Table.States (680), 17, Reduce, 131, 0,  2, block_label_0'Access, block_label_0_check'Access);
+      Add_Action (Table.States (680), 28, Reduce, 131, 0,  2, block_label_0'Access, block_label_0_check'Access);
+      Add_Action (Table.States (680), 37, Reduce, 131, 0,  2, block_label_0'Access, block_label_0_check'Access);
+      Add_Action (Table.States (680), 73, Reduce, 131, 0,  2, block_label_0'Access, block_label_0_check'Access);
       Add_Error (Table.States (680));
       Add_Action (Table.States (681), 90, 929);
       Add_Error (Table.States (681));
@@ -19345,31 +19007,31 @@ package body Ada_Process is
       Add_Error (Table.States (693));
       Add_Action (Table.States (694), 68, 917);
       Add_Error (Table.States (694));
-      Add_Action (Table.States (695), 10, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 33, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 38, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 40, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 43, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 55, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 75, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 76, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 78, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (695), 10, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 33, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 38, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 40, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 43, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 55, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 75, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 78, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (695), 81, 916);
-      Add_Action (Table.States (695), 84, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 86, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 88, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 89, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 91, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 92, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 94, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 95, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 96, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 97, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 98, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 99, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 100, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (695), 102, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (695), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 86, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 88, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 89, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 91, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 92, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 94, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 95, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 96, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 97, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 98, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 99, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 100, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (695), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (695));
       Add_Action (Table.States (696), 96, 915);
       Add_Error (Table.States (696));
@@ -19464,8 +19126,8 @@ package body Ada_Process is
       Add_Error (Table.States (705));
       Add_Action (Table.States (706), 37, Reduce, 237, 1,  2, iteration_scheme_1'Access, null);
       Add_Error (Table.States (706));
-      Add_Action (Table.States (707), 72, Reduce, 228, 1,  1, null, null);
-      Add_Action (Table.States (707), 96, Reduce, 228, 1,  1, null, null);
+      Add_Action (Table.States (707), 72, Reduce, 228, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (707), 96, Reduce, 228, 1,  1, null, identifier_opt_1_check'Access);
       Add_Error (Table.States (707));
       Add_Action (Table.States (708), 72, 905);
       Add_Action (Table.States (708), 96, 906);
@@ -20880,21 +20542,21 @@ package body Ada_Process is
       Add_Goto (Table.States (821), 331, 189);
       Add_Goto (Table.States (821), 332, 190);
       Add_Goto (Table.States (821), 341, 191);
-      Add_Action (Table.States (822), 76, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (822), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (822), 77, Reduce, 253, 2,  3, null_exclusion_opt_name_type_2'Access, null);
       Add_Action (Table.States (822), 82, Reduce, 253, 2,  3, null_exclusion_opt_name_type_2'Access, null);
-      Add_Action (Table.States (822), 84, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (822), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (822), 96, Reduce, 253, 2,  3, null_exclusion_opt_name_type_2'Access, null);
-      Add_Action (Table.States (822), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (822), 102, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (822), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (822), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (822));
-      Add_Action (Table.States (823), 76, Reduce, 250, 3,  1, null, null);
+      Add_Action (Table.States (823), 76, Reduce, 250, 3,  1, null, name_3_check'Access);
       Add_Action (Table.States (823), 77, Reduce, 253, 3,  3, null_exclusion_opt_name_type_3'Access, null);
       Add_Action (Table.States (823), 82, Reduce, 253, 3,  3, null_exclusion_opt_name_type_3'Access, null);
-      Add_Action (Table.States (823), 84, Reduce, 250, 3,  1, null, null);
+      Add_Action (Table.States (823), 84, Reduce, 250, 3,  1, null, name_3_check'Access);
       Add_Action (Table.States (823), 96, Reduce, 253, 3,  3, null_exclusion_opt_name_type_3'Access, null);
-      Add_Action (Table.States (823), 101, Reduce, 250, 3,  1, null, null);
-      Add_Action (Table.States (823), 102, Reduce, 250, 3,  1, null, null);
+      Add_Action (Table.States (823), 101, Reduce, 250, 3,  1, null, name_3_check'Access);
+      Add_Action (Table.States (823), 102, Reduce, 250, 3,  1, null, name_3_check'Access);
       Add_Error (Table.States (823));
       Add_Action (Table.States (824), 77, Reduce, 178, 3,  5, null, null);
       Add_Action (Table.States (824), 96, Reduce, 178, 3,  5, null, null);
@@ -22402,13 +22064,13 @@ package body Ada_Process is
       Add_Action (Table.States (941), 79, Reduce, 192, 1,  1, null, null);
       Add_Action (Table.States (941), 87, Reduce, 192, 1,  1, null, null);
       Add_Error (Table.States (941));
-      Add_Action (Table.States (942), 76, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (942), 79, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (942), 76, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (942), 79, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Action (Table.States (942), 81, 1168);
-      Add_Action (Table.States (942), 84, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (942), 87, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (942), 101, Reduce, 250, 0,  1, name_0'Access, null);
-      Add_Action (Table.States (942), 102, Reduce, 250, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (942), 84, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (942), 87, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (942), 101, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (942), 102, Reduce, 250, 0,  1, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (942));
       Add_Action (Table.States (943), 79, Reduce, 193, 0,  1, null, null);
       Add_Action (Table.States (943), 87, Reduce, 193, 0,  1, null, null);
@@ -23632,24 +23294,42 @@ package body Ada_Process is
       Add_Goto (Table.States (1044), 330, 319);
       Add_Goto (Table.States (1044), 336, 320);
       Add_Goto (Table.States (1044), 342, 321);
-      Add_Action (Table.States (1045), 13, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 24, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 25, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 28, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 29, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 30, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 40, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 46, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 47, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 48, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 49, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 50, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 51, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 63, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 66, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 69, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 71, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
-      Add_Action (Table.States (1045), 104, Reduce, 315, 1,  6, single_protected_declaration_1'Access, null);
+      Add_Action (Table.States (1045), 13, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 24, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 25, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 28, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 29, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 30, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 40, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 46, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 47, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 48, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 49, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 50, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 51, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 63, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 66, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 69, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 71, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
+      Add_Action (Table.States (1045), 104, Reduce, 315, 1,  6, single_protected_declaration_1'Access,
+        single_protected_declaration_1_check'Access);
       Add_Error (Table.States (1045));
       Add_Action (Table.States (1046), 96, Reduce, 228, 0,  0, null, null);
       Add_Action (Table.States (1046), 104, 707);
@@ -25573,24 +25253,42 @@ package body Ada_Process is
       Add_Error (Table.States (1219));
       Add_Action (Table.States (1220), 24, 1236);
       Add_Error (Table.States (1220));
-      Add_Action (Table.States (1221), 13, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 24, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 25, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 28, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 29, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 30, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 40, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 46, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 47, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 48, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 49, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 50, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 51, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 63, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 66, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 69, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 71, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
-      Add_Action (Table.States (1221), 104, Reduce, 282, 1,  8, protected_type_declaration_1'Access, null);
+      Add_Action (Table.States (1221), 13, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 24, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 25, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 28, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 29, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 30, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 40, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 46, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 47, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 48, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 49, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 50, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 51, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 63, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 66, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 69, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 71, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
+      Add_Action (Table.States (1221), 104, Reduce, 282, 1,  8, protected_type_declaration_1'Access,
+        protected_type_declaration_1_check'Access);
       Add_Error (Table.States (1221));
       Add_Action (Table.States (1222), 10, 1064);
       Add_Action (Table.States (1222), 74, 1235);
@@ -25673,24 +25371,42 @@ package body Ada_Process is
       Add_Goto (Table.States (1232), 331, 189);
       Add_Goto (Table.States (1232), 332, 190);
       Add_Goto (Table.States (1232), 341, 191);
-      Add_Action (Table.States (1233), 13, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 24, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 25, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 28, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 29, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 30, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 40, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 46, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 47, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 48, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 49, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 50, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 51, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 63, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 66, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 69, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 71, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
-      Add_Action (Table.States (1233), 104, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
+      Add_Action (Table.States (1233), 13, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 24, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 25, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 28, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 29, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 30, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 40, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 46, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 47, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 48, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 49, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 50, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 51, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 63, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 66, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 69, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 71, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
+      Add_Action (Table.States (1233), 104, Reduce, 315, 0,  9, single_protected_declaration_0'Access,
+        single_protected_declaration_0_check'Access);
       Add_Error (Table.States (1233));
       Add_Action (Table.States (1234), 96, Reduce, 277, 0,  5, protected_definition_0'Access,
         protected_definition_0_check'Access);
@@ -26748,24 +26464,42 @@ package body Ada_Process is
       Add_Goto (Table.States (1300), 331, 189);
       Add_Goto (Table.States (1300), 332, 190);
       Add_Goto (Table.States (1300), 341, 191);
-      Add_Action (Table.States (1301), 13, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 24, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 25, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 28, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 29, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 30, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 40, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 46, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 47, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 48, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 49, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 50, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 51, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 63, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 66, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 69, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 71, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
-      Add_Action (Table.States (1301), 104, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
+      Add_Action (Table.States (1301), 13, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 24, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 25, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 28, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 29, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 30, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 40, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 46, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 47, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 48, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 49, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 50, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 51, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 63, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 66, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 69, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 71, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
+      Add_Action (Table.States (1301), 104, Reduce, 282, 0,  11, protected_type_declaration_0'Access,
+        protected_type_declaration_0_check'Access);
       Add_Error (Table.States (1301));
       Add_Action (Table.States (1302), 13, Reduce, 316, 0,  11, single_task_declaration_0'Access,
         single_task_declaration_0_check'Access);

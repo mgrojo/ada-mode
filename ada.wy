@@ -576,11 +576,14 @@ binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
 block_label
   : IDENTIFIER COLON
     (wisi-indent-action [ada-indent-label 0])
+    (wisi-propagate-name 1)
   ;
 
 block_label_opt
   : ;; empty
   | block_label
+    ()
+    (wisi-propagate-name 1)
   ;
 
 block_statement
@@ -1397,6 +1400,8 @@ identifier_list
 identifier_opt
   : ;; empty
   | IDENTIFIER
+    ()
+    (wisi-propagate-name 1)
   ;
 
 if_expression
@@ -1631,6 +1636,7 @@ name
  ;; test/ada_mode-nominal.adb
  ;;    Object_3 : access Record_Type_3 := new Record_Type_3 (...)
     (wisi-face-mark-action [1 suffix])
+    (wisi-propagate-name 1)
 
   | CHARACTER_LITERAL ;; only in an expression, so no type or function-name face
 
@@ -1658,6 +1664,8 @@ name
                                        (wisi-anchored 2 (+ 1 ada-indent-broken)))
                          (wisi-anchored 2 0)])
   | selected_component
+    ()
+    (wisi-propagate-name 1)
   | attribute_reference ;; starts with name
 
   | name actual_parameter_part
@@ -1690,11 +1698,15 @@ name
   ;; | generalized_reference
   ;; | generalized_indexing
   | STRING_LITERAL ;; operator_symbol, designator
+    ()
+    (wisi-propagate-name 1)
   ;
 
 name_opt
   : ;; empty
   | name
+    ()
+    (wisi-propagate-name 1)
   ;
 
 null_exclusion_opt
@@ -2023,13 +2035,13 @@ protected_definition
       (wisi-statement-action [2 motion])
       (wisi-face-apply-action [5 nil font-lock-type-face])
       (wisi-indent-action [[ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0]))
-    (wisi-match-names 1 5 t)
+    (wisi-propagate-name 5)
 
   | declarative_part_opt END identifier_opt
     (progn
       (wisi-face-apply-action [3 nil font-lock-type-face])
       (wisi-indent-action [[ada-indent ada-indent] 0 0]))
-    (wisi-match-names 1 3 t)
+    (wisi-propagate-name 3)
   ;
 
 protected_operation_item
@@ -2065,7 +2077,8 @@ protected_type_declaration
       (wisi-motion-action [1 6 [10 PRIVATE] 11])
       (wisi-face-apply-action [3 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0
-                             ada-indent-broken ada-indent-broken ada-indent-broken 0 0]))
+                           ada-indent-broken ada-indent-broken ada-indent-broken 0 0]))
+    (wisi-match-names 3 10 t)
   | PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS protected_definition SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 name 6 motion 8 statement-end])
@@ -2073,6 +2086,7 @@ protected_type_declaration
       (wisi-motion-action [1 6 [7 PRIVATE] 8])
       (wisi-face-apply-action [3 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [0 ada-indent] 0 0]))
+    (wisi-match-names 3 7 t)
   ;
 
 ;; protected_operation_declaration merged into declaration
@@ -2239,12 +2253,14 @@ return_subtype_indication
 selected_component
   : name DOT IDENTIFIER
     (wisi-face-mark-action [1 prefix 3 suffix])
+    (wisi-merge-names 1 3)
 
   | name DOT CHARACTER_LITERAL
     (wisi-face-mark-action [1 prefix])
 
   | name DOT STRING_LITERAL
     (wisi-face-mark-action [1 prefix])
+    (wisi-merge-names 1 3)
 
   | name DOT ALL
     (wisi-face-mark-action [1 prefix])
@@ -2369,6 +2385,8 @@ single_protected_declaration
       (wisi-motion-action [1 4 7 [8 PRIVATE] 9])
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0]))
+    (wisi-match-names 2 8 t)
+ 
   | PROTECTED IDENTIFIER aspect_specification_opt IS protected_definition SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 name 4 motion 6 statement-end])
@@ -2376,6 +2394,7 @@ single_protected_declaration
       (wisi-motion-action [1 4 [5 PRIVATE] 6])
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken 0 [0 ada-indent] 0 0]))
+    (wisi-match-names 2 5 t)
   ;
 
 single_task_declaration
