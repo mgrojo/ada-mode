@@ -1,4 +1,5 @@
 -- FIXME: Error recovery gives up on this; it should do better.
+--EMACS_SKIP_UNLESS:(eq gpr-parser 'process)
 project gpr_recover_1 is
    package Linker is
       case Profile is

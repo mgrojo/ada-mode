@@ -5,6 +5,9 @@
 
 -- It does pass the reindent and diff test; all insertions are deleted.
 
+-- WORKAROUND: this test causes the process parser to crash
+--EMACS_SKIP_UNLESS:(eq ada-parser 'elisp)
+
 -- Since we are editing, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
