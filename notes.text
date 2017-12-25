@@ -32,6 +32,9 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
  current work
+add propagate-names, merge-names
+    in o.e.a.s-4
+
 wisitoken-token_line_comment.adb:101:31: already at outermost
     fix in o.e.a.s-2
 
