@@ -3,13 +3,18 @@
 (require 'ada-project)
 (require 'xref-ada)
 
-(ada-parse-prj-file "wisitoken.prj")
-(ada-select-prj-file "wisitoken.prj")
-
 (add-to-list 'project-find-functions 'project-menu-prj)
 
-;; Ada mode adds another layer of project selection
-(project-menu-select "Ada mode")
+(let* ((prj-file "wisitoken.prj")
+       (prj-name "wisitoken main")
+       (prj (make-ada-project
+	     :env-vars nil
+	     :ada-prj prj-file)))
+
+  (project-menu-add-project prj prj-name default-directory)
+
+  (project-menu-select-by-name prj-name)
+  )
 
 ;; extensions to ada-fix-error
 

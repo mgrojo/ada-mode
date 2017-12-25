@@ -77,7 +77,10 @@ package body WisiToken.LR.Semantic_Checks is
       Last_Index  : in     Positive_Index_Type)
      return Semantic_Status
    is begin
-      Nonterm.Name := Tokens (First_Index).Name and Tokens (Last_Index).Name;
+      Nonterm.Name := Tokens (First_Index).Name and
+        (if Tokens (Last_Index).Name = Null_Buffer_Region
+         then Tokens (Last_Index).Byte_Region
+         else Tokens (Last_Index).Name);
       return Ok;
    end Merge_Names;
 

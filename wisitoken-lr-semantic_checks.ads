@@ -43,7 +43,10 @@ package WisiToken.LR.Semantic_Checks is
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
      return Semantic_Status;
-   --  Set Nonterm.Name to the merger of Tokens (First_Index ..
+   --  Then set Nonterm.Name to the merger of Tokens (First_Index ..
    --  Last_Index).Name, return Ok.
+   --
+   --  If Tokens (Last_Index).Name is Null_Buffer_Region, use Tokens
+   --  (Last_Index).Byte_Region instead.
 
 end WisiToken.LR.Semantic_Checks;

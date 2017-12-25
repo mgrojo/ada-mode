@@ -81,9 +81,9 @@ package body Subprograms_Process is
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
    is
-      pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Lexer);
    begin
-      return Propagate_Name (Lexer, Tokens, 1);
+      return Propagate_Name (Nonterm, Tokens, 1);
    end name_0_check;
 
    procedure name_1
@@ -106,9 +106,9 @@ package body Subprograms_Process is
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
    is
-      pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Lexer);
    begin
-      return Merge_Names (Lexer, Tokens, 1, 3);
+      return Merge_Names (Nonterm, Tokens, 1, 3);
    end name_1_check;
 
    procedure parameter_list_0
