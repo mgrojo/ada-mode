@@ -1327,9 +1327,9 @@ If non-nil, only repair errors in BEG END region."
   ;; See comments above on syntax-propertize.
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
-  ;; In Emacs >= 26, ’run-mode-hooks’ (in the major mode function)
-  ;; runs ’hack-local-variables’ after ’*-mode-hooks’; we need
-  ;; ’wisi-post-local-vars’ to run after ’hack-local-variables’.
+  ;; In Emacs >= 26, ‘run-mode-hooks’ (in the major mode function)
+  ;; runs ‘hack-local-variables’ after ’*-mode-hooks’; we need
+  ;; ‘wisi-post-local-vars’ to run after ‘hack-local-variables’.
   (add-hook 'hack-local-variables-hook 'wisi-post-local-vars nil t)
   )
 

@@ -1654,7 +1654,7 @@ Return new value of PROJECT."
 		(setq project tmp-prj)
 
 	      ;; Any other field in the file is set as an environment
-	      ;; variable or a project file.
+	      ;; variable or a project file variable.
 	      (if (= ?$ (elt (match-string 1) 0))
 		  ;; process env var. We don't do expand-file-name
 		  ;; here because the application may be expecting a
