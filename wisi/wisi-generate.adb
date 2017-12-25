@@ -37,6 +37,8 @@ with Wisi.Rules;
 with WisiToken;
 procedure Wisi.Generate
 is
+   use all type Standard.Ada.Containers.Count_Type;
+
    procedure Put_Usage
    is
       use Standard.Ada.Text_IO;
@@ -208,6 +210,10 @@ begin
    Wisi.Rules
      (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Tokens.Rules,
       Rule_Count, Action_Count, Check_Count);
+
+   if Rule_Count = 0 or Tokens.Rules.Length = 0 then
+      raise WisiToken.Grammar_Error with "no rules";
+   end if;
 
    case Generate_Params.Output_Language is
    when None =>

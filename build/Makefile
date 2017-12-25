@@ -5,8 +5,8 @@
 ZIP_VERSION := 6.0b
 #w-$(shell date +%Y-%m-%d)
 
-all : test-clean tests library
-#all : doc zip tag
+all : test-clean tests
+#all : library doc zip tag
 
 # ../Test/test_one_harness.adb
 # ../Test/test_all_harness.adb

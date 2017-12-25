@@ -384,7 +384,7 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
 
       if Is_In (Tokens.Tokens, "delimited-text") then
-         Indent_Line ("static void skip_to(wisi_lexer* lexer, char* target, int target_length)");
+         Indent_Line ("static void skip_to(wisi_lexer* lexer, char* target)");
          Indent_Line ("{");
          Indent_Line ("  int i;");
          New_Line;
@@ -398,11 +398,11 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("            i++;");
          Indent_Line ("            skip(lexer);");
          Indent_Line ("          }");
-         Indent_Line ("        while (i < target_length &&");
+         Indent_Line ("        while (0 != target[i] &&");
          Indent_Line ("               lexer->cursor <= lexer->buffer_last &&");
          Indent_Line ("               *lexer->cursor == target[i]);");
          New_Line;
-         Indent_Line ("        if (i == target_length)");
+         Indent_Line ("        if (0 == target[i])");
          Indent_Line ("            break;");
          Indent_Line ("      }");
          Indent_Line ("      skip(lexer);");
@@ -505,8 +505,7 @@ package body Wisi.Gen_Output_Ada_Common is
                begin
                   Indent_Line
                     (Val (1 .. Start_Last - 1) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
-                     "; skip_to(lexer, " & Val (Start_Last + 1 .. Val'Last) & "," &
-                       Integer'Image (Val'Last - Start_Last - 2) & "); continue;}");
+                     "; skip_to(lexer, " & Val (Start_Last + 1 .. Val'Last) & "); continue;}");
                end;
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then

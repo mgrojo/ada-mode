@@ -411,7 +411,8 @@ is
             --  Handles this syntax:
             --
             --  integer literal:
-            --  1 => 1
+            --  2 => 2
+            --  -1 => -1
             --
             --  variable name:
             --  ada-indent => Ada_Indent
@@ -438,7 +439,7 @@ is
             Args          : Unbounded_String;
             Arg_Count     : Count_Type      := 0;
          begin
-            if Params (First) in Digit then
+            if Params (First) in Digit or Params (First) = '-' then
                Last := Index (Params, Delim, First);
                return Params (First .. Last - 1);
 
