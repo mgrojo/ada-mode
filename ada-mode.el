@@ -491,28 +491,20 @@ Menu displays currently parsed Ada mode projects."
       )
     (nreverse menu)))
 
-(defvar makefile-gmake-mode-map nil);; make-mode.el
 (defun ada-project-menu-install ()
   "Install the Ada project menu as a submenu."
-  (when (memq major-mode '(ada-mode compilation-mode makefile-gmake-mode))
-    (define-key-after
-      (cl-case major-mode
-	(ada-mode
-	 (lookup-key ada-mode-map [menu-bar Ada]))
-	(compilation-mode
-	 (lookup-key compilation-mode-map [menu-bar compilation]))
-	(makefile-gmake-mode
-	 (lookup-key makefile-gmake-mode-map [menu-bar makefile-mode]))) ;; map to put menu in
-      [ada-prj-select]          ;; key to insert (a menu entry)
-      (easy-menu-binding
-       (easy-menu-create-menu
-	"Select Project"
-	(ada-project-menu-compute)));; binding
-      nil;; after
+  (when (eq major-mode 'ada-mode)
+    (lookup-key ada-mode-map [menu-bar Ada]) ;; map to put menu in
+    [ada-prj-select]          ;; key to insert (a menu entry)
+    (easy-menu-binding
+     (easy-menu-create-menu
+      "Select Project"
+      (ada-project-menu-compute)));; binding
+    nil;; after
 
-      ;; IMPROVEME: this doesn’t work for ’after’; "Select Project" is at end
-      ;; (lookup-key ada-mode-map [menu-bar Ada Build])
-      )))
+    ;; IMPROVEME: this doesn’t work for ’after’; "Select Project" is at end
+    ;; (lookup-key ada-mode-map [menu-bar Ada Build])
+    ))
 
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
@@ -1719,7 +1711,7 @@ Indexed by project variable xref_tool.")
 Indexed by project variable xref_tool.")
 
 (defun ada-select-prj-file (prj-file &optional no-force)
-  "Select PRJ-FILE as the current project file."
+  "Select PRJ-FILE as the current project file, parsing it if necessary."
   (interactive)
   (setq prj-file (expand-file-name prj-file))
 
@@ -1729,7 +1721,10 @@ Indexed by project variable xref_tool.")
 
     (when (null ada-prj-current-project)
       (setq ada-prj-current-file nil)
-      (error "Project file '%s' was not previously parsed." prj-file))
+      (ada-parse-prj-file prj-file)
+      (setq ada-prj-current-project (cdr (assoc prj-file ada-prj-alist)))
+      (when (null ada-prj-current-project)
+	(error "Project file '%s' parse failed." prj-file)))
 
     (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-deselect-prj-compiler))))
       (when func (funcall func)))

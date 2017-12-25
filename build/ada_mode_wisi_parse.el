@@ -3,14 +3,17 @@
 (require 'ada-project)
 (require 'xref-ada)
 
-(let ((prj-file "ada_mode_wisi_parse.prj"))
-  (ada-parse-prj-file prj-file)
-  (ada-select-prj-file prj-file)
-  (push (cons default-directory (cons 'ada-mode (concat default-directory prj-file))) sal-project-dir-alist))
-
 (setq project-find-functions '(project-menu-prj))
 
-;; Ada mode adds another layer of project selection
-(project-menu-select "Ada mode")
+(let* ((prj-file "ada_mode_wisi_parse.prj")
+       (prj-name "ada_mode_wisi_parse main")
+       (prj (make-ada-project
+	     :env-vars '(("WISI_WISITOKEN" . "c:/Projects/org.wisitoken/build"))
+	     :ada-prj prj-file)))
+
+  (project-menu-add-project prj prj-name default-directory)
+
+  (project-menu-select-by-name prj-name)
+  )
 
 ;; end of file
