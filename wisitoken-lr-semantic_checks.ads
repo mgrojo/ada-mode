@@ -30,4 +30,23 @@ package WisiToken.LR.Semantic_Checks is
    --  Tokens (End_Index).Name, or both are Null_Buffer_Retion, return
    --  Ok. Otherwise return Error.
 
+   function Propagate_Name
+     (Nonterm    : in out Base_Token;
+      Tokens     : in     Base_Token_Arrays.Vector;
+      Name_Index : in     Positive_Index_Type)
+     return Semantic_Status;
+   --  Set Nonterm.Name to Tokens (Name_Index).Name, return Ok.
+
+   function Merge_Names
+     (Nonterm     : in out Base_Token;
+      Tokens      : in     Base_Token_Arrays.Vector;
+      First_Index : in     Positive_Index_Type;
+      Last_Index  : in     Positive_Index_Type)
+     return Semantic_Status;
+   --  Then set Nonterm.Name to the merger of Tokens (First_Index ..
+   --  Last_Index).Name, return Ok.
+   --
+   --  If Tokens (Last_Index).Name is Null_Buffer_Region, use Tokens
+   --  (Last_Index).Byte_Region instead.
+
 end WisiToken.LR.Semantic_Checks;

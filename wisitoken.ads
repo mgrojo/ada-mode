@@ -238,9 +238,16 @@ package WisiToken is
    --  Trace_Parse levels; output info if Trace_Parse > than:
    --
    Outline     : constant := 0; -- spawn/terminate parallel parsers, error recovery enter/exit
-   Detail      : constant := 1; -- add each parser cycle and error recovery configuration
-   Extra       : constant := 2; -- add pending semantic state operations, error recovery parse actions
+   Detail      : constant := 1; -- add each parser cycle
+   Extra       : constant := 2; -- add pending semantic state operations
    Lexer_Debug : constant := 3; -- add lexer debug
+
+   Trace_McKenzie : Integer  := 0;
+   --  If Trace_McKenzie > 0, Parse prints messages helpful for debugging error recovery.
+   --
+   --  Outline - error recovery enter/exit
+   --  Detail  - add each error recovery configuration
+   --  Extra   - add error recovery parse actions
 
    type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
    --  Output for tests/debugging. Derived types should support

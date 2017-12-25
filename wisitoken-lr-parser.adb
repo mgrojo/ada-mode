@@ -36,14 +36,21 @@ package body WisiToken.LR.Parser is
      (Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
       Semantic_State : access WisiToken.Semantic_State.Semantic_State'Class;
-      Nonterm        :    out Base_Token)
+      Nonterm        :    out Base_Token;
+      Lexer          : in     WisiToken.Lexer.Handle;
+      Trace          : in out WisiToken.Trace'Class)
    is
       use all type SAL.Base_Peek_Type;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Tokens       : Base_Token_Arrays.Vector;
    begin
-      Reduce_Stack (Parser_State.Stack, Action, Nonterm, Tokens);
+      --  We ignore semantic check errors here, since they do not determine
+      --  correctness according to the grammar. They are useful only during
+      --  error recovery. The checks still need to be called here, for side
+      --  effects such as propagating a block name to Nonterm, to be
+      --  available for later checks.
+      Reduce_Stack (Parser_State.Stack, Action, Nonterm, Tokens, Lexer, Trace, Trace_Parse);
 
       if Current_Parser.Active_Parser_Count > 1 then
          Parser_State.Pend ((Parser_Lists.Reduce_Stack, Action, Nonterm, Tokens), Semantic_State.Trace.all);
@@ -57,13 +64,13 @@ package body WisiToken.LR.Parser is
      (Action         : in Parse_Action_Rec;
       Current_Parser : in Parser_Lists.Cursor;
       Current_Token  : in Base_Token;
-      Parser         : in Instance)
+      Shared_Parser  : in Instance)
    is
       use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Trace        : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+      Trace        : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
       Nonterm      : Base_Token;
    begin
       if Trace_Parse > Detail then
@@ -82,7 +89,7 @@ package body WisiToken.LR.Parser is
          if Current_Parser.Active_Parser_Count > 1 then
             Parser_State.Pend ((Parser_Lists.Push_Current, Current_Token), Trace);
          else
-            Parser.Semantic_State.Push_Current (Current_Token);
+            Shared_Parser.Semantic_State.Push_Current (Current_Token);
          end if;
 
          Parser_State.Last_Shift_Was_Virtual := Parser_State.Current_Token_Is_Virtual;
@@ -90,11 +97,11 @@ package body WisiToken.LR.Parser is
       when Reduce =>
          Current_Parser.Pre_Reduce_Stack_Save;
 
-         Reduce_Stack_1 (Current_Parser, Action, Parser.Semantic_State, Nonterm);
+         Reduce_Stack_1 (Current_Parser, Action, Shared_Parser.Semantic_State, Nonterm, Shared_Parser.Lexer, Trace);
 
          Parser_State.Stack.Push
            ((State    => Goto_For
-               (Table => Parser.Table.all,
+               (Table => Shared_Parser.Table.all,
                 State => Parser_State.Stack.Peek.State,
                 ID    => Action.LHS),
              Token    => Nonterm));
@@ -107,7 +114,7 @@ package body WisiToken.LR.Parser is
          Reduce_Stack_1
            (Current_Parser,
             (Reduce, Action.LHS, Action.Action, Action.Check, Action.Index, Action.Token_Count),
-            Parser.Semantic_State, Nonterm);
+            Shared_Parser.Semantic_State, Nonterm, Shared_Parser.Lexer, Trace);
 
       when Error =>
          Current_Parser.Save_Verb; -- For error recovery
@@ -116,9 +123,9 @@ package body WisiToken.LR.Parser is
 
          declare
             Expecting : constant Token_ID_Set := LR.Expecting
-              (Parser.Table.all, Current_Parser.State_Ref.Stack.Peek.State);
+              (Shared_Parser.Table.all, Current_Parser.State_Ref.Stack.Peek.State);
          begin
-            Parser.Semantic_State.Error (Current_Parser.Label, Expecting);
+            Shared_Parser.Semantic_State.Error (Current_Parser.Label, Expecting);
 
             if Trace_Parse > Outline then
                Put
@@ -409,7 +416,7 @@ package body WisiToken.LR.Parser is
                if Parser_State.Verb = Error then
                   if Shared_Parser.Enable_McKenzie_Recover then
                      Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
-                     if Trace_Parse > Detail then
+                     if Trace_Parse > Extra then
                         Trace.Put_Line
                           (Integer'Image (Parser_State.Label) & ": zombie (" &
                              Int_Image

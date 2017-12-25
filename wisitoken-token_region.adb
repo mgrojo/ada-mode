@@ -411,7 +411,7 @@ package body WisiToken.Token_Region is
       end loop;
 
       if Action /= null then
-         Action (Aug_Nonterm, Index, Aug_Tokens);
+         Action (Aug_Nonterm, Aug_Tokens);
       end if;
 
       State.Stack.Append (Aug_Nonterm);

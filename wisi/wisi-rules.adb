@@ -194,18 +194,28 @@ begin
                   Check_Numbers (Line);
                   Update_Paren_Count (Line);
 
-                  if Output_Language in Elisp | Ada_Emacs then
-                     --  keep parens
-                     RHS.Action := RHS.Action + Line;
-
-                  elsif Paren_Count = 0 then
-                     --  Current line also has the terminating ')'; assume no trailing whitespace
-                     RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last - 1);
+                  if Paren_Count = 0 then
+                     --  Current line also has the terminating ')'; assume no trailing
+                     --  whitespace
+                     if Line'Length > 2 then
+                        --  Action can be empty if only specifying Check.
+                        if Output_Language in Elisp | Ada_Emacs then
+                           --  keep parens
+                           RHS.Action := RHS.Action + Line;
+                        else
+                           RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last - 1);
+                        end if;
+                        Action_Count := Action_Count + 1;
+                     end if;
                   else
-                     RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last);
+                     if Output_Language in Elisp | Ada_Emacs then
+                        --  keep parens
+                        RHS.Action := RHS.Action + Line;
+                     else
+                        RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last);
+                     end if;
+                     Action_Count := Action_Count + 1;
                   end if;
-
-                  Action_Count := Action_Count + 1;
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);

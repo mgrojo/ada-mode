@@ -671,7 +671,7 @@ package body WisiToken.LR is
       --  FIXME: catch lexer Syntax_Error here, add to Semantic_State.Errors.
    end Next_Grammar_Token;
 
-   procedure Reduce_Stack
+   procedure Reduce_Stack_1
      (Stack   : in out Parser_Stacks.Stack_Type;
       Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token)
@@ -688,20 +688,11 @@ package body WisiToken.LR is
             if Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
                Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
             end if;
-
-            if Token.Name /= Null_Buffer_Region then
-               --  Always keep first name in production (which is last name in this
-               --  loop); it will be the block name.
-               --
-               --  FIXME: If Nonterm.ID = Descriptor.Nonterminal_Name_ID, merge name
-               --  regions.
-               Nonterm.Name := Token.Name;
-            end if;
          end;
       end loop;
-   end Reduce_Stack;
+   end Reduce_Stack_1;
 
-   procedure Reduce_Stack
+   procedure Reduce_Stack_2
      (Stack   : in out Parser_Stacks.Stack_Type;
       Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token;
@@ -722,17 +713,54 @@ package body WisiToken.LR is
             if Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
                Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
             end if;
-
-            if Token.Name /= Null_Buffer_Region then
-               --  Always keep first name in production(which is last name in this
-               --  loop); it will be the block name.
-               --
-               --  FIXME: If Nonterm.ID = Descriptor.Nonterminal_Name_ID, merge name
-               --  regions.
-               Nonterm.Name := Token.Name;
-            end if;
          end;
       end loop;
+   end Reduce_Stack_2;
+
+   function Reduce_Stack
+     (Stack       : in out Parser_Stacks.Stack_Type;
+      Action      : in     Reduce_Action_Rec;
+      Nonterm     :    out Base_Token;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Trace       : in out WisiToken.Trace'Class;
+      Trace_Level : in     Integer)
+     return Semantic_Status
+   is begin
+      if Action.Check = null then
+         Reduce_Stack_1 (Stack, Action, Nonterm);
+         return Ok;
+      else
+         declare
+            Tokens : Base_Token_Arrays.Vector;
+         begin
+            Reduce_Stack_2 (Stack, Action, Nonterm, Tokens);
+            return Status : constant Semantic_Status := Action.Check (Lexer, Nonterm, Tokens) do
+               if Trace_Level > Detail then
+                  Trace.Put_Line ("check " & Semantic_Status'Image (Status));
+               end if;
+            end return;
+         end;
+      end if;
+   end Reduce_Stack;
+
+   procedure Reduce_Stack
+     (Stack       : in out Parser_Stacks.Stack_Type;
+      Action      : in     Reduce_Action_Rec;
+      Nonterm     :    out Base_Token;
+      Tokens      :    out Base_Token_Arrays.Vector;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Trace       : in out WisiToken.Trace'Class;
+      Trace_Level : in     Integer)
+   is
+      Status : Semantic_Status;
+   begin
+      Reduce_Stack_2 (Stack, Action, Nonterm, Tokens);
+      if Action.Check /= null then
+         Status := Action.Check (Lexer, Nonterm, Tokens);
+         if Trace_Level > Detail then
+            Trace.Put_Line ("check " & Semantic_Status'Image (Status));
+         end if;
+      end if;
    end Reduce_Stack;
 
 end WisiToken.LR;

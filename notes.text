@@ -13,8 +13,6 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
 move token_line_comment into wisitoken.semantic_state.token; no need for dispatching/classwide token type
     augmented_token_array can be definite
 
-delete Index from Semantic_Action
-
 Use correction cost to pick parser in terminate duplicate
 
 update NEWS.text

@@ -97,12 +97,10 @@ package body Test_Statement_Actions is
 
    procedure Statement_Semi_Action
      (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-      Index   : in Natural;
       Source  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
-      pragma Unreferenced (Index);
    begin
       Action_Count := Action_Count + 1;
    end Statement_Semi_Action;

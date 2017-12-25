@@ -77,11 +77,15 @@ package WisiToken.LR is
    type Semantic_Status is (Ok, Error);
 
    type Semantic_Check is access function
-     (Lexer  : in WisiToken.Lexer.Handle;
-      Tokens : in Base_Token_Arrays.Vector)
+     (Lexer   : in     WisiToken.Lexer.Handle;
+      Nonterm : in out Base_Token;
+      Tokens  : in     Base_Token_Arrays.Vector)
      return Semantic_Status;
    --  Called during error recovery to implement language-specific
    --  checks, such as block name matching in Ada.
+   --
+   --  Also called during normal parsing for side effects, such as
+   --  propagating block names.
    --
    --  FIXME: if don't need Parser_Stack parameter, move these
    --  declarations elsewhere.
@@ -470,15 +474,26 @@ private
    --  Get next token from Lexer, call Semantic_State.Lexer_To_Lookahead.
    --  If it is a grammar token, return it. Otherwise, repeat.
 
+   function Reduce_Stack
+     (Stack       : in out Parser_Stacks.Stack_Type;
+      Action      : in     Reduce_Action_Rec;
+      Nonterm     :    out Base_Token;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Trace       : in out WisiToken.Trace'Class;
+      Trace_Level : in     Integer)
+     return Semantic_Status;
+   --  Reduce Stack according to Action, calling Action.Check and
+   --  returning result, or Ok if null.
+
    procedure Reduce_Stack
-     (Stack   : in out Parser_Stacks.Stack_Type;
-      Action  : in     Reduce_Action_Rec;
-      Nonterm :    out Base_Token);
-   procedure Reduce_Stack
-     (Stack   : in out Parser_Stacks.Stack_Type;
-      Action  : in     Reduce_Action_Rec;
-      Nonterm :    out Base_Token;
-      Tokens  :    out Base_Token_Arrays.Vector);
-   --  Reduce Stack according to Action.
+     (Stack       : in out Parser_Stacks.Stack_Type;
+      Action      : in     Reduce_Action_Rec;
+      Nonterm     :    out Base_Token;
+      Tokens      :    out Base_Token_Arrays.Vector;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Trace       : in out WisiToken.Trace'Class;
+      Trace_Level : in     Integer);
+   --  Reduce Stack according to Action, calling Action.Check for side
+   --  effects.
 
 end WisiToken.LR;

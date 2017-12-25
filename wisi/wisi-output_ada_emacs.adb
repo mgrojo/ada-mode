@@ -606,6 +606,16 @@ is
          return -(Result & "))");
       end Indent_Params;
 
+      function Merge_Names_Params (Params : in String) return String
+      is
+         --  Input looks like "1 2)"
+         First  : constant Integer := Params'First;
+         Second : constant Integer := Index (Params, " ", First);
+      begin
+         return " (Nonterm, Tokens, " & Params (First .. Second - 1) & ',' &
+           Params (Second .. Params'Last);
+      end Merge_Names_Params;
+
       function Match_Names_Params (Params : in String) return String
       is
          --  Input looks like: 1 2 nil)
@@ -695,7 +705,29 @@ is
                Put_Error (Input_File_Name, RHS.Source_Line, "multiple indent actions");
             end if;
 
+         elsif Elisp_Name = "wisi-propagate-name" then
+            if not Check then
+               Put_Error (Input_File_Name, RHS.Source_Line, Elisp_Name & " used in action");
+               return;
+            end if;
+            Check_Lines.Append
+              ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 " (Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";");
+
+         elsif Elisp_Name = "wisi-merge-names" then
+            if not Check then
+               Put_Error (Input_File_Name, RHS.Source_Line, Elisp_Name & " used in action");
+               return;
+            end if;
+            Check_Lines.Append
+              ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Merge_Names_Params (Line (Last + 1 .. Line'Last)) & ";");
+
          elsif Elisp_Name = "wisi-match-names" then
+            if not Check then
+               Put_Error (Input_File_Name, RHS.Source_Line, Elisp_Name & " used in action");
+               return;
+            end if;
             Check_Lines.Append
               ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Match_Names_Params (Line (Last + 1 .. Line'Last)) & ";");
@@ -706,25 +738,6 @@ is
       end Translate_Line;
 
    begin
-      if Check then
-         --  in a check
-         Indent_Line ("function " & Name);
-         Indent_Line (" (Lexer  : in WisiToken.Lexer.Handle;");
-         Indent_Line ("  Tokens : in WisiToken.Base_Token_Arrays.Vector)");
-         Indent_Line (" return WisiToken.LR.Semantic_Status");
-         Indent_Line ("is begin");
-      else
-         --  In an action
-         Indent_Line ("procedure " & Name);
-         Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
-         Indent_Line ("  Index   : in Natural;");
-         Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
-         Indent_Line ("is");
-         Indent_Line ("   pragma Unreferenced (Index);");
-         Indent_Line ("begin");
-         Indent := Indent + 3;
-      end if;
-
       for Line of Lines loop
          begin
             if Translate_Paren_State = 0 and Length (Temp) = 0 then
@@ -772,12 +785,40 @@ is
 
       if Check then
          --  in a check
+         Indent_Line ("function " & Name);
+         Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
+         Indent_Line ("  Nonterm : in out WisiToken.Base_Token;");
+         Indent_Line ("  Tokens  : in     WisiToken.Base_Token_Arrays.Vector)");
+         Indent_Line (" return WisiToken.LR.Semantic_Status");
+         declare
+            Unref_Lexer   : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Lexer"));
+            Unref_Nonterm : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Nonterm"));
+         begin
+            if Unref_Lexer or Unref_Nonterm then
+               Indent_Line ("is");
+               if Unref_Lexer then
+                  Indent_Line ("   pragma Unreferenced (Lexer);");
+               end if;
+               if Unref_Nonterm then
+                  Indent_Line ("   pragma Unreferenced (Nonterm);");
+               end if;
+               Indent_Line ("begin");
+            else
+               Indent_Line ("is begin");
+            end if;
+         end;
          Indent := Indent + 3;
          for Line of Check_Lines loop
             Indent_Line (Line);
          end loop;
       else
          --  In an action
+         Indent_Line ("procedure " & Name);
+         Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
+         Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
+         Indent_Line ("is begin");
+         Indent := Indent + 3;
+
          Indent_Line ("case Parse_Data.Parse_Action is");
          Indent_Line ("when Navigate =>");
          if Navigate_Lines.Length > 0 then
@@ -809,6 +850,7 @@ is
          end if;
          Indent_Line ("end case;");
       end if;
+
       Indent := Indent - 3;
       Indent_Line ("end " & Name & ";");
       New_Line;

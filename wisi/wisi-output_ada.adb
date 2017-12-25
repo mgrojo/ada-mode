@@ -156,15 +156,11 @@ is
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
                      Unref_Nonterm : Boolean := True;
-                     Unref_Index   : Boolean := True;
                      Unref_Tokens  : Boolean := True;
                   begin
                      for Line of RHS.Action loop
                         if 0 < Index (Line, "Nonterm") then
                            Unref_Nonterm := False;
-                        end if;
-                        if 0 < Index (Line, "Index") then
-                           Unref_Index := False;
                         end if;
                         if 0 < Index (Line, "Tokens") then
                            Unref_Tokens := False;
@@ -176,15 +172,11 @@ is
                      Action_Names (Prod_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
                      Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
-                     Indent_Line ("  Index   : in Natural;");
                      Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
                      Indent_Line ("is");
 
                      if Unref_Nonterm then
                         Indent_Line ("   pragma Unreferenced (Nonterm);");
-                     end if;
-                     if Unref_Index then
-                        Indent_Line ("   pragma Unreferenced (Index);");
                      end if;
                      if Unref_Tokens then
                         Indent_Line ("   pragma Unreferenced (Tokens);");
@@ -209,11 +201,15 @@ is
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
                      Unref_Lexer   : Boolean := True;
+                     Unref_Nonterm : Boolean := True;
                      Unref_Tokens  : Boolean := True;
                   begin
                      for Line of RHS.Check loop
                         if 0 < Index (Line, "Lexer") then
                            Unref_Lexer := False;
+                        end if;
+                        if 0 < Index (Line, "Nonterm") then
+                           Unref_Nonterm := False;
                         end if;
                         if 0 < Index (Line, "Tokens") then
                            Unref_Tokens := False;
@@ -224,13 +220,17 @@ is
 
                      Check_Names (Prod_Index) := new String'(Name & "_check'Access");
                      Indent_Line ("function " & Name & "_check");
-                     Indent_Line (" (Lexer   : in WisiToken.Lexer.Handle;");
-                     Indent_Line ("  Tokens  : in WisiToken.Base_Token_Arrays.Vector)");
+                     Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
+                     Indent_Line ("  Nonterm : in out WisiToken.Base_Token;");
+                     Indent_Line ("  Tokens  : in     WisiToken.Base_Token_Arrays.Vector)");
                      Indent_Line (" return WisiToken.LR.Semantic_Status");
                      Indent_Line ("is");
 
                      if Unref_Lexer then
                         Indent_Line ("   pragma Unreferenced (Lexer);");
+                     end if;
+                     if Unref_Nonterm then
+                        Indent_Line ("   pragma Unreferenced (Nonterm);");
                      end if;
                      if Unref_Tokens then
                         Indent_Line ("   pragma Unreferenced (Tokens);");

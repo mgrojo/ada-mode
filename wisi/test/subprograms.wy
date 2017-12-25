@@ -90,8 +90,10 @@ loop_statement
 name
   : SYMBOL
     (wisi-face-mark-action [1 suffix])
+    (wisi-propagate-name 1)
   | name DOT SYMBOL
     (wisi-face-mark-action [1 prefix 3 suffix])
+    (wisi-merge-names 1 3)
   ;
 
 name_list

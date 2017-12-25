@@ -750,5 +750,5 @@ State 40:
    default          => ERROR
 
 
- 8 rules, 1 actions, 0 checks, 41 states, 135 table entries
+ 8 rules, 1 actions, 4 checks, 41 states, 135 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 5 reduce/reduce conflicts
