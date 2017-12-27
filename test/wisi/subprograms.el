@@ -3,7 +3,7 @@
 
 (require 'wisi-process-parse)
 
-;; These must match subprograms_wisi_runtime.ads
+;; These names must match wisi-wisi_runtime_subprograms.ads
 (defvar subp-indent 3 "base indent")
 (defvar subp-indent-broken 2 "continuation indent")
 (defvar subp-indent-comment-col-0 t "see ’wisi-indent-comment-col-0’")

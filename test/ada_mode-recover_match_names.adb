@@ -98,9 +98,9 @@ package body Ada_Mode.Recover_Match_Names is
    end Package_Body_0;
 
    package body Package_Body_1 is
-      procedure A
+   procedure A
    is
-   -- missing 'begin end A;'
+      -- missing 'begin end A;'
    end Package_Body_1;
 
    package Package_Specification_0
@@ -116,7 +116,7 @@ package body Ada_Mode.Recover_Match_Names is
 
    protected body Protected_Body_0 is
    entry E1 is
-   -- missing 'end E1'
+      -- missing 'end E1'
    end Protected_Body_0;
 
    --  protected protected_definition
@@ -135,7 +135,7 @@ package body Ada_Mode.Recover_Match_Names is
    loop; --  meant 'end loop;'
    end Subprogram_Body_0;
 
-   procedure Task_Body_0
+   task body Task_Body_0
    is begin
       loop
    loop; --  meant 'end loop;'

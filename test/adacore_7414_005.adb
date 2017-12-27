@@ -1,6 +1,6 @@
 
 procedure Adacore_7414_005 is
-
+   --  First line blank used to cause problems
    procedure Read is
       procedure P is
 

@@ -1206,6 +1206,17 @@ package body Ada_Process is
       end case;
    end function_specification_0;
 
+   function function_specification_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 2);
+   end function_specification_0_check;
+
    procedure generic_formal_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
@@ -2455,6 +2466,17 @@ package body Ada_Process is
       end case;
    end procedure_specification_0;
 
+   function procedure_specification_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 2);
+   end procedure_specification_0_check;
+
    procedure protected_body_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
@@ -3240,6 +3262,28 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Language, Ada_Indent_Renames_0'Access, +2))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end subprogram_renaming_declaration_0;
+
+   function subprogram_specification_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end subprogram_specification_0_check;
+
+   function subprogram_specification_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end subprogram_specification_1_check;
 
    procedure subtype_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -8363,10 +8407,10 @@ package body Ada_Process is
       Add_Action (Table.States (15), 74, Reduce, 149, 0,  1, null, null);
       Add_Action (Table.States (15), 107, Reduce, 149, 0,  1, null, null);
       Add_Error (Table.States (15));
-      Add_Action (Table.States (16), 35, Reduce, 323, 1,  1, null, null);
-      Add_Action (Table.States (16), 56, Reduce, 323, 1,  1, null, null);
-      Add_Action (Table.States (16), 74, Reduce, 323, 1,  1, null, null);
-      Add_Action (Table.States (16), 96, Reduce, 323, 1,  1, null, null);
+      Add_Action (Table.States (16), 35, Reduce, 323, 1,  1, null, subprogram_specification_1_check'Access);
+      Add_Action (Table.States (16), 56, Reduce, 323, 1,  1, null, subprogram_specification_1_check'Access);
+      Add_Action (Table.States (16), 74, Reduce, 323, 1,  1, null, subprogram_specification_1_check'Access);
+      Add_Action (Table.States (16), 96, Reduce, 323, 1,  1, null, subprogram_specification_1_check'Access);
       Add_Error (Table.States (16));
       Add_Action (Table.States (17), 29, Reduce, 241, 2,  1, null, null);
       Add_Action (Table.States (17), 30, Reduce, 241, 2,  1, null, null);
@@ -8570,10 +8614,10 @@ package body Ada_Process is
       Add_Action (Table.States (31), 74, Reduce, 164, 0,  1, null, null);
       Add_Action (Table.States (31), 107, Reduce, 164, 0,  1, null, null);
       Add_Error (Table.States (31));
-      Add_Action (Table.States (32), 35, Reduce, 323, 0,  1, null, null);
-      Add_Action (Table.States (32), 56, Reduce, 323, 0,  1, null, null);
-      Add_Action (Table.States (32), 74, Reduce, 323, 0,  1, null, null);
-      Add_Action (Table.States (32), 96, Reduce, 323, 0,  1, null, null);
+      Add_Action (Table.States (32), 35, Reduce, 323, 0,  1, null, subprogram_specification_0_check'Access);
+      Add_Action (Table.States (32), 56, Reduce, 323, 0,  1, null, subprogram_specification_0_check'Access);
+      Add_Action (Table.States (32), 74, Reduce, 323, 0,  1, null, subprogram_specification_0_check'Access);
+      Add_Action (Table.States (32), 96, Reduce, 323, 0,  1, null, subprogram_specification_0_check'Access);
       Add_Error (Table.States (32));
       Add_Action (Table.States (33), 29, Reduce, 240, 2,  1, null, null);
       Add_Action (Table.States (33), 30, Reduce, 240, 2,  1, null, null);
@@ -9552,10 +9596,14 @@ package body Ada_Process is
       Add_Action (Table.States (93), 58, 87);
       Add_Error (Table.States (93));
       Add_Goto (Table.States (93), 302, 222);
-      Add_Action (Table.States (94), 35, Reduce, 215, 0,  3, function_specification_0'Access, null);
-      Add_Action (Table.States (94), 56, Reduce, 215, 0,  3, function_specification_0'Access, null);
-      Add_Action (Table.States (94), 74, Reduce, 215, 0,  3, function_specification_0'Access, null);
-      Add_Action (Table.States (94), 96, Reduce, 215, 0,  3, function_specification_0'Access, null);
+      Add_Action (Table.States (94), 35, Reduce, 215, 0,  3, function_specification_0'Access,
+        function_specification_0_check'Access);
+      Add_Action (Table.States (94), 56, Reduce, 215, 0,  3, function_specification_0'Access,
+        function_specification_0_check'Access);
+      Add_Action (Table.States (94), 74, Reduce, 215, 0,  3, function_specification_0'Access,
+        function_specification_0_check'Access);
+      Add_Action (Table.States (94), 96, Reduce, 215, 0,  3, function_specification_0'Access,
+        function_specification_0_check'Access);
       Add_Error (Table.States (94));
       Add_Action (Table.States (95), 21, Reduce, 263, 1,  1, null, null);
       Add_Action (Table.States (95), 35, Reduce, 263, 1,  1, null, null);
@@ -9913,10 +9961,14 @@ package body Ada_Process is
       Add_Action (Table.States (119), 82, Reduce, 264, 1,  1, null, null);
       Add_Action (Table.States (119), 96, Reduce, 264, 1,  1, null, null);
       Add_Error (Table.States (119));
-      Add_Action (Table.States (120), 35, Reduce, 273, 0,  3, procedure_specification_0'Access, null);
-      Add_Action (Table.States (120), 56, Reduce, 273, 0,  3, procedure_specification_0'Access, null);
-      Add_Action (Table.States (120), 74, Reduce, 273, 0,  3, procedure_specification_0'Access, null);
-      Add_Action (Table.States (120), 96, Reduce, 273, 0,  3, procedure_specification_0'Access, null);
+      Add_Action (Table.States (120), 35, Reduce, 273, 0,  3, procedure_specification_0'Access,
+        procedure_specification_0_check'Access);
+      Add_Action (Table.States (120), 56, Reduce, 273, 0,  3, procedure_specification_0'Access,
+        procedure_specification_0_check'Access);
+      Add_Action (Table.States (120), 74, Reduce, 273, 0,  3, procedure_specification_0'Access,
+        procedure_specification_0_check'Access);
+      Add_Action (Table.States (120), 96, Reduce, 273, 0,  3, procedure_specification_0'Access,
+        procedure_specification_0_check'Access);
       Add_Error (Table.States (120));
       Add_Action (Table.States (121), 76, 111);
       Add_Action (Table.States (121), 77, 143);
@@ -15910,15 +15962,15 @@ package body Ada_Process is
       Add_Error (Table.States (453));
       Add_Action (Table.States (454), 104, 591);
       Add_Error (Table.States (454));
-      Add_Action (Table.States (455), 35, 590, 323, 1,  1, null, null);
-      Add_Action (Table.States (455), 56, Reduce, 323, 1,  1, null, null);
-      Add_Action (Table.States (455), 74, Reduce, 323, 1,  1, null, null);
-      Add_Action (Table.States (455), 96, Reduce, 323, 1,  1, null, null);
+      Add_Action (Table.States (455), 35, 590, 323, 1,  1, null, subprogram_specification_1_check'Access);
+      Add_Action (Table.States (455), 56, Reduce, 323, 1,  1, null, subprogram_specification_1_check'Access);
+      Add_Action (Table.States (455), 74, Reduce, 323, 1,  1, null, subprogram_specification_1_check'Access);
+      Add_Action (Table.States (455), 96, Reduce, 323, 1,  1, null, subprogram_specification_1_check'Access);
       Add_Error (Table.States (455));
-      Add_Action (Table.States (456), 35, 589, 323, 0,  1, null, null);
-      Add_Action (Table.States (456), 56, Reduce, 323, 0,  1, null, null);
-      Add_Action (Table.States (456), 74, Reduce, 323, 0,  1, null, null);
-      Add_Action (Table.States (456), 96, Reduce, 323, 0,  1, null, null);
+      Add_Action (Table.States (456), 35, 589, 323, 0,  1, null, subprogram_specification_0_check'Access);
+      Add_Action (Table.States (456), 56, Reduce, 323, 0,  1, null, subprogram_specification_0_check'Access);
+      Add_Action (Table.States (456), 74, Reduce, 323, 0,  1, null, subprogram_specification_0_check'Access);
+      Add_Action (Table.States (456), 96, Reduce, 323, 0,  1, null, subprogram_specification_0_check'Access);
       Add_Error (Table.States (456));
       Add_Action (Table.States (457), 35, 588, 122, 0,  0, null, null);
       Add_Action (Table.States (457), 56, 130);

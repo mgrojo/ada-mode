@@ -49,6 +49,45 @@ package body WisiToken.Wisi_Runtime is
    ----------
    --  body subprograms bodies, alphabetical
 
+   function Image (Anchor_IDs : in Anchor_ID_Vectors.Vector) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := +"(";
+   begin
+      for I in Anchor_IDs.First_Index .. Anchor_IDs.Last_Index loop
+         Result := Result & Integer'Image (Anchor_IDs (I));
+         if I /= Anchor_IDs.Last_Index then
+            Result := Result & ", ";
+         else
+            Result := Result & ")";
+         end if;
+      end loop;
+      return -Result;
+   end Image;
+
+   function Image (Indent : in Indent_Type) return String
+   is begin
+      case Indent.Label is
+      when Not_Set =>
+         return "(" & Indent_Label'Image (Indent.Label) & ")";
+
+      when Int =>
+         return "(" & Indent_Label'Image (Indent.Label) & Integer'Image (Indent.Int_Indent) & ")";
+
+      when Anchor =>
+         return "(" & Indent_Label'Image (Indent.Label) & Image (Indent.Anchor_IDs) & ", " & Integer'Image
+           (Indent.Anchor_Indent) & ")";
+
+      when Anchored =>
+         return "(" & Indent_Label'Image (Indent.Label) & Integer'Image (Indent.Anchored_ID) & ", " & Integer'Image
+           (Indent.Anchored_Delta) & ")";
+
+      when Anchor_Anchored =>
+         return "(" & Indent_Label'Image (Indent.Label) & Image (Indent.Anchor_Anchored_IDs) & Integer'Image
+           (Indent.Anchor_Anchored_ID) & ", " & Integer'Image (Indent.Anchor_Anchored_Delta) & ")";
+      end case;
+   end Image;
+
    procedure Indent_Apply_Anchored
      (Delta_Indent : in     Anchored_Delta;
       Indent       : in out Indent_Type)
@@ -365,6 +404,12 @@ package body WisiToken.Wisi_Runtime is
    is
       Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
    begin
+      if Trace_Parse > Detail then
+         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
+            Ada.Text_IO.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
+         end loop;
+      end if;
+
       if Data.Max_Anchor_ID >= First_Anchor_ID then
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             declare
