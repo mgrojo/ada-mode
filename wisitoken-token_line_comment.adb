@@ -22,7 +22,7 @@ package body WisiToken.Token_Line_Comment is
 
    function Trailing_Blank_Line (State : in State_Type; ID : in Token_ID) return Boolean
    is
-      --  Return True if token at State.All_Tokens ends with two New_Line
+      --  Return True if token at State.All_Tokens.Last_Index ends with two New_Line
       --  tokens (ie, a blank line).
       use all type Ada.Containers.Count_Type;
       New_Line_ID : Token_ID renames State.Trace.Descriptor.New_Line_ID;
@@ -330,39 +330,54 @@ package body WisiToken.Token_Line_Comment is
                  ", state token: " & Aug_Token.Image (State.Trace.Descriptor.all);
             end if;
 
-            if Aug_Nonterm.First_All_Tokens_Index = Invalid_All_Tokens_Index and
-              Aug_Token.First_All_Tokens_Index /= Invalid_All_Tokens_Index
-            then
-               Aug_Nonterm.First_All_Tokens_Index := Aug_Token.First_All_Tokens_Index;
-            end if;
+            if not Aug_Token.Virtual then
+               if Aug_Nonterm.First_All_Tokens_Index = Invalid_All_Tokens_Index then
+                  Aug_Nonterm.First_All_Tokens_Index := Aug_Token.First_All_Tokens_Index;
+               end if;
 
-            if Aug_Token.Last_All_Tokens_Index /= Invalid_All_Tokens_Index then
-               Aug_Nonterm.Last_All_Tokens_Index := Aug_Token.Last_All_Tokens_Index;
-            end if;
+               if Aug_Token.Last_All_Tokens_Index /= Invalid_All_Tokens_Index then
+                  Aug_Nonterm.Last_All_Tokens_Index := Aug_Token.Last_All_Tokens_Index;
+               else
+                  Aug_Nonterm.Last_All_Tokens_Index := Aug_Token.First_All_Tokens_Index;
+               end if;
 
-            if not First_Set then
-               if Aug_Token.First then
-                  Aug_Nonterm.First := True;
-                  First_Set := True;
+               if not First_Set then
+                  if Aug_Token.First then
+                     Aug_Nonterm.First := True;
+                     First_Set := True;
 
-                  if I = Base_Tokens.Last_Index then
-                     Aug_Nonterm.First_Indent_Line := Aug_Token.First_Indent_Line;
-                     Aug_Nonterm.Last_Indent_Line  := Aug_Token.Last_Indent_Line;
-                  else
-                     if Aug_Token.First_Indent_Line = Invalid_Line_Number then
-                        Aug_Nonterm.First_Indent_Line := Aug_Token.First_Trailing_Comment_Line;
-                     else
+                     if I = Base_Tokens.Last_Index then
                         Aug_Nonterm.First_Indent_Line := Aug_Token.First_Indent_Line;
-                     end if;
-
-                     if Aug_Token.Last_Trailing_Comment_Line = Invalid_Line_Number then
-                        Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Indent_Line;
+                        Aug_Nonterm.Last_Indent_Line  := Aug_Token.Last_Indent_Line;
                      else
-                        Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Trailing_Comment_Line;
+                        if Aug_Token.First_Indent_Line = Invalid_Line_Number then
+                           Aug_Nonterm.First_Indent_Line := Aug_Token.First_Trailing_Comment_Line;
+                        else
+                           Aug_Nonterm.First_Indent_Line := Aug_Token.First_Indent_Line;
+                        end if;
+
+                        if Aug_Token.Last_Trailing_Comment_Line = Invalid_Line_Number then
+                           Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Indent_Line;
+                        else
+                           Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Trailing_Comment_Line;
+                        end if;
                      end if;
                   end if;
                end if;
-            end if;
+
+               if Aug_Nonterm.Line = Invalid_Line_Number and Aug_Token.Line /= Invalid_Line_Number then
+                  Aug_Nonterm.Line := Aug_Token.Line;
+                  Aug_Nonterm.Col  := Aug_Token.Col;
+               end if;
+
+               if Aug_Nonterm.Char_Region.First > Aug_Token.Char_Region.First then
+                  Aug_Nonterm.Char_Region.First := Aug_Token.Char_Region.First;
+               end if;
+
+               if Aug_Nonterm.Char_Region.Last < Aug_Token.Char_Region.Last then
+                  Aug_Nonterm.Char_Region.Last := Aug_Token.Char_Region.Last;
+               end if;
+            end if; -- Aug_Token.Virutal
 
             if not Paren_State_Set then
                Aug_Nonterm.Paren_State := Aug_Token.Paren_State;
@@ -370,19 +385,6 @@ package body WisiToken.Token_Line_Comment is
             end if;
 
             Aug_Tokens.Append (Aug_Token);
-
-            if Aug_Nonterm.Line = Invalid_Line_Number and Aug_Token.Line /= Invalid_Line_Number then
-               Aug_Nonterm.Line := Aug_Token.Line;
-               Aug_Nonterm.Col  := Aug_Token.Col;
-            end if;
-
-            if Aug_Nonterm.Char_Region.First > Aug_Token.Char_Region.First then
-               Aug_Nonterm.Char_Region.First := Aug_Token.Char_Region.First;
-            end if;
-
-            if Aug_Nonterm.Char_Region.Last < Aug_Token.Char_Region.Last then
-               Aug_Nonterm.Char_Region.Last := Aug_Token.Char_Region.Last;
-            end if;
          end;
 
          Next (Stack_I);

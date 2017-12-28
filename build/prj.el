@@ -5,7 +5,7 @@
 
 (add-to-list 'project-find-functions 'project-menu-prj)
 
-(let* ((prj-file "wisitoken.prj")
+(let* ((prj-file (expand-file-name "wisitoken.prj"))
        (prj-name "wisitoken main")
        (prj (make-ada-project
 	     :env-vars nil

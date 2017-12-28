@@ -276,8 +276,10 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("int            line_token_start; // line at start of current token");
       Indent_Line ("unsigned char* marker;           // saved cursor");
       Indent_Line ("size_t         marker_pos;       // saved character position");
+      Indent_Line ("size_t         marker_line;      // saved line ");
       Indent_Line ("unsigned char* context;          // saved cursor");
       Indent_Line ("size_t         context_pos;      // saved character position");
+      Indent_Line ("int            context_line;     // saved line");
       Indent_Line ("int            verbosity;");
       New_Line;
       Indent := Indent - 3;
@@ -308,7 +310,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("result->buffer_last = input + length - 1;");
       Indent_Line ("result->cursor      = input;");
       Indent_Line ("result->char_pos    = 1;");
-      Indent_Line ("result->line        = 1;");
+      Indent_Line ("result->line        = (*result->cursor == 0x0A) ? 2 : 1;");
       Indent_Line ("result->verbosity   = verbosity;");
       Indent_Line ("return result;");
       Indent := Indent - 3;
@@ -331,7 +333,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
       Indent_Line ("lexer->cursor   = lexer->buffer;");
       Indent_Line ("lexer->char_pos = 1;");
-      Indent_Line ("lexer->line     = 1;");
+      Indent_Line ("lexer->line     = (*lexer->cursor == 0x0A) ? 2 : 1;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;
@@ -377,10 +379,14 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Start ("#define YYSKIP() skip(lexer)");
       New_Line;
 
-      Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos");
-      Indent_Line ("#define YYRESTORE() lexer->cursor = lexer->marker; lexer->char_pos = lexer->marker_pos");
-      Indent_Line ("#define YYBACKUPCTX() lexer->context = lexer->cursor; lexer->context_pos = lexer->char_pos");
-      Indent_Line ("#define YYRESTORECTX() lexer->cursor = lexer->context; lexer->char_pos = lexer->context_pos");
+      Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos;" &
+                     "lexer->marker_line = lexer->line");
+      Indent_Line ("#define YYRESTORE() lexer->cursor = lexer->marker; lexer->char_pos = lexer->marker_pos;" &
+                     "lexer->line = lexer->marker_line");
+      Indent_Line ("#define YYBACKUPCTX() lexer->context = lexer->cursor; lexer->context_pos = lexer->char_pos;" &
+                     "lexer->context_line = lexer->line");
+      Indent_Line ("#define YYRESTORECTX() lexer->cursor = lexer->context; lexer->char_pos = lexer->context_pos;" &
+                     "lexer->line = lexer->context_line");
       New_Line;
 
       if Is_In (Tokens.Tokens, "delimited-text") then
@@ -431,7 +437,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("*id       = " & WisiToken.Token_ID'Image (LR1_Descriptor.EOF_ID) & ";");
-      Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer;");
+      Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = 0;");
       Indent_Line ("*char_position = lexer->char_token_start;");
       Indent_Line ("*char_length   = 0;");
@@ -446,7 +452,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("   lexer->char_token_start = lexer->char_pos;");
       Indent_Line ("else");
       Indent_Line ("   lexer->char_token_start = lexer->char_pos + 1;");
-      Indent_Line ("   lexer->line_token_start = lexer->line;");
+      Indent_Line ("lexer->line_token_start = lexer->line;");
       New_Line;
 
       Indent_Line ("while (*id == 0 && status == 0)");
@@ -496,7 +502,8 @@ package body Wisi.Gen_Output_Ada_Common is
 
             if Kind (I) = "non-reporting" then
                Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
-               Indent_Line ("    lexer->char_token_start = lexer->char_pos; continue; }");
+               Indent_Line ("    lexer->char_token_start = lexer->char_pos;");
+               Indent_Line ("    lexer->line_token_start = lexer->line; continue; }");
 
             elsif Kind (I) = "delimited-text" then
                --  Val contains the start and end strings, separated by space

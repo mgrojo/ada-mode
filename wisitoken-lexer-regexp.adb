@@ -52,6 +52,8 @@ package body WisiToken.Lexer.Regexp is
 
       if Current_Char > Lexer.Source.Buffer'Last then
          Lexer.ID := Lexer.Trace.Descriptor.EOF_ID;
+         Lexer.Lexeme_Head := Lexer.Buffer_Head;
+         Lexer.Lexeme_Tail := Lexer.Buffer_Head - 1;
          return True;
       end if;
 

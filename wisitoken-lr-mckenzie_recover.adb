@@ -1059,7 +1059,9 @@ package body WisiToken.LR.McKenzie_Recover is
    begin
       if Trace_McKenzie > Outline then
          Trace.New_Line;
-         Trace.Put_Line ("parser" & Integer'Image (Parser_State.Label) & ":");
+         Trace.Put_Line
+           ("parser" & Integer'Image (Parser_State.Label) & ": Current_Token " &
+            Parser_State.Current_Token.Image (Trace.Descriptor.all));
       end if;
 
       --  All initialization of Parser_State.Recover is done in
@@ -1186,6 +1188,8 @@ package body WisiToken.LR.McKenzie_Recover is
                           ", enqueue" & Integer'Image (Data.Enqueue_Count) &
                           ", check " & Integer'Image (Data.Check_Count) &
                           ", cost: " & Integer'Image (Data.Results.Min_Key));
+
+                     Put ("  ", Trace, Data.Parser_Label, Data.Results.Peek, Include_Task_ID => False);
                   end if;
 
                   --  Restore pre-error parser verb before spawning, just for
@@ -1210,11 +1214,7 @@ package body WisiToken.LR.McKenzie_Recover is
                                 "spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
                                 Int_Image (Cur.Label) & " (" & Int_Image (1 + Integer (Parsers.Count)) & " active)";
                            begin
-                              if Trace_McKenzie > Detail then
-                                 Put (Msg, Trace, 0, Data.Results.Peek, Include_Task_ID => False);
-                              else
-                                 Trace.Put_Line (Msg);
-                              end if;
+                              Put (Msg, Trace, 0, Data.Results.Peek, Include_Task_ID => False);
                            end;
                         end if;
 

@@ -291,11 +291,13 @@ package body WisiToken is
    is
       ID_Image : constant String := Image (Item.ID, Descriptor);
    begin
-      if ID_Only or Item.Name = Null_Buffer_Region then
+      if ID_Only or (Item.Name = Null_Buffer_Region and Item.Byte_Region = Null_Buffer_Region) then
          --  No parens for consistency with existing tests.
          return ID_Image;
       else
-         return "(" & ID_Image & ", " & Image (Item.Name) & ")";
+         return "(" & ID_Image &
+           (if Item.Name = Null_Buffer_Region then "" else ", " & Image (Item.Name)) &
+           (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
       end if;
    end Image;
 

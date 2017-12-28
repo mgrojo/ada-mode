@@ -736,7 +736,14 @@ package body WisiToken.LR is
             Reduce_Stack_2 (Stack, Action, Nonterm, Tokens);
             return Status : constant Semantic_Status := Action.Check (Lexer, Nonterm, Tokens) do
                if Trace_Level > Detail then
-                  Trace.Put_Line ("check " & Semantic_Status'Image (Status));
+                  if Status = Ok then
+                     Trace.Put_Line ("semantic check " & Semantic_Status'Image (Status));
+                  else
+                     Trace.Put_Line
+                       ("semantic check " & Semantic_Status'Image (Status) & " " &
+                          Nonterm.Image (Trace.Descriptor.all) &
+                          Image (Tokens, Trace.Descriptor.all));
+                  end if;
                end if;
             end return;
          end;
@@ -758,7 +765,14 @@ package body WisiToken.LR is
       if Action.Check /= null then
          Status := Action.Check (Lexer, Nonterm, Tokens);
          if Trace_Level > Detail then
-            Trace.Put_Line ("check " & Semantic_Status'Image (Status));
+            if Status = Ok then
+               Trace.Put_Line ("semantic check " & Semantic_Status'Image (Status));
+            else
+               Trace.Put_Line
+                 ("semantic check " & Semantic_Status'Image (Status) & " " &
+                    Nonterm.Image (Trace.Descriptor.all) &
+                    Image (Tokens, Trace.Descriptor.all));
+            end if;
          end if;
       end if;
    end Reduce_Stack;

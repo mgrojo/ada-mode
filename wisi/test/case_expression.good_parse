@@ -1,59 +1,59 @@
 LALR_Parser parse:
- 0: 0: WHEN : shift and goto state 1
- 0: 1: (IDENTIFIER, (33 . 33)) : shift and goto state 4
- 0: 4: EQUAL_GREATER : reduce 1 tokens to factor
+ 0: 0: (WHEN, (28 . 31)) : shift and goto state 1
+ 0: 1: (IDENTIFIER, (33 . 33), (33 . 33)) : shift and goto state 4
+ 0: 4: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to factor
 (factor 33 . 33) <= ((IDENTIFIER (33 . 33) 33 . 33))
  ... goto state 8
- 0: 8: EQUAL_GREATER : reduce 1 tokens to factor_list
+ 0: 8: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to factor_list
 (factor_list 33 . 33) <= ((factor 33 . 33))
  ... goto state 9
- 0: 9: EQUAL_GREATER : reduce 1 tokens to choice_relation
+ 0: 9: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to choice_relation
 (choice_relation 33 . 33) <= ((factor_list 33 . 33))
  ... goto state 6
- 0: 6: EQUAL_GREATER : reduce 1 tokens to choice_expression
+ 0: 6: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to choice_expression
 (choice_expression 33 . 33) <= ((choice_relation 33 . 33))
  ... goto state 5
- 0: 5: EQUAL_GREATER : reduce 1 tokens to discrete_choice
+ 0: 5: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to discrete_choice
 (discrete_choice 33 . 33) <= ((choice_expression 33 . 33))
  ... goto state 7
- 0: 7: EQUAL_GREATER : shift and goto state 12
- 0: 12: NUMBER_LITERAL : shift and goto state 3
- 0: 3: Wisi_EOI : reduce 1 tokens to factor
+ 0: 7: (EQUAL_GREATER, (35 . 36)) : shift and goto state 12
+ 0: 12: (NUMBER_LITERAL, (38 . 42)) : shift and goto state 3
+ 0: 3: (Wisi_EOI, (45 . 44)) : reduce 1 tokens to factor
 (factor 38 . 42) <= ((NUMBER_LITERAL 38 . 42))
  ... goto state 16
- 0: 16: Wisi_EOI : reduce 4 tokens to case_expression
+ 0: 16: (Wisi_EOI, (45 . 44)) : reduce 4 tokens to case_expression
 (case_expression 28 . 42) <= ((WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42))
  ... goto state 2
- 0: 2: Wisi_EOI : accept it
+ 0: 2: (Wisi_EOI, (45 . 44)) : accept it
 (wisitoken_accept 28 . 42) <= ((case_expression 28 . 42))
  0: succeed
 
 LR1_Parser parse:
- 0: 0: WHEN : shift and goto state 1
- 0: 1: (IDENTIFIER, (33 . 33)) : shift and goto state 4
- 0: 4: EQUAL_GREATER : reduce 1 tokens to factor
+ 0: 0: (WHEN, (28 . 31)) : shift and goto state 1
+ 0: 1: (IDENTIFIER, (33 . 33), (33 . 33)) : shift and goto state 4
+ 0: 4: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to factor
 (factor 33 . 33) <= ((IDENTIFIER (33 . 33) 33 . 33))
  ... goto state 8
- 0: 8: EQUAL_GREATER : reduce 1 tokens to factor_list
+ 0: 8: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to factor_list
 (factor_list 33 . 33) <= ((factor 33 . 33))
  ... goto state 9
- 0: 9: EQUAL_GREATER : reduce 1 tokens to choice_relation
+ 0: 9: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to choice_relation
 (choice_relation 33 . 33) <= ((factor_list 33 . 33))
  ... goto state 6
- 0: 6: EQUAL_GREATER : reduce 1 tokens to choice_expression
+ 0: 6: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to choice_expression
 (choice_expression 33 . 33) <= ((choice_relation 33 . 33))
  ... goto state 5
- 0: 5: EQUAL_GREATER : reduce 1 tokens to discrete_choice
+ 0: 5: (EQUAL_GREATER, (35 . 36)) : reduce 1 tokens to discrete_choice
 (discrete_choice 33 . 33) <= ((choice_expression 33 . 33))
  ... goto state 7
- 0: 7: EQUAL_GREATER : shift and goto state 12
- 0: 12: NUMBER_LITERAL : shift and goto state 15
- 0: 15: Wisi_EOI : reduce 1 tokens to factor
+ 0: 7: (EQUAL_GREATER, (35 . 36)) : shift and goto state 12
+ 0: 12: (NUMBER_LITERAL, (38 . 42)) : shift and goto state 15
+ 0: 15: (Wisi_EOI, (45 . 44)) : reduce 1 tokens to factor
 (factor 38 . 42) <= ((NUMBER_LITERAL 38 . 42))
  ... goto state 17
- 0: 17: Wisi_EOI : reduce 4 tokens to case_expression
+ 0: 17: (Wisi_EOI, (45 . 44)) : reduce 4 tokens to case_expression
 (case_expression 28 . 42) <= ((WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42))
  ... goto state 2
- 0: 2: Wisi_EOI : accept it
+ 0: 2: (Wisi_EOI, (45 . 44)) : accept it
 (wisitoken_accept 28 . 42) <= ((case_expression 28 . 42))
  0: succeed

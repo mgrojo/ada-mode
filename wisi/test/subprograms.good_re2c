@@ -19,8 +19,10 @@ typedef struct wisi_lexer
    int            line_token_start; // line at start of current token
    unsigned char* marker;           // saved cursor
    size_t         marker_pos;       // saved character position
+   size_t         marker_line;      // saved line 
    unsigned char* context;          // saved cursor
    size_t         context_pos;      // saved character position
+   int            context_line;     // saved line
    int            verbosity;
 
 } wisi_lexer;
@@ -37,7 +39,7 @@ wisi_lexer* subprograms_new_lexer
    result->buffer_last = input + length - 1;
    result->cursor      = input;
    result->char_pos    = 1;
-   result->line        = 1;
+   result->line        = (*result->cursor == 0x0A) ? 2 : 1;
    result->verbosity   = verbosity;
    return result;
 }
@@ -54,7 +56,7 @@ subprograms_reset_lexer(wisi_lexer* lexer)
 {
    lexer->cursor   = lexer->buffer;
    lexer->char_pos = 1;
-   lexer->line     = 1;
+   lexer->line     = (*lexer->cursor == 0x0A) ? 2 : 1;
 }
 
 static void debug(wisi_lexer* lexer, int state, unsigned char ch)
@@ -82,10 +84,10 @@ static void skip(wisi_lexer* lexer)
    if (*lexer->cursor == 0x0A) ++lexer->line;
 }
 #define YYSKIP() skip(lexer)
-#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos
-#define YYRESTORE() lexer->cursor = lexer->marker; lexer->char_pos = lexer->marker_pos
-#define YYBACKUPCTX() lexer->context = lexer->cursor; lexer->context_pos = lexer->char_pos
-#define YYRESTORECTX() lexer->cursor = lexer->context; lexer->char_pos = lexer->context_pos
+#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos;lexer->marker_line = lexer->line
+#define YYRESTORE() lexer->cursor = lexer->marker; lexer->char_pos = lexer->marker_pos;lexer->line = lexer->marker_line
+#define YYBACKUPCTX() lexer->context = lexer->cursor; lexer->context_pos = lexer->char_pos;lexer->context_line = lexer->line
+#define YYRESTORECTX() lexer->cursor = lexer->context; lexer->char_pos = lexer->context_pos;lexer->line = lexer->context_line
 
 int subprograms_next_token
   (wisi_lexer* lexer,
@@ -101,7 +103,7 @@ int subprograms_next_token
    if (lexer->cursor > lexer->buffer_last)
    {
       *id       =  19;
-      *byte_position = lexer->buffer_last - lexer->buffer;
+      *byte_position = lexer->buffer_last - lexer->buffer + 1;
       *byte_length   = 0;
       *char_position = lexer->char_token_start;
       *char_length   = 0;
@@ -114,7 +116,7 @@ int subprograms_next_token
       lexer->char_token_start = lexer->char_pos;
    else
       lexer->char_token_start = lexer->char_pos + 1;
-      lexer->line_token_start = lexer->line;
+   lexer->line_token_start = lexer->line;
 
    while (*id == 0 && status == 0)
    {
@@ -142,7 +144,8 @@ int subprograms_next_token
       SYMBOL = [a-zA-Z][0-9a-zA-Z_]*;
 
       WHITESPACE { lexer->byte_token_start = lexer->cursor;
-          lexer->char_token_start = lexer->char_pos; continue; }
+          lexer->char_token_start = lexer->char_pos;
+          lexer->line_token_start = lexer->line; continue; }
       NEW_LINE {*id =  1; continue;}
       COMMENT {*id =  2; continue;}
       BEGIN {*id =  3; continue;}
