@@ -264,6 +264,9 @@ Also return cache at start."
 	  (progn
 	    (setq done
 		  (cl-case (wisi-cache-nonterm cache)
+		    ((entry_body entry_declaration)
+		     (eq (wisi-cache-token cache) 'ENTRY))
+
 		    (full_type_declaration
 		     (when include-type
 		       (eq (wisi-cache-token cache) 'TYPE)))
@@ -519,7 +522,8 @@ Also return cache at start."
   (let* ((cache (wisi-forward-find-class 'name (point-max)))
          (result (wisi-cache-text cache)))
 
-    ;; See comment at ada-mode.el on why we don't overwrite ff-function-name.
+    ;; See comment in ada-mode.el ada-which-function on why we don't
+    ;; overwrite ff-function-name.
     (when (not ff-function-name)
       (setq ff-function-name
 	    (concat
@@ -550,6 +554,9 @@ Also return cache at start."
 
 	  ;; add or delete 'body' as needed
 	  (cl-ecase (wisi-cache-nonterm cache)
+	    ((entry_body entry_declaration)
+	     (setq result (ada-wisi-which-function-1 "entry" nil)))
+
 	    (full_type_declaration
 	     (setq result (ada-wisi-which-function-1 "type" nil)))
 

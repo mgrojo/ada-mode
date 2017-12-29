@@ -18,6 +18,7 @@
 
 with WisiToken.Lexer.re2c;
 with WisiToken.LR.Parser;
+with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Gpr; use WisiToken.Wisi_Runtime.Gpr;
 with gpr_re2c_c;
@@ -116,6 +117,17 @@ package body Gpr_Process is
       end case;
    end case_item_0;
 
+   function identifier_opt_1_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end identifier_opt_1_check;
+
    procedure package_spec_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
@@ -131,6 +143,17 @@ package body Gpr_Process is
       end case;
    end package_spec_0;
 
+   function package_spec_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 2, 6, True);
+   end package_spec_0_check;
+
    procedure package_extension_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
@@ -145,6 +168,17 @@ package body Gpr_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end package_extension_0;
+
+   function package_extension_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 2, 8, True);
+   end package_extension_0_check;
 
    procedure package_renaming_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -174,6 +208,17 @@ package body Gpr_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end project_extension_0;
+
+   function project_extension_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 2, 8, True);
+   end project_extension_0_check;
 
    procedure simple_declarative_item_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -231,6 +276,17 @@ package body Gpr_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end simple_project_declaration_0;
+
+   function simple_project_declaration_0_check
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Base_Token;
+     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      return Match_Names (Lexer, Tokens, 2, 6, True);
+   end simple_project_declaration_0_check;
 
    procedure typed_string_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -654,15 +710,15 @@ package body Gpr_Process is
       Add_Goto (Table.States (18), 69, 31);
       Add_Action (Table.States (19), 32, Reduce, 41, 0,  1, null, null);
       Add_Error (Table.States (19));
-      Add_Action (Table.States (20), 8, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 12, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 19, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 20, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 26, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 29, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 30, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 32, Reduce, 56, 1,  1, null, null);
-      Add_Action (Table.States (20), 33, Reduce, 56, 1,  1, null, null);
+      Add_Action (Table.States (20), 8, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 12, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 19, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 20, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 26, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 29, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 30, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 32, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 33, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
       Add_Error (Table.States (20));
       Add_Action (Table.States (21), 20, Reduce, 67, 0,  1, null, null);
       Add_Action (Table.States (21), 26, Reduce, 67, 0,  1, null, null);
@@ -1158,7 +1214,8 @@ package body Gpr_Process is
       Add_Action (Table.States (95), 35, 20);
       Add_Error (Table.States (95));
       Add_Goto (Table.States (95), 56, 124);
-      Add_Action (Table.States (96), 37, Reduce, 66, 0,  7, simple_project_declaration_0'Access, null);
+      Add_Action (Table.States (96), 37, Reduce, 66, 0,  7, simple_project_declaration_0'Access,
+        simple_project_declaration_0_check'Access);
       Add_Error (Table.States (96));
       Add_Action (Table.States (97), 9, 16);
       Add_Action (Table.States (97), 10, 17);
@@ -1303,7 +1360,8 @@ package body Gpr_Process is
       Add_Error (Table.States (123));
       Add_Action (Table.States (124), 33, 125);
       Add_Error (Table.States (124));
-      Add_Action (Table.States (125), 37, Reduce, 63, 0,  9, project_extension_0'Access, null);
+      Add_Action (Table.States (125), 37, Reduce, 63, 0,  9, project_extension_0'Access,
+        project_extension_0_check'Access);
       Add_Error (Table.States (125));
       Add_Action (Table.States (126), 5, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
       Add_Action (Table.States (126), 7, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
@@ -1411,14 +1469,14 @@ package body Gpr_Process is
       Add_Action (Table.States (139), 35, 20);
       Add_Error (Table.States (139));
       Add_Goto (Table.States (139), 56, 141);
-      Add_Action (Table.States (140), 5, Reduce, 59, 0,  7, package_spec_0'Access, null);
-      Add_Action (Table.States (140), 7, Reduce, 59, 0,  7, package_spec_0'Access, null);
-      Add_Action (Table.States (140), 11, Reduce, 59, 0,  7, package_spec_0'Access, null);
-      Add_Action (Table.States (140), 15, Reduce, 59, 0,  7, package_spec_0'Access, null);
-      Add_Action (Table.States (140), 17, Reduce, 59, 0,  7, package_spec_0'Access, null);
-      Add_Action (Table.States (140), 22, Reduce, 59, 0,  7, package_spec_0'Access, null);
-      Add_Action (Table.States (140), 24, Reduce, 59, 0,  7, package_spec_0'Access, null);
-      Add_Action (Table.States (140), 35, Reduce, 59, 0,  7, package_spec_0'Access, null);
+      Add_Action (Table.States (140), 5, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 7, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 11, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 15, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 17, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 22, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 24, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 35, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
       Add_Error (Table.States (140));
       Add_Action (Table.States (141), 33, 144);
       Add_Error (Table.States (141));
@@ -1440,14 +1498,22 @@ package body Gpr_Process is
       Add_Action (Table.States (143), 24, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
       Add_Action (Table.States (143), 35, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
       Add_Error (Table.States (143));
-      Add_Action (Table.States (144), 5, Reduce, 60, 0,  9, package_extension_0'Access, null);
-      Add_Action (Table.States (144), 7, Reduce, 60, 0,  9, package_extension_0'Access, null);
-      Add_Action (Table.States (144), 11, Reduce, 60, 0,  9, package_extension_0'Access, null);
-      Add_Action (Table.States (144), 15, Reduce, 60, 0,  9, package_extension_0'Access, null);
-      Add_Action (Table.States (144), 17, Reduce, 60, 0,  9, package_extension_0'Access, null);
-      Add_Action (Table.States (144), 22, Reduce, 60, 0,  9, package_extension_0'Access, null);
-      Add_Action (Table.States (144), 24, Reduce, 60, 0,  9, package_extension_0'Access, null);
-      Add_Action (Table.States (144), 35, Reduce, 60, 0,  9, package_extension_0'Access, null);
+      Add_Action (Table.States (144), 5, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
+      Add_Action (Table.States (144), 7, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
+      Add_Action (Table.States (144), 11, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
+      Add_Action (Table.States (144), 15, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
+      Add_Action (Table.States (144), 17, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
+      Add_Action (Table.States (144), 22, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
+      Add_Action (Table.States (144), 24, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
+      Add_Action (Table.States (144), 35, Reduce, 60, 0,  9, package_extension_0'Access,
+        package_extension_0_check'Access);
       Add_Error (Table.States (144));
 
       WisiToken.LR.Parser.New_Parser

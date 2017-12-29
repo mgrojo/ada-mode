@@ -11,49 +11,57 @@
 
 (cl-defmethod xref-backend-definitions ((_backend (eql xref-ada)) identifier)
   (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
-	 ;; t-prop is nil when identifier is from prompt, in which
-	 ;; case the line number is incuded in the identifier wrapped
-	 ;; in <>
+	 ;; If t-prop is non-nil: identifier is from
+	 ;; identifier-at-point, the desired location is the ’other’
+	 ;; (spec/body).
+	 ;;
+	 ;; If t-prop is nil: identifier is from prompt/completion,
+	 ;; the line number is incuded in the identifier
+	 ;; wrapped in <>, and the desired file is the current file.
 	 (ident
 	  (if t-prop
 	      (substring-no-properties identifier 0 nil)
-	    (string-match "\\(.*\\)<[0-9]+>" identifier)
+	    (string-match "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?" identifier)
 	    (match-string 1 identifier)
 	    ))
 	 (file
 	  (if t-prop
 	      (plist-get t-prop ':file)
-	    (match-string 2 identifier)))
-	 (line (plist-get t-prop ':line))
-	 (column (plist-get t-prop ':column))
+	    (buffer-file-name)))
+	 (line
+	  (if t-prop
+	      (plist-get t-prop ':line)
+	    (string-to-number (match-string 2 identifier))))
+	 (column
+	  (if t-prop
+	      (plist-get t-prop ':column)
+	    0))
 	 )
 
-    (unless file
-      ;; WORKARUND: gpr-query-other requires a non-nil file arg.
-      ;; Should prompt for file with identifier, or improve gpr-query to handle nil file.
-      ;; For now, use current buffer file; will search spec and body (a common use case).
-      (setq file (buffer-file-name)))
+    (if t-prop
+	(progn
+	  (ada-check-current-project file)
 
-    (ada-check-current-project file)
+	  (when (null ada-xref-other-function)
+	    (error "no cross reference information available"))
 
-    (when (null ada-xref-other-function)
-      (error "no cross reference information available"))
+	  (let ((target
+		 (funcall
+		  ada-xref-other-function
+		  ident file line column)))
+	    ;; IMPROVEME: when drop support for emacs 24, change
+	    ;; ada-xref-other-function to return xref-file-location
+	    (list
+	     (xref-make
+	      ident
+	      (xref-make-file-location
+	       (nth 0 target) ;; file
+	       (nth 1 target) ;; line
+	       (nth 2 target)) ;; column
+	      ))))
 
-    (let ((target
-	   (funcall
-	    ada-xref-other-function
-	    ident file line column)))
-      ;; IMPROVEME: when drop support for emacs 24, change
-      ;; ada-xref-other-function to return xref-file-location
-      (list
-       (xref-make
-	ident
-	(xref-make-file-location
-	 (nth 0 target) ;; file
-	 (nth 1 target) ;; line
-	 (nth 2 target)) ;; column
-	)))
-    ))
+      (list (xref-make ident (xref-make-file-location file line column)))
+      )))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql xref-ada)))
   (save-excursion
@@ -86,6 +94,8 @@
 
 	 ((memq (wisi-cache-nonterm cache)
 		'(abstract_subprogram_declaration
+		  entry_body
+		  entry_declaration
 		  exception_declaration
 		  function_specification
 		  full_type_declaration

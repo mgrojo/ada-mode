@@ -267,7 +267,10 @@ is -- target 0
       end; -- no F2 on purpose
 
       --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
-      --EMACSCMD:(progn (forward-line 1)(forward-comment 1)(forward-sexp)(looking-at "when Local_1"))
+      --EMACSCMD:(progn (forward-line 5)(ada-which-function t))
+      --EMACSRESULT:"E1"
+      --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(forward-sexp)(looking-at "when Local_1"))
+      --EMACSRESULT:t
       entry E1 (X : Integer) when Local_1 = 0 is -- target E1
          Tmp : Integer := 0;
          Local_4 : Discrete_Type_1 := A;

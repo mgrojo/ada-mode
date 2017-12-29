@@ -474,6 +474,8 @@ is -- target 0
 
       --EMACSCMD:(test-face "Discrete_Type_1" font-lock-type-face)
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float;
+      --EMACSCMD:(progn (forward-line 3)(ada-which-function t))
+      --EMACSRESULT:"E1"
       entry E1
         (X : Integer);
       entry E2 (X : Integer);

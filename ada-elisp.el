@@ -539,7 +539,7 @@
       (entry_body
        ((ENTRY IDENTIFIER entry_body_formal_part WHEN expression_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 4 motion 6 motion 8 motion 12 statement-end])
+        (wisi-statement-action [1 statement-start 2 name 4 motion 6 motion 8 motion 12 statement-end])
         (wisi-containing-action 1 3)
         (wisi-containing-action 1 7)
         (wisi-containing-action 1 9)
@@ -558,14 +558,14 @@
       (entry_declaration
        ((overriding_indicator_opt ENTRY IDENTIFIER LEFT_PAREN discrete_subtype_definition RIGHT_PAREN parameter_profile_opt aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
+        (wisi-statement-action [1 statement-start 2 motion 3 name 8 statement-end])
         (wisi-containing-action 2 7)
         (wisi-face-apply-action [3 nil font-lock-function-name-face])
         (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)
         ada-indent-broken 0 0])))
        ((overriding_indicator_opt ENTRY IDENTIFIER parameter_profile_opt aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 2 motion 6 statement-end])
+        (wisi-statement-action [1 statement-start 2 motion 3 name 6 statement-end])
         (wisi-containing-action 2 4)
         (wisi-face-apply-action [3 nil font-lock-function-name-face])
         (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0]))))

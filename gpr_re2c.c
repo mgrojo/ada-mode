@@ -86,7 +86,7 @@ static void skip(wisi_lexer* lexer)
 }
 #define YYSKIP() skip(lexer)
 #define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos;lexer->marker_line = lexer->line
-#define YYRESTORE() lexer->cursor = lexer->marker; lexer->char_pos = lexer->marker_pos;lexer->line = lexer->context_line
+#define YYRESTORE() lexer->cursor = lexer->marker; lexer->char_pos = lexer->marker_pos;lexer->line = lexer->marker_line
 #define YYBACKUPCTX() lexer->context = lexer->cursor; lexer->context_pos = lexer->char_pos;lexer->context_line = lexer->line
 #define YYRESTORECTX() lexer->cursor = lexer->context; lexer->char_pos = lexer->context_pos;lexer->line = lexer->context_line
 
@@ -104,7 +104,7 @@ int gpr_next_token
    if (lexer->cursor > lexer->buffer_last)
    {
       *id       =  37;
-      *byte_position = lexer->buffer_last - lexer->buffer;
+      *byte_position = lexer->buffer_last - lexer->buffer + 1;
       *byte_length   = 0;
       *char_position = lexer->char_token_start;
       *char_length   = 0;

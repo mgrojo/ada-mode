@@ -32,34 +32,12 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
  current work
-wisitoken-token_line_comment.adb:101:31: already at outermost
-    fix in o.e.a.s-2
-
-which-function in mckenzie supervisor.get returns supervisor
-
-interactive_1, _2 crash process
-    try Debian
-    change to module
-
-delete wisi-wisi_runtime-ada.ads Record_ID?
-    use enum!
-
 clean up gpr-mode; delete 'we reuse ada' comments
 
 clean up Makefile, common.make
     see wisi_grammar
 
 add wisi-forward-anchor, use for comments after 'is', 'when' in record type
-
-emacs occasionally hangs
-    kill ada_mode_wisi_parse.exe via task manager fixes it
-    could be parser hanging, or emacs process io hanging
-        attach debugger!
-
-    happens more often with s-4, esp during ediff on:
-        test/ada_mode-recover_match_names.adb
-
-see c:/Projects/org.wisitoken.stephe-1/notes.text for mckenzie improve
 
 gpr-mode.el:263:  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
 gpr-query.el:263:  ;; FIXME: implement ada-xref-full-path.

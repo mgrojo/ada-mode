@@ -36,7 +36,7 @@ package WisiToken.Wisi_Runtime.Ada is
    Ada_Indent_With            : Integer := 2;
    Ada_Indent_Hanging_Rel_Exp : Boolean := False;
 
-   type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with private;
+   type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
 
    overriding
    procedure Initialize
@@ -115,12 +115,5 @@ package WisiToken.Wisi_Runtime.Ada is
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
    --  [1] ada-indent-record*
-
-private
-
-   type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with
-   record
-      Record_ID : Token_ID;
-   end record;
 
 end WisiToken.Wisi_Runtime.Ada;

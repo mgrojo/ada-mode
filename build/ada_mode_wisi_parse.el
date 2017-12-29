@@ -5,7 +5,7 @@
 
 (setq project-find-functions '(project-menu-prj))
 
-(let* ((prj-file "ada_mode_wisi_parse.prj")
+(let* ((prj-file (expand-file-name "ada_mode_wisi_parse.prj"))
        (prj-name "ada_mode_wisi_parse main")
        (prj (make-ada-project
 	     :env-vars '(("WISI_WISITOKEN" . "c:/Projects/org.wisitoken/build"))

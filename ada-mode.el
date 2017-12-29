@@ -2047,10 +2047,10 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
   ;; been set by ff-treat-special; don't reset it.
   "Function called with one parameter (INCLUDE-TYPE); it should
-return the name of the package, protected type, subprogram, or
-task type whose definition/declaration point is in, or for
-declarations that don't have declarative regions, just after; or
-nil.
+return the name of the package, protected type, subprogram,
+entry, or task type whose definition/declaration point is in, or
+for declarations that don't have declarative regions, just after;
+or nil.
 
 If INCLUDE-TYPE is non-nil, include type names.
 

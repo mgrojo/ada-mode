@@ -43,6 +43,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       Offset            : in     Integer)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
+      use Ada_Process;
    begin
       --  [1] ada-wisi-elisp-parse--indent-record-1.
 
@@ -50,7 +51,7 @@ package body WisiToken.Wisi_Runtime.Ada is
          return Null_Delta;
       end if;
 
-      if not Indenting_Comment and Indenting_Token.ID = Data.Record_ID then
+      if not Indenting_Comment and Indenting_Token.ID = +RECORD_ID then
          --  Indenting 'record'
          return Indent_Anchored_2
            (Data, Anchor_Token.Line, Record_Token.Last_Line (Indenting_Comment), Ada_Indent_Record_Rel_Type,
@@ -170,8 +171,6 @@ package body WisiToken.Wisi_Runtime.Ada is
       end if;
 
       Data.Indent_Comment_Col_0 := Ada_Indent_Comment_Col_0;
-
-      Data.Record_ID := Find_ID (Data.Semantic_State.Trace.Descriptor.all, "RECORD");
    end Initialize;
 
    overriding
