@@ -5,7 +5,7 @@
 
 (add-to-list 'project-find-functions 'project-menu-prj)
 
-(let* ((prj-file "sal.prj")
+(let* ((prj-file (expand-file-name "sal.prj"))
        (prj-name "sal main")
        (prj (make-ada-project
 	     :env-vars nil
