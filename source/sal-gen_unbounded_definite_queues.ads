@@ -62,6 +62,15 @@ package SAL.Gen_Unbounded_Definite_Queues is
    --
    --  Raise Parameter_Error if N > Count
 
+   type Variable_Reference_Type (Element : not null access Element_Type) is private
+   with Implicit_Dereference => Element;
+
+   function Variable_Peek (Queue : in out Queue_Type; N : Peek_Type := 1) return Variable_Reference_Type;
+   --  Return a variable reference to a queue item. N = 1 is the queue
+   --  head.
+   --
+   --  Raises Parameter_Error if N > Count
+
    procedure Add (Queue : in out Queue_Type; Item : in Element_Type);
    --  Add Element to the tail/back of Queue.
 
@@ -83,6 +92,11 @@ private
    end record;
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is
    record
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
