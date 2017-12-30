@@ -34,7 +34,9 @@ reorganize into three package hierarchies:
     wisitoken.wisi - translate.wy files into production list, source code
 
     semantic_state.recover_data should be mckenzie configuration; no need for pointer
+        actually, only need pushed/popped etc in sem_state error
 
+    eliminate dependence of wisi-generate.exe on wisitoken-lr-mckenzie_recover.
 
 do multi-cpu parsing?
     won't help as much in absence of errors

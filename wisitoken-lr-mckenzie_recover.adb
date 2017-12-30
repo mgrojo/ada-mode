@@ -1188,8 +1188,6 @@ package body WisiToken.LR.McKenzie_Recover is
                           ", enqueue" & Integer'Image (Data.Enqueue_Count) &
                           ", check " & Integer'Image (Data.Check_Count) &
                           ", cost: " & Integer'Image (Data.Results.Min_Key));
-
-                     Put ("  ", Trace, Data.Parser_Label, Data.Results.Peek, Include_Task_ID => False);
                   end if;
 
                   --  Restore pre-error parser verb before spawning, just for
@@ -1212,7 +1210,7 @@ package body WisiToken.LR.McKenzie_Recover is
                            declare
                               Msg : constant String :=
                                 "spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
-                                Int_Image (Cur.Label) & " (" & Int_Image (1 + Integer (Parsers.Count)) & " active)";
+                                Int_Image (Cur.Label) & " (" & Int_Image (Integer (Parsers.Count)) & " active)";
                            begin
                               Put (Msg, Trace, 0, Data.Results.Peek, Include_Task_ID => False);
                            end;
@@ -1223,6 +1221,8 @@ package body WisiToken.LR.McKenzie_Recover is
                         Shared_Parser.Semantic_State.Spawn (Cur.Label, Parsers.First.Label);
                      end loop;
                   end if;
+
+                  Put ("  ", Trace, Data.Parser_Label, Data.Results.Peek, Include_Task_ID => False);
 
                else
                   if Trace_McKenzie > Outline then
