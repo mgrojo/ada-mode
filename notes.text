@@ -32,10 +32,16 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
  current work
+Delete comment-starter syntax?
+    in ada-mode.el for '-'
+
 clean up gpr-mode; delete 'we reuse ada' comments
 
 clean up Makefile, common.make
     see wisi_grammar
+
+Mark syntax error lines in margin.
+    What does fly-check do?
 
 add wisi-forward-anchor, use for comments after 'is', 'when' in record type
 
@@ -77,15 +83,10 @@ ada-which-function bug:
     (ada-which-function t) is fine
     add-log not setting include-type t?
 
-ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
-    detect that, exit
-    debug ada_mode_gps_indent; not much help, stuck in read_file
+gnat pro 2018
+    - Support for some Ada 202x features: "@" shorthand, delta aggregates
+    - Integration of libadalang engine
 
-    gnat.os_lib.read probably returns 0
-        which gives infinite loop in Read_Input
-            raise input_closed exception for that
-
-    edited; testing (ie waiting for emacs crash)
 
 newline not in a word should not cause parse retry after parse fail
 

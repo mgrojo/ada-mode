@@ -216,9 +216,14 @@
 ;; Prefer inserting important/common keywords over identifiers and
 ;; operators to take advantage of empty expressions.
 ;;
-;; LEFT_PAREN is _not_ here, because inserting that turns a missing
-;; 'then' into a function call; not a likely error. COMMA is here, to
-;; avoid inserting LEFT_PAREN when either is possible.
+;; LEFT_PAREN is here, to handle fontifying while converting
+;; 'package.function (object, args);'
+;; to
+;; 'object.function (args)'
+;;
+;; However, inserting LEFT_PAREN turns a missing 'then' into a
+;; function call. COMMA is here, to avoid inserting LEFT_PAREN when
+;; either is possible.
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
@@ -230,6 +235,7 @@
 %mckenzie_cost_insert EXIT 3
 %mckenzie_cost_insert IDENTIFIER 3
 %mckenzie_cost_insert IS 3
+%mckenzie_cost_insert LEFT_PAREN 3
 %mckenzie_cost_insert LOOP 3
 %mckenzie_cost_insert RETURN 3
 %mckenzie_cost_insert THEN 3
