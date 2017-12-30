@@ -29,6 +29,7 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
 with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Token_ID_Lists;
 package body Test_Statement_Actions is
 
    type Token_ID is
@@ -96,8 +97,8 @@ package body Test_Statement_Actions is
    Action_Count : Integer := 0;
 
    procedure Statement_Semi_Action
-     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-      Source  : in WisiToken.Semantic_State.Augmented_Token_Array)
+     (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+      Source  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is
       pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
@@ -109,19 +110,21 @@ package body Test_Statement_Actions is
      Parse_Sequence_ID     <= Statement_Sequence_ID & EOF_ID + Null_Action and
      Statement_Sequence_ID <= Statement_Semi_ID & Statement_Sequence_ID + Null_Action and
      Statement_Sequence_ID <= Statement_Semi_ID + Null_Action and
-     Statement_Semi_ID     <= Statement_ID & Semicolon_ID + Statement_Semi_Action'Access and
+     Statement_Semi_ID     <= WisiToken.Token_ID_Lists.List'
+       (Statement_ID & Semicolon_ID) + Statement_Semi_Action'Access and
 
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    Parser : WisiToken.LR.Instance;
 
    procedure Execute_Command (Command : in String)
    is begin
       Parser.Lexer.Reset_With_String (Command);
+      State.Reset;
 
       Parser.Parse;
    exception
@@ -165,7 +168,7 @@ package body Test_Statement_Actions is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/test_statement_actions.adb");
+      return new String'("test_statement_actions.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

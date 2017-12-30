@@ -15,22 +15,20 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with WisiToken.AUnit;
-with WisiToken.Token_Line_Comment;
 package body Test_Skip_To_Aux is
 
    procedure Test_Declaration_0 (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class)
    is
       use WisiToken.AUnit;
-      Nonterm_Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token (Nonterm);
    begin
       if Enable then
          if WisiToken.Trace_Parse > WisiToken.Outline then
             Ada.Text_IO.Put_Line ("Test_Declaration_0");
          end if;
 
-         Check ("declaration_0 1 char region", Nonterm_Token.Char_Region, (8, 25));
-         Check ("declaration_0 1 byte region", Nonterm_Token.Byte_Region, (11, 28)); -- DOS line endings
-         Check ("declaration_0 1 line", Nonterm_Token.Line, 4);
+         Check ("declaration_0 1 char region", Nonterm.Char_Region, (8, 25));
+         Check ("declaration_0 1 byte region", Nonterm.Byte_Region, (11, 28)); -- DOS line endings
+         Check ("declaration_0 1 line", Nonterm.Line, 4);
       end if;
    end Test_Declaration_0;
 

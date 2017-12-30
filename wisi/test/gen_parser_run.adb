@@ -26,7 +26,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Region;
 procedure Gen_Parser_Run
 is
    procedure Put_Usage
@@ -43,10 +42,11 @@ is
      renames Ada.Strings.Unbounded.To_String;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State  : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+   State  : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
    is
+      use all type WisiToken.Token_ID;
       Parser : WisiToken.LR.Instance;
    begin
       case Algorithm is
@@ -59,9 +59,14 @@ is
          Put_Line ("LR1_Parser parse:");
       end case;
 
-      State.Initialize (WisiToken.Semantic_State.Null_Init_Data);
-
       Parser.Lexer.Reset_With_File (-File_Name);
+      loop
+         exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
+      end loop;
+
+      State.Initialize (Line_Count => Parser.Lexer.Line);
+
+      Parser.Lexer.Reset;
       Parser.Parse;
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>

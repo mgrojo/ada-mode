@@ -83,4 +83,4 @@ spawn parser from 14 (15 active)
  14: 4: (IS, (49 . 50)) : shift and goto state 2
  15: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
  ... goto state 4
-empty_production_2.input::0:48: : too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)
+empty_production_2.input::2:48: : too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)

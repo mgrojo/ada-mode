@@ -60,7 +60,7 @@
         Character_Literal_Count + 1;
         Test_Statement_0 (Tokens);))
        ((IDENTIFIER tick IDENTIFIER SEMICOLON )
-        (Char_Region := WisiToken.Token_Line_Comment.Token (Tokens.Element (3)).Char_Region;
+        (Char_Region := Tokens.Element (3).Char_Region;
         Test_Statement_1 (Tokens);))
        ((STRING_LITERAL SEMICOLON )
         (String_Literal_Count := String_Literal_Count + 1;

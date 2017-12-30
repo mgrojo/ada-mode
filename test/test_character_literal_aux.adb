@@ -18,41 +18,38 @@ with AUnit.Checks;
 with Character_Literal;
 with SAL;
 with WisiToken.AUnit;
-with WisiToken.Token_Line_Comment;
 package body Test_Character_Literal_Aux is
 
    Statement_Count : Integer := 0;
 
-   procedure Test_Statement_List_0 (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class)
+   procedure Test_Statement_List_0 (Nonterm : in WisiToken.Semantic_State.Augmented_Token)
    is
       use WisiToken.AUnit;
-
-      Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token (Nonterm);
    begin
       if Enable then
          Statement_Count := Statement_Count + 1;
 
          case Statement_Count is
          when 1 =>
-            Check ("statement_list_0 1 line", Token.Line, 2);
-            Check ("statement_list_0 1 region", Token.Char_Region, (29, 32));
+            Check ("statement_list_0 1 line", Nonterm.Line, 2);
+            Check ("statement_list_0 1 region", Nonterm.Char_Region, (29, 32));
 
          when 2 =>
-            Check ("statement_list_0 2 line", Token.Line, 3);
-            Check ("statement_list_0 2 region", Token.Char_Region, (34, 37));
-            Check ("statement_list_0 2 a", Token.First_Indent_Line, 3);
-            Check ("statement_list_0 2 b", Token.Last_Indent_Line, 3);
-            Check ("statement_list_0 2 c", Token.First_Trailing_Comment_Line, 5);
-            Check ("statement_list_0 2 d", Token.Last_Trailing_Comment_Line, 5);
+            Check ("statement_list_0 2 line", Nonterm.Line, 3);
+            Check ("statement_list_0 2 region", Nonterm.Char_Region, (34, 37));
+            Check ("statement_list_0 2 a", Nonterm.First_Indent_Line, 3);
+            Check ("statement_list_0 2 b", Nonterm.Last_Indent_Line, 3);
+            Check ("statement_list_0 2 c", Nonterm.First_Trailing_Comment_Line, 5);
+            Check ("statement_list_0 2 d", Nonterm.Last_Trailing_Comment_Line, 5);
 
          when 10 =>
             --  object'attribute
-            Check ("statement_list_0 10 line", Token.Line, 20);
-            Check ("statement_list_0 10 region", Token.Char_Region, (295, 314));
-            Check ("statement_list_0 10 a", Token.First_Indent_Line, 20);
-            Check ("statement_list_0 10 b", Token.Last_Indent_Line, 21);
-            Check ("statement_list_0 10 c", Token.First_Trailing_Comment_Line, WisiToken.Invalid_Line_Number);
-            Check ("statement_list_0 10 d", Token.Last_Trailing_Comment_Line, WisiToken.Invalid_Line_Number);
+            Check ("statement_list_0 10 line", Nonterm.Line, 20);
+            Check ("statement_list_0 10 region", Nonterm.Char_Region, (295, 314));
+            Check ("statement_list_0 10 a", Nonterm.First_Indent_Line, 20);
+            Check ("statement_list_0 10 b", Nonterm.Last_Indent_Line, 21);
+            Check ("statement_list_0 10 c", Nonterm.First_Trailing_Comment_Line, WisiToken.Invalid_Line_Number);
+            Check ("statement_list_0 10 d", Nonterm.Last_Trailing_Comment_Line, WisiToken.Invalid_Line_Number);
 
          when others =>
             null;
@@ -61,17 +58,14 @@ package body Test_Character_Literal_Aux is
       end if;
    end Test_Statement_List_0;
 
-   procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
+   procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is
       use AUnit.Checks;
       use Character_Literal;
       use WisiToken.AUnit;
 
-      Character_Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token
-        (Wisi_Tokens (4).Element.all);
-
-      Semicolon_Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token
-        (Wisi_Tokens (6).Element.all);
+      Character_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (4).Element.all;
+      Semicolon_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (6).Element.all;
    begin
       if Enable then
          case Character_Literal_Count is
@@ -109,7 +103,7 @@ package body Test_Character_Literal_Aux is
 
    Statement_1_Count : Integer := 0;
 
-   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -122,7 +116,7 @@ package body Test_Character_Literal_Aux is
          --  objectπ'attribute;
          for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
             declare
-               Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (Wisi_Tokens (I).Element.all);
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).Element.all;
             begin
                case I is
                when 1 =>
@@ -146,7 +140,7 @@ package body Test_Character_Literal_Aux is
          --    'attribute;
          for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
             declare
-               Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (Wisi_Tokens (I).Element.all);
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).Element.all;
             begin
                case I is
                when 1 =>
@@ -172,7 +166,7 @@ package body Test_Character_Literal_Aux is
    end Test_Statement_1;
 
    Statement_2_Count : Integer := 0;
-   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
+   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -185,7 +179,7 @@ package body Test_Character_Literal_Aux is
          --  " a string with Greek ..."
          for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
             declare
-               Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (Wisi_Tokens (I).Element.all);
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).Element.all;
             begin
                case I is
                when 1 =>

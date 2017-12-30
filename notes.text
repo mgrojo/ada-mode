@@ -10,17 +10,16 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
-move token_line_comment into wisitoken.semantic_state.token; no need for dispatching/classwide token type
-    augmented_token_array can be definite
-
 Use correction cost to pick parser in terminate duplicate
 
 update NEWS.text
 
 Can compute max tokens length for actions from grammar - use fixed array size
     may cause generic explosion
+    may be slower
 
 Fixed size stack speed mckenzie?
+    init current to 50 was slightly slower
 
 need case-insensitive compare in match-names
     UTF-8 version

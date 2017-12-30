@@ -2,18 +2,18 @@ LALR_Parser parse:
  1: 1: (IDENTIFIER, (1 . 3), (1 . 3)) : shift and goto state 2
  1: 2: (Wisi_EOI, (5 . 4)) : reduce 1 tokens to name
 semantic check OK
-(name (1 . 3) 1 . 3) <= ((IDENTIFIER (1 . 3) 1 . 3))
+(name, (1 . 3), (1 . 3)) <= ((IDENTIFIER, (1 . 3), (1 . 3)))
  ... goto state 4
  1: 4: (Wisi_EOI, (5 . 4)) : accept it
-(wisitoken_accept 1 . 3) <= ((name (1 . 3) 1 . 3))
+(wisitoken_accept, (1 . 3)) <= ((name, (1 . 3), (1 . 3)))
  1: succeed
 
 LR1_Parser parse:
  1: 1: (IDENTIFIER, (1 . 3), (1 . 3)) : shift and goto state 2
  1: 2: (Wisi_EOI, (5 . 4)) : reduce 1 tokens to name
 semantic check OK
-(name (1 . 3) 1 . 3) <= ((IDENTIFIER (1 . 3) 1 . 3))
+(name, (1 . 3), (1 . 3)) <= ((IDENTIFIER, (1 . 3), (1 . 3)))
  ... goto state 4
  1: 4: (Wisi_EOI, (5 . 4)) : accept it
-(wisitoken_accept 1 . 3) <= ((name (1 . 3) 1 . 3))
+(wisitoken_accept, (1 . 3)) <= ((name, (1 . 3), (1 . 3)))
  1: succeed

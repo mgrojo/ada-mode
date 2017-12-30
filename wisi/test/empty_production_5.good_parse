@@ -3,36 +3,36 @@ LALR_Parser parse:
  1: 2: (IDENTIFIER, (8 . 13), (8 . 13)) : shift and goto state 6
  1: 6: (LEFT_PAREN, (15 . 15)) : reduce 1 tokens to name
 semantic check OK
-(name (8 . 13) 8 . 13) <= ((IDENTIFIER (8 . 13) 8 . 13))
+(name, (8 . 13), (8 . 13)) <= ((IDENTIFIER, (8 . 13), (8 . 13)))
  ... goto state 7
  1: 7: (LEFT_PAREN, (15 . 15)) : shift and goto state 8
  1: 8: (IDENTIFIER, (16 . 18), (16 . 18)) : shift and goto state 11
  1: 11: (RIGHT_PAREN, (19 . 19)) : shift and goto state 12
  1: 12: (SEMICOLON, (20 . 20)) : reduce 3 tokens to parameter_profile
-(parameter_profile 15 . 19) <= ((LEFT_PAREN 15 . 15), (IDENTIFIER (16 . 18) 16 . 18), (RIGHT_PAREN 19 . 19))
+(parameter_profile, (15 . 19)) <= ((LEFT_PAREN, (15 . 15)), (IDENTIFIER, (16 . 18), (16 . 18)), (RIGHT_PAREN, (19 . 19)))
  ... goto state 9
  1: 9: (SEMICOLON, (20 . 20)) : shift and goto state 10
  1: 10: (ACCEPT, (22 . 27)) : reduce 4 tokens to accept_statement
-accept_statement_0: (accept_statement 1 . 20) <= ((ACCEPT 1 . 6), (name (8 . 13) 8 . 13), (parameter_profile 15 . 19), (SEMICOLON 20 . 20))
+accept_statement_0: (accept_statement, (1 . 20)) <= ((ACCEPT, (1 . 6)), (name, (8 . 13), (8 . 13)), (parameter_profile, (15 . 19)), (SEMICOLON, (20 . 20)))
  ... goto state 4
  1: 4: (ACCEPT, (22 . 27)) : shift and goto state 2
  1: 2: (IDENTIFIER, (29 . 34), (29 . 34)) : shift and goto state 6
  1: 6: (SEMICOLON, (35 . 35)) : reduce 1 tokens to name
 semantic check OK
-(name (29 . 34) 29 . 34) <= ((IDENTIFIER (29 . 34) 29 . 34))
+(name, (29 . 34), (29 . 34)) <= ((IDENTIFIER, (29 . 34), (29 . 34)))
  ... goto state 7
  1: 7: (SEMICOLON, (35 . 35)) : reduce 0 tokens to parameter_profile
 (parameter_profile) <= ()
  ... goto state 9
  1: 9: (SEMICOLON, (35 . 35)) : shift and goto state 10
  1: 10: (Wisi_EOI, (37 . 36)) : reduce 4 tokens to accept_statement
-accept_statement_0: (accept_statement 22 . 35) <= ((ACCEPT 22 . 27), (name (29 . 34) 29 . 34), (parameter_profile), (SEMICOLON 35 . 35))
+accept_statement_0: (accept_statement, (22 . 35)) <= ((ACCEPT, (22 . 27)), (name, (29 . 34), (29 . 34)), (parameter_profile), (SEMICOLON, (35 . 35)))
  ... goto state 5
  1: 5: (Wisi_EOI, (37 . 36)) : reduce 2 tokens to compilation_unit
-(compilation_unit 1 . 35) <= ((accept_statement 1 . 20), (accept_statement 22 . 35))
+(compilation_unit, (1 . 35)) <= ((accept_statement, (1 . 20)), (accept_statement, (22 . 35)))
  ... goto state 3
  1: 3: (Wisi_EOI, (37 . 36)) : accept it
-(wisitoken_accept 1 . 35) <= ((compilation_unit 1 . 35))
+(wisitoken_accept, (1 . 35)) <= ((compilation_unit, (1 . 35)))
  1: succeed
 
 LR1_Parser parse:
@@ -40,34 +40,34 @@ LR1_Parser parse:
  1: 2: (IDENTIFIER, (8 . 13), (8 . 13)) : shift and goto state 7
  1: 7: (LEFT_PAREN, (15 . 15)) : reduce 1 tokens to name
 semantic check OK
-(name (8 . 13) 8 . 13) <= ((IDENTIFIER (8 . 13) 8 . 13))
+(name, (8 . 13), (8 . 13)) <= ((IDENTIFIER, (8 . 13), (8 . 13)))
  ... goto state 8
  1: 8: (LEFT_PAREN, (15 . 15)) : shift and goto state 9
  1: 9: (IDENTIFIER, (16 . 18), (16 . 18)) : shift and goto state 14
  1: 14: (RIGHT_PAREN, (19 . 19)) : shift and goto state 15
  1: 15: (SEMICOLON, (20 . 20)) : reduce 3 tokens to parameter_profile
-(parameter_profile 15 . 19) <= ((LEFT_PAREN 15 . 15), (IDENTIFIER (16 . 18) 16 . 18), (RIGHT_PAREN 19 . 19))
+(parameter_profile, (15 . 19)) <= ((LEFT_PAREN, (15 . 15)), (IDENTIFIER, (16 . 18), (16 . 18)), (RIGHT_PAREN, (19 . 19)))
  ... goto state 10
  1: 10: (SEMICOLON, (20 . 20)) : shift and goto state 13
  1: 13: (ACCEPT, (22 . 27)) : reduce 4 tokens to accept_statement
-accept_statement_0: (accept_statement 1 . 20) <= ((ACCEPT 1 . 6), (name (8 . 13) 8 . 13), (parameter_profile 15 . 19), (SEMICOLON 20 . 20))
+accept_statement_0: (accept_statement, (1 . 20)) <= ((ACCEPT, (1 . 6)), (name, (8 . 13), (8 . 13)), (parameter_profile, (15 . 19)), (SEMICOLON, (20 . 20)))
  ... goto state 4
  1: 4: (ACCEPT, (22 . 27)) : shift and goto state 5
  1: 5: (IDENTIFIER, (29 . 34), (29 . 34)) : shift and goto state 7
  1: 7: (SEMICOLON, (35 . 35)) : reduce 1 tokens to name
 semantic check OK
-(name (29 . 34) 29 . 34) <= ((IDENTIFIER (29 . 34) 29 . 34))
+(name, (29 . 34), (29 . 34)) <= ((IDENTIFIER, (29 . 34), (29 . 34)))
  ... goto state 11
  1: 11: (SEMICOLON, (35 . 35)) : reduce 0 tokens to parameter_profile
 (parameter_profile) <= ()
  ... goto state 12
  1: 12: (SEMICOLON, (35 . 35)) : shift and goto state 16
  1: 16: (Wisi_EOI, (37 . 36)) : reduce 4 tokens to accept_statement
-accept_statement_0: (accept_statement 22 . 35) <= ((ACCEPT 22 . 27), (name (29 . 34) 29 . 34), (parameter_profile), (SEMICOLON 35 . 35))
+accept_statement_0: (accept_statement, (22 . 35)) <= ((ACCEPT, (22 . 27)), (name, (29 . 34), (29 . 34)), (parameter_profile), (SEMICOLON, (35 . 35)))
  ... goto state 6
  1: 6: (Wisi_EOI, (37 . 36)) : reduce 2 tokens to compilation_unit
-(compilation_unit 1 . 35) <= ((accept_statement 1 . 20), (accept_statement 22 . 35))
+(compilation_unit, (1 . 35)) <= ((accept_statement, (1 . 20)), (accept_statement, (22 . 35)))
  ... goto state 3
  1: 3: (Wisi_EOI, (37 . 36)) : accept it
-(wisitoken_accept 1 . 35) <= ((compilation_unit 1 . 35))
+(wisitoken_accept, (1 . 35)) <= ((compilation_unit, (1 . 35)))
  1: succeed

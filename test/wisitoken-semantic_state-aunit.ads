@@ -30,4 +30,16 @@ package WisiToken.Semantic_State.AUnit is
       Expected           : in Recover_Data_Access;
       Check_Recover_Data : in Check_Recover_Type);
 
+   procedure Check
+     (Label    : in String;
+      Computed : in Augmented_Token;
+      Expected : in Augmented_Token);
+   --  Does not check all fields
+
+   procedure Check
+     (Label              : in String;
+      Computed           : in Error_Data;
+      Expected           : in Error_Data;
+      Check_Recover_Data : in WisiToken.Semantic_State.AUnit.Check_Recover_Type);
+
 end WisiToken.Semantic_State.AUnit;

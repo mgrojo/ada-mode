@@ -20,13 +20,12 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Line_Comment;
 
 %%
 --  spec declarations, at end of spec.
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
+   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
 --  These could be in test_Character_Literal, but we are testing that
 --  declaring them here works.
@@ -135,7 +134,7 @@ statement
 
  ;; A different use of TICK; attribute reference. Action tests character counting.
   | IDENTIFIER tick IDENTIFIER SEMICOLON
-    (Char_Region := WisiToken.Token_Line_Comment.Token (Tokens.Element (3)).Char_Region;
+    (Char_Region := Tokens.Element (3).Char_Region;
      Test_Statement_1 (Tokens);)
 
  ;; Here the input is Ada strings, with and without embedded quotes.

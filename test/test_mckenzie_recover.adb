@@ -27,8 +27,8 @@ with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
 with WisiToken.LR;
-with WisiToken.Token_Line_Comment;
-with WisiToken.Token_Region.AUnit;
+with WisiToken.Semantic_State;
+with WisiToken.Semantic_State.AUnit;
 package body Test_McKenzie_Recover is
 
    Parser : WisiToken.LR.Instance;
@@ -52,7 +52,7 @@ package body Test_McKenzie_Recover is
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
-      Ada_Lite.State.Initialize (WisiToken.Token_Line_Comment.Init_Data'(Line_Count => 1));
+      Ada_Lite.State.Initialize (Line_Count => 1);
       Parser.Lexer.Reset_With_String (Text & "   ");
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
@@ -77,7 +77,7 @@ package body Test_McKenzie_Recover is
 
       WisiToken.Trace_Parse := Test.Debug;
 
-      Ada_Lite.State.Initialize (WisiToken.Token_Line_Comment.Init_Data'(Line_Count => 49));
+      Ada_Lite.State.Initialize (Line_Count => 49);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    exception
@@ -129,7 +129,7 @@ package body Test_McKenzie_Recover is
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
       declare
-         use WisiToken.Token_Region;
+         use WisiToken.Semantic_State;
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
       begin
          Check ("errors.length", Error_List.Length, 1);
@@ -157,9 +157,9 @@ package body Test_McKenzie_Recover is
 
       declare
          use WisiToken.AUnit;
-         use WisiToken.Token_Region;
-         use WisiToken.Token_Region.AUnit;
-         use WisiToken.Token_Region.Error_Data_Lists;
+         use WisiToken.Semantic_State;
+         use WisiToken.Semantic_State.AUnit;
+         use WisiToken.Semantic_State.Error_Data_Lists;
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
@@ -175,7 +175,8 @@ package body Test_McKenzie_Recover is
                 Line           => 1,
                 Col            => 83,
                 Byte_Region    => (84, 84),
-                Char_Region    => (84, 84)),
+                Char_Region    => (84, 84),
+                others         => <>),
              Expecting         => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -496,7 +497,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Token_Region.AUnit;
+      use WisiToken.Semantic_State.AUnit;
    begin
       Parse_Text
         ("procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);",
@@ -525,15 +526,16 @@ package body Test_McKenzie_Recover is
 
       Check ("1 errors.length", State.Active_Error_List.Length, 1);
       declare
-         use WisiToken.Token_Region;
-         use WisiToken.Token_Region.Error_Data_Lists;
+         use WisiToken.Semantic_State;
+         use WisiToken.Semantic_State.Error_Data_Lists;
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25)));
+            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25),
+             others => <>));
       end;
 
    exception
@@ -547,7 +549,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Token_Region.AUnit;
+      use WisiToken.Semantic_State.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -565,15 +567,16 @@ package body Test_McKenzie_Recover is
 
       Check ("1 errors.length", State.Active_Error_List.Length, 1);
       declare
-         use WisiToken.Token_Region;
-         use WisiToken.Token_Region.Error_Data_Lists;
+         use WisiToken.Semantic_State;
+         use WisiToken.Semantic_State.Error_Data_Lists;
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30)));
+            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30),
+             others => <>));
       end;
 
    exception
@@ -587,7 +590,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Token_Region.AUnit;
+      use WisiToken.Semantic_State.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -612,15 +615,16 @@ package body Test_McKenzie_Recover is
 
       Check ("1 errors.length", State.Active_Error_List.Length, 1);
       declare
-         use WisiToken.Token_Region;
-         use WisiToken.Token_Region.Error_Data_Lists;
+         use WisiToken.Semantic_State;
+         use WisiToken.Semantic_State.Error_Data_Lists;
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check
            ("errors 1.error_token",
             Element (Cursor).Error_Token,
-            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77)));
+            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77),
+             others => <>));
       end;
 
    exception
@@ -634,7 +638,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Token_Region.AUnit;
+      use WisiToken.Semantic_State.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -667,7 +671,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Token_Region.AUnit;
+      use WisiToken.Semantic_State.AUnit;
    begin
       --  Test that block name matching is used to reject some solutions
       --  during error recovery.

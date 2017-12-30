@@ -19,8 +19,8 @@ OK ../Test/dragon_4_45_lalr_test.adb : Test_First
 OK ../Test/dragon_4_45_lalr_test.adb : Test_LALR_Kernels
 OK ../Test/dragon_4_45_lalr_test.adb : Parser_Table
 OK ../Test/dragon_4_45_lalr_test.adb : Test_Parse
-OK ../Test/grune_9_30.adb : Test_Item_Sets
-OK ../Test/grune_9_30.adb : Test_Parse
+OK grune_9_30.adb : Test_Item_Sets
+OK grune_9_30.adb : Test_Parse
 OK name_grammar_test.adb : Nominal
 OK ../Test/test_accept_state.adb : Nominal
 OK test_ada_lite.adb : Propagate_Names
@@ -46,7 +46,7 @@ OK test_mckenzie_recover.adb : If_In_Handler
 OK test_mckenzie_recover.adb : Zombie_In_Resume
 OK test_mckenzie_recover.adb : Match_Name
 OK test_skip_to.adb : Nominal
-OK ../Test/test_statement_actions.adb : Nominal
+OK test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 

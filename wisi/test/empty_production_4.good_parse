@@ -1,30 +1,30 @@
 LALR_Parser parse:
  1: 1: (OVERRIDING, (1 . 10)) : shift and goto state 2
  1: 2: (OTHER, (12 . 16)) : reduce 1 tokens to overriding_indicator
-(overriding_indicator 1 . 10) <= ((OVERRIDING 1 . 10))
+(overriding_indicator, (1 . 10)) <= ((OVERRIDING, (1 . 10)))
  ... goto state 6
  1: 6: (OTHER, (12 . 16)) : shift and goto state 3
  1: 3: (PROCEDURE, (18 . 26)) : reduce 1 tokens to other_indicator
-(other_indicator 12 . 16) <= ((OTHER 12 . 16))
+(other_indicator, (12 . 16)) <= ((OTHER, (12 . 16)))
  ... goto state 7
  1: 7: (PROCEDURE, (18 . 26)) : shift and goto state 10
  1: 10: (IDENTIFIER, (28 . 33), (28 . 33)) : shift and goto state 11
  1: 11: (SEMICOLON, (34 . 34)) : shift and goto state 12
  1: 12: (OTHER, (37 . 41)) : reduce 5 tokens to subprogram_declaration
-subprogram_declaration_0: (subprogram_declaration 1 . 34) <= ((overriding_indicator 1 . 10), (other_indicator 12 . 16), (PROCEDURE 18 . 26), (IDENTIFIER (28 . 33) 28 . 33), (SEMICOLON 34 . 34))
+subprogram_declaration_0: (subprogram_declaration, (1 . 34)) <= ((overriding_indicator, (1 . 10)), (other_indicator, (12 . 16)), (PROCEDURE, (18 . 26)), (IDENTIFIER, (28 . 33), (28 . 33)), (SEMICOLON, (34 . 34)))
  ... goto state 5
  1: 5: (OTHER, (37 . 41)) : reduce 0 tokens to overriding_indicator
 (overriding_indicator) <= ()
  ... goto state 6
  1: 6: (OTHER, (37 . 41)) : shift and goto state 3
  1: 3: (PROCEDURE, (43 . 51)) : reduce 1 tokens to other_indicator
-(other_indicator 37 . 41) <= ((OTHER 37 . 41))
+(other_indicator, (37 . 41)) <= ((OTHER, (37 . 41)))
  ... goto state 7
  1: 7: (PROCEDURE, (43 . 51)) : shift and goto state 10
  1: 10: (IDENTIFIER, (53 . 58), (53 . 58)) : shift and goto state 11
  1: 11: (SEMICOLON, (59 . 59)) : shift and goto state 12
  1: 12: (PROCEDURE, (62 . 70)) : reduce 5 tokens to subprogram_declaration
-subprogram_declaration_0: (subprogram_declaration 37 . 59) <= ((overriding_indicator), (other_indicator 37 . 41), (PROCEDURE 43 . 51), (IDENTIFIER (53 . 58) 53 . 58), (SEMICOLON 59 . 59))
+subprogram_declaration_0: (subprogram_declaration, (37 . 59)) <= ((overriding_indicator), (other_indicator, (37 . 41)), (PROCEDURE, (43 . 51)), (IDENTIFIER, (53 . 58), (53 . 58)), (SEMICOLON, (59 . 59)))
  ... goto state 8
  1: 8: (PROCEDURE, (62 . 70)) : reduce 0 tokens to overriding_indicator
 (overriding_indicator) <= ()
@@ -36,42 +36,42 @@ subprogram_declaration_0: (subprogram_declaration 37 . 59) <= ((overriding_indic
  1: 10: (IDENTIFIER, (72 . 77), (72 . 77)) : shift and goto state 11
  1: 11: (SEMICOLON, (78 . 78)) : shift and goto state 12
  1: 12: (Wisi_EOI, (81 . 80)) : reduce 5 tokens to subprogram_declaration
-subprogram_declaration_0: (subprogram_declaration 62 . 78) <= ((overriding_indicator), (other_indicator), (PROCEDURE 62 . 70), (IDENTIFIER (72 . 77) 72 . 77), (SEMICOLON 78 . 78))
+subprogram_declaration_0: (subprogram_declaration, (62 . 78)) <= ((overriding_indicator), (other_indicator), (PROCEDURE, (62 . 70)), (IDENTIFIER, (72 . 77), (72 . 77)), (SEMICOLON, (78 . 78)))
  ... goto state 9
  1: 9: (Wisi_EOI, (81 . 80)) : reduce 3 tokens to compilation_unit
-(compilation_unit 1 . 78) <= ((subprogram_declaration 1 . 34), (subprogram_declaration 37 . 59), (subprogram_declaration 62 . 78))
+(compilation_unit, (1 . 78)) <= ((subprogram_declaration, (1 . 34)), (subprogram_declaration, (37 . 59)), (subprogram_declaration, (62 . 78)))
  ... goto state 4
  1: 4: (Wisi_EOI, (81 . 80)) : accept it
-(wisitoken_accept 1 . 78) <= ((compilation_unit 1 . 78))
+(wisitoken_accept, (1 . 78)) <= ((compilation_unit, (1 . 78)))
  1: succeed
 
 LR1_Parser parse:
  1: 1: (OVERRIDING, (1 . 10)) : shift and goto state 2
  1: 2: (OTHER, (12 . 16)) : reduce 1 tokens to overriding_indicator
-(overriding_indicator 1 . 10) <= ((OVERRIDING 1 . 10))
+(overriding_indicator, (1 . 10)) <= ((OVERRIDING, (1 . 10)))
  ... goto state 5
  1: 5: (OTHER, (12 . 16)) : shift and goto state 6
  1: 6: (PROCEDURE, (18 . 26)) : reduce 1 tokens to other_indicator
-(other_indicator 12 . 16) <= ((OTHER 12 . 16))
+(other_indicator, (12 . 16)) <= ((OTHER, (12 . 16)))
  ... goto state 7
  1: 7: (PROCEDURE, (18 . 26)) : shift and goto state 11
  1: 11: (IDENTIFIER, (28 . 33), (28 . 33)) : shift and goto state 12
  1: 12: (SEMICOLON, (34 . 34)) : shift and goto state 15
  1: 15: (OTHER, (37 . 41)) : reduce 5 tokens to subprogram_declaration
-subprogram_declaration_0: (subprogram_declaration 1 . 34) <= ((overriding_indicator 1 . 10), (other_indicator 12 . 16), (PROCEDURE 18 . 26), (IDENTIFIER (28 . 33) 28 . 33), (SEMICOLON 34 . 34))
+subprogram_declaration_0: (subprogram_declaration, (1 . 34)) <= ((overriding_indicator, (1 . 10)), (other_indicator, (12 . 16)), (PROCEDURE, (18 . 26)), (IDENTIFIER, (28 . 33), (28 . 33)), (SEMICOLON, (34 . 34)))
  ... goto state 4
  1: 4: (OTHER, (37 . 41)) : reduce 0 tokens to overriding_indicator
 (overriding_indicator) <= ()
  ... goto state 5
  1: 5: (OTHER, (37 . 41)) : shift and goto state 6
  1: 6: (PROCEDURE, (43 . 51)) : reduce 1 tokens to other_indicator
-(other_indicator 37 . 41) <= ((OTHER 37 . 41))
+(other_indicator, (37 . 41)) <= ((OTHER, (37 . 41)))
  ... goto state 7
  1: 7: (PROCEDURE, (43 . 51)) : shift and goto state 11
  1: 11: (IDENTIFIER, (53 . 58), (53 . 58)) : shift and goto state 12
  1: 12: (SEMICOLON, (59 . 59)) : shift and goto state 15
  1: 15: (PROCEDURE, (62 . 70)) : reduce 5 tokens to subprogram_declaration
-subprogram_declaration_0: (subprogram_declaration 37 . 59) <= ((overriding_indicator), (other_indicator 37 . 41), (PROCEDURE 43 . 51), (IDENTIFIER (53 . 58) 53 . 58), (SEMICOLON 59 . 59))
+subprogram_declaration_0: (subprogram_declaration, (37 . 59)) <= ((overriding_indicator), (other_indicator, (37 . 41)), (PROCEDURE, (43 . 51)), (IDENTIFIER, (53 . 58), (53 . 58)), (SEMICOLON, (59 . 59)))
  ... goto state 8
  1: 8: (PROCEDURE, (62 . 70)) : reduce 0 tokens to overriding_indicator
 (overriding_indicator) <= ()
@@ -83,11 +83,11 @@ subprogram_declaration_0: (subprogram_declaration 37 . 59) <= ((overriding_indic
  1: 14: (IDENTIFIER, (72 . 77), (72 . 77)) : shift and goto state 16
  1: 16: (SEMICOLON, (78 . 78)) : shift and goto state 17
  1: 17: (Wisi_EOI, (81 . 80)) : reduce 5 tokens to subprogram_declaration
-subprogram_declaration_0: (subprogram_declaration 62 . 78) <= ((overriding_indicator), (other_indicator), (PROCEDURE 62 . 70), (IDENTIFIER (72 . 77) 72 . 77), (SEMICOLON 78 . 78))
+subprogram_declaration_0: (subprogram_declaration, (62 . 78)) <= ((overriding_indicator), (other_indicator), (PROCEDURE, (62 . 70)), (IDENTIFIER, (72 . 77), (72 . 77)), (SEMICOLON, (78 . 78)))
  ... goto state 9
  1: 9: (Wisi_EOI, (81 . 80)) : reduce 3 tokens to compilation_unit
-(compilation_unit 1 . 78) <= ((subprogram_declaration 1 . 34), (subprogram_declaration 37 . 59), (subprogram_declaration 62 . 78))
+(compilation_unit, (1 . 78)) <= ((subprogram_declaration, (1 . 34)), (subprogram_declaration, (37 . 59)), (subprogram_declaration, (62 . 78)))
  ... goto state 3
  1: 3: (Wisi_EOI, (81 . 80)) : accept it
-(wisitoken_accept 1 . 78) <= ((compilation_unit 1 . 78))
+(wisitoken_accept, (1 . 78)) <= ((compilation_unit, (1 . 78)))
  1: succeed

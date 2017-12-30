@@ -181,11 +181,7 @@ package body WisiToken.Lexer.re2c is
 
    overriding function Line (Lexer : in Instance) return Line_Number_Type
    is begin
-      if Lexer.Trace.Descriptor.New_Line_ID = Invalid_Token_ID then
-         return Invalid_Line_Number;
-      else
-         return Lexer.Line;
-      end if;
+      return Lexer.Line;
    end Line;
 
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count

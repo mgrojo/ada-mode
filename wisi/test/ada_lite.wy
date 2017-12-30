@@ -27,10 +27,9 @@
 ;;
 %{
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Line_Comment;
 %%
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
+   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 %}

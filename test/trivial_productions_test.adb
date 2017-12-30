@@ -59,7 +59,7 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-      State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+      State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
       procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -141,7 +141,7 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-      State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+      State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
       procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is

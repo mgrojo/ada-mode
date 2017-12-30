@@ -118,19 +118,26 @@ package body Test_LR_Expecting is
    Parser : WisiToken.LR.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    procedure Execute
      (Command  : in String;
       Expected : in WisiToken.Token_ID_Set)
    is begin
       Parser.Lexer.Reset_With_String (Command);
+      State.Reset;
 
       Parser.Parse;
       AUnit.Assertions.Assert (False, Command & "; no exception");
    exception
    when WisiToken.Syntax_Error =>
-      WisiToken.AUnit.Check (Command, State.Expecting, Expected);
+      declare
+         use WisiToken.Semantic_State;
+         List  : Error_Data_Lists.List renames State.Active_Error_List;
+         Error : Error_Data renames List.Constant_Reference (List.First);
+      begin
+         WisiToken.AUnit.Check (Command, Error.Expecting, Expected);
+      end;
    end Execute;
 
    ----------

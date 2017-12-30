@@ -116,7 +116,7 @@ package body Name_Grammar_Test is
      Component_ID      <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    procedure Parse_Command
      (Label   : in     String;
@@ -126,6 +126,7 @@ package body Name_Grammar_Test is
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
       Parser.Lexer.Reset_With_String (Command);
+      State.Reset;
 
       Parser.Parse;
 

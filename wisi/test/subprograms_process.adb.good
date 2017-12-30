@@ -34,8 +34,8 @@ package body Subprograms_Process is
       subprograms_re2c_c.Next_Token);
 
    procedure block_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -48,8 +48,8 @@ package body Subprograms_Process is
    end block_1;
 
    procedure loop_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -62,8 +62,8 @@ package body Subprograms_Process is
    end loop_statement_0;
 
    procedure name_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -87,8 +87,8 @@ package body Subprograms_Process is
    end name_0_check;
 
    procedure name_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -112,8 +112,8 @@ package body Subprograms_Process is
    end name_1_check;
 
    procedure parameter_list_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -126,8 +126,8 @@ package body Subprograms_Process is
    end parameter_list_0;
 
    procedure parameter_list_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -140,8 +140,8 @@ package body Subprograms_Process is
    end parameter_list_2;
 
    procedure subprogram_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -157,8 +157,8 @@ package body Subprograms_Process is
    end subprogram_0;
 
    procedure subprogram_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -183,8 +183,8 @@ package body Subprograms_Process is
    end subprogram_1_check;
 
    procedure subtype_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -197,8 +197,8 @@ package body Subprograms_Process is
    end subtype_0;
 
    procedure use_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>

@@ -15,6 +15,8 @@ pragma License (GPL); -- AUnit is not Modified_GPL
 
 with AUnit.Assertions;
 with Ada.Tags;
+with AUnit.Checks.Text_IO;
+with WisiToken.AUnit;
 package body WisiToken.Semantic_State.AUnit is
 
    procedure Check
@@ -47,6 +49,35 @@ package body WisiToken.Semantic_State.AUnit is
             end if;
          end if;
       end if;
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Augmented_Token;
+      Expected : in Augmented_Token)
+   is
+      use WisiToken.AUnit;
+      use Standard.AUnit.Checks.Text_IO;
+   begin
+      Check (Label & ".ID", Computed.ID, Expected.ID);
+      Check (Label & ".Line", Computed.Line, Expected.Line);
+      Check (Label & ".Col", Computed.Col, Expected.Col);
+      Check (Label & ".Char_Region", Computed.Char_Region, Expected.Char_Region);
+      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
+   end Check;
+
+   procedure Check
+     (Label              : in String;
+      Computed           : in Error_Data;
+      Expected           : in Error_Data;
+      Check_Recover_Data : in WisiToken.Semantic_State.AUnit.Check_Recover_Type)
+   is
+      use WisiToken.AUnit;
+      use WisiToken.Semantic_State.AUnit;
+   begin
+      Check (Label & ".Error_Token", Computed.Error_Token, Expected.Error_Token);
+      Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);
+      Check (Label & ".Recover", Computed.Recover, Expected.Recover, Check_Recover_Data);
    end Check;
 
 end WisiToken.Semantic_State.AUnit;

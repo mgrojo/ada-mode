@@ -25,12 +25,11 @@ with Skip_To_Grammar;
 with Test_Skip_To_Aux;
 with WisiToken.LR;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Line_Comment;
-with WisiToken.Token_Region;
+with WisiToken.Semantic_State;
 package body Test_Skip_To is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar.Descriptor'Access);
-   State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
+   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
    Parser : WisiToken.LR.Instance;
 
    ----------
@@ -45,7 +44,7 @@ package body Test_Skip_To is
       WisiToken.Trace_Parse := Test.Debug;
       Test_Skip_To_Aux.Enable := True;
 
-      State.Initialize (WisiToken.Token_Line_Comment.Init_Data'(Line_Count => 8));
+      State.Initialize (Line_Count => 8);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    exception
@@ -54,7 +53,7 @@ package body Test_Skip_To is
          use Ada.Exceptions;
       begin
          Ada.Text_IO.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-         WisiToken.Token_Region.Put (File_Name, State.Errors, Skip_To_Grammar.Descriptor);
+         WisiToken.Semantic_State.Put (File_Name, State.Errors, Skip_To_Grammar.Descriptor);
       end;
       AUnit.Assertions.Assert (False, "syntax error");
    end Nominal;

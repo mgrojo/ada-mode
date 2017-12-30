@@ -171,8 +171,8 @@ is
 
                      Action_Names (Prod_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
-                     Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
-                     Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
+                     Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token;");
+                     Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)");
                      Indent_Line ("is");
 
                      if Unref_Nonterm then

@@ -17,7 +17,6 @@
 
 pragma License (GPL);
 
-with Ada.Characters.Handling;
 package body WisiToken.Gen_Token_Enum is
 
    function Token_Enum_Image return Token_ID_Array_String
@@ -73,92 +72,6 @@ package body WisiToken.Gen_Token_Enum is
    is begin
       return WisiToken.Production."<=" (+Left, Right);
    end "<=";
-
-   procedure Put
-     (Trace        : in out WisiToken.Trace'Class;
-      Nonterm      : in     Base_Token;
-      Index        : in     Natural;
-      Tokens       : in     WisiToken.Base_Token_Arrays.Vector;
-      Include_Name : in     Boolean)
-   is
-      use Ada.Characters.Handling;
-
-      Action_Name : constant String :=
-        (if Include_Name
-         then To_Lower (Image (Nonterm, Trace.Descriptor.all)) &
-            "_" & Int_Image (Index) & ": "
-         else "");
-   begin
-      Trace.Put (Action_Name & Image (Nonterm, Trace.Descriptor.all) & " <= ");
-      Trace.Put (Image (Tokens, Trace.Descriptor.all));
-      Trace.New_Line;
-   end Put;
-
-   overriding
-   function Image
-     (Item       : in Augmented_Token;
-      Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean)
-     return String
-   is
-      pragma Unreferenced (Descriptor, ID_Only);
-   begin
-      return Token_Enum_ID'Image (Item.Enum_ID);
-   end Image;
-
-   overriding procedure Error
-     (State     : not null access State_Type;
-      Parser_ID : in              Natural;
-      Expecting : in              Token_ID_Set)
-   is
-      pragma Unreferenced (Parser_ID);
-   begin
-      --  Good enough for current unit tests.
-      State.Expecting := Expecting;
-   end Error;
-
-   overriding procedure Reduce_Stack
-     (State   : not null access State_Type;
-      Nonterm : in              Base_Token;
-      Index   : in              Natural;
-      Tokens  : in              WisiToken.Base_Token_Arrays.Vector;
-      Action  : in              WisiToken.Semantic_State.Semantic_Action)
-   is
-      use WisiToken.Semantic_State;
-
-      function To_Augmented (Item : in WisiToken.Base_Token_Arrays.Vector) return Augmented_Token_Array
-      is
-         Result : Augmented_Token_Array;
-      begin
-         for Token of Item loop
-            Result.Append
-              (Augmented_Token'
-                 (ID          => Token.ID,
-                  Byte_Region => Token.Byte_Region,
-                  Name        => Token.Name,
-                  Enum_ID     => -Token.ID,
-                  Virtual     => False));
-         end loop;
-         return Result;
-      end To_Augmented;
-
-      Enum_Nonterm_ID  : constant Token_Enum_ID         := -Nonterm.ID;
-      Augmented_Tokens : constant Augmented_Token_Array := To_Augmented (Tokens);
-   begin
-      if Trace_Parse > Detail then
-         Put (State.Trace.all, Nonterm, Index, Tokens, Include_Name => Action /= null);
-      end if;
-      if Action /= null then
-         Action
-           (Augmented_Token'
-              (ID          => Nonterm.ID,
-               Byte_Region => Nonterm.Byte_Region,
-               Name        => Nonterm.Name,
-               Enum_ID     => Enum_Nonterm_ID,
-               Virtual     => False),
-            Augmented_Tokens);
-      end if;
-   end Reduce_Stack;
 
    function To_Nonterminal_Array_Token_Set
      (Item : in Nonterminal_Array_Token_Set)

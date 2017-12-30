@@ -92,7 +92,7 @@ package body Grune_9_30 is
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    ----------
    --  Test procedures
@@ -151,6 +151,7 @@ package body Grune_9_30 is
       procedure Execute_Command (Command : in String)
       is begin
          Parser.Lexer.Reset_With_String (Command);
+         State.Reset;
 
          Parser.Parse;
       exception
@@ -180,7 +181,7 @@ package body Grune_9_30 is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/grune_9_30.adb");
+      return new String'("grune_9_30.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

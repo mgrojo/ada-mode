@@ -25,8 +25,7 @@ with Ada.Text_IO;
 with Ada_Lite;
 with GNAT.Traceback.Symbolic;
 with WisiToken.LR;
-with WisiToken.Token_Line_Comment;
-with WisiToken.Token_Region;
+with WisiToken.Semantic_State;
 package body Test_Ada_Lite is
 
    Parser : WisiToken.LR.Instance;
@@ -52,14 +51,14 @@ package body Test_Ada_Lite is
       Create (Output_File, Out_File, Output_File_Name);
       Set_Output (Output_File);
 
-      State.Initialize (WisiToken.Token_Line_Comment.Init_Data'(Line_Count => 16));
+      State.Initialize (Line_Count => 16);
       Parser.Lexer.Reset_With_File (Input_File_Name);
       begin
          Parser.Parse;
       exception
       when E : WisiToken.Syntax_Error =>
          Ada.Text_IO.Put_Line (Input_File_Name & ":" & Exception_Message (E));
-         WisiToken.Token_Region.Put (Input_File_Name, Ada_Lite.State.Errors, Ada_Lite.Descriptor);
+         WisiToken.Semantic_State.Put (Input_File_Name, Ada_Lite.State.Errors, Ada_Lite.Descriptor);
 
       when E : others =>
          Set_Output (Standard_Output);

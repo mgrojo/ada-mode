@@ -814,8 +814,8 @@ is
       else
          --  In an action
          Indent_Line ("procedure " & Name);
-         Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
-         Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
+         Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token;");
+         Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)");
          Indent_Line ("is begin");
          Indent := Indent + 3;
 
