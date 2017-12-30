@@ -24,11 +24,11 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Find_ID_On_Stack
      (Data : in Wisi_Runtime.Parse_Data_Type'Class;
       ID   : in Token_ID)
-     return Token_Line_Comment.Token
+     return Semantic_State.Augmented_Token
    is begin
       for Tok of reverse Data.Semantic_State.Stack loop
          if Tok.ID = ID then
-            return Token_Line_Comment.Token (Tok);
+            return Semantic_State.Augmented_Token (Tok);
          end if;
       end loop;
       raise Programmer_Error with Image (ID, Data.Semantic_State.Trace.Descriptor.all) & " not found on parse stack";
@@ -36,9 +36,9 @@ package body WisiToken.Wisi_Runtime.Ada is
 
    function Indent_Record
      (Data              : in out Parse_Data_Type;
-      Anchor_Token      : in     Token_Line_Comment.Token;
-      Record_Token      : in     Token_Line_Comment.Token;
-      Indenting_Token   : in     Token_Line_Comment.Token;
+      Anchor_Token      : in     Semantic_State.Augmented_Token;
+      Record_Token      : in     Semantic_State.Augmented_Token;
+      Indenting_Token   : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Offset            : in     Integer)
      return WisiToken.Wisi_Runtime.Delta_Type
@@ -110,7 +110,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -176,8 +176,8 @@ package body WisiToken.Wisi_Runtime.Ada is
    overriding
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting_Token   : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting_Token   : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -263,8 +263,8 @@ package body WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Aggregate
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
@@ -308,16 +308,16 @@ package body WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Renames_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
       use all type SAL.Base_Peek_Type;
-      Subp_Tok    : Token_Line_Comment.Token renames Token_Line_Comment.Token
+      Subp_Tok    : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
         (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all);
-      Renames_Tok : Token_Line_Comment.Token renames Indenting;
+      Renames_Tok : Semantic_State.Augmented_Token renames Indenting;
       Paren_I     : SAL.Base_Peek_Type;
    begin
       if Subp_Tok.Char_Region = Null_Buffer_Region then
@@ -325,13 +325,12 @@ package body WisiToken.Wisi_Runtime.Ada is
          return Null_Delta;
       end if;
 
-      Paren_I := Token_Line_Comment.Find
-        (Data.Semantic_State.all, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok);
+      Paren_I := Data.Semantic_State.Find (Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok);
 
-      if Paren_I /= Token_Line_Comment.Invalid_All_Tokens_Index then
+      if Paren_I /= Semantic_State.Invalid_All_Tokens_Index then
          --  paren is present
          declare
-            Paren_Tok : Token_Line_Comment.Token renames Data.Semantic_State.All_Tokens (Paren_I).Element.all;
+            Paren_Tok : Semantic_State.Augmented_Token renames Data.Semantic_State.All_Tokens (Paren_I).Element.all;
          begin
             if Ada_Indent_Renames > 0 then
                return Indent_Anchored_2
@@ -361,8 +360,8 @@ package body WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Return_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
@@ -373,7 +372,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       if Indenting.Line = Indenting.First_Indent_Line then
          if Ada_Indent_Return <= 0 then
             declare
-               Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+               Anchor_Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
                  (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all);
             begin
                return Indent_Anchored_2
@@ -385,7 +384,7 @@ package body WisiToken.Wisi_Runtime.Ada is
             end;
          else
             declare
-               Anchor_Token : Token_Line_Comment.Token renames Find_ID_On_Stack (Data, +FUNCTION_ID);
+               Anchor_Token : Semantic_State.Augmented_Token renames Find_ID_On_Stack (Data, +FUNCTION_ID);
             begin
                return Indent_Anchored_2
                  (Data,
@@ -403,16 +402,16 @@ package body WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Record_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is begin
       return Indent_Record
         (Parse_Data_Type (Data),
-         Anchor_Token      => Token_Line_Comment.Token (Tokens (Positive_Index_Type (Integer'(Args (1)))).Element.all),
-         Record_Token      => Token_Line_Comment.Token (Tokens (Positive_Index_Type (Integer'(Args (2)))).Element.all),
+         Anchor_Token      => Tokens (Positive_Index_Type (Integer'(Args (1)))),
+         Record_Token      => Tokens (Positive_Index_Type (Integer'(Args (2)))),
          Offset            => Args (3),
          Indenting_Token   => Indenting,
          Indenting_Comment => Indenting_Comment);
@@ -420,15 +419,14 @@ package body WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Record_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      Anchor_Tok : Token_Line_Comment.Token renames Find_Token_On_Stack (Data, Token_ID (Integer'(Args (1))));
-      Record_Tok : Token_Line_Comment.Token renames Token_Line_Comment.Token
-        (Tokens (Positive_Index_Type (Integer'(Args (2)))).Element.all);
+      Anchor_Tok : Semantic_State.Augmented_Token renames Find_Token_On_Stack (Data, Token_ID (Integer'(Args (1))));
+      Record_Tok : Semantic_State.Augmented_Token renames Tokens (Positive_Index_Type (Integer'(Args (2))));
    begin
       return Indent_Record (Parse_Data_Type (Data), Anchor_Tok, Record_Tok, Indenting, Indenting_Comment, Args (3));
    end Ada_Indent_Record_1;

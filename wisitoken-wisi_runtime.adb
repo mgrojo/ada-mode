@@ -42,7 +42,7 @@ package body WisiToken.Wisi_Runtime is
 
    function Paren_In_Anchor_Line
      (Data         : in Parse_Data_Type'Class;
-      Anchor_Token : in Token_Line_Comment.Token;
+      Anchor_Token : in Semantic_State.Augmented_Token;
       Offset       : in Integer)
      return Integer;
 
@@ -229,7 +229,7 @@ package body WisiToken.Wisi_Runtime is
 
    function Paren_In_Anchor_Line
      (Data         : in Parse_Data_Type'Class;
-      Anchor_Token : in Token_Line_Comment.Token;
+      Anchor_Token : in Semantic_State.Augmented_Token;
       Offset       : in Integer)
      return Integer
    is
@@ -249,7 +249,7 @@ package body WisiToken.Wisi_Runtime is
       --  we search All_Tokens.
       loop
          declare
-            Tok : Token_Line_Comment.Token renames Data.Semantic_State.All_Tokens (I).Element.all;
+            Tok : Semantic_State.Augmented_Token renames Data.Semantic_State.All_Tokens (I).Element.all;
          begin
             if Tok.ID = Left_Paren_ID then
                Paren_Count := Paren_Count + 1;
@@ -483,7 +483,7 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -492,7 +492,7 @@ package body WisiToken.Wisi_Runtime is
       pragma Unreferenced (Params);
    begin
       Data.Semantic_State := Semantic_State;
-      Data.Semantic_State.Initialize (Token_Line_Comment.Init_Data'(Line_Count => Line_Count));
+      Data.Semantic_State.Initialize (Line_Count);
 
       Data.Source_File_Name := +Source_File_Name;
       Data.Parse_Action     := Parse_Action;
@@ -543,8 +543,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Params  : in     Statement_Param_Array)
    is
       First_Item         : Boolean     := True;
@@ -554,7 +554,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Pair of Params loop
          declare
-            Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token
+            Token : WisiToken.Semantic_State.Augmented_Token renames WisiToken.Semantic_State.Augmented_Token
               (Tokens.Constant_Reference (Pair.Index).Element.all);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
@@ -611,8 +611,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
-      Nonterm    : in     Semantic_State.Augmented_Token'Class;
-      Tokens     : in     Semantic_State.Augmented_Token_Array;
+      Nonterm    : in     Semantic_State.Augmented_Token;
+      Tokens     : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type)
    is
@@ -620,14 +620,14 @@ package body WisiToken.Wisi_Runtime is
 
       --  [2] wisi-containing-action
       use Navigate_Cache_Trees;
-      use WisiToken.Token_Line_Comment;
-      Containing_Tok    : Token renames Token (Tokens (Containing).Element.all);
+      use WisiToken.Semantic_State;
+      Containing_Tok    : Augmented_Token renames Tokens (Containing);
       Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
-      Contained_Tok     : Token renames Token (Tokens (Contained).Element.all);
+      Contained_Tok     : Augmented_Token renames Tokens (Contained);
       Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
       Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
       Cursor            : Navigate_Cache_Trees.Cursor;
-      Mark              : constant Buffer_Pos           := Containing_Region.First;
+      Mark              : constant Buffer_Pos                    := Containing_Region.First;
    begin
       if not (Containing_Region /= Null_Buffer_Region or Containing_Tok.Virtual) then
          raise Parse_Error with Error_Message
@@ -706,8 +706,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Params  : in     Motion_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -743,7 +743,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token  : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (Param.Index).Element.all);
+            Token  : Semantic_State.Augmented_Token renames Tokens (Param.Index);
             Region : constant Buffer_Region := Token.Char_Region;
          begin
             if Region /= Null_Buffer_Region then
@@ -804,8 +804,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Params  : in     Face_Apply_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -819,7 +819,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
               (Tokens (Param.Index).Element.all);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
@@ -861,8 +861,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Params  : in     Face_Apply_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -875,7 +875,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
               (Tokens (Param.Index).Element.all);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
@@ -903,8 +903,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Params  : in     Face_Mark_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -917,7 +917,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
               (Tokens (Param.Index).Element.all);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
@@ -950,8 +950,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Remove_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Params  : in     Face_Remove_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -965,7 +965,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for I of Params loop
          declare
-            Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
               (Tokens (I).Element.all);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
@@ -1006,8 +1006,8 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Params  : in     Indent_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -1016,7 +1016,7 @@ package body WisiToken.Wisi_Runtime is
       for I in Tokens.First_Index .. Tokens.Last_Index loop
          declare
             use all type SAL.Base_Peek_Type;
-            Token             : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (I).Element.all);
+            Token             : Semantic_State.Augmented_Token renames Tokens (I);
             Pair              : Indent_Pair renames Params (I);
             Code_Delta        : Delta_Type;
             Comment_Param     : Indent_Param;
@@ -1058,14 +1058,14 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_1
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Semantic_State.Augmented_Token'Class;
-      Tokens  : in     Semantic_State.Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token;
+      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
       N       : in     Positive_Index_Type;
       Params  : in     Indent_Param_Array)
    is begin
       --  [2] wisi-indent-action*
       for I in Tokens.First_Index .. N loop
-         if Token_Line_Comment.Token (Tokens (I).Element.all).First then
+         if Semantic_State.Augmented_Token (Tokens (I).Element.all).First then
             Indent_Action_0 (Data, Nonterm, Tokens, Params);
             return;
          end if;
@@ -1074,8 +1074,8 @@ package body WisiToken.Wisi_Runtime is
 
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting_Token   : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting_Token   : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -1131,7 +1131,7 @@ package body WisiToken.Wisi_Runtime is
    end Put;
 
    procedure Put
-     (Errors     : in WisiToken.Token_Region.Error_List_Arrays.Vector;
+     (Errors     : in WisiToken.Semantic_State.Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
    is
       use all type Ada.Containers.Count_Type;
@@ -1166,7 +1166,7 @@ package body WisiToken.Wisi_Runtime is
 
    function Current_Indent_Offset
      (Data         : in Parse_Data_Type;
-      Anchor_Token : in Token_Line_Comment.Token;
+      Anchor_Token : in Semantic_State.Augmented_Token;
       Offset       : in Integer)
      return Integer
    is
@@ -1177,13 +1177,12 @@ package body WisiToken.Wisi_Runtime is
            Anchor_Token.First_Indent_Line = Anchor_Token.Line
          then Anchor_Token.Char_Region.First
          else Data.Semantic_State.All_Tokens
-           (Token_Line_Comment.Find_Line_Begin
-              (Data.Semantic_State.all, Anchor_Token.Line, Anchor_Token)).Char_Region.First);
+           (Data.Semantic_State.Find_Line_Begin (Anchor_Token.Line, Anchor_Token)).Char_Region.First);
    begin
       return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
    end Current_Indent_Offset;
 
-   function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Token_Line_Comment.Token
+   function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Semantic_State.Augmented_Token
    is
       use all type SAL.Base_Peek_Type;
       I : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
@@ -1197,7 +1196,7 @@ package body WisiToken.Wisi_Runtime is
          raise Programmer_Error with
            "token ID " & Image (ID, Data.Semantic_State.Trace.Descriptor.all) & " not found on parse stack";
       end if;
-      return Token_Line_Comment.Token (Data.Semantic_State.Stack (I).Element.all);
+      return Semantic_State.Augmented_Token (Data.Semantic_State.Stack (I).Element.all);
    end Find_Token_On_Stack;
 
    function Indent_Anchored_2
@@ -1242,9 +1241,9 @@ package body WisiToken.Wisi_Runtime is
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Param             : in     Indent_Param;
-      Indenting_Token   : in     Token_Line_Comment.Token;
+      Indenting_Token   : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean)
      return Delta_Type
    is begin
@@ -1257,7 +1256,7 @@ package body WisiToken.Wisi_Runtime is
 
          when Anchored_Label =>
             declare
-               Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+               Anchor_Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
                  (Tokens (Param.Param.Anchored_Index).Element.all);
             begin
                if Indenting_Token.Virtual or Anchor_Token.Virtual then
@@ -1269,7 +1268,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
+                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
                         Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
@@ -1278,7 +1277,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
+                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
                         Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
@@ -1287,7 +1286,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
+                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
                         Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
@@ -1297,7 +1296,7 @@ package body WisiToken.Wisi_Runtime is
                         return Indent_Anchored_2
                           (Data,
                            Anchor_Line => Anchor_Token.Line,
-                           Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
+                           Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
                            Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                            Accumulate  => True);
 
@@ -1310,7 +1309,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
+                        Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
                         Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
@@ -1342,7 +1341,7 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
-      Indenting_Token   : in     Token_Line_Comment.Token;
+      Indenting_Token   : in     Semantic_State.Augmented_Token;
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean)
    is
@@ -1354,8 +1353,7 @@ package body WisiToken.Wisi_Runtime is
             declare
                use all type Ada.Text_IO.Count;
 
-               I : constant Positive_Index_Type := Token_Line_Comment.Find_Line_Begin
-                 (Data.Semantic_State.all, Line, Indenting_Token);
+               I : constant Positive_Index_Type := Data.Semantic_State.Find_Line_Begin (Line, Indenting_Token);
             begin
                if Data.Semantic_State.All_Tokens (I).ID = Data.Semantic_State.Trace.Descriptor.Comment_ID and
                  Data.Semantic_State.All_Tokens (I).Col = 0

@@ -28,7 +28,6 @@ with SAL;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Line_Comment;
 procedure Gen_Run_Wisi_Parse
 is
    use WisiToken; -- Token_ID, "+", "-" Unbounded_string
@@ -36,7 +35,7 @@ is
    use all type WisiToken.Wisi_Runtime.Parse_Action_Type;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
+   State  : WisiToken.Semantic_State.Semantic_State (Trace'Access);
    Parser : WisiToken.LR.Instance;
 
    procedure Put_Usage
@@ -159,7 +158,7 @@ begin
    Line_Count := Parser.Lexer.Line;
 
    Parse_Data.Initialize
-     (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
+     (Semantic_State   => Parser.Semantic_State,
       Parse_Action     => Parse_Action,
       Source_File_Name => -Source_File_Name,
       Line_Count       => Line_Count,

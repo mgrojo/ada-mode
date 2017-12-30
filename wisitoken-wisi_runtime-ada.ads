@@ -41,7 +41,7 @@ package WisiToken.Wisi_Runtime.Ada is
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -57,8 +57,8 @@ package WisiToken.Wisi_Runtime.Ada is
    overriding
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting_Token   : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting_Token   : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -73,8 +73,8 @@ package WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Aggregate
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
@@ -82,8 +82,8 @@ package WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Renames_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
@@ -91,8 +91,8 @@ package WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Return_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
@@ -100,8 +100,8 @@ package WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Record_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
@@ -109,8 +109,8 @@ package WisiToken.Wisi_Runtime.Ada is
 
    function Ada_Indent_Record_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;

@@ -33,8 +33,8 @@ package body Gpr_Process is
       gpr_re2c_c.Next_Token);
 
    procedure aggregate_g_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -47,8 +47,8 @@ package body Gpr_Process is
    end aggregate_g_0;
 
    procedure attribute_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -61,8 +61,8 @@ package body Gpr_Process is
    end attribute_declaration_0;
 
    procedure attribute_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -75,8 +75,8 @@ package body Gpr_Process is
    end attribute_declaration_1;
 
    procedure attribute_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -89,8 +89,8 @@ package body Gpr_Process is
    end attribute_declaration_2;
 
    procedure case_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -104,8 +104,8 @@ package body Gpr_Process is
    end case_statement_0;
 
    procedure case_item_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -129,8 +129,8 @@ package body Gpr_Process is
    end identifier_opt_1_check;
 
    procedure package_spec_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -155,8 +155,8 @@ package body Gpr_Process is
    end package_spec_0_check;
 
    procedure package_extension_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -181,8 +181,8 @@ package body Gpr_Process is
    end package_extension_0_check;
 
    procedure package_renaming_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -195,8 +195,8 @@ package body Gpr_Process is
    end package_renaming_0;
 
    procedure project_extension_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -221,8 +221,8 @@ package body Gpr_Process is
    end project_extension_0_check;
 
    procedure simple_declarative_item_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -235,8 +235,8 @@ package body Gpr_Process is
    end simple_declarative_item_0;
 
    procedure simple_declarative_item_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -249,8 +249,8 @@ package body Gpr_Process is
    end simple_declarative_item_1;
 
    procedure simple_declarative_item_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -263,8 +263,8 @@ package body Gpr_Process is
    end simple_declarative_item_4;
 
    procedure simple_project_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -289,8 +289,8 @@ package body Gpr_Process is
    end simple_project_declaration_0_check;
 
    procedure typed_string_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>

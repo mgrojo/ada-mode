@@ -23,7 +23,7 @@ package body WisiToken.Wisi_Runtime.Gpr is
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;

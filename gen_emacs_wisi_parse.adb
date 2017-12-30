@@ -29,7 +29,6 @@ with System.Storage_Elements;
 with WisiToken.Lexer;
 with WisiToken.LR;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Line_Comment;
 procedure Gen_Emacs_Wisi_Parse
 is
    use WisiToken; -- "+", "-" Unbounded_string
@@ -71,7 +70,7 @@ is
    end Usage;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
+   State  : WisiToken.Semantic_State.Semantic_State (Trace'Access);
    Parser : WisiToken.LR.Instance;
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -234,7 +233,7 @@ begin
                   else False);
 
                Parse_Data.Initialize
-                 (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
+                 (Semantic_State   => Parser.Semantic_State,
                   Parse_Action     => Parse_Action,
                   Source_File_Name => -Source_File_Name,
                   Line_Count       => Line_Count,

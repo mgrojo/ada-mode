@@ -24,7 +24,7 @@ package body WisiToken.Wisi_Runtime.Subprograms is
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -63,8 +63,8 @@ package body WisiToken.Wisi_Runtime.Subprograms is
 
    function Function_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Array;
-      Indenting         : in     Token_Line_Comment.Token;
+      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Indenting         : in     Semantic_State.Augmented_Token;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type

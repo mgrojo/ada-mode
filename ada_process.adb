@@ -33,8 +33,8 @@ package body Ada_Process is
       ada_re2c_c.Next_Token);
 
    procedure abstract_subprogram_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -47,8 +47,8 @@ package body Ada_Process is
    end abstract_subprogram_declaration_0;
 
    procedure accept_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -75,8 +75,8 @@ package body Ada_Process is
    end accept_statement_0_check;
 
    procedure accept_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -90,8 +90,8 @@ package body Ada_Process is
    end accept_statement_1;
 
    procedure access_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -104,8 +104,8 @@ package body Ada_Process is
    end access_definition_0;
 
    procedure access_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -118,8 +118,8 @@ package body Ada_Process is
    end access_definition_1;
 
    procedure access_definition_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -132,8 +132,8 @@ package body Ada_Process is
    end access_definition_2;
 
    procedure actual_parameter_part_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -146,8 +146,8 @@ package body Ada_Process is
    end actual_parameter_part_0;
 
    procedure actual_parameter_part_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -160,8 +160,8 @@ package body Ada_Process is
    end actual_parameter_part_1;
 
    procedure aggregate_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -174,8 +174,8 @@ package body Ada_Process is
    end aggregate_0;
 
    procedure aggregate_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -188,8 +188,8 @@ package body Ada_Process is
    end aggregate_1;
 
    procedure aggregate_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -202,8 +202,8 @@ package body Ada_Process is
    end aggregate_2;
 
    procedure aggregate_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -216,8 +216,8 @@ package body Ada_Process is
    end aggregate_3;
 
    procedure array_type_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -230,8 +230,8 @@ package body Ada_Process is
    end array_type_definition_0;
 
    procedure array_type_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -244,8 +244,8 @@ package body Ada_Process is
    end array_type_definition_1;
 
    procedure aspect_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -258,8 +258,8 @@ package body Ada_Process is
    end aspect_clause_0;
 
    procedure aspect_specification_opt_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -272,8 +272,8 @@ package body Ada_Process is
    end aspect_specification_opt_1;
 
    procedure assignment_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -287,8 +287,8 @@ package body Ada_Process is
    end assignment_statement_0;
 
    procedure association_opt_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -301,8 +301,8 @@ package body Ada_Process is
    end association_opt_1;
 
    procedure association_opt_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -315,8 +315,8 @@ package body Ada_Process is
    end association_opt_3;
 
    procedure association_opt_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -329,8 +329,8 @@ package body Ada_Process is
    end association_opt_4;
 
    procedure association_opt_5
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -343,8 +343,8 @@ package body Ada_Process is
    end association_opt_5;
 
    procedure asynchronous_select_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -359,8 +359,8 @@ package body Ada_Process is
    end asynchronous_select_0;
 
    procedure at_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -373,8 +373,8 @@ package body Ada_Process is
    end at_clause_0;
 
    procedure block_label_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -409,8 +409,8 @@ package body Ada_Process is
    end block_label_opt_1_check;
 
    procedure block_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -437,8 +437,8 @@ package body Ada_Process is
    end block_statement_0_check;
 
    procedure block_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -464,8 +464,8 @@ package body Ada_Process is
    end block_statement_1_check;
 
    procedure case_expression_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -478,8 +478,8 @@ package body Ada_Process is
    end case_expression_0;
 
    procedure case_expression_alternative_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -492,8 +492,8 @@ package body Ada_Process is
    end case_expression_alternative_0;
 
    procedure case_expression_alternative_list_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -506,8 +506,8 @@ package body Ada_Process is
    end case_expression_alternative_list_1;
 
    procedure case_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -522,8 +522,8 @@ package body Ada_Process is
    end case_statement_0;
 
    procedure case_statement_alternative_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -536,8 +536,8 @@ package body Ada_Process is
    end case_statement_alternative_0;
 
    procedure component_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -550,8 +550,8 @@ package body Ada_Process is
    end component_clause_0;
 
    procedure component_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -565,8 +565,8 @@ package body Ada_Process is
    end component_declaration_0;
 
    procedure component_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -580,8 +580,8 @@ package body Ada_Process is
    end component_declaration_1;
 
    procedure component_list_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -594,8 +594,8 @@ package body Ada_Process is
    end component_list_4;
 
    procedure conditional_entry_call_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -610,8 +610,8 @@ package body Ada_Process is
    end conditional_entry_call_0;
 
    procedure declaration_9
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -625,8 +625,8 @@ package body Ada_Process is
    end declaration_9;
 
    procedure delay_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -639,8 +639,8 @@ package body Ada_Process is
    end delay_statement_0;
 
    procedure delay_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -653,8 +653,8 @@ package body Ada_Process is
    end delay_statement_1;
 
    procedure derived_type_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -667,8 +667,8 @@ package body Ada_Process is
    end derived_type_definition_0;
 
    procedure derived_type_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -681,8 +681,8 @@ package body Ada_Process is
    end derived_type_definition_1;
 
    procedure discriminant_part_opt_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -695,8 +695,8 @@ package body Ada_Process is
    end discriminant_part_opt_2;
 
    procedure elsif_expression_item_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -709,8 +709,8 @@ package body Ada_Process is
    end elsif_expression_item_0;
 
    procedure elsif_statement_item_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -723,8 +723,8 @@ package body Ada_Process is
    end elsif_statement_item_0;
 
    procedure entry_body_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -752,8 +752,8 @@ package body Ada_Process is
    end entry_body_0_check;
 
    procedure entry_body_formal_part_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -766,8 +766,8 @@ package body Ada_Process is
    end entry_body_formal_part_0;
 
    procedure entry_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -781,8 +781,8 @@ package body Ada_Process is
    end entry_declaration_0;
 
    procedure entry_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -796,8 +796,8 @@ package body Ada_Process is
    end entry_declaration_1;
 
    procedure enumeration_representation_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -810,8 +810,8 @@ package body Ada_Process is
    end enumeration_representation_clause_0;
 
    procedure enumeration_type_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -824,8 +824,8 @@ package body Ada_Process is
    end enumeration_type_definition_0;
 
    procedure exception_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -838,8 +838,8 @@ package body Ada_Process is
    end exception_declaration_0;
 
    procedure exception_handler_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -852,8 +852,8 @@ package body Ada_Process is
    end exception_handler_0;
 
    procedure exception_handler_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -866,8 +866,8 @@ package body Ada_Process is
    end exception_handler_1;
 
    procedure exit_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -880,8 +880,8 @@ package body Ada_Process is
    end exit_statement_0;
 
    procedure exit_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -894,8 +894,8 @@ package body Ada_Process is
    end exit_statement_1;
 
    procedure expression_function_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -908,8 +908,8 @@ package body Ada_Process is
    end expression_function_declaration_0;
 
    procedure extended_return_object_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -922,8 +922,8 @@ package body Ada_Process is
    end extended_return_object_declaration_0;
 
    procedure extended_return_object_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -936,8 +936,8 @@ package body Ada_Process is
    end extended_return_object_declaration_1;
 
    procedure extended_return_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -952,8 +952,8 @@ package body Ada_Process is
    end extended_return_statement_0;
 
    procedure extended_return_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -966,8 +966,8 @@ package body Ada_Process is
    end extended_return_statement_1;
 
    procedure formal_object_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -980,8 +980,8 @@ package body Ada_Process is
    end formal_object_declaration_0;
 
    procedure formal_object_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -994,8 +994,8 @@ package body Ada_Process is
    end formal_object_declaration_1;
 
    procedure formal_object_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1008,8 +1008,8 @@ package body Ada_Process is
    end formal_object_declaration_2;
 
    procedure formal_object_declaration_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1022,8 +1022,8 @@ package body Ada_Process is
    end formal_object_declaration_3;
 
    procedure formal_part_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1036,8 +1036,8 @@ package body Ada_Process is
    end formal_part_0;
 
    procedure formal_subprogram_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1050,8 +1050,8 @@ package body Ada_Process is
    end formal_subprogram_declaration_0;
 
    procedure formal_subprogram_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1064,8 +1064,8 @@ package body Ada_Process is
    end formal_subprogram_declaration_1;
 
    procedure formal_subprogram_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1078,8 +1078,8 @@ package body Ada_Process is
    end formal_subprogram_declaration_2;
 
    procedure formal_subprogram_declaration_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1092,8 +1092,8 @@ package body Ada_Process is
    end formal_subprogram_declaration_3;
 
    procedure formal_type_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1107,8 +1107,8 @@ package body Ada_Process is
    end formal_type_declaration_0;
 
    procedure formal_type_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1121,8 +1121,8 @@ package body Ada_Process is
    end formal_type_declaration_1;
 
    procedure formal_type_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1135,8 +1135,8 @@ package body Ada_Process is
    end formal_type_declaration_2;
 
    procedure formal_derived_type_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1149,8 +1149,8 @@ package body Ada_Process is
    end formal_derived_type_definition_0;
 
    procedure formal_derived_type_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1163,8 +1163,8 @@ package body Ada_Process is
    end formal_derived_type_definition_1;
 
    procedure formal_package_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1177,8 +1177,8 @@ package body Ada_Process is
    end formal_package_declaration_0;
 
    procedure full_type_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1192,8 +1192,8 @@ package body Ada_Process is
    end full_type_declaration_0;
 
    procedure function_specification_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1218,8 +1218,8 @@ package body Ada_Process is
    end function_specification_0_check;
 
    procedure generic_formal_part_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1232,8 +1232,8 @@ package body Ada_Process is
    end generic_formal_part_0;
 
    procedure generic_formal_part_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1246,8 +1246,8 @@ package body Ada_Process is
    end generic_formal_part_1;
 
    procedure generic_instantiation_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1260,8 +1260,8 @@ package body Ada_Process is
    end generic_instantiation_0;
 
    procedure generic_instantiation_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1274,8 +1274,8 @@ package body Ada_Process is
    end generic_instantiation_1;
 
    procedure generic_instantiation_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1288,8 +1288,8 @@ package body Ada_Process is
    end generic_instantiation_2;
 
    procedure generic_package_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1303,8 +1303,8 @@ package body Ada_Process is
    end generic_package_declaration_0;
 
    procedure generic_renaming_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1317,8 +1317,8 @@ package body Ada_Process is
    end generic_renaming_declaration_0;
 
    procedure generic_renaming_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1331,8 +1331,8 @@ package body Ada_Process is
    end generic_renaming_declaration_1;
 
    procedure generic_renaming_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1345,8 +1345,8 @@ package body Ada_Process is
    end generic_renaming_declaration_2;
 
    procedure generic_subprogram_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1360,8 +1360,8 @@ package body Ada_Process is
    end generic_subprogram_declaration_0;
 
    procedure goto_label_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1374,8 +1374,8 @@ package body Ada_Process is
    end goto_label_0;
 
    procedure handled_sequence_of_statements_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1388,8 +1388,8 @@ package body Ada_Process is
    end handled_sequence_of_statements_0;
 
    procedure identifier_list_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1413,8 +1413,8 @@ package body Ada_Process is
    end identifier_opt_1_check;
 
    procedure if_expression_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1429,8 +1429,8 @@ package body Ada_Process is
    end if_expression_0;
 
    procedure if_expression_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1445,8 +1445,8 @@ package body Ada_Process is
    end if_expression_1;
 
    procedure if_expression_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1461,8 +1461,8 @@ package body Ada_Process is
    end if_expression_2;
 
    procedure if_expression_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1477,8 +1477,8 @@ package body Ada_Process is
    end if_expression_3;
 
    procedure if_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1496,8 +1496,8 @@ package body Ada_Process is
    end if_statement_0;
 
    procedure if_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1514,8 +1514,8 @@ package body Ada_Process is
    end if_statement_1;
 
    procedure if_statement_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1532,8 +1532,8 @@ package body Ada_Process is
    end if_statement_2;
 
    procedure if_statement_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1549,8 +1549,8 @@ package body Ada_Process is
    end if_statement_3;
 
    procedure incomplete_type_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1563,8 +1563,8 @@ package body Ada_Process is
    end incomplete_type_declaration_0;
 
    procedure incomplete_type_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1577,8 +1577,8 @@ package body Ada_Process is
    end incomplete_type_declaration_1;
 
    procedure index_constraint_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1591,8 +1591,8 @@ package body Ada_Process is
    end index_constraint_0;
 
    procedure interface_list_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1605,8 +1605,8 @@ package body Ada_Process is
    end interface_list_0;
 
    procedure interface_list_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1619,8 +1619,8 @@ package body Ada_Process is
    end interface_list_1;
 
    procedure iteration_scheme_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1633,8 +1633,8 @@ package body Ada_Process is
    end iteration_scheme_0;
 
    procedure iteration_scheme_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1647,8 +1647,8 @@ package body Ada_Process is
    end iteration_scheme_1;
 
    procedure iterator_specification_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1661,8 +1661,8 @@ package body Ada_Process is
    end iterator_specification_0;
 
    procedure iterator_specification_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1675,8 +1675,8 @@ package body Ada_Process is
    end iterator_specification_1;
 
    procedure loop_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1702,8 +1702,8 @@ package body Ada_Process is
    end loop_statement_0_check;
 
    procedure loop_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1728,8 +1728,8 @@ package body Ada_Process is
    end loop_statement_1_check;
 
    procedure name_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1753,8 +1753,8 @@ package body Ada_Process is
    end name_0_check;
 
    procedure name_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1778,8 +1778,8 @@ package body Ada_Process is
    end name_3_check;
 
    procedure name_5
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1815,8 +1815,8 @@ package body Ada_Process is
    end name_opt_1_check;
 
    procedure null_exclusion_opt_name_type_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1829,8 +1829,8 @@ package body Ada_Process is
    end null_exclusion_opt_name_type_0;
 
    procedure null_exclusion_opt_name_type_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1843,8 +1843,8 @@ package body Ada_Process is
    end null_exclusion_opt_name_type_1;
 
    procedure null_exclusion_opt_name_type_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1857,8 +1857,8 @@ package body Ada_Process is
    end null_exclusion_opt_name_type_2;
 
    procedure null_exclusion_opt_name_type_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1871,8 +1871,8 @@ package body Ada_Process is
    end null_exclusion_opt_name_type_3;
 
    procedure null_procedure_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1885,8 +1885,8 @@ package body Ada_Process is
    end null_procedure_declaration_0;
 
    procedure object_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1900,8 +1900,8 @@ package body Ada_Process is
    end object_declaration_0;
 
    procedure object_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1914,8 +1914,8 @@ package body Ada_Process is
    end object_declaration_1;
 
    procedure object_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1929,8 +1929,8 @@ package body Ada_Process is
    end object_declaration_2;
 
    procedure object_declaration_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1944,8 +1944,8 @@ package body Ada_Process is
    end object_declaration_3;
 
    procedure object_declaration_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1959,8 +1959,8 @@ package body Ada_Process is
    end object_declaration_4;
 
    procedure object_declaration_5
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1974,8 +1974,8 @@ package body Ada_Process is
    end object_declaration_5;
 
    procedure object_renaming_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -1988,8 +1988,8 @@ package body Ada_Process is
    end object_renaming_declaration_0;
 
    procedure object_renaming_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2003,8 +2003,8 @@ package body Ada_Process is
    end object_renaming_declaration_1;
 
    procedure object_renaming_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2017,8 +2017,8 @@ package body Ada_Process is
    end object_renaming_declaration_2;
 
    procedure overriding_indicator_opt_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2031,8 +2031,8 @@ package body Ada_Process is
    end overriding_indicator_opt_0;
 
    procedure overriding_indicator_opt_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2045,8 +2045,8 @@ package body Ada_Process is
    end overriding_indicator_opt_1;
 
    procedure package_body_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2073,8 +2073,8 @@ package body Ada_Process is
    end package_body_0_check;
 
    procedure package_body_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2100,8 +2100,8 @@ package body Ada_Process is
    end package_body_1_check;
 
    procedure package_body_stub_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2114,8 +2114,8 @@ package body Ada_Process is
    end package_body_stub_0;
 
    procedure package_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2129,8 +2129,8 @@ package body Ada_Process is
    end package_declaration_0;
 
    procedure package_renaming_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2143,8 +2143,8 @@ package body Ada_Process is
    end package_renaming_declaration_0;
 
    procedure package_specification_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2172,8 +2172,8 @@ package body Ada_Process is
    end package_specification_0_check;
 
    procedure package_specification_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2200,8 +2200,8 @@ package body Ada_Process is
    end package_specification_1_check;
 
    procedure parameter_and_result_profile_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2214,8 +2214,8 @@ package body Ada_Process is
    end parameter_and_result_profile_0;
 
    procedure parameter_specification_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2228,8 +2228,8 @@ package body Ada_Process is
    end parameter_specification_1;
 
    procedure parameter_specification_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2242,8 +2242,8 @@ package body Ada_Process is
    end parameter_specification_2;
 
    procedure parameter_specification_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2256,8 +2256,8 @@ package body Ada_Process is
    end parameter_specification_3;
 
    procedure parameter_specification_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2270,8 +2270,8 @@ package body Ada_Process is
    end parameter_specification_4;
 
    procedure parameter_specification_list_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2284,8 +2284,8 @@ package body Ada_Process is
    end parameter_specification_list_1;
 
    procedure paren_expression_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2298,8 +2298,8 @@ package body Ada_Process is
    end paren_expression_0;
 
    procedure paren_expression_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2312,8 +2312,8 @@ package body Ada_Process is
    end paren_expression_1;
 
    procedure paren_expression_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2326,8 +2326,8 @@ package body Ada_Process is
    end paren_expression_2;
 
    procedure pragma_g_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2340,8 +2340,8 @@ package body Ada_Process is
    end pragma_g_0;
 
    procedure pragma_g_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2354,8 +2354,8 @@ package body Ada_Process is
    end pragma_g_1;
 
    procedure pragma_g_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2368,8 +2368,8 @@ package body Ada_Process is
    end pragma_g_2;
 
    procedure primary_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2382,8 +2382,8 @@ package body Ada_Process is
    end primary_0;
 
    procedure primary_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2396,8 +2396,8 @@ package body Ada_Process is
    end primary_2;
 
    procedure primary_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2410,8 +2410,8 @@ package body Ada_Process is
    end primary_4;
 
    procedure private_extension_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2424,8 +2424,8 @@ package body Ada_Process is
    end private_extension_declaration_0;
 
    procedure private_type_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2438,8 +2438,8 @@ package body Ada_Process is
    end private_type_declaration_0;
 
    procedure procedure_call_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2452,8 +2452,8 @@ package body Ada_Process is
    end procedure_call_statement_0;
 
    procedure procedure_specification_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2478,8 +2478,8 @@ package body Ada_Process is
    end procedure_specification_0_check;
 
    procedure protected_body_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2505,8 +2505,8 @@ package body Ada_Process is
    end protected_body_0_check;
 
    procedure protected_body_stub_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2519,8 +2519,8 @@ package body Ada_Process is
    end protected_body_stub_0;
 
    procedure protected_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2544,8 +2544,8 @@ package body Ada_Process is
    end protected_definition_0_check;
 
    procedure protected_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2569,8 +2569,8 @@ package body Ada_Process is
    end protected_definition_1_check;
 
    procedure protected_type_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2596,8 +2596,8 @@ package body Ada_Process is
    end protected_type_declaration_0_check;
 
    procedure protected_type_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2623,8 +2623,8 @@ package body Ada_Process is
    end protected_type_declaration_1_check;
 
    procedure qualified_expression_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2637,8 +2637,8 @@ package body Ada_Process is
    end qualified_expression_0;
 
    procedure quantified_expression_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2651,8 +2651,8 @@ package body Ada_Process is
    end quantified_expression_0;
 
    procedure raise_expression_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2665,8 +2665,8 @@ package body Ada_Process is
    end raise_expression_1;
 
    procedure raise_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2679,8 +2679,8 @@ package body Ada_Process is
    end raise_statement_0;
 
    procedure raise_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2694,8 +2694,8 @@ package body Ada_Process is
    end raise_statement_1;
 
    procedure raise_statement_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2708,8 +2708,8 @@ package body Ada_Process is
    end raise_statement_2;
 
    procedure range_g_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2722,8 +2722,8 @@ package body Ada_Process is
    end range_g_0;
 
    procedure record_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2736,8 +2736,8 @@ package body Ada_Process is
    end record_definition_0;
 
    procedure record_representation_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2750,8 +2750,8 @@ package body Ada_Process is
    end record_representation_clause_0;
 
    procedure requeue_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2764,8 +2764,8 @@ package body Ada_Process is
    end requeue_statement_0;
 
    procedure requeue_statement_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2778,8 +2778,8 @@ package body Ada_Process is
    end requeue_statement_1;
 
    procedure result_profile_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2792,8 +2792,8 @@ package body Ada_Process is
    end result_profile_0;
 
    procedure result_profile_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2806,8 +2806,8 @@ package body Ada_Process is
    end result_profile_1;
 
    procedure selected_component_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2831,8 +2831,8 @@ package body Ada_Process is
    end selected_component_0_check;
 
    procedure selected_component_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2845,8 +2845,8 @@ package body Ada_Process is
    end selected_component_1;
 
    procedure selected_component_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2870,8 +2870,8 @@ package body Ada_Process is
    end selected_component_2_check;
 
    procedure selected_component_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2884,8 +2884,8 @@ package body Ada_Process is
    end selected_component_3;
 
    procedure selective_accept_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2901,8 +2901,8 @@ package body Ada_Process is
    end selective_accept_0;
 
    procedure selective_accept_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2916,8 +2916,8 @@ package body Ada_Process is
    end selective_accept_1;
 
    procedure select_alternative_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2930,8 +2930,8 @@ package body Ada_Process is
    end select_alternative_0;
 
    procedure select_alternative_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2944,8 +2944,8 @@ package body Ada_Process is
    end select_alternative_2;
 
    procedure select_alternative_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2958,8 +2958,8 @@ package body Ada_Process is
    end select_alternative_4;
 
    procedure select_alternative_5
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2972,8 +2972,8 @@ package body Ada_Process is
    end select_alternative_5;
 
    procedure select_alternative_list_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -2986,8 +2986,8 @@ package body Ada_Process is
    end select_alternative_list_0;
 
    procedure select_alternative_list_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3000,8 +3000,8 @@ package body Ada_Process is
    end select_alternative_list_1;
 
    procedure simple_return_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3015,8 +3015,8 @@ package body Ada_Process is
    end simple_return_statement_0;
 
    procedure simple_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3029,8 +3029,8 @@ package body Ada_Process is
    end simple_statement_0;
 
    procedure simple_statement_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3043,8 +3043,8 @@ package body Ada_Process is
    end simple_statement_3;
 
    procedure simple_statement_8
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3057,8 +3057,8 @@ package body Ada_Process is
    end simple_statement_8;
 
    procedure single_protected_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3084,8 +3084,8 @@ package body Ada_Process is
    end single_protected_declaration_0_check;
 
    procedure single_protected_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3111,8 +3111,8 @@ package body Ada_Process is
    end single_protected_declaration_1_check;
 
    procedure single_task_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3138,8 +3138,8 @@ package body Ada_Process is
    end single_task_declaration_0_check;
 
    procedure single_task_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3165,8 +3165,8 @@ package body Ada_Process is
    end single_task_declaration_1_check;
 
    procedure single_task_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3179,8 +3179,8 @@ package body Ada_Process is
    end single_task_declaration_2;
 
    procedure subprogram_body_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3208,8 +3208,8 @@ package body Ada_Process is
    end subprogram_body_0_check;
 
    procedure subprogram_body_stub_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3222,8 +3222,8 @@ package body Ada_Process is
    end subprogram_body_stub_0;
 
    procedure subprogram_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3236,8 +3236,8 @@ package body Ada_Process is
    end subprogram_declaration_0;
 
    procedure subprogram_default_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3250,8 +3250,8 @@ package body Ada_Process is
    end subprogram_default_0;
 
    procedure subprogram_renaming_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3286,8 +3286,8 @@ package body Ada_Process is
    end subprogram_specification_1_check;
 
    procedure subtype_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3300,8 +3300,8 @@ package body Ada_Process is
    end subtype_declaration_0;
 
    procedure subtype_indication_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3314,8 +3314,8 @@ package body Ada_Process is
    end subtype_indication_0;
 
    procedure subtype_indication_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3328,8 +3328,8 @@ package body Ada_Process is
    end subtype_indication_1;
 
    procedure subtype_indication_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3342,8 +3342,8 @@ package body Ada_Process is
    end subtype_indication_2;
 
    procedure subtype_indication_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3356,8 +3356,8 @@ package body Ada_Process is
    end subtype_indication_3;
 
    procedure subunit_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3370,8 +3370,8 @@ package body Ada_Process is
    end subunit_0;
 
    procedure task_body_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3398,8 +3398,8 @@ package body Ada_Process is
    end task_body_0_check;
 
    procedure task_body_stub_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3412,8 +3412,8 @@ package body Ada_Process is
    end task_body_stub_0;
 
    procedure task_definition_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3427,8 +3427,8 @@ package body Ada_Process is
    end task_definition_0;
 
    procedure task_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3441,8 +3441,8 @@ package body Ada_Process is
    end task_definition_1;
 
    procedure task_type_declaration_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3468,8 +3468,8 @@ package body Ada_Process is
    end task_type_declaration_0_check;
 
    procedure task_type_declaration_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3495,8 +3495,8 @@ package body Ada_Process is
    end task_type_declaration_1_check;
 
    procedure task_type_declaration_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3509,8 +3509,8 @@ package body Ada_Process is
    end task_type_declaration_2;
 
    procedure timed_entry_call_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3525,8 +3525,8 @@ package body Ada_Process is
    end timed_entry_call_0;
 
    procedure variant_part_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3540,8 +3540,8 @@ package body Ada_Process is
    end variant_part_0;
 
    procedure variant_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3554,8 +3554,8 @@ package body Ada_Process is
    end variant_0;
 
    procedure use_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3568,8 +3568,8 @@ package body Ada_Process is
    end use_clause_0;
 
    procedure use_clause_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3582,8 +3582,8 @@ package body Ada_Process is
    end use_clause_1;
 
    procedure use_clause_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3596,8 +3596,8 @@ package body Ada_Process is
    end use_clause_2;
 
    procedure with_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3610,8 +3610,8 @@ package body Ada_Process is
    end with_clause_0;
 
    procedure with_clause_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3624,8 +3624,8 @@ package body Ada_Process is
    end with_clause_1;
 
    procedure with_clause_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -3638,8 +3638,8 @@ package body Ada_Process is
    end with_clause_2;
 
    procedure with_clause_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
