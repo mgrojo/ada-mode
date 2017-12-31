@@ -39,20 +39,16 @@ package body Test_McKenzie_Recover is
       First_Nonterminal => Ada_Lite.Descriptor.First_Nonterminal,
       Last_Nonterminal  => Ada_Lite.Descriptor.Last_Nonterminal);
 
-   procedure Parse_Text (Text : in String; Debug : in Integer)
+   procedure Parse_Text (Text : in String; Line_Count : in WisiToken.Line_Number_Type := 1)
    is begin
-      Parser.Enable_McKenzie_Recover := True;
-
-      WisiToken.Trace_Parse := Debug;
-
       Ada_Lite.Action_Count := (others => 0);
 
-      if Debug > 0 then
+      if WisiToken.Trace_Parse > 0 then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
-      Ada_Lite.State.Initialize (Line_Count => 1);
+      Ada_Lite.State.Initialize (Line_Count);
       Parser.Lexer.Reset_With_String (Text & "   ");
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
@@ -67,15 +63,13 @@ package body Test_McKenzie_Recover is
 
    procedure No_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada.Exceptions;
       use Ada_Lite;
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
    begin
       --  The test is that there is no exception.
-
-      WisiToken.Trace_Parse := Test.Debug;
 
       Ada_Lite.State.Initialize (Line_Count => 49);
       Parser.Lexer.Reset_With_File (File_Name);
@@ -88,12 +82,12 @@ package body Test_McKenzie_Recover is
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;", Test.Debug);
+      Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;");
       --                1        |10       |20       |30       |40
       --  Missing "if" in "end if;"
       --
@@ -110,7 +104,7 @@ package body Test_McKenzie_Recover is
 
    procedure Error_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
@@ -118,7 +112,7 @@ package body Test_McKenzie_Recover is
       use all type WisiToken.Region_Lists.Cursor;
    begin
       Parse_Text
-        ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc_1; ", Test.Debug);
+        ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc_1; ");
       --  |1       |10       |20       |30       |40       |50       |60       |70       |80       |90
       --  Missing "begin" for Block_2, but McKenzie won't find that.
       --
@@ -141,15 +135,15 @@ package body Test_McKenzie_Recover is
 
    procedure Error_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
       Parse_Text
-        ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; ",
+        ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; "
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
-         Test.Debug);
+         );
       --  Missing "end if" at 67.
       --
       --  This used to insert lots of stuff finishing all the blocks;
@@ -193,12 +187,12 @@ package body Test_McKenzie_Recover is
 
    procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parse_Text ("else then ", Test.Debug);
+      Parse_Text ("else then ");
       --  Bogus syntax; test no exceptions due to empty stack etc.
 
       Assert (False, "1.exception: did not get Syntax_Error");
@@ -209,12 +203,12 @@ package body Test_McKenzie_Recover is
 
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parse_Text ("procedure Debug is begin A; ", Test.Debug);
+      Parse_Text ("procedure Debug is begin A; ");
       --  Missing "end;"
       --
       --  Inserts 'end;', continues to EOF, succeeds
@@ -228,15 +222,15 @@ package body Test_McKenzie_Recover is
 
    procedure Extra_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
       Parse_Text
-        ("procedure Debug is begin procedure Put_Top_10 is begin end Put_Top_10; begin end Debug; ",
+        ("procedure Debug is begin procedure Put_Top_10 is begin end Put_Top_10; begin end Debug; ");
          --        |10       |20       |30       |40       |50       |60       |70       |80
-         Test.Debug);
+
       --  Added 'begin' 72, intending to delete 'begin' 20
       --
       --  There are no special rules to help with this.
@@ -253,7 +247,7 @@ package body Test_McKenzie_Recover is
       --  with cost 2, and the desired succeeds, because it encounters
       --  no more errors.
 
-      if Test.Debug > 0 then
+      if WisiToken.Trace_Parse > 0 then
          for Error of State.Active_Error_List loop
             Ada.Text_IO.Put_Line
               ("error_token: " & Error.Error_Token.Image (Ada_Lite.Descriptor, ID_Only => False));
@@ -269,16 +263,16 @@ package body Test_McKenzie_Recover is
 
    procedure Conflict_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
       begin
          Parse_Text
-           ("procedure Check_1 is end begin end Check_1;",
+           ("procedure Check_1 is end begin end Check_1;");
             --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
+
          --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
          --
          --  parser 1 for subprogram_body (should succeed): delete 'end' 22, cost 1.
@@ -316,9 +310,9 @@ package body Test_McKenzie_Recover is
          Parser.Table.McKenzie_Param.Cost_Limit := 6;
 
          Parse_Text
-           ("procedure Check_2 is end new Check_2;",
+           ("procedure Check_2 is end new Check_2;");
             --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
+
          --  Syntax error (extra 'end' 22) while two parsers are sorting out a
          --  conflict.
          --
@@ -342,15 +336,15 @@ package body Test_McKenzie_Recover is
 
    procedure Conflict_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
       Parse_Text
-        ("function Find_Path return Path is begin return Result : Path (1 .. Result_Length) end Find_Path; ",
+        ("function Find_Path return Path is begin return Result : Path (1 .. Result_Length) end Find_Path; "
          --        |10       |20       |30       |40       |50       |60       |70       |80
-         Test.Debug);
+         );
       --  Syntax error (missing ';' (and rest of extended return) at
       --  82) while two parsers are sorting out a conflict.
       --
@@ -366,16 +360,16 @@ package body Test_McKenzie_Recover is
 
    procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
       begin
          Parse_Text
-           ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; ",
+           ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; "
             --        |10       |20       |30       |40       |50       |60       |70       |80       |90
-            Test.Debug);
+            );
          --  Missing 'return foo' in function spec.
          --
          --  error 1 at 'is' 72; expecting 'return'. Inserts 'return IDENTIFIER'.
@@ -394,16 +388,16 @@ package body Test_McKenzie_Recover is
 
    procedure Loop_Bounds (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
       begin
          Parse_Text
-           ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end;",
+           ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end;"
             --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
+            );
          --  'To' should be '..'
          --
          --  error 1 at 'To' 35; expecting '..'.
@@ -420,7 +414,7 @@ package body Test_McKenzie_Recover is
 
    procedure Pattern_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
@@ -430,9 +424,9 @@ package body Test_McKenzie_Recover is
       --  Test 'recover_pattern_1' for CASE
       begin
          Parse_Text
-           ("procedure Test_CASE_1 is begin case I is when 1 => A; end;",
+           ("procedure Test_CASE_1 is begin case I is when 1 => A; end;"
             --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
+            );
          --  Missing 'end case;'
 
          Check ("1 errors.length", State.Active_Error_List.Length, 1);
@@ -446,9 +440,9 @@ package body Test_McKenzie_Recover is
       Parser.Table.McKenzie_Param.Cost_Limit := 10; -- no pattern matching here
       begin
          Parse_Text
-           ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;",
+           ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;"
             --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
+            );
          --  Missing 'end case;'
          --
          --  error 1 at ';' 56; expecting 'case'.
@@ -464,9 +458,9 @@ package body Test_McKenzie_Recover is
       --  Test 'recover_pattern_1' for IF
       begin
          Parse_Text
-           ("procedure Test_IF is begin if A then B; end;",
+           ("procedure Test_IF is begin if A then B; end;");
             --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
+
          --  Missing 'end if;'
 
          Check ("1 errors.length", State.Active_Error_List.Length, 1);
@@ -478,9 +472,9 @@ package body Test_McKenzie_Recover is
       --  Test 'recover_pattern_1' for LOOP
       begin
          Parse_Text
-           ("procedure Test_LOOP is begin for I in A loop B; end;",
+           ("procedure Test_LOOP is begin for I in A loop B; end;");
             --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
+
          --  Missing 'end loop;'
 
          Check ("1 errors.length", State.Active_Error_List.Length, 1);
@@ -493,16 +487,16 @@ package body Test_McKenzie_Recover is
 
    procedure Revive_Zombie_Parser (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
       use WisiToken.Semantic_State.AUnit;
    begin
       Parse_Text
-        ("procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);",
+        ("procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);");
          --        |10       |20       |30       |40       |50       |60       |70       |80
-         Test.Debug);
+
       --  A generic instantiation, but missing 'new' after 'is' 20.
       --
       --  Spawns a second parser on 'is'; one for procedure body, one for
@@ -545,7 +539,7 @@ package body Test_McKenzie_Recover is
 
    procedure Error_Token_When_Parallel (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
@@ -555,9 +549,9 @@ package body Test_McKenzie_Recover is
       --  during parallel parsing (a previous version got this wrong).
 
       Parse_Text
-        ("procedure One is begin if  and B then C; end if; end;",
+        ("procedure One is begin if  and B then C; end if; end;");
          --        |10       |20       |30       |40       |50
-         Test.Debug);
+
       --  Missing an expression between 'if' and 'and'.
       --
       --  Spawns a second parser on 'is'; one for procedure body, one for
@@ -586,7 +580,7 @@ package body Test_McKenzie_Recover is
 
    procedure If_In_Handler (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
@@ -598,9 +592,9 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_Text_File is begin " &
          --        |10       |20       |30       |40       |50       |60
-           "exception if then end if; end Process_Text_File; begin begin end; end Journal_To_TSV;",
+           "exception if then end if; end Process_Text_File; begin begin end; end Journal_To_TSV;");
          --   |67         |80       |90       |100      |110      |120      |130      |140
-         Test.Debug);
+
       --  Mistakenly pasted 'if then end if' in exception handler 66 .. 91.
       --
       --  This used to cause a token ID mismatch in
@@ -634,7 +628,7 @@ package body Test_McKenzie_Recover is
 
    procedure Zombie_In_Resume (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
@@ -644,9 +638,9 @@ package body Test_McKenzie_Recover is
       --  during parallel parsing (a previous version got this wrong).
 
       Parse_Text
-        ("package body Ada_Mode.Loop_face",
+        ("package body Ada_Mode.Loop_face");
          --        |10       |20
-         Test.Debug);
+
       --  Just started typing a package
       --
       --  This used to raise a Programmer_Error because of a zombie parser
@@ -667,7 +661,7 @@ package body Test_McKenzie_Recover is
 
    procedure Match_Name (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
@@ -680,9 +674,9 @@ package body Test_McKenzie_Recover is
       --  Force checking solution thru '; end Remove;'
 
       Parse_Text
-        ("procedure Remove is begin loop A := B; loop; end Remove;",
+        ("procedure Remove is begin loop A := B; loop; end Remove;");
          --        |10       |20       |30       |40       |50
-         Test.Debug);
+
       --  Typed 'loop;' instead of 'end loop;'
       --
       --  Error at ';' 44. Desired solutions are:
@@ -704,6 +698,37 @@ package body Test_McKenzie_Recover is
    when WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error");
    end Match_Name;
+
+   procedure Missing_Quote (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use WisiToken.Semantic_State.AUnit;
+   begin
+      --  Test that syntax error recovery handles a missing string quote.
+
+      Parse_Text
+        ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at""; " & ASCII.LF & "end Remove;", 3);
+         --        |10       |20       |30         |40    |45                 |50     |52
+
+      --  In process of splitting a string across two lines; missing open
+      --  quote 'at";' 48.
+      --
+      --  lexer error at '"' 50. Desired solution is insert quote char
+      --  before 'at', but that's not implemented (and impossible for a
+      --  string with embedded spaces). Instead we insert a virtual '"' at
+      --  the error point, and return a STRING_LITERAL. The lexer has
+      --  skipped to LF 52, but then backtracked to ';' 51.
+      --
+      --  That leads to a parse error at '"' 50; missing operator. Simplest
+      --  solution is to delete the STRING_LITERAL.
+
+   exception
+   when E : WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   end Missing_Quote;
 
    ----------
    --  Public subprograms
@@ -736,6 +761,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, If_In_Handler'Access, "If_In_Handler");
       Register_Routine (T, Zombie_In_Resume'Access, "Zombie_In_Resume");
       Register_Routine (T, Match_Name'Access, "Match_Name");
+      Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)

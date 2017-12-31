@@ -94,6 +94,13 @@ package WisiToken is
       --  If the language does not define these tokens, set them to
       --  Invalid_Token_ID.
 
+      String_1_ID  : Token_ID; -- delimited by '
+      String_2_ID  : Token_ID; -- delimited by "
+      --
+      --  Support for lexer level missing quote error recovery. If the
+      --  language does not have two kinds of string literals, set one or
+      --  both of these to Invalid_Token_ID.
+
       Image : Token_ID_Array_String (Token_ID'First .. Last_Nonterminal);
       --  User names for tokens.
 

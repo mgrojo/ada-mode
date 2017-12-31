@@ -127,6 +127,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Right_Paren_ID      =>" & WisiToken.Token_ID'Image (Descriptor.Right_Paren_ID) & ",");
       Indent_Line ("Terminal_Name_ID    =>" & WisiToken.Token_ID'Image (Descriptor.Terminal_Name_ID) & ",");
       Indent_Line ("Nonterminal_Name_ID =>" & WisiToken.Token_ID'Image (Descriptor.Nonterminal_Name_ID) & ",");
+      Indent_Line ("String_1_ID         =>" & WisiToken.Token_ID'Image (Descriptor.String_1_ID) & ",");
+      Indent_Line ("String_2_ID         =>" & WisiToken.Token_ID'Image (Descriptor.String_2_ID) & ",");
       Indent_Line ("Image               =>");
       declare
          use Standard.Ada.Strings.Unbounded;
@@ -587,7 +589,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("--  Free the lexer object");
          New_Line;
 
-         Indent_Line ("procedure Reset_Lexer (Lexer    : in System.Address)");
+         Indent_Line ("procedure Reset_Lexer (Lexer : in System.Address)");
          Indent_Line ("with Import        => True,");
          Indent_Line ("     Convention    => C,");
          Indent_Line ("     External_Name => """ & Output_File_Name_Root & "_reset_lexer"";");

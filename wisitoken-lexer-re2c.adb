@@ -149,18 +149,36 @@ package body WisiToken.Lexer.re2c is
             return Lexer.ID;
 
          when 1 =>
+            --  Unrecognized character from lexer. Handle missing quotes by
+            --  inserting a virtual quote at the existing quote, and telling the
+            --  lexer to skip the char.
             declare
-               use GNATCOLL.Mmap;
-               Buffer        : constant Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
-               Context_First : constant Integer    := Integer'Max (1, Lexer.Byte_Position - 3);
-               Context_Last  : constant Integer    := Integer'Min (Lexer.Source.Buffer_Last, Lexer.Byte_Position + 3);
+               Buffer        : constant GNATCOLL.Mmap.Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
+               Context_First : constant Integer    := Integer'Max (1, Lexer.Byte_Position - 5);
+               Context_Last  : constant Integer    := Integer'Min
+                 ((case Lexer.Source.Label is
+                   when String_Label => Lexer.Source.Buffer.all'Last,
+                   when File_Label => Lexer.Source.Buffer_Last),
+                  Lexer.Byte_Position + 5);
 
                Context : constant String (Context_First .. Context_Last) := String
                  (Buffer (Context_First .. Context_Last));
             begin
-               raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position) &
-                 "' (" & Integer'Image (Character'Pos (Buffer (Lexer.Byte_Position))) & ") at character position" &
-                 Natural'Image (Lexer.Char_Position) & " in context '" & Context & "'";
+               if Buffer (Lexer.Byte_Position) = ''' then
+                  --  Lexer has read to next new-line (or eof), then backtracked to next
+                  --  char after '.
+                  return Lexer.Trace.Descriptor.String_1_ID;
+
+               elsif Buffer (Lexer.Byte_Position) = '"' then
+                  --  Lexer has read to next new-line (or eof), then backtracked to next
+                  --  char after "
+                  return Lexer.Trace.Descriptor.String_2_ID;
+
+               else
+                  raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position) &
+                    "' (" & Integer'Image (Character'Pos (Buffer (Lexer.Byte_Position))) & ") at character position" &
+                    Natural'Image (Lexer.Char_Position) & " in context '" & Context & "'";
+               end if;
             end;
 
          when others =>

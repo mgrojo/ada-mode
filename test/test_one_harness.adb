@@ -24,21 +24,23 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with Test_McKenzie_Recover;
+with WisiToken;
 procedure Test_One_Harness
 is
-   --  command line arguments: [routine_name [trace_level [cost_limit]]]
+   --  command line arguments: [routine_name [trace_level mckenzie level [cost_limit]]]
    --
    --  routine_name can be '' to set trace or cost for all routines.
    --
    --  AUnit design forces this awkward order of declarations.
 
-   Debug : constant Integer := (if Argument_Count > 1 then Integer'Value (Argument (2)) else 0);
-   --  pragma Unreferenced (Debug);
+   Trace_Parse    : constant Integer := (if Argument_Count > 1 then Integer'Value (Argument (2)) else 0);
+   Trace_McKenzie : constant Integer := (if Argument_Count > 1 then Integer'Value (Argument (3)) else 0);
 
-   Cost_Limit : constant Natural := (if Argument_Count > 2 then Natural'Value (Argument (3)) else Natural'Last);
+   Cost_Limit : constant Natural := (if Argument_Count > 3 then Natural'Value (Argument (4)) else Natural'Last);
+   --  pragma Unreferenced (Cost_Limit);
 
    Tc : constant AUnit.Simple_Test_Cases.Test_Case_Access := new Test_McKenzie_Recover.Test_Case
-     (Debug, Cost_Limit);
+     (Cost_Limit);
 
    function New_Name_Filter (Routine_Name : in String) return AUnit.Test_Filters.Test_Filter_Access
    is
@@ -65,6 +67,9 @@ is
 
 begin
    Add_Test (Suite, Tc);
+
+   WisiToken.Trace_Parse := Trace_Parse;
+   WisiToken.Trace_McKenzie := Trace_McKenzie;
 
    Run (Suite, Options, Result, Status);
 

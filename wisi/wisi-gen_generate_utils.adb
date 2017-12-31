@@ -57,6 +57,8 @@ package body Wisi.Gen_Generate_Utils is
       LR1_Descriptor.Left_Paren_ID    := Find_Kind ("left-paren");
       LR1_Descriptor.Right_Paren_ID   := Find_Kind ("right-paren");
       LR1_Descriptor.Terminal_Name_ID := Find_Kind ("symbol");
+      LR1_Descriptor.String_1_ID      := Find_Kind ("string-single");
+      LR1_Descriptor.String_2_ID      := Find_Kind ("string-double");
 
       LR1_Descriptor.Terminal_Image_Width := 0;
       LR1_Descriptor.Image_Width          := 0;
@@ -91,6 +93,8 @@ package body Wisi.Gen_Generate_Utils is
       LALR_Descriptor.Image                := LR1_Descriptor.Image;
       LALR_Descriptor.Terminal_Name_ID     := LR1_Descriptor.Terminal_Name_ID;
       LALR_Descriptor.Nonterminal_Name_ID  := LR1_Descriptor.Nonterminal_Name_ID;
+      LALR_Descriptor.String_1_ID          := LR1_Descriptor.String_1_ID;
+      LALR_Descriptor.String_2_ID          := LR1_Descriptor.String_2_ID;
       LALR_Descriptor.Terminal_Image_Width := LR1_Descriptor.Terminal_Image_Width;
       LALR_Descriptor.Image_Width          := LR1_Descriptor.Image_Width;
    end Set_Token_Images;
