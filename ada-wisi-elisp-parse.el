@@ -146,10 +146,6 @@
 ANCHOR-TOK, RECORD-TOK are ’wisi-tok’ objects."
   (let ((indenting-tok (aref wisi-tokens wisi-token-index)))
     (cond
-     ((or (wisi-tok-virtual record-tok)
-	  (wisi-tok-virtual anchor-tok))
-      0)
-
      ((and (not wisi-indent-comment)
 	   (eq 'RECORD (wisi-tok-token indenting-tok)))
       ;; Indenting 'record'

@@ -755,24 +755,20 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	   (contained-tok (aref wisi-tokens (1- contained-token)))
 	   (contained-region (wisi-tok-region contained-tok)))
 
-      (unless (or containing-region (wisi-tok-virtual containing-tok))
+      (unless containing-region
 	(signal 'wisi-parse-error
 		(wisi-error-msg
 		 "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
 		 (wisi-tok-token containing-tok))))
 
       (unless (or (not contained-region) ;; contained-token is empty
-		  (wisi-tok-virtual contained-tok)
-		  (wisi-tok-virtual containing-tok)
 		  (wisi-get-cache (car containing-region)))
 	(signal 'wisi-parse-error
 		(wisi-error-msg
 		 "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
 		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
-      (when (and (not (or (wisi-tok-virtual containing-tok)
-		     (wisi-tok-virtual contained-tok)))
-		 contained-region)
+      (when contained-region
 	  ;; nil when empty production, may not contain any caches
 	  (save-excursion
 	    (goto-char (cdr contained-region))
@@ -1432,17 +1428,15 @@ For use in grammar indent actions."
 	 ;; indent-tok is a nonterminal; this function makes no sense for terminals
 	 (anchor-tok (aref wisi-tokens (1- token-number))))
 
-    (when (not (or (wisi-tok-virtual indent-tok)
-		   (wisi-tok-virtual anchor-tok)))
-      (wisi-elisp-parse--anchored-2
-       (wisi-tok-line anchor-tok)
+    (wisi-elisp-parse--anchored-2
+     (wisi-tok-line anchor-tok)
 
-       (if wisi-indent-comment
-	   (wisi-tok-comment-end indent-tok)
-	 (cdr (wisi-tok-region indent-tok))) ;; end
+     (if wisi-indent-comment
+	 (wisi-tok-comment-end indent-tok)
+       (cdr (wisi-tok-region indent-tok))) ;; end
 
-       (wisi-elisp-parse--paren-in-anchor-line anchor-tok offset)
-       no-accumulate))
+     (wisi-elisp-parse--paren-in-anchor-line anchor-tok offset)
+     no-accumulate)
     ))
 
 (defun wisi-anchored%- (token-number offset)

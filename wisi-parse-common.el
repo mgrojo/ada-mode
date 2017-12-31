@@ -142,13 +142,6 @@ the grammar is excessively redundant.")
 
   nonterminal ;; t if a nonterminal
 
-  virtual
-  ;; t if a terminal inserted by error recovery, or a nonterminal
-  ;; containing only virtual (at least one) or empty tokens, nil
-  ;; otherwise
-
-  ;; The following are set if parsing for indent.
-
   line ;; Line number at start of token. Nil for empty nonterminals
 
   first
