@@ -21,11 +21,8 @@ pragma License (GPL);
 with AUnit.Test_Cases;
 package Test_McKenzie_Recover is
 
-   type Test_Case (Debug : Integer; Cost_Limit : Integer) is new AUnit.Test_Cases.Test_Case with null record;
-   --  Debug:
-   --  0 = none
-   --  1 = show parse info
-   --  2 = show lexer info
+   type Test_Case (Cost_Limit : Integer) is new AUnit.Test_Cases.Test_Case with null record;
+   --  Test_One_Harness sets Trace_Parse, Trace_McKenzie.
 
    type Test_Case_Access is access all Test_Case;
 

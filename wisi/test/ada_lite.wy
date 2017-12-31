@@ -67,6 +67,7 @@ with WisiToken.Text_IO_Trace;
 %keyword XOR "xor"
 
 ;; all tokens that consist of characters with punctuation syntax
+%token <punctuation> AMPERSAND "&"
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
 %token <punctuation> COMMA ","
@@ -85,6 +86,7 @@ with WisiToken.Text_IO_Trace;
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
+%token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
 %token <number> NUMERIC_LITERAL [0-9]+
 %token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 %nonterminal_symbol selected_component
@@ -142,6 +144,13 @@ with WisiToken.Text_IO_Trace;
 %mckenzie_cost_delete declarative_part_opt 1
 %mckenzie_cost_delete END 1
 
+;; Recovering from a missing quote yields a STRING_LITERAL that
+;; includes the rest of that line, which usually leads to a grammar
+;; syntax error. Often part of the best solution is to delete that
+;; STRING_LITERAL, so make that cheaper than inserting operators and
+;; keywords.
+%mckenzie_cost_delete STRING_LITERAL 2
+
 ;; Prefer insert these over everything; lets us finish a
 ;; statement.
 %mckenzie_cost_insert END 1
@@ -196,7 +205,8 @@ association_list
 binary_adding_operator :
     PLUS
   | MINUS
-  ; ;; + | -
+  | AMPERSAND
+  ;
 
 block_statement
   : DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
@@ -458,6 +468,7 @@ paren_expression
 
 primary
   : NUMERIC_LITERAL
+  | STRING_LITERAL
   | name
   | paren_expression
   ;
