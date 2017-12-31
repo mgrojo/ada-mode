@@ -34,6 +34,8 @@ package Gpr_Process is
       Right_Paren_ID      => 2147483647,
       Terminal_Name_ID    => 35,
       Nonterminal_Name_ID => 2147483647,
+      String_1_ID         => 2147483647,
+      String_2_ID         => 36,
       Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),

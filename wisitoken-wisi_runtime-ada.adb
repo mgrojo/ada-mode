@@ -47,7 +47,10 @@ package body WisiToken.Wisi_Runtime.Ada is
    begin
       --  [1] ada-wisi-elisp-parse--indent-record-1.
 
-      if Anchor_Token.Virtual or Record_Token.Virtual or Indenting_Token.Virtual then
+      if Anchor_Token.Byte_Region = Null_Buffer_Region or
+        Record_Token.Byte_Region = Null_Buffer_Region or
+        Indenting_Token.Byte_Region = Null_Buffer_Region
+      then
          return Null_Delta;
       end if;
 

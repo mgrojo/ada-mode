@@ -554,8 +554,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Pair of Params loop
          declare
-            Token : WisiToken.Semantic_State.Augmented_Token renames WisiToken.Semantic_State.Augmented_Token
-              (Tokens.Constant_Reference (Pair.Index).Element.all);
+            Token : WisiToken.Semantic_State.Augmented_Token renames Tokens.Constant_Reference (Pair.Index);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                declare
@@ -629,21 +628,13 @@ package body WisiToken.Wisi_Runtime is
       Cursor            : Navigate_Cache_Trees.Cursor;
       Mark              : constant Buffer_Pos                    := Containing_Region.First;
    begin
-      if not (Containing_Region /= Null_Buffer_Region or Containing_Tok.Virtual) then
-         raise Parse_Error with Error_Message
-           (File_Name => -Data.Source_File_Name,
-            Line      => Containing_Tok.Line,
-            Col       => Containing_Tok.Col,
-            Message   => "wisi-containing-action: containing-region " &
-              Containing_Tok.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => True) &
-              " is empty. grammar error; bad action.");
+      if Containing_Region = Null_Buffer_Region then
+         --  Either Containing is a virtual token from error recovery, or there
+         --  is a bad grammar action. Assume the first.
+         return;
       end if;
 
-      if not (Contained_Tok.Char_Region = Null_Buffer_Region or
-                Containing_Tok.Virtual or
-                Contained_Tok.Virtual or
-                Data.Navigate_Caches.Present (Containing_Region.First))
-      then
+      if not Data.Navigate_Caches.Present (Containing_Region.First) then
          raise Parse_Error with Error_Message
            (File_Name => -Data.Source_File_Name,
             Line      => Containing_Tok.Line,
@@ -653,10 +644,8 @@ package body WisiToken.Wisi_Runtime is
               " has no cache. grammar error; missing action.");
       end if;
 
-      if not (Containing_Tok.Virtual or Contained_Tok.Virtual)
-        and Contained_Tok.Char_Region /= Null_Buffer_Region
-      then
-         --  Contained region is nil when empty production.
+      if Contained_Tok.Char_Region /= Null_Buffer_Region then
+         --  Contained region is nil in an empty production.
          Cursor := Previous (Iterator, Contained_Tok.Char_Region.Last);
 
          while Has_Element (Cursor) loop
@@ -819,8 +808,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
-              (Tokens (Param.Index).Element.all);
+            Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find (Iter, Ascending, Token.Char_Region.First);
@@ -875,8 +863,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
-              (Tokens (Param.Index).Element.all);
+            Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
@@ -917,8 +904,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
-              (Tokens (Param.Index).Element.all);
+            Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find (Iter, Ascending, Token.Char_Region.First);
@@ -965,8 +951,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for I of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
-              (Tokens (I).Element.all);
+            Token : Semantic_State.Augmented_Token renames Tokens (I);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
@@ -1256,10 +1241,12 @@ package body WisiToken.Wisi_Runtime is
 
          when Anchored_Label =>
             declare
-               Anchor_Token : Semantic_State.Augmented_Token renames Semantic_State.Augmented_Token
-                 (Tokens (Param.Param.Anchored_Index).Element.all);
+               Anchor_Token : Semantic_State.Augmented_Token renames Tokens (Param.Param.Anchored_Index);
             begin
-               if Indenting_Token.Virtual or Anchor_Token.Virtual then
+               if Indenting_Token.Byte_Region = Null_Buffer_Region or
+                 Anchor_Token.Byte_Region = Null_Buffer_Region
+               then
+                  --  One of these is a virtual token
                   return Null_Delta;
                else
                   case Anchored_Label'(Param.Param.Label) is

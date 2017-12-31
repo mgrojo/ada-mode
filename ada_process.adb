@@ -728,7 +728,7 @@ package body Ada_Process is
    is begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (4, Motion), (6, Motion), (8, Motion), (12, Statement_End)));
+         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (4, Motion), (6, Motion), (8, Motion), (12, Statement_End)));
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 3);
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 7);
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 9);
@@ -3700,7 +3700,7 @@ package body Ada_Process is
             4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4,
-            4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 4, 4, 4, 4, 2, 4,
             4, 8, 8, 8, 8, 8, 8, 8,
             8, 8, 8, 8, 8, 8, 8, 8,
             8, 8, 8, 8, 8, 8, 8, 8,

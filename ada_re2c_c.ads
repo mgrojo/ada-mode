@@ -36,7 +36,7 @@ package ada_re2c_c is
         External_Name => "ada_free_lexer";
    --  Free the lexer object
 
-   procedure Reset_Lexer (Lexer    : in System.Address)
+   procedure Reset_Lexer (Lexer : in System.Address)
    with Import        => True,
         Convention    => C,
         External_Name => "ada_reset_lexer";
