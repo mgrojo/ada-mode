@@ -305,7 +305,7 @@ package body WisiToken.LR.Parser_Lists is
               "_" & WisiToken.Int_Image (Pend_Item.Action.Index);
          begin
             Trace.Put
-              (Action_Name & ": " & Image (Pend_Item.Action.LHS, Trace.Descriptor.all) & " <= ");
+              (Action_Name & ": " & Image (Pend_Item.Nonterm, Trace.Descriptor.all) & " <= ");
             Trace.Put (Image (Pend_Item.Tokens, Trace.Descriptor.all));
          end;
 

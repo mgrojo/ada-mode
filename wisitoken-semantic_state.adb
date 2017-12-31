@@ -370,7 +370,6 @@ package body WisiToken.Semantic_State is
       Temp : constant Augmented_Token :=
         (Token.ID,
          Name                        => Token.Name,
-         Virtual                     => False,
          Line                        => Lexer.Line,
          Col                         => Lexer.Column,
          Char_Region                 => Lexer.Char_Region,
@@ -520,7 +519,6 @@ package body WisiToken.Semantic_State is
       Temp : constant Augmented_Token :=
         (ID                          => Token.ID,
          Name                        => Token.Name,
-         Virtual                     => True,
          Line                        => Invalid_Line_Number,
          Col                         => 0,
          Char_Region                 => Null_Buffer_Region,
@@ -576,7 +574,6 @@ package body WisiToken.Semantic_State is
       Aug_Nonterm : Augmented_Token :=
         (ID                          => Nonterm.ID,
          Name                        => Nonterm.Name,
-         Virtual                     => False,
          Line                        => Invalid_Line_Number,
          Col                         => 0,
          Byte_Region                 => Nonterm.Byte_Region,
@@ -608,7 +605,9 @@ package body WisiToken.Semantic_State is
                  ", state token: " & Aug_Token.Image (State.Trace.Descriptor.all);
             end if;
 
-            if not Aug_Token.Virtual then
+            if Aug_Token.Byte_Region /= Null_Buffer_Region then
+               --  Aug_Token not virtual
+
                if Aug_Nonterm.First_All_Tokens_Index = Invalid_All_Tokens_Index then
                   Aug_Nonterm.First_All_Tokens_Index := Aug_Token.First_All_Tokens_Index;
                end if;
@@ -655,7 +654,7 @@ package body WisiToken.Semantic_State is
                if Aug_Nonterm.Char_Region.Last < Aug_Token.Char_Region.Last then
                   Aug_Nonterm.Char_Region.Last := Aug_Token.Char_Region.Last;
                end if;
-            end if; -- Aug_Token.Virutal
+            end if; -- Aug_Token not virtual
 
             if not Paren_State_Set then
                Aug_Nonterm.Paren_State := Aug_Token.Paren_State;

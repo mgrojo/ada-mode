@@ -541,6 +541,10 @@ package body WisiToken.LR.McKenzie_Recover is
       --  Perform reduce actions until get to a shift; if all succeed, add
       --  the final configuration to the heap. If any action fails, just
       --  return.
+      --
+      --  This discards intermediate reduce states, which may lead to two
+      --  similar solutions appearing to be identical. The full parser will
+      --  repeat these reductions, keeping all intermediate states.
 
       New_Config_1 : Configuration := Config;
       New_Config_2 : Configuration;
@@ -1222,8 +1226,9 @@ package body WisiToken.LR.McKenzie_Recover is
                      end loop;
                   end if;
 
-                  Put ("  ", Trace, Data.Parser_Label, Data.Results.Peek, Include_Task_ID => False);
-
+                  if Trace_McKenzie > Outline then
+                     Put ("  ", Trace, Data.Parser_Label, Data.Results.Peek, Include_Task_ID => False);
+                  end if;
                else
                   if Trace_McKenzie > Outline then
                      Trace.Put_Line

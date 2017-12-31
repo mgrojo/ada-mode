@@ -36,7 +36,6 @@ package WisiToken.Semantic_State is
    Invalid_All_Tokens_Index : constant Positive_Index_Type := Positive_Index_Type'Last;
 
    type Augmented_Token is new Base_Token with record
-      Virtual     : Boolean := False;
       Line        : Line_Number_Type  := Invalid_Line_Number;
       Col         : Ada.Text_IO.Count := 0;
       Char_Region : Buffer_Region     := Null_Buffer_Region;
