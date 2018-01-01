@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -36,22 +36,21 @@ package body Test_Character_Literal is
 
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada.Exceptions;
       use AUnit.Checks;
       use Character_Literal;
 
       File_Name : constant String := "../wisi/test/character_literal.input";
    begin
-      WisiToken.Trace_Parse             := Test.Debug;
       Test_Character_Literal_Aux.Enable := True;
       Test_Character_Literal_Aux.Lexer  := Parser.Lexer;
 
-      State.Initialize (Line_Count => 29);
+      State.Initialize (Line_Count => 32);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
 
-      Check ("character_literal_count", Character_Literal_Count, 6);
+      Check ("character_literal_count", Character_Literal_Count, 7);
       Check ("string_literal_count", String_Literal_Count, 2);
    exception
    when AUnit.Assertions.Assertion_Error =>
@@ -67,7 +66,7 @@ package body Test_Character_Literal is
 
    procedure Character_Position (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Tst : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use WisiToken.AUnit;
 
       procedure Test (Label : in String; Input : in String; Expected_Char_Region : in WisiToken.Buffer_Region)
@@ -80,7 +79,6 @@ package body Test_Character_Literal is
       end Test;
 
    begin
-      WisiToken.Trace_Parse             := Tst.Debug;
       Test_Character_Literal_Aux.Enable := False;
       Test_Character_Literal_Aux.Lexer  := Parser.Lexer;
 

@@ -2,7 +2,7 @@
 --
 --  Parse the declarations from Input_File, add to various lists.
 --
---  Copyright (C) 2012 - 2014, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -57,7 +57,8 @@ is
    Parser_Algorithm_Str          : constant String := "%parser_algorithm";
    Recover_Pattern_1_Str         : constant String := "%recover_pattern_1";
    Recover_Pattern_2_Str         : constant String := "%recover_pattern_2";
-   Recover_End_EOF_Str           : constant String := "%recover_pattern_end_eof";
+   Recover_Pattern_End_EOF_Str   : constant String := "%recover_pattern_end_eof";
+   re2c_Regexp_Str               : constant String := "%re2c_regexp";
    Start_Str                     : constant String := "%start";
    Token_Str                     : constant String := "%token";
 
@@ -336,7 +337,7 @@ begin
                      Insert    => +Line (Insert_First .. Line'Last)));
             end;
 
-         elsif Match (Recover_End_EOF_Str) then
+         elsif Match (Recover_Pattern_End_EOF_Str) then
             declare
                Error_First       : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
                Error_Last        : constant Integer := -1 + Index_Blank (Line, Error_First);
@@ -346,6 +347,15 @@ begin
                  (Recover_End_EOF'
                     (Error       => +Line (Error_First .. Error_Last),
                      Delete_Thru => +Line (Delete_Thru_First .. Line'Last)));
+            end;
+
+         elsif Match (re2c_Regexp_Str) then
+            declare
+               Name_First  : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Name_Last   : constant Integer := -1 + Index_Blank (Line, Name_First);
+               Value_First : constant Integer := Index_Non_Blank (Line, Name_Last + 1);
+            begin
+               Tokens.Regexps.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
             end;
 
          elsif Match (Start_Str) then

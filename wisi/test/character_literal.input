@@ -25,4 +25,7 @@ object
 -- This is one string with two embedded quotes, not three strings with no whitespace
 " an ""other"" string";
 
+-- A GNAT non-ascii identifier and character literal theta
+["03c0"]_Wide_Character'('["03B8"]');
+
 -- comment before EOF.

@@ -12,7 +12,7 @@
 --  If run in an Emacs dynamically loaded module, the parser actions
 --  call the elisp actions directly.
 --
---  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -478,7 +478,7 @@ is
 
                elsif Is_Present (Elisp_Names.Indents, -Function_Name) then
                   --  Language-specific function call
-                  Function_Name := +Find_Name (Elisp_Names.Indents, -Function_Name);
+                  Function_Name := +Value (Elisp_Names.Indents, -Function_Name);
                   Arg_Count     := 0;
                   loop
                      exit when Params (Last) = ')';
