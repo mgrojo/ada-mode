@@ -60,7 +60,7 @@ begin
    Add_Test (Suite, new Test_Character_Literal.Test_Case (Debug => 0));
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => 0));
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Debug => 0, Cost_Limit => Natural'Last));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Cost_Limit => Natural'Last));
    Add_Test (Suite, new Test_Skip_To.Test_Case (Debug => 0));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => 0));
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => 0));
