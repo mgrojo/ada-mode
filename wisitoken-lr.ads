@@ -262,6 +262,14 @@ package WisiToken.LR is
 
    overriding function Image (Item : in Recover_Pattern_2) return String;
 
+   type Recover_End_EOF is new Pattern with record
+      --  See [info] node Error Recovery
+      Error       : Token_ID;
+      Delete_Thru : Token_ID;
+   end record;
+
+   overriding function Image (Item : in Recover_End_EOF) return String;
+
    type McKenzie_Param_Type
      (First_Terminal    : Token_ID;
       Last_Terminal     : Token_ID;

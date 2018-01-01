@@ -23,7 +23,10 @@
 pragma License (Modified_GPL);
 
 with AUnit.Checks;
+with SAL.AUnit;
+with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_AUnit;
+with WisiToken.AUnit;
 package WisiToken.LR.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
@@ -50,5 +53,12 @@ package WisiToken.LR.AUnit is
    function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack_Type;
 
    procedure Check is new Parser_Stacks.Gen_AUnit (Check);
+
+   function To_Fast_Token_ID_Vector
+     (Item : in WisiToken.AUnit.Plain_Token_ID_Array)
+     return Fast_Token_ID_Vectors.Vector;
+
+   package Fast_Token_ID_Vectors_AUnit is new Fast_Token_ID_Vectors.Gen_AUnit
+     (SAL.AUnit.Check, WisiToken.AUnit.Check);
 
 end WisiToken.LR.AUnit;

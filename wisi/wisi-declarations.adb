@@ -57,6 +57,7 @@ is
    Parser_Algorithm_Str          : constant String := "%parser_algorithm";
    Recover_Pattern_1_Str         : constant String := "%recover_pattern_1";
    Recover_Pattern_2_Str         : constant String := "%recover_pattern_2";
+   Recover_End_EOF_Str           : constant String := "%recover_pattern_end_eof";
    Start_Str                     : constant String := "%start";
    Token_Str                     : constant String := "%token";
 
@@ -333,6 +334,18 @@ begin
                      Error     => +Line (Error_First .. Error_Last),
                      Expecting => +Line (Expecting_First .. Expecting_Last),
                      Insert    => +Line (Insert_First .. Line'Last)));
+            end;
+
+         elsif Match (Recover_End_EOF_Str) then
+            declare
+               Error_First       : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Error_Last        : constant Integer := -1 + Index_Blank (Line, Error_First);
+               Delete_Thru_First : constant Integer := Index_Non_Blank (Line, Error_Last + 1);
+            begin
+               McKenzie_Recover.Patterns.Append
+                 (Recover_End_EOF'
+                    (Error       => +Line (Error_First .. Error_Last),
+                     Delete_Thru => +Line (Delete_Thru_First .. Line'Last)));
             end;
 
          elsif Match (Start_Str) then

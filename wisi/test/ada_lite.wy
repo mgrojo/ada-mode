@@ -167,6 +167,11 @@ with WisiToken.Text_IO_Trace;
 %recover_pattern_1 END SEMICOLON IF
 %recover_pattern_1 END SEMICOLON LOOP
 
+;; args: error ID, delete_thru ID
+;; matches if expecting contains EOF
+;; result: delete thru delete_thru or EOF
+%recover_pattern_end_eof END SEMICOLON
+
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN

@@ -147,6 +147,11 @@ package Wisi is
       Insert    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
+   type Recover_End_EOF is new Pattern with record
+      Error       : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Delete_Thru : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
    type McKenzie_Recover_Param_Type is record
       Default_Insert             : Natural := 0;
       Default_Delete_Terminal    : Natural := 0;

@@ -1035,8 +1035,52 @@ package body WisiToken.LR.McKenzie_Recover is
       end if;
    end Apply_Pattern;
 
+   procedure Apply_Pattern
+     (Pattern      : in     Recover_End_EOF;
+      Parser_State : in out Parser_Lists.Parser_State;
+      Error_ID     : in     Token_ID;
+      Root_Config  : in     Configuration;
+      Shared       : in     Shared_Lookahead;
+      Table        : in     Parse_Table;
+      Trace        : in out WisiToken.Trace'Class)
+   is begin
+      if Error_ID = Pattern.Error then
+         declare
+            Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
+            Expecting  : constant WisiToken.Token_ID_Set := LR.Expecting
+              (Table, Parser_State.Stack.Peek.State);
+         begin
+            if Expecting (Descriptor.EOF_ID) then
+               if Trace_McKenzie > Outline then
+                  Trace.Put_Line
+                    ("special rule recover_end_eof " &
+                       Image (Pattern.Error, Descriptor) & ", " &
+                       Image (Pattern.Delete_Thru, Descriptor) &
+                       " matched.");
+               end if;
+
+               declare
+                  use all type SAL.Base_Peek_Type;
+                  Config     : Configuration := Root_Config;
+                  Deleted_ID : Token_ID;
+               begin
+                  loop
+                     Deleted_ID := Shared.Get_Token (Config.Shared_Lookahead_Index).ID;
+                     Config.Shared_Lookahead_Index := Config.Shared_Lookahead_Index + 1;
+                     Config.Deleted.Append (Deleted_ID);
+                     exit when Deleted_ID = Descriptor.EOF_ID or Deleted_ID = Pattern.Delete_Thru;
+                  end loop;
+
+                  Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
+               end;
+            end if;
+         end;
+      end if;
+   end Apply_Pattern;
+
    procedure Patterns
      (Shared_Parser : in out LR.Instance'Class;
+      Shared        : in     Shared_Lookahead;
       Parser_State  : in out Parser_Lists.Parser_State;
       Root_Config   : in     Configuration;
       Trace         : in out WisiToken.Trace'Class)
@@ -1051,12 +1095,16 @@ package body WisiToken.LR.McKenzie_Recover is
 
          elsif Pattern in Recover_Pattern_2'Class then
             Apply_Pattern (Recover_Pattern_2 (Pattern), Parser_State, Error_ID, Root_Config, Table, Trace);
+
+         elsif Pattern in Recover_End_EOF'Class then
+            Apply_Pattern (Recover_End_EOF (Pattern), Parser_State, Error_ID, Root_Config, Shared, Table, Trace);
          end if;
       end loop;
    end Patterns;
 
    procedure Recover_Init
      (Shared_Parser : in out LR.Instance'Class;
+      Shared        : in     Shared_Lookahead;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
       Trace : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
@@ -1086,7 +1134,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Orig.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index;
          Enqueue (Trace, Parser_Lists.Label (Parser_State), Parser_State.Recover, Orig);
 
-         Patterns (Shared_Parser, Parser_State, Orig, Trace);
+         Patterns (Shared_Parser, Shared, Parser_State, Orig, Trace);
       end;
    end Recover_Init;
 
@@ -1136,7 +1184,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Super.Initialize;
 
       for Parser_State of Parsers loop
-         Recover_Init (Shared_Parser, Parser_State);
+         Recover_Init (Shared_Parser, Shared, Parser_State);
       end loop;
 
       if Trace_McKenzie > Outline then

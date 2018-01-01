@@ -26,7 +26,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
-with WisiToken.LR;
+with WisiToken.LR.AUnit;
 with WisiToken.Semantic_State;
 with WisiToken.Semantic_State.AUnit;
 package body Test_McKenzie_Recover is
@@ -165,7 +165,6 @@ package body Test_McKenzie_Recover is
              Error_Token       =>
                (ID             => +SEMICOLON_ID,
                 Name           => WisiToken.Null_Buffer_Region,
-                Virtual        => False,
                 Line           => 1,
                 Col            => 83,
                 Byte_Region    => (84, 84),
@@ -528,7 +527,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25),
+            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, 1, 22, (23, 25),
              others => <>));
       end;
 
@@ -569,7 +568,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30),
+            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, 1, 27, (28, 30),
              others => <>));
       end;
 
@@ -617,7 +616,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors 1.error_token",
             Element (Cursor).Error_Token,
-            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77),
+            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, 1, 75, (76, 77),
              others => <>));
       end;
 
@@ -730,6 +729,58 @@ package body Test_McKenzie_Recover is
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
    end Missing_Quote;
 
+   procedure Pattern_End_EOF (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+      use WisiToken.Semantic_State.AUnit;
+   begin
+      Parse_Text
+        ("package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;");
+         --        |10       |20       |30       |40       |50       |60       |70
+
+      --  Excess 'end' 35 from editing.
+      --
+      --  First error recovery entered at 'A' 58, expecting declaration;
+      --  inserts ': identifier'.
+      --
+      --  Second error recovery entered at 'end' 78, expecting EOF or
+      --  compilation_unit. In Ada_Lite, there is only one solution; insert
+      --  'procedure', delete 'end'. In full Ada, there are three equal cost
+      --  solutions, so the parse is ambiguous.
+      --
+      --  Applying Pattern_End_EOF resolves the ambiguity by deleting 'end P;'.
+      --
+      --  If we had a full AST, could edit that to delete actual error
+      --  'end', based on name matching.
+
+
+      Check ("errors.length", State.Active_Error_List.Length, 2);
+      declare
+         use WisiToken.Semantic_State;
+         use WisiToken.Semantic_State.Error_Data_Lists;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
+         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Error_Data_Lists.Cursor := Error_List.Last;
+      begin
+         Check
+           ("errors 2.error_token",
+            Element (Cursor).Error_Token,
+            (+END_ID, (78, 80), WisiToken.Null_Buffer_Region, 1, 77, (78, 80), others => <>));
+         Check
+           ("errors 2.recover.deleted",
+            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Deleted,
+            To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
+      end;
+   exception
+   when E : WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   end Pattern_End_EOF;
+
    ----------
    --  Public subprograms
 
@@ -762,6 +813,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Zombie_In_Resume'Access, "Zombie_In_Resume");
       Register_Routine (T, Match_Name'Access, "Match_Name");
       Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
+      Register_Routine (T, Pattern_End_EOF'Access, "Pattern_End_EOF");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)

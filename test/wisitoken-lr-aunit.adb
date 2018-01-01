@@ -20,7 +20,6 @@ pragma License (GPL); --  AUnit
 
 with AUnit.Checks.Containers;
 with AUnit.Assertions;
-with WisiToken.AUnit;
 package body WisiToken.LR.AUnit is
 
    procedure Check
@@ -189,5 +188,17 @@ package body WisiToken.LR.AUnit is
          end loop;
       end return;
    end To_State_Stack;
+
+   function To_Fast_Token_ID_Vector
+     (Item : in WisiToken.AUnit.Plain_Token_ID_Array)
+     return Fast_Token_ID_Vectors.Vector
+   is begin
+      return Result : Fast_Token_ID_Vectors.Vector do
+         Result.Set_Last (Item'Last);
+         for I in Item'Range loop
+            Result (I) := Item (I);
+         end loop;
+      end return;
+   end To_Fast_Token_ID_Vector;
 
 end WisiToken.LR.AUnit;

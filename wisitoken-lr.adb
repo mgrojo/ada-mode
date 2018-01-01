@@ -56,6 +56,16 @@ package body WisiToken.LR is
         ")";
    end Image;
 
+   overriding
+   function Image (Item : in Recover_End_EOF) return String
+   is begin
+      return
+        "WisiToken.LR.Recover_End_EOF'(" &
+        Int_Image (Item.Error) & "," &
+        Token_ID'Image (Item.Delete_Thru) &
+        ")";
+   end Image;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type)
    is
       use Ada.Text_IO;

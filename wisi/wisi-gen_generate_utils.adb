@@ -668,6 +668,15 @@ package body Wisi.Gen_Generate_Utils is
                      Expecting => Find_Token_ID (-Pat.Expecting),
                      Insert    => Find_Token_ID (-Pat.Insert)));
             end;
+         elsif Pattern in Wisi.Recover_End_EOF'Class then
+            declare
+               Pat : Wisi.Recover_End_EOF renames Wisi.Recover_End_EOF (Pattern);
+            begin
+               Result.Patterns.Append
+                 (WisiToken.LR.Recover_End_EOF'
+                    (Error       => Find_Token_ID (-Pat.Error),
+                     Delete_Thru => Find_Token_ID (-Pat.Delete_Thru)));
+            end;
          else
             raise Programmer_Error;
          end if;
