@@ -70,6 +70,9 @@ with Test_Character_Literal_Aux;
 
 %token <punctuation> SEMICOLON ";"
 
+;; GNAT-specific syntax for non-ASCII characters
+%re2c_regexp GNAT_Char_Coding ("[\""[0-9A-Fa-f]+"\"]")
+
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for
 ;; this (sigh).
@@ -85,20 +88,20 @@ with Test_Character_Literal_Aux;
 %token <punctuation> TICK_1 "'"
 
 %if lexer = re2c
-%token <punctuation> TICK_2 "'" / "('"[\x20-\U0010FFFF]"')"
+%token <punctuation> TICK_2 "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"')"
 %end if
 
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> RIGHT_PAREN ")"
 
-%token <punctuation> CHARACTER_LITERAL "'"[\x20-\U0010FFFF]"'"
+%token <string-single> CHARACTER_LITERAL "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'"
+
+;; full Unicode range, starting with non-control, non-digit; also GNAT char coding syntax
+%token <symbol> IDENTIFIER ([a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)*
 
 %non_grammar <non-reporting> WHITESPACE [ \t]
 %non_grammar <new-line> NEW_LINE [\n]
 %non_grammar <comment> COMMENT "--"[^\n]*
-
-;; full Unicode range, starting with non-control, non-digit
-%token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]+
 
 %token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
 

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -58,6 +58,30 @@ package body Wisi is
          end if;
       end loop;
    end Put_Prologue;
+
+   function Is_Present (List : in Wisi.String_Pair_Lists.List; Name : in String) return Boolean
+   is
+      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      for Pair of List loop
+         if Pair.Name = Name then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Is_Present;
+
+   function Value (List : in Wisi.String_Pair_Lists.List; Name : in String) return String
+   is
+      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      for Pair of List loop
+         if Pair.Name = Name then
+            return -Pair.Value;
+         end if;
+      end loop;
+      raise Not_Found;
+   end Value;
 
    function Count (Tokens : in Token_Lists.List) return Integer
    is

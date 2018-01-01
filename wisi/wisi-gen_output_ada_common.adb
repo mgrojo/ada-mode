@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,7 +19,6 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with Wisi.Output_Elisp_Common;
 with Wisi.Utils;
 with WisiToken;
 package body Wisi.Gen_Output_Ada_Common is
@@ -465,13 +464,19 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("re2c:yyfill:enable   = 0;");
       New_Line;
 
+      --  Regexps used in definitions
+      for Pair of Tokens.Regexps loop
+         Indent_Line (-Pair.Name & " = " & (-Pair.Value) & ";");
+      end loop;
+      New_Line;
+
       --  definitions
       for I in All_Tokens.Iterate (Non_Grammar => True, Other_Tokens => False) loop
 
          declare
             Val : constant String :=
-              (if Output_Elisp_Common.Is_Present (Elisp_Regexps, Value (I))
-               then Output_Elisp_Common.Find_Name (Elisp_Regexps, Value (I))
+              (if Is_Present (Elisp_Regexps, Value (I))
+               then Value (Elisp_Regexps, Value (I))
                else Value (I));
          begin
             if 0 /= Index (Source => Val, Pattern => "/") then
@@ -497,8 +502,8 @@ package body Wisi.Gen_Output_Ada_Common is
       for I in All_Tokens.Iterate (Non_Grammar => True, Other_Tokens => False) loop
          declare
             Val : constant String :=
-              (if Output_Elisp_Common.Is_Present (Elisp_Regexps, Value (I))
-               then Output_Elisp_Common.Find_Name (Elisp_Regexps, Value (I))
+              (if Is_Present (Elisp_Regexps, Value (I))
+               then Value (Elisp_Regexps, Value (I))
                else Value (I));
          begin
 

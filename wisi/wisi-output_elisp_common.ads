@@ -2,7 +2,7 @@
 --
 --  Subprograms common to Output_Elisp and Output_Ada_Emacs
 --
---  Copyright (C) 2012, 2013, 2015, 2017 Stephen Leake. All Rights Reserved.
+--  Copyright (C) 2012, 2013, 2015, 2017, 2018 Stephen Leake. All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -21,9 +21,6 @@ pragma License (Modified_GPL);
 package Wisi.Output_Elisp_Common is
 
    function Find_Elisp_ID (List : in Wisi.String_Lists.List; Elisp_Name : in String) return Integer;
-
-   function Is_Present (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return Boolean;
-   function Find_Name (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return String;
 
    function Elisp_Name_To_Ada
      (Elisp_Name : in String;

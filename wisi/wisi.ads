@@ -17,7 +17,7 @@
 --  [1] http://www.gnu.org/software/bison/manual/ (info "(bison)Top")
 --  [2] http://www.nongnu.org/ada-mode/wisi/wisi-user_guide.html, (info "(wisi-user_guide)Top")
 --
---  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -130,6 +130,9 @@ package Wisi is
 
    package String_Pair_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
 
+   function Is_Present (List : in String_Pair_Lists.List; Name : in String) return Boolean;
+   function Value (List : in String_Pair_Lists.List; Name : in String) return String;
+
    type Pattern is abstract tagged null record;
 
    package Patterns is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
@@ -220,9 +223,14 @@ package Wisi is
       Keywords         : String_Pair_Lists.List;
       Tokens           : Token_Lists.List;
       Rules            : Rule_Lists.List;
-      Nonterminal_Name : Standard.Ada.Strings.Unbounded.Unbounded_String;
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
+
+      Nonterminal_Name : Standard.Ada.Strings.Unbounded.Unbounded_String;
+
+      Regexps : String_Pair_Lists.List;
+      --  Regexps included here because they are used in defining the
+      --  Tokens., 2018
    end record;
 
    type Elisp_Names is record

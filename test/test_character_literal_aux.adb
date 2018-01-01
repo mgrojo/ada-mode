@@ -95,6 +95,10 @@ package body Test_Character_Literal_Aux is
             Check ("statement_0 6 char text", Lexer.Buffer_Text (Character_Token.Byte_Region), "'''");
             Check ("statement_0 6 line", Semicolon_Token.Line, 14);
 
+         when 7 =>
+            Check ("statement_0 7 char text", Lexer.Buffer_Text (Character_Token.Byte_Region), "'[""03B8""]'");
+            Check ("statement_0 7 line", Semicolon_Token.Line, 29);
+
          when others =>
             AUnit.Assertions.Assert (False, "unexpected character_literal statement");
          end case;
