@@ -1,4 +1,4 @@
-0;;; Wisi grammar for Ada
+;;; Wisi grammar for Ada
 ;;
 ;; Copyright (C) 2012 - 2017 Free Software Foundation, Inc.
 ;;
@@ -161,14 +161,20 @@
 %token <punctuation> STAR "*"
 %token <punctuation> STAR_STAR "**"
 
+;; Support GNAT character coding in names and character literals (see
+;; test/non_ascii.ads)
+%re2c_regexp GNAT_Char_Coding ("[\""[0-9A-Fa-f]+"\"]")
+
 ;; re2c lookahead regular expression; this is not a character literal.
 ;; re2c does not allow combining | with /, so we need three tokens for
 ;; this (sigh).
 %token <punctuation> TICK_1 "'"
 
 %if lexer = re2c
-%token <punctuation> TICK_2 "'" / "('"[\x20-\U0010FFFF]"')"
+%token <punctuation> TICK_2 "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"')"
 %end if
+
+%elisp_regexp ada-wisi-number-p ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#")
 
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
@@ -182,12 +188,12 @@
 ;; placeholders as comments.
 %non_grammar <comment> COMMENT (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n]*)|("{"[^}]*"}")
 
-%token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
+%token <symbol> IDENTIFIER ([a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)*
 %nonterminal_symbol selected_component
 
 %token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
 
-%token <string-single> CHARACTER_LITERAL "'"[\x20-\U0010FFFF]"'"
+%token <string-single> CHARACTER_LITERAL "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'"
 
 %start compilation_unit_list
 %parser_algorithm LALR
@@ -206,8 +212,6 @@
 %elisp_indent ada-indent-record Ada_Indent_Record_0
 %elisp_indent ada-indent-record* Ada_Indent_Record_1
 
-%elisp_regexp ada-wisi-number-p ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#")
-
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
 ;; Default insert, delete terminal, delete nonterminal cost.
@@ -222,8 +226,8 @@
 ;; 'object.function (args)'
 ;;
 ;; However, inserting LEFT_PAREN turns a missing 'then' into a
-;; function call. COMMA is here, to avoid inserting LEFT_PAREN when
-;; either is possible.
+;; function call with a missing right paren. COMMA is here, to avoid
+;; inserting LEFT_PAREN when either is possible.
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
