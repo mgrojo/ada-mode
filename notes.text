@@ -37,19 +37,6 @@ run test from emacs -Q using source:
    ("."                                . "../org.emacs.ada-mode.stephe-2")))
 
  current work
-test/debug.adb
-    second mckenzie at final 'end', expecting eof/compilation_unit
-    finds 3 solutions:
- 0:  5, (11 : USE, )| 6|()()(USE)(END)
- 0:  5, (41 : PROCEDURE, )| 6|()()(PROCEDURE)(END)
- 4:  5, (12 : WITH, )| 6|()()(WITH)(END)
-
-    add another pattern?
-        if error token is 'end' and Wisi_EOI is member of expecting, delete all remaining tokens
-            or just thru ';'
-
-        if had full AST, could edit that to delete actual error 'end', based on name matching
-
 Delete comment-starter syntax?
     in ada-mode.el for '-'
 

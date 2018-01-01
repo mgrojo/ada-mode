@@ -1,4 +1,4 @@
-;;; Wisi grammar for Ada
+0;;; Wisi grammar for Ada
 ;;
 ;; Copyright (C) 2012 - 2017 Free Software Foundation, Inc.
 ;;
@@ -291,6 +291,11 @@
 %recover_pattern_2 END IDENTIFIER IF SEMICOLON
 %recover_pattern_2 END IDENTIFIER LOOP SEMICOLON
 %recover_pattern_2 END IDENTIFIER RETURN SEMICOLON
+
+;; args: error ID, delete_thru ID
+;; matches if expecting contains EOF
+;; result: delete thru delete_thru or EOF
+%recover_pattern_end_eof END SEMICOLON
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
