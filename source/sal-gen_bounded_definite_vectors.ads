@@ -33,6 +33,7 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
    type Vector is tagged private with
       Constant_Indexing => Constant_Reference,
+      Variable_Indexing => Variable_Reference,
       Default_Iterator  => Iterate,
       Iterator_Element  => Element_Type;
 
@@ -55,10 +56,21 @@ package SAL.Gen_Bounded_Definite_Vectors is
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type);
    --  Insert New_Item at beginning of Container; current elements slide right.
 
+   procedure Set_Last (Container : in out Vector; Last : in Index_Type);
+   --  Elements with indices < Last that have not been set are undefined.
+
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
 
    function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type;
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is null record
+   with Implicit_Dereference => Element;
+
+   function Variable_Reference
+     (Container : aliased in out Vector;
+      Index     :         in     Index_Type)
+     return Variable_Reference_Type;
 
    type Cursor is private;
 

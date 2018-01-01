@@ -1,6 +1,4 @@
 # gnu make file for SAL
-#
-# See ../source/sal.html for complete installation instructions
 
 all : t_all
 

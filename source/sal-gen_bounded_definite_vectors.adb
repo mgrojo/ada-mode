@@ -58,12 +58,33 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       Container.Last := Container.Last + 1;
    end Prepend;
 
+   procedure Set_Last (Container : in out Vector; Last : in Index_Type)
+   is begin
+      Container.Last := Last;
+   end Set_Last;
+
    function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
    is
       J : constant SAL.Peek_Type := SAL.Peek_Type (Index - Index_Type'First + 1);
    begin
+      if Index > Container.Last then
+         raise Constraint_Error;
+      end if;
       return (Element => Container.Elements (J)'Access);
    end Constant_Reference;
+
+   function Variable_Reference
+     (Container : aliased in out Vector;
+      Index     :         in     Index_Type)
+     return Variable_Reference_Type
+   is
+      J : constant SAL.Peek_Type := SAL.Peek_Type (Index - Index_Type'First + 1);
+   begin
+      if Index > Container.Last then
+         raise Constraint_Error;
+      end if;
+      return (Element => Container.Elements (J)'Access);
+   end Variable_Reference;
 
    function Has_Element (Position : Cursor) return Boolean is
    begin
