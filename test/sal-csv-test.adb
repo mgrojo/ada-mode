@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2008, 2009, 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008, 2009, 2013, 2014, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -100,72 +100,6 @@ package body SAL.CSV.Test is
       Check ("End_Of_File true", End_Of_File (CSV_File), True);
    end Test_Read;
 
-   procedure Test_Space (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use AUnit.Checks;
-      CSV_File_Name : constant String := "sal.csv.test-file.csv";
-      CSV_File      : File_Type;
-   begin
-      --  test a space delimited file
-
-      --  create a test file to read
-      declare
-         use Ada.Text_IO;
-         Test_File : Ada.Text_IO.File_Type;
-      begin
-
-         if Ada.Directories.Exists (CSV_File_Name) then
-            Ada.Directories.Delete_File (CSV_File_Name);
-         end if;
-
-         Create (Test_File, Out_File, CSV_File_Name);
-
-         Put_Line (Test_File, "A B C D E");
-         Put_Line (Test_File, "1  2  3  4  5");
-         Put_Line (Test_File, "6 7 8 9 10");
-
-         Close (Test_File);
-      end;
-
-      Open
-        (CSV_File,
-         CSV_File_Name,
-         Max_Row_Size       => 15,
-         Delimiter          => ' ',
-         Combine_Delimiters => True);
-
-      Check ("columns", Columns (CSV_File), 5);
-
-      Check ("header delimiters", CSV_File.Commas.all, (2, 4, 6, 8));
-      Check ("header delimiter count", CSV_File.Comma_Count.all, (1, 1, 1, 1));
-
-      Check ("header 1", Read (CSV_File, 1), "A");
-      Check ("header 2", Read (CSV_File, 2), "B");
-      Check ("header 3", Read (CSV_File, 3), "C");
-      Check ("header 4", Read (CSV_File, 4), "D");
-      Check ("header 5", Read (CSV_File, 5), "E");
-
-      Next_Row (CSV_File);
-      Check ("row 1 commas", CSV_File.Commas.all, (2, 5, 8, 11));
-      Check ("row 1 comma_count", CSV_File.Comma_Count.all, (2, 2, 2, 2));
-      Check ("row 1 1", Read (CSV_File, 1), "1");
-      Check ("row 1 2", Read (CSV_File, 2), "2");
-      Check ("row 1 3", Read (CSV_File, 3), "3");
-      Check ("row 1 4", Read (CSV_File, 4), "4");
-      Check ("row 1 5", Read (CSV_File, 5), "5");
-
-      Next_Row (CSV_File);
-      Check ("row 2 commas", CSV_File.Commas.all, (2, 4, 6, 8));
-      Check ("row 2 1", Read (CSV_File, 1), "6");
-      Check ("row 2 2", Read (CSV_File, 2), "7");
-      Check ("row 2 3", Read (CSV_File, 3), "8");
-      Check ("row 2 4", Read (CSV_File, 4), "9");
-      Check ("row 2 5", Read (CSV_File, 5), "10");
-
-      Check ("End_Of_File true", End_Of_File (CSV_File), True);
-   end Test_Space;
-
    procedure Quote_Unquote (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -197,6 +131,66 @@ package body SAL.CSV.Test is
       Check ("6", Unquote ("6"), "6");
    end Quote_Unquote;
 
+   procedure Newline_In_Quoted_String (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Checks;
+      Tab           : constant Character := ASCII.HT;
+      CSV_File_Name : constant String    := "sal.csv.test-file.csv";
+      CSV_File      : File_Type;
+   begin
+      --  Test newlines in a quoted text field
+
+      --  create a test file to read
+      declare
+         use Ada.Text_IO;
+         Test_File : Ada.Text_IO.File_Type;
+      begin
+
+         if Ada.Directories.Exists (CSV_File_Name) then
+            Ada.Directories.Delete_File (CSV_File_Name);
+         end if;
+
+         Create (Test_File, Out_File, CSV_File_Name);
+
+         Put_Line (Test_File, "A" & Tab & "B" & Tab & """C"""); -- header
+         Put_Line (Test_File, "4" & Tab & "5" & Tab & """six");
+         Put_Line (Test_File, "seven""");                       -- row 1
+         Put_Line (Test_File, "8" & Tab & """nine");
+         Put_Line (Test_File, "ten""" & Tab & """eleven""");    -- row 2
+
+         Close (Test_File);
+      end;
+
+      Open
+        (CSV_File,
+         CSV_File_Name,
+         Max_Row_Size => 21,
+         Delimiter    => Tab);
+
+      Check ("columns", Columns (CSV_File), 3);
+
+      Check ("header delimiters", CSV_File.Commas.all, (2, 4));
+
+      Check ("header 1", Read (CSV_File, 1), "A");
+      Check ("header 2", Read (CSV_File, 2), "B");
+      Check ("header 3", Read (CSV_File, 3), """C""");
+
+      Next_Row (CSV_File);
+      Check ("row 1 delimiters", CSV_File.Commas.all, (2, 4));
+      Check ("row 1 1", Read (CSV_File, 1), "4");
+      Check ("row 1 2", Read (CSV_File, 2), "5");
+      Check ("row 1 3", Read (CSV_File, 3), """six" & ASCII.LF & "seven""");
+
+      Next_Row (CSV_File);
+      Check ("row 2 1", Read (CSV_File, 1), "8");
+      Check ("row 2 2", Read (CSV_File, 2), """nine" & ASCII.LF & "ten""");
+      Check ("row 2 3", Read (CSV_File, 3), """eleven""");
+
+      Check ("End_Of_File true", End_Of_File (CSV_File), True);
+
+   end Newline_In_Quoted_String;
+
    ----------
    --  Public bodies
 
@@ -212,8 +206,8 @@ package body SAL.CSV.Test is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Read'Access, "Test_Read");
-      Register_Routine (T, Test_Space'Access, "Test_Space");
       Register_Routine (T, Quote_Unquote'Access, "Quote_Unquote");
+      Register_Routine (T, Newline_In_Quoted_String'Access, "Newline_In_Quoted_String");
    end Register_Tests;
 
 end SAL.CSV.Test;

@@ -48,8 +48,8 @@ OK test.config_files.no_file : Test_Read_Key_Error
 OK test.config_files.no_file : Test_Write_Key_Error
 OK time tests : Write, Read time value
 OK SAL.CSV.Test : Test_Read
-OK SAL.CSV.Test : Test_Space
 OK SAL.CSV.Test : Quote_Unquote
+OK SAL.CSV.Test : Newline_In_Quoted_String
 OK sal-file_names-test.adb : Test_Create
 OK sal-file_names-test.adb : Test_With_Default
 OK sal-file_names-test.adb : Test_Replace_Environment_Variables

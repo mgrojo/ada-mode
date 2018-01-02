@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2008 - 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008 - 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,7 +26,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Fixed;
-with Ada.Strings.Maps;
 with Ada.Unchecked_Deallocation;
 package body SAL.CSV is
 
@@ -49,115 +48,93 @@ package body SAL.CSV is
       Commas      : in     Positive_Array_Integer_Access_Type;
       Comma_Count :    out Integer)
    is
-      use Ada.Strings.Fixed;
-      Quote_Pos : constant Integer := Index (Source => File.Line (1 .. File.Last), Pattern => """");
+      use Ada.Text_IO;
 
-      Comma_Pos           : Integer := 0;
-      Embedded_Quote      : Boolean := False;
-      In_String           : Boolean := False;
-      Next_Column_Index   : Integer;
-      Combine_Comma_Count : Integer;
+      Embedded_Quote : Boolean := False;
+      In_String      : Boolean := False;
+      I              : Integer := 1;
    begin
       Comma_Count := 0;
-
-      if Quote_Pos = 0 then
-         --  No quotes; simpler scan
-         loop
-            Comma_Pos := Index (Source => File.Line (Comma_Pos + 1 .. File.Last), Pattern => File.Delimiter);
-            exit when Comma_Pos = 0;
-
-            Comma_Count := Comma_Count + 1;
-
-            if Commas /= null then
-               Commas (Comma_Count) := Comma_Pos;
-            end if;
-
-            if not File.Combine_Delimiters then
-               Combine_Comma_Count := 1;
-            else
-               Next_Column_Index := Index
-                 (Source => File.Line (Comma_Pos + 1 .. File.Last),
-                  Set     => Ada.Strings.Maps.To_Set (File.Delimiter (1)),
-                  Test    => Ada.Strings.Outside);
-               if Next_Column_Index > 0 then
-                  Combine_Comma_Count := Next_Column_Index - Comma_Pos;
-                  Comma_Pos           := Comma_Pos + Combine_Comma_Count;
+      loop
+         if In_String then
+            if File.Line (I) = '"' then
+               if Embedded_Quote then
+                  Embedded_Quote := False;
                else
-                  --  FIXME: trailing delimiters? need test
-                  Combine_Comma_Count := 1;
+                  if I < File.Last and File.Line (I + 1) = '"' then
+                     Embedded_Quote := True;
+                  else
+                     In_String := False;
+                  end if;
                end if;
             end if;
-
-            if Commas /= null then
-               File.Comma_Count (Comma_Count) := Combine_Comma_Count;
-            end if;
-         end loop;
-      else
-         --  character by character is clearer
-         for I in 1 .. File.Last loop
-            if In_String then
-               if File.Line (I) = '"' then
-                  if Embedded_Quote then
-                     Embedded_Quote := False;
+         else
+            if File.Line (I) = '"' then
+               if Embedded_Quote then
+                  Embedded_Quote := False;
+               else
+                  if I < File.Last and File.Line (I + 1) = '"' then
+                     Embedded_Quote := True;
                   else
-                     if I < File.Last and File.Line (I + 1) = '"' then
-                        Embedded_Quote := True;
-                     else
-                        In_String := False;
-                     end if;
+                     In_String := True;
                   end if;
+               end if;
+            elsif File.Line (I) = File.Delimiter (1) then
+               Comma_Count := Comma_Count + 1;
+
+               if Commas /= null then
+                  begin
+                     Commas (Comma_Count) := I;
+                  exception
+                  when Constraint_Error =>
+                     --  too many commas in this line
+                     raise Constraint_Error with "too many delimiters: '" & File.Line (1 .. File.Last) & "'";
+                  end;
+               end if;
+
+            end if;
+         end if;
+
+         if I = File.Last then
+            if In_String then
+               --  Quoted field continues on next line; append to current line with
+               --  ASCII.LF separator.
+               --
+               --  File.Line'Last is 1 greater than Max_Row_Size, so there is room for LF
+               File.Line (File.Last + 1) := ASCII.LF;
+
+               Get_Line (File.File, File.Line (File.Last + 2 .. File.Line'Last), File.Last);
+
+               if File.Last = File.Line'Last then
+                  raise Initialization_Error with
+                    "row" & Count'Image (Line (File.File)) &
+                    " continued from previous line, is longer than Max_Row_Size (" &
+                    Integer'Image (File.Line'Last - 1) & ")";
                end if;
             else
-               if File.Line (I) = '"' then
-                  if Embedded_Quote then
-                     Embedded_Quote := False;
-                  else
-                     if I < File.Last and File.Line (I + 1) = '"' then
-                        Embedded_Quote := True;
-                     else
-                        In_String := True;
-                     end if;
-                  end if;
-               elsif File.Line (I) = File.Delimiter (1) then
-                  Comma_Count := Comma_Count + 1;
-
-                  if Commas /= null then
-                     begin
-                        Commas (Comma_Count) := I;
-                     exception
-                     when Constraint_Error =>
-                        --  too many commas in this line
-                        raise Constraint_Error with "too many commas: '" & File.Line (1 .. File.Last) & "'";
-                     end;
-
-                     --  FIXME: handle combine_delimiters here
-                     File.Comma_Count (Comma_Count) := 1;
-
-                  end if;
-
-               end if;
+               exit;
             end if;
-         end loop;
-      end if;
+         end if;
 
+         I := I + 1;
+      end loop;
    end Scan_Commas;
 
    procedure Open
-     (File               : in out File_Type;
-      Name               : in     String;
-      Max_Row_Size       : in     Integer;
-      Delimiter          : in     Character := ',';
-      Combine_Delimiters : in     Boolean   := False;
-      Columns            : in     Integer   := 0)
+     (File         : in out File_Type;
+      Name         : in     String;
+      Max_Row_Size : in     Integer;
+      Delimiter    : in     Character         := ',';
+      Columns      : in     Integer           := 0;
+      Skip_Rows    : in     Ada.Text_IO.Count := 0)
    is
       use Ada.Text_IO;
       Comma_Count : Integer := 0;
    begin
       Open (File.File, In_File, Name);
 
-      File.Delimiter (1)      := Delimiter;
-      File.Combine_Delimiters := Combine_Delimiters;
-      File.Line               := new String (1 .. Max_Row_Size + 1); -- +1 so we can check for longer lines.
+      File.Delimiter (1) := Delimiter;
+      File.Line          := new String (1 .. Max_Row_Size + 1); -- +1 so we can check for longer lines.
 
       if Columns = 0 then
          --  Read first line to determine how many columns there are.
@@ -171,8 +148,11 @@ package body SAL.CSV is
          Comma_Count := Columns - 1;
       end if;
 
-      File.Commas      := new Positive_Array_Integer_Type (1 .. Comma_Count);
-      File.Comma_Count := new Positive_Array_Integer_Type (1 .. Comma_Count);
+      File.Commas := new Positive_Array_Integer_Type (1 .. Comma_Count);
+
+      if Skip_Rows > 0 then
+         Skip_Line (File.File, Skip_Rows);
+      end if;
 
       Next_Row (File);
    end Open;
@@ -222,7 +202,7 @@ package body SAL.CSV is
 
       if Comma_Count /= File.Commas'Last then
          raise Initialization_Error with
-           "'" & File.Line (1 .. File.Last) & "' (row" & Count'Image (Line (File.File)) & ") has" &
+           "'" & File.Line (1 .. File.Last) & "' (row" & Count'Image (Line (File.File) - 1) & ") has" &
            Integer'Image (Comma_Count) & " delimiters";
       end if;
    end Next_Row;
@@ -249,10 +229,10 @@ package body SAL.CSV is
          First := File.Line'First;
          Last  := File.Commas (1) - 1;
       elsif Column = File.Commas'Last + 1 then
-         First := File.Commas (File.Commas'Last) + File.Comma_Count (File.Commas'Last);
+         First := File.Commas (File.Commas'Last) + 1;
          Last  := File.Last;
       else
-         First := File.Commas (Column - 1) + File.Comma_Count (Column - 1);
+         First := File.Commas (Column - 1) + 1;
          Last  := File.Commas (Column) - 1;
       end if;
 

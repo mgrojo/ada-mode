@@ -3,7 +3,7 @@
 --  Support for reading CSV (comma separated value) files. Also
 --  supports other delimiters, including spaces.
 --
---  Copyright (C) 2008 - 2013, 2016 - 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008 - 2013, 2016 - 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -41,20 +41,17 @@ package SAL.CSV is
    procedure Close (File : in out File_Type) renames Finalize;
 
    procedure Open
-     (File               : in out File_Type;
-      Name               : in     String;
-      Max_Row_Size       : in     Integer;
-      Delimiter          : in     Character := ',';
-      Combine_Delimiters : in     Boolean   := False;
-      Columns            : in     Integer   := 0);
-   --  If Combine_Delimiters is True, consecutive delimeters in a line
-   --  are combined into one column separator, so no empty columns are
-   --  possible.
-   --
+     (File         : in out File_Type;
+      Name         : in     String;
+      Max_Row_Size : in     Integer;
+      Delimiter    : in     Character         := ',';
+      Columns      : in     Integer           := 0;
+      Skip_Rows    : in     Ada.Text_IO.Count := 0);
    --  If Columns is 0, reads first row of the file to determine how
    --  many columns there are, then resets file.
    --
-   --  After any reset, reads first row; Next_Row will read second row.
+   --  After any reset, skips Skip_Rows rows (for comments), then reads
+   --  the next row so it is current. Next_Row will read the following row.
    --
    --  Raises Initialization_Error if first row character count is
    --  longer than Max_Row_Size.
@@ -121,16 +118,12 @@ private
    type Positive_Array_Integer_Access_Type is access Positive_Array_Integer_Type;
 
    type File_Type is new Ada.Finalization.Limited_Controlled with record
-      Delimiter          : String (1 .. 1);
-      Combine_Delimiters : Boolean;
+      Delimiter : String (1 .. 1);
 
-      File        : Ada.Text_IO.File_Type;
-      Line        : Ada.Strings.Unbounded.String_Access;
-      Last        : Integer;
-      Commas      : Positive_Array_Integer_Access_Type;
-      Comma_Count : Positive_Array_Integer_Access_Type;
-      --  Number of consecutive delimiters at start of each column
-      --  (deleted from column data).
+      File   : Ada.Text_IO.File_Type;
+      Line   : Ada.Strings.Unbounded.String_Access;
+      Last   : Integer;
+      Commas : Positive_Array_Integer_Access_Type;
    end record;
 
 end SAL.CSV;
