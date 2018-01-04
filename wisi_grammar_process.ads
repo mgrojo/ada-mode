@@ -21,6 +21,8 @@ package Wisi_Grammar_Process is
       Right_Paren_ID      => 2147483647,
       Terminal_Name_ID    => 27,
       Nonterminal_Name_ID => 2147483647,
+      String_1_ID         => 2147483647,
+      String_2_ID         => 29,
       Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),

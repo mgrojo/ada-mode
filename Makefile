@@ -9,11 +9,32 @@ export WISI_GRAMMAR_VERSION := 0.1
 ELPA_ROOT ?= $(shell cd ../elpa; pwd)
 EMACS_EXE ?= emacs
 
+elisp : update-elisp test
+
 pub : docs pub-wisi-grammar build-elpa uninstall-elpa
 
 update-elisp : autoloads
 update-elisp : install_ada_executables
 update-elisp : byte-compile
+
+test : test-wisi_grammar.stamp
+
+ONE_TEST_FILE := ada.wy
+one-clean : force
+	for file in $(ONE_TEST_FILE) ; do rm -f $$file.* ; done
+one : one-clean
+one : build_ada_executables
+one : RUNTEST := run-indent-test-grammar.el
+one : $(ONE_TEST_FILE).diff
+
+#two : RUN_ARGS ?= --verbosity 2 --cost_limit 5
+#two : RUN_ARGS ?= --repeat_count 5
+#two : RUN_LOG := > debug.log
+#two : export Standard_Common_Build := Debug
+two : build_ada_executables
+two : force
+#	./run_wisi_grammar_parse.exe Test/debug.wy Indent $(RUN_ARGS) $(RUN_LOG)
+	./run_wisi_grammar_parse.exe ../org.emacs.ada-mode.stephe-2/ada.wy Face $(RUN_ARGS)
 
 %_process.ads %.re2c : %.wy $(WISITOKEN)/wisi-generate.exe
 	$(WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum $(<F) > $(*F).ada_parse_table
@@ -27,7 +48,7 @@ update-elisp : byte-compile
 # monotone update. Doing byte-compile-clean first avoids errors caused
 # by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L $(WISI) --eval '(progn (package-initialize)(batch-byte-compile))' *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(WISI) --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -35,36 +56,49 @@ byte-compile-clean :
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "autoloads.el")))(update-directory-autoloads ".")))'
 
-two : RUN_ARGS ?= --verbosity 2
-#two : RUN_ARGS ?= --repeat_count 5
-two : export Standard_Common_Build := Debug
-two : build_ada_executables
-	run_wisi_grammar_parse.exe wisi_grammar.wy Indent $(RUN_ARGS)
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
 export WISITOKEN ?= /Projects/org.wisitoken/build
+export WISI ?= /Projects/org.emacs.ada-mode.stephe-2
 
 else ifeq ($(shell uname),Darwin)
 export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken/build
-export WISI ?= c:/Projects/org.emacs.ada-mode.stephe-2
+export WISI ?= /Projects/org.emacs.ada-mode.stephe-2
 else
 # windows
-export WISITOKEN ?= /Projects/org.wisitoken/build
+export WISITOKEN ?= c:/Projects/org.wisitoken/build
+export WISI ?= c:/Projects/org.emacs.ada-mode.stephe-2
 
 endif
 
 $(WISITOKEN)/wisi-generate.exe : force
 	$(MAKE) -C $(WISITOKEN) wisi-generate.exe
 
-test-wisi_grammar-elisp : RUNTEST := run-indent-test-elisp.el
-test-wisi_grammar-elisp : $(addsuffix .diff, $(TEST_FILES))
+vpath %.wy ../org.emacs.ada-mode.stephe-2 ../org.wisitoken/wisi/test/ ../org.emacs.java-wisi/source/
 
-test-wisi_grammar-elisp.stamp : force
+TEST_FILES := wisi_grammar.wy
+TEST_FILES += ada.wy
+TEST_FILES += java.wy
+TEST_FILES += gpr.wy
+TEST_FILES += ada_lite.wy
+TEST_FILES += character_literal.wy
+TEST_FILES += identifier_list_name_conflict.wy
+
+%.diff : % %.tmp
+	diff -u $< $*.tmp > $*.diff
+
+%.tmp : %
+	$(EMACS_EXE) -batch -L . -L $(WISI) -L $(WISI)/build -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+
+test-wisi_grammar : RUNTEST := run-indent-test-grammar.el
+test-wisi_grammar : $(addsuffix .diff, $(TEST_FILES))
+
+test-wisi_grammar.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-wisi_grammar-elisp
+	$(MAKE) test-wisi_grammar
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
@@ -74,7 +108,7 @@ build_ada_executables : wisi_grammar_re2c.c wisi_grammar_process.ads force
 install_ada_executables : build_ada_executables
 	gprinstall -f -p -P wisi_grammar.gpr --install-name=wisi_grammar_wisi_parse
 
-clean : byte-compile-clean exe-clean generate-clean source-clean test-clean
+clean : byte-compile-clean exe-clean generate-clean source-clean
 	rm -f autoloads.el
 
 exe-clean :
@@ -83,7 +117,7 @@ exe-clean :
 
 # delete all files created by wisi-generate
 generate-clean :
-	rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-elisp.el *-process.el *_process.ad?
+	rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-process.el *_process.ad?
 
 # delete all files created by Emacs as backups
 source-clean :
@@ -107,12 +141,10 @@ endif
 zip :
 	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" -C $(TAR_DIR) $(TAR_PAT)
 
-.PHONY : all force
-.PRECIOUS : %-process.el %.ads %.re2c %.tmp %_process.adb %_re2c.c
+.PHONY : all force one one-clean
+.PRECIOUS : %-process.el %.ads %.diff %.re2c %.tmp %_process.adb %_re2c.c
 
 # Local Variables:
-# eval: (unless (getenv "WISITOKEN") (setenv "WISITOKEN" "c:/Projects/org.wisitoken/build"))
-# eval: (unless (getenv "WISI") (setenv "WISI" "c:/Projects/org.emacs.ada-mode.stephe-2"))
 # eval: (unless dvc-doing-ediff-p (load-file "wisi_grammar.el"))
 # end:
 # end of file

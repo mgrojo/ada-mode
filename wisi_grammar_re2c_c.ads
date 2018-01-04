@@ -24,7 +24,7 @@ package wisi_grammar_re2c_c is
         External_Name => "wisi_grammar_free_lexer";
    --  Free the lexer object
 
-   procedure Reset_Lexer (Lexer    : in System.Address)
+   procedure Reset_Lexer (Lexer : in System.Address)
    with Import        => True,
         Convention    => C,
         External_Name => "wisi_grammar_reset_lexer";

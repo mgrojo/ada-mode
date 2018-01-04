@@ -1,6 +1,6 @@
 ;; wisi-grammar-mode --- Major mode for editing Wisi grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2018  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -137,8 +137,9 @@ Otherwise insert a plain new line."
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisi-grammar)))
   (thing-at-point 'symbol))
 
-(defun wisi-grammar-identifier-completion-table ()
-  ;; split out for debugging
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisi-grammar)))
+  ;; Complete on declaration names (ie terminals and other things) and
+  ;; nonterminal names.
   (save-excursion
     (let (result
 	  cache)
@@ -154,18 +155,11 @@ Otherwise insert a plain new line."
 	  (setq result (cons (format "%s<%d>" (wisi-cache-text cache) (line-number-at-pos)) result))))
       result)))
 
-(cl-defgeneric xref-backend-identifier-completion-table ((_backend (eql wisi-grammar)))
-  ;; Complete on declaration names (ie terminals and other things) and
-  ;; nonterminal names.
-  (wisi-grammar-identifier-completion-table))
-
-(defun wisi-grammar-definitions (identifier)
-  ;; Split out for debugging.
-  ;;
+(cl-defmethod xref-backend-definitions ((_backend (eql wisi-grammar)) identifier)
   ;; The line number is incuded in the identifier wrapped in <>
   (string-match "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?" identifier)
   (let ((ident (match-string 1 identifier))
-	(line-str (match-string 3 identifier))
+	(line-str (match-string 2 identifier))
 	line)
     (if line-str
 	(setq line (string-to-number line-str))
@@ -187,9 +181,6 @@ Otherwise insert a plain new line."
     (when line
       (list (xref-make ident (xref-make-file-location (buffer-file-name) line  0))))
     ))
-
-(cl-defgeneric xref-backend-definitions ((_backend (eql wisi-grammar)) identifier)
-  (wisi-grammar-definitions identifier))
 
 ;;; debug
 (defun wisi-grammar-set-exec (exec-file)
