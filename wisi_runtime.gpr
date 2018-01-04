@@ -18,9 +18,10 @@
 
 with "wisitoken";
 with "standard_common";
-project wisi is
+project Wisi_Runtime is
 
    for Source_Dirs use (".");
+
    case Standard_Common.Profile is
    when "On" =>
       for Object_Dir use "obj_pro";
@@ -55,4 +56,4 @@ project wisi is
 
    end Compiler;
 
-end wisi;
+end Wisi_Runtime;

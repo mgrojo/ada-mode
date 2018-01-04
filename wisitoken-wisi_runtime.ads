@@ -10,7 +10,7 @@
 --
 --  [3] wisi-process-parse.el - defines elisp/process API
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -28,6 +28,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
+with WisiToken.Lexer;
 with WisiToken.Semantic_State;
 package WisiToken.Wisi_Runtime is
 
@@ -274,8 +275,12 @@ package WisiToken.Wisi_Runtime is
    --  wisi-process-parse--execute.
 
    procedure Put
-     (Errors     : in WisiToken.Semantic_State.Error_List_Arrays.Vector;
+     (Errors     : in WisiToken.Semantic_State.Parser_Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class);
+   --  Put Errors to Ada.Text_IO.Current_Output, as encoded error
+   --  responses as defined in [3] wisi-process-parse--execute.
+
+   procedure Put (Errors : in WisiToken.Lexer.Error_Lists.List);
    --  Put Errors to Ada.Text_IO.Current_Output, as encoded error
    --  responses as defined in [3] wisi-process-parse--execute.
 

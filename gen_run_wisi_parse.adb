@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 All Rights Reserved.
+--  Copyright (C) 2017, 2018 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -154,7 +154,19 @@ begin
    end;
 
    loop
-      exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
+      begin
+         exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
+      exception
+      when E : WisiToken.Syntax_Error =>
+         Parser.Lexer.Discard_Rest_Of_Input;
+         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+         if Ada.Exceptions.Exception_Message (E)'Length > 0 then
+            Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+         else
+            Put_Line ("(lexer_error)");
+         end if;
+         return;
+      end;
    end loop;
    Line_Count := Parser.Lexer.Line;
 
@@ -183,22 +195,27 @@ begin
                   exit when ID = Descriptor.EOF_ID;
                   ID := Parser.Lexer.Find_Next;
                end loop;
+               --  We don't handle errors here; that was done in the count lines loop
+               --  above.
             end;
          else
             Parser.Parse;
             if Repeat_Count = 1 then
                WisiToken.Wisi_Runtime.Put (Parse_Data);
-               WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
+               WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
+               WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
             end if;
          end if;
       exception
       when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
          Parser.Lexer.Discard_Rest_Of_Input;
+         WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
+         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
          if Ada.Exceptions.Exception_Message (E)'Length > 0 then
             Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+         else
+            Put_Line ("(parse_error)");
          end if;
-         WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
-         Put_Line ("(parse_error)");
       end;
 
       if Pause then

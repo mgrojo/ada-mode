@@ -27,16 +27,21 @@ run test from emacs -Q using source:
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
+  (xmtn . "c:/Projects/org.stephe_leake.sal")
+  (xmtn . "c:/Projects/org.wisitoken")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("."                                . "../org.emacs.ada-mode.stephe-2")))
+ '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")
+   ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
  current work
+ada.wy not fontified when opened
+    parse 'face aborted due to parser busy
+    never recovers
+        see comments in wisi-process-parser.el on 'quit'
+
 Delete comment-starter syntax?
     in ada-mode.el for '-'
 

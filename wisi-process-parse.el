@@ -1,6 +1,6 @@
 ;;; wisi-process-parse.el --- interface to external parse program
 ;;
-;; Copyright (C) 2014, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2017, 2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -438,7 +438,11 @@ complete."
 			(if (wisi-parser-errors parser)
 			    (signal 'wisi-parse-error
 				    (wisi--error-message (car (wisi-parser-errors parser))))
+
 			  ;; can have no errors when testing a new parser
+			  (push
+			   (make-wisi--error :pos 0 :message "parser failed with no message")
+			   (wisi-parser-errors parser))
 			  (signal 'wisi-parse-error "parser failed with no message")))
 
 		       ((and (eq 'error (car response))

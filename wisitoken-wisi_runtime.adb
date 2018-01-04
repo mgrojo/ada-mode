@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -559,7 +559,8 @@ package body WisiToken.Wisi_Runtime is
             if Token.Char_Region /= Null_Buffer_Region then
                declare
                   Cursor : Navigate_Cache_Trees.Cursor := Navigate_Cache_Trees.Find
-                    (Data.Navigate_Caches.Iterate, Navigate_Cache_Trees.Unknown, Token.Char_Region.First);
+                    (Data.Navigate_Caches.Iterate, Token.Char_Region.First,
+                     Direction => Navigate_Cache_Trees.Unknown);
                begin
                   if Navigate_Cache_Trees.Has_Element (Cursor) then
                      declare
@@ -629,9 +630,17 @@ package body WisiToken.Wisi_Runtime is
       Mark              : constant Buffer_Pos                    := Containing_Region.First;
    begin
       if Containing_Region = Null_Buffer_Region then
-         --  Either Containing is a virtual token from error recovery, or there
-         --  is a bad grammar action. Assume the first.
-         return;
+         if Containing_Tok.Virtual then
+            return;
+         else
+            raise Parse_Error with Error_Message
+              (File_Name => -Data.Source_File_Name,
+               Line      => Containing_Tok.Line,
+               Col       => Containing_Tok.Col,
+               Message   => "wisi-containing-action: containing-region " &
+                 Containing_Tok.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => True) &
+                 " is empty. grammar error; bad action.");
+         end if;
       end if;
 
       if not Data.Navigate_Caches.Present (Containing_Region.First) then
@@ -660,7 +669,7 @@ package body WisiToken.Wisi_Runtime is
                --  Skip blocks that are already marked.
 
                if Cache.Containing_Pos.Set then
-                  Cursor := Find (Iterator, Descending, Cache.Containing_Pos.Item);
+                  Cursor := Find (Iterator, Cache.Containing_Pos.Item, Direction => Descending);
                else
                   Cache.Containing_Pos := (True, Mark);
                   Cursor := Previous (Iterator, Cursor);
@@ -740,15 +749,19 @@ package body WisiToken.Wisi_Runtime is
                   Start := (True, Region.First);
                end if;
 
-               Cache_Cur := Find (Iter, Ascending, Region.First);
+               Cache_Cur := Find (Iter, Region.First, Direction => Ascending);
                if not Has_Element (Cache_Cur) then
-                  raise Parse_Error with Error_Message
-                    (File_Name => -Data.Source_File_Name,
-                     Line      => Token.Line,
-                     Col       => Token.Col,
-                     Message   => "wisi-motion-action: token " &
-                       Token.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => False) &
-                       " has no cache; add to statement-action.");
+                  if Token.Virtual then
+                     return;
+                  else
+                     raise Parse_Error with Error_Message
+                       (File_Name => -Data.Source_File_Name,
+                        Line      => Token.Line,
+                        Col       => Token.Col,
+                        Message   => "wisi-motion-action: token " &
+                          Token.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => False) &
+                          " has no cache; add to statement-action.");
+                  end if;
                end if;
 
                if Param.IDs.Length = 0 then
@@ -811,7 +824,7 @@ package body WisiToken.Wisi_Runtime is
             Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
-               Cache_Cur := Find (Iter, Ascending, Token.Char_Region.First);
+               Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
                   declare
                      Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
@@ -907,7 +920,7 @@ package body WisiToken.Wisi_Runtime is
             Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
-               Cache_Cur := Find (Iter, Ascending, Token.Char_Region.First);
+               Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
                if Has_Element (Cache_Cur) then
                   declare
                      Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
@@ -1116,26 +1129,37 @@ package body WisiToken.Wisi_Runtime is
    end Put;
 
    procedure Put
-     (Errors     : in WisiToken.Semantic_State.Error_List_Arrays.Vector;
+     (Errors     : in WisiToken.Semantic_State.Parser_Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
    begin
       for I in Errors.First_Index .. Errors.Last_Index loop
-         if Errors (I).Length > 0 then
+         for Item of Errors (I) loop
             --  We don't include parser id here; not very useful.
-            for Item of Errors (I) loop
-               Put_Line
-                 ('[' & Error_Code & Buffer_Pos'Image (Item.Error_Token.Char_Region.First) &
-                    " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                    ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'""]");
+            Put_Line
+              ('[' & Error_Code & Buffer_Pos'Image (Item.Error_Token.Char_Region.First) &
+                 " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                 ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'""]");
 
-               if Item.Recover /= null then
-                  Put (WisiToken.LR.Configuration (Item.Recover.all), Descriptor);
-               end if;
-            end loop;
-         end if;
+            if Item.Recover /= null then
+               Put (WisiToken.LR.Configuration (Item.Recover.all), Descriptor);
+            end if;
+         end loop;
+      end loop;
+   end Put;
+
+   procedure Put (Errors : in WisiToken.Lexer.Error_Lists.List)
+   is
+      use Ada.Text_IO;
+   begin
+      for Item of Errors loop
+         Put_Line
+           ('[' & Error_Code & Buffer_Pos'Image (Item.Error_Char_Pos) &
+              " ""lexer error" &
+              (if Item.Recover (1) = ASCII.NUL then "" else "; inserted '" & Item.Recover) &
+              """]");
       end loop;
    end Put;
 
@@ -1246,7 +1270,7 @@ package body WisiToken.Wisi_Runtime is
                if Indenting_Token.Byte_Region = Null_Buffer_Region or
                  Anchor_Token.Byte_Region = Null_Buffer_Region
                then
-                  --  One of these is a virtual token
+                  --  One of these is an entirely virtual token
                   return Null_Delta;
                else
                   case Anchored_Label'(Param.Param.Label) is

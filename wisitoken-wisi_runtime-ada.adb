@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -324,7 +324,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       Paren_I     : SAL.Base_Peek_Type;
    begin
       if Subp_Tok.Char_Region = Null_Buffer_Region then
-         --  built from virtual tokens
+         --  built from entirely virtual tokens
          return Null_Delta;
       end if;
 

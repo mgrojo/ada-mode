@@ -190,8 +190,6 @@ elisp-clean :
 	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum $(<F) > $(*F).ada_parse_table
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
 
-# The previous rule confuses 'make'; it thinks *.re2c is created in
-# the build dir, when it is not. Specify path in higher level dependencies.
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 

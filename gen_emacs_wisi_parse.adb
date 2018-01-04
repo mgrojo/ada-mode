@@ -251,14 +251,16 @@ begin
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;
-               WisiToken.Wisi_Runtime.Put (Parse_Data);
-               WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
+               Put (Parse_Data);
+               Put (State.Parser_Errors, Trace.Descriptor.all);
+               Put (State.Lexer_Errors);
 
                Ada.Strings.Unbounded.Free (Buffer);
             exception
             when Parse_Error | Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
-               Put (State.Errors, Trace.Descriptor.all);
+               Put (State.Parser_Errors, Trace.Descriptor.all);
+               Put (State.Lexer_Errors);
                Ada.Strings.Unbounded.Free (Buffer);
                Put_Line ("(parse_error)");
             end;
