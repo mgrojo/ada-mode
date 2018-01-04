@@ -46,11 +46,11 @@ package SAL.CSV is
       Max_Row_Size : in     Integer;
       Delimiter    : in     Character         := ',';
       Columns      : in     Integer           := 0;
-      Skip_Rows    : in     Ada.Text_IO.Count := 0);
+      Skip_Lines   : in     Ada.Text_IO.Count := 0);
    --  If Columns is 0, reads first row of the file to determine how
    --  many columns there are, then resets file.
    --
-   --  After any reset, skips Skip_Rows rows (for comments), then reads
+   --  After any reset, skips Skip_Lines lines (for comments), then reads
    --  the next row so it is current. Next_Row will read the following row.
    --
    --  Raises Initialization_Error if first row character count is
@@ -62,10 +62,13 @@ package SAL.CSV is
    --  Set File to reading first row.
 
    function Columns (File : in File_Type) return Integer;
-   --  number of columns found or specifiedin Open
+   --  number of columns found or specified in Open
 
    function Row (File : in File_Type) return Integer;
-   --  Current row; same as Text_IO.Line
+   --  Current row.
+   --
+   --  This may differ from Text_IO.Line if some quoted fields cross line
+   --  boundaries.
 
    function End_Of_File (File : in File_Type) return Boolean;
    --  True if Next_Row will raise End_Error; no more data.
@@ -75,17 +78,16 @@ package SAL.CSV is
    --  header names). Next_Row advances internal data so read will
    --  read the next row.
    --
+   --  If a quoted field crosses a line boundary, a row will consist of
+   --  multiple lines, with the quoted field containing ASCII.LF at the
+   --  line breaks.
+   --
    --  Raises Ada.Text_IO.End_Error if there is no next row.
    --
    --  Raises Initialization_Error if new row is longer than
    --  Max_Line_Size specified in Open.
 
    procedure Next (File : in out File_Type) renames Next_Row;
-
-   procedure Skip_Lines
-     (File : in out File_Type;
-      N    : in Integer);
-   --  Skip N lines by calling Next_Row N times.
 
    function Read (File : in File_Type; Column : in Positive) return String;
    --  Return the contents of Column as a string.
@@ -118,11 +120,13 @@ private
    type Positive_Array_Integer_Access_Type is access Positive_Array_Integer_Type;
 
    type File_Type is new Ada.Finalization.Limited_Controlled with record
-      Delimiter : String (1 .. 1);
+      Delimiter  : String (1 .. 1);
+      Skip_Lines : Ada.Text_IO.Count;
 
       File   : Ada.Text_IO.File_Type;
       Line   : Ada.Strings.Unbounded.String_Access;
       Last   : Integer;
+      Row    : Integer;
       Commas : Positive_Array_Integer_Access_Type;
    end record;
 

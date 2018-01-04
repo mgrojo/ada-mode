@@ -126,7 +126,7 @@ package body SAL.CSV is
       Max_Row_Size : in     Integer;
       Delimiter    : in     Character         := ',';
       Columns      : in     Integer           := 0;
-      Skip_Rows    : in     Ada.Text_IO.Count := 0)
+      Skip_Lines   : in     Ada.Text_IO.Count := 0)
    is
       use Ada.Text_IO;
       Comma_Count : Integer := 0;
@@ -150,16 +150,25 @@ package body SAL.CSV is
 
       File.Commas := new Positive_Array_Integer_Type (1 .. Comma_Count);
 
-      if Skip_Rows > 0 then
-         Skip_Line (File.File, Skip_Rows);
+      File.Skip_Lines := Skip_Lines;
+      if Skip_Lines > 0 then
+         Skip_Line (File.File, Skip_Lines);
       end if;
 
+      File.Row := Integer (Skip_Lines); -- so spreadsheet lines match reported rows
       Next_Row (File);
    end Open;
 
    procedure Reset (File : in out File_Type)
-   is begin
+   is
+      use all type Ada.Text_IO.Count;
+   begin
       Ada.Text_IO.Reset (File.File);
+      if File.Skip_Lines > 0 then
+         Ada.Text_IO.Skip_Line (File.File, File.Skip_Lines);
+      end if;
+
+      File.Row := Integer (File.Skip_Lines);
       Next_Row (File);
    end Reset;
 
@@ -169,11 +178,8 @@ package body SAL.CSV is
    end Columns;
 
    function Row (File : in File_Type) return Integer
-   is
-      use Ada.Text_IO;
-   begin
-      --  return the row we are currently reading; File.File is on next row.
-      return Integer (Line (File.File) - 1);
+   is begin
+      return File.Row;
    end Row;
 
    function End_Of_File (File : in File_Type) return Boolean
@@ -202,19 +208,12 @@ package body SAL.CSV is
 
       if Comma_Count /= File.Commas'Last then
          raise Initialization_Error with
-           "'" & File.Line (1 .. File.Last) & "' (row" & Count'Image (Line (File.File) - 1) & ") has" &
-           Integer'Image (Comma_Count) & " delimiters";
+           "row" & Count'Image (File.Row + 1) & " has" &
+           Integer'Image (Comma_Count) & " delimiters: '" & File.Line (1 .. File.Last) & "'";
       end if;
-   end Next_Row;
 
-   procedure Skip_Lines
-     (File : in out File_Type;
-      N    : in Integer)
-   is begin
-      for I in 1 .. N loop
-         Next_Row (File);
-      end loop;
-   end Skip_Lines;
+      File.Row := File.Row + 1;
+   end Next_Row;
 
    function Read (File : in File_Type; Column : in Positive) return String
    is

@@ -2,7 +2,7 @@
 --
 --  Generic unbounded red-black tree with definite elements.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -585,7 +585,11 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          Right_Done => True);
    end Previous;
 
-   function Find (Iterator : in Pkg.Iterator; Direction : in Direction_Type; Key : in Key_Type) return Cursor
+   function Find
+     (Iterator  : in Pkg.Iterator;
+      Key       : in Key_Type;
+      Direction : in Direction_Type := Ascending)
+     return Cursor
    is
       Nil  : Node_Access renames Iterator.Nil;
       Node : constant Node_Access := Find (Iterator.Root, Key, Nil);

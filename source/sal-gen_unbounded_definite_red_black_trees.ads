@@ -7,7 +7,7 @@
 --  [1] Introduction to Algorithms, Thomas H. Cormen, Charles E.
 --  Leiserson, Ronald L. Rivest, Clifford Stein.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -99,7 +99,11 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    --  largest key < Key. Has_Element (result) is False if there is no
    --  such element.
 
-   function Find (Iterator : in Pkg.Iterator; Direction : in Direction_Type; Key : in Key_Type) return Cursor;
+   function Find
+     (Iterator  : in Pkg.Iterator;
+      Key       : in Key_Type;
+      Direction : in Direction_Type := Ascending)
+     return Cursor;
    --  Has_Element is False if Key is not in Container.
 
    function Find_In_Range
