@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 Stephe Leake
+--  Copyright (C) 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -44,9 +44,12 @@ package body WisiToken.Lexer.re2c is
       Finalize (Object.Source);
    end Finalize;
 
-   function New_Lexer (Trace : not null access WisiToken.Trace'Class) return Handle
+   function New_Lexer
+     (Trace  : not null access WisiToken.Trace'Class;
+      Errors : not null access Error_Lists.List)
+     return Handle
    is
-      New_Lexer : constant access Instance := new Instance (Trace);
+      New_Lexer : constant access Instance := new Instance (Trace, Errors);
    begin
       return Handle (New_Lexer);
    end New_Lexer;
@@ -167,14 +170,17 @@ package body WisiToken.Lexer.re2c is
                if Buffer (Lexer.Byte_Position) = ''' then
                   --  Lexer has read to next new-line (or eof), then backtracked to next
                   --  char after '.
+                  Lexer.Errors.Append ((Lexer.Char_Region.First, (1 => ''', others => ASCII.NUL)));
                   return Lexer.Trace.Descriptor.String_1_ID;
 
                elsif Buffer (Lexer.Byte_Position) = '"' then
                   --  Lexer has read to next new-line (or eof), then backtracked to next
                   --  char after "
+                  Lexer.Errors.Append ((Lexer.Char_Region.First, (1 => '"', others => ASCII.NUL)));
                   return Lexer.Trace.Descriptor.String_2_ID;
 
                else
+                  Lexer.Errors.Append ((Lexer.Char_Region.First, (others => ASCII.NUL)));
                   raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position) &
                     "' (" & Integer'Image (Character'Pos (Buffer (Lexer.Byte_Position))) & ") at character position" &
                     Natural'Image (Lexer.Char_Position) & " in context '" & Context & "'";

@@ -709,7 +709,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("  (Parser,");
       case Interface_Kind is
       when None | Process =>
-         Indent_Line ("   Lexer.New_Lexer (Semantic_State.Trace),");
+         Indent_Line ("   Lexer.New_Lexer (Semantic_State.Trace, Semantic_State.Lexer_Errors'Access),");
          Indent_Line ("   Table,");
          Indent_Line ("   Semantic_State,");
          Indent_Line ("   Max_Parallel         => 15,");

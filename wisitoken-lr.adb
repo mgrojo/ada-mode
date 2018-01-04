@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 Stephe Leake
+--  Copyright (C) 2013-2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -678,7 +678,6 @@ package body WisiToken.LR is
          exit when Token.ID >= Semantic_State.Trace.Descriptor.First_Terminal;
       end loop;
       return Token;
-      --  FIXME: catch lexer Syntax_Error here, add to Semantic_State.Errors.
    end Next_Grammar_Token;
 
    procedure Reduce_Stack_1

@@ -3,7 +3,7 @@
 --  see spec
 --
 --
---  Copyright (C) 2009, 2014, 2015, 2017 Stephe Leake
+--  Copyright (C) 2009, 2014, 2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -196,7 +196,7 @@ package body WisiToken.Semantic_State is
 
    procedure Put
      (Source_File_Name : in String;
-      Errors           : in Error_List_Arrays.Vector;
+      Errors           : in Parser_Error_List_Arrays.Vector;
       Descriptor       : in WisiToken.Descriptor'Class)
    is
       use all type Ada.Containers.Count_Type;
@@ -305,10 +305,10 @@ package body WisiToken.Semantic_State is
 
       --  WORKAROUND: GNAT GPL 2016: just state.errors.clear leaves some
       --  info in state.errors(0) that comes back when we do Set_Length 2.
-      for List of State.Errors loop
+      for List of State.Parser_Errors loop
          List.Clear;
       end loop;
-      State.Errors.Clear;
+      State.Parser_Errors.Clear;
 
       State.All_Tokens.Clear;
 
@@ -318,11 +318,13 @@ package body WisiToken.Semantic_State is
       State.Current_Paren_State := 0;
    end Reset;
 
-   function Active_Error_List (State : not null access Semantic_State) return Error_List_Arrays.Constant_Reference_Type
+   function Active_Error_List
+     (State : not null access Semantic_State)
+     return Parser_Error_List_Arrays.Constant_Reference_Type
    is
       use all type Ada.Containers.Count_Type;
-      use Error_List_Arrays;
-      Cursor : Error_List_Arrays.Cursor := State.Errors.First;
+      use Parser_Error_List_Arrays;
+      Cursor : Parser_Error_List_Arrays.Cursor := State.Parser_Errors.First;
 
       Active_Count : Integer := 0;
       Active_Index : Natural;
@@ -339,7 +341,7 @@ package body WisiToken.Semantic_State is
       end loop;
 
       if Active_Count = 1 then
-         return Constant_Reference (State.Errors, Active_Index);
+         return Constant_Reference (State.Parser_Errors, Active_Index);
       else
          raise Programmer_Error;
       end if;
@@ -374,6 +376,7 @@ package body WisiToken.Semantic_State is
          Col                         => Lexer.Column,
          Char_Region                 => Lexer.Char_Region,
          Byte_Region                 => Lexer.Byte_Region,
+         Virtual                     => False,
          First_All_Tokens_Index      => State.All_Tokens.Last_Index + 1,
          Last_All_Tokens_Index       => Invalid_All_Tokens_Index,
          First                       => Temp_First,
@@ -464,13 +467,13 @@ package body WisiToken.Semantic_State is
    is
       use all type SAL.Base_Peek_Type;
    begin
-      if Parser_ID > State.Errors.Last_Index then
-         State.Errors.Set_Length (Ada.Containers.Count_Type (Parser_ID + 1)); -- Parser_ID is 0 indexed.
-         State.Errors.Replace_Element (Parser_ID, Error_Data_Lists.Empty_List);
+      if Parser_ID > State.Parser_Errors.Last_Index then
+         State.Parser_Errors.Set_Length (Ada.Containers.Count_Type (Parser_ID + 1)); -- Parser_ID is 0 indexed.
+         State.Parser_Errors.Replace_Element (Parser_ID, Parser_Error_Data_Lists.Empty_List);
       end if;
 
       declare
-         Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
+         Error_List : Parser_Error_Data_Lists.List renames State.Parser_Errors.Reference (Parser_ID).Element.all;
       begin
          Error_List.Append
            ((First_Terminal => State.Trace.Descriptor.First_Terminal,
@@ -490,14 +493,16 @@ package body WisiToken.Semantic_State is
    is
       use all type SAL.Base_Peek_Type;
    begin
-      if New_Parser_ID > State.Errors.Last_Index then
-         State.Errors.Set_Length (Ada.Containers.Count_Type (New_Parser_ID + 1)); -- Parser_ID is 0 indexed.
-         State.Errors.Replace_Element (New_Parser_ID, Error_Data_Lists.Empty_List);
+      if New_Parser_ID > State.Parser_Errors.Last_Index then
+         State.Parser_Errors.Set_Length (Ada.Containers.Count_Type (New_Parser_ID + 1)); -- Parser_ID is 0 indexed.
+         State.Parser_Errors.Replace_Element (New_Parser_ID, Parser_Error_Data_Lists.Empty_List);
       end if;
 
       declare
-         Old_Error_List : Error_Data_Lists.List renames State.Errors.Reference (Old_Parser_ID).Element.all;
-         New_Error_List : Error_Data_Lists.List renames State.Errors.Reference (New_Parser_ID).Element.all;
+         Old_Error_List : Parser_Error_Data_Lists.List renames
+           State.Parser_Errors.Reference (Old_Parser_ID).Element.all;
+         New_Error_List : Parser_Error_Data_Lists.List renames
+           State.Parser_Errors.Reference (New_Parser_ID).Element.all;
       begin
          New_Error_List := Old_Error_List;
       end;
@@ -508,8 +513,8 @@ package body WisiToken.Semantic_State is
       Parser_ID : in     Natural)
    is begin
       --  We don't use Delete because that slides element above Parser_ID,
-      --  changing there indices.
-      State.Errors (Parser_ID).Clear;
+      --  changing their indices.
+      State.Parser_Errors (Parser_ID).Clear;
    end Terminate_Parser;
 
    procedure Virtual_To_Lookahead
@@ -523,6 +528,7 @@ package body WisiToken.Semantic_State is
          Col                         => 0,
          Char_Region                 => Null_Buffer_Region,
          Byte_Region                 => Null_Buffer_Region,
+         Virtual                     => True,
          First                       => False,
          First_All_Tokens_Index      => Invalid_All_Tokens_Index,
          Last_All_Tokens_Index       => Invalid_All_Tokens_Index,
@@ -578,6 +584,7 @@ package body WisiToken.Semantic_State is
          Col                         => 0,
          Byte_Region                 => Nonterm.Byte_Region,
          Char_Region                 => Null_Buffer_Region,
+         Virtual                     => False,
          First                       => False,
          First_All_Tokens_Index      => Invalid_All_Tokens_Index,
          Last_All_Tokens_Index       => Invalid_All_Tokens_Index,
@@ -605,8 +612,10 @@ package body WisiToken.Semantic_State is
                  ", state token: " & Aug_Token.Image (State.Trace.Descriptor.all);
             end if;
 
+            Aug_Nonterm.Virtual := Aug_Nonterm.Virtual or Aug_Token.Virtual;
+
             if Aug_Token.Byte_Region /= Null_Buffer_Region then
-               --  Aug_Token not virtual
+               --  Aug_Token not entirely virtual
 
                if Aug_Nonterm.First_All_Tokens_Index = Invalid_All_Tokens_Index then
                   Aug_Nonterm.First_All_Tokens_Index := Aug_Token.First_All_Tokens_Index;
@@ -764,8 +773,8 @@ package body WisiToken.Semantic_State is
       Parser_ID : in     Natural;
       Recover   : in     WisiToken.Semantic_State.Recover_Data'Class)
    is
-      Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
-      Error      : Error_Data renames Error_List.Reference (Error_List.Last);
+      Error_List : Parser_Error_Data_Lists.List renames State.Parser_Errors.Reference (Parser_ID).Element.all;
+      Error      : Parser_Error_Data renames Error_List.Reference (Error_List.Last);
    begin
       Error.Recover := new WisiToken.Semantic_State.Recover_Data'Class'(Recover);
       if Trace_Parse > Extra then

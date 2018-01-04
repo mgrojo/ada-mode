@@ -2,7 +2,7 @@
 --
 --  Abstract interface to a semantic state.
 --
---  Copyright (C) 2017 Stephe Leake
+--  Copyright (C) 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -39,6 +39,14 @@ package WisiToken.Semantic_State is
       Line        : Line_Number_Type  := Invalid_Line_Number;
       Col         : Ada.Text_IO.Count := 0;
       Char_Region : Buffer_Region     := Null_Buffer_Region;
+
+      Virtual : Boolean := False;
+      --  For non-grammar and terminal tokens, True if inserted by
+      --  Virtual_To_Lookahead. For nonterminal tokens, True if any
+      --  contained token has Virtual True.
+      --
+      --  Useful in semantic actions; don't report errors if can't perform
+      --  semantic actions on virtual tokens.
 
       First_All_Tokens_Index : Positive_Index_Type := Invalid_All_Tokens_Index;
       --  For non-grammar and terminal tokens, index of this token in
@@ -139,7 +147,7 @@ package WisiToken.Semantic_State is
 
    procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
 
-   type Error_Data
+   type Parser_Error_Data
      (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is record
@@ -148,15 +156,16 @@ package WisiToken.Semantic_State is
       Recover     : access Recover_Data'Class;
    end record;
 
-   package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
+   package Parser_Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parser_Error_Data);
 
-   package Error_List_Arrays is new Ada.Containers.Vectors (Natural, Error_Data_Lists.List, Error_Data_Lists."=");
+   package Parser_Error_List_Arrays is new Ada.Containers.Vectors
+     (Natural, Parser_Error_Data_Lists.List, Parser_Error_Data_Lists."=");
    --  IMPROVEME: parser ids are never reused. So this ends up with many
-   --  empty slots, because first_index = 0. Use a sparse vector.
+   --  empty slots, because first_index = 0. Use a sparse vector (= map?).
 
    procedure Put
      (Source_File_Name : in String;
-      Errors           : in Error_List_Arrays.Vector;
+      Errors           : in Parser_Error_List_Arrays.Vector;
       Descriptor       : in WisiToken.Descriptor'Class);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
@@ -169,8 +178,12 @@ package WisiToken.Semantic_State is
 
       Lookahead_Queue : Augmented_Token_Queues.Queue_Type;
 
-      Errors : Error_List_Arrays.Vector;
+      Parser_Errors : Parser_Error_List_Arrays.Vector;
       --  Indexed by Parser_ID.
+
+      Lexer_Errors : aliased Lexer.Error_Lists.List;
+      --  Shared by all parsers. No access functions provided below; set
+      --  directly by Lexer.Find_Next.
 
       All_Tokens : Augmented_Token_Arrays.Vector;
       --  All terminal grammar and non-grammar tokens, in lexical order. Does not
@@ -241,7 +254,9 @@ package WisiToken.Semantic_State is
    --  Reset State to start a new parse, with previous initialization
    --  data.
 
-   function Active_Error_List (State : not null access Semantic_State) return Error_List_Arrays.Constant_Reference_Type;
+   function Active_Error_List
+     (State : not null access Semantic_State)
+     return Parser_Error_List_Arrays.Constant_Reference_Type;
    --  Return a reference to the single active error list.
    --  If more than one is active, raise Programmer_Error.
 

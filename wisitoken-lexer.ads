@@ -2,7 +2,7 @@
 --
 --  An abstract lexer interface.
 --
---  Copyright (C) 2014 - 2015, 2017 Stephe Leake
+--  Copyright (C) 2014 - 2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -29,14 +29,31 @@ pragma License (Modified_GPL);
 
 pragma Warnings (Off, "license of withed unit ""GNATCOLL.Mmap"" may be inconsistent");
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
-   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract new Ada.Finalization.Limited_Controlled
-   with null record;
+   type Error_Data is record
+      Error_Char_Pos : Buffer_Pos;
+      --  Character at that position is not recognized as part of a token.
+
+      Recover : String (1 .. 4) := (others => ASCII.NUL);
+      --  If the error was corrected, the character (in UTF-8 encoding) that
+      --  was inserted; unused trailing bytes set to ASCII.NUL. Otherwise,
+      --  all ASCII.Nul.
+   end record;
+
+   package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error_Data);
+   --  Some lexers can recover from some errors (ie insert missing
+   --  quotes), so there can be more than one error.
+
+   type Instance
+     (Trace  : not null access WisiToken.Trace'Class;
+      Errors : not null access Error_Lists.List)
+     is abstract new Ada.Finalization.Limited_Controlled with null record;
 
    subtype Class is Instance'Class;
 
@@ -96,8 +113,9 @@ package WisiToken.Lexer is
    function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
    --  Return the next token.
    --
-   --  Raises Syntax_Error with an appropriate message if no token
-   --  is found.
+   --  If their is an error, adds an entry to Lexer.Erorrs. If the error
+   --  was not corrected, raises Syntax_Error with an appropriate
+   --  message.
 
 private
 
