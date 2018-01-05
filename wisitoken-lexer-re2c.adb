@@ -1,4 +1,4 @@
---  Abstract:
+0--  Abstract:
 --
 --  see spec.
 --
@@ -135,62 +135,53 @@ package body WisiToken.Lexer.re2c is
       use Interfaces.C;
    begin
       Lexer.Prev_ID := Lexer.ID;
-      declare
-         Status : constant int := Next_Token
-           (Lexer.Lexer, Lexer.ID,
-            Byte_Position => Interfaces.C.size_t (Lexer.Byte_Position),
-            Byte_Length   => Interfaces.C.size_t (Lexer.Byte_Length),
-            Char_Position => Interfaces.C.size_t (Lexer.Char_Position),
-            Char_Length   => Interfaces.C.size_t (Lexer.Char_Length),
-            Line_Start    => Interfaces.C.int (Lexer.Line));
-      begin
-         case Status is
-         when 0 =>
-            if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID then
-               Lexer.Char_Line_Start := Lexer.Char_Position + 1;
-            end if;
-            return Lexer.ID;
-
-         when 1 =>
-            --  Unrecognized character from lexer. Handle missing quotes by
-            --  inserting a virtual quote at the existing quote, and telling the
-            --  lexer to skip the char.
-            declare
-               Buffer        : constant GNATCOLL.Mmap.Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
-               Context_First : constant Integer    := Integer'Max (1, Lexer.Byte_Position - 5);
-               Context_Last  : constant Integer    := Integer'Min
-                 ((case Lexer.Source.Label is
-                   when String_Label => Lexer.Source.Buffer.all'Last,
-                   when File_Label => Lexer.Source.Buffer_Last),
-                  Lexer.Byte_Position + 5);
-
-               Context : constant String (Context_First .. Context_Last) := String
-                 (Buffer (Context_First .. Context_Last));
-            begin
-               if Buffer (Lexer.Byte_Position) = ''' then
-                  --  Lexer has read to next new-line (or eof), then backtracked to next
-                  --  char after '.
-                  Lexer.Errors.Append ((Lexer.Char_Region.First, (1 => ''', others => ASCII.NUL)));
-                  return Lexer.Trace.Descriptor.String_1_ID;
-
-               elsif Buffer (Lexer.Byte_Position) = '"' then
-                  --  Lexer has read to next new-line (or eof), then backtracked to next
-                  --  char after "
-                  Lexer.Errors.Append ((Lexer.Char_Region.First, (1 => '"', others => ASCII.NUL)));
-                  return Lexer.Trace.Descriptor.String_2_ID;
-
-               else
-                  Lexer.Errors.Append ((Lexer.Char_Region.First, (others => ASCII.NUL)));
-                  raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position) &
-                    "' (" & Integer'Image (Character'Pos (Buffer (Lexer.Byte_Position))) & ") at character position" &
-                    Natural'Image (Lexer.Char_Position) & " in context '" & Context & "'";
+      loop
+         declare
+            Status : constant int := Next_Token
+              (Lexer.Lexer, Lexer.ID,
+               Byte_Position => Interfaces.C.size_t (Lexer.Byte_Position),
+               Byte_Length   => Interfaces.C.size_t (Lexer.Byte_Length),
+               Char_Position => Interfaces.C.size_t (Lexer.Char_Position),
+               Char_Length   => Interfaces.C.size_t (Lexer.Char_Length),
+               Line_Start    => Interfaces.C.int (Lexer.Line));
+         begin
+            case Status is
+            when 0 =>
+               if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID then
+                  Lexer.Char_Line_Start := Lexer.Char_Position + 1;
                end if;
-            end;
+               return Lexer.ID;
 
-         when others =>
-            raise Syntax_Error with " lexer returned unrecognized status code" & int'Image (Status);
-         end case;
-      end;
+            when 1 =>
+               --  Unrecognized character from lexer. Handle missing quotes by
+               --  inserting a virtual quote at the existing quote, and telling the
+               --  lexer to skip the char.
+               declare
+                  Buffer : constant GNATCOLL.Mmap.Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
+               begin
+                  if Buffer (Lexer.Byte_Position) = ''' then
+                     --  Lexer has read to next new-line (or eof), then backtracked to next
+                     --  char after '.
+                     Lexer.Errors.Append ((Buffer_Pos (Lexer.Char_Position), (1 => ''', others => ASCII.NUL)));
+                     return Lexer.Trace.Descriptor.String_1_ID;
+
+                  elsif Buffer (Lexer.Byte_Position) = '"' then
+                     --  Lexer has read to next new-line (or eof), then backtracked to next
+                     --  char after ".
+                     Lexer.Errors.Append ((Buffer_Pos (Lexer.Char_Position), (1 => '"', others => ASCII.NUL)));
+                     return Lexer.Trace.Descriptor.String_2_ID;
+
+                  else
+                     --  Just skip the character; call Next_Token again.
+                     Lexer.Errors.Append ((Buffer_Pos (Lexer.Char_Position), (others => ASCII.NUL)));
+                  end if;
+               end;
+
+            when others =>
+               raise Syntax_Error with " lexer returned unrecognized status code" & int'Image (Status);
+            end case;
+         end;
+      end loop;
    exception
    when Syntax_Error  =>
       raise;
