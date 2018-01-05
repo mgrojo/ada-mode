@@ -1153,13 +1153,26 @@ package body WisiToken.Wisi_Runtime is
    procedure Put (Errors : in WisiToken.Lexer.Error_Lists.List)
    is
       use Ada.Text_IO;
+      function Trim (Item : in String) return String
+      is begin
+         for I in Item'Range loop
+            if Item (I) = ASCII.NUL then
+               return Item (Item'First .. I - 1);
+            end if;
+         end loop;
+         return Item;
+      end Trim;
    begin
       for Item of Errors loop
          Put_Line
            ('[' & Error_Code & Buffer_Pos'Image (Item.Error_Char_Pos) &
               " ""lexer error" &
-              (if Item.Recover (1) = ASCII.NUL then "" else "; inserted '" & Item.Recover) &
-              """]");
+              (if Item.Recover (1) = ASCII.NUL
+               then ""
+               elsif Item.Recover (1) = '"'
+               then "; inserted '\"""
+               else "; inserted '" & Trim (Item.Recover)) &
+              "'""]");
       end loop;
    end Put;
 

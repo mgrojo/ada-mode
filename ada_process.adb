@@ -27023,7 +27023,7 @@ package body Ada_Process is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Semantic_State.Trace),
+         Lexer.New_Lexer (Semantic_State.Trace, Semantic_State.Lexer_Errors'Access),
          Table,
          Semantic_State,
          Max_Parallel         => 15,

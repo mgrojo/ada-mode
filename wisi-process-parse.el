@@ -345,9 +345,13 @@ complete."
   (wisi-process-parse--require-process parser)
 
   ;; font-lock can trigger a face parse while navigate or indent parse
-  ;; is active, due to ‘accept-process-output’ below. font-lock must not
-  ;; hang (it is called from an idle timer), so don’t wait. Don’t
-  ;; throw an error either; there is no syntax error.
+  ;; is active, due to ‘accept-process-output’ below. font-lock must
+  ;; not hang (it is called from an idle timer), so don’t
+  ;; wait. Signaling an error tells font-lock to try again later.
+  ;;
+  ;; If the parser is left busy due to some error, that is a bug. In
+  ;; order to detect such bugs, and avoid weird errors from
+  ;; wisi-indent-region, we signal an error here.
   (if (wisi-process--parser-busy parser)
       (progn
 	(setf (wisi-parser-errors parser)
@@ -357,13 +361,7 @@ complete."
 		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
 				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
 	       ))
-	(message "%s parse abandoned; parser busy" wisi--parse-action)
-	(goto-char (point-min))
-	;; Leaving point at point-min sets wisi-cache-max to
-	;; point-min, so we know parsing still needs to be
-	;; done. However, font-lock thinks the buffer is done.  We
-	;; tried signaling ’quit here to force font-lock to try again,
-	;; but that did not work.
+	(error "%s parse abandoned; parser busy" wisi--parse-action)
 	)
 
     (setf (wisi-process--parser-busy parser) t)

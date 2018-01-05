@@ -9,7 +9,7 @@
        (prj-name "ada_mode_wisi_parse main")
        (prj (make-ada-project
 	     :env-vars '(("WISI_WISITOKEN" . "c:/Projects/org.wisitoken/build"))
-	     :ada-prj prj-file)))
+	     :ada-prj-file prj-file)))
 
   (project-menu-add-project prj prj-name default-directory)
 
