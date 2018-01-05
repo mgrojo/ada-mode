@@ -208,7 +208,7 @@ package body SAL.CSV is
 
       if Comma_Count /= File.Commas'Last then
          raise Initialization_Error with
-           "row" & Count'Image (File.Row + 1) & " has" &
+           "row" & Integer'Image (File.Row + 1) & " has" &
            Integer'Image (Comma_Count) & " delimiters: '" & File.Line (1 .. File.Last) & "'";
       end if;
 
