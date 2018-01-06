@@ -6,7 +6,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -622,10 +622,20 @@ Prompt user if more than one."
 	 (comp-buf (get-buffer "*compilation*")))
     (when (buffer-live-p comp-buf)
       (with-current-buffer comp-buf
-	(setenv "GPR_PROJECT_PATH" gpr-path)
 	(setq compilation-environment comp-env)))
     (set-default 'compilation-environment comp-env)
     )
+
+  (when (getenv "GPR_PROJECT_PATH")
+    ;; We get here when this is called from
+    ;; ‘compilation-process-setup-function’; ‘process-environment’ is
+    ;; already bound to ‘compilation-environment’. Or when the user
+    ;; has set GPR_PROJECT_PATH in top level ‘process-environment’,
+    ;; which is a mistake on their part.
+    (setenv "GPR_PROJECT_PATH"
+	    (mapconcat 'identity
+		       (ada-prj-get 'prj_dir)
+		       (ada-prj-get 'path_sep))))
 
   ;; must be after indentation engine setup, because that resets the
   ;; indent function list.
@@ -645,7 +655,8 @@ Prompt user if more than one."
   (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
   (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
-  ;; don't need to delete from compilation-search-path; completely rewritten in ada-select-prj-file
+  ;; Don't need to delete from compilation-search-path; completely
+  ;; rewritten in ada-gnat-compile-select-prj.
   (setq compilation-environment nil)
 
   (setq ada-mode-hook (delq 'gnatprep-setup ada-mode-hook))

@@ -456,7 +456,33 @@ package body Ada_Mode.Parens is
       Ada.Text_IO.Put_Line ( -- comment after paren
                             Out_File,
                             Hello &
-                              There);
+                              There
+                              --  Comment before trailing paren
+                           );
+      Ada.Text_IO.Put_Line (Out_File,
+                            Hello & There
+                            --  Comment before trailing paren, token.First = true
+                           );
+      Ada.Text_IO.Put_Line (Hello & There
+                            --  Comment before trailing paren, token.First = False
+                           );
+
+      Ada.Text_IO.Put_Line (Item =>
+                              Hello & There
+                            --  Comment before trailing paren, token.First = True
+                           );
+      Ada.Text_IO.Put_Line (Item =>
+                              Hello &
+                                There
+                            --  Comment before trailing paren, token.First = True
+                           );
+      Ada.Text_IO.Put_Line (Item => Hello & There
+                            --  Comment before trailing paren, token.First = False
+                           );
+      Ada.Text_IO.Put_Line (Item => Hello &
+                              There
+                            --  Comment before trailing paren, token.First = False
+                           );
    end Hello;
 
    --  Slice in procedure call

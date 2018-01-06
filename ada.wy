@@ -1,6 +1,6 @@
 ;;; Wisi grammar for Ada
 ;;
-;; Copyright (C) 2012 - 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -464,12 +464,13 @@ actual_parameter_part_opt
 ;; -1 are handled in 'primary'.
 aggregate
   : LEFT_PAREN association_list RIGHT_PAREN ;; record_aggregate, named_array_aggregate, positional_array_aggregate
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
+    (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)])
   | LEFT_PAREN expression_opt WITH association_list RIGHT_PAREN ;; extension_aggregate
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 0)])
+    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1) [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+                         (wisi-anchored 1 0)])
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
+    (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)])
   | LEFT_PAREN expression_opt WITH NULL RECORD RIGHT_PAREN ;; extension_aggregate with null record
     (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1) 0 0 (wisi-anchored 1 0)])
   | LEFT_PAREN NULL RECORD RIGHT_PAREN
@@ -530,7 +531,8 @@ assignment_statement
 association_opt
   : ;; empty
   | CHARACTER_LITERAL EQUAL_GREATER expression_opt ;; part of selector_name that does not overlap name
-    (wisi-indent-action [0 ada-indent-broken (wisi-anchored% 2 ada-indent-broken)])
+    (wisi-indent-action [0 ada-indent-broken
+                         [(wisi-anchored% 2 ada-indent-broken) (wisi-anchored% 2 ada-indent-broken)]])
   | CHARACTER_LITERAL EQUAL_GREATER BOX ;; from formal_package_association_list
   | discrete_choice_list EQUAL_GREATER expression_opt
  ;; We need wisi-hanging on expression_opt to recognize aspect_specification for a special case.
@@ -550,16 +552,15 @@ association_opt
  ;;   requires '-' on wisi-hanging%-
     (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)
                          ada-indent-broken
-                         (wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
-                                         (wisi-anchored% 2 (* 2 ada-indent-broken)))])
+                         [(wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
+                            (wisi-anchored% 2 (* 2 ada-indent-broken)))
+                          (wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
+                            (wisi-anchored% 2 (* 2 ada-indent-broken)))]])
   | discrete_choice_list EQUAL_GREATER BOX
     (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken 0])
   | expression
- ;; test/adacore_9907_010.adb
- ;; Put_Line ("hello " &
- ;;             "world" &
- ;;             " in ada");
-    (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])
+ ;; test/ada_mode-parens.adb Hello
+    (wisi-indent-action [[(wisi-hanging 0 ada-indent-broken) (wisi-hanging 0 ada-indent-broken)]])
   ;
 
 association_list
@@ -2412,7 +2413,7 @@ single_protected_declaration
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0]))
     (wisi-match-names 2 8 t)
- 
+
   | PROTECTED IDENTIFIER aspect_specification_opt IS protected_definition SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 name 4 motion 6 statement-end])

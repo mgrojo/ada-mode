@@ -211,56 +211,101 @@ package body WisiToken.Wisi_Runtime.Ada is
             Hanging_Accumulate => Accumulate);
       end Result;
 
+      function Comment_Result (D : in Simple_Indent_Param) return Delta_Type
+      is begin
+         return Indent_Compute_Delta
+           (Data, Tokens, (Simple, D), Indenting_Token, Indenting_Comment => False);
+      end Comment_Result;
+
+      use Ada_Process;
+      Prev_1 : constant Token_ID := Peek_ID (Data, 1);
+      Prev_3 : constant Token_ID := Peek_ID (Data, 3);
    begin
-      if Indenting_Comment then
-         return Indent_Compute_Delta (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment);
-      else
+      if Indenting_Token.ID = +expression_opt_ID
+        and then
+        ((Prev_1 = +WITH_ID and
+            (Prev_3 = Invalid_Token_ID or
+               Prev_3 /= +LEFT_PAREN_ID))
+           or
+           Prev_3 = +WITH_ID)
+      then
+         --  in aspect_specification_opt
+         return Result
+           (Delta_1,
+            Indent_Anchored_2
+              (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
+               Current_Indent_Offset (Data, Indenting_Token, 0),
+               Accumulate => False).Simple_Delta);
+
+      elsif Ada_Indent_Hanging_Rel_Exp then
          declare
-            use Ada_Process;
-            Prev_1 : constant Token_ID := Peek_ID (Data, 1);
-            Prev_3 : constant Token_ID := Peek_ID (Data, 3);
+            New_Delta_2 : constant Simple_Delta_Type := Indent_Anchored_2
+              (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
+               Current_Indent_Offset (Data, Indenting_Token, Ada_Indent_Broken),
+               Accumulate => False).Simple_Delta;
          begin
-            if Indenting_Token.ID = +expression_opt_ID
-              and
-              ((Prev_1 = +WITH_ID and
-                  (Prev_3 = Invalid_Token_ID or
-                     Prev_3 /= +LEFT_PAREN_ID))
-                 or
-                 Prev_3 = +WITH_ID)
-            then
-               --  in aspect_specification_opt
-               return Result
-                 (Delta_1,
-                  Indent_Anchored_2
-                    (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
-                     Current_Indent_Offset (Data, Indenting_Token, 0),
-                     Accumulate => False).Simple_Delta);
-
-            elsif Ada_Indent_Hanging_Rel_Exp then
-               declare
-                  New_Delta_2 : constant Simple_Delta_Type := Indent_Anchored_2
-                    (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
-                     Current_Indent_Offset (Data, Indenting_Token, Ada_Indent_Broken),
-                     Accumulate => False).Simple_Delta;
-               begin
-                  if not Option or Indenting_Token.Line = Indenting_Token.First_Indent_Line then
-                     return Result (Delta_1, New_Delta_2);
-                  else
-                     return Result (New_Delta_2);
-                  end if;
-               end;
-            elsif not Option or Indenting_Token.Line = Indenting_Token.First_Indent_Line then
-               return Result
-                 (Delta_1,
-                  Indent_Compute_Delta
-                    (Data, Tokens, (Simple, Delta_2), Indenting_Token, Indenting_Comment).Simple_Delta);
-
+            if not Option or Indenting_Token.Line = Indenting_Token.First_Indent_Line then
+               return Result (Delta_1, New_Delta_2);
             else
-               return Result
-                 (Indent_Compute_Delta
-                    (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment).Simple_Delta);
+               return Result (New_Delta_2);
             end if;
          end;
+
+      elsif Indenting_Comment then
+         --  Use delta for last line of Indenting_Token.
+         --  Test cases in test/ada_mode-parens.adb Hello
+         declare
+            First_Terminal : WisiToken.Semantic_State.Augmented_Token renames
+              Data.Semantic_State.All_Tokens (Indenting_Token.First_All_Tokens_Index);
+
+            First_Terminal_First_On_Line : constant Boolean := First_Terminal.First and
+              First_Terminal.First_Indent_Line /= Invalid_Line_Number;
+         begin
+            if Option then
+               --  Test cases with "Item => ..."
+               if First_Terminal_First_On_Line then
+                  if Indenting_Token.First_Indent_Line = Indenting_Token.Last_Indent_Line then
+                     return Comment_Result (Delta_1);
+                  else
+                     return Comment_Result (Delta_2);
+                  end if;
+               else
+                  if Indenting_Token.First_Indent_Line = Invalid_Line_Number then
+                     return Comment_Result ((Int, 0));
+                  else
+                     return Comment_Result (Delta_1);
+                  end if;
+               end if;
+
+            else
+               if First_Terminal_First_On_Line then
+                  if Indenting_Token.First_Indent_Line = Indenting_Token.Last_Indent_Line then
+                     return Comment_Result (Delta_1);
+                  else
+                     return Comment_Result (Delta_2);
+                  end if;
+               else
+                  if Indenting_Token.First_Indent_Line = Invalid_Line_Number or
+                    Indenting_Token.First_Indent_Line = Indenting_Token.First_Indent_Line
+                  then
+                     return Comment_Result (Delta_1);
+                  else
+                     return Comment_Result (Delta_2);
+                  end if;
+               end if;
+            end if;
+         end;
+
+      elsif not Option or Indenting_Token.Line = Indenting_Token.First_Indent_Line then
+         return Result
+           (Delta_1,
+            Indent_Compute_Delta
+              (Data, Tokens, (Simple, Delta_2), Indenting_Token, Indenting_Comment).Simple_Delta);
+
+      else
+         return Result
+           (Indent_Compute_Delta
+              (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment).Simple_Delta);
       end if;
    end Indent_Hanging_1;
 

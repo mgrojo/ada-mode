@@ -169,7 +169,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Anchored_0, 1, 1)), (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end aggregate_0;
 
@@ -183,7 +183,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 1))), (True, (Simple, (Anchored_0, 1, 1)), (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end aggregate_1;
 
@@ -197,7 +197,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Anchored_0, 1, 1)), (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end aggregate_2;
 
@@ -296,7 +296,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_1, 2, Ada_Indent_Broken)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Anchored_1, 2, Ada_Indent_Broken)), (Simple, (Anchored_1, 2, Ada_Indent_Broken)))));
       end case;
    end association_opt_1;
 
@@ -310,7 +310,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Hanging_0, (Int, 0), (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Hanging_2, (Anchored_1, 2, Ada_Indent_Broken), (Anchored_1, 2, 2 * Ada_Indent_Broken)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Hanging_0, (Int, 0), (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Hanging_2, (Anchored_1, 2, Ada_Indent_Broken), (Anchored_1, 2, 2 * Ada_Indent_Broken)), (Hanging_2, (Anchored_1, 2, Ada_Indent_Broken), (Anchored_1, 2, 2 * Ada_Indent_Broken)))));
       end case;
    end association_opt_3;
 
@@ -338,7 +338,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, (1 => (False, (Hanging_0, (Int, 0), (Int, Ada_Indent_Broken)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, (1 => (True, (Hanging_0, (Int, 0), (Int, Ada_Indent_Broken)), (Hanging_0, (Int, 0), (Int, Ada_Indent_Broken)))));
       end case;
    end association_opt_5;
 
