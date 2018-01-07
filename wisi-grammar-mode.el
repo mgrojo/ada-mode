@@ -41,7 +41,7 @@
 
 (defvar wisi-grammar-mode-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\; ". 12" table); see wisi-grammar-syntax-propertize for double semicolon as comment
+    ;; see wisi-grammar-syntax-propertize for double semicolon as comment
     (modify-syntax-entry ?\n ">   " table)
     table))
 
@@ -194,6 +194,10 @@ Otherwise insert a plain new line."
 (define-derived-mode wisi-grammar-mode prog-mode "Wisi"
   "A major mode for Wisi grammar files."
   (set (make-local-variable 'syntax-propertize-function) 'wisi-grammar-syntax-propertize)
+  (syntax-ppss-flush-cache (point-min));; reparse with new function
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+
   (set (make-local-variable 'comment-start) ";;")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
@@ -201,8 +205,11 @@ Otherwise insert a plain new line."
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'add-log-current-defun-function)
        'wisi-grammar-add-log-current-function)
+  (setq wisi-size-threshold most-positive-fixnum);; grammar is simple enough for very large files
 
   (add-hook 'xref-backend-functions #'wisi-grammar--xref-backend nil t)
+  (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
+  (add-hook 'before-save-hook 'copyright-update nil t)
 
   (wisi-setup
    :indent-calculate nil
@@ -215,6 +222,13 @@ Otherwise insert a plain new line."
 	     :token-table wisi_grammar-process-token-table
 	     ))
    :lexer nil)
+
+  ;; Our wisi parser does not fontify comments and strings, so tell
+  ;; font-lock to do that.
+  (setq font-lock-defaults
+	'(nil ;; keywords
+	  nil ;; keywords-only
+	  ))
   )
 
 ;;;###autoload

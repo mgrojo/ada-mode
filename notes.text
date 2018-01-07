@@ -4,6 +4,7 @@ Makefile
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
   (xmtn . "c:/Projects/org.stephe_leake.sal")
   (xmtn . "c:/Projects/org.wisitoken")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2") ;; aka wisi
   (xmtn . "c:/Projects/org.wisitoken.grammar_mode/")))
 
 (progn
