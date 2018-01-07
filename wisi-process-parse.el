@@ -201,7 +201,6 @@ complete."
   ;; sexp is [Navigate_Cache pos statement_id id length class containing_pos prev_pos next_pos end_pos]
   ;; see ‘wisi-process-parse--execute’
   (let ((pos (aref sexp 1)))
-    ;; FIXME: faster to check for & modify existing?
     (with-silent-modifications
       (put-text-property
        pos
@@ -222,7 +221,6 @@ complete."
 (defun wisi-process-parse--Face_Property (parser sexp)
   ;; sexp is [Face_Property first-pos last-pos face-index]
   ;; see ‘wisi-process-parse--execute’
-  ;; FIXME: faster to check for & modify existing?
   ;; implements wisi--face-action-1
   (with-silent-modifications
     (add-text-properties
@@ -236,7 +234,6 @@ complete."
   ;; sexp is [Indent line-number indent]
   ;; see ‘wisi-process-parse--execute’
   (let ((pos (aref (wisi-process--parser-line-begin parser) (1- (aref sexp 1)))))
-    ;; FIXME: faster to check for & modify existing?
     (with-silent-modifications
       (put-text-property
        (1- pos)
@@ -251,7 +248,7 @@ complete."
   (let ((pos (aref sexp 1))
 	err)
 
-    (goto-char pos)
+    (goto-char pos);; for current-column
 
     (setq err
 	  (make-wisi--error

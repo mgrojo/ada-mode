@@ -449,10 +449,10 @@ access_definition
 actual_parameter_part
   : LEFT_PAREN association_list RIGHT_PAREN
  ;; see note in test/ada_mode-parens.adb Local_10 about right paren indent.
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
+    (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)])
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
+    (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)])
   ;
 
 actual_parameter_part_opt

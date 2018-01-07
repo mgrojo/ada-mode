@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -661,8 +661,10 @@ Used to ignore whitespace changes in before/after change hooks.")
 
 (defun wisi-fontify-region (_begin end)
   "For `jit-lock-functions'."
-  (when (< (point-max) wisi-size-threshold)
-    (wisi-validate-cache end nil 'face)))
+  (if (< (point-max) wisi-size-threshold)
+      (wisi-validate-cache end nil 'face)
+    (when (> wisi-debug 0)
+      (message "fontify skipped due to ‘wisi-size-threshold’"))))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
@@ -1178,7 +1180,6 @@ If non-nil, only repair errors in BEG END region."
 
 (defun wisi-parse-buffer (&optional parse-action)
   (interactive)
-  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
   (unless parse-action (setq parse-action 'indent))
   (wisi-set-parse-try t parse-action)
   (move-marker (wisi-cache-max parse-action) (point-max));; force delete caches

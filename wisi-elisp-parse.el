@@ -1,6 +1,6 @@
 ;; wisi-elisp-parse.el --- Wisi parser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2015, 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015, 2017 - 2018  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -116,6 +116,9 @@ point at which that max was spawned.")
       (t nil))
 
     (setf (wisi-parser-errors parser) nil)
+
+    ;; We assume the lexer relies on syntax properties
+    (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
     (goto-char (point-min))
     (forward-comment (point-max))

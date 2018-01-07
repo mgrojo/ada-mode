@@ -285,9 +285,8 @@ package body WisiToken.Wisi_Runtime.Ada is
                      return Comment_Result (Delta_2);
                   end if;
                else
-                  if Indenting_Token.First_Indent_Line = Invalid_Line_Number or
-                    Indenting_Token.First_Indent_Line = Indenting_Token.First_Indent_Line
-                  then
+                  if Indenting_Token.First_Indent_Line = Invalid_Line_Number then
+                     --  Comment is after first line in token
                      return Comment_Result (Delta_1);
                   else
                      return Comment_Result (Delta_2);

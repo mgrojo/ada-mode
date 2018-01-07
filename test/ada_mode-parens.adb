@@ -469,19 +469,19 @@ package body Ada_Mode.Parens is
 
       Ada.Text_IO.Put_Line (Item =>
                               Hello & There
-                            --  Comment before trailing paren, token.First = True
+                              --  Comment before trailing paren, token.First = True
                            );
       Ada.Text_IO.Put_Line (Item =>
                               Hello &
                                 There
-                            --  Comment before trailing paren, token.First = True
+                                --  Comment before trailing paren, token.First = True
                            );
       Ada.Text_IO.Put_Line (Item => Hello & There
                             --  Comment before trailing paren, token.First = False
                            );
       Ada.Text_IO.Put_Line (Item => Hello &
                               There
-                            --  Comment before trailing paren, token.First = False
+                              --  Comment before trailing paren, token.First = False
                            );
    end Hello;
 

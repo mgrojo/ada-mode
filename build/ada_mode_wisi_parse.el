@@ -3,7 +3,7 @@
 (require 'ada-project)
 (require 'xref-ada)
 
-(setq project-find-functions '(project-menu-prj))
+(add-to-list 'project-find-functions 'project-menu-prj)
 
 (let* ((prj-file (expand-file-name "ada_mode_wisi_parse.prj"))
        (prj-name "ada_mode_wisi_parse main")

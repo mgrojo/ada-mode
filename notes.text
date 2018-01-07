@@ -37,15 +37,6 @@ run test from emacs -Q using source:
    ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
  current work
-ada.wy not fontified when opened
-    parse 'face aborted due to parser busy
-    never recovers
-        see comments in wisi-process-parser.el on 'quit'
-        changed to signal error; see if that helps
-
-Delete comment-starter syntax?
-    in ada-mode.el for '-'
-
 clean up gpr-mode; delete 'we reuse ada' comments
 
 clean up Makefile, common.make

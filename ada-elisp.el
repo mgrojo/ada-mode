@@ -195,19 +195,20 @@
         (wisi-indent-action [0 0 0 0 (wisi-anchored%- 4 ada-indent-broken)])))
       (actual_parameter_part
        ((LEFT_PAREN association_list RIGHT_PAREN )
-        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+        (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))
        ((LEFT_PAREN conditional_quantified_expression RIGHT_PAREN )
-        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))
+        (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)])))
       (actual_parameter_part_opt
        (())
        ((actual_parameter_part )))
       (aggregate
        ((LEFT_PAREN association_list RIGHT_PAREN )
-        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+        (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))
        ((LEFT_PAREN expression_opt WITH association_list RIGHT_PAREN )
-        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1) [(wisi-anchored 1 1) (wisi-anchored 1 1)]
+        (wisi-anchored 1 0)]))
        ((LEFT_PAREN conditional_quantified_expression RIGHT_PAREN )
-        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+        (wisi-indent-action [0 [(wisi-anchored 1 1) (wisi-anchored 1 1)] (wisi-anchored 1 0)]))
        ((LEFT_PAREN expression_opt WITH NULL RECORD RIGHT_PAREN )
         (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1) 0 0 (wisi-anchored 1 0)]))
        ((LEFT_PAREN NULL RECORD RIGHT_PAREN )))
@@ -246,17 +247,20 @@
       (association_opt
        (())
        ((CHARACTER_LITERAL EQUAL_GREATER expression_opt )
-        (wisi-indent-action [0 ada-indent-broken (wisi-anchored% 2 ada-indent-broken)]))
+        (wisi-indent-action [0 ada-indent-broken
+        [(wisi-anchored% 2 ada-indent-broken) (wisi-anchored% 2 ada-indent-broken)]]))
        ((CHARACTER_LITERAL EQUAL_GREATER BOX ))
        ((discrete_choice_list EQUAL_GREATER expression_opt )
         (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)
         ada-indent-broken
+        [(wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
+        (wisi-anchored% 2 (* 2 ada-indent-broken)))
         (wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
-        (wisi-anchored% 2 (* 2 ada-indent-broken)))]))
+        (wisi-anchored% 2 (* 2 ada-indent-broken)))]]))
        ((discrete_choice_list EQUAL_GREATER BOX )
         (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken 0]))
        ((expression )
-        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])))
+        (wisi-indent-action [[(wisi-hanging 0 ada-indent-broken) (wisi-hanging 0 ada-indent-broken)]])))
       (association_list
        ((association_opt ))
        ((association_list COMMA association_opt )))

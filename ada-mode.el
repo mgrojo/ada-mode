@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2017  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -1840,7 +1840,7 @@ Indexed by project variable xref_tool.")
     (modify-syntax-entry ?&  "." table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?+  "." table)
-    (modify-syntax-entry ?-  ". 12" table); operator; see ada-syntax-propertize for double hyphen as comment
+    (modify-syntax-entry ?-  "." table); operator; see ada-syntax-propertize for double hyphen as comment
     (modify-syntax-entry ?. "." table)
     (modify-syntax-entry ?/  "." table)
     (modify-syntax-entry ?:  "." table)
@@ -2858,10 +2858,10 @@ The paragraph is indented on the first line."
 
   (set (make-local-variable 'require-final-newline) t)
 
-  ;; 'font-lock-defaults' is a confusing name; it's buffer local
   (setq font-lock-defaults
-	'(ada-font-lock-keywords
-	  nil t
+	'(ada-font-lock-keywords ;; keywords
+	  nil ;; keywords only; comment, string faces not set by wisi parser
+	  t ;; case-fold
 	  ((?\_ . "w")))); treat underscore as a word component
 
   (set (make-local-variable 'ff-other-file-alist)
