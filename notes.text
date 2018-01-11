@@ -2,7 +2,7 @@ build/Makefile
 
 branches:
 org.wisitoken          - working, used by o.e.a.s-2
-org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
+org.wisitoken.stephe-1 - available
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -10,6 +10,10 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
+improve ada_mode-recover_block_name_mismatch.adb
+    make name mismatch a parse error, so mckenzie fix is easier
+    in o.w.s-1
+
 Use correction cost to pick parser in terminate duplicate
 
 update NEWS.text

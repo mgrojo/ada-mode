@@ -57,7 +57,7 @@ begin
    Add_Test (Suite, new Name_Grammar_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Accept_State.Test_Case (Debug => 0));
    Add_Test (Suite, new Test_Ada_Lite.Test_Case);
-   Add_Test (Suite, new Test_Character_Literal.Test_Case (Debug => 0));
+   Add_Test (Suite, new Test_Character_Literal.Test_Case);
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => 0));
    Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Cost_Limit => Natural'Last));

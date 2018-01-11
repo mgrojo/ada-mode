@@ -98,7 +98,7 @@ package body Test_Accept_State is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,

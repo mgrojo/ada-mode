@@ -146,7 +146,7 @@ package body Association_Grammar_Test is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Full_Grammar,
             LALR_Descriptor,

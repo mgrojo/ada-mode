@@ -677,6 +677,16 @@ package body Wisi.Gen_Generate_Utils is
                     (Error       => Find_Token_ID (-Pat.Error),
                      Delete_Thru => Find_Token_ID (-Pat.Delete_Thru)));
             end;
+         elsif Pattern in Wisi.Recover_Block_Mismatched_Names'Class then
+            declare
+               Pat : Wisi.Recover_Block_Mismatched_Names renames Wisi.Recover_Block_Mismatched_Names (Pattern);
+            begin
+               Result.Patterns.Append
+                 (WisiToken.LR.Recover_Block_Mismatched_Names'
+                    (End_ID       => Find_Token_ID (-Pat.End_ID),
+                     Name_ID      => Find_Token_ID (-Pat.Name_ID),
+                     Semicolon_ID => Find_Token_ID (-Pat.Semicolon_ID)));
+            end;
          else
             raise Programmer_Error;
          end if;

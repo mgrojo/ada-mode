@@ -6,7 +6,7 @@
 --  Run here, rather than directly from rules.make, to allow
 --  specifying different input files for different tests.
 --
---  Copyright (C) 2017 Stephen Leake. All Rights Reserved.
+--  Copyright (C) 2017 - 2018 Stephen Leake. All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -32,5 +32,7 @@ package Test_Ada_Lite is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
+
+   overriding procedure Tear_Down_Case (Test : in out Test_Case);
 
 end Test_Ada_Lite;

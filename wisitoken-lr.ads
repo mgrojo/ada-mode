@@ -12,7 +12,7 @@
 --
 --  [info] Docs/wisi-user_guide.texinfo
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -269,6 +269,15 @@ package WisiToken.LR is
    end record;
 
    overriding function Image (Item : in Recover_End_EOF) return String;
+
+   type Recover_Block_Mismatched_Names is new Pattern with record
+      --  See [info] node Error Recovery
+      End_ID       : Token_ID;
+      Name_ID      : Token_ID;
+      Semicolon_ID : Token_ID;
+   end record;
+
+   overriding function Image (Item : in Recover_Block_Mismatched_Names) return String;
 
    type McKenzie_Param_Type
      (First_Terminal    : Token_ID;

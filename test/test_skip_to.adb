@@ -53,7 +53,7 @@ package body Test_Skip_To is
          use Ada.Exceptions;
       begin
          Ada.Text_IO.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-         WisiToken.Semantic_State.Put (File_Name, State.Errors, Skip_To_Grammar.Descriptor);
+         WisiToken.Semantic_State.Put (File_Name, State.Parser_Errors, Skip_To_Grammar.Descriptor);
       end;
       AUnit.Assertions.Assert (False, "syntax error");
    end Nominal;

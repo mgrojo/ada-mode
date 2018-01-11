@@ -9,7 +9,7 @@
        (prj-name "wisitoken main")
        (prj (make-ada-project
 	     :env-vars nil
-	     :ada-prj prj-file)))
+	     :ada-prj-file prj-file)))
 
   (project-menu-add-project prj prj-name default-directory)
 

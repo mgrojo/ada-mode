@@ -172,7 +172,7 @@ package body Name_Grammar_Test is
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Simple_Grammar,
                LALR_Descriptor,
@@ -194,7 +194,7 @@ package body Name_Grammar_Test is
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Medium_Grammar,
                LALR_Descriptor,
@@ -215,7 +215,7 @@ package body Name_Grammar_Test is
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Full_Grammar,
                LALR_Descriptor,

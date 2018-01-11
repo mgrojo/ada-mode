@@ -36,7 +36,9 @@
     (TICK_1 . "'")
     (LEFT_PAREN . "(")
     (RIGHT_PAREN . ")")
-    (CHARACTER_LITERAL . "'"[\x20-\U0010FFFF]"'")
+    )
+   ("string-single"
+    (CHARACTER_LITERAL . "")
     )
    ("symbol"
     (IDENTIFIER . "")

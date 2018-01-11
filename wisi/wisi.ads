@@ -155,6 +155,12 @@ package Wisi is
       Delete_Thru : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
+   type Recover_Block_Mismatched_Names is new Pattern with record
+      End_ID       : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Name_ID      : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Semicolon_ID : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
    type McKenzie_Recover_Param_Type is record
       Default_Insert             : Natural := 0;
       Default_Delete_Terminal    : Natural := 0;

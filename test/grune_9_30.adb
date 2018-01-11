@@ -162,7 +162,7 @@ package body Grune_9_30 is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State'Access,

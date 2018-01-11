@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -58,7 +58,7 @@ package body Test_Ada_Lite is
       exception
       when E : WisiToken.Syntax_Error =>
          Ada.Text_IO.Put_Line (Input_File_Name & ":" & Exception_Message (E));
-         WisiToken.Semantic_State.Put (Input_File_Name, Ada_Lite.State.Errors, Ada_Lite.Descriptor);
+         WisiToken.Semantic_State.Put (Input_File_Name, Ada_Lite.State.Parser_Errors, Ada_Lite.Descriptor);
 
       when E : others =>
          Set_Output (Standard_Output);
@@ -89,6 +89,13 @@ package body Test_Ada_Lite is
    begin
       Register_Routine (T, Propagate_Names'Access, "Propagate_Names");
    end Register_Tests;
+
+   overriding procedure Tear_Down_Case (Test : in out Test_Case)
+   is
+      pragma Unreferenced (Test);
+   begin
+      WisiToken.Trace_Parse := 0;
+   end Tear_Down_Case;
 
 begin
    Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.State'Access);

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -622,9 +622,9 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
 
-      Item         : constant Check_Item    := Check_Item_Queue.Get;
-      Check_Config : Configuration := Item.Config;
-      Check_Token  : Base_Token    := Item.Current_Token;
+      Item         : constant Check_Item := Check_Item_Queue.Get;
+      Check_Config : Configuration       := Item.Config;
+      Check_Token  : Base_Token          := Item.Current_Token;
 
       Action : Parse_Action_Node_Ptr :=
         (if Item.Action = null
@@ -1078,6 +1078,72 @@ package body WisiToken.LR.McKenzie_Recover is
       end if;
    end Apply_Pattern;
 
+   procedure Apply_Pattern
+     (Pattern      : in     Recover_Block_Mismatched_Names;
+      Parser_State : in out Parser_Lists.Parser_State;
+      Error_ID     : in     Token_ID;
+      Root_Config  : in     Configuration;
+      Shared       : in     Shared_Lookahead;
+      Table        : in     Parse_Table;
+      Trace        : in out WisiToken.Trace'Class)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Parser_State.Stack.Depth > 3 and then
+        (Parser_State.Stack.Peek (3).Token.ID = Pattern.End_ID and
+           Parser_State.Stack.Peek (2).Token.ID = Pattern.Name_ID and
+           Parser_State.Stack.Peek (1).Token.ID = Pattern.Semicolon_ID)
+      then
+         declare
+            Descriptor  : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
+            Action      : constant Parse_Action_Node_Ptr := Action_For (Table, Root_Config.Stack.Peek.State, Error_ID);
+            Test_Config : Configuration                  := Root_Config;
+            Nonterm     : Base_Token;
+         begin
+            --  FIXME: action is Error
+            if Action.Item.Verb = Reduce  then
+               if Error = Reduce_Stack
+                 (Test_Config.Stack, Action.Item, Nonterm, Shared.Shared_Parser.Lexer, Trace, Trace_Level => 0)
+               then
+                  if Trace_McKenzie > Outline then
+                     Trace.Put_Line
+                       ("special rule recover_block_mismatched_names " &
+                          Image (Pattern.End_ID, Descriptor) & ", " &
+                          Image (Pattern.Name_ID, Descriptor) & ", " &
+                          Image (Pattern.Semicolon_ID, Descriptor) &
+                          " matched.");
+                  end if;
+
+                  declare
+                     Config : Configuration := Root_Config;
+                     ID     : Token_ID;
+                  begin
+                     for I in 1 .. 3 loop
+                        ID := Config.Stack.Pop.Token.ID;
+                        Config.Popped.Append (ID);
+                     end loop;
+
+                     --  Insert the missing 'end <name> ;'
+                     Config.Local_Lookahead.Append (Pattern.End_ID);
+                     Config.Local_Lookahead.Append (Pattern.Name_ID);
+                     Config.Local_Lookahead.Append (Pattern.Semicolon_ID);
+
+                     --  FIXME: add to Config.Inserted?
+
+                     --  Replace the popped 'end <name> ;'
+                     --  IMPROVEME: if Local_Lookahead was Base_Token_Array, could preserve name.
+                     Config.Local_Lookahead.Append (Pattern.End_ID);
+                     Config.Local_Lookahead.Append (Pattern.Name_ID);
+                     Config.Local_Lookahead.Append (Pattern.Semicolon_ID);
+
+                     Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
+                  end;
+               end if;
+            end if;
+         end;
+      end if;
+   end Apply_Pattern;
+
    procedure Patterns
      (Shared_Parser : in out LR.Instance'Class;
       Shared        : in     Shared_Lookahead;
@@ -1098,6 +1164,10 @@ package body WisiToken.LR.McKenzie_Recover is
 
          elsif Pattern in Recover_End_EOF'Class then
             Apply_Pattern (Recover_End_EOF (Pattern), Parser_State, Error_ID, Root_Config, Shared, Table, Trace);
+
+         elsif Pattern in Recover_Block_Mismatched_Names'Class then
+            Apply_Pattern
+              (Recover_Block_Mismatched_Names (Pattern), Parser_State, Error_ID, Root_Config, Shared, Table, Trace);
          end if;
       end loop;
    end Patterns;

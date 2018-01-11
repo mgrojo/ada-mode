@@ -141,11 +141,12 @@ package body WisiToken.Lexer.Regexp is
 
    function New_Lexer
      (Trace  : not null access WisiToken.Trace'Class;
+      Errors : not null access Error_Lists.List;
       Syntax : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle
    is
       use type Token_ID;
-      New_Lexer : constant access Instance := new Instance (Trace, Syntax'Last);
+      New_Lexer : constant access Instance := new Instance (Trace, Errors, Syntax'Last);
    begin
       New_Lexer.Syntax := Syntax;
 

@@ -51,11 +51,13 @@ package WisiToken.Lexer.Regexp is
 
    type Instance
      (Trace         : not null access WisiToken.Trace'Class;
+      Errors        : not null access Error_Lists.List;
       Last_Terminal : Token_ID)
      is new WisiToken.Lexer.Instance with private;
 
    function New_Lexer
      (Trace  : not null access WisiToken.Trace'Class;
+      Errors : not null access Error_Lists.List;
       Syntax : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle;
 
@@ -91,8 +93,9 @@ private
 
    type Instance
      (Trace         : not null access WisiToken.Trace'Class;
+      Errors        : not null access Error_Lists.List;
       Last_Terminal : Token_ID)
-     is new WisiToken.Lexer.Instance (Trace => Trace) with
+     is new WisiToken.Lexer.Instance (Trace => Trace, Errors => Errors) with
    record
       ID          : Token_ID; --  last token read by find_next
       Syntax      : WisiToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);

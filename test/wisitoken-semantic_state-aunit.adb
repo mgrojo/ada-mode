@@ -68,8 +68,8 @@ package body WisiToken.Semantic_State.AUnit is
 
    procedure Check
      (Label              : in String;
-      Computed           : in Error_Data;
-      Expected           : in Error_Data;
+      Computed           : in Parser_Error_Data;
+      Expected           : in Parser_Error_Data;
       Check_Recover_Data : in WisiToken.Semantic_State.AUnit.Check_Recover_Type)
    is
       use WisiToken.AUnit;

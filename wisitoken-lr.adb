@@ -66,6 +66,17 @@ package body WisiToken.LR is
         ")";
    end Image;
 
+   overriding
+   function Image (Item : in Recover_Block_Mismatched_Names) return String
+   is begin
+      return
+        "WisiToken.LR.Recover_Block_Mismatched_Names'(" &
+        Int_Image (Item.End_ID) & "," &
+        Token_ID'Image (Item.Name_ID)  & "," &
+        Token_ID'Image (Item.Semicolon_ID) &
+        ")";
+   end Image;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type)
    is
       use Ada.Text_IO;

@@ -321,7 +321,7 @@ package body Dragon_4_43_LR1_Test is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State'Access,

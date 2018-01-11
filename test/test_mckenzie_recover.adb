@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -124,7 +124,7 @@ package body Test_McKenzie_Recover is
 
       declare
          use WisiToken.Semantic_State;
-         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
       begin
          Check ("errors.length", Error_List.Length, 1);
       end;
@@ -153,9 +153,9 @@ package body Test_McKenzie_Recover is
          use WisiToken.AUnit;
          use WisiToken.Semantic_State;
          use WisiToken.Semantic_State.AUnit;
-         use WisiToken.Semantic_State.Error_Data_Lists;
-         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check
@@ -520,9 +520,9 @@ package body Test_McKenzie_Recover is
       Check ("1 errors.length", State.Active_Error_List.Length, 1);
       declare
          use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Error_Data_Lists;
-         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check
            ("errors.error_token",
@@ -561,9 +561,9 @@ package body Test_McKenzie_Recover is
       Check ("1 errors.length", State.Active_Error_List.Length, 1);
       declare
          use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Error_Data_Lists;
-         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check
            ("errors.error_token",
@@ -609,9 +609,9 @@ package body Test_McKenzie_Recover is
       Check ("1 errors.length", State.Active_Error_List.Length, 1);
       declare
          use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Error_Data_Lists;
-         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check
            ("errors 1.error_token",
@@ -761,11 +761,11 @@ package body Test_McKenzie_Recover is
       Check ("errors.length", State.Active_Error_List.Length, 2);
       declare
          use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Error_Data_Lists;
+         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
          use WisiToken.LR.AUnit;
          use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
-         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Error_Data_Lists.Cursor := Error_List.Last;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.Last;
       begin
          Check
            ("errors 2.error_token",
@@ -780,6 +780,55 @@ package body Test_McKenzie_Recover is
    when E : WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
    end Pattern_End_EOF;
+
+   procedure Pattern_Block_Mismatched_Names (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+      use WisiToken.Semantic_State.AUnit;
+   begin
+      Parse_Text
+        ("package body Debug is procedure Find_First is begin begin Match (Middle_Initial_Pat); end Find_First;" &
+           --      |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
+           "procedure Swap_Names is begin end Swap_Names; begin end Debug; ");
+      --    |101     |110
+
+      --  Missing 'end' 87.
+      --
+      --  Error recovery entered at 'procedure' 101, expecting declaration.
+      --  Without pattern_block_mismatched_names, fails to find a solution.
+      --  With pattern_block_mismatched_names, pops 'end Find_first;', inserts
+      --  'end <name> ;' twice.
+
+      Check ("errors.length", State.Active_Error_List.Length, 1);
+      declare
+         use WisiToken.Semantic_State;
+         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.Last;
+      begin
+         Check
+           ("errors 1.error_token",
+            Element (Cursor).Error_Token,
+            (+PROCEDURE_ID, (102, 110), WisiToken.Null_Buffer_Region, 1, 101, (102, 110), others => <>));
+         Check
+           ("errors 1.recover.popped",
+            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
+            To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
+         Check
+           ("errors 1.recover.inserted",
+            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
+            To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID, +END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
+      end;
+   exception
+   when E : WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   end Pattern_Block_Mismatched_Names;
 
    ----------
    --  Public subprograms
@@ -814,6 +863,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Match_Name'Access, "Match_Name");
       Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
       Register_Routine (T, Pattern_End_EOF'Access, "Pattern_End_EOF");
+      Register_Routine (T, Pattern_Block_Mismatched_Names'Access, "Pattern_Block_Mismatched_Names");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)

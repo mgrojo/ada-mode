@@ -133,8 +133,8 @@ package body Test_LR_Expecting is
    when WisiToken.Syntax_Error =>
       declare
          use WisiToken.Semantic_State;
-         List  : Error_Data_Lists.List renames State.Active_Error_List;
-         Error : Error_Data renames List.Constant_Reference (List.First);
+         List  : Parser_Error_Data_Lists.List renames State.Active_Error_List;
+         Error : Parser_Error_Data renames List.Constant_Reference (List.First);
       begin
          WisiToken.AUnit.Check (Command, Error.Expecting, Expected);
       end;
@@ -150,7 +150,7 @@ package body Test_LR_Expecting is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,
