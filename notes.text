@@ -37,10 +37,26 @@ run test from emacs -Q using source:
    ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
  current work
+indent bug:
+    function Image (Item : in Error_Label_Set) return String
+       is
+       use Ada.Strings.Unbounded;
+       Result : Unbounded_String := +"(";
+       Need_Comma : Boolean := False;
+       begin
+          for I in Item'Range loop
+             if Item (I) then
+                Result := result
+          end loop;
+       end Image;
+
 clean up gpr-mode; delete 'we reuse ada' comments
 
 clean up Makefile, common.make
     see wisi_grammar
+
+use gpr src exclude in compile tests
+    get single invocation of gprbuild
 
 Mark syntax error lines in margin.
     What does fly-check do?

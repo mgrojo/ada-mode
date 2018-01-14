@@ -393,6 +393,7 @@ package body WisiToken.Wisi_Runtime is
       To_Codes (Item.Popped);
       Append (Line, "][");
       To_Codes (Item.Pushed);
+      --  FIXME: add Item.Local_Lookahead to inserted
       To_Codes (Item.Inserted);
       Append (Line, "][");
       To_Codes (Item.Deleted);

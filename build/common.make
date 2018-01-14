@@ -72,6 +72,7 @@ SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-spec.ads
 # not worth making these compile
 COMPILE_FILES := $(filter-out ada_mode-recover_align_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_bad_character.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_block_name_mismatch.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_2.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_3.adb, $(COMPILE_FILES))

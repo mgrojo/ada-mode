@@ -1,4 +1,4 @@
-# Build elisp code, Ada executables, manuals; publish to web and ELPA
+0# Build elisp code, Ada executables, manuals; publish to web and ELPA
 #
 # The gprbuild commands depend on the GPR_PROJECT_PATH environment
 # variable, that is set in the project files loaded in the file local
@@ -91,26 +91,30 @@ test-wisi :: ../test/wisi/subprograms_re2c.c subprograms_process.ads
 test-wisi :: ../test/wisi/subprograms_wisi_parse.exe
 test-wisi :: RUNTEST := run-indent-test-process-gpr_query.el
 test-wisi :: subprograms.input.diff
+test-wisi :: force
+	find . -name "*.diff" -not -size 0 >> test.log
 
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += ada_mode-nominal-child.ads
-#one : build_ada_executables
+ONE_TEST_FILES += ada_mode-parens.adb
+one : build_ada_executables
+#one : subprograms_wisi_parse.exe
 #one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 #one : RUNTEST := run-indent-test-elisp-gpr_query.el
-one : RUNTEST := run-indent-test-elisp-gpr_query.el
+one : RUNTEST := run-indent-test-process-gpr_query.el
 one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
-#one : $(addsuffix .input.diff, $(ONE_TEST_FILES))
+#one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
-#two : RUN_ARGS ?= --verbosity 1
-#two : RUN_ARGS ?= --repeat_count 5
-#two : export Standard_Common_Build := Debug
-two : build_ada_executables
-	../run_ada_parse.exe ../test/bug_2017_12_12_01.adb Indent $(RUN_ARGS)
+two : RUN_ARGS ?= --verbosity 2 2 --cost_limit 12
+#two : RUN_LOG ?= > recover_pattern_2.log
+two : export Standard_Common_Build := Debug
+#two : build_ada_executables
+two :
+	../run_ada_parse.exe ../test/debug.adb Indent $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables
@@ -138,7 +142,7 @@ export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else
 # windows
-export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
+export WISI_WISITOKEN ?= c:/Projects/org.wisitoken/build
 export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
@@ -165,6 +169,7 @@ test-ada-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-process-gpr_query
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 # ada-gps specific tests
 test-ada-gps : RUNTEST := run-indent-test-gps.el
@@ -174,6 +179,7 @@ test-ada-gps.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gps
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 test-gpr-elisp : RUNTEST := run-indent-test-elisp-gpr_query.el
 test-gpr-elisp : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
@@ -182,6 +188,7 @@ test-gpr-elisp.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-gpr-elisp
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 test-gpr-process : RUNTEST := run-indent-test-process-gpr_query.el
 test-gpr-process : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
@@ -190,6 +197,7 @@ test-gpr-process.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-gpr-process
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 # compare gps indent to ada-wisi indent
 compare-ada-gps : RUNTEST := run-indent-test-gps.el
@@ -379,7 +387,7 @@ $(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mo
 
 build_ada_executables : ../gpr_re2c.c gpr_process.ads force
 build_ada_executables : ../ada_re2c.c ada_process.ads force
-	gprbuild -p ../ada_mode_wisi_parse.gpr $(GPRBUILD_LINK_ARGS)
+	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_ada_executables : build_ada_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse

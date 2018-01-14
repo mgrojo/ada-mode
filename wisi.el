@@ -868,7 +868,14 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   "Move point to containing token for CACHE, return cache at that point.
 If ERROR, throw error when CACHE has no container; else return nil."
   (cond
-   ((markerp (wisi-cache-containing cache))
+   ((and (markerp (wisi-cache-containing cache))
+
+	 (not (= (wisi-cache-containing cache) (point))))
+    ;; This check is only needed if some cache points to itself as a
+    ;; container. Apparently that happend once that I caught in the
+    ;; debugger; emacs hung because we got here in the font-lock
+    ;; timer.
+
     (goto-char (wisi-cache-containing cache))
     (wisi-get-cache (point)))
    (t
