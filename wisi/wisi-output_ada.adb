@@ -4,7 +4,7 @@
 --  parameters, and a parser for that grammar. The grammar parser
 --  actions must be Ada.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -105,7 +105,7 @@ is
       Put_Line ("with WisiToken.Lexer.re2c;");
       Put_Line ("with WisiToken.LR.Parser;");
       if Check_Count > 0 then
-         Put_Line ("with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;");
+         Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
       end if;
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
@@ -223,7 +223,7 @@ is
                      Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
                      Indent_Line ("  Nonterm : in out WisiToken.Base_Token;");
                      Indent_Line ("  Tokens  : in     WisiToken.Base_Token_Arrays.Vector)");
-                     Indent_Line (" return WisiToken.LR.Semantic_Status");
+                     Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
                      Indent_Line ("is");
 
                      if Unref_Lexer then

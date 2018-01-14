@@ -19,7 +19,7 @@
 
 with WisiToken.Lexer.re2c;
 with WisiToken.LR.Parser;
-with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;
+with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Subprograms; use WisiToken.Wisi_Runtime.Subprograms;
 with subprograms_re2c_c;
@@ -79,7 +79,7 @@ package body Subprograms_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -104,7 +104,7 @@ package body Subprograms_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -175,7 +175,7 @@ package body Subprograms_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -471,7 +471,7 @@ package body Subprograms_Process is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Semantic_State.Trace),
+         Lexer.New_Lexer (Semantic_State.Trace, Semantic_State.Lexer_Errors'Access),
          Table,
          Semantic_State,
          Max_Parallel         => 15,

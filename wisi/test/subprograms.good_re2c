@@ -123,6 +123,7 @@ int subprograms_next_token
 /*!re2c
       re2c:yyfill:enable   = 0;
 
+
       WHITESPACE = [ \t];
       NEW_LINE = [\n];
       COMMENT = "--"[^\n]*;

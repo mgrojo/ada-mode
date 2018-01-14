@@ -46,6 +46,7 @@ with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Stacks;
 with WisiToken.Lexer;
+with WisiToken.Semantic_Checks;
 with WisiToken.Semantic_State;
 package WisiToken.LR is
 
@@ -74,24 +75,6 @@ package WisiToken.LR is
    --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
    --  Stack.Depth) items.
 
-   type Semantic_Status is (Ok, Error);
-
-   type Semantic_Check is access function
-     (Lexer   : in     WisiToken.Lexer.Handle;
-      Nonterm : in out Base_Token;
-      Tokens  : in     Base_Token_Arrays.Vector)
-     return Semantic_Status;
-   --  Called during error recovery to implement language-specific
-   --  checks, such as block name matching in Ada.
-   --
-   --  Also called during normal parsing for side effects, such as
-   --  propagating block names.
-   --
-   --  FIXME: if don't need Parser_Stack parameter, move these
-   --  declarations elsewhere.
-
-   Null_Check : constant Semantic_Check := null;
-
    --  Following are the types used in the parse table. The parse
    --  table is an array indexed by parse state that where each state
    --  contains a list of parse actions and a list of gotos.
@@ -114,7 +97,7 @@ package WisiToken.LR is
       when Reduce | Accept_It =>
          LHS    : Token_ID;
          Action : WisiToken.Semantic_State.Semantic_Action;
-         Check  : Semantic_Check;
+         Check  : WisiToken.Semantic_Checks.Semantic_Check;
          Index  : Natural;
          --  Index of production among productions for a nonterminal,
          --  for generating action names
@@ -128,7 +111,7 @@ package WisiToken.LR is
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec :=
-     (Reduce, Token_ID'First, WisiToken.Semantic_State.Null_Action, Null_Check, 0, 0);
+     (Reduce, Token_ID'First, WisiToken.Semantic_State.Null_Action, WisiToken.Semantic_Checks.Null_Check, 0, 0);
 
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String;
    --  Ada aggregate syntax, leaving out Semantic_Action in reduce.
@@ -191,7 +174,7 @@ package WisiToken.LR is
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
-      Semantic_Check  : in     LR.Semantic_Check);
+      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
@@ -202,7 +185,7 @@ package WisiToken.LR is
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
-      Semantic_Check  : in     LR.Semantic_Check);
+      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Shift/Reduce conflict to State.
 
    procedure Add_Action
@@ -213,12 +196,12 @@ package WisiToken.LR is
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
       Semantic_Action_1 : in     WisiToken.Semantic_State.Semantic_Action;
-      Semantic_Check_1  : in     LR.Semantic_Check;
+      Semantic_Check_1  : in     WisiToken.Semantic_Checks.Semantic_Check;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
       Semantic_Action_2 : in     WisiToken.Semantic_State.Semantic_Action;
-      Semantic_Check_2  : in     LR.Semantic_Check);
+      Semantic_Check_2  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
 
    procedure Add_Error (State  : in out Parse_State);
@@ -418,11 +401,12 @@ package WisiToken.LR is
       --  It is not a queue type, because we always access it via
       --  Local_Lookahead_Index
 
-      Popped   : Fast_Token_ID_Vectors.Vector;
-      Pushed   : Parser_Stacks.Stack_Type; -- FIXME: replace with fast_token_id_array to save space?
-      Inserted : Fast_Token_ID_Vectors.Vector;
-      Deleted  : Fast_Token_ID_Vectors.Vector;
-      Cost     : Natural := 0;
+      Popped               : Fast_Token_ID_Vectors.Vector;
+      Pushed               : Parser_Stacks.Stack_Type;
+      Inserted             : Fast_Token_ID_Vectors.Vector;
+      Deleted              : Fast_Token_ID_Vectors.Vector;
+      Semantic_Check_Fixes : Semantic_Checks.Error_Label_Set;
+      Cost                 : Natural := 0;
    end record;
 
    overriding
@@ -442,6 +426,7 @@ package WisiToken.LR is
       Pushed                 => Parser_Stacks.Empty_Stack,
       Inserted               => Fast_Token_ID_Vectors.Empty_Vector,
       Deleted                => Fast_Token_ID_Vectors.Empty_Vector,
+      Semantic_Check_Fixes   => (others => False),
       Cost                   => 0);
 
    package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci
@@ -492,25 +477,24 @@ private
    --  If it is a grammar token, return it. Otherwise, repeat.
 
    function Reduce_Stack
-     (Stack       : in out Parser_Stacks.Stack_Type;
-      Action      : in     Reduce_Action_Rec;
-      Nonterm     :    out Base_Token;
-      Lexer       : in     WisiToken.Lexer.Handle;
-      Trace       : in out WisiToken.Trace'Class;
-      Trace_Level : in     Integer)
-     return Semantic_Status;
-   --  Reduce Stack according to Action, calling Action.Check and
-   --  returning result, or Ok if null.
-
-   procedure Reduce_Stack
+     (Stack        : in out Parser_Stacks.Stack_Type;
+      Action       : in     Reduce_Action_Rec;
+      Nonterm      :    out Base_Token;
+      Lexer        : in     WisiToken.Lexer.Handle;
+      Trace        : in out WisiToken.Trace'Class;
+      Trace_Level  : in     Integer;
+      Trace_Prefix : in     String)
+     return WisiToken.Semantic_Checks.Check_Status;
+   function Reduce_Stack
      (Stack       : in out Parser_Stacks.Stack_Type;
       Action      : in     Reduce_Action_Rec;
       Nonterm     :    out Base_Token;
       Tokens      :    out Base_Token_Arrays.Vector;
       Lexer       : in     WisiToken.Lexer.Handle;
       Trace       : in out WisiToken.Trace'Class;
-      Trace_Level : in     Integer);
-   --  Reduce Stack according to Action, calling Action.Check for side
-   --  effects.
+      Trace_Level : in     Integer)
+     return WisiToken.Semantic_Checks.Check_Status;
+   --  Reduce Stack according to Action, calling Action.Check and
+   --  returning result, or Ok if null.
 
 end WisiToken.LR;

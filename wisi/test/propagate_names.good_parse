@@ -28,8 +28,8 @@ semantic check OK
  0: 132: (LEFT_PAREN, (139 . 139)) : shift and goto state 24
  0: 24: (IDENTIFIER, (140 . 140), (140 . 140)) : shift and goto state 113
  0: 113: (COLON, (142 . 142)) : shift and goto state 118
- 0: 118: (IDENTIFIER, (144 . 150), (144 . 150)) : shift and goto state 182
- 0: 182: (RIGHT_PAREN, (151 . 151)) : reduce 3 tokens to parameter_specification
+ 0: 118: (IDENTIFIER, (144 . 150), (144 . 150)) : shift and goto state 180
+ 0: 180: (RIGHT_PAREN, (151 . 151)) : reduce 3 tokens to parameter_specification
 (parameter_specification, (140 . 150)) <= ((IDENTIFIER, (140 . 140), (140 . 140)), (COLON, (142 . 142)), (IDENTIFIER, (144 . 150), (144 . 150)))
  ... goto state 114
  0: 114: (RIGHT_PAREN, (151 . 151)) : reduce 1 tokens to parameter_specification_list
@@ -63,18 +63,18 @@ spawn parser from 0 (2 active)
  1: 93: (BEGIN, (156 . 160)) : shift and goto state 128
  0: zombie
  1: 128: (END, (162 . 164)) : reduce 0 tokens to sequence_of_statements_opt
- ... goto state 171
+ ... goto state 169
  0: zombie
- 1: 171: (END, (162 . 164)) : reduce 1 tokens to handled_sequence_of_statements
- ... goto state 163
+ 1: 169: (END, (162 . 164)) : reduce 1 tokens to handled_sequence_of_statements
+ ... goto state 162
  0: zombie
- 1: 163: (END, (162 . 164)) : shift and goto state 194
+ 1: 162: (END, (162 . 164)) : shift and goto state 192
  0: zombie
- 1: 194: (IDENTIFIER, (166 . 169), (166 . 169)) : shift and goto state 18
+ 1: 192: (IDENTIFIER, (166 . 169), (166 . 169)) : shift and goto state 18
  0: zombie
  1: 18: (SEMICOLON, (170 . 170)) : reduce 1 tokens to name
 semantic check OK
- ... goto state 237
+ ... goto state 235
  0: terminate (1 active)
  1: execute pending
 (aspect_specification_opt) <= ()
@@ -82,12 +82,12 @@ semantic check OK
 (sequence_of_statements_opt) <= ()
 (handled_sequence_of_statements) <= ((sequence_of_statements_opt))
 (name, (166 . 169), (166 . 169)) <= ((IDENTIFIER, (166 . 169), (166 . 169)))
- 1: 237: (SEMICOLON, (170 . 170)) : reduce 1 tokens to name_opt
+ 1: 235: (SEMICOLON, (170 . 170)) : reduce 1 tokens to name_opt
 semantic check OK
 (name_opt, (166 . 169), (166 . 169)) <= ((name, (166 . 169), (166 . 169)))
- ... goto state 238
- 1: 238: (SEMICOLON, (170 . 170)) : shift and goto state 255
- 1: 255: (PROCEDURE, (247 . 255)) : reduce 9 tokens to subprogram_body
+ ... goto state 236
+ 1: 236: (SEMICOLON, (170 . 170)) : shift and goto state 253
+ 1: 253: (PROCEDURE, (247 . 255)) : reduce 9 tokens to subprogram_body
 semantic check OK
 subprogram_body_0: (subprogram_body, (124 . 170)) <= ((subprogram_specification, (134 . 137), (124 . 151)), (aspect_specification_opt), (IS, (153 . 154)), (declarative_part_opt), (BEGIN, (156 . 160)), (handled_sequence_of_statements), (END, (162 . 164)), (name_opt, (166 . 169), (166 . 169)), (SEMICOLON, (170 . 170)))
  ... goto state 98
@@ -133,18 +133,18 @@ spawn parser from 1 (2 active)
  2: 93: (BEGIN, (267 . 271)) : shift and goto state 128
  1: zombie
  2: 128: (END, (273 . 275)) : reduce 0 tokens to sequence_of_statements_opt
- ... goto state 171
+ ... goto state 169
  1: zombie
- 2: 171: (END, (273 . 275)) : reduce 1 tokens to handled_sequence_of_statements
- ... goto state 163
+ 2: 169: (END, (273 . 275)) : reduce 1 tokens to handled_sequence_of_statements
+ ... goto state 162
  1: zombie
- 2: 163: (END, (273 . 275)) : shift and goto state 194
+ 2: 162: (END, (273 . 275)) : shift and goto state 192
  1: zombie
- 2: 194: (IDENTIFIER, (277 . 280), (277 . 280)) : shift and goto state 18
+ 2: 192: (IDENTIFIER, (277 . 280), (277 . 280)) : shift and goto state 18
  1: zombie
  2: 18: (SEMICOLON, (281 . 281)) : reduce 1 tokens to name
 semantic check OK
- ... goto state 237
+ ... goto state 235
  1: terminate (1 active)
  2: execute pending
 (aspect_specification_opt) <= ()
@@ -152,15 +152,17 @@ semantic check OK
 (sequence_of_statements_opt) <= ()
 (handled_sequence_of_statements) <= ((sequence_of_statements_opt))
 (name, (277 . 280), (277 . 280)) <= ((IDENTIFIER, (277 . 280), (277 . 280)))
- 2: 237: (SEMICOLON, (281 . 281)) : reduce 1 tokens to name_opt
+ 2: 235: (SEMICOLON, (281 . 281)) : reduce 1 tokens to name_opt
 semantic check OK
 (name_opt, (277 . 280), (277 . 280)) <= ((name, (277 . 280), (277 . 280)))
- ... goto state 238
- 2: 238: (SEMICOLON, (281 . 281)) : shift and goto state 255
- 2: 255: (END, (284 . 286)) : reduce 9 tokens to subprogram_body
-semantic check ERROR (subprogram_body, (247 . 281))(subprogram_specification, (257 . 262), (247 . 262)), aspect_specification_opt, (IS, (264 . 265)), declarative_part_opt, (BEGIN, (267 . 271)), handled_sequence_of_statements, (END, (273 . 275)), (name_opt, (277 . 280), (277 . 280)), (SEMICOLON, (281 . 281))
+ ... goto state 236
+ 2: 236: (SEMICOLON, (281 . 281)) : shift and goto state 253
+ 2: 253: (END, (284 . 286)) : reduce 9 tokens to subprogram_body
+semantic check (ERROR, MATCH_NAMES_ERROR) (subprogram_body, (247 . 281))(subprogram_specification, (257 . 262), (247 . 262)), aspect_specification_opt, (IS, (264 . 265)), declarative_part_opt, (BEGIN, (267 . 271)), handled_sequence_of_statements, (END, (273 . 275)), (name_opt, (277 . 280), (277 . 280)), (SEMICOLON, (281 . 281))
 subprogram_body_0: (subprogram_body, (247 . 281)) <= ((subprogram_specification, (257 . 262), (247 . 262)), (aspect_specification_opt), (IS, (264 . 265)), (declarative_part_opt), (BEGIN, (267 . 271)), (handled_sequence_of_statements), (END, (273 . 275)), (name_opt, (277 . 280), (277 . 280)), (SEMICOLON, (281 . 281)))
- ... goto state 98
+ 2: zombie
+recover: succeed
+
  2: 98: (END, (284 . 286)) : reduce 1 tokens to proper_body
 (proper_body, (247 . 281)) <= ((subprogram_body, (247 . 281)))
  ... goto state 97
@@ -175,14 +177,14 @@ subprogram_body_0: (subprogram_body, (247 . 281)) <= ((subprogram_specification,
  ... goto state 92
  2: 92: (END, (284 . 286)) : reduce 1 tokens to declarative_part_opt
 (declarative_part_opt, (124 . 281)) <= ((declarations, (124 . 281)))
- ... goto state 177
- 2: 177: (END, (284 . 286)) : shift and goto state 187
- 2: 187: (IDENTIFIER, (288 . 293), (288 . 293)) : shift and goto state 18
+ ... goto state 175
+ 2: 175: (END, (284 . 286)) : shift and goto state 185
+ 2: 185: (IDENTIFIER, (288 . 293), (288 . 293)) : shift and goto state 18
  2: 18: (DOT, (294 . 294)) : reduce 1 tokens to name
 semantic check OK
 (name, (288 . 293), (288 . 293)) <= ((IDENTIFIER, (288 . 293), (288 . 293)))
- ... goto state 237
- 2: 237: (DOT, (294 . 294)) : shift and goto state 26
+ ... goto state 235
+ 2: 235: (DOT, (294 . 294)) : shift and goto state 26
  2: 26: (IDENTIFIER, (295 . 299), (295 . 299)) : shift and goto state 111
  2: 111: (SEMICOLON, (300 . 300)) : reduce 3 tokens to selected_component
 semantic check OK
@@ -191,13 +193,13 @@ semantic check OK
  2: 20: (SEMICOLON, (300 . 300)) : reduce 1 tokens to name
 semantic check OK
 (name, (288 . 299), (288 . 299)) <= ((selected_component, (288 . 299), (288 . 299)))
- ... goto state 237
- 2: 237: (SEMICOLON, (300 . 300)) : reduce 1 tokens to name_opt
+ ... goto state 235
+ 2: 235: (SEMICOLON, (300 . 300)) : reduce 1 tokens to name_opt
 semantic check OK
 (name_opt, (288 . 299), (288 . 299)) <= ((name, (288 . 299), (288 . 299)))
- ... goto state 245
- 2: 245: (SEMICOLON, (300 . 300)) : shift and goto state 249
- 2: 249: (Wisi_EOI, (301 . 300)) : reduce 9 tokens to package_body
+ ... goto state 243
+ 2: 243: (SEMICOLON, (300 . 300)) : shift and goto state 247
+ 2: 247: (Wisi_EOI, (301 . 300)) : reduce 9 tokens to package_body
 semantic check OK
 (package_body, (72 . 300)) <= ((PACKAGE, (72 . 78)), (BODY, (80 . 83)), (name, (85 . 96), (85 . 96)), (aspect_specification_opt), (IS, (98 . 99)), (declarative_part_opt, (124 . 281)), (END, (284 . 286)), (name_opt, (288 . 299), (288 . 299)), (SEMICOLON, (300 . 300)))
  ... goto state 9

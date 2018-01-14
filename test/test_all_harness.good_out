@@ -47,12 +47,13 @@ OK test_mckenzie_recover.adb : Zombie_In_Resume
 OK test_mckenzie_recover.adb : Match_Name
 OK test_mckenzie_recover.adb : Missing_Quote
 OK test_mckenzie_recover.adb : Pattern_End_EOF
+OK test_mckenzie_recover.adb : Pattern_Block_Mismatched_Names
 OK test_skip_to.adb : Nominal
 OK test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   52
-Successful Tests:  52
+Total Tests Run:   53
+Successful Tests:  53
 Failed Assertions: 0
 Unexpected Errors: 0

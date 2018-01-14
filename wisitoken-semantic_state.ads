@@ -31,6 +31,7 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Unbounded_Definite_Queues;
 with WisiToken.Lexer;
+with WisiToken.Semantic_Checks;
 package WisiToken.Semantic_State is
 
    Invalid_All_Tokens_Index : constant Positive_Index_Type := Positive_Index_Type'Last;
@@ -147,13 +148,23 @@ package WisiToken.Semantic_State is
 
    procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
 
+   type Parser_Error_Label is (Action, Check);
+
    type Parser_Error_Data
-     (First_Terminal : Token_ID;
+     (Label          : Parser_Error_Label;
+      First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is record
-      Error_Token : Augmented_Token;
-      Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
-      Recover     : access Recover_Data'Class;
+      Recover : access Recover_Data'Class;
+
+      case Label is
+      when Action =>
+         Error_Token : Augmented_Token;
+         Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
+      when Check =>
+         Code    : Semantic_Checks.Error_Label;
+         Tokens  : Base_Token_Arrays.Vector;
+      end case;
    end record;
 
    package Parser_Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parser_Error_Data);
@@ -179,7 +190,7 @@ package WisiToken.Semantic_State is
       Lookahead_Queue : Augmented_Token_Queues.Queue_Type;
 
       Parser_Errors : Parser_Error_List_Arrays.Vector;
-      --  Indexed by Parser_ID.
+      --  Indexed by Parser_Label.
 
       Lexer_Errors : aliased Lexer.Error_Lists.List;
       --  Shared by all parsers. No access functions provided below; set
@@ -260,6 +271,11 @@ package WisiToken.Semantic_State is
    --  Return a reference to the single active error list.
    --  If more than one is active, raise Programmer_Error.
 
+   function Current_Error
+     (State        : not null access Semantic_State;
+      Parser_Label : in              Natural)
+     return Parser_Error_Data;
+
    procedure Put (State : not null access Semantic_State);
    --  Put a trace of State to State.Trace. Detail depends on
    --  WisiToken.Trace_Parse.
@@ -277,27 +293,39 @@ package WisiToken.Semantic_State is
    --  back of the State lookahead queue.
 
    procedure Error
-     (State     : not null access Semantic_State;
-      Parser_ID : in              Natural;
-      Expecting : in              Token_ID_Set);
-   --  A parser Parser_ID has detected an error with the current token,
-   --  which is at the back of the State lookahead queue (the token most
-   --  recently fetched from the lexer)..
+     (State        : not null access Semantic_State;
+      Parser_Label : in              Natural;
+      Expecting    : in              Token_ID_Set);
+   --  A parser Parser_Label has detected a grammar error with the
+   --  current token, which is at the back of the State lookahead queue
+   --  (the token most recently fetched from the lexer).
    --
    --  Expecting is the set of tokens expected by the parser.
    --
-   --  Save information useful for an error message.
+   --  Save information useful for an error message and recovery.
+
+   procedure Error
+     (State        : not null access Semantic_State;
+      Parser_Label : in              Natural;
+      Tokens       : in              Base_Token_Arrays.Vector;
+      Code         : in              Semantic_Checks.Error_Label);
+   --  A parser Parser_Label has detected a semantic check error while
+   --  reducing Tokens to Nonterm.
+   --
+   --  Code identifies the check that failed.
+   --
+   --  Save information useful for an error message and recovery.
 
    procedure Spawn
-     (State         : not null access Semantic_State;
-      Old_Parser_ID : in              Natural;
-      New_Parser_ID : in              Natural);
+     (State            : not null access Semantic_State;
+      Old_Parser_Label : in              Natural;
+      New_Parser_Label : in              Natural);
    --  A new parser was spawned; copy saved error information.
 
    procedure Terminate_Parser
-     (State     : not null access Semantic_State;
-      Parser_ID : in              Natural);
-   --  A parser Parser_ID has been terminated; discard any saved error
+     (State        : not null access Semantic_State;
+      Parser_Label : in              Natural);
+   --  A parser Parser_Label has been terminated; discard any saved error
    --  information.
 
    ----------
@@ -332,11 +360,11 @@ package WisiToken.Semantic_State is
    --  from the top of the State stack.
 
    procedure Recover
-     (State     : not null access Semantic_State;
-      Parser_ID : in              Natural;
-      Recover   : in              Recover_Data'Class);
-   --  Parser Parser_ID has finished error recovery and found a solution
-   --  described by Recover; save the recover information.
+     (State        : not null access Semantic_State;
+      Parser_Label : in              Natural;
+      Recover      : in              Recover_Data'Class);
+   --  Parser Parser_Label has finished error recovery and found a
+   --  solution described by Recover; save the recover information.
 
    procedure Reduce_Stack
      (State       : not null access Semantic_State;

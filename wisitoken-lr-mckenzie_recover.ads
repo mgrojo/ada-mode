@@ -11,7 +11,7 @@
 --  [Grune 2008] Parsing Techniques, A Practical Guide, Second
 --  Edition. Dick Grune, Ceriel J.H. Jacobs.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -29,11 +29,16 @@ pragma License (Modified_GPL);
 with WisiToken.LR.Parser_Lists;
 package WisiToken.LR.McKenzie_Recover is
 
+   type Recover_Status is
+     (Fail,    --  Error is not fixed; fail parse with Syntax_Error
+      Success, --  Error is fixed; parser continue with Resume_Active = True
+      Ignore); --  Error is a semantic check, and is ignored; parser continue with Resume_Active = False
+
    function Recover
      (Shared_Parser : in out LR.Instance'Class;
       Parsers       : in out Parser_Lists.List)
-     return Boolean;
+     return Recover_Status;
    --  Attempt to modify Parsers state and Parser.Lookahead to allow
-   --  recovering from an error state. Return True if successful.
+   --  recovering from an error state.
 
 end WisiToken.LR.McKenzie_Recover;

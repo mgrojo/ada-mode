@@ -789,7 +789,7 @@ is
          Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
          Indent_Line ("  Nonterm : in out WisiToken.Base_Token;");
          Indent_Line ("  Tokens  : in     WisiToken.Base_Token_Arrays.Vector)");
-         Indent_Line (" return WisiToken.LR.Semantic_Status");
+         Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
          declare
             Unref_Lexer   : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Lexer"));
             Unref_Nonterm : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Nonterm"));
@@ -929,7 +929,7 @@ is
       Put_Line ("with WisiToken.Lexer.re2c;");
       Put_Line ("with WisiToken.LR.Parser;");
       if Check_Count > 0 then
-         Put_Line ("with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;");
+         Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
       end if;
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
       Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
@@ -1162,7 +1162,6 @@ is
 
       --  don't need the prologue here
 
-      Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-parse-common)");
       New_Line;
 

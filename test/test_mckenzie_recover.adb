@@ -25,10 +25,11 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
+with SAL.AUnit;
 with WisiToken.AUnit;
 with WisiToken.LR.AUnit;
-with WisiToken.Semantic_State;
 with WisiToken.Semantic_State.AUnit;
+with WisiToken.Semantic_State;
 package body Test_McKenzie_Recover is
 
    Parser : WisiToken.LR.Instance;
@@ -112,7 +113,7 @@ package body Test_McKenzie_Recover is
       use all type WisiToken.Region_Lists.Cursor;
    begin
       Parse_Text
-        ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc_1; ");
+        ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc; ");
       --  |1       |10       |20       |30       |40       |50       |60       |70       |80       |90
       --  Missing "begin" for Block_2, but McKenzie won't find that.
       --
@@ -160,7 +161,8 @@ package body Test_McKenzie_Recover is
          Check ("errors.length", Error_List.Length, 1);
          Check
            ("1", Element (Cursor),
-            (First_Terminal    => Descriptor.First_Terminal,
+            (Label             => Action,
+             First_Terminal    => Descriptor.First_Terminal,
              Last_Terminal     => Descriptor.Last_Terminal,
              Error_Token       =>
                (ID             => +SEMICOLON_ID,
@@ -740,14 +742,18 @@ package body Test_McKenzie_Recover is
    begin
       Parse_Text
         ("package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;");
-         --        |10       |20       |30       |40       |50       |60       |70
+         --        |10       |20       |30       |40       |50       |60       |70       |80
 
-      --  Excess 'end' 35 from editing.
+      --  Excess 'end' 53 from editing.
       --
-      --  First error recovery entered at 'A' 58, expecting declaration;
+      --  First error recovery entered at ':=' 60, expecting declaration;
       --  inserts ': identifier'.
       --
-      --  Second error recovery entered at 'end' 78, expecting EOF or
+      --  Second error recovery entered at 'end' 78, with semantic check
+      --  Mismatch_Name_Error for "P"/"Remove". No useful solution, so error
+      --  is ignored.
+      --
+      --  Third error recovery entered at 'end' 78, expecting EOF or
       --  compilation_unit. In Ada_Lite, there is only one solution; insert
       --  'procedure', delete 'end'. In full Ada, there are three equal cost
       --  solutions, so the parse is ambiguous.
@@ -758,7 +764,7 @@ package body Test_McKenzie_Recover is
       --  'end', based on name matching.
 
 
-      Check ("errors.length", State.Active_Error_List.Length, 2);
+      Check ("errors.length", State.Active_Error_List.Length, 3);
       declare
          use WisiToken.Semantic_State;
          use WisiToken.Semantic_State.Parser_Error_Data_Lists;
@@ -768,11 +774,11 @@ package body Test_McKenzie_Recover is
          Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.Last;
       begin
          Check
-           ("errors 2.error_token",
+           ("errors 3.error_token",
             Element (Cursor).Error_Token,
             (+END_ID, (78, 80), WisiToken.Null_Buffer_Region, 1, 77, (78, 80), others => <>));
          Check
-           ("errors 2.recover.deleted",
+           ("errors 3.recover.deleted",
             WisiToken.LR.Configuration (Element (Cursor).Recover.all).Deleted,
             To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
       end;
@@ -794,17 +800,25 @@ package body Test_McKenzie_Recover is
         ("package body Debug is procedure Find_First is begin begin Match (Middle_Initial_Pat); end Find_First;" &
            --      |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
            "procedure Swap_Names is begin end Swap_Names; begin end Debug; ");
-      --    |101     |110
+      --    |102    |110
 
       --  Missing 'end' 87.
       --
-      --  Error recovery entered at 'procedure' 101, expecting declaration.
-      --  Without pattern_block_mismatched_names, fails to find a solution.
-      --  With pattern_block_mismatched_names, pops 'end Find_first;', inserts
-      --  'end <name> ;' twice.
+      --  Error recovery entered at 'procedure' 102, expecting declaration.
+      --  The semantic check that would fail on ""/"Find_First" is not done,
+      --  because the block_statement is not reduced.
+      --
+      --  Without pattern_block_mismatched_names, recover fails to find a
+      --  solution.
+      --
+      --  In recover_init, pattern_block_mismatched_names doesn't match,
+      --  because the error is not a semantic check error. The pattern does
+      --  match while checking the root config; it pops 'Find_First ;',
+      --  inserts '; end ;'. Then the parse completes.
 
       Check ("errors.length", State.Active_Error_List.Length, 1);
       declare
+         use SAL.AUnit;
          use WisiToken.Semantic_State;
          use WisiToken.Semantic_State.Parser_Error_Data_Lists;
          use WisiToken.LR.AUnit;
@@ -819,12 +833,16 @@ package body Test_McKenzie_Recover is
          Check
            ("errors 1.recover.popped",
             WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
-            To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
+            To_Fast_Token_ID_Vector ((+SEMICOLON_ID, +identifier_opt_ID)));
          Check
-           ("errors 1.recover.inserted",
-            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
-            To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID, +END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
+           ("errors 1.recover.inserted.length",
+            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Inserted.Length,
+            0);
       end;
+
+      --  FIXME: "procedure Name_A is begin end Name_B;" edit one? see pattern_end_eof
+      --  FIXME: required name missing
+
    exception
    when E : WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));

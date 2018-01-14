@@ -358,7 +358,7 @@ package body WisiToken.LR is
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
-      Semantic_Check  : in     LR.Semantic_Check)
+      Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
       Action   : Parse_Action_Rec;
       New_Node : Action_Node_Ptr;
@@ -393,7 +393,7 @@ package body WisiToken.LR is
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
-      Semantic_Check  : in     LR.Semantic_Check)
+      Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec := (Shift, State_Index);
       Action_2 : constant Parse_Action_Rec := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
@@ -410,12 +410,12 @@ package body WisiToken.LR is
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
       Semantic_Action_1 : in     Semantic_State.Semantic_Action;
-      Semantic_Check_1  : in     LR.Semantic_Check;
+      Semantic_Check_1  : in     Semantic_Checks.Semantic_Check;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
       Semantic_Action_2 : in     Semantic_State.Semantic_Action;
-      Semantic_Check_2  : in     LR.Semantic_Check)
+      Semantic_Check_2  : in     Semantic_Checks.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec   :=
         (case Verb is
@@ -738,29 +738,33 @@ package body WisiToken.LR is
    end Reduce_Stack_2;
 
    function Reduce_Stack
-     (Stack       : in out Parser_Stacks.Stack_Type;
-      Action      : in     Reduce_Action_Rec;
-      Nonterm     :    out Base_Token;
-      Lexer       : in     WisiToken.Lexer.Handle;
-      Trace       : in out WisiToken.Trace'Class;
-      Trace_Level : in     Integer)
-     return Semantic_Status
-   is begin
+     (Stack        : in out Parser_Stacks.Stack_Type;
+      Action       : in     Reduce_Action_Rec;
+      Nonterm      :    out Base_Token;
+      Lexer        : in     WisiToken.Lexer.Handle;
+      Trace        : in out WisiToken.Trace'Class;
+      Trace_Level  : in     Integer;
+      Trace_Prefix : in     String)
+     return Semantic_Checks.Check_Status
+   is
+      use all type Semantic_Checks.Semantic_Check;
+      use all type Semantic_Checks.Check_Status_Label;
+   begin
       if Action.Check = null then
          Reduce_Stack_1 (Stack, Action, Nonterm);
-         return Ok;
+         return (Label => Ok);
       else
          declare
             Tokens : Base_Token_Arrays.Vector;
          begin
             Reduce_Stack_2 (Stack, Action, Nonterm, Tokens);
-            return Status : constant Semantic_Status := Action.Check (Lexer, Nonterm, Tokens) do
+            return Status : constant Semantic_Checks.Check_Status := Action.Check (Lexer, Nonterm, Tokens) do
                if Trace_Level > Detail then
-                  if Status = Ok then
-                     Trace.Put_Line ("semantic check " & Semantic_Status'Image (Status));
+                  if Status.Label = Ok then
+                     Trace.Put_Line (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status));
                   else
                      Trace.Put_Line
-                       ("semantic check " & Semantic_Status'Image (Status) & " " &
+                       (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status) & " " &
                           Nonterm.Image (Trace.Descriptor.all) &
                           Image (Tokens, Trace.Descriptor.all));
                   end if;
@@ -770,7 +774,7 @@ package body WisiToken.LR is
       end if;
    end Reduce_Stack;
 
-   procedure Reduce_Stack
+   function Reduce_Stack
      (Stack       : in out Parser_Stacks.Stack_Type;
       Action      : in     Reduce_Action_Rec;
       Nonterm     :    out Base_Token;
@@ -778,22 +782,28 @@ package body WisiToken.LR is
       Lexer       : in     WisiToken.Lexer.Handle;
       Trace       : in out WisiToken.Trace'Class;
       Trace_Level : in     Integer)
+     return Semantic_Checks.Check_Status
    is
-      Status : Semantic_Status;
+      use all type Semantic_Checks.Semantic_Check;
+      use all type Semantic_Checks.Check_Status_Label;
    begin
       Reduce_Stack_2 (Stack, Action, Nonterm, Tokens);
       if Action.Check /= null then
-         Status := Action.Check (Lexer, Nonterm, Tokens);
-         if Trace_Level > Detail then
-            if Status = Ok then
-               Trace.Put_Line ("semantic check " & Semantic_Status'Image (Status));
-            else
-               Trace.Put_Line
-                 ("semantic check " & Semantic_Status'Image (Status) & " " &
-                    Nonterm.Image (Trace.Descriptor.all) &
-                    Image (Tokens, Trace.Descriptor.all));
+         return Status : constant Semantic_Checks.Check_Status := Action.Check (Lexer, Nonterm, Tokens) do
+            if Trace_Level > Detail then
+               if Status.Label = Ok then
+                  Trace.Put_Line ("semantic check " & Semantic_Checks.Image (Status));
+               else
+                  Trace.Put_Line
+                    ("semantic check " & Semantic_Checks.Image (Status) & " " &
+                       Nonterm.Image (Trace.Descriptor.all) &
+                       Image (Tokens, Trace.Descriptor.all));
+               end if;
             end if;
-         end if;
+         end return;
+
+      else
+         return (Label => Ok);
       end if;
    end Reduce_Stack;
 

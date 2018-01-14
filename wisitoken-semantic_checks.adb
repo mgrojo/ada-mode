@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,7 +17,36 @@
 
 pragma License (Modified_GPL);
 
-package body WisiToken.LR.Semantic_Checks is
+package body WisiToken.Semantic_Checks is
+
+   function Image (Item : in Error_Label_Set) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String := +"(";
+      Need_Comma : Boolean          := False;
+   begin
+      for I in Item'Range loop
+         if Item (I) then
+            Result := Result &
+              (if Need_Comma then ", " else "") &
+              Error_Label'Image (I);
+            Need_Comma := True;
+         end if;
+      end loop;
+      Result := Result & ")";
+      return -Result;
+   end Image;
+
+   function Image (Item : in Check_Status) return String
+   is begin
+      case Item.Label is
+      when Ok =>
+         return Check_Status_Label'Image (Item.Label);
+      when Error =>
+         return '(' & Check_Status_Label'Image (Item.Label) & ", " &
+           Semantic_Checks.Error_Label'Image (Item.Code) & ')';
+      end case;
+   end Image;
 
    function Match_Names
      (Lexer        : in WisiToken.Lexer.Handle;
@@ -25,36 +54,39 @@ package body WisiToken.LR.Semantic_Checks is
       Start_Index  : in Positive_Index_Type;
       End_Index    : in Positive_Index_Type;
       End_Optional : in Boolean)
-     return Semantic_Status
-   is begin
+     return Check_Status
+   is
+      use Base_Token_Arrays;
+   begin
       if End_Optional then
          if Tokens (End_Index).Name = Null_Buffer_Region then
-            return Ok;
+            return (Label => Ok);
+
          elsif Tokens (Start_Index).Name = Null_Buffer_Region then
-            return Error;
+            return (Error, Extra_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
          else
             if Lexer.Buffer_Text (Tokens (Start_Index).Name) = Lexer.Buffer_Text (Tokens (End_Index).Name) then
-               return Ok;
+               return (Label => Ok);
             else
-               return Error;
+               return (Error, Match_Names_Error, Tokens (Start_Index) & Tokens (End_Index));
             end if;
          end if;
       else
          if Tokens (Start_Index).Name = Null_Buffer_Region then
             if Tokens (End_Index).Name = Null_Buffer_Region then
-               return Ok;
+               return (Label => Ok);
             else
-               return Error;
+               return (Error, Extra_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
             end if;
 
          elsif Tokens (End_Index).Name = Null_Buffer_Region then
-            return Error;
+            return (Error, Missing_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
 
          else
             if Lexer.Buffer_Text (Tokens (Start_Index).Name) = Lexer.Buffer_Text (Tokens (End_Index).Name) then
-               return Ok;
+               return (Label => Ok);
             else
-               return Error;
+               return (Error, Match_Names_Error, Tokens (Start_Index) & Tokens (End_Index));
             end if;
          end if;
       end if;
@@ -64,10 +96,10 @@ package body WisiToken.LR.Semantic_Checks is
      (Nonterm    : in out Base_Token;
       Tokens     : in     Base_Token_Arrays.Vector;
       Name_Index : in     Positive_Index_Type)
-     return Semantic_Status
+     return Check_Status
    is begin
       Nonterm.Name := Tokens (Name_Index).Name;
-      return Ok;
+      return (Label => Ok);
    end Propagate_Name;
 
    function Merge_Names
@@ -75,13 +107,13 @@ package body WisiToken.LR.Semantic_Checks is
       Tokens      : in     Base_Token_Arrays.Vector;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
-     return Semantic_Status
+     return Check_Status
    is begin
       Nonterm.Name := Tokens (First_Index).Name and
         (if Tokens (Last_Index).Name = Null_Buffer_Region
          then Tokens (Last_Index).Byte_Region
          else Tokens (Last_Index).Name);
-      return Ok;
+      return (Label => Ok);
    end Merge_Names;
 
-end WisiToken.LR.Semantic_Checks;
+end WisiToken.Semantic_Checks;
