@@ -301,6 +301,8 @@
 ;; result: delete thru delete_thru or EOF
 %recover_pattern_end_eof END SEMICOLON
 
+%recover_pattern_block_mismatched_names END identifier_opt SEMICOLON
+
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN

@@ -18,7 +18,7 @@
 
 with WisiToken.Lexer.re2c;
 with WisiToken.LR.Parser;
-with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;
+with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Gpr; use WisiToken.Wisi_Runtime.Gpr;
 with gpr_re2c_c;
@@ -121,7 +121,7 @@ package body Gpr_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -147,7 +147,7 @@ package body Gpr_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -173,7 +173,7 @@ package body Gpr_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -213,7 +213,7 @@ package body Gpr_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -281,7 +281,7 @@ package body Gpr_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin

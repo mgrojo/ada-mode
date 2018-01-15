@@ -18,7 +18,7 @@
 
 with WisiToken.Lexer.re2c;
 with WisiToken.LR.Parser;
-with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;
+with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Ada; use WisiToken.Wisi_Runtime.Ada;
 with ada_re2c_c;
@@ -67,7 +67,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -390,7 +390,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -401,7 +401,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -429,7 +429,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -456,7 +456,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -744,7 +744,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -1210,7 +1210,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -1405,7 +1405,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -1694,7 +1694,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -1720,7 +1720,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -1745,7 +1745,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -1770,7 +1770,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -1796,7 +1796,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -1807,7 +1807,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -2065,7 +2065,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -2092,7 +2092,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -2164,7 +2164,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -2192,7 +2192,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -2470,7 +2470,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -2497,7 +2497,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -2536,7 +2536,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -2561,7 +2561,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -2588,7 +2588,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -2615,7 +2615,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -2823,7 +2823,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -2862,7 +2862,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -3076,7 +3076,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3103,7 +3103,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3130,7 +3130,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3157,7 +3157,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3200,7 +3200,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3267,7 +3267,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -3278,7 +3278,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
@@ -3390,7 +3390,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3460,7 +3460,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3487,7 +3487,7 @@ package body Ada_Process is
     (Lexer   : in     WisiToken.Lexer.Handle;
      Nonterm : in out WisiToken.Base_Token;
      Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
-    return WisiToken.LR.Semantic_Status
+    return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
    begin
@@ -3744,6 +3744,7 @@ package body Ada_Process is
       Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_Pattern_2'(24, 104, 37, 96));
       Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_Pattern_2'(24, 104, 58, 96));
       Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_End_EOF'(24, 96));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_Block_Mismatched_Names'(24, 228, 96));
       Table.Follow :=
         (109 =>
            (39 => True,
