@@ -3744,7 +3744,7 @@ package body Ada_Process is
       Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_Pattern_2'(24, 104, 37, 96));
       Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_Pattern_2'(24, 104, 58, 96));
       Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_End_EOF'(24, 96));
-      Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_Block_Mismatched_Names'(24, 228, 96));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.LR.Recover_Block_Mismatched_Names'(13, 24, 228, 96));
       Table.Follow :=
         (109 =>
            (39 => True,

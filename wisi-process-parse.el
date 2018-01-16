@@ -242,8 +242,8 @@ complete."
        (aref sexp 2)))
     ))
 
-(defun wisi-process-parse--Error (parser sexp)
-  ;; sexp is [Error char-position <string>]
+(defun wisi-process-parse--Parser_Error (parser sexp)
+  ;; sexp is [Parser_Error char-position <string>]
   ;; see ‘wisi-process-parse--execute’
   (let ((pos (aref sexp 1))
 	err)
@@ -260,6 +260,28 @@ complete."
 		   (line-number-at-pos pos)
 		   (current-column)
 		   (aref sexp 2))))
+
+    (push err (wisi-parser-errors parser))
+    ))
+
+(defun wisi-process-parse--Check_Error (parser sexp)
+  ;; sexp is [Check_Error code char-position <string>]
+  ;; see ‘wisi-process-parse--execute’
+  (let ((pos (aref sexp 2))
+	err)
+
+    (goto-char pos);; for current-column
+
+    (setq err
+	  (make-wisi--error
+	   :pos (copy-marker pos)
+	   :message
+	   (format "%s:%d:%d: %s"
+		   (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		   ;; file-name can be nil during vc-resolve-conflict
+		   (line-number-at-pos pos)
+		   (current-column)
+		   (aref sexp 3))))
 
     (push err (wisi-parser-errors parser))
     ))
@@ -297,9 +319,16 @@ complete."
   ;; [Indent line-number indent]
   ;;    Set an indent text property
   ;;
-  ;; [Error char-position <string>]
-  ;;    The parser detected a syntax error, and is attempting
-  ;;    recovery; save information for later reporting.
+  ;; [Parser_Error char-position <string>]
+  ;;    The parser detected a syntax error; save information for later
+  ;;    reporting.
+  ;;
+  ;;    If error recovery is successful, there can be more than one
+  ;;    error reported during a parse.
+  ;;
+  ;; [Check_Error code char-position <string>]
+  ;;    The parser detected a semantic check error; save information
+  ;;    for later reporting.
   ;;
   ;;    If error recovery is successful, there can be more than one
   ;;    error reported during a parse.
@@ -323,8 +352,9 @@ complete."
     (1  (wisi-process-parse--Navigate_Cache parser sexp))
     (2  (wisi-process-parse--Face_Property parser sexp))
     (3  (wisi-process-parse--Indent parser sexp))
-    (4  (wisi-process-parse--Error parser sexp))
-    (5  (wisi-process-parse--Recover parser sexp))
+    (4  (wisi-process-parse--Parser_Error parser sexp))
+    (5  (wisi-process-parse--Check_Error parser sexp))
+    (6  (wisi-process-parse--Recover parser sexp))
     ))
 
 ;;;;; main

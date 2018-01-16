@@ -1,6 +1,6 @@
 ;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el
 ;;
-;; Copyright (C) 2014, 2015, 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2015, 2017, 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -39,7 +39,7 @@
 
 (cl-defstruct wisi-parser
   errors
-  ;; List of wisi-errors from last parse. Can be more than one if
+  ;; List of wisi--errors from last parse. Can be more than one if
   ;; parser supports error recovery.
 )
 

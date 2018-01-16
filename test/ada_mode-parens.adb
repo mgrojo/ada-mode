@@ -463,9 +463,10 @@ package body Ada_Mode.Parens is
                             Hello & There
                             --  Comment before trailing paren, token.First = true
                            );
-      Ada.Text_IO.Put_Line (Hello & There
-                            --  Comment before trailing paren, token.First = False
-                           );
+      Ada.Text_IO.Put_Line
+        (Hello & There
+         --  Comment before trailing paren, token.First = False
+        );
 
       Ada.Text_IO.Put_Line (Item =>
                               Hello & There
@@ -476,9 +477,10 @@ package body Ada_Mode.Parens is
                                 There
                                 --  Comment before trailing paren, token.First = True
                            );
-      Ada.Text_IO.Put_Line (Item => Hello & There
-                            --  Comment before trailing paren, token.First = False
-                           );
+      Ada.Text_IO.Put_Line
+        (Item => Hello & There
+         --  Comment before trailing paren, token.First = False
+        );
       Ada.Text_IO.Put_Line (Item => Hello &
                               There
                               --  Comment before trailing paren, token.First = False

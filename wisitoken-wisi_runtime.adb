@@ -19,13 +19,15 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Bounded;
 with WisiToken.LR;
+with WisiToken.Semantic_Checks;
 package body WisiToken.Wisi_Runtime is
 
    Navigate_Cache_Code : constant String := "1 ";
    Face_Property_Code  : constant String := "2 ";
    Indent_Code         : constant String := "3 ";
-   Error_Code          : constant String := "4 ";
-   Recover_Code        : constant String := "5 ";
+   Parser_Error_Code   : constant String := "4";
+   Check_Error_Code    : constant String := "5";
+   Recover_Code        : constant String := "6 ";
 
    Chars_Per_Int : constant Integer := Integer'Width;
 
@@ -393,7 +395,6 @@ package body WisiToken.Wisi_Runtime is
       To_Codes (Item.Popped);
       Append (Line, "][");
       To_Codes (Item.Pushed);
-      --  FIXME: add Item.Local_Lookahead to inserted
       To_Codes (Item.Inserted);
       Append (Line, "][");
       To_Codes (Item.Deleted);
@@ -1139,10 +1140,18 @@ package body WisiToken.Wisi_Runtime is
       for I in Errors.First_Index .. Errors.Last_Index loop
          for Item of Errors (I) loop
             --  We don't include parser id here; not very useful.
-            Put_Line
-              ('[' & Error_Code & Buffer_Pos'Image (Item.Error_Token.Char_Region.First) &
-                 " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                 ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'""]");
+            case Item.Label is
+            when Semantic_State.Action =>
+               Put_Line
+                 ('[' & Parser_Error_Code & Buffer_Pos'Image (Item.Error_Token.Char_Region.First) &
+                    " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                    ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'""]");
+            when Semantic_State.Check =>
+               Put_Line
+                 ('[' & Check_Error_Code & Integer'Image (Semantic_Checks.Error_Label'Pos (Item.Code)) &
+                    Buffer_Pos'Image (Item.Tokens (Item.Tokens.First_Index).Byte_Region.First) &
+                    " ""check error""]");
+            end case;
 
             if Item.Recover /= null then
                Put (WisiToken.LR.Configuration (Item.Recover.all), Descriptor);
@@ -1166,7 +1175,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Item of Errors loop
          Put_Line
-           ('[' & Error_Code & Buffer_Pos'Image (Item.Error_Char_Pos) &
+           ('[' & Parser_Error_Code & Buffer_Pos'Image (Item.Error_Char_Pos) &
               " ""lexer error" &
               (if Item.Recover (1) = ASCII.NUL
                then ""

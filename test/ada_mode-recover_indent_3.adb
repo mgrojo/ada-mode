@@ -1,6 +1,4 @@
---  A real error recovery case. Current implementation is fast enough,
---  but is confusing. Correct solution requires matching start and end
---  procedure names.
+--  A real error recovery case.
 --
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
@@ -13,21 +11,15 @@ is
       procedure To_Month
       is begin
 
-         --  end To_Month;
-         -- have not typed this yet, so the following code appears to be:
-         begin
-         end Process_CSV_File;
+         -- end To_Month;
+         --
+         -- have not typed this yet. Error recovery deletes the following block
+         -- (in order to insert the missing 'end;' in the right place) and
+         -- replaces it with virtual tokens, so it is not indented correctly.
+         -- Following code is indented correctly.
+begin
+end Process_CSV_File;
 
-         begin
-
-         end Journal_To_TSV;
-
-         --  Errors here; need to insert (cost 8):
-         --        end to_month;
-         --     begin
-         --     end process_csv_file;
-         --  begin
-         --  end journal_to_tsv;
-         -- Local variables:
-         -- wisi-mckenzie-cost-limit: 8
-         -- End:
+begin
+   A := 1;
+end Journal_To_TSV;

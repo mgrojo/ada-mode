@@ -37,6 +37,13 @@ run test from emacs -Q using source:
    ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
  current work
+run tests
+    test/ada_mode-recover_match_names.adb found test case for Match_Names_Error
+
+    ./ada_mode-recover_indent_4.adb.diff
+    ./ada_mode-recover_pattern_end_eof.adb.diff
+    ./aspects.ads.diff
+
 user option to make end block names not optional
 
 indent bug:
