@@ -156,6 +156,7 @@ package Wisi is
    end record;
 
    type Recover_Block_Mismatched_Names is new Pattern with record
+      Begin_ID     : Standard.Ada.Strings.Unbounded.Unbounded_String;
       End_ID       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Name_ID      : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Semicolon_ID : Standard.Ada.Strings.Unbounded.Unbounded_String;

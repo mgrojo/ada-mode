@@ -309,6 +309,7 @@ package body WisiToken.Semantic_State is
          List.Clear;
       end loop;
       State.Parser_Errors.Clear;
+      State.Lexer_Errors.Clear;
 
       State.All_Tokens.Clear;
 

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -26,7 +26,7 @@ package body WisiToken.AUnit is
       do
          Result.Reserve_Capacity (Item'Length);
          for I of Item loop
-            Result.Append ((I, Null_Buffer_Region, Null_Buffer_Region));
+            Result.Append ((I, Null_Buffer_Region, Null_Buffer_Region, False));
          end loop;
       end return;
    end To_Base_Token_Array;

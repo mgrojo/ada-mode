@@ -25,11 +25,11 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
-with SAL.AUnit;
 with WisiToken.AUnit;
 with WisiToken.LR.AUnit;
 with WisiToken.Semantic_State.AUnit;
 with WisiToken.Semantic_State;
+with WisiToken.Semantic_Checks.AUnit;
 package body Test_McKenzie_Recover is
 
    Parser : WisiToken.LR.Instance;
@@ -529,7 +529,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, 1, 22, (23, 25),
+            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25),
              others => <>));
       end;
 
@@ -570,7 +570,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, 1, 27, (28, 30),
+            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30),
              others => <>));
       end;
 
@@ -618,7 +618,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors 1.error_token",
             Element (Cursor).Error_Token,
-            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, 1, 75, (76, 77),
+            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77),
              others => <>));
       end;
 
@@ -776,7 +776,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors 3.error_token",
             Element (Cursor).Error_Token,
-            (+END_ID, (78, 80), WisiToken.Null_Buffer_Region, 1, 77, (78, 80), others => <>));
+            (+END_ID, (78, 80), WisiToken.Null_Buffer_Region, False, 1, 77, (78, 80), others => <>));
          Check
            ("errors 3.recover.deleted",
             WisiToken.LR.Configuration (Element (Cursor).Recover.all).Deleted,
@@ -787,7 +787,7 @@ package body Test_McKenzie_Recover is
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
    end Pattern_End_EOF;
 
-   procedure Pattern_Block_Mismatched_Names (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Pattern_Block_Mismatched_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use AUnit.Assertions;
@@ -818,7 +818,6 @@ package body Test_McKenzie_Recover is
 
       Check ("errors.length", State.Active_Error_List.Length, 1);
       declare
-         use SAL.AUnit;
          use WisiToken.Semantic_State;
          use WisiToken.Semantic_State.Parser_Error_Data_Lists;
          use WisiToken.LR.AUnit;
@@ -829,15 +828,15 @@ package body Test_McKenzie_Recover is
          Check
            ("errors 1.error_token",
             Element (Cursor).Error_Token,
-            (+PROCEDURE_ID, (102, 110), WisiToken.Null_Buffer_Region, 1, 101, (102, 110), others => <>));
+            (+PROCEDURE_ID, (102, 110), WisiToken.Null_Buffer_Region, False, 1, 101, (102, 110), others => <>));
          Check
            ("errors 1.recover.popped",
             WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
             To_Fast_Token_ID_Vector ((+SEMICOLON_ID, +identifier_opt_ID)));
          Check
-           ("errors 1.recover.inserted.length",
-            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Inserted.Length,
-            0);
+           ("errors 1.recover.inserted",
+            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Inserted,
+            To_Fast_Token_ID_Vector ((+SEMICOLON_ID, +END_ID, +SEMICOLON_ID)));
       end;
 
       --  FIXME: "procedure Name_A is begin end Name_B;" edit one? see pattern_end_eof
@@ -846,7 +845,63 @@ package body Test_McKenzie_Recover is
    exception
    when E : WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
-   end Pattern_Block_Mismatched_Names;
+   end Pattern_Block_Mismatched_Names_1;
+
+   procedure Pattern_Block_Extra_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+      use WisiToken.Semantic_State.AUnit;
+   begin
+      Parse_Text
+        ("procedure Journal_To_TSV is procedure Process_CSV_File is procedure To_Month is begin" &
+           --      |10       |20       |30       |40       |50       |60       |70       |80
+           " begin end Process_CSV_File; begin end Journal_To_TSV;");
+      --    |86 |90       |100      |110      |120      |130      |140
+
+      --  Missing 'end To_Month;' 86.
+      --
+      --  Error recovery entered at 'begin' 115, Extra_Name_Error
+      --  ""/"Process_CSV_File". Search stack finds matching name at 39,
+      --  with 1 intervening 'begin'; insert 'end' before next 'begin'.
+      --
+      --  block 'begin end Process_CSV_File;' has already been reduced. pop
+      --  that, insert 'end; begin end;'.
+      --
+      --  Need syntax tree to avoid throwing away a whole block.
+
+      Check ("errors.length", State.Active_Error_List.Length, 1);
+      declare
+         use WisiToken.Semantic_State;
+         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         use WisiToken.Semantic_Checks.AUnit;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
+         use all type WisiToken.Semantic_Checks.Error_Label;
+         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.Last;
+      begin
+         Check ("errors 1.code", Element (Cursor).Code, Extra_Name_Error);
+         Check
+           ("errors 1.recover.popped",
+            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
+            To_Fast_Token_ID_Vector ((1 => +block_statement_ID)));
+         Check
+           ("errors 1.recover.inserted",
+            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Inserted,
+            To_Fast_Token_ID_Vector ((+END_ID, +SEMICOLON_ID, +BEGIN_ID, +END_ID, +SEMICOLON_ID)));
+      end;
+
+      --  FIXME: "procedure Name_A is begin end Name_B;" edit one? see pattern_end_eof
+      --  FIXME: required name missing
+
+   exception
+   when E : WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   end Pattern_Block_Extra_Name_1;
 
    ----------
    --  Public subprograms
@@ -881,7 +936,8 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Match_Name'Access, "Match_Name");
       Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
       Register_Routine (T, Pattern_End_EOF'Access, "Pattern_End_EOF");
-      Register_Routine (T, Pattern_Block_Mismatched_Names'Access, "Pattern_Block_Mismatched_Names");
+      Register_Routine (T, Pattern_Block_Mismatched_Names_1'Access, "Pattern_Block_Mismatched_Names_1");
+      Register_Routine (T, Pattern_Block_Extra_Name_1'Access, "Pattern_Block_Extra_Name_1");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)

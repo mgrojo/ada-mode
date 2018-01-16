@@ -41,14 +41,6 @@ package WisiToken.Semantic_State is
       Col         : Ada.Text_IO.Count := 0;
       Char_Region : Buffer_Region     := Null_Buffer_Region;
 
-      Virtual : Boolean := False;
-      --  For non-grammar and terminal tokens, True if inserted by
-      --  Virtual_To_Lookahead. For nonterminal tokens, True if any
-      --  contained token has Virtual True.
-      --
-      --  Useful in semantic actions; don't report errors if can't perform
-      --  semantic actions on virtual tokens.
-
       First_All_Tokens_Index : Positive_Index_Type := Invalid_All_Tokens_Index;
       --  For non-grammar and terminal tokens, index of this token in
       --  State.All_Tokens.

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014, 2015, 2017  All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017, 2018  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -683,7 +683,8 @@ package body Wisi.Gen_Generate_Utils is
             begin
                Result.Patterns.Append
                  (WisiToken.LR.Recover_Block_Mismatched_Names'
-                    (End_ID       => Find_Token_ID (-Pat.End_ID),
+                    (Begin_ID     => Find_Token_ID (-Pat.Begin_ID),
+                     End_ID       => Find_Token_ID (-Pat.End_ID),
                      Name_ID      => Find_Token_ID (-Pat.Name_ID),
                      Semicolon_ID => Find_Token_ID (-Pat.Semicolon_ID)));
             end;

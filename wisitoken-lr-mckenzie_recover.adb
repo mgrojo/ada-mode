@@ -554,7 +554,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Put_Line (Trace, Parser_Label, Image (Config.Stack, Trace.Descriptor.all));
          Put_Line (Trace, Parser_Label, Image (Action, Trace.Descriptor.all));
       end if;
-      Config.Stack.Push ((Action.State, (Inserted_Token, Null_Buffer_Region, Null_Buffer_Region)));
+      Config.Stack.Push ((Action.State, (Inserted_Token, Null_Buffer_Region, Null_Buffer_Region, Virtual => True)));
       Config.Inserted.Append (Inserted_Token);
       Config.Cost := Config.Cost + McKenzie_Param.Insert (Inserted_Token);
       Local_Config_Heap.Add (Config);
@@ -627,8 +627,11 @@ package body WisiToken.LR.McKenzie_Recover is
                         New_Config.Popped.Append (New_Config.Stack.Pop.Token.ID); -- '<name>'
 
                         New_Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+                        New_Config.Inserted.Prepend (Pattern.Semicolon_ID);
                         New_Config.Local_Lookahead.Prepend (Pattern.End_ID);
+                        New_Config.Inserted.Prepend (Pattern.End_ID);
                         New_Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+                        New_Config.Inserted.Prepend (Pattern.Semicolon_ID);
 
                         New_Config.Local_Lookahead_Index := New_Config.Local_Lookahead.First_Index;
 
@@ -818,7 +821,7 @@ package body WisiToken.LR.McKenzie_Recover is
                Check_Config.Local_Lookahead_Index := Check_Config.Local_Lookahead_Index + 1;
                Check_Token :=
                  (Check_Config.Local_Lookahead (Check_Config.Local_Lookahead_Index),
-                  Null_Buffer_Region, Null_Buffer_Region);
+                  Null_Buffer_Region, Null_Buffer_Region, Virtual => True);
                Last_Token_Virtual := True;
             else
                if not Last_Token_Virtual then
@@ -954,7 +957,8 @@ package body WisiToken.LR.McKenzie_Recover is
         Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index
       then
          Current_Input :=
-           (Config.Local_Lookahead (Config.Local_Lookahead_Index), Null_Buffer_Region, Null_Buffer_Region);
+           (Config.Local_Lookahead (Config.Local_Lookahead_Index),
+            Null_Buffer_Region, Null_Buffer_Region, Virtual => True);
       else
          Current_Input := Shared.Get_Token (Config.Shared_Lookahead_Index);
       end if;
@@ -1142,8 +1146,11 @@ package body WisiToken.LR.McKenzie_Recover is
             Config : Configuration := Root_Config;
          begin
             Config.Local_Lookahead.Prepend (Pattern.Stack);
+            Config.Inserted.Prepend (Pattern.Stack);
             Config.Local_Lookahead.Prepend (Pattern.Error);
+            Config.Inserted.Prepend (Pattern.Error);
             Config.Local_Lookahead.Prepend (Pattern.Expecting);
+            Config.Inserted.Prepend (Pattern.Expecting);
             Config.Local_Lookahead_Index := 1;
 
             Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
@@ -1181,8 +1188,11 @@ package body WisiToken.LR.McKenzie_Recover is
             Config : Configuration := Root_Config;
          begin
             Config.Local_Lookahead.Prepend (Pattern.Stack);
+            Config.Inserted.Prepend (Pattern.Stack);
             Config.Local_Lookahead.Prepend (Pattern.Insert);
+            Config.Inserted.Prepend (Pattern.Insert);
             Config.Local_Lookahead.Prepend (Pattern.Expecting);
+            Config.Inserted.Prepend (Pattern.Expecting);
             Config.Local_Lookahead_Index := 1;
 
             Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
@@ -1233,12 +1243,12 @@ package body WisiToken.LR.McKenzie_Recover is
    procedure Apply_Pattern
      (Pattern      : in     Recover_Block_Mismatched_Names;
       Super        : in out Supervisor;
+      Lexer        : in     WisiToken.Lexer.Handle;
       Parser_State : in out Parser_Lists.Parser_State;
       Error        : in     Semantic_State.Parser_Error_Data;
-      Root_Config  : in     Configuration;
+      Root_Config  : in out Configuration;
       Trace        : in out WisiToken.Trace'Class)
    is
-      pragma Unreferenced (Pattern);
       use all type Semantic_State.Parser_Error_Label;
    begin
       if Error.Label = Semantic_State.Check then
@@ -1254,15 +1264,80 @@ package body WisiToken.LR.McKenzie_Recover is
             --
             --  See Test_McKenzie_Recover.Pattern_End_EOF.
             Super.Force_Done (Parser_State.Label, Root_Config);
+            return;
 
          when Semantic_Checks.Missing_Name_Error =>
-            --  Fix is to add a name; insert a virtual token. FIXME: need test case,
-            --  solution
             raise Programmer_Error with "found test case for Apply_Pattern Missing_Name_Error";
 
          when Semantic_Checks.Extra_Name_Error =>
-            --  Error is a missing 'end'; insert '; end '. FIXME: need test case.
-            raise Programmer_Error with "found test case for Apply_Pattern Missing_Name_Error";
+            --  See test_mckenzie_recover.adb Pattern_Block_Missing_Name_1. Assume
+            --  there is a missing 'end <name>'; search stack for matching name,
+            --  counting 'begin's. Top of stack is reduced block with end name to
+            --  search for.
+            declare
+               use all type SAL.Peek_Type;
+
+               End_Name            : constant String := Lexer.Buffer_Text
+                 (Error.Tokens (Error.Tokens.Last_Index).Name);
+               Matching_Name_Index : SAL.Peek_Type   := 2;
+               Begin_Count         : Integer         := 0;
+            begin
+               loop
+                  exit when Matching_Name_Index > Root_Config.Stack.Depth;
+                  declare
+                     Token : Base_Token renames Root_Config.Stack.Peek (Matching_Name_Index).Token;
+                  begin
+                     exit when Token.Name /= Null_Buffer_Region and then
+                       Lexer.Buffer_Text (Token.Name) = End_Name;
+
+                     if Token.ID = Pattern.Begin_ID then
+                        Begin_Count := Begin_Count + 1;
+                     end if;
+
+                     Matching_Name_Index := Matching_Name_Index + 1;
+                  end;
+               end loop;
+
+               if Matching_Name_Index > Root_Config.Stack.Depth then
+                  --  Did not find matching name; assume user is editing names, so ignore.
+                  Super.Force_Done (Parser_State.Label, Root_Config);
+                  return;
+               end if;
+
+               declare
+                  Config : Configuration := Root_Config;
+               begin
+                  Config.Popped.Append (Config.Stack.Pop.Token.ID); -- reduced block
+
+                  --  Replace the popped block
+                  Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+                  Config.Inserted.Prepend (Pattern.Semicolon_ID);
+
+                  Config.Local_Lookahead.Prepend (Pattern.End_ID);
+                  Config.Inserted.Prepend (Pattern.End_ID);
+
+                  Config.Local_Lookahead.Prepend (Pattern.Begin_ID);
+                  Config.Inserted.Prepend (Pattern.Begin_ID);
+
+                  --  Insert the missing 'end;'.
+                  for I in 1 .. Begin_Count loop
+                     Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+                     Config.Inserted.Prepend (Pattern.Semicolon_ID);
+
+                     Config.Local_Lookahead.Prepend (Pattern.End_ID);
+                     Config.Inserted.Prepend (Pattern.End_ID);
+                  end loop;
+
+                  Config.Local_Lookahead_Index := Config.Local_Lookahead.First_Index;
+
+                  Config.Cost := 0;
+
+                  Config.Semantic_Check_Fixes (Error.Code) := True;
+                  Root_Config.Semantic_Check_Fixes (Error.Code) := True; -- Avoid duplication.
+
+                  Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
+               end;
+            end;
 
          end case;
       end if;
@@ -1273,7 +1348,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Shared_Parser : in out LR.Instance'Class;
       Shared        : in     Shared_Lookahead;
       Parser_State  : in out Parser_Lists.Parser_State;
-      Root_Config   : in     Configuration;
+      Root_Config   : in out Configuration;
       Trace         : in out WisiToken.Trace'Class)
    is
       Param : McKenzie_Param_Type renames Shared_Parser.Table.McKenzie_Param;
@@ -1292,7 +1367,8 @@ package body WisiToken.LR.McKenzie_Recover is
 
          elsif Pattern in Recover_Block_Mismatched_Names'Class then
             Apply_Pattern
-              (Recover_Block_Mismatched_Names (Pattern), Super, Parser_State, Error, Root_Config, Trace);
+              (Recover_Block_Mismatched_Names (Pattern), Super, Shared_Parser.Lexer,
+               Parser_State, Error, Root_Config, Trace);
          end if;
       end loop;
    end Patterns;
@@ -1328,9 +1404,11 @@ package body WisiToken.LR.McKenzie_Recover is
          --  Shared_Parser.Shared_Lookahead(Parser_State.Shared_Lookahead_Index)
 
          Orig.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index;
-         Enqueue (Trace, Parser_Lists.Label (Parser_State), Parser_State.Recover, Orig);
 
          Patterns (Super, Shared_Parser, Shared, Parser_State, Orig, Trace);
+
+         --  A pattern may have set Orig.Semantic_Check_Fixes.
+         Enqueue (Trace, Parser_Lists.Label (Parser_State), Parser_State.Recover, Orig);
       end;
    end Recover_Init;
 
@@ -1517,12 +1595,9 @@ package body WisiToken.LR.McKenzie_Recover is
                      Pend (Parser_State, (Discard_Lookahead, ID), Trace);
                   end loop;
 
-                  for ID of reverse Result.Local_Lookahead loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
-                  end loop;
-
                   for ID of reverse Result.Inserted loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
+                     Parser_State.Local_Lookahead.Add_To_Head
+                       ((ID, Null_Buffer_Region, Null_Buffer_Region, Virtual => True));
                   end loop;
 
                   Pend
@@ -1556,12 +1631,9 @@ package body WisiToken.LR.McKenzie_Recover is
 
                   --  We use Parser_State.Local_Lookahead even when there is only one
                   --  parser, so main loop knows these are virtual tokens.
-                  for ID of reverse Result.Local_Lookahead loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
-                  end loop;
-
                   for ID of reverse Result.Inserted loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
+                     Parser_State.Local_Lookahead.Add_To_Head
+                       ((ID, Null_Buffer_Region, Null_Buffer_Region, Virtual => True));
                   end loop;
 
                   Shared_Parser.Semantic_State.Recover (Parser_State.Label, Result);

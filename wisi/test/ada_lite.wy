@@ -172,7 +172,7 @@ with WisiToken.Text_IO_Trace;
 ;; result: delete thru delete_thru or EOF
 %recover_pattern_end_eof END SEMICOLON
 
-%recover_pattern_block_mismatched_names END identifier_opt SEMICOLON
+%recover_pattern_block_mismatched_names BEGIN END identifier_opt SEMICOLON
 
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN

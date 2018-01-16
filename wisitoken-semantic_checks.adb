@@ -58,7 +58,10 @@ package body WisiToken.Semantic_Checks is
    is
       use Base_Token_Arrays;
    begin
-      if End_Optional then
+      if Tokens (Start_Index).Virtual or Tokens (End_Index).Virtual then
+         return (Label => Ok);
+
+      elsif End_Optional then
          if Tokens (End_Index).Name = Null_Buffer_Region then
             return (Label => Ok);
 

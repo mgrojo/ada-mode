@@ -9,7 +9,7 @@
 --  To store additional information about a token, see
 --  fasttoken-token_regions.ads or fasttoken-token_wisi.ads.
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017 Stephe Leake
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -218,6 +218,15 @@ package WisiToken is
       --  Descriptor.Nonterminal_Name_ID, or is a higher level nonterminal
       --  containing at least one token with Name set; this is the first of
       --  those.
+
+      Virtual : Boolean := False;
+      --  For non-grammar and terminal tokens, True if inserted by
+      --  error recovery. For nonterminal tokens, True if any
+      --  contained token has Virtual True.
+      --
+      --  Useful in semantic actions and checks; don't report errors if
+      --  can't perform semantic actions or checks on virtual tokens.
+
    end record;
 
    function Image

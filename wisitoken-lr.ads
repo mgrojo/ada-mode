@@ -255,6 +255,7 @@ package WisiToken.LR is
 
    type Recover_Block_Mismatched_Names is new Pattern with record
       --  See [info] node Error Recovery
+      Begin_ID     : Token_ID;
       End_ID       : Token_ID;
       Name_ID      : Token_ID;
       Semicolon_ID : Token_ID;

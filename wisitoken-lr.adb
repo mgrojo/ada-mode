@@ -71,7 +71,8 @@ package body WisiToken.LR is
    is begin
       return
         "WisiToken.LR.Recover_Block_Mismatched_Names'(" &
-        Int_Image (Item.End_ID) & "," &
+        Int_Image (Item.Begin_ID) & "," &
+        Token_ID'Image (Item.End_ID) & "," &
         Token_ID'Image (Item.Name_ID)  & "," &
         Token_ID'Image (Item.Semicolon_ID) &
         ")";
@@ -696,7 +697,7 @@ package body WisiToken.LR is
       Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token)
    is begin
-      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
+      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region, False);
       for I in reverse 1 .. Action.Token_Count loop
          declare
             Token : constant Base_Token := Stack.Pop.Token;
@@ -718,7 +719,7 @@ package body WisiToken.LR is
       Nonterm :    out Base_Token;
       Tokens  :    out Base_Token_Arrays.Vector)
    is begin
-      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
+      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region, False);
       Tokens.Set_Length (Action.Token_Count);
       for I in reverse 1 .. SAL.Base_Peek_Type (Action.Token_Count) loop
          declare

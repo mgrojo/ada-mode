@@ -14,17 +14,29 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+test/ada_mode-recover_indent_3.adb:    found test case for Apply_Pattern Missing_Name_Error
+    duplicate in test_mckenzie_recover.adb
+
 confusion between config.local_lookahead and config.inserted
     both are copied to parser.local_lookahead in Recover
     process_one adds tokens from possible actions to config.inserted, without going thru local_lookahead
     patterns add tokens to config.local_lookahead, without copying to inserted
     only inserted reported to Emacs (in ada-mode wisi_runtime)
+        when add to local_lookahead, copy to inserted
+        don't copy config.local_lookahead to parser.local_lookahead
+
+        since inserted.length is now zero, will not try pop or delete from that config
+        original config will still do those.
+            testing in o.e.a.s-4
 
 user option end_name_require (ie not optional) makes ada_mode-recover_block_name_mismatch.adb fail?
     need to preserve end name when editing stack
     => lookahead must be array of base token
 
     or build syntax tree, edit that?
+
+delete line, col
+    also other fields?
 
 syntax tree
     all_tokens: array of base_token

@@ -352,7 +352,9 @@ begin
 
          elsif Match (Recover_Pattern_Block_Mismatched_Names_Str) then
             declare
-               End_First       : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Begin_First     : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Begin_Last      : constant Integer := -1 + Index_Blank (Line, Begin_First);
+               End_First       : constant Integer := Index_Non_Blank (Line, Begin_Last + 1);
                End_Last        : constant Integer := -1 + Index_Blank (Line, End_First);
                Name_First      : constant Integer := Index_Non_Blank (Line, End_Last + 1);
                Name_Last       : constant Integer := -1 + Index_Blank (Line, Name_First);
@@ -360,7 +362,8 @@ begin
             begin
                McKenzie_Recover.Patterns.Append
                  (Recover_Block_Mismatched_Names'
-                    (End_ID       => +Line (End_First .. End_Last),
+                    (Begin_ID     => +Line (Begin_First .. Begin_Last),
+                     End_ID       => +Line (End_First .. End_Last),
                      Name_ID      => +Line (Name_First .. Name_Last),
                      Semicolon_ID => +Line (Semicolon_First .. Line'Last)));
             end;
