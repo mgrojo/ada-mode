@@ -453,7 +453,10 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("   lexer->char_token_start = lexer->char_pos;");
       Indent_Line ("else");
       Indent_Line ("   lexer->char_token_start = lexer->char_pos + 1;");
-      Indent_Line ("lexer->line_token_start = lexer->line;");
+      Indent_Line ("if (*lexer->cursor == 0x0A)");
+      Indent_Line ("   lexer->line_token_start = lexer->line-1;");
+      Indent_Line ("else");
+      Indent_Line ("   lexer->line_token_start = lexer->line;");
       New_Line;
 
       Indent_Line ("while (*id == 0 && status == 0)");

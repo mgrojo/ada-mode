@@ -113,7 +113,7 @@ package WisiToken.Lexer is
    function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
    --  Return the next token.
    --
-   --  If their is an error, adds an entry to Lexer.Erorrs. If the error
+   --  If their is an error, adds an entry to Lexer.Errors. If the error
    --  was not corrected, raises Syntax_Error with an appropriate
    --  message.
 

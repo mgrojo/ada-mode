@@ -258,7 +258,7 @@ package body WisiToken.Semantic_State is
          --  Search backwards
          loop
             exit when Current = State.All_Tokens.First_Index or else
-              (State.All_Tokens (Current - 1).Line = Line and
+              (State.All_Tokens (Current - 1).Line = Line - 1 and
                  State.All_Tokens (Current - 1).ID = State.Trace.Descriptor.New_Line_ID);
             Current := Current - 1;
          end loop;
@@ -422,10 +422,10 @@ package body WisiToken.Semantic_State is
                   Copy.First       := True;
 
                   if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-                     Prev_Token.First_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
+                     Prev_Token.First_Trailing_Comment_Line := Temp.Line;
                      Copy.First_Trailing_Comment_Line       := Prev_Token.First_Trailing_Comment_Line;
                   end if;
-                  Prev_Token.Last_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
+                  Prev_Token.Last_Trailing_Comment_Line := Temp.Line;
                   Copy.Last_Trailing_Comment_Line       := Prev_Token.Last_Trailing_Comment_Line;
                end if;
             end Set_Prev_Trailing;
