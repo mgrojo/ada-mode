@@ -40,9 +40,21 @@ run test from emacs -Q using source:
 run tests
     test/ada_mode-recover_match_names.adb found test case for Match_Names_Error
 
-    ./ada_mode-recover_indent_4.adb.diff
-    ./ada_mode-recover_pattern_end_eof.adb.diff
-    ./aspects.ads.diff
+indent bug: parse fails
+    wisitoken-wisi_runtime-ada.adb indent_hanging_1
+      if (((not Indenting_Comment) and Indenting_Token.ID = +expression_opt_ID)
+      and then
+      ((Prev_1 = +WITH_ID and
+      (Prev_3 = Invalid_Token_ID or
+      Prev_3 /= +LEFT_PAREN_ID))
+           or
+           Prev_3 = +WITH_ID)) or
+      ((Indenting_Comment and Indenting_Token.ID = +EQUAL_GREATER_ID)
+        and then
+        ((Prev_1 = +WITH_ID and Prev_3 = +overriding_indicator_opt_ID)
+           or
+           Prev_3 = +WITH_ID))
+      then
 
 user option to make end block names not optional
 

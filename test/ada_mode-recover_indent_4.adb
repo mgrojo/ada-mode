@@ -2,6 +2,7 @@
 -- adjusting cost of insert left-paren.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq skip-recase-test t)
 package body WisiToken.Wisi_Runtime is
 
    function Current_Indent_Offset

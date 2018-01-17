@@ -221,21 +221,30 @@ package body WisiToken.Wisi_Runtime.Ada is
       Prev_1 : constant Token_ID := Peek_ID (Data, 1);
       Prev_3 : constant Token_ID := Peek_ID (Data, 3);
    begin
-      if Indenting_Token.ID = +expression_opt_ID
-        and then
+      if ((not Indenting_Comment) and Indenting_Token.ID = +expression_opt_ID) and then
         ((Prev_1 = +WITH_ID and
             (Prev_3 = Invalid_Token_ID or
-               Prev_3 /= +LEFT_PAREN_ID))
-           or
+               Prev_3 /= +LEFT_PAREN_ID)) or
            Prev_3 = +WITH_ID)
       then
-         --  in aspect_specification_opt
+         --  in aspect_specification_opt, indenting code
          return Result
            (Delta_1,
             Indent_Anchored_2
               (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
                Current_Indent_Offset (Data, Indenting_Token, 0),
                Accumulate => False).Simple_Delta);
+
+      elsif (Indenting_Comment and Indenting_Token.ID = +EQUAL_GREATER_ID) and then
+        ((Prev_1 = +WITH_ID and Prev_3 = +overriding_indicator_opt_ID)
+           or
+           Prev_3 = +WITH_ID)
+      then
+         --  In aspect_specification_opt, indenting comment before expression.
+         --  Test case in test/aspects.ads
+         return Result
+           (Indent_Compute_Delta
+              (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment).Simple_Delta);
 
       elsif Ada_Indent_Hanging_Rel_Exp then
          declare

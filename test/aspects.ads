@@ -1,4 +1,4 @@
---  Does not compile; add required subprograms
+--  Does not compile
 --
 --  Some aspects also tested in ada-nominal.ads
 
