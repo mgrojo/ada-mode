@@ -153,9 +153,10 @@ package WisiToken.Semantic_State is
       when Action =>
          Error_Token : Augmented_Token;
          Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
+
       when Check =>
-         Code    : Semantic_Checks.Error_Label;
-         Tokens  : Base_Token_Arrays.Vector;
+         Code   : Semantic_Checks.Error_Label;
+         Tokens : Base_Token_Arrays.Vector;
       end case;
    end record;
 

@@ -564,6 +564,7 @@ package body WisiToken.LR.McKenzie_Recover is
      (Trace             : in out WisiToken.Trace'Class;
       Parser_Label      : in     Natural;
       McKenzie_Param    : in     McKenzie_Param_Type;
+      Lexer             : in     WisiToken.Lexer.Handle;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in out Configuration;
       Status            : in     Semantic_Checks.Check_Status)
@@ -593,13 +594,85 @@ package body WisiToken.LR.McKenzie_Recover is
                   --  So we just ignore this error.
                   --
                   --  2. The mismatch indicates an extra or missing 'end'. The fix is to
-                  --  search the syntax tree to find the error, and fix it. See
-                  --  Test_McKenzie_Recover.Pattern_End_EOF.
+                  --  search the syntax tree to find the error, and fix it.
                   --
-                  --  FIXME: implement syntax tree. For now, assume case 1.
-                  --  FIXME: need test case
-                  raise Programmer_Error with "found test case for Match_Names_Error";
-                  return True;
+                  --  First test for case 2.
+                  declare
+                     End_Name            : constant String := Lexer.Buffer_Text
+                       (Status.Tokens (Status.Tokens.Last_Index).Name);
+                     Matching_Name_Index : SAL.Peek_Type   := 2;
+                     Begin_Count         : Integer         := 0;
+                  begin
+                     loop
+                        exit when Matching_Name_Index >= Config.Stack.Depth;
+                        declare
+                           Token : Base_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
+                        begin
+                           exit when Token.Name /= Null_Buffer_Region and then
+                             Lexer.Buffer_Text (Token.Name) = End_Name;
+
+                           if Token.ID = Pattern.Begin_ID then
+                              Begin_Count := Begin_Count + 1;
+                           end if;
+
+                           Matching_Name_Index := Matching_Name_Index + 1;
+                        end;
+                     end loop;
+
+                     if Matching_Name_Index < Config.Stack.Depth then
+                        if Config.Deleted.Length = 0 and
+                          Config.Inserted.Length = 0
+                        then
+                           --  Since our solution involves popping and inserting, we can't apply
+                           --  it if items have already been deleted or inserted; the order of
+                           --  operations is lost.
+
+                           raise Programmer_Error with "found test case for Match_Names_Error";
+
+                           --  Found a matching name; case 2.
+                           --  declare
+                           --     New_Config : Configuration := Config;
+                           --  begin
+                           --     --  Pop '<name> ;'
+                           --     New_Config.Popped.Append (New_Config.Stack.Pop.Token.ID);
+                           --     New_Config.Popped.Append (New_Config.Stack.Pop.Token.ID);
+
+                           --     --  Replace the popped ';'
+                           --     New_Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+                           --     New_Config.Inserted.Prepend (Pattern.Semicolon_ID);
+
+                           --     --  Insert '; end' for each extra 'begin'
+                           --     for I in 1 .. Begin_Count loop
+                           --        New_Config.Local_Lookahead.Prepend (Pattern.End_ID);
+                           --        New_Config.Inserted.Prepend (Pattern.End_ID);
+
+                           --        New_Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+                           --        New_Config.Inserted.Prepend (Pattern.Semicolon_ID);
+                           --     end loop;
+
+                           --     New_Config.Local_Lookahead_Index := New_Config.Local_Lookahead.First_Index;
+
+                           --     New_Config.Cost := 0;
+
+                           --     New_Config.Semantic_Check_Fixes (Status.Code) := True;
+                           --     Config.Semantic_Check_Fixes (Status.Code) := True; -- Avoid duplication.
+
+                           --     if Trace_McKenzie > Extra then
+                           --        Put_Line (Trace, Parser_Label, "Match_Names_Error pattern");
+                           --     end if;
+
+                           --     Local_Config_Heap.Add (New_Config);
+
+                           --     return False;
+                           --  end;
+                        else
+                           return False;
+                        end if;
+                     else
+                        --  No matching name; case 1.
+                        return True;
+                     end if;
+                  end;
 
                when Semantic_Checks.Missing_Name_Error =>
                   --  Fix is to add a name; insert a virtual token. FIXME: need test case,
@@ -698,7 +771,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
       if Status.Label = Error then
          if not Try_Semantic_Check_Fixes
-           (Trace, Parser_Label, Table.McKenzie_Param, Local_Config_Heap, Config, Status)
+           (Trace, Parser_Label, Table.McKenzie_Param, Lexer, Local_Config_Heap, Config, Status)
          then
             return;
          end if;
@@ -849,7 +922,8 @@ package body WisiToken.LR.McKenzie_Recover is
                   end if;
                else
                   if not Try_Semantic_Check_Fixes
-                    (Trace, Parser_Label, Table.McKenzie_Param, Local_Config_Heap, Check_Config, Status)
+                    (Trace, Parser_Label, Table.McKenzie_Param, Shared.Shared_Parser.Lexer,
+                     Local_Config_Heap, Check_Config, Status)
                   then
                      Keep_Going := False;
                   end if;
@@ -1262,7 +1336,9 @@ package body WisiToken.LR.McKenzie_Recover is
             --  do that without editing the buffer. So we just ignore this error,
             --  and let the parser continue.
             --
-            --  See Test_McKenzie_Recover.Pattern_End_EOF.
+            --  See test_mckenzie_recover.adb Pattern_End_EOF, test_ada_lite.adb
+            --  Propagate_Names.
+
             Super.Force_Done (Parser_State.Label, Root_Config);
             return;
 
@@ -1270,10 +1346,10 @@ package body WisiToken.LR.McKenzie_Recover is
             raise Programmer_Error with "found test case for Apply_Pattern Missing_Name_Error";
 
          when Semantic_Checks.Extra_Name_Error =>
-            --  See test_mckenzie_recover.adb Pattern_Block_Missing_Name_1. Assume
-            --  there is a missing 'end <name>'; search stack for matching name,
-            --  counting 'begin's. Top of stack is reduced block with end name to
-            --  search for.
+            --  Assume there is a missing 'end <name>'; search stack for matching
+            --  name, counting 'begin's. Top of stack is the reduced block.
+            --
+            --  See test_mckenzie_recover.adb Pattern_Block_Missing_Name_1.
             declare
                use all type SAL.Peek_Type;
 
@@ -1300,6 +1376,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                if Matching_Name_Index > Root_Config.Stack.Depth then
                   --  Did not find matching name; assume user is editing names, so ignore.
+                  Root_Config.Semantic_Check_Fixes (Error.Code) := True;
                   Super.Force_Done (Parser_State.Label, Root_Config);
                   return;
                end if;
@@ -1307,7 +1384,8 @@ package body WisiToken.LR.McKenzie_Recover is
                declare
                   Config : Configuration := Root_Config;
                begin
-                  Config.Popped.Append (Config.Stack.Pop.Token.ID); -- reduced block
+                  --  Pop block with mismatched names
+                  Config.Popped.Append (Config.Stack.Pop.Token.ID);
 
                   --  Replace the popped block
                   Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
@@ -1319,7 +1397,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   Config.Local_Lookahead.Prepend (Pattern.Begin_ID);
                   Config.Inserted.Prepend (Pattern.Begin_ID);
 
-                  --  Insert the missing 'end;'.
+                  --  Insert one missing 'end;' for each extra 'begin'.
                   for I in 1 .. Begin_Count loop
                      Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
                      Config.Inserted.Prepend (Pattern.Semicolon_ID);

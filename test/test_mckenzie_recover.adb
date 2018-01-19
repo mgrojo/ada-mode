@@ -750,7 +750,7 @@ package body Test_McKenzie_Recover is
       --  inserts ': identifier'.
       --
       --  Second error recovery entered at 'end' 78, with semantic check
-      --  Mismatch_Name_Error for "P"/"Remove". No useful solution, so error
+      --  Match_Names_Error for "P"/"Remove". No useful solution, so error
       --  is ignored.
       --
       --  Third error recovery entered at 'end' 78, expecting EOF or
@@ -760,9 +760,8 @@ package body Test_McKenzie_Recover is
       --
       --  Applying Pattern_End_EOF resolves the ambiguity by deleting 'end P;'.
       --
-      --  If we had a full AST, could edit that to delete actual error
+      --  If we had a syntax tree, we could edit that to delete actual error
       --  'end', based on name matching.
-
 
       Check ("errors.length", State.Active_Error_List.Length, 3);
       declare
@@ -787,7 +786,7 @@ package body Test_McKenzie_Recover is
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
    end Pattern_End_EOF;
 
-   procedure Pattern_Block_Mismatched_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Pattern_Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use AUnit.Assertions;
@@ -804,7 +803,7 @@ package body Test_McKenzie_Recover is
 
       --  Missing 'end' 87.
       --
-      --  Error recovery entered at 'procedure' 102, expecting declaration.
+      --  Error recovery entered at 'procedure' 102, expecting statement.
       --  The semantic check that would fail on ""/"Find_First" is not done,
       --  because the block_statement is not reduced.
       --
@@ -845,7 +844,41 @@ package body Test_McKenzie_Recover is
    exception
    when E : WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
-   end Pattern_Block_Mismatched_Names_1;
+   end Pattern_Block_Match_Names_1;
+
+   procedure Pattern_Block_Match_Names_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+      use WisiToken.Semantic_State.AUnit;
+   begin
+      --  Show that the Match_Names_Error pattern is not applied when an
+      --  insert has already been done.
+
+      Parse_Text ("package body Debug is procedure A is end Debug;");
+      --           |1       |10       |20       |30       |40
+
+      --  Missing 'begin end A' 35.
+      --
+      --  Error recovery entered at 'end' 38 with two parsers, expecting
+      --  either 'separate' or 'begin | declaration'.
+      --
+      --  One recovery config is 'insert begin', which fails the match_names
+      --  check on "A"/"Debug". But the match_names pattern does not match,
+      --  because we've already done an insertion.
+      --
+      --  Recovery finds one solution for each parser, and both continue to
+      --  EOF, resulting in an ambiguous parse.
+
+      Assert (False, "1 exception: did not get Parse_Error");
+
+   exception
+   when E : WisiToken.Parse_Error =>
+      Check ("error message", Ada.Exceptions.Exception_Message (E), ":1:0: Ambiguous parse: 2 parsers active.");
+   end Pattern_Block_Match_Names_2;
 
    procedure Pattern_Block_Extra_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -936,7 +969,8 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Match_Name'Access, "Match_Name");
       Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
       Register_Routine (T, Pattern_End_EOF'Access, "Pattern_End_EOF");
-      Register_Routine (T, Pattern_Block_Mismatched_Names_1'Access, "Pattern_Block_Mismatched_Names_1");
+      Register_Routine (T, Pattern_Block_Match_Names_1'Access, "Pattern_Block_Match_Names_1");
+      Register_Routine (T, Pattern_Block_Match_Names_2'Access, "Pattern_Block_Match_Names_2");
       Register_Routine (T, Pattern_Block_Extra_Name_1'Access, "Pattern_Block_Extra_Name_1");
    end Register_Tests;
 

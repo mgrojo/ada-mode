@@ -210,7 +210,7 @@ package WisiToken.LR is
    procedure Add_Goto
      (State    : in out Parse_State;
       Symbol   : in     Token_ID;
-      To_State : in     LR.State_Index);
+      To_State : in     State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;

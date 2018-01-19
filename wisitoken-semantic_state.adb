@@ -401,7 +401,7 @@ package body WisiToken.Semantic_State is
       if Token.ID < State.Trace.Descriptor.First_Terminal then
          --  Non-grammar token
          if Token.ID = State.Trace.Descriptor.New_Line_ID then
-            State.Line_Paren_State (Temp.Line) := State.Current_Paren_State;
+            State.Line_Paren_State (Temp.Line + 1) := State.Current_Paren_State;
          end if;
 
          declare

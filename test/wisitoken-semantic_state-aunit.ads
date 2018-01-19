@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,7 +17,10 @@
 
 pragma License (Modified_GPL);
 
+with AUnit.Checks;
 package WisiToken.Semantic_State.AUnit is
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parser_Error_Label);
 
    type Check_Recover_Type is access procedure
      (Label    : in String;

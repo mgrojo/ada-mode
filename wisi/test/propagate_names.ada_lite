@@ -7,7 +7,7 @@ procedure Proc (A : Integer)
 is begin
 end Proc;
 
---  These names do not match. Parse succeeds, but trace shows check fail.
+--  These names do not match. Parse succeeds due to error recovery
 procedure Proc_2
 is begin
 end Proc;

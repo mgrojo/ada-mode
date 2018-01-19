@@ -513,7 +513,11 @@ package body Wisi.Gen_Output_Ada_Common is
             if Kind (I) = "non-reporting" then
                Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
                Indent_Line ("    lexer->char_token_start = lexer->char_pos;");
-               Indent_Line ("    lexer->line_token_start = lexer->line; continue; }");
+               Indent_Line ("    if (*lexer->cursor == 0x0A)");
+               Indent_Line ("       lexer->line_token_start = lexer->line-1;");
+               Indent_Line ("    else");
+               Indent_Line ("       lexer->line_token_start = lexer->line;");
+               Indent_Line ("    continue; }");
 
             elsif Kind (I) = "delimited-text" then
                --  Val contains the start and end strings, separated by space

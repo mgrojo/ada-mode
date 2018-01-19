@@ -448,7 +448,7 @@ package body WisiToken.LR is
    procedure Add_Goto
      (State    : in out LR.Parse_State;
       Symbol   : in     Token_ID;
-      To_State : in     LR.State_Index)
+      To_State : in     State_Index)
    is
       use all type Token_ID;
       List     : Goto_Node_Ptr renames State.Goto_List;
@@ -756,7 +756,7 @@ package body WisiToken.LR is
          return (Label => Ok);
       else
          declare
-            Tokens : Base_Token_Arrays.Vector;
+            Tokens : Base_Token_Arrays.Vector; -- For Check.
          begin
             Reduce_Stack_2 (Stack, Action, Nonterm, Tokens);
             return Status : constant Semantic_Checks.Check_Status := Action.Check (Lexer, Nonterm, Tokens) do
@@ -767,7 +767,7 @@ package body WisiToken.LR is
                      Trace.Put_Line
                        (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status) & " " &
                           Nonterm.Image (Trace.Descriptor.all) &
-                          Image (Tokens, Trace.Descriptor.all));
+                          Image (Status.Tokens, Trace.Descriptor.all));
                   end if;
                end if;
             end return;
@@ -789,7 +789,9 @@ package body WisiToken.LR is
       use all type Semantic_Checks.Check_Status_Label;
    begin
       Reduce_Stack_2 (Stack, Action, Nonterm, Tokens);
-      if Action.Check /= null then
+      if Action.Check = null then
+         return (Label => Ok);
+      else
          return Status : constant Semantic_Checks.Check_Status := Action.Check (Lexer, Nonterm, Tokens) do
             if Trace_Level > Detail then
                if Status.Label = Ok then
@@ -798,13 +800,10 @@ package body WisiToken.LR is
                   Trace.Put_Line
                     ("semantic check " & Semantic_Checks.Image (Status) & " " &
                        Nonterm.Image (Trace.Descriptor.all) &
-                       Image (Tokens, Trace.Descriptor.all));
+                       Image (Status.Tokens, Trace.Descriptor.all));
                end if;
             end if;
          end return;
-
-      else
-         return (Label => Ok);
       end if;
    end Reduce_Stack;
 
