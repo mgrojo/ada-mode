@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 1998, 2003, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 1998, 2003, 2009, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -99,12 +99,12 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       return Stack.Data (Stack.Top - Index + 1);
    end Peek;
 
-   procedure Pop (Stack : in out Stack_Type)
+   procedure Pop (Stack : in out Stack_Type; Count : in Base_Peek_Type := 1)
    is begin
-      if Stack.Top = 0 then
+      if Stack.Top < Count then
          raise Container_Empty;
       else
-         Stack.Top := Stack.Top - 1;
+         Stack.Top := Stack.Top - Count;
       end if;
    end Pop;
 

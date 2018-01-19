@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -302,9 +302,9 @@ package body Test_Red_Black_Trees is
       Check ("present 14", Tree.Present (14), True);
       Check ("present 13", Tree.Present (13), False);
 
-      Check ("find 10", Find (Tree.Iterate, Unknown, 10), 10, Black);
-      Check ("find 14", Find (Tree.Iterate, Unknown, 14), 14, Black);
-      Check ("find 13", Has_Element (Find (Tree.Iterate, Unknown, 13)), False);
+      Check ("find 10", Find (Tree.Iterate, 10, Unknown), 10, Black);
+      Check ("find 14", Find (Tree.Iterate, 14, Unknown), 14, Black);
+      Check ("find 13", Has_Element (Find (Tree.Iterate, 13, Unknown)), False);
 
       Check ("index 10", Tree (10).Element.all, (Pos => 10));
 
@@ -321,10 +321,10 @@ package body Test_Red_Black_Trees is
 
       Check_Null ("in_range not found", Find_In_Range (Tree.Iterate, Ascending, 4, 5));
 
-      I := Find (Tree.Iterate, Unknown, 10);
+      I := Find (Tree.Iterate, 10, Unknown);
       Tree.Delete (I);
       Check_Null ("delete.i", I);
-      Check_Null ("delete.find", Find (Tree.Iterate, Unknown, 10));
+      Check_Null ("delete.find", Find (Tree.Iterate, 10, Unknown));
       --                12b
       --          7r          15r
       --      2b     9b    14b   16b
@@ -337,7 +337,7 @@ package body Test_Red_Black_Trees is
       Check ("delete 10.2", I, 9, Black);
       Validate ("delete 10", Tree);
 
-      I := Find (Tree.Iterate, Unknown, 7);
+      I := Find (Tree.Iterate, 7, Unknown);
       Tree.Delete (I);
       --                12b
       --          2r          15r
@@ -353,7 +353,7 @@ package body Test_Red_Black_Trees is
       Check ("delete 7.3", I, 3, Red);
       Validate ("delete 7", Tree);
 
-      I := Find (Tree.Iterate, Unknown, 17);
+      I := Find (Tree.Iterate, 17, Unknown);
       Tree.Delete (I);
       --                12b
       --          2r          15r
@@ -361,7 +361,7 @@ package body Test_Red_Black_Trees is
       --           3r
       Validate ("delete 17", Tree);
 
-      I := Find (Tree.Iterate, Unknown, 16);
+      I := Find (Tree.Iterate, 16, Unknown);
       Tree.Delete (I);
       --                12b
       --          2r          15r
@@ -369,7 +369,7 @@ package body Test_Red_Black_Trees is
       --           3r
       Validate ("delete 16", Tree);
 
-      I := Find (Tree.Iterate, Unknown, 15);
+      I := Find (Tree.Iterate, 15, Unknown);
       Tree.Delete (I);
       Validate ("delete 15", Tree);
    end Nominal;

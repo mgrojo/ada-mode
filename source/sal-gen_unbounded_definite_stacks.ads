@@ -2,7 +2,7 @@
 --
 --  Stack implementation using Ada.Containers.Vectors.
 --
---  Copyright (C) 1998-2000, 2002-2003, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 1998-2000, 2002-2003, 2009, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -55,10 +55,11 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --
    --  Raises Constraint_Error if Index > Depth.
 
-   procedure Pop (Stack : in out Stack_Type);
-   --  Remove Item from the top of Stack, discard it.
+   procedure Pop (Stack : in out Stack_Type; Count : in Base_Peek_Type := 1);
+   --  Remove Count Items from the top of Stack, discard them.
    --
-   --  Raises Container_Empty if Is_Empty.
+   --  Raises Container_Empty if there are fewer than Count items on
+   --  Stack.
 
    function Pop (Stack : in out Stack_Type) return Element_Type;
    --  Remove Item from the top of Stack, and return it.
