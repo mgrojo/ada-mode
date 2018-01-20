@@ -277,14 +277,14 @@ yy2:
 	YYSKIP ();
 yy3:
 	YYDEBUG(3, YYPEEK ());
-#line 346 "../ada.re2c"
+#line 350 "../ada.re2c"
 	{status = ERROR_unrecognized_character; continue;}
 #line 283 "../ada_re2c.c"
 yy4:
 	YYDEBUG(4, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(5, YYPEEK ());
-#line 345 "../ada.re2c"
+#line 349 "../ada.re2c"
 	{*id =  107; continue;}
 #line 290 "../ada_re2c.c"
 yy6:
@@ -302,15 +302,19 @@ yy8:
 #line 235 "../ada.re2c"
 	{ lexer->byte_token_start = lexer->cursor;
           lexer->char_token_start = lexer->char_pos;
-          lexer->line_token_start = lexer->line; continue; }
-#line 307 "../ada_re2c.c"
+          if (*lexer->cursor == 0x0A)
+             lexer->line_token_start = lexer->line-1;
+          else
+             lexer->line_token_start = lexer->line;
+          continue; }
+#line 311 "../ada_re2c.c"
 yy9:
 	YYDEBUG(9, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(10, YYPEEK ());
-#line 238 "../ada.re2c"
+#line 242 "../ada.re2c"
 	{*id =  1; continue;}
-#line 314 "../ada_re2c.c"
+#line 318 "../ada_re2c.c"
 yy11:
 	YYDEBUG(11, YYPEEK ());
 	YYSKIP ();
@@ -490,9 +494,9 @@ yy14:
 	YYDEBUG(14, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(15, YYPEEK ());
-#line 315 "../ada.re2c"
+#line 319 "../ada.re2c"
 	{*id =  78; continue;}
-#line 496 "../ada_re2c.c"
+#line 500 "../ada_re2c.c"
 yy16:
 	YYDEBUG(16, YYPEEK ());
 	yyaccept = 1;
@@ -653,23 +657,23 @@ yy16:
 	}
 yy17:
 	YYDEBUG(17, YYPEEK ());
-#line 338 "../ada.re2c"
+#line 342 "../ada.re2c"
 	{*id =  101; continue;}
-#line 659 "../ada_re2c.c"
+#line 663 "../ada_re2c.c"
 yy18:
 	YYDEBUG(18, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(19, YYPEEK ());
-#line 313 "../ada.re2c"
+#line 317 "../ada.re2c"
 	{*id =  76; continue;}
-#line 666 "../ada_re2c.c"
+#line 670 "../ada_re2c.c"
 yy20:
 	YYDEBUG(20, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(21, YYPEEK ());
-#line 314 "../ada.re2c"
+#line 318 "../ada.re2c"
 	{*id =  77; continue;}
-#line 673 "../ada_re2c.c"
+#line 677 "../ada_re2c.c"
 yy22:
 	YYDEBUG(22, YYPEEK ());
 	YYSKIP ();
@@ -680,23 +684,23 @@ yy22:
 	}
 yy23:
 	YYDEBUG(23, YYPEEK ());
-#line 336 "../ada.re2c"
+#line 340 "../ada.re2c"
 	{*id =  99; continue;}
-#line 686 "../ada_re2c.c"
+#line 690 "../ada_re2c.c"
 yy24:
 	YYDEBUG(24, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(25, YYPEEK ());
-#line 332 "../ada.re2c"
+#line 336 "../ada.re2c"
 	{*id =  95; continue;}
-#line 693 "../ada_re2c.c"
+#line 697 "../ada_re2c.c"
 yy26:
 	YYDEBUG(26, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(27, YYPEEK ());
-#line 320 "../ada.re2c"
+#line 324 "../ada.re2c"
 	{*id =  83; continue;}
-#line 700 "../ada_re2c.c"
+#line 704 "../ada_re2c.c"
 yy28:
 	YYDEBUG(28, YYPEEK ());
 	YYSKIP ();
@@ -707,9 +711,9 @@ yy28:
 	}
 yy29:
 	YYDEBUG(29, YYPEEK ());
-#line 331 "../ada.re2c"
+#line 335 "../ada.re2c"
 	{*id =  94; continue;}
-#line 713 "../ada_re2c.c"
+#line 717 "../ada_re2c.c"
 yy30:
 	YYDEBUG(30, YYPEEK ());
 	YYSKIP ();
@@ -720,9 +724,9 @@ yy30:
 	}
 yy31:
 	YYDEBUG(31, YYPEEK ());
-#line 321 "../ada.re2c"
+#line 325 "../ada.re2c"
 	{*id =  84; continue;}
-#line 726 "../ada_re2c.c"
+#line 730 "../ada_re2c.c"
 yy32:
 	YYDEBUG(32, YYPEEK ());
 	YYSKIP ();
@@ -733,9 +737,9 @@ yy32:
 	}
 yy33:
 	YYDEBUG(33, YYPEEK ());
-#line 334 "../ada.re2c"
+#line 338 "../ada.re2c"
 	{*id =  97; continue;}
-#line 739 "../ada_re2c.c"
+#line 743 "../ada_re2c.c"
 yy34:
 	YYDEBUG(34, YYPEEK ());
 	yyaccept = 2;
@@ -774,9 +778,9 @@ yy34:
 	}
 yy36:
 	YYDEBUG(36, YYPEEK ());
-#line 340 "../ada.re2c"
+#line 344 "../ada.re2c"
 	{*id =  103; continue;}
-#line 780 "../ada_re2c.c"
+#line 784 "../ada_re2c.c"
 yy37:
 	YYDEBUG(37, YYPEEK ());
 	YYSKIP ();
@@ -787,16 +791,16 @@ yy37:
 	}
 yy38:
 	YYDEBUG(38, YYPEEK ());
-#line 318 "../ada.re2c"
+#line 322 "../ada.re2c"
 	{*id =  81; continue;}
-#line 793 "../ada_re2c.c"
+#line 797 "../ada_re2c.c"
 yy39:
 	YYDEBUG(39, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(40, YYPEEK ());
-#line 333 "../ada.re2c"
+#line 337 "../ada.re2c"
 	{*id =  96; continue;}
-#line 800 "../ada_re2c.c"
+#line 804 "../ada_re2c.c"
 yy41:
 	YYDEBUG(41, YYPEEK ());
 	YYSKIP ();
@@ -809,9 +813,9 @@ yy41:
 	}
 yy42:
 	YYDEBUG(42, YYPEEK ());
-#line 328 "../ada.re2c"
+#line 332 "../ada.re2c"
 	{*id =  91; continue;}
-#line 815 "../ada_re2c.c"
+#line 819 "../ada_re2c.c"
 yy43:
 	YYDEBUG(43, YYPEEK ());
 	YYSKIP ();
@@ -822,9 +826,9 @@ yy43:
 	}
 yy44:
 	YYDEBUG(44, YYPEEK ());
-#line 323 "../ada.re2c"
+#line 327 "../ada.re2c"
 	{*id =  86; continue;}
-#line 828 "../ada_re2c.c"
+#line 832 "../ada_re2c.c"
 yy45:
 	YYDEBUG(45, YYPEEK ());
 	YYSKIP ();
@@ -836,9 +840,9 @@ yy45:
 	}
 yy46:
 	YYDEBUG(46, YYPEEK ());
-#line 325 "../ada.re2c"
+#line 329 "../ada.re2c"
 	{*id =  88; continue;}
-#line 842 "../ada_re2c.c"
+#line 846 "../ada_re2c.c"
 yy47:
 	YYDEBUG(47, YYPEEK ());
 	yyaccept = 3;
@@ -862,9 +866,9 @@ yy47:
 	}
 yy48:
 	YYDEBUG(48, YYPEEK ());
-#line 341 "../ada.re2c"
+#line 345 "../ada.re2c"
 	{*id =  104; continue;}
-#line 868 "../ada_re2c.c"
+#line 872 "../ada_re2c.c"
 yy49:
 	YYDEBUG(49, YYPEEK ());
 	yyaccept = 3;
@@ -1445,9 +1449,9 @@ yy71:
 	YYDEBUG(71, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(72, YYPEEK ());
-#line 316 "../ada.re2c"
+#line 320 "../ada.re2c"
 	{*id =  79; continue;}
-#line 1451 "../ada_re2c.c"
+#line 1455 "../ada_re2c.c"
 yy73:
 	YYDEBUG(73, YYPEEK ());
 	YYSKIP ();
@@ -2041,9 +2045,9 @@ yy82:
 	}
 yy83:
 	YYDEBUG(83, YYPEEK ());
-#line 342 "../ada.re2c"
+#line 346 "../ada.re2c"
 	{*id =  105; continue;}
-#line 2047 "../ada_re2c.c"
+#line 2051 "../ada_re2c.c"
 yy84:
 	YYDEBUG(84, YYPEEK ());
 	YYSKIP ();
@@ -2750,9 +2754,9 @@ yy101:
 	YYDEBUG(101, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(102, YYPEEK ());
-#line 337 "../ada.re2c"
+#line 341 "../ada.re2c"
 	{*id =  100; continue;}
-#line 2756 "../ada_re2c.c"
+#line 2760 "../ada_re2c.c"
 yy103:
 	YYDEBUG(103, YYPEEK ());
 	yyaccept = 5;
@@ -2943,23 +2947,23 @@ yy103:
 	}
 yy105:
 	YYDEBUG(105, YYPEEK ());
-#line 239 "../ada.re2c"
+#line 243 "../ada.re2c"
 	{*id =  2; continue;}
-#line 2949 "../ada_re2c.c"
+#line 2953 "../ada_re2c.c"
 yy106:
 	YYDEBUG(106, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(107, YYPEEK ());
-#line 322 "../ada.re2c"
+#line 326 "../ada.re2c"
 	{*id =  85; continue;}
-#line 2956 "../ada_re2c.c"
+#line 2960 "../ada_re2c.c"
 yy108:
 	YYDEBUG(108, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(109, YYPEEK ());
-#line 335 "../ada.re2c"
+#line 339 "../ada.re2c"
 	{*id =  98; continue;}
-#line 2963 "../ada_re2c.c"
+#line 2967 "../ada_re2c.c"
 yy110:
 	YYDEBUG(110, YYPEEK ());
 	YYSKIP ();
@@ -3005,51 +3009,51 @@ yy113:
 	YYDEBUG(113, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(114, YYPEEK ());
-#line 319 "../ada.re2c"
+#line 323 "../ada.re2c"
 	{*id =  82; continue;}
-#line 3011 "../ada_re2c.c"
+#line 3015 "../ada_re2c.c"
 yy115:
 	YYDEBUG(115, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(116, YYPEEK ());
-#line 330 "../ada.re2c"
+#line 334 "../ada.re2c"
 	{*id =  93; continue;}
-#line 3018 "../ada_re2c.c"
+#line 3022 "../ada_re2c.c"
 yy117:
 	YYDEBUG(117, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(118, YYPEEK ());
-#line 329 "../ada.re2c"
+#line 333 "../ada.re2c"
 	{*id =  92; continue;}
-#line 3025 "../ada_re2c.c"
+#line 3029 "../ada_re2c.c"
 yy119:
 	YYDEBUG(119, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(120, YYPEEK ());
-#line 317 "../ada.re2c"
+#line 321 "../ada.re2c"
 	{*id =  80; continue;}
-#line 3032 "../ada_re2c.c"
+#line 3036 "../ada_re2c.c"
 yy121:
 	YYDEBUG(121, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(122, YYPEEK ());
-#line 324 "../ada.re2c"
+#line 328 "../ada.re2c"
 	{*id =  87; continue;}
-#line 3039 "../ada_re2c.c"
+#line 3043 "../ada_re2c.c"
 yy123:
 	YYDEBUG(123, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(124, YYPEEK ());
-#line 326 "../ada.re2c"
+#line 330 "../ada.re2c"
 	{*id =  89; continue;}
-#line 3046 "../ada_re2c.c"
+#line 3050 "../ada_re2c.c"
 yy125:
 	YYDEBUG(125, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(126, YYPEEK ());
-#line 327 "../ada.re2c"
+#line 331 "../ada.re2c"
 	{*id =  90; continue;}
-#line 3053 "../ada_re2c.c"
+#line 3057 "../ada_re2c.c"
 yy127:
 	YYDEBUG(127, YYPEEK ());
 	yyaccept = 3;
@@ -3235,9 +3239,9 @@ yy132:
 	}
 yy133:
 	YYDEBUG(133, YYPEEK ());
-#line 249 "../ada.re2c"
+#line 253 "../ada.re2c"
 	{*id =  12; continue;}
-#line 3241 "../ada_re2c.c"
+#line 3245 "../ada_re2c.c"
 yy134:
 	YYDEBUG(134, YYPEEK ());
 	YYSKIP ();
@@ -3770,9 +3774,9 @@ yy147:
 	}
 yy148:
 	YYDEBUG(148, YYPEEK ());
-#line 258 "../ada.re2c"
+#line 262 "../ada.re2c"
 	{*id =  21; continue;}
-#line 3776 "../ada_re2c.c"
+#line 3780 "../ada_re2c.c"
 yy149:
 	YYDEBUG(149, YYPEEK ());
 	yyaccept = 3;
@@ -3980,9 +3984,9 @@ yy156:
 	}
 yy157:
 	YYDEBUG(157, YYPEEK ());
-#line 269 "../ada.re2c"
+#line 273 "../ada.re2c"
 	{*id =  32; continue;}
-#line 3986 "../ada_re2c.c"
+#line 3990 "../ada_re2c.c"
 yy158:
 	YYDEBUG(158, YYPEEK ());
 	yyaccept = 9;
@@ -4109,9 +4113,9 @@ yy158:
 	}
 yy159:
 	YYDEBUG(159, YYPEEK ());
-#line 270 "../ada.re2c"
+#line 274 "../ada.re2c"
 	{*id =  33; continue;}
-#line 4115 "../ada_re2c.c"
+#line 4119 "../ada_re2c.c"
 yy160:
 	YYDEBUG(160, YYPEEK ());
 	yyaccept = 10;
@@ -4238,9 +4242,9 @@ yy160:
 	}
 yy161:
 	YYDEBUG(161, YYPEEK ());
-#line 272 "../ada.re2c"
+#line 276 "../ada.re2c"
 	{*id =  35; continue;}
-#line 4244 "../ada_re2c.c"
+#line 4248 "../ada_re2c.c"
 yy162:
 	YYDEBUG(162, YYPEEK ());
 	yyaccept = 3;
@@ -4433,9 +4437,9 @@ yy168:
 	}
 yy169:
 	YYDEBUG(169, YYPEEK ());
-#line 279 "../ada.re2c"
+#line 283 "../ada.re2c"
 	{*id =  42; continue;}
-#line 4439 "../ada_re2c.c"
+#line 4443 "../ada_re2c.c"
 yy170:
 	YYDEBUG(170, YYPEEK ());
 	yyaccept = 12;
@@ -4562,9 +4566,9 @@ yy170:
 	}
 yy171:
 	YYDEBUG(171, YYPEEK ());
-#line 280 "../ada.re2c"
+#line 284 "../ada.re2c"
 	{*id =  43; continue;}
-#line 4568 "../ada_re2c.c"
+#line 4572 "../ada_re2c.c"
 yy172:
 	YYDEBUG(172, YYPEEK ());
 	yyaccept = 3;
@@ -5379,9 +5383,9 @@ yy204:
 	YYSKIP ();
 yy205:
 	YYDEBUG(205, YYPEEK ());
-#line 343 "../ada.re2c"
+#line 347 "../ada.re2c"
 	{*id =  106; continue;}
-#line 5385 "../ada_re2c.c"
+#line 5389 "../ada_re2c.c"
 yy206:
 	YYDEBUG(206, YYPEEK ());
 	yyaccept = 13;
@@ -6048,9 +6052,9 @@ yy217:
 	}
 yy218:
 	YYDEBUG(218, YYPEEK ());
-#line 240 "../ada.re2c"
+#line 244 "../ada.re2c"
 	{*id =  3; continue;}
-#line 6054 "../ada_re2c.c"
+#line 6058 "../ada_re2c.c"
 yy219:
 	YYDEBUG(219, YYPEEK ());
 	yyaccept = 3;
@@ -6199,9 +6203,9 @@ yy221:
 	}
 yy222:
 	YYDEBUG(222, YYPEEK ());
-#line 246 "../ada.re2c"
+#line 250 "../ada.re2c"
 	{*id =  9; continue;}
-#line 6205 "../ada_re2c.c"
+#line 6209 "../ada_re2c.c"
 yy223:
 	YYDEBUG(223, YYPEEK ());
 	yyaccept = 16;
@@ -6328,9 +6332,9 @@ yy223:
 	}
 yy224:
 	YYDEBUG(224, YYPEEK ());
-#line 247 "../ada.re2c"
+#line 251 "../ada.re2c"
 	{*id =  10; continue;}
-#line 6334 "../ada_re2c.c"
+#line 6338 "../ada_re2c.c"
 yy225:
 	YYDEBUG(225, YYPEEK ());
 	yyaccept = 3;
@@ -6560,9 +6564,9 @@ yy234:
 	}
 yy235:
 	YYDEBUG(235, YYPEEK ());
-#line 261 "../ada.re2c"
+#line 265 "../ada.re2c"
 	{*id =  24; continue;}
-#line 6566 "../ada_re2c.c"
+#line 6570 "../ada_re2c.c"
 yy236:
 	YYDEBUG(236, YYPEEK ());
 	yyaccept = 3;
@@ -6722,9 +6726,9 @@ yy239:
 	}
 yy240:
 	YYDEBUG(240, YYPEEK ());
-#line 265 "../ada.re2c"
+#line 269 "../ada.re2c"
 	{*id =  28; continue;}
-#line 6728 "../ada_re2c.c"
+#line 6732 "../ada_re2c.c"
 yy241:
 	YYDEBUG(241, YYPEEK ());
 	yyaccept = 3;
@@ -6917,9 +6921,9 @@ yy247:
 	}
 yy248:
 	YYDEBUG(248, YYPEEK ());
-#line 275 "../ada.re2c"
+#line 279 "../ada.re2c"
 	{*id =  38; continue;}
-#line 6923 "../ada_re2c.c"
+#line 6927 "../ada_re2c.c"
 yy249:
 	YYDEBUG(249, YYPEEK ());
 	yyaccept = 20;
@@ -7046,9 +7050,9 @@ yy249:
 	}
 yy250:
 	YYDEBUG(250, YYPEEK ());
-#line 276 "../ada.re2c"
+#line 280 "../ada.re2c"
 	{*id =  39; continue;}
-#line 7052 "../ada_re2c.c"
+#line 7056 "../ada_re2c.c"
 yy251:
 	YYDEBUG(251, YYPEEK ());
 	yyaccept = 21;
@@ -7175,9 +7179,9 @@ yy251:
 	}
 yy252:
 	YYDEBUG(252, YYPEEK ());
-#line 277 "../ada.re2c"
+#line 281 "../ada.re2c"
 	{*id =  40; continue;}
-#line 7181 "../ada_re2c.c"
+#line 7185 "../ada_re2c.c"
 yy253:
 	YYDEBUG(253, YYPEEK ());
 	yyaccept = 3;
@@ -7326,9 +7330,9 @@ yy255:
 	}
 yy256:
 	YYDEBUG(256, YYPEEK ());
-#line 282 "../ada.re2c"
+#line 286 "../ada.re2c"
 	{*id =  45; continue;}
-#line 7332 "../ada_re2c.c"
+#line 7336 "../ada_re2c.c"
 yy257:
 	YYDEBUG(257, YYPEEK ());
 	yyaccept = 3;
@@ -7545,9 +7549,9 @@ yy265:
 	}
 yy266:
 	YYDEBUG(266, YYPEEK ());
-#line 292 "../ada.re2c"
+#line 296 "../ada.re2c"
 	{*id =  55; continue;}
-#line 7551 "../ada_re2c.c"
+#line 7555 "../ada_re2c.c"
 yy267:
 	YYDEBUG(267, YYPEEK ());
 	yyaccept = 3;
@@ -7839,9 +7843,9 @@ yy282:
 	}
 yy283:
 	YYDEBUG(283, YYPEEK ());
-#line 308 "../ada.re2c"
+#line 312 "../ada.re2c"
 	{*id =  71; continue;}
-#line 7845 "../ada_re2c.c"
+#line 7849 "../ada_re2c.c"
 yy284:
 	YYDEBUG(284, YYPEEK ());
 	yyaccept = 3;
@@ -8001,9 +8005,9 @@ yy287:
 	}
 yy288:
 	YYDEBUG(288, YYPEEK ());
-#line 312 "../ada.re2c"
+#line 316 "../ada.re2c"
 	{*id =  75; continue;}
-#line 8007 "../ada_re2c.c"
+#line 8011 "../ada_re2c.c"
 yy289:
 	YYDEBUG(289, YYPEEK ());
 	YYSKIP ();
@@ -8621,9 +8625,9 @@ yy309:
 	}
 yy310:
 	YYDEBUG(310, YYPEEK ());
-#line 251 "../ada.re2c"
+#line 255 "../ada.re2c"
 	{*id =  14; continue;}
-#line 8627 "../ada_re2c.c"
+#line 8631 "../ada_re2c.c"
 yy311:
 	YYDEBUG(311, YYPEEK ());
 	yyaccept = 27;
@@ -8750,9 +8754,9 @@ yy311:
 	}
 yy312:
 	YYDEBUG(312, YYPEEK ());
-#line 252 "../ada.re2c"
+#line 256 "../ada.re2c"
 	{*id =  15; continue;}
-#line 8756 "../ada_re2c.c"
+#line 8760 "../ada_re2c.c"
 yy313:
 	YYDEBUG(313, YYPEEK ());
 	yyaccept = 3;
@@ -8934,9 +8938,9 @@ yy318:
 	}
 yy319:
 	YYDEBUG(319, YYPEEK ());
-#line 259 "../ada.re2c"
+#line 263 "../ada.re2c"
 	{*id =  22; continue;}
-#line 8940 "../ada_re2c.c"
+#line 8944 "../ada_re2c.c"
 yy320:
 	YYDEBUG(320, YYPEEK ());
 	yyaccept = 3;
@@ -9096,9 +9100,9 @@ yy323:
 	}
 yy324:
 	YYDEBUG(324, YYPEEK ());
-#line 264 "../ada.re2c"
+#line 268 "../ada.re2c"
 	{*id =  27; continue;}
-#line 9102 "../ada_re2c.c"
+#line 9106 "../ada_re2c.c"
 yy325:
 	YYDEBUG(325, YYPEEK ());
 	yyaccept = 3;
@@ -9247,9 +9251,9 @@ yy327:
 	}
 yy328:
 	YYDEBUG(328, YYPEEK ());
-#line 268 "../ada.re2c"
+#line 272 "../ada.re2c"
 	{*id =  31; continue;}
-#line 9253 "../ada_re2c.c"
+#line 9257 "../ada_re2c.c"
 yy329:
 	YYDEBUG(329, YYPEEK ());
 	yyaccept = 3;
@@ -9398,9 +9402,9 @@ yy331:
 	}
 yy332:
 	YYDEBUG(332, YYPEEK ());
-#line 274 "../ada.re2c"
+#line 278 "../ada.re2c"
 	{*id =  37; continue;}
-#line 9404 "../ada_re2c.c"
+#line 9408 "../ada_re2c.c"
 yy333:
 	YYDEBUG(333, YYPEEK ());
 	yyaccept = 32;
@@ -9527,9 +9531,9 @@ yy333:
 	}
 yy334:
 	YYDEBUG(334, YYPEEK ());
-#line 278 "../ada.re2c"
+#line 282 "../ada.re2c"
 	{*id =  41; continue;}
-#line 9533 "../ada_re2c.c"
+#line 9537 "../ada_re2c.c"
 yy335:
 	YYDEBUG(335, YYPEEK ());
 	yyaccept = 3;
@@ -9832,9 +9836,9 @@ yy351:
 	}
 yy352:
 	YYDEBUG(352, YYPEEK ());
-#line 299 "../ada.re2c"
+#line 303 "../ada.re2c"
 	{*id =  62; continue;}
-#line 9838 "../ada_re2c.c"
+#line 9842 "../ada_re2c.c"
 yy353:
 	YYDEBUG(353, YYPEEK ());
 	yyaccept = 3;
@@ -9994,9 +9998,9 @@ yy356:
 	}
 yy357:
 	YYDEBUG(357, YYPEEK ());
-#line 303 "../ada.re2c"
+#line 307 "../ada.re2c"
 	{*id =  66; continue;}
-#line 10000 "../ada_re2c.c"
+#line 10004 "../ada_re2c.c"
 yy358:
 	YYDEBUG(358, YYPEEK ());
 	yyaccept = 3;
@@ -10134,9 +10138,9 @@ yy359:
 	}
 yy360:
 	YYDEBUG(360, YYPEEK ());
-#line 305 "../ada.re2c"
+#line 309 "../ada.re2c"
 	{*id =  68; continue;}
-#line 10140 "../ada_re2c.c"
+#line 10144 "../ada_re2c.c"
 yy361:
 	YYDEBUG(361, YYPEEK ());
 	yyaccept = 36;
@@ -10263,9 +10267,9 @@ yy361:
 	}
 yy362:
 	YYDEBUG(362, YYPEEK ());
-#line 306 "../ada.re2c"
+#line 310 "../ada.re2c"
 	{*id =  69; continue;}
-#line 10269 "../ada_re2c.c"
+#line 10273 "../ada_re2c.c"
 yy363:
 	YYDEBUG(363, YYPEEK ());
 	yyaccept = 3;
@@ -10403,9 +10407,9 @@ yy364:
 	}
 yy365:
 	YYDEBUG(365, YYPEEK ());
-#line 309 "../ada.re2c"
+#line 313 "../ada.re2c"
 	{*id =  72; continue;}
-#line 10409 "../ada_re2c.c"
+#line 10413 "../ada_re2c.c"
 yy366:
 	YYDEBUG(366, YYPEEK ());
 	yyaccept = 3;
@@ -10543,9 +10547,9 @@ yy367:
 	}
 yy368:
 	YYDEBUG(368, YYPEEK ());
-#line 311 "../ada.re2c"
+#line 315 "../ada.re2c"
 	{*id =  74; continue;}
-#line 10549 "../ada_re2c.c"
+#line 10553 "../ada_re2c.c"
 yy369:
 	YYDEBUG(369, YYPEEK ());
 	YYSKIP ();
@@ -10704,9 +10708,9 @@ yy373:
 	}
 yy374:
 	YYDEBUG(374, YYPEEK ());
-#line 242 "../ada.re2c"
+#line 246 "../ada.re2c"
 	{*id =  5; continue;}
-#line 10710 "../ada_re2c.c"
+#line 10714 "../ada_re2c.c"
 yy375:
 	YYDEBUG(375, YYPEEK ());
 	yyaccept = 3;
@@ -10877,9 +10881,9 @@ yy379:
 	}
 yy380:
 	YYDEBUG(380, YYPEEK ());
-#line 248 "../ada.re2c"
+#line 252 "../ada.re2c"
 	{*id =  11; continue;}
-#line 10883 "../ada_re2c.c"
+#line 10887 "../ada_re2c.c"
 yy381:
 	YYDEBUG(381, YYPEEK ());
 	yyaccept = 41;
@@ -11006,9 +11010,9 @@ yy381:
 	}
 yy382:
 	YYDEBUG(382, YYPEEK ());
-#line 250 "../ada.re2c"
+#line 254 "../ada.re2c"
 	{*id =  13; continue;}
-#line 11012 "../ada_re2c.c"
+#line 11016 "../ada_re2c.c"
 yy383:
 	YYDEBUG(383, YYPEEK ());
 	yyaccept = 3;
@@ -11157,9 +11161,9 @@ yy385:
 	}
 yy386:
 	YYDEBUG(386, YYPEEK ());
-#line 255 "../ada.re2c"
+#line 259 "../ada.re2c"
 	{*id =  18; continue;}
-#line 11163 "../ada_re2c.c"
+#line 11167 "../ada_re2c.c"
 yy387:
 	YYDEBUG(387, YYPEEK ());
 	yyaccept = 43;
@@ -11286,9 +11290,9 @@ yy387:
 	}
 yy388:
 	YYDEBUG(388, YYPEEK ());
-#line 256 "../ada.re2c"
+#line 260 "../ada.re2c"
 	{*id =  19; continue;}
-#line 11292 "../ada_re2c.c"
+#line 11296 "../ada_re2c.c"
 yy389:
 	YYDEBUG(389, YYPEEK ());
 	yyaccept = 3;
@@ -11426,9 +11430,9 @@ yy390:
 	}
 yy391:
 	YYDEBUG(391, YYPEEK ());
-#line 260 "../ada.re2c"
+#line 264 "../ada.re2c"
 	{*id =  23; continue;}
-#line 11432 "../ada_re2c.c"
+#line 11436 "../ada_re2c.c"
 yy392:
 	YYDEBUG(392, YYPEEK ());
 	yyaccept = 45;
@@ -11555,9 +11559,9 @@ yy392:
 	}
 yy393:
 	YYDEBUG(393, YYPEEK ());
-#line 262 "../ada.re2c"
+#line 266 "../ada.re2c"
 	{*id =  25; continue;}
-#line 11561 "../ada_re2c.c"
+#line 11565 "../ada_re2c.c"
 yy394:
 	YYDEBUG(394, YYPEEK ());
 	yyaccept = 3;
@@ -11816,9 +11820,9 @@ yy406:
 	}
 yy407:
 	YYDEBUG(407, YYPEEK ());
-#line 289 "../ada.re2c"
+#line 293 "../ada.re2c"
 	{*id =  52; continue;}
-#line 11822 "../ada_re2c.c"
+#line 11826 "../ada_re2c.c"
 yy408:
 	YYDEBUG(408, YYPEEK ());
 	yyaccept = 47;
@@ -11945,9 +11949,9 @@ yy408:
 	}
 yy409:
 	YYDEBUG(409, YYPEEK ());
-#line 290 "../ada.re2c"
+#line 294 "../ada.re2c"
 	{*id =  53; continue;}
-#line 11951 "../ada_re2c.c"
+#line 11955 "../ada_re2c.c"
 yy410:
 	YYDEBUG(410, YYPEEK ());
 	yyaccept = 3;
@@ -12195,9 +12199,9 @@ yy421:
 	}
 yy422:
 	YYDEBUG(422, YYPEEK ());
-#line 307 "../ada.re2c"
+#line 311 "../ada.re2c"
 	{*id =  70; continue;}
-#line 12201 "../ada_re2c.c"
+#line 12205 "../ada_re2c.c"
 yy423:
 	YYDEBUG(423, YYPEEK ());
 	yyaccept = 49;
@@ -12324,17 +12328,17 @@ yy423:
 	}
 yy424:
 	YYDEBUG(424, YYPEEK ());
-#line 310 "../ada.re2c"
+#line 314 "../ada.re2c"
 	{*id =  73; continue;}
-#line 12330 "../ada_re2c.c"
+#line 12334 "../ada_re2c.c"
 yy425:
 	YYDEBUG(425, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(426, YYPEEK ());
 	YYRESTORECTX ();
-#line 339 "../ada.re2c"
+#line 343 "../ada.re2c"
 	{*id =  102; continue;}
-#line 12338 "../ada_re2c.c"
+#line 12342 "../ada_re2c.c"
 yy427:
 	YYDEBUG(427, YYPEEK ());
 	YYSKIP ();
@@ -12504,9 +12508,9 @@ yy430:
 	}
 yy431:
 	YYDEBUG(431, YYPEEK ());
-#line 241 "../ada.re2c"
+#line 245 "../ada.re2c"
 	{*id =  4; continue;}
-#line 12510 "../ada_re2c.c"
+#line 12514 "../ada_re2c.c"
 yy432:
 	YYDEBUG(432, YYPEEK ());
 	yyaccept = 51;
@@ -12633,9 +12637,9 @@ yy432:
 	}
 yy433:
 	YYDEBUG(433, YYPEEK ());
-#line 244 "../ada.re2c"
+#line 248 "../ada.re2c"
 	{*id =  7; continue;}
-#line 12639 "../ada_re2c.c"
+#line 12643 "../ada_re2c.c"
 yy434:
 	YYDEBUG(434, YYPEEK ());
 	yyaccept = 3;
@@ -12795,9 +12799,9 @@ yy437:
 	}
 yy438:
 	YYDEBUG(438, YYPEEK ());
-#line 257 "../ada.re2c"
+#line 261 "../ada.re2c"
 	{*id =  20; continue;}
-#line 12801 "../ada_re2c.c"
+#line 12805 "../ada_re2c.c"
 yy439:
 	YYDEBUG(439, YYPEEK ());
 	yyaccept = 3;
@@ -12979,9 +12983,9 @@ yy444:
 	}
 yy445:
 	YYDEBUG(445, YYPEEK ());
-#line 281 "../ada.re2c"
+#line 285 "../ada.re2c"
 	{*id =  44; continue;}
-#line 12985 "../ada_re2c.c"
+#line 12989 "../ada_re2c.c"
 yy446:
 	YYDEBUG(446, YYPEEK ());
 	yyaccept = 3;
@@ -13130,9 +13134,9 @@ yy448:
 	}
 yy449:
 	YYDEBUG(449, YYPEEK ());
-#line 285 "../ada.re2c"
+#line 289 "../ada.re2c"
 	{*id =  48; continue;}
-#line 13136 "../ada_re2c.c"
+#line 13140 "../ada_re2c.c"
 yy450:
 	YYDEBUG(450, YYPEEK ());
 	yyaccept = 3;
@@ -13292,9 +13296,9 @@ yy453:
 	}
 yy454:
 	YYDEBUG(454, YYPEEK ());
-#line 291 "../ada.re2c"
+#line 295 "../ada.re2c"
 	{*id =  54; continue;}
-#line 13298 "../ada_re2c.c"
+#line 13302 "../ada_re2c.c"
 yy455:
 	YYDEBUG(455, YYPEEK ());
 	yyaccept = 3;
@@ -13443,9 +13447,9 @@ yy457:
 	}
 yy458:
 	YYDEBUG(458, YYPEEK ());
-#line 295 "../ada.re2c"
+#line 299 "../ada.re2c"
 	{*id =  58; continue;}
-#line 13449 "../ada_re2c.c"
+#line 13453 "../ada_re2c.c"
 yy459:
 	YYDEBUG(459, YYPEEK ());
 	yyaccept = 3;
@@ -13583,9 +13587,9 @@ yy460:
 	}
 yy461:
 	YYDEBUG(461, YYPEEK ());
-#line 298 "../ada.re2c"
+#line 302 "../ada.re2c"
 	{*id =  61; continue;}
-#line 13589 "../ada_re2c.c"
+#line 13593 "../ada_re2c.c"
 yy462:
 	YYDEBUG(462, YYPEEK ());
 	yyaccept = 3;
@@ -13745,9 +13749,9 @@ yy465:
 	}
 yy466:
 	YYDEBUG(466, YYPEEK ());
-#line 302 "../ada.re2c"
+#line 306 "../ada.re2c"
 	{*id =  65; continue;}
-#line 13751 "../ada_re2c.c"
+#line 13755 "../ada_re2c.c"
 yy467:
 	YYDEBUG(467, YYPEEK ());
 	yyaccept = 3;
@@ -13904,9 +13908,9 @@ yy470:
 	}
 yy471:
 	YYDEBUG(471, YYPEEK ());
-#line 245 "../ada.re2c"
+#line 249 "../ada.re2c"
 	{*id =  8; continue;}
-#line 13910 "../ada_re2c.c"
+#line 13914 "../ada_re2c.c"
 yy472:
 	YYDEBUG(472, YYPEEK ());
 	yyaccept = 3;
@@ -14044,9 +14048,9 @@ yy473:
 	}
 yy474:
 	YYDEBUG(474, YYPEEK ());
-#line 254 "../ada.re2c"
+#line 258 "../ada.re2c"
 	{*id =  17; continue;}
-#line 14050 "../ada_re2c.c"
+#line 14054 "../ada_re2c.c"
 yy475:
 	YYDEBUG(475, YYPEEK ());
 	yyaccept = 3;
@@ -14195,9 +14199,9 @@ yy477:
 	}
 yy478:
 	YYDEBUG(478, YYPEEK ());
-#line 267 "../ada.re2c"
+#line 271 "../ada.re2c"
 	{*id =  30; continue;}
-#line 14201 "../ada_re2c.c"
+#line 14205 "../ada_re2c.c"
 yy479:
 	YYDEBUG(479, YYPEEK ());
 	yyaccept = 3;
@@ -14335,9 +14339,9 @@ yy480:
 	}
 yy481:
 	YYDEBUG(481, YYPEEK ());
-#line 273 "../ada.re2c"
+#line 277 "../ada.re2c"
 	{*id =  36; continue;}
-#line 14341 "../ada_re2c.c"
+#line 14345 "../ada_re2c.c"
 yy482:
 	YYDEBUG(482, YYPEEK ());
 	yyaccept = 3;
@@ -14475,9 +14479,9 @@ yy483:
 	}
 yy484:
 	YYDEBUG(484, YYPEEK ());
-#line 284 "../ada.re2c"
+#line 288 "../ada.re2c"
 	{*id =  47; continue;}
-#line 14481 "../ada_re2c.c"
+#line 14485 "../ada_re2c.c"
 yy485:
 	YYDEBUG(485, YYPEEK ());
 	yyaccept = 64;
@@ -14604,9 +14608,9 @@ yy485:
 	}
 yy486:
 	YYDEBUG(486, YYPEEK ());
-#line 286 "../ada.re2c"
+#line 290 "../ada.re2c"
 	{*id =  49; continue;}
-#line 14610 "../ada_re2c.c"
+#line 14614 "../ada_re2c.c"
 yy487:
 	YYDEBUG(487, YYPEEK ());
 	yyaccept = 3;
@@ -14755,9 +14759,9 @@ yy489:
 	}
 yy490:
 	YYDEBUG(490, YYPEEK ());
-#line 293 "../ada.re2c"
+#line 297 "../ada.re2c"
 	{*id =  56; continue;}
-#line 14761 "../ada_re2c.c"
+#line 14765 "../ada_re2c.c"
 yy491:
 	YYDEBUG(491, YYPEEK ());
 	yyaccept = 66;
@@ -14884,9 +14888,9 @@ yy491:
 	}
 yy492:
 	YYDEBUG(492, YYPEEK ());
-#line 294 "../ada.re2c"
+#line 298 "../ada.re2c"
 	{*id =  57; continue;}
-#line 14890 "../ada_re2c.c"
+#line 14894 "../ada_re2c.c"
 yy493:
 	YYDEBUG(493, YYPEEK ());
 	yyaccept = 67;
@@ -15013,9 +15017,9 @@ yy493:
 	}
 yy494:
 	YYDEBUG(494, YYPEEK ());
-#line 296 "../ada.re2c"
+#line 300 "../ada.re2c"
 	{*id =  59; continue;}
-#line 15019 "../ada_re2c.c"
+#line 15023 "../ada_re2c.c"
 yy495:
 	YYDEBUG(495, YYPEEK ());
 	yyaccept = 3;
@@ -15153,9 +15157,9 @@ yy496:
 	}
 yy497:
 	YYDEBUG(497, YYPEEK ());
-#line 300 "../ada.re2c"
+#line 304 "../ada.re2c"
 	{*id =  63; continue;}
-#line 15159 "../ada_re2c.c"
+#line 15163 "../ada_re2c.c"
 yy498:
 	YYDEBUG(498, YYPEEK ());
 	yyaccept = 3;
@@ -15304,9 +15308,9 @@ yy500:
 	}
 yy501:
 	YYDEBUG(501, YYPEEK ());
-#line 243 "../ada.re2c"
+#line 247 "../ada.re2c"
 	{*id =  6; continue;}
-#line 15310 "../ada_re2c.c"
+#line 15314 "../ada_re2c.c"
 yy502:
 	YYDEBUG(502, YYPEEK ());
 	yyaccept = 70;
@@ -15433,9 +15437,9 @@ yy502:
 	}
 yy503:
 	YYDEBUG(503, YYPEEK ());
-#line 253 "../ada.re2c"
+#line 257 "../ada.re2c"
 	{*id =  16; continue;}
-#line 15439 "../ada_re2c.c"
+#line 15443 "../ada_re2c.c"
 yy504:
 	YYDEBUG(504, YYPEEK ());
 	yyaccept = 3;
@@ -15573,9 +15577,9 @@ yy505:
 	}
 yy506:
 	YYDEBUG(506, YYPEEK ());
-#line 266 "../ada.re2c"
+#line 270 "../ada.re2c"
 	{*id =  29; continue;}
-#line 15579 "../ada_re2c.c"
+#line 15583 "../ada_re2c.c"
 yy507:
 	YYDEBUG(507, YYPEEK ());
 	yyaccept = 3;
@@ -15746,9 +15750,9 @@ yy511:
 	}
 yy512:
 	YYDEBUG(512, YYPEEK ());
-#line 297 "../ada.re2c"
+#line 301 "../ada.re2c"
 	{*id =  60; continue;}
-#line 15752 "../ada_re2c.c"
+#line 15756 "../ada_re2c.c"
 yy513:
 	YYDEBUG(513, YYPEEK ());
 	yyaccept = 3;
@@ -15897,9 +15901,9 @@ yy515:
 	}
 yy516:
 	YYDEBUG(516, YYPEEK ());
-#line 263 "../ada.re2c"
+#line 267 "../ada.re2c"
 	{*id =  26; continue;}
-#line 15903 "../ada_re2c.c"
+#line 15907 "../ada_re2c.c"
 yy517:
 	YYDEBUG(517, YYPEEK ());
 	yyaccept = 74;
@@ -16026,9 +16030,9 @@ yy517:
 	}
 yy518:
 	YYDEBUG(518, YYPEEK ());
-#line 271 "../ada.re2c"
+#line 275 "../ada.re2c"
 	{*id =  34; continue;}
-#line 16032 "../ada_re2c.c"
+#line 16036 "../ada_re2c.c"
 yy519:
 	YYDEBUG(519, YYPEEK ());
 	yyaccept = 3;
@@ -16166,9 +16170,9 @@ yy520:
 	}
 yy521:
 	YYDEBUG(521, YYPEEK ());
-#line 287 "../ada.re2c"
+#line 291 "../ada.re2c"
 	{*id =  50; continue;}
-#line 16172 "../ada_re2c.c"
+#line 16176 "../ada_re2c.c"
 yy522:
 	YYDEBUG(522, YYPEEK ());
 	yyaccept = 76;
@@ -16295,9 +16299,9 @@ yy522:
 	}
 yy523:
 	YYDEBUG(523, YYPEEK ());
-#line 288 "../ada.re2c"
+#line 292 "../ada.re2c"
 	{*id =  51; continue;}
-#line 16301 "../ada_re2c.c"
+#line 16305 "../ada_re2c.c"
 yy524:
 	YYDEBUG(524, YYPEEK ());
 	yyaccept = 3;
@@ -16435,9 +16439,9 @@ yy525:
 	}
 yy526:
 	YYDEBUG(526, YYPEEK ());
-#line 304 "../ada.re2c"
+#line 308 "../ada.re2c"
 	{*id =  67; continue;}
-#line 16441 "../ada_re2c.c"
+#line 16445 "../ada_re2c.c"
 yy527:
 	YYDEBUG(527, YYPEEK ());
 	yyaccept = 78;
@@ -16564,9 +16568,9 @@ yy527:
 	}
 yy528:
 	YYDEBUG(528, YYPEEK ());
-#line 283 "../ada.re2c"
+#line 287 "../ada.re2c"
 	{*id =  46; continue;}
-#line 16570 "../ada_re2c.c"
+#line 16574 "../ada_re2c.c"
 yy529:
 	YYDEBUG(529, YYPEEK ());
 	yyaccept = 3;
@@ -16715,11 +16719,11 @@ yy531:
 	}
 yy532:
 	YYDEBUG(532, YYPEEK ());
-#line 301 "../ada.re2c"
+#line 305 "../ada.re2c"
 	{*id =  64; continue;}
-#line 16721 "../ada_re2c.c"
+#line 16725 "../ada_re2c.c"
 }
-#line 347 "../ada.re2c"
+#line 351 "../ada.re2c"
 
       }
    *byte_position = lexer->byte_token_start - lexer->buffer + 1;

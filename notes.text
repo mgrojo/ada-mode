@@ -37,25 +37,6 @@ run test from emacs -Q using source:
    ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
  current work
-run tests
-    test/ada_mode-recover_match_names.adb found test case for Match_Names_Error
-
-indent bug: parse fails
-    wisitoken-wisi_runtime-ada.adb indent_hanging_1
-      if (((not Indenting_Comment) and Indenting_Token.ID = +expression_opt_ID)
-      and then
-      ((Prev_1 = +WITH_ID and
-      (Prev_3 = Invalid_Token_ID or
-      Prev_3 /= +LEFT_PAREN_ID))
-           or
-           Prev_3 = +WITH_ID)) or
-      ((Indenting_Comment and Indenting_Token.ID = +EQUAL_GREATER_ID)
-        and then
-        ((Prev_1 = +WITH_ID and Prev_3 = +overriding_indicator_opt_ID)
-           or
-           Prev_3 = +WITH_ID))
-      then
-
 user option to make end block names not optional
 
 indent bug:
@@ -70,6 +51,8 @@ indent bug:
                 Result := result
           end loop;
        end Image;
+
+update benchmarks
 
 clean up gpr-mode; delete 'we reuse ada' comments
 

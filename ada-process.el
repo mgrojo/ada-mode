@@ -161,13 +161,6 @@
    case_statement
    case_statement_alternative
    case_statement_alternative_list
-   choice_expression
-   choice_relation_and_list
-   choice_relation_or_list
-   choice_relation_xor_list
-   choice_relation_and_then_list
-   choice_relation_or_else_list
-   choice_relation
    compilation_unit
    compilation_unit_list
    component_clause

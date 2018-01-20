@@ -104,8 +104,12 @@
 		  null_procedure_declaration
 		  object_declaration
 		  procedure_specification
+		  protected_declaration
+		  protected_type_declaration
 		  package_specification
 		  subtype_declaration
+		  task_declaration
+		  task_type_declaration
 		  type_declaration))
 	  ;; We can’t store location data in a string text property -
 	  ;; it does not survive completion. So we include the line

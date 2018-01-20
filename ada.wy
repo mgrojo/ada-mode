@@ -307,9 +307,6 @@
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state choice_relation, relation on token AND
-%conflict REDUCE/REDUCE in state choice_relation, relation on token OR
-%conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
 %conflict REDUCE/REDUCE in state derived_type_definition, derived_type_definition  on token WITH
 %conflict REDUCE/REDUCE in state full_type_declaration, full_type_declaration  on token NEW
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
@@ -332,6 +329,7 @@
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token FUNCTION
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PACKAGE
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PROCEDURE
+%conflict SHIFT/REDUCE in state membership_choice_list, relation  on token BAR
 %conflict SHIFT/REDUCE in state name, attribute_designator  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list  on token COLON
@@ -683,44 +681,9 @@ case_statement_alternative_list
   | case_statement_alternative_list case_statement_alternative
   ;
 
-choice_expression
-  : choice_relation
-  | choice_relation_and_list
-  | choice_relation_or_list
-  | choice_relation_xor_list
-  | choice_relation_and_then_list
-  | choice_relation_or_else_list
-  ;
+;; choice_expression use 'expression' to avoid conflicts
 
-choice_relation_and_list
-  : choice_relation AND choice_relation
-  | choice_relation_and_list AND choice_relation
-  ;
-
-choice_relation_or_list
-  : choice_relation OR choice_relation
-  | choice_relation_or_list OR choice_relation
-  ;
-
-choice_relation_xor_list
-  : choice_relation XOR choice_relation
-  | choice_relation_xor_list XOR choice_relation
-  ;
-
-choice_relation_and_then_list
-  : choice_relation AND THEN choice_relation
-  | choice_relation_and_then_list AND THEN choice_relation
-  ;
-
-choice_relation_or_else_list
-  : choice_relation OR ELSE choice_relation
-  | choice_relation_or_else_list OR ELSE choice_relation
-  ;
-
-choice_relation
-  : simple_expression relational_operator simple_expression
-  | simple_expression
-  ;
+;; choice_relation* - use 'relation*', to avoid conflicts
 
 ;; since we allow multiple compilation units in one parse, and don't
 ;; require a library_item in order to be user friendly, we don't need
@@ -906,7 +869,7 @@ direct_name_opt
   ;
 
 discrete_choice
-  : choice_expression ;; includes 'name'
+  : expression ;; includes 'name'
   | NOT NULL name ;; from subytpe_indication, excluding constructs covered by 'name'
   | range_g
   | OTHERS

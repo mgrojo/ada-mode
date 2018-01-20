@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2014, 2017 All Rights Reserved.
+--  Copyright (C) 2014, 2017, 2018 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -257,12 +257,16 @@ begin
 
                Ada.Strings.Unbounded.Free (Buffer);
             exception
-            when Parse_Error | Syntax_Error =>
+            when E : Parse_Error | Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
                Put (State.Parser_Errors, Trace.Descriptor.all);
                Put (State.Lexer_Errors);
                Ada.Strings.Unbounded.Free (Buffer);
-               Put_Line ("(parse_error)");
+               if Ada.Exceptions.Exception_Message (E)'Length > 0 then
+                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+               else
+                  Put_Line ("(parse_error)");
+               end if;
             end;
 
          elsif Match ("noop") then
