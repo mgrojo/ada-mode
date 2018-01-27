@@ -352,12 +352,17 @@ package WisiToken.LR is
    --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
    --  allow continuing in the same input stream.
    --
-   --  Raises Syntax_Error for lexer errors, Parse_Error for
-   --  parser errors.
-   --
    --  If an error is encountered but a recover strategy succeeds, no
    --  exception is raised. Semantic_State contains information about the
-   --  errors that were corrected.
+   --  errors.
+   --
+   --  If recover does not succeed, raises Syntax_Error. Semantic_State
+   --  contains information about the failing error and any previous
+   --  recovered errors.
+   --
+   --  For errors where no recovery is possible, raises Parse_Error with
+   --  an appropriate error message. Semantic_State contains information
+   --  about previous recovered errors.
 
    ----------
    --  Useful text output

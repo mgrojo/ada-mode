@@ -114,7 +114,7 @@ package WisiToken.Lexer is
    --  Return the next token.
    --
    --  If their is an error, adds an entry to Lexer.Errors. If the error
-   --  was not corrected, raises Syntax_Error with an appropriate
+   --  was not corrected, raises Parse_Error with an appropriate
    --  message.
 
 private

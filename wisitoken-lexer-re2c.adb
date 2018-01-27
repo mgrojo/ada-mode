@@ -178,12 +178,12 @@ package body WisiToken.Lexer.re2c is
                end;
 
             when others =>
-               raise Syntax_Error with " lexer returned unrecognized status code" & int'Image (Status);
+               raise Parse_Error with " lexer returned unrecognized status code" & int'Image (Status);
             end case;
          end;
       end loop;
    exception
-   when Syntax_Error  =>
+   when Parse_Error  =>
       raise;
 
    when E : others =>

@@ -42,9 +42,9 @@ with Ada.Text_IO;
 with SAL;
 package WisiToken is
 
-   Syntax_Error : exception; -- no token matching current input could be found.
+   Syntax_Error : exception; -- no recovery for a syntax error was found
 
-   Parse_Error : exception; -- Input does not conform to the grammar
+   Parse_Error : exception; -- a non-recoverable error was encountered
 
    Grammar_Error : exception; -- Grammar is not consistent (ie unused tokens, missing productions, invalid actions)
 
