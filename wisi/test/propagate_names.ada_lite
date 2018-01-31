@@ -12,4 +12,8 @@ procedure Proc_2
 is begin
 end Proc;
 
+--  Missing 'end Proc_3', but appears to be Match_Names_Error.
+procedure Proc_3
+is begin
+   A;
 end Parent.Child;

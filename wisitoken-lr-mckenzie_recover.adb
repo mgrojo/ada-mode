@@ -155,6 +155,7 @@ package body WisiToken.LR.McKenzie_Recover is
       --  All_Done - Parser_Index, Config are not valid; all configs checked.
 
       procedure Success (Parser_Index : in SAL.Peek_Type; Config : in Configuration);
+      procedure Success (Parser_Label : in Natural; Config : in Configuration);
       --  Report that Configuration succeeds for Parser_Label.
 
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type);
@@ -408,7 +409,8 @@ package body WisiToken.LR.McKenzie_Recover is
 
          Data.Success := True;
 
-         Active_Workers (Parser_Index) := Active_Workers (Parser_Index) - 1;
+         --  Active_Workers can be zero when this is called from a pattern.
+         Active_Workers (Parser_Index) := Natural'Max (0, Active_Workers (Parser_Index) - 1);
 
          if Data.Results.Count = 0 then
             Data.Results.Add (Config);
@@ -431,6 +433,16 @@ package body WisiToken.LR.McKenzie_Recover is
             --  Config.Cost > Results.Min_Key
             null;
          end if;
+      end Success;
+
+      procedure Success (Parser_Label : in Natural; Config : in Configuration)
+      is begin
+         for I in Parser_Labels'Range loop
+            if Parser_Labels (I) = Parser_Label then
+               Supervisor.Success (I, Config);
+               return;
+            end if;
+         end loop;
       end Success;
 
       procedure Force_Done (Parser_Label : in Natural; Config : in Configuration)
@@ -1324,23 +1336,97 @@ package body WisiToken.LR.McKenzie_Recover is
       Trace        : in out WisiToken.Trace'Class)
    is
       use all type Semantic_State.Parser_Error_Label;
+
+      procedure Do_Extra_Name
+      is
+         use all type SAL.Peek_Type;
+
+         End_Name            : constant String := Lexer.Buffer_Text
+           (Error.Tokens (Error.Tokens.Last_Index).Name);
+         Matching_Name_Index : SAL.Peek_Type   := 2;
+         Begin_Count         : Integer         := 0;
+      begin
+         loop
+            exit when Matching_Name_Index > Root_Config.Stack.Depth;
+            declare
+               Token : Base_Token renames Root_Config.Stack.Peek (Matching_Name_Index).Token;
+            begin
+               exit when Token.Name /= Null_Buffer_Region and then
+                 Lexer.Buffer_Text (Token.Name) = End_Name;
+
+               if Token.ID = Pattern.Begin_ID then
+                  Begin_Count := Begin_Count + 1;
+               end if;
+
+               Matching_Name_Index := Matching_Name_Index + 1;
+            end;
+         end loop;
+
+         if Matching_Name_Index > Root_Config.Stack.Depth then
+            --  Did not find matching name; assume user is editing names, so ignore.
+            Root_Config.Semantic_Check_Fixes (Error.Code) := True;
+            Super.Force_Done (Parser_State.Label, Root_Config);
+            return;
+         end if;
+
+         declare
+            Config : Configuration := Root_Config;
+         begin
+            --  Pop block with mismatched names
+            Config.Popped.Append (Config.Stack.Pop.Token.ID);
+
+            --  Replace the popped block
+            Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+            Config.Inserted.Prepend (Pattern.Semicolon_ID);
+
+            Config.Local_Lookahead.Prepend (Pattern.End_ID);
+            Config.Inserted.Prepend (Pattern.End_ID);
+
+            Config.Local_Lookahead.Prepend (Pattern.Begin_ID);
+            Config.Inserted.Prepend (Pattern.Begin_ID);
+
+            --  Insert one missing 'end;' for each extra 'begin'.
+            for I in 1 .. Begin_Count loop
+               Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
+               Config.Inserted.Prepend (Pattern.Semicolon_ID);
+
+               Config.Local_Lookahead.Prepend (Pattern.End_ID);
+               Config.Inserted.Prepend (Pattern.End_ID);
+            end loop;
+
+            Config.Local_Lookahead_Index := Config.Local_Lookahead.First_Index;
+
+            Config.Cost := 0;
+
+            Config.Semantic_Check_Fixes (Error.Code) := True;
+            Root_Config.Semantic_Check_Fixes (Error.Code) := True; -- Avoid duplication.
+
+            Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
+         end;
+      end Do_Extra_Name;
+
    begin
       if Error.Label = Semantic_State.Check then
          if Trace_McKenzie > Outline then
-            Trace.Put_Line ("special rule recover_block_mismatched_names matched.");
+            Trace.Put_Line
+              ("special rule recover_block_mismatched_names " & Semantic_Checks.Error_Label'Image (Error.Code) &
+                 " matched.");
          end if;
 
          case Error.Code is
          when Semantic_Checks.Match_Names_Error =>
-            --  Fix is to make one of the names match the other. We can't actually
-            --  do that without editing the buffer. So we just ignore this error,
-            --  and let the parser continue.
-            --
-            --  See test_mckenzie_recover.adb Pattern_End_EOF, test_ada_lite.adb
-            --  Propagate_Names.
+            --  One case is the user editing names; the fix is to make one of the
+            --  names match the other. We can't actually do that without editing
+            --  the buffer, so we just ignore the error, and say the Root_Config
+            --  succeeds. See test_mckenzie_recover.adb Pattern_End_EOF,
+            --  propagate_names.ada_lite Proc_2.
 
-            Super.Force_Done (Parser_State.Label, Root_Config);
-            return;
+            Root_Config.Semantic_Check_Fixes (Error.Code) := True;
+            Super.Success (Parser_State.Label, Root_Config);
+
+            --  Another case is a missing 'end'; same fix as Extra_Name_Error
+            --  below. See propagate_names.ada_lite Proc_3.
+            Do_Extra_Name;
 
          when Semantic_Checks.Missing_Name_Error =>
             raise Programmer_Error with "found test case for Apply_Pattern Missing_Name_Error";
@@ -1350,72 +1436,7 @@ package body WisiToken.LR.McKenzie_Recover is
             --  name, counting 'begin's. Top of stack is the reduced block.
             --
             --  See test_mckenzie_recover.adb Pattern_Block_Missing_Name_1.
-            declare
-               use all type SAL.Peek_Type;
-
-               End_Name            : constant String := Lexer.Buffer_Text
-                 (Error.Tokens (Error.Tokens.Last_Index).Name);
-               Matching_Name_Index : SAL.Peek_Type   := 2;
-               Begin_Count         : Integer         := 0;
-            begin
-               loop
-                  exit when Matching_Name_Index > Root_Config.Stack.Depth;
-                  declare
-                     Token : Base_Token renames Root_Config.Stack.Peek (Matching_Name_Index).Token;
-                  begin
-                     exit when Token.Name /= Null_Buffer_Region and then
-                       Lexer.Buffer_Text (Token.Name) = End_Name;
-
-                     if Token.ID = Pattern.Begin_ID then
-                        Begin_Count := Begin_Count + 1;
-                     end if;
-
-                     Matching_Name_Index := Matching_Name_Index + 1;
-                  end;
-               end loop;
-
-               if Matching_Name_Index > Root_Config.Stack.Depth then
-                  --  Did not find matching name; assume user is editing names, so ignore.
-                  Root_Config.Semantic_Check_Fixes (Error.Code) := True;
-                  Super.Force_Done (Parser_State.Label, Root_Config);
-                  return;
-               end if;
-
-               declare
-                  Config : Configuration := Root_Config;
-               begin
-                  --  Pop block with mismatched names
-                  Config.Popped.Append (Config.Stack.Pop.Token.ID);
-
-                  --  Replace the popped block
-                  Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
-                  Config.Inserted.Prepend (Pattern.Semicolon_ID);
-
-                  Config.Local_Lookahead.Prepend (Pattern.End_ID);
-                  Config.Inserted.Prepend (Pattern.End_ID);
-
-                  Config.Local_Lookahead.Prepend (Pattern.Begin_ID);
-                  Config.Inserted.Prepend (Pattern.Begin_ID);
-
-                  --  Insert one missing 'end;' for each extra 'begin'.
-                  for I in 1 .. Begin_Count loop
-                     Config.Local_Lookahead.Prepend (Pattern.Semicolon_ID);
-                     Config.Inserted.Prepend (Pattern.Semicolon_ID);
-
-                     Config.Local_Lookahead.Prepend (Pattern.End_ID);
-                     Config.Inserted.Prepend (Pattern.End_ID);
-                  end loop;
-
-                  Config.Local_Lookahead_Index := Config.Local_Lookahead.First_Index;
-
-                  Config.Cost := 0;
-
-                  Config.Semantic_Check_Fixes (Error.Code) := True;
-                  Root_Config.Semantic_Check_Fixes (Error.Code) := True; -- Avoid duplication.
-
-                  Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
-               end;
-            end;
+            Do_Extra_Name;
 
          end case;
       end if;

@@ -51,7 +51,7 @@ package body Test_Ada_Lite is
       Create (Output_File, Out_File, Output_File_Name);
       Set_Output (Output_File);
 
-      State.Initialize (Line_Count => 16);
+      State.Initialize (Line_Count => 20);
       Parser.Lexer.Reset_With_File (Input_File_Name);
       begin
          Parser.Parse;
