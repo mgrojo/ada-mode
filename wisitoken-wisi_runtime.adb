@@ -326,7 +326,7 @@ package body WisiToken.Wisi_Runtime is
       end if;
    end Put;
 
-   procedure Put (Data : in Parse_Data_Type; Line_Number : in Line_Number_Type; Item : in Indent_Type)
+   procedure Put (Line_Number : in Line_Number_Type; Item : in Indent_Type)
    is begin
       --  All Anchors must be resolved at this point, but not all lines have
       --  an indent computed. A negative indent is an error in either the
@@ -337,13 +337,13 @@ package body WisiToken.Wisi_Runtime is
            ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & " 0]");
 
       when Int =>
-         if Item.Int_Indent < 0 then
-            Put_Error (Data, Line_Number, "indent " & Integer'Image (Item.Int_Indent) & " is < 0.");
-
-         else
+         declare
+            --  We can easily get negative indents when there are syntax errors.
+            Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
+         begin
             Ada.Text_IO.Put_Line
-              ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & Integer'Image (Item.Int_Indent) & ']');
-         end if;
+              ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & Integer'Image (Ind) & ']');
+         end;
 
       when Anchor | Anchored | Anchor_Anchored =>
          raise Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
@@ -1125,7 +1125,7 @@ package body WisiToken.Wisi_Runtime is
 
          --  Can't set indent for first line
          for I in Data.Indents.First_Index + 1 .. Data.Indents.Last_Index loop
-            Put (Data, I, Data.Indents (I));
+            Put (I, Data.Indents (I));
          end loop;
       end case;
    end Put;
@@ -1180,9 +1180,9 @@ package body WisiToken.Wisi_Runtime is
               (if Item.Recover (1) = ASCII.NUL
                then ""
                elsif Item.Recover (1) = '"'
-               then "; inserted '\"""
-               else "; inserted '" & Trim (Item.Recover)) &
-              "'""]");
+               then "; inserted '\""'"
+               else "; inserted '" & Trim (Item.Recover) & "'") &
+              """]");
       end loop;
    end Put;
 

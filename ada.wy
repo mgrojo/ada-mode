@@ -247,11 +247,23 @@
 
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
-;; parse stack. Similarly, we often have an extra 'end'; deleting that
-;; is simple.
+;; parse stack.
+;;
+;; Deleting an extra 'declare' requires deleting (and re-inserting)
+;; the following identifier, since the error is detected after that,
+;; when it looks like a statement instead of a declaration. We make
+;; delete identifier the same cost as insert, since deleting
+;; identifiers in other cases is not as helpful.
+;;
+;; Similarly, we often have an extra 'end', or 'end loop' etc.
 %mckenzie_cost_delete BEGIN 1
-%mckenzie_cost_delete declarative_part_opt 1
+%mckenzie_cost_delete CASE 3
+%mckenzie_cost_delete DECLARE 1
 %mckenzie_cost_delete END 1
+%mckenzie_cost_delete IDENTIFIER 3
+%mckenzie_cost_delete IF 3
+%mckenzie_cost_delete LOOP 3
+%mckenzie_cost_delete declarative_part_opt 1
 
 ;; Recovering from a missing quote yields a STRING_LITERAL, but the
 ;; editing that lead to the missing quote may also lead to a grammar

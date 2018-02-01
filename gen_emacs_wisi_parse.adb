@@ -257,16 +257,19 @@ begin
 
                Ada.Strings.Unbounded.Free (Buffer);
             exception
-            when E : Parse_Error | Syntax_Error =>
+            when Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
                Put (State.Parser_Errors, Trace.Descriptor.all);
                Put (State.Lexer_Errors);
                Ada.Strings.Unbounded.Free (Buffer);
-               if Ada.Exceptions.Exception_Message (E)'Length > 0 then
-                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
-               else
-                  Put_Line ("(parse_error)");
-               end if;
+               Put_Line ("(parse_error)");
+
+            when E : Parse_Error =>
+               Parser.Lexer.Discard_Rest_Of_Input;
+               Put (State.Parser_Errors, Trace.Descriptor.all);
+               Put (State.Lexer_Errors);
+               Ada.Strings.Unbounded.Free (Buffer);
+               Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
             end;
 
          elsif Match ("noop") then

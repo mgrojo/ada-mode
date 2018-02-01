@@ -157,14 +157,15 @@ begin
       begin
          exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
       exception
-      when E : WisiToken.Syntax_Error =>
+      when WisiToken.Syntax_Error =>
          Parser.Lexer.Discard_Rest_Of_Input;
          WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
-         if Ada.Exceptions.Exception_Message (E)'Length > 0 then
-            Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
-         else
-            Put_Line ("(lexer_error)");
-         end if;
+         Put_Line ("(lexer_error)");
+
+      when E : WisiToken.Parse_Error =>
+         Parser.Lexer.Discard_Rest_Of_Input;
+         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+         Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
          return;
       end;
    end loop;
@@ -207,15 +208,17 @@ begin
             end if;
          end if;
       exception
-      when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+      when WisiToken.Syntax_Error =>
          Parser.Lexer.Discard_Rest_Of_Input;
          WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
          WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
-         if Ada.Exceptions.Exception_Message (E)'Length > 0 then
-            Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
-         else
-            Put_Line ("(parse_error)");
-         end if;
+         Put_Line ("(parse_error)");
+
+      when E : WisiToken.Parse_Error =>
+         Parser.Lexer.Discard_Rest_Of_Input;
+         WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
+         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+         Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
       end;
 
       if Pause then

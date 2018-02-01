@@ -403,7 +403,7 @@ complete."
 	       (response-count 0)
 	       (sexp-start (point-min))
 	       (wait-count 0)
-	       (need-more nil)
+	       (need-more nil) ;; point-max if need more, to check for new input
 	       (done nil)
 	       start-wait-time)
 
@@ -433,7 +433,7 @@ complete."
 
 	      (cond
 	       ((eobp)
-		(setq need-more t))
+		(setq need-more (point-max)))
 
 	       ((looking-at wisi-process-parse-prompt)
 		(setq done t))
@@ -444,7 +444,7 @@ complete."
 		    (setq response-end (scan-sexps (point) 1))
 		  (error
 		   ;; incomplete response
-		   (setq need-more t)
+		   (setq need-more (point-max))
 		   nil))
 
 		(unless need-more
@@ -533,6 +533,11 @@ complete."
 	      (setf (wisi-process--parser-total-wait-time parser)
 		    (+ (wisi-process--parser-total-wait-time parser)
 		       (- (float-time) start-wait-time)))
+
+	      (when (and (= (point-max) need-more)
+		       (> wait-count 5))
+		(wisi-process-parse-show-buffer parser)
+		(error "wisi-process-parse not getting more text"))
 
 	      (setq need-more nil))
 	    );; while not done

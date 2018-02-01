@@ -17,7 +17,7 @@
 --
 --  Does not compile.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -97,10 +97,13 @@ package body Ada_Mode.Recover_Match_Names is
    loop; -- meant 'end loop;'
    end Package_Body_0;
 
-   package body Package_Body_1 is
+package body Package_Body_1 is
    procedure A
    is
-      -- missing 'begin end A;'
+      B : Integer;
+   begin
+      C;
+      -- missing 'end A;'
    end Package_Body_1;
 
    package Package_Specification_0
