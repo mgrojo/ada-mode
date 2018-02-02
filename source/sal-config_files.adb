@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2002 - 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002 - 2013, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -200,6 +200,9 @@ package body SAL.Config_Files is
       Value  : in String;
       Line   : in Ada.Text_IO.Count;
       Column : in Ada.Text_IO.Count);
+
+   function Trim (Item : in String) return String;
+   --  Trim leading and trailing spaces.
 
    ----------
    --  Private subprogram bodies; alphabetical order.
@@ -579,9 +582,9 @@ package body SAL.Config_Files is
       Column : in Ada.Text_IO.Count)
      return String
    is
-      use Ada.Text_IO, Ada.Strings;
-      Line_Image   : constant String := Fixed.Trim (Ada.Text_IO.Count'Image (Line), Both);
-      Column_Image : constant String := Fixed.Trim (Ada.Text_IO.Count'Image (Column), Both);
+      use Ada.Text_IO;
+      Line_Image   : constant String := Trim (Ada.Text_IO.Count'Image (Line));
+      Column_Image : constant String := Trim (Ada.Text_IO.Count'Image (Column));
    begin
       return Config.Error_File_Name.all & ":" & Line_Image & ":" & Column_Image & ": ";
    end Format_Line_Column;
@@ -687,7 +690,6 @@ package body SAL.Config_Files is
      (File   : in out Ada.Text_IO.File_Type;
       Config : in out Configuration_Type)
    is
-      use Ada.Strings.Fixed;
       use Ada.Strings.Unbounded;
       use Ada.Strings.Unbounded.Text_IO;
       Line   : Unbounded_String;
@@ -718,9 +720,9 @@ package body SAL.Config_Files is
                   use type Ada.Text_IO.Count;
                   use type GNAT.Strings.String_Access;
 
-                  Key   : constant String := Trim (Slice (Line, 1, Equals - 1), Ada.Strings.Both);
+                  Key   : constant String := Trim (Slice (Line, 1, Equals - 1));
                   Value : constant String :=
-                    Trim (Slice (Line, Integer'Min (Equals + 1, Length (Line) + 1), Length (Line)), Ada.Strings.Both);
+                    Trim (Slice (Line, Integer'Min (Equals + 1, Length (Line) + 1), Length (Line)));
 
                   --  Check for duplicate keys in file (possible if user
                   --  edited directly).
@@ -793,10 +795,15 @@ package body SAL.Config_Files is
       Column : in Ada.Text_IO.Count)
    is begin
       GNAT.OS_Lib.Free (Node.Value);
-      Node.Value  := new String'(Ada.Strings.Fixed.Trim (Value, Ada.Strings.Both));
+      Node.Value  := new String'(Trim (Value));
       Node.Line   := Line;
       Node.Column := Column;
    end Set_Value;
+
+   function Trim (Item : in String) return String
+   is begin
+      return Ada.Strings.Fixed.Trim (Item, Ada.Strings.Both);
+   end Trim;
 
    ----------
    --  Public subprograms
@@ -898,14 +905,15 @@ package body SAL.Config_Files is
       Key      : in String)
      return Iterator_Type
    is
-      I : Iterator_Type := First (Config, Root_Key);
+      Key_Trimmed : constant String := Trim (Key);
+      I           : Iterator_Type   := First (Config, Root_Key);
    begin
       loop
          if I = null then
             raise Not_Found;
          end if;
 
-         if I.Tag.all = Key then
+         if Trim (I.Tag.all) = Key_Trimmed then
             return I;
          end if;
 
@@ -1470,7 +1478,7 @@ package body SAL.Config_Files is
    function Current (Iterator : in Iterator_Type) return String
    is begin
       Iterator.Read := True;
-      return Iterator.Tag.all;
+      return Trim (Iterator.Tag.all);
    end Current;
 
    function Is_Present (Config : in Configuration_Type; Iterator : in Iterator_Type; Leaf : in String) return Boolean
@@ -1497,9 +1505,9 @@ package body SAL.Config_Files is
 
    function Line_Column (Iterator : in Iterator_Type) return String
    is
-      use Ada.Text_IO, Ada.Strings;
-      Line_Image   : constant String := Fixed.Trim (Ada.Text_IO.Count'Image (Iterator.Line), Both);
-      Column_Image : constant String := Fixed.Trim (Ada.Text_IO.Count'Image (Iterator.Column), Both);
+      use Ada.Text_IO;
+      Line_Image   : constant String := Trim (Ada.Text_IO.Count'Image (Iterator.Line));
+      Column_Image : constant String := Trim (Ada.Text_IO.Count'Image (Iterator.Column));
    begin
       return Line_Image & ":" & Column_Image & ": ";
    end Line_Column;
@@ -1549,7 +1557,7 @@ package body SAL.Config_Files is
          Key_No_Value (Config, Node, Leaf);
       else
          Node.Read := True;
-         return Node.Value.all;
+         return Trim (Node.Value.all);
       end if;
    end Read;
 
