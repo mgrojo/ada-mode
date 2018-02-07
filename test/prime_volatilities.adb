@@ -3,7 +3,7 @@
 
 -- Indentation test only
 
-package body PRIME.Volatilities is
+package body Prime_Volatilities is
 
    function Get_Volatility_Shift is new Get_Object (Root_Volatility_Shift, Root_Volatility_Shift_Ptr);
    pragma Inline (Get_Volatility_Shift);
@@ -48,4 +48,4 @@ package body PRIME.Volatilities is
    end Make_BS_Volatility;
 
 
-end PRIME.Volatilities;
+end Prime_Volatilities;

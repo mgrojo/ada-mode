@@ -15,124 +15,6 @@ GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
 GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
-COMPILE_FILES := $(ADA_TEST_FILES)
-
-COMPILE_FILES := $(subst subdir/,,$(COMPILE_FILES))
-
-# filter out files that are not compiled; in file alphabetical order; comment explains why.
-
-COMPILE_FILES := $(filter-out access_in_record.ads, $(COMPILE_FILES))# incomplete code
-COMPILE_FILES := $(filter-out ada_mode-ada83.ads, $(COMPILE_FILES))# font-lock only
-COMPILE_FILES := $(filter-out ada_mode-ada95.ads, $(COMPILE_FILES))# font-lock only
-COMPILE_FILES := $(filter-out ada_mode-ada2005.ads, $(COMPILE_FILES))# font-lock only
-COMPILE_FILES := $(filter-out ada_mode-ada2012.ads, $(COMPILE_FILES))# font-lock only
-
-# parents are not pure
-COMPILE_FILES := $(filter-out ada_mode-generic_parent_instantiation.ads, $(COMPILE_FILES))
-
-# These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
-COMPILE_FILES := $(filter-out ada_mode-interactive_case_statement.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_1.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_2.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_gps_fallback.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_recover.adb, $(COMPILE_FILES))
-
-# This has incomplete code; tests a former bug in syntax-ppss
-COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))
-
-# GNAT GPL 2016 complains about compiling these; not clear why
-COMPILE_FILES := $(filter-out ada_mode-nominal-separate_package_1-separate_procedure_1.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-nominal-separate_package_1-separate_procedure_1.adb
-COMPILE_FILES := $(filter-out ada_mode-nominal-separate_package_1-separate_procedure_2.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-nominal-separate_package_1-separate_procedure_2.adb
-COMPILE_FILES := $(filter-out ada_mode-nominal-separate_package_1.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-nominal-separate_package_1.adb
-
-# This has incomplete code; used for testing OpenToken special rule
-COMPILE_FILES := $(filter-out ada_mode-opentoken.ads, $(COMPILE_FILES))
-
-# GNAT GPL 2016 complains about compiling these; not clear why
-COMPILE_FILES := $(filter-out ada_mode-options-indent_return_1.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-options-indent_return_1.ads
-COMPILE_FILES := $(filter-out ada_mode-options-indent_return_2.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-options-indent_return_2.ads
-COMPILE_FILES := $(filter-out ada_mode-options-indent_return_3.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-options-indent_return_3.ads
-COMPILE_FILES := $(filter-out ada_mode-separate_function.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-separate_function.adb
-COMPILE_FILES := $(filter-out ada_mode-separate_procedure.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-separate_procedure.adb
-COMPILE_FILES := $(filter-out ada_mode-separate_protected_body.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-separate_protected_body.adb
-COMPILE_FILES := $(filter-out ada_mode-separate_task_body.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-separate_task_body.adb
-COMPILE_FILES := $(filter-out ada_mode-spec.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-spec.ads
-
-# not worth making these compile
-COMPILE_FILES := $(filter-out ada_mode-recover_align_1.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_bad_char.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_block_name_mismatch.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_extra_declare.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_extra_end_loop.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_indent_1.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_indent_2.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_indent_3.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_indent_4.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_match_names.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_pattern_1.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_pattern_2.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_pattern_end_eof.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_string_quote.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-recover_virtual.adb, $(COMPILE_FILES))
-
-# This has illegal code; used for testing skeleton expansion
-COMPILE_FILES := $(filter-out ada_skel.adb, $(COMPILE_FILES))
-
-# This is generated by gnatstub, and raises compile time errors
-COMPILE_FILES := $(filter-out ada_mode-spec.adb, $(COMPILE_FILES))
-
-# GNAT GPL 2016 complains about compiling these; not clear why
-COMPILE_FILES := $(filter-out adacore_6505_010.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) adacore_6505_010.ads
-COMPILE_FILES := $(filter-out adacore_6805_003.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) adacore_6805_003.ads
-COMPILE_FILES := $(filter-out adacore_8114_010.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) adacore_8114_010.ads
-COMPILE_FILES := $(filter-out adacore_8529_012.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) adacore_8529_012.ads
-
-COMPILE_FILES := $(filter-out aspects.ads, $(COMPILE_FILES))# complicated aspects
-SYNTAX_FILES  := $(SYNTAX_FILES) aspects.ads
-
-COMPILE_FILES := $(filter-out bad_error_recover_1.adb, $(COMPILE_FILES))# deliberate error
-COMPILE_FILES := $(filter-out bug_2016_11_21_01.adb, $(COMPILE_FILES))# missing declarations
-COMPILE_FILES := $(filter-out g-comlin.adb, $(COMPILE_FILES))# copied from gnat runtime; gnat won't compile it!
-COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))# could run thru gnatprep, but it's not worth it.
-COMPILE_FILES := $(filter-out gps_indent_options.adb, $(COMPILE_FILES))# gnat style, cases
-COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))# font-lock only
-
-# GNAT GPL 2016 complains about compiling these; not clear why
-COMPILE_FILES := $(filter-out indent6.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) indent6.ads
-COMPILE_FILES := $(filter-out indent8.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) indent8.ads
-
-# These heritage tests don't compile, and they are not worth fixing
-COMPILE_FILES := $(filter-out parent.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) parent.adb
-COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) prime-volatilities.adb
-
-# deliberate errors to test error recovery
-COMPILE_FILES := $(filter-out slow_recover_1.adb, $(COMPILE_FILES))
-
-# GNAT GPL 2016 complains about compiling these; not clear why
-COMPILE_FILES := $(filter-out test_private.ads, $(COMPILE_FILES))
-SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
-COMPILE_FILES := $(filter-out virtual_renames.adb, $(COMPILE_FILES))
-
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
 .PRECIOUS : %-elisp.el %-process.el %.ads %.re2c %.tmp %_process.adb %_re2c.c
@@ -222,7 +104,8 @@ COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
 # remove duplicates
 COMPILE_FILES := $(sort $(COMPILE_FILES))
 
-compile-ada-test : $(COMPILE_FILES)
+compile-ada-test : force
+	gprbuild -v -p ../test/ada_mode_compile.gpr
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's
 # check. We don't check any other style requirements; not needed for

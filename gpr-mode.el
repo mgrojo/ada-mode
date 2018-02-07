@@ -1,6 +1,6 @@
 ;; gpr-mode --- Major mode for editing GNAT project files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017, 2018  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -232,6 +232,42 @@ of the package or project point is in or just after, or nil.")
   (ada-parse-prj-file (or file (buffer-file-name)))
   (ada-select-prj-file (or file (buffer-file-name))))
 
+(defvar gpr-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; (info "(elisp)Syntax Class Table" "*info syntax class table*")
+    ;; make-syntax-table sets all alphanumeric to w, etc; so we only
+    ;; have to add gpr-specific things.
+
+    ;; string brackets. `%' is the obsolete alternative string
+    ;; bracket (arm J.2); if we make it syntax class ", it throws
+    ;; font-lock and indentation off the track, so we use syntax class
+    ;; $.
+    (modify-syntax-entry ?%  "$" table)
+    (modify-syntax-entry ?\" "\"" table)
+
+    ;; punctuation; operators etc
+    (modify-syntax-entry ?&  "." table)
+    (modify-syntax-entry ?. "." table)
+    (modify-syntax-entry ?:  "." table)
+    (modify-syntax-entry ?=  "." table)
+    (modify-syntax-entry ?>  "." table)
+    (modify-syntax-entry ?\; "." table)
+    (modify-syntax-entry ?\\ "." table); default is escape; not correct for Ada strings
+    (modify-syntax-entry ?\|  "." table)
+
+    ;; and \f and \n end a comment
+    (modify-syntax-entry ?\f  ">" table)
+    (modify-syntax-entry ?\n  ">" table)
+
+    (modify-syntax-entry ?_ "_" table); symbol constituents, not word.
+
+    (modify-syntax-entry ?\( "()" table)
+    (modify-syntax-entry ?\) ")(" table)
+
+    table
+    )
+  "Syntax table to be used for editing gpr source code.")
+
 (defun gpr-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer."
   ;; (info "(elisp)Syntax Properties")
@@ -258,7 +294,7 @@ of the package or project point is in or just after, or nil.")
   (setq major-mode 'gpr-mode)
   (setq mode-name "GNAT Project")
   (use-local-map gpr-mode-map)
-  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
+  (set-syntax-table gpr-mode-syntax-table)
   (set (make-local-variable 'syntax-propertize-function) 'gpr-syntax-propertize)
   (when (boundp 'syntax-begin-function)
     ;; obsolete in emacs-25.1

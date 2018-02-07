@@ -1,4 +1,4 @@
-0# Build elisp code, Ada executables, manuals; publish to web and ELPA
+# Build elisp code, Ada executables, manuals; publish to web and ELPA
 #
 # The gprbuild commands depend on the GPR_PROJECT_PATH environment
 # variable, that is set in the project files loaded in the file local

@@ -44,8 +44,8 @@ clean up gpr-mode; delete 'we reuse ada' comments
 clean up Makefile, common.make
     see wisi_grammar
 
-use gpr src exclude in compile tests
-    get single invocation of gprbuild
+AdaCore 18.1
+    libadalang
 
 user option to make end block names not optional
 

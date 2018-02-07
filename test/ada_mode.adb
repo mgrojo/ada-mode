@@ -1,4 +1,6 @@
 package body Ada_Mode is
+   --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+   --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
    protected body Separate_Protected_Body is separate;
 
@@ -8,6 +10,8 @@ package body Ada_Mode is
 
    task body Separate_Task_Body is separate;
 
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(ada-goto-declaration)(looking-at "procedure Separate_Procedure is"))
+   --EMACSRESULT:t
    procedure Separate_Procedure is separate;
 
    -- testing that ada-auto-case is buffer-local;  nil in separate_package_1
