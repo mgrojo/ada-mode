@@ -27,7 +27,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with GNATCOLL.Mmap;
 package body WisiToken.Lexer.re2c is
@@ -178,20 +177,10 @@ package body WisiToken.Lexer.re2c is
                end;
 
             when others =>
-               raise Parse_Error with " lexer returned unrecognized status code" & int'Image (Status);
+               raise Fatal_Error with " lexer returned unrecognized status code" & int'Image (Status);
             end case;
          end;
       end loop;
-   exception
-   when Parse_Error  =>
-      raise;
-
-   when E : others =>
-      raise Syntax_Error with
-        Error_Message
-          ("", Lexer.Line, Lexer.Column,
-           "lexer find_next error: " & Ada.Exceptions.Exception_Name (E) &
-             " : " & Ada.Exceptions.Exception_Message (E));
    end Find_Next;
 
    overriding function Line (Lexer : in Instance) return Line_Number_Type

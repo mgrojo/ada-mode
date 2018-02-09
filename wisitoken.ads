@@ -44,7 +44,9 @@ package WisiToken is
 
    Syntax_Error : exception; -- no recovery for a syntax error was found
 
-   Parse_Error : exception; -- a non-recoverable error was encountered
+   Parse_Error : exception; -- a non-recoverable non-fatal error was encountered; editing the input can fix the error.
+
+   Fatal_Error : exception; -- Error in code or grammar; editing input cannot fix error.
 
    Grammar_Error : exception; -- Grammar is not consistent (ie unused tokens, missing productions, invalid actions)
 
