@@ -407,6 +407,7 @@ package body WisiToken.Wisi_Runtime is
       Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
    begin
       if Trace_Parse > Detail then
+         Ada.Text_IO.New_Line;
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Ada.Text_IO.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;

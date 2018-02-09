@@ -44,6 +44,9 @@ clean up gpr-mode; delete 'we reuse ada' comments
 clean up Makefile, common.make
     see wisi_grammar
 
+don't delete 'end' if semantic check passes
+    test/slow_recover_2.adb
+
 AdaCore 18.1
     libadalang
 

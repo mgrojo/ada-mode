@@ -1,10 +1,15 @@
 -- Test that an ambiguous parse error is handled properly
 --
--- There are two parallel parsers at EOF, so there is an error from
--- each of those.
+-- There are two parallel parsers at start of error recovery; both
+-- find solutions. Then at EOF there are two parsers active, both
+-- accepting. However, since there was an error previously, rather
+-- than reporting ambiguous parse as an error, we pick one parser
+-- arbitrarily to allow indent.
 
 --EMACSCMD:(wisi-parse-buffer)
 procedure Ada_Mode.Ambiguous_Parse is
 begin
    --EMACSCMD:(length (wisi-parser-errors wisi--parser))
-   --EMACSRESULT:2
+   --EMACSRESULT:1
+   --EMACSCMD:wisi-parse-failed
+   --EMACSRESULT:nil
