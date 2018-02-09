@@ -470,6 +470,10 @@ complete."
 			   (wisi-parser-errors parser))
 			  (signal 'wisi-parse-error "parser failed with no message")))
 
+		       ((equal 'parse_error (car response))
+			;; Parser detected some other error non-fatal error, so signal it.
+			(signal 'wisi-parse-error (cdr response)))
+
 		       ((and (eq 'error (car response))
 			     (string-prefix-p "bad command:" (cadr response)))
 			;; Parser dropped bytes, is treating buffer

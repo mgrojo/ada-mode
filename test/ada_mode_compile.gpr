@@ -16,6 +16,9 @@ project Ada_Mode_Compile is
       "ada_mode-ada2005.ads", -- font-lock only
       "ada_mode-ada2012.ads", -- font-lock only
 
+      -- incomplete code deliberately
+      "ada_mode-ambiguous_parse.adb"
+
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
 

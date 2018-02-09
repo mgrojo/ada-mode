@@ -269,6 +269,13 @@ begin
                Put (State.Parser_Errors, Trace.Descriptor.all);
                Put (State.Lexer_Errors);
                Ada.Strings.Unbounded.Free (Buffer);
+               Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
+
+            when E : Fatal_Error =>
+               Parser.Lexer.Discard_Rest_Of_Input;
+               Put (State.Parser_Errors, Trace.Descriptor.all);
+               Put (State.Lexer_Errors);
+               Ada.Strings.Unbounded.Free (Buffer);
                Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
             end;
 

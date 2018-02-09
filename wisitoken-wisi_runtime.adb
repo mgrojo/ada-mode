@@ -635,7 +635,7 @@ package body WisiToken.Wisi_Runtime is
          if Containing_Tok.Virtual then
             return;
          else
-            raise Parse_Error with Error_Message
+            raise Fatal_Error with Error_Message
               (File_Name => -Data.Source_File_Name,
                Line      => Containing_Tok.Line,
                Col       => Containing_Tok.Col,
@@ -646,7 +646,7 @@ package body WisiToken.Wisi_Runtime is
       end if;
 
       if not Data.Navigate_Caches.Present (Containing_Region.First) then
-         raise Parse_Error with Error_Message
+         raise Fatal_Error with Error_Message
            (File_Name => -Data.Source_File_Name,
             Line      => Containing_Tok.Line,
             Col       => Containing_Tok.Col,
@@ -756,7 +756,7 @@ package body WisiToken.Wisi_Runtime is
                   if Token.Virtual then
                      return;
                   else
-                     raise Parse_Error with Error_Message
+                     raise Fatal_Error with Error_Message
                        (File_Name => -Data.Source_File_Name,
                         Line      => Token.Line,
                         Col       => Token.Col,
