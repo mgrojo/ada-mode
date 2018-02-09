@@ -565,10 +565,30 @@ package body WisiToken.LR.Parser is
                   return;
 
                else
-                  --  Error recovery does not help with this.
-                  raise Parse_Error with Error_Message
-                    ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
-                     "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
+                  if Shared_Parser.Semantic_State.Parser_Errors.Length > 0 or
+                    Shared_Parser.Semantic_State.Lexer_Errors.Length > 0
+                  then
+                     --  There was an error previously. We assume that caused the ambiguous
+                     --  parse, and we pick the first parser arbitrarily to allow the parse
+                     --  to succeed. We terminate the other parsers so the first parser
+                     --  executes pending actions.
+                     Current_Parser := Parsers.First;
+                     Current_Parser.Next;
+                     loop
+                        Terminate_Parser (Current_Parser);
+                        exit when Current_Parser.Is_Done;
+                     end loop;
+
+                     return;
+
+                  else
+                     --  There were no previous errors. We allow the parse to fail, on the
+                     --  assumption that an otherwise correct input should not yeild an
+                     --  ambiguous parse.
+                     raise Parse_Error with Error_Message
+                       ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
+                        "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
+                  end if;
                end if;
             end;
 
