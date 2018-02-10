@@ -37,6 +37,10 @@ run test from emacs -Q using source:
    ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
  current work
+mckenzie algorithm error
+    c:/Projects/org.wisitoken.stephe-1/notes.text
+    test/debug.adb
+
 update benchmarks
 
 clean up gpr-mode; delete 'we reuse ada' comments
