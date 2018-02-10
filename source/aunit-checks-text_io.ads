@@ -4,7 +4,7 @@
 --
 --  Separate from parent to allow parent to be Preelaborated.
 --
---  Copyright (C) 2004 - 2009, 2015 - 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2009, 2015 - 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -17,15 +17,8 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
---  As a special exception, if other files instantiate generics from
---  this unit, or you link this unit with other files to produce an
---  executable, this  unit  does not  by itself cause  the resulting
---  executable to be covered by the GNU General Public License. This
---  exception does not however invalidate any other reasons why the
---  executable file  might be covered by the  GNU Public License.
 
-pragma License (Modified_GPL);
+pragma License (GPL);
 
 with Ada.Directories;
 with Ada.Text_IO;
@@ -39,6 +32,14 @@ package AUnit.Checks.Text_IO is
    --  label is file name and line number.
    --
    --  File must be Open.
+
+   procedure Check
+     (Computed : in String;
+      Expected : in Ada.Text_IO.File_Type);
+   --  Read a line from Expected, compare to Computed. Failure message
+   --  label is file name and line number.
+   --
+   --  Expected must be Open.
 
    procedure Check_End (File : in Ada.Text_IO.File_Type);
    --  Check that End_Of_File (File) is True.

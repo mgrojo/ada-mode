@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2008, 2015 - 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2008, 2015 - 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -15,13 +15,8 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
---  As a special exception, if other files instantiate generics from
---  this unit, or you link this unit with other files to produce an
---  executable, this  unit  does not  by itself cause  the resulting
---  executable to be covered by the GNU General Public License. This
---  exception does not however invalidate any other reasons why the
---  executable file  might be covered by the  GNU Public License.
+
+pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
@@ -41,6 +36,24 @@ package body AUnit.Checks.Text_IO is
    exception
    when Ada.Text_IO.End_Error =>
       AUnit.Assertions.Assert (False, "got End_Error; expecting " & Expected);
+   end Check;
+
+   procedure Check
+     (Computed : in String;
+      Expected : in Ada.Text_IO.File_Type)
+   is
+      use Ada.Strings;
+      Read_Line : String (1 .. 400);
+      Last      : Natural;
+   begin
+      Ada.Text_IO.Get_Line (Expected, Read_Line, Last);
+      Check
+        (Label    => Ada.Text_IO.Name (Expected) & Ada.Text_IO.Count'Image (Ada.Text_IO.Line (Expected)),
+         Computed => Computed,
+         Expected => Read_Line (1 .. Last));
+   exception
+   when Ada.Text_IO.End_Error =>
+      AUnit.Assertions.Assert (False, "got '" & Computed & "'; expecting End_Error");
    end Check;
 
    procedure Check_End (File : in Ada.Text_IO.File_Type)
@@ -105,8 +118,8 @@ package body AUnit.Checks.Text_IO is
                end if;
             end;
          end loop;
-         Assert (End_Of_File (Computed), Label & " Computed file longer than Expected file");
-         Assert (End_Of_File (Expected), Label & " Expected file longer than Computed file");
+         Assert (End_Of_File (Computed), Label & " " & Computed_Name & " longer than " & Expected_Name);
+         Assert (End_Of_File (Expected), Label & " " & Expected_Name & " longer than " & Computed_Name);
 
          Close (Computed);
          Close (Expected);
