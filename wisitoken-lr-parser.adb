@@ -399,7 +399,11 @@ package body WisiToken.LR.Parser is
                Check_Parser.Next;
 
             else
-               Terminate_Parser (Check_Parser);
+               if Parsers.Count = 1 then
+                  raise Syntax_Error;
+               else
+                  Terminate_Parser (Check_Parser);
+               end if;
             end if;
          else
             Check_Parser.Next;
