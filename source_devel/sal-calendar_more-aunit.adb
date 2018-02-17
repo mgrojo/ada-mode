@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2016 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2016, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -27,7 +27,8 @@ package body SAL.Calendar_More.AUnit is
       Expected  : in Ada.Calendar.Time;
       Tolerance : in Duration)
    is
-      use AUnit.Checks;
+      use Ada.Calendar;
+      use Standard.AUnit.Checks;
 
       Computed_Year    : Year_Number;
       Computed_Month   : Month_Number;
@@ -40,7 +41,7 @@ package body SAL.Calendar_More.AUnit is
       Expected_Seconds : Day_Duration;
    begin
       Split (Computed, Computed_Year, Computed_Month, Computed_Day, Computed_Seconds);
-      Split (Computed, Expected_Year, Expected_Month, Expected_Day, Expected_Seconds);
+      Split (Expected, Expected_Year, Expected_Month, Expected_Day, Expected_Seconds);
 
       Check (Label & ".year", Computed_Year, Expected_Year);
       Check (Label & ".month", Computed_Month, Expected_Month);
