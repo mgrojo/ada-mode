@@ -14,6 +14,20 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
 
  current work
+mckenzie algorithm error
+    test_mckenzie Abandon_Pattern
+
+    if pattern fails, goes back to original state, but does not delete pattern insertions
+    should continue error correction from failing state; cost at that point is 0.
+        need pattern_matched boolean, or use cost 0?
+
+    confusion between local lookahead and inserted; should put pattern in both
+        only put in inserted after read from local lookahead
+        if config fails before local lookahead empty; abandon config?
+        if config fails after; enqueue to try other continuations?
+
+    tests failing in o.w; fix there first
+
 build syntax tree, edit that?
     record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
 

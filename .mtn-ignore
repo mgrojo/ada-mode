@@ -29,5 +29,6 @@
 ^build/gpr_query\.db-wal$
 ^build/obj$
 ^build/obj_pro$
+^build/test_one_harness\.log$
 ^wisi/test/.*-wy\.el$
 ^wisi/test/wisent\.output$

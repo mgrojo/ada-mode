@@ -167,6 +167,13 @@ with WisiToken.Text_IO_Trace;
 %recover_pattern_1 END SEMICOLON IF
 %recover_pattern_1 END SEMICOLON LOOP
 
+;; Similarly; expecting 'end if ;', find 'end <identifier>'
+;; insert 'if; end'
+;; => 'end if; end <identifier> ;'
+%recover_pattern_2 END IDENTIFIER CASE SEMICOLON
+%recover_pattern_2 END IDENTIFIER IF SEMICOLON
+%recover_pattern_2 END IDENTIFIER LOOP SEMICOLON
+
 ;; args: error ID, delete_thru ID
 ;; matches if expecting contains EOF
 ;; result: delete thru delete_thru or EOF

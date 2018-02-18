@@ -936,6 +936,34 @@ package body Test_McKenzie_Recover is
       Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
    end Pattern_Block_Extra_Name_1;
 
+   procedure Abandon_Pattern (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+      use WisiToken.Semantic_State.AUnit;
+   begin
+      Parse_Text
+        ("package body Pack_1 procedure Proc_1 is procedure Proc_A is begin case B is when 1 => a;" &
+           --      |10       |20       |30       |40       |50       |60       |70       |80
+           " begin end Proc_1; end Pack_1;");
+      --    |89        |100
+      --
+      --  Missing 'end case; end Proc_A' 89.
+      --
+      --  Error recovery 1 entered at 'Proc_1' 100, with extra_name_error
+      --  (no label on preceding 'begin'). extra_name_error pattern matches,
+      --  erroneously. In a previous version, that config was continued
+      --  incorrectly.
+      --
+
+   exception
+   when E : WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   end Abandon_Pattern;
+
    ----------
    --  Public subprograms
 
@@ -972,6 +1000,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Pattern_Block_Match_Names_1'Access, "Pattern_Block_Match_Names_1");
       Register_Routine (T, Pattern_Block_Match_Names_2'Access, "Pattern_Block_Match_Names_2");
       Register_Routine (T, Pattern_Block_Extra_Name_1'Access, "Pattern_Block_Extra_Name_1");
+      Register_Routine (T, Abandon_Pattern'Access, "Abandon_Pattern");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
