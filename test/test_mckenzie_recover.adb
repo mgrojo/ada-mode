@@ -21,8 +21,6 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
-with Ada.Exceptions;
-with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
@@ -65,7 +63,6 @@ package body Test_McKenzie_Recover is
    procedure No_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada.Exceptions;
       use Ada_Lite;
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
@@ -75,10 +72,6 @@ package body Test_McKenzie_Recover is
       Ada_Lite.State.Initialize (Line_Count => 49);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
-   exception
-   when E : WisiToken.Syntax_Error =>
-      Ada.Text_IO.Put_Line (File_Name & ":" & Exception_Message (E));
-      AUnit.Assertions.Assert (False, "syntax error");
    end No_Error;
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -279,8 +272,11 @@ package body Test_McKenzie_Recover is
          --  parser 1 for subprogram_body (should succeed): delete 'end' 22, cost 1.
          --  Continue to EOF, succeed.
          --
-         --  parser 0 for generic_instantiation (should fail):
-         --  finds: insert 'new', delete 'end begin end' cost 6, succeed => ambiguous parse
+         --  parser 0 for generic_instantiation (should fail): finds: insert
+         --  'new', delete 'end begin end' cost 6, succeed.
+
+         --  Thus there is an ambiguous parse. But since there was an error,
+         --  one parser is chosen to succeed.
          --
          --  This is an example of error recovery defeating conflict
          --  resolution. In real programs it should not happen often; the
@@ -289,20 +285,14 @@ package body Test_McKenzie_Recover is
          --  hitting the cost limit after trying hundreds of possible
          --  solutions.
 
-         Assert (False, "1 did not get exception");
+         Check ("1 errors.length", State.Active_Error_List.Length, 1); -- error from surviving parser
 
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
 
-      when E : WisiToken.Parse_Error =>
-         declare
-            use Ada.Exceptions;
-            use Ada.Strings.Fixed;
-            Msg : constant String := Exception_Message (E);
-         begin
-            Assert (0 < Index (Source => Msg, Pattern => "Ambiguous parse"), "1 unexpected exception");
-         end;
+      when WisiToken.Parse_Error =>
+         Assert (False, "1 exception: got Parse_Error");
       end;
 
       --  Symmetric case where generic_instantiation is desired
@@ -727,8 +717,8 @@ package body Test_McKenzie_Recover is
       --  solution is to delete the STRING_LITERAL.
 
    exception
-   when E : WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Missing_Quote;
 
    procedure Pattern_End_EOF (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -782,8 +772,8 @@ package body Test_McKenzie_Recover is
             To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
       end;
    exception
-   when E : WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_End_EOF;
 
    procedure Pattern_Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -842,8 +832,8 @@ package body Test_McKenzie_Recover is
       --  FIXME: required name missing
 
    exception
-   when E : WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_Block_Match_Names_1;
 
    procedure Pattern_Block_Match_Names_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -871,13 +861,14 @@ package body Test_McKenzie_Recover is
       --  because we've already done an insertion.
       --
       --  Recovery finds one solution for each parser, and both continue to
-      --  EOF, resulting in an ambiguous parse.
+      --  EOF, resulting in an ambiguous parse; one parser is chosen to
+      --  succeed.
 
-      Assert (False, "1 exception: did not get Parse_Error");
+      Check ("1 errors.length", State.Active_Error_List.Length, 1); -- error from surviving parser
 
    exception
-   when E : WisiToken.Parse_Error =>
-      Check ("error message", Ada.Exceptions.Exception_Message (E), ":1:0: Ambiguous parse: 2 parsers active.");
+   when WisiToken.Parse_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_Block_Match_Names_2;
 
    procedure Pattern_Block_Extra_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -932,8 +923,8 @@ package body Test_McKenzie_Recover is
       --  FIXME: required name missing
 
    exception
-   when E : WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_Block_Extra_Name_1;
 
    procedure Abandon_Pattern (T : in out AUnit.Test_Cases.Test_Case'Class)
