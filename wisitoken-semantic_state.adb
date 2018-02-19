@@ -206,17 +206,26 @@ package body WisiToken.Semantic_State is
          if Errors (I).Length > 0 then
             Put_Line ("parser" & Integer'Image (I) & " errors:");
             for Item of Errors (I) loop
-               if Item.Error_Token.Line = Invalid_Line_Number then
+               case Item.Label is
+               when Action =>
+                  if Item.Error_Token.Line = Invalid_Line_Number then
+                     Put_Line
+                       (Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                          ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => False) & "'");
+                  else
+                     Put_Line
+                       (Error_Message
+                          (Source_File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
+                           "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                             ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'"));
+                  end if;
+
+               when Check =>
                   Put_Line
-                    (Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                       ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => False) & "'");
-               else
-                  Put_Line
-                    (Error_Message
-                       (Source_File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
-                        "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                          ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'"));
-               end if;
+                    (Source_File_Name & ": " &
+                       "semantic check error: " & Semantic_Checks.Error_Label'Image (Item.Code) &
+                       ", tokens " & Image (Item.Tokens, Descriptor));
+               end case;
 
                if Item.Recover /= null then
                   Put_Line ("   recover: " & Item.Recover.Image (Descriptor));

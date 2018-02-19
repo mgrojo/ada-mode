@@ -13,44 +13,38 @@ org.wisitoken.stephe-1 - available
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
 
+(dvc-propagate-multiple
+ '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+
  current work
-mckenzie algorithm error
-    test_mckenzie Abandon_Pattern
+build syntax tree, edit that in mckenzie
+    all_tokens: array of base_token; non-grammar, terminal, non-terminal?
+    tree: linear array of nodes
+    node contains:
+        token: index to all_tokens
+            terminal for leaves, nonterminal for others
+        children: array of indices to syntax_tree nodes
+        action: semantic_state action to run on the node after parsing
 
-    if pattern fails, goes back to original state, but does not delete pattern insertions
-    should continue error correction from failing state; cost at that point is 0.
-        need pattern_matched boolean, or use cost 0?
+    edited copy of all_tokens, syntax_tree in each mckenzie config
+        need to save space
+        share beginning of token, tree array
+        all nodes after edit_start are copied/edited
 
-    confusion between local lookahead and inserted; should put pattern in both
-        only put in inserted after read from local lookahead
-        if config fails before local lookahead empty; abandon config?
-        if config fails after; enqueue to try other continuations?
-
-    tests failing in o.w; fix there first
-
-build syntax tree, edit that?
     record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
+
+    test_mckenzie Abandon_Pattern
+        edit syntax tree is much cheaper; 'insert end case; end proc_a' cost 6
 
 user option end_name_require (ie not optional) makes ada_mode-recover_block_name_mismatch.adb fail?
     need to preserve end name when editing stack
     => lookahead must be array of base token
 
 delete line, col
+    only needed by non-emacs users
+        can be computeded from state.line_end_pos, if we add that
     also other fields?
-
-syntax tree
-    all_tokens: array of base_token
-    tree: linear array of nodes
-    node contains:
-        token: index to all_tokens
-            terminal for leaves, nonterminal for others
-        chilren: array of indices to syntax_node
-        action: semantic_state action to run on the node after parsing
-
-    edited copy of syntax tree in each mckenzie config
-        need to save space
-        share beginning of tree array
-        all nodes after edit_start are copied/edited
 
 Use correction cost to pick parser in terminate duplicate
 

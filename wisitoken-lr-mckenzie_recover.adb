@@ -155,7 +155,6 @@ package body WisiToken.LR.McKenzie_Recover is
       --  All_Done - Parser_Index, Config are not valid; all configs checked.
 
       procedure Success (Parser_Index : in SAL.Peek_Type; Config : in Configuration);
-      procedure Success (Parser_Label : in Natural; Config : in Configuration);
       --  Report that Configuration succeeds for Parser_Label.
 
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type);
@@ -435,16 +434,6 @@ package body WisiToken.LR.McKenzie_Recover is
          end if;
       end Success;
 
-      procedure Success (Parser_Label : in Natural; Config : in Configuration)
-      is begin
-         for I in Parser_Labels'Range loop
-            if Parser_Labels (I) = Parser_Label then
-               Supervisor.Success (I, Config);
-               return;
-            end if;
-         end loop;
-      end Success;
-
       procedure Force_Done (Parser_Label : in Natural; Config : in Configuration)
       is
       begin
@@ -553,6 +542,41 @@ package body WisiToken.LR.McKenzie_Recover is
    ----------
    --  Check code
 
+   procedure Find_Matching_Name
+     (Config              : in     Configuration;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Name                : in     String;
+      Begin_ID            : in     Token_ID;
+      Matching_Name_Index : in out SAL.Peek_Type;
+      Begin_Count         :    out Integer)
+   is
+      use all type SAL.Peek_Type;
+   begin
+      --  Search Config.Stack, starting at Matching_Name_Index, for a token
+      --  containing a name that matches Name, counting 'begin's.
+      --
+      --  Matching_Name_Index is Peek index into Config.Stack; >
+      --  config.stack.depth if not found.
+
+      Begin_Count := 0;
+
+      loop
+         exit when Matching_Name_Index > Config.Stack.Depth;
+         declare
+            Token : Base_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
+         begin
+            exit when Token.Name /= Null_Buffer_Region and then
+              Lexer.Buffer_Text (Token.Name) = Name;
+
+            if Token.ID = Begin_ID then
+               Begin_Count := Begin_Count + 1;
+            end if;
+
+            Matching_Name_Index := Matching_Name_Index + 1;
+         end;
+      end loop;
+   end Find_Matching_Name;
+
    procedure Do_Shift
      (Trace             : in out WisiToken.Trace'Class;
       Parser_Label      : in     Natural;
@@ -563,7 +587,6 @@ package body WisiToken.LR.McKenzie_Recover is
       Inserted_Token    : in     Token_ID)
    is begin
       if Trace_McKenzie > Extra then
-         Put_Line (Trace, Parser_Label, Image (Config.Stack, Trace.Descriptor.all));
          Put_Line (Trace, Parser_Label, Image (Action, Trace.Descriptor.all));
       end if;
       Config.Stack.Push ((Action.State, (Inserted_Token, Null_Buffer_Region, Null_Buffer_Region, Virtual => True)));
@@ -615,21 +638,7 @@ package body WisiToken.LR.McKenzie_Recover is
                      Matching_Name_Index : SAL.Peek_Type   := 2;
                      Begin_Count         : Integer         := 0;
                   begin
-                     loop
-                        exit when Matching_Name_Index >= Config.Stack.Depth;
-                        declare
-                           Token : Base_Token renames Config.Stack.Peek (Matching_Name_Index).Token;
-                        begin
-                           exit when Token.Name /= Null_Buffer_Region and then
-                             Lexer.Buffer_Text (Token.Name) = End_Name;
-
-                           if Token.ID = Pattern.Begin_ID then
-                              Begin_Count := Begin_Count + 1;
-                           end if;
-
-                           Matching_Name_Index := Matching_Name_Index + 1;
-                        end;
-                     end loop;
+                     Find_Matching_Name (Config, Lexer, End_Name, Pattern.Begin_ID, Matching_Name_Index, Begin_Count);
 
                      if Matching_Name_Index < Config.Stack.Depth then
                         if Config.Deleted.Length = 0 and
@@ -704,6 +713,10 @@ package body WisiToken.LR.McKenzie_Recover is
                      --  Error is a missing 'end'; ideally we want to insert 'end ;' before 'end <name>'.
                      --  The best we can do is pop '<name> ;', insert '; end ;'
                      --
+                     --  This solution is different from Apply_Pattern
+                     --  Recover_Block_Mismatched_Names Extra_Name_Error, because here the
+                     --  production is not yet reduced.
+                     --
                      --  See test_mckenzie_recover.adb Pattern_Block_Mismatched_Names.
                      declare
                         New_Config : Configuration := Config;
@@ -775,7 +788,6 @@ package body WisiToken.LR.McKenzie_Recover is
          else "");
    begin
       if Trace_McKenzie > Extra then
-         Put_Line (Trace, Parser_Label, Image (New_Config_1.Stack, Trace.Descriptor.all));
          Put_Line (Trace, Parser_Label, Image (Action, Trace.Descriptor.all));
       end if;
 
@@ -907,7 +919,11 @@ package body WisiToken.LR.McKenzie_Recover is
                Check_Token :=
                  (Check_Config.Local_Lookahead (Check_Config.Local_Lookahead_Index),
                   Null_Buffer_Region, Null_Buffer_Region, Virtual => True);
+
+               --  Check_Token added to Check_Config.Inserted by Do_Shift
+
                Last_Token_Virtual := True;
+
             else
                if not Last_Token_Virtual then
                   Check_Config.Shared_Lookahead_Index := Check_Config.Shared_Lookahead_Index + 1;
@@ -1054,6 +1070,20 @@ package body WisiToken.LR.McKenzie_Recover is
          return;
       end if;
 
+      if Config.Local_Lookahead_Index /= Fast_Token_ID_Vectors.No_Index and
+        Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index
+      then
+         --  Config was created by a pattern, and failed before the tokens
+         --  inserted by the pattern were consumed. Abandon it, tell Super we
+         --  are done with this config.
+         Super.Put (Parser_Index, Local_Config_Heap);
+         return;
+      end if;
+
+      if Trace_McKenzie > Detail then
+         Put ("continuing", Trace, Parser_Label, Config);
+      end if;
+
       --  Grouping these operations ensures we know the order to do them in
       --  later in the actual parser, and that there are no duplicate
       --  solutions found.
@@ -1075,7 +1105,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
             New_Config.Popped.Append (Deleted_Token.ID);
             if Trace_McKenzie > Extra then
-               Put_Line (Trace, Parser_Label, "pop " & Image (Deleted_Token, Trace.Descriptor.all));
+               Put_Line (Trace, Parser_Label, "try pop " & Image (Deleted_Token, Trace.Descriptor.all));
             end if;
 
             Local_Config_Heap.Add (New_Config);
@@ -1095,7 +1125,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   case Action.Verb is
                   when Shift =>
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Parser_Label, "insert " & Image (ID, Trace.Descriptor.all));
+                        Put_Line (Trace, Parser_Label, "try insert " & Image (ID, Trace.Descriptor.all));
                      end if;
 
                      New_Config := Config;
@@ -1335,32 +1365,19 @@ package body WisiToken.LR.McKenzie_Recover is
       Root_Config  : in out Configuration;
       Trace        : in out WisiToken.Trace'Class)
    is
+      use all type SAL.Base_Peek_Type;
       use all type Semantic_State.Parser_Error_Label;
 
-      procedure Do_Extra_Name
+      procedure Do_Fix
       is
-         use all type SAL.Peek_Type;
-
          End_Name            : constant String := Lexer.Buffer_Text
            (Error.Tokens (Error.Tokens.Last_Index).Name);
          Matching_Name_Index : SAL.Peek_Type   := 2;
-         Begin_Count         : Integer         := 0;
+         Begin_Count         : Integer;
       begin
-         loop
-            exit when Matching_Name_Index > Root_Config.Stack.Depth;
-            declare
-               Token : Base_Token renames Root_Config.Stack.Peek (Matching_Name_Index).Token;
-            begin
-               exit when Token.Name /= Null_Buffer_Region and then
-                 Lexer.Buffer_Text (Token.Name) = End_Name;
-
-               if Token.ID = Pattern.Begin_ID then
-                  Begin_Count := Begin_Count + 1;
-               end if;
-
-               Matching_Name_Index := Matching_Name_Index + 1;
-            end;
-         end loop;
+         --  First see if there is a matching name. Top of stack is the reduced
+         --  block containing the name that does not match.
+         Find_Matching_Name (Root_Config, Lexer, End_Name, Pattern.Begin_ID, Matching_Name_Index, Begin_Count);
 
          if Matching_Name_Index > Root_Config.Stack.Depth then
             --  Did not find matching name; assume user is editing names, so ignore.
@@ -1403,7 +1420,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
             Enqueue (Trace, Parser_State.Label, Parser_State.Recover, Config);
          end;
-      end Do_Extra_Name;
+      end Do_Fix;
 
    begin
       if Error.Label = Semantic_State.Check then
@@ -1420,23 +1437,17 @@ package body WisiToken.LR.McKenzie_Recover is
             --  the buffer, so we just ignore the error, and say the Root_Config
             --  succeeds. See test_mckenzie_recover.adb Pattern_End_EOF,
             --  propagate_names.ada_lite Proc_2.
-
-            Root_Config.Semantic_Check_Fixes (Error.Code) := True;
-            Super.Success (Parser_State.Label, Root_Config);
-
+            --
             --  Another case is a missing 'end'; same fix as Extra_Name_Error
-            --  below. See propagate_names.ada_lite Proc_3.
-            Do_Extra_Name;
+            --  below. See test_ada_lite.adb Propagate_Names
+            Do_Fix;
 
          when Semantic_Checks.Missing_Name_Error =>
             raise Programmer_Error with "found test case for Apply_Pattern Missing_Name_Error";
 
          when Semantic_Checks.Extra_Name_Error =>
-            --  Assume there is a missing 'end <name>'; search stack for matching
-            --  name, counting 'begin's. Top of stack is the reduced block.
-            --
             --  See test_mckenzie_recover.adb Pattern_Block_Missing_Name_1.
-            Do_Extra_Name;
+            Do_Fix;
 
          end case;
       end if;

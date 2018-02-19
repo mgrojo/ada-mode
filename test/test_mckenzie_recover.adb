@@ -936,23 +936,30 @@ package body Test_McKenzie_Recover is
       use WisiToken.AUnit;
       use WisiToken.Semantic_State.AUnit;
    begin
+      Parser.Table.McKenzie_Param.Cost_Limit := 17;
+
       Parse_Text
-        ("package body Pack_1 procedure Proc_1 is procedure Proc_A is begin case B is when 1 => a;" &
-           --      |10       |20       |30       |40       |50       |60       |70       |80
+        ("package body Pack_1 is procedure Proc_1 is procedure Proc_A is begin case B is when 1 => a;" &
+           --      |10       |20       |30       |40       |50       |60       |70       |80       |90
            " begin end Proc_1; end Pack_1;");
-      --    |89        |100
+      --    |92     |100      |110
       --
-      --  Missing 'end case; end Proc_A' 89.
+      --  Missing 'end case; end Proc_A' 91.
       --
-      --  Error recovery 1 entered at 'Proc_1' 100, with extra_name_error
-      --  (no label on preceding 'begin'). extra_name_error pattern matches,
-      --  erroneously. In a previous version, that config was continued
-      --  incorrectly.
+      --  Error recovery 1 entered at 'end' 111, with extra_name_error from
+      --  the preceding block (no label on preceding 'begin').
+      --  extra_name_error pattern matches, replacing 'begin end Proc_1;'
+      --  with 'end; begin end;'. That fails on the first virtual ';',
+      --  expecting 'end case;'. In a previous version, that config was
+      --  continued incorrectly, causing the parse to fail.
+      --
+      --  The desired solution is 'pop block_statement', 'insert end case;
+      --  end <proc_a>; end <proc_1>;' cost (+ 8 1 3 1 1 1 1 1) => 17
       --
 
    exception
-   when E : WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error: " & Ada.Exceptions.Exception_Message (E));
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Abandon_Pattern;
 
    ----------
