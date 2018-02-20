@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017 Stephen Leake
+--  Copyright (C) 2009-2010, 2012-2015, 2017, 2018 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -99,7 +99,7 @@ package body Trivial_Productions_Test is
 
          Parser.Lexer.Reset_With_String (Text);
 
-         Parser.Parse;
+         WisiToken.LR.Parser.Parse (Parser);
 
       end Test_One;
    end Expression;
@@ -198,7 +198,7 @@ package body Trivial_Productions_Test is
 
          Parser.Lexer.Reset_With_String (Text);
          WisiToken.Trace_Parse := Test.Debug;
-         Parser.Parse;
+         WisiToken.LR.Parser.Parse (Parser);
 
       end Test_One;
    end Subprograms;

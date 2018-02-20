@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -312,7 +312,7 @@ package body Dragon_4_43_LR1_Test is
       is begin
          Parser.Lexer.Reset_With_String (Command);
 
-         Parser.Parse;
+         WisiToken.LR.Parser.Parse (Parser);
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));

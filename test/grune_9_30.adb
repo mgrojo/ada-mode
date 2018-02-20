@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -153,7 +153,7 @@ package body Grune_9_30 is
          Parser.Lexer.Reset_With_String (Command);
          State.Reset;
 
-         Parser.Parse;
+         WisiToken.LR.Parser.Parse (Parser);
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));

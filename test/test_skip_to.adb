@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,7 +23,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with Skip_To_Grammar;
 with Test_Skip_To_Aux;
-with WisiToken.LR;
+with WisiToken.LR.Parser;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Semantic_State;
 package body Test_Skip_To is
@@ -46,7 +46,7 @@ package body Test_Skip_To is
 
       State.Initialize (Line_Count => 8);
       Parser.Lexer.Reset_With_File (File_Name);
-      Parser.Parse;
+      WisiToken.LR.Parser.Parse (Parser);
    exception
    when E : WisiToken.Syntax_Error =>
       declare

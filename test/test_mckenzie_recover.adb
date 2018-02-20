@@ -25,6 +25,7 @@ with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
 with WisiToken.LR.AUnit;
+with WisiToken.LR.Parser;
 with WisiToken.Semantic_State.AUnit;
 with WisiToken.Semantic_State;
 with WisiToken.Semantic_Checks.AUnit;
@@ -52,7 +53,7 @@ package body Test_McKenzie_Recover is
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
 
-      Parser.Parse;
+      WisiToken.LR.Parser.Parse (Parser);
    end Parse_Text;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
@@ -71,7 +72,7 @@ package body Test_McKenzie_Recover is
 
       Ada_Lite.State.Initialize (Line_Count => 49);
       Parser.Lexer.Reset_With_File (File_Name);
-      Parser.Parse;
+      WisiToken.LR.Parser.Parse (Parser);
    end No_Error;
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)

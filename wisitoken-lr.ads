@@ -348,21 +348,8 @@ package WisiToken.LR is
    overriding procedure Finalize (Object : in out Instance);
    --  Deep free Object.Table.
 
-   procedure Parse (Shared_Parser : in out Instance);
-   --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
-   --  allow continuing in the same input stream.
-   --
-   --  If an error is encountered but a recover strategy succeeds, no
-   --  exception is raised. Semantic_State contains information about the
-   --  errors.
-   --
-   --  If recover does not succeed, raises Syntax_Error. Semantic_State
-   --  contains information about the failing error and any previous
-   --  recovered errors.
-   --
-   --  For errors where no recovery is possible, raises Parse_Error with
-   --  an appropriate error message. Semantic_State contains information
-   --  about previous recovered errors.
+   --  'Parse' is not declared here, so wisi-generate is independent of
+   --  wisitoken-lr-parser and -lr-mckenzie_recover.
 
    ----------
    --  Useful text output

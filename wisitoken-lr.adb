@@ -30,7 +30,6 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with WisiToken.LR.Parser;
 package body WisiToken.LR is
 
    overriding
@@ -148,11 +147,6 @@ package body WisiToken.LR is
 
       Free (Object.Table);
    end Finalize;
-
-   procedure Parse (Shared_Parser : in out Instance)
-   is begin
-      WisiToken.LR.Parser.Parse (Shared_Parser);
-   end Parse;
 
    function State_Image (Item : in Unknown_State_Index) return String
    is

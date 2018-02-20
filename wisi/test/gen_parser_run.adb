@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017 Stephe Leake
+--  Copyright (C) 2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -25,6 +25,7 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
+with WisiToken.LR.Parser;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Parser_Run
 is
@@ -67,7 +68,7 @@ is
       State.Initialize (Line_Count => Parser.Lexer.Line);
 
       Parser.Lexer.Reset;
-      Parser.Parse;
+      WisiToken.LR.Parser.Parse (Parser);
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));

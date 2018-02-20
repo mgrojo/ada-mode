@@ -25,7 +25,7 @@ with Ada.Text_IO;
 with Character_Literal;
 with Test_Character_Literal_Aux;
 with WisiToken.AUnit;
-with WisiToken.LR;
+with WisiToken.LR.Parser;
 with WisiToken.Semantic_State;
 package body Test_Character_Literal is
 
@@ -48,7 +48,7 @@ package body Test_Character_Literal is
 
       State.Initialize (Line_Count => 32);
       Parser.Lexer.Reset_With_File (File_Name);
-      Parser.Parse;
+      WisiToken.LR.Parser.Parse (Parser);
 
       Check ("character_literal_count", Character_Literal_Count, 7);
       Check ("string_literal_count", String_Literal_Count, 2);
@@ -73,7 +73,7 @@ package body Test_Character_Literal is
       is begin
          Character_Literal.State.Initialize (Line_Count => 1);
          Parser.Lexer.Reset_With_String (Input);
-         Parser.Parse;
+         WisiToken.LR.Parser.Parse (Parser);
 
          Check (Label, Character_Literal.Char_Region, Expected_Char_Region);
       end Test;

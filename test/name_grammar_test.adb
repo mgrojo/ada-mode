@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002-2003, 2009, 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002-2003, 2009, 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -128,7 +128,7 @@ package body Name_Grammar_Test is
       Parser.Lexer.Reset_With_String (Command);
       State.Reset;
 
-      Parser.Parse;
+      WisiToken.LR.Parser.Parse (Parser);
 
       Ada.Text_IO.Put_Line ("success");
       Ada.Text_IO.New_Line;

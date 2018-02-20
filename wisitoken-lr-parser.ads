@@ -5,7 +5,7 @@
 --  In a child package of Parser.LR partly for historical reasons,
 --  partly to allow McKenzie_Recover to be in a sibling package.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -39,5 +39,19 @@ package WisiToken.LR.Parser is
       Terminate_Same_State : in     Boolean            := True);
 
    procedure Parse (Shared_Parser : in out Instance);
+   --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
+   --  allow continuing in the same input stream.
+   --
+   --  If an error is encountered but a recover strategy succeeds, no
+   --  exception is raised. Semantic_State contains information about the
+   --  errors.
+   --
+   --  If recover does not succeed, raises Syntax_Error. Semantic_State
+   --  contains information about the failing error and any previous
+   --  recovered errors.
+   --
+   --  For errors where no recovery is possible, raises Parse_Error with
+   --  an appropriate error message. Semantic_State contains information
+   --  about previous recovered errors.
 
 end WisiToken.LR.Parser;

@@ -24,7 +24,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite;
 with GNAT.Traceback.Symbolic;
-with WisiToken.LR;
+with WisiToken.LR.Parser;
 with WisiToken.Semantic_State;
 package body Test_Ada_Lite is
 
@@ -54,7 +54,7 @@ package body Test_Ada_Lite is
       State.Initialize (Line_Count => 20);
       Parser.Lexer.Reset_With_File (Input_File_Name);
       begin
-         Parser.Parse;
+         WisiToken.LR.Parser.Parse (Parser);
       exception
       when E : WisiToken.Syntax_Error =>
          Ada.Text_IO.Put_Line (Input_File_Name & ":" & Exception_Message (E));
