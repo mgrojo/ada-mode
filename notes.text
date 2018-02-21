@@ -36,12 +36,11 @@ run test from emacs -Q using source:
    ("../org.wisitoken"        . "../org.wisitoken.stephe-1")
    ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
- current work
-mckenzie algorithm error
-    c:/Projects/org.wisitoken.stephe-1/notes.text
-    test/debug.adb
+c:/Projects/org.wisitoken.grammar_mode/Makefile
 
-update benchmarks
+ current work
+apply 'end identifier' pattern to 'end string_literal' as well
+    also propagate, match names
 
 clean up gpr-mode; delete 'we reuse ada' comments
 
@@ -129,6 +128,8 @@ Ada 2020 features:
 
  speed issues
 
+benchmarks:
+
 /Projects/org.wisitoken/Test/gnatcoll-xref.adb
     copied to c:/tmp/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
@@ -170,15 +171,16 @@ plain parse, no actions:
             (wisi-time #'ada-gps-noop-send 1)
             1.054854 seconds 0 gcs
 
-
-        repeat timing in Debian
-
     16 Dec 2017:
         process parser: re2c lexer, name in base_token, block_label_opt in block, loop
         ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
             0.346936964, 0.341999256
 
         add byte_region in base_token: 0.339586284, 0.341083772, 0.340257321
+
+    20 Feb 2018:
+        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
+            0.311213888, 0.317810000
 
 
 consider doing all actions in one parse in process

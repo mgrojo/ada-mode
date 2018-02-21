@@ -2,7 +2,7 @@
 ;;
 ;; [1] ISO/IEC 8652:2012(E); Ada 2012 reference manual
 ;;
-;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -423,7 +423,6 @@ Also return cache at start."
   "For `ada-scan-paramlist'."
   ;; IMPROVEME: define mini grammar that does this
   (wisi-validate-cache end t 'navigate)
-  (wisi-repair-errors begin end)
 
   (goto-char begin)
   (let (tok
@@ -482,34 +481,39 @@ Also return cache at start."
 	(goto-char (scan-sexps (1- (point)) 1)))
 
        ((member token '(SEMICOLON RIGHT_PAREN))
-	(when (not type-end)
-	  (setq type-end (save-excursion (goto-char (car (wisi-tok-region tok))) (skip-syntax-backward " ") (point))))
+	(if (not type-begin)
+	    ;; Right paren immediately following semicolon; allowed by
+	    ;; our Ada grammar.
+	    (setq done t)
 
-	(setq type (buffer-substring-no-properties type-begin type-end))
+	  (when (not type-end)
+	    (setq type-end (save-excursion (goto-char (car (wisi-tok-region tok))) (skip-syntax-backward " ") (point))))
 
-	(when default-begin
-	  (setq default (buffer-substring-no-properties default-begin (car (wisi-tok-region tok)))))
+	  (setq type (buffer-substring-no-properties type-begin type-end))
 
-	(when (equal token 'RIGHT_PAREN)
-	  (setq done t))
+	  (when default-begin
+	    (setq default (buffer-substring-no-properties default-begin (car (wisi-tok-region tok)))))
 
-	(setq param (list (reverse identifiers)
-			  aliased-p in-p out-p not-null-p access-p constant-p protected-p
-			  type default))
-        (cl-pushnew param paramlist :test #'equal)
-	(setq identifiers nil
-	      aliased-p nil
-	      in-p nil
-	      out-p nil
-	      not-null-p nil
-	      access-p nil
-	      constant-p nil
-	      protected-p nil
-	      type nil
-	      type-begin nil
-	      type-end nil
-	      default nil
-	      default-begin nil))
+	  (when (equal token 'RIGHT_PAREN)
+	    (setq done t))
+
+	  (setq param (list (reverse identifiers)
+			    aliased-p in-p out-p not-null-p access-p constant-p protected-p
+			    type default))
+          (cl-pushnew param paramlist :test #'equal)
+	  (setq identifiers nil
+		aliased-p nil
+		in-p nil
+		out-p nil
+		not-null-p nil
+		access-p nil
+		constant-p nil
+		protected-p nil
+		type nil
+		type-begin nil
+		type-end nil
+		default nil
+		default-begin nil)))
 
        (t
 	(when (not type-begin)

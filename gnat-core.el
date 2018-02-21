@@ -3,7 +3,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -430,24 +430,26 @@ list."
     result))
 
 (defconst ada-gnat-predefined-package-alist
-  '(("a-textio" . "Ada.Text_IO")
+  '(
     ("a-chahan" . "Ada.Characters.Handling")
     ("a-comlin" . "Ada.Command_Line")
     ("a-contai" . "Ada.Containers")
     ("a-except" . "Ada.Exceptions")
+    ("a-ioexce" . "Ada.IO_Exceptions")
     ("a-numeri" . "Ada.Numerics")
+    ("a-stream" . "Ada.Streams")
     ("a-string" . "Ada.Strings")
     ("a-strmap" . "Ada.Strings.Maps")
     ("a-strunb" . "Ada.Strings.Unbounded")
     ("a-stwiun" . "Ada.Strings.Wide_Unbounded")
+    ("a-textio" . "Ada.Text_IO")
     ("g-comlin" . "GNAT.Command_Line")
     ("g-dirope" . "GNAT.Directory_Operations")
     ("g-socket" . "GNAT.Sockets")
-    ("interfac" . "Interfaces")
     ("i-c"      . "Interfaces.C")
     ("i-cstrin" . "Interfaces.C.Strings")
+    ("interfac" . "Interfaces")
     ("s-stoele" . "System.Storage_Elements")
-    ("unchconv" . "Unchecked_Conversion") ; Ada 83 name
     )
   "Alist (filename . package name) of GNAT file names for predefined Ada packages.")
 

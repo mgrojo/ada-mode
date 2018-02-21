@@ -27,7 +27,7 @@ with GNAT.OS_Lib;
 with GNAT.Traceback.Symbolic;
 with System.Storage_Elements;
 with WisiToken.Lexer;
-with WisiToken.LR;
+with WisiToken.LR.Parser;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_Parse
 is

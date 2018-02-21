@@ -194,7 +194,7 @@ begin
                --  above.
             end;
          else
-            Parser.Parse;
+            WisiToken.LR.Parser.Parse (Parser);
             if Repeat_Count = 1 then
                WisiToken.Wisi_Runtime.Put (Parse_Data);
                WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);

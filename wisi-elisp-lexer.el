@@ -1,6 +1,6 @@
 ;;; wisi-elisp-lexer.el --- A lexer for wisi, implemented in elisp -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;;
@@ -109,6 +109,9 @@
 
     (when string-single
       (push (cons (car string-single) "''") id-alist))
+
+    (dolist (item keyword-table-raw)
+      (push (cons (cdr item) (car item)) id-alist))
 
     (make-wisi-elisp-lexer
      :id-alist id-alist

@@ -1139,7 +1139,7 @@ Called with BEGIN END.")
 
       (dolist (tok-1 (wisi--error-deleted data))
 	(setq tok-2 (wisi-forward-token))
-	(if (eq (wisi-tok-token tok-1) (wisi-tok-token tok-2))
+	(if (eq tok-1 (wisi-tok-token tok-2))
 	    (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
 	  (error "mismatched tokens: parser %s, buffer %s" (wisi-tok-token tok-1) (wisi-tok-token tok-2))))
 

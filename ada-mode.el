@@ -707,6 +707,14 @@ Function is called with one optional argument; syntax-ppss result.")
      (user-error "Not in parameter list")))
   (funcall indent-line-function); so new list is indented properly
 
+  ;; indent-line-function may have found errors to correct. We repair
+  ;; all errors from here to end of buffer, in case one of the errors
+  ;; is a missing the param list closing paren.
+  ;;
+  ;; FIXME: either make this indirect, or make all other wisi- indirects direct.
+  (save-excursion
+    (wisi-repair-errors (point) (point-max)))
+
   (let* ((begin (point))
 	 ;; We use markers here, in case eror correction moves ‘end’.
 	 (delend (copy-marker (progn (forward-sexp) (point)))); just after matching closing paren

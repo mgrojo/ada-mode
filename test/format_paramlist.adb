@@ -1,15 +1,6 @@
 --  Test ada-format-paramlist in several cases
 --  All results checked by diff
 
--- WORKAROUND: For some reason, this test causes the process parser to
--- crash. Adding a delay before running ada-align or font-lock-ensure
--- again does _not_ fix it. The tests pass when run by hand, and the
--- main purpose is to test the code in ada-scan-paramlist and
--- ada-insert-paramlist-*; that code does not rely on the parser
--- except for the initial indent.
---
---EMACS_SKIP_UNLESS:(eq ada-parser 'elisp)
-
 -- We are editing things in ada-align; don't abort for temporary bad syntax
 --EMACSCMD:(setq wisi-debug 0)
 
@@ -126,5 +117,16 @@ package body Format_Paramlist is
    is begin
       return 1;
    end Create_Parser;
+
+   -- Error correction leaves empty parameter declaration. The error
+   -- correction leaves 'is begin' on the same line as the closing paren.
+   --
+   --EMACSCMD:(progn (end-of-line 5)(delete-char -1)(insert ";")(ada-align)(newline-and-indent))
+   procedure Check_One
+     (Label    : in String;
+      Param    : in Field_Values;
+      Expected : in ID_Array)
+   is begin
+   end Check_One;
 
 end Format_Paramlist;
