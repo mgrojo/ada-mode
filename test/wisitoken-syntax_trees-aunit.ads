@@ -18,14 +18,28 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
-package WisiToken.Semantic_Checks.AUnit is
+with AUnit.Checks.Containers;
+with SAL.AUnit;
+private package WisiToken.Syntax_Trees.AUnit is
 
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Error_Label);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index_Type);
+
+   function "+" (Item : in Node_Index_Type) return Node_Index_Arrays.Vector;
+
+   procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
+     (Positive_Index_Type, Node_Index_Type, Node_Index_Arrays, SAL.AUnit.Check, Check);
 
    procedure Check
      (Label    : in String;
-      Computed : in Semantic_Check;
-      Expected : in Semantic_Check);
+      Computed : in Node;
+      Expected : in Node);
 
-end WisiToken.Semantic_Checks.AUnit;
+   procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
+     (Valid_Node_Index_Type, Node, Node_Arrays, Check, Check);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Tree;
+      Expected : in Tree);
+
+end WisiToken.Syntax_Trees.AUnit;

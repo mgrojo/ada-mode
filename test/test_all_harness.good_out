@@ -55,8 +55,9 @@ OK test_skip_to.adb : Nominal
 OK test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
+OK wisitoken-syntax_trees-test.adb : Nominal
 
-Total Tests Run:   56
-Successful Tests:  56
+Total Tests Run:   57
+Successful Tests:  57
 Failed Assertions: 0
 Unexpected Errors: 0

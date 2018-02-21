@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -18,6 +18,14 @@ with Ada.Tags;
 with AUnit.Checks.Text_IO;
 with WisiToken.AUnit;
 package body WisiToken.Semantic_State.AUnit is
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Semantic_Action;
+      Expected : in Semantic_Action)
+   is begin
+      Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+   end Check;
 
    procedure Check
      (Label              : in String;

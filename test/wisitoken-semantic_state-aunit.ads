@@ -22,6 +22,11 @@ package WisiToken.Semantic_State.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parser_Error_Label);
 
+   procedure Check
+     (Label    : in String;
+      Computed : in Semantic_Action;
+      Expected : in Semantic_Action);
+
    type Check_Recover_Type is access procedure
      (Label    : in String;
       Computed : in Recover_Data'Class;

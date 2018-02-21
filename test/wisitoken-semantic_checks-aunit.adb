@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  AUnit checks for parent
+--  See parent.
 --
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
@@ -18,14 +18,15 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
-package WisiToken.Semantic_Checks.AUnit is
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Error_Label);
+with AUnit.Assertions;
+package body WisiToken.Semantic_Checks.AUnit is
 
    procedure Check
      (Label    : in String;
       Computed : in Semantic_Check;
-      Expected : in Semantic_Check);
+      Expected : in Semantic_Check)
+   is begin
+      Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+   end Check;
 
 end WisiToken.Semantic_Checks.AUnit;
