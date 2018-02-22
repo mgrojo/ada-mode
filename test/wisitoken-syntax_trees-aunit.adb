@@ -23,7 +23,7 @@ with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Semantic_State.AUnit;
 package body WisiToken.Syntax_Trees.AUnit is
 
-   function "+" (Item : in Node_Index_Type) return Node_Index_Arrays.Vector
+   function "+" (Item : in Node_Index) return Node_Index_Arrays.Vector
    is begin
       return Node_Index_Arrays.To_Vector (Item, 1);
    end "+";

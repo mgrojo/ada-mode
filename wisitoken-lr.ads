@@ -67,7 +67,7 @@ package WisiToken.LR is
    --  no leading space; " " for Unknown_State
 
    function Image
-     (Stack      : in Parser_Stacks.Stack_Type;
+     (Stack      : in Parser_Stacks.Stack;
       Descriptor : in WisiToken.Descriptor'Class;
       Depth      : in SAL.Base_Peek_Type := 0;
       Top_First  : in Boolean            := True)
@@ -382,7 +382,7 @@ package WisiToken.LR is
    function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
 
    type Configuration is new WisiToken.Semantic_State.Recover_Data with record
-      Stack : Parser_Stacks.Stack_Type;
+      Stack : Parser_Stacks.Stack;
       --  The stack after the operations below have been done; suitable for
       --  the next operation.
 
@@ -395,7 +395,7 @@ package WisiToken.LR is
       --  Local_Lookahead_Index
 
       Popped               : Fast_Token_ID_Vectors.Vector;
-      Pushed               : Parser_Stacks.Stack_Type;
+      Pushed               : Parser_Stacks.Stack;
       Inserted             : Fast_Token_ID_Vectors.Vector;
       Deleted              : Fast_Token_ID_Vectors.Vector;
       Semantic_Check_Fixes : Semantic_Checks.Error_Label_Set;
@@ -470,7 +470,7 @@ private
    --  If it is a grammar token, return it. Otherwise, repeat.
 
    function Reduce_Stack
-     (Stack        : in out Parser_Stacks.Stack_Type;
+     (Stack        : in out Parser_Stacks.Stack;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Base_Token;
       Lexer        : in     WisiToken.Lexer.Handle;
@@ -479,7 +479,7 @@ private
       Trace_Prefix : in     String)
      return WisiToken.Semantic_Checks.Check_Status;
    function Reduce_Stack
-     (Stack       : in out Parser_Stacks.Stack_Type;
+     (Stack       : in out Parser_Stacks.Stack;
       Action      : in     Reduce_Action_Rec;
       Nonterm     :    out Base_Token;
       Tokens      :    out Base_Token_Arrays.Vector;

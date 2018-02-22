@@ -20,6 +20,7 @@
 
 pragma License (GPL);
 
+with SAL.Gen_Unbounded_Definite_Stacks;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees.AUnit;
 package body WisiToken.Syntax_Trees.Test is
@@ -63,6 +64,19 @@ package body WisiToken.Syntax_Trees.Test is
    end procedure_specification_0_check;
 
 
+   --  New stack type; holds index to Syntax_Tree instead of Token_ID
+   --  FIXME: move to LR or somewhere.
+   type Unknown_State_Index is new Integer range -1 .. Integer'Last;
+   Unknown_State : constant Unknown_State_Index := -1;
+
+   type Parser_Stack_Item is record
+      State      : Unknown_State_Index := Unknown_State;
+      Tree_Index : Node_Index          := No_Node_Index;
+   end record;
+
+   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
+   --  end FIXME:
+
    ----------
    --  Test subprograms
 
@@ -73,50 +87,64 @@ package body WisiToken.Syntax_Trees.Test is
       use all type Node_Arrays.Vector;
       use all type Node_Index_Arrays.Vector;
 
-      Terminals      : Base_Token_Arrays.Vector;
-      Tree           : WisiToken.Syntax_Trees.Tree;
-      Procedure_I    : Positive_Index_Type;
-      Procedure_Cur  : Cursor;
-      Identifier_I   : Positive_Index_Type;
-      Identifier_Cur : Cursor;
-      Name_Cur       : Cursor;
-      Profile_Cur    : Cursor;
-      Semicolon_I    : Positive_Index_Type;
-      Semicolon_Cur  : Cursor;
-      Proc_Spec_Cur  : Cursor;
-      pragma Unreferenced (Semicolon_Cur);
-   begin
-      --  Parse 'procedure Proc_1;'
+      --  Parse 'procedure Proc_1;', the same way the real parser will.
       --         |1       |10
-      Terminals.Append ((+PROCEDURE_ID, (1, 9), others => <>));
 
-      Procedure_I   := Terminals.Last_Index;
-      Procedure_Cur := Tree.Add_Terminal (Terminal => Procedure_I);
+      --  Base_Token.Name moves to Syntax_Trees.Node.Name
+
+      Terminals : Base_Token_Arrays.Vector;
+      Stack     : Parser_Stacks.Stack;
+      Tree      : WisiToken.Syntax_Trees.Tree;
+
+   begin
+      --  Get tokens, push on stack and tree until we can reduce
+      --  States from ada_lite.parse_table
+      Stack.Push ((0, No_Node_Index));
+
+      Terminals.Append ((+PROCEDURE_ID, (1, 9), others => <>));
+      Stack.Push ((3, Tree.Add_Terminal (Terminal => Terminals.Last_Index))); -- 1
 
       Terminals.Append ((+IDENTIFIER_ID, (11, 16), others => <>));
-
-      Identifier_I   := Terminals.Last_Index;
-      Identifier_Cur := Tree.Add_Terminal (Terminal => Identifier_I);
+      Stack.Push ((18, Tree.Add_Terminal (Terminal => Terminals.Last_Index))); -- 2
 
       Terminals.Append ((+SEMICOLON_ID, (17, 17), others => <>));
 
-      Semicolon_I   := Terminals.Last_Index;
-      Semicolon_Cur := Tree.Add_Terminal (Terminal => Semicolon_I);
-
       --  name : IDENTIFIER ()(propagate_name)
-      Name_Cur := Tree.Add_Nonterm
-        (Nonterm => +name_ID,
-         Check   => name_0_check'Access);
-      Tree.Set (Parent => Name_Cur, Child => Identifier_Cur);
+      declare
+         Nonterm : constant Node_Index := Tree.Add_Nonterm -- 3
+           (Nonterm => +name_ID,
+            Check   => name_0_check'Access);
+      begin
+         Tree.Set_Child (Parent => Nonterm, Child => Stack.Pop.Tree_Index);
+         Stack.Push ((19, Nonterm));
+         --  Emulate calling name_0_check, with Name in Tree.
+         Tree.Nodes (Nonterm).Name := (11, 16);
+      end;
 
       --  parameter_profile_opt : ;; empty
-      Profile_Cur := Tree.Add_Nonterm (+parameter_profile_opt_ID);
+      declare
+         Nonterm : constant Node_Index := Tree.Add_Nonterm (+parameter_profile_opt_ID); -- 4
+      begin
+         Stack.Push ((35, Nonterm));
+      end;
 
       --  procedure_specification : PROCEDURE name parameter_profile_opt
-      Proc_Spec_Cur := Tree.Add_Nonterm (+procedure_specification_ID, Check => procedure_specification_0_check'Access);
-      Tree.Set (Proc_Spec_Cur, Child => Procedure_Cur);
-      Tree.Set (Proc_Spec_Cur, Child => Name_Cur);
-      Tree.Set (Proc_Spec_Cur, Child => Profile_Cur);
+      declare
+         Nonterm : constant Node_Index := Tree.Add_Nonterm -- 5
+           (+procedure_specification_ID,
+            Check => procedure_specification_0_check'Access);
+         Children : Node_Index_Arrays.Vector;
+      begin
+         Children.Prepend (Stack.Pop.Tree_Index); -- parameter_profile_opt
+         Children.Prepend (Stack.Pop.Tree_Index); -- name
+         Children.Prepend (Stack.Pop.Tree_Index); -- PROCEDURE
+
+         Tree.Set_Children (Nonterm, Children);
+         Stack.Push ((10, Nonterm));
+
+         --  Emulate calling procedure_specification_0_check, with Name in Tree.
+         Tree.Nodes (Nonterm).Name := (11, 16);
+      end;
 
       Check
         ("1",
@@ -124,13 +152,12 @@ package body WisiToken.Syntax_Trees.Test is
          ((Root => 0, -- FIXME: not clear whether we need Root
 
            Nodes        =>
-             ((Parent   => 6, Terminal => Procedure_I, others => <>) &                                             -- 1
-                (Parent => 4, Terminal => Identifier_I, others => <>) &                                            -- 2
-                (Parent => 0, Terminal => Semicolon_I, others => <>) &                                             -- 3
-                (Parent => 6, Nonterm => +name_ID, Children => +2, Check   => name_0_check'Access, others => <>) & -- 4
-                (Parent => 6, Nonterm => +parameter_profile_opt_ID, others => <>) &                                -- 5
-                (Parent => 0, Nonterm => +procedure_specification_ID, Children => 1 & 4 & 5,
-                 Check  => procedure_specification_0_check'Access, others => <>)                                   -- 6
+             ((Parent   => 5, Terminal => 1, others => <>) &                                                       -- 1
+                (Parent => 3, Terminal => 2, others => <>) &                                                       -- 2
+                (Parent => 5, Nonterm => +name_ID, Children => +2, Check   => name_0_check'Access, others => <>) & -- 3
+                (Parent => 5, Nonterm => +parameter_profile_opt_ID, others => <>) &                                -- 4
+                (Parent => 0, Nonterm => +procedure_specification_ID, Children => 1 & 3 & 4,
+                 Check  => procedure_specification_0_check'Access, others => <>)                                   -- 5
              ))));
 
    end Nominal;

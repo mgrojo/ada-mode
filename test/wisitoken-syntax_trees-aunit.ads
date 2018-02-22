@@ -22,12 +22,12 @@ with AUnit.Checks.Containers;
 with SAL.AUnit;
 private package WisiToken.Syntax_Trees.AUnit is
 
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index_Type);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
 
-   function "+" (Item : in Node_Index_Type) return Node_Index_Arrays.Vector;
+   function "+" (Item : in Node_Index) return Node_Index_Arrays.Vector;
 
    procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Positive_Index_Type, Node_Index_Type, Node_Index_Arrays, SAL.AUnit.Check, Check);
+     (Positive_Index_Type, Valid_Node_Index, Node_Index_Arrays, SAL.AUnit.Check, Check);
 
    procedure Check
      (Label    : in String;
@@ -35,7 +35,7 @@ private package WisiToken.Syntax_Trees.AUnit is
       Expected : in Node);
 
    procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Valid_Node_Index_Type, Node, Node_Arrays, Check, Check);
+     (Valid_Node_Index, Node, Node_Arrays, Check, Check);
 
    procedure Check
      (Label    : in String;

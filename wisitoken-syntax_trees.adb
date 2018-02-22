@@ -27,33 +27,56 @@ package body WisiToken.Syntax_Trees is
       Nonterm :         in     Token_ID;
       Action  :         in     WisiToken.Semantic_State.Semantic_Action := null;
       Check   :         in     WisiToken.Semantic_Checks.Semantic_Check := null)
-     return Cursor
+     return Valid_Node_Index
    is begin
       Tree.Nodes.Append ((Nonterm => Nonterm, Action => Action, Check => Check, others => <>));
-      return (Tree => Tree'Access, Index => Tree.Nodes.Last_Index);
+      return Tree.Nodes.Last_Index;
    end Add_Nonterm;
 
    function Add_Terminal
      (Tree     : aliased in out Syntax_Trees.Tree;
       Terminal :         in     Positive_Index_Type)
-     return Cursor
+     return Valid_Node_Index
    is begin
       Tree.Nodes.Append ((Terminal => Terminal, others => <>));
-      return (Tree => Tree'Access, Index => Tree.Nodes.Last_Index);
+      return Tree.Nodes.Last_Index;
    end Add_Terminal;
 
-   procedure Set
+   procedure Set_Child
      (Tree   : in out Syntax_Trees.Tree;
-      Parent : in     Cursor;
-      Child  : in     Cursor)
+      Parent : in     Valid_Node_Index;
+      Child  : in     Valid_Node_Index)
    is begin
-      Tree.Nodes (Parent.Index).Children.Append (Child.Index);
-      Tree.Nodes (Child.Index).Parent := Parent.Index;
-   end Set;
+      Tree.Nodes (Parent).Children.Append (Child);
+      Tree.Nodes (Child).Parent := Parent;
+   end Set_Child;
 
-   function Has_Parent (Node : in Cursor) return Boolean
+   procedure Set_Children
+     (Tree     : in out Syntax_Trees.Tree;
+      Parent   : in     Valid_Node_Index;
+      Children : in     Node_Index_Arrays.Vector)
    is begin
-      return Node.Tree.Nodes (Node.Index).Parent /= No_Node_Index;
+      Tree.Nodes (Parent).Children := Children;
+      for Child of Children loop
+         Tree.Nodes (Child).Parent := Parent;
+      end loop;
+   end Set_Children;
+
+   function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      return Tree.Nodes (Node).Children.Length > 0;
+   end Has_Children;
+
+   function Has_Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   is begin
+      return Tree.Nodes (Node).Parent /= No_Node_Index;
+   end Has_Parent;
+
+   function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Node_Index_Arrays.Vector) return Boolean
+   is begin
+      return (for some Child of Children => Tree.Nodes (Child).Parent /= No_Node_Index);
    end Has_Parent;
 
 end WisiToken.Syntax_Trees;

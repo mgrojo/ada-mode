@@ -161,7 +161,7 @@ package body WisiToken.LR is
    end State_Image;
 
    function Image
-     (Stack      : in Parser_Stacks.Stack_Type;
+     (Stack      : in Parser_Stacks.Stack;
       Descriptor : in WisiToken.Descriptor'Class;
       Depth      : in SAL.Base_Peek_Type := 0;
       Top_First  : in Boolean            := True)
@@ -687,7 +687,7 @@ package body WisiToken.LR is
    end Next_Grammar_Token;
 
    procedure Reduce_Stack_1
-     (Stack   : in out Parser_Stacks.Stack_Type;
+     (Stack   : in out Parser_Stacks.Stack;
       Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token)
    is begin
@@ -708,7 +708,7 @@ package body WisiToken.LR is
    end Reduce_Stack_1;
 
    procedure Reduce_Stack_2
-     (Stack   : in out Parser_Stacks.Stack_Type;
+     (Stack   : in out Parser_Stacks.Stack;
       Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token;
       Tokens  :    out Base_Token_Arrays.Vector)
@@ -733,7 +733,7 @@ package body WisiToken.LR is
    end Reduce_Stack_2;
 
    function Reduce_Stack
-     (Stack        : in out Parser_Stacks.Stack_Type;
+     (Stack        : in out Parser_Stacks.Stack;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Base_Token;
       Lexer        : in     WisiToken.Lexer.Handle;
@@ -770,7 +770,7 @@ package body WisiToken.LR is
    end Reduce_Stack;
 
    function Reduce_Stack
-     (Stack       : in out Parser_Stacks.Stack_Type;
+     (Stack       : in out Parser_Stacks.Stack;
       Action      : in     Reduce_Action_Rec;
       Nonterm     :    out Base_Token;
       Tokens      :    out Base_Token_Arrays.Vector;
