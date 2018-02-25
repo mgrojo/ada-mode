@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,8 +18,9 @@
 
 pragma License (GPL); --  AUnit
 
-with AUnit.Checks.Containers;
 with AUnit.Assertions;
+with AUnit.Checks.Containers;
+with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.LR.AUnit is
 
    procedure Check
@@ -172,15 +173,16 @@ package body WisiToken.LR.AUnit is
       Expected : in Parser_Stack_Item)
    is
       use WisiToken.AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Token", Computed.Token, Expected.Token);
    end Check;
 
-   function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack_Type
+   function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack
    is begin
       return
-        Result : Parser_Stacks.Stack_Type
+        Result : Parser_Stacks.Stack
       do
          Result.Set_Depth (Item'Length);
          for I in SAL.Base_Peek_Type'(1) .. Item'Length loop
@@ -200,5 +202,17 @@ package body WisiToken.LR.AUnit is
          end loop;
       end return;
    end To_Fast_Token_ID_Vector;
+
+   procedure Check
+     (Label              : in String;
+      Computed           : in Parse_Error;
+      Expected           : in Parse_Error)
+   is
+      use WisiToken.AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public;
+   begin
+      Check (Label & ".Error_Token", Computed.Error_Token, Expected.Error_Token);
+      Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);
+   end Check;
 
 end WisiToken.LR.AUnit;

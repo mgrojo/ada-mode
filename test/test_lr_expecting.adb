@@ -115,7 +115,7 @@ package body Test_LR_Expecting is
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
-   Parser : WisiToken.LR.Instance;
+   Parser : WisiToken.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
@@ -126,15 +126,14 @@ package body Test_LR_Expecting is
    is begin
       Parser.Lexer.Reset_With_String (Command);
       State.Reset;
-
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
       AUnit.Assertions.Assert (False, Command & "; no exception");
    exception
    when WisiToken.Syntax_Error =>
       declare
-         use WisiToken.Semantic_State;
-         List  : Parser_Error_Data_Lists.List renames State.Active_Error_List;
-         Error : Parser_Error_Data renames List.Constant_Reference (List.First);
+         use WisiToken.LR;
+         List  : Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
+         Error : Parse_Error renames List.Constant_Reference (List.First);
       begin
          WisiToken.AUnit.Check (Command, Error.Expecting, Expected);
       end;
@@ -150,7 +149,7 @@ package body Test_LR_Expecting is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,

@@ -24,13 +24,41 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Finalization;
+with WisiToken.LR.Parser_Lists;
 with WisiToken.Semantic_State;
 package WisiToken.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
 
+   type Parser is new Ada.Finalization.Limited_Controlled with record
+      Lexer          : WisiToken.Lexer.Handle;
+      Table          : Parse_Table_Ptr;
+      Semantic_State : WisiToken.Semantic_State.Semantic_State_Access;
+
+      Terminals : aliased Base_Token_Arrays.Vector;
+      --  All terminal grammar tokens, in lexical order. Does not contain
+      --  virtual tokens. Tokens past Parser.Current_Token are lookahead.
+
+      Parsers : aliased Parser_Lists.List;
+      --  Each parser (normal and recover) has its own syntax tree.
+      --  Terminals are added to the tree when they become the current
+      --  token.
+
+      Max_Parallel            : SAL.Base_Peek_Type;
+      First_Parser_Label      : Integer;
+      Terminate_Same_State    : Boolean;
+      Enable_McKenzie_Recover : Boolean;
+   end record;
+
+   overriding procedure Finalize (Object : in out LR.Parser.Parser);
+   --  Deep free Object.Table.
+
+   --  'Parse' is not declared here, so wisi-generate is independent of
+   --  wisitoken-lr-parser and -lr-mckenzie_recover.
+
    procedure New_Parser
-     (Parser               :    out Instance;
+     (Parser               :    out LR.Parser.Parser;
       Lexer                : in     WisiToken.Lexer.Handle;
       Table                : in     Parse_Table_Ptr;
       Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
@@ -38,7 +66,7 @@ package WisiToken.LR.Parser is
       First_Parser_Label   : in     Integer            := 1;
       Terminate_Same_State : in     Boolean            := True);
 
-   procedure Parse (Shared_Parser : in out Instance);
+   procedure Parse (Shared_Parser : in out LR.Parser.Parser);
    --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
    --  allow continuing in the same input stream.
    --

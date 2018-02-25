@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -90,6 +90,15 @@ package body WisiToken.Token_ID_Lists is
       end if;
    end First;
 
+   function Last (Container : in List) return Cursor
+   is begin
+      if Container.Head = null then
+         return No_Element;
+      else
+         return (Ptr => Container.Tail);
+      end if;
+   end Last;
+
    procedure Next (Position : in out Cursor)
    is begin
       if Position.Ptr /= null then
@@ -113,6 +122,17 @@ package body WisiToken.Token_ID_Lists is
          end if;
       end if;
    end Next;
+
+   procedure Prev (Position : in out Cursor)
+   is begin
+      if Position.Ptr /= null then
+         if Position.Ptr.Prev = null then
+            Position := No_Element;
+         else
+            Position.Ptr := Position.Ptr.Prev;
+         end if;
+      end if;
+   end Prev;
 
    function Element (Position : in Cursor) return Token_ID
    is begin

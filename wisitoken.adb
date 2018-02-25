@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014-2015, 2017 Stephe Leake
+--  Copyright (C) 2009, 2014-2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -291,14 +291,33 @@ package body WisiToken is
    is
       ID_Image : constant String := Image (Item.ID, Descriptor);
    begin
-      if ID_Only or (Item.Name = Null_Buffer_Region and Item.Byte_Region = Null_Buffer_Region) then
+      if ID_Only or Item.Byte_Region = Null_Buffer_Region then
          --  No parens for consistency with existing tests.
          return ID_Image;
       else
          return "(" & ID_Image &
-           (if Item.Name = Null_Buffer_Region then "" else ", " & Image (Item.Name)) &
            (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
       end if;
+   end Image;
+
+   function Image
+     (Item       : in Token_Index_Queues.Queue_Type;
+      Terminals  : in Base_Token_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      use all type SAL.Base_Peek_Type;
+      Result : Unbounded_String := +"(";
+   begin
+      for I in 1 .. Item.Count loop
+         Result := Result & Image (Terminals (Item.Peek (I)), Descriptor);
+         if I < Item.Count then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return -Result;
    end Image;
 
    function Image

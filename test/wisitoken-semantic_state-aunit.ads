@@ -17,37 +17,17 @@
 
 pragma License (Modified_GPL);
 
-with AUnit.Checks;
 package WisiToken.Semantic_State.AUnit is
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parser_Error_Label);
 
    procedure Check
      (Label    : in String;
       Computed : in Semantic_Action;
       Expected : in Semantic_Action);
 
-   type Check_Recover_Type is access procedure
-     (Label    : in String;
-      Computed : in Recover_Data'Class;
-      Expected : in Recover_Data'Class);
-
-   procedure Check
-     (Label              : in String;
-      Computed           : in Recover_Data_Access;
-      Expected           : in Recover_Data_Access;
-      Check_Recover_Data : in Check_Recover_Type);
-
    procedure Check
      (Label    : in String;
       Computed : in Augmented_Token;
       Expected : in Augmented_Token);
    --  Does not check all fields
-
-   procedure Check
-     (Label              : in String;
-      Computed           : in Parser_Error_Data;
-      Expected           : in Parser_Error_Data;
-      Check_Recover_Data : in WisiToken.Semantic_State.AUnit.Check_Recover_Type);
 
 end WisiToken.Semantic_State.AUnit;

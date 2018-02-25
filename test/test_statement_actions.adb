@@ -119,14 +119,13 @@ package body Test_Statement_Actions is
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
-   Parser : WisiToken.LR.Instance;
+   Parser : WisiToken.LR.Parser.Parser;
 
    procedure Execute_Command (Command : in String)
    is begin
       Parser.Lexer.Reset_With_String (Command);
       State.Reset;
-
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
    exception
    when E : others =>
       AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
@@ -143,7 +142,7 @@ package body Test_Statement_Actions is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State'Access,

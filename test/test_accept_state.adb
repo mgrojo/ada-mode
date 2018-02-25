@@ -82,7 +82,7 @@ package body Test_Accept_State is
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   Parser : WisiToken.LR.Instance;
+   Parser : WisiToken.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
@@ -98,7 +98,7 @@ package body Test_Accept_State is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,
@@ -112,7 +112,7 @@ package body Test_Accept_State is
 
       Parser.Lexer.Reset_With_String ("set A = 2");
 
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
 
    exception
    when E : others =>

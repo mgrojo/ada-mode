@@ -19,26 +19,99 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Syntax_Trees is
 
-   ----------
-   --  Public subprograms
+   --  Abstract_Tree operations
 
+   function Image
+     (Tree       : in Abstract_Tree;
+      Nodes      : in Valid_Node_Index_Array;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String;
+      Need_Comma : Boolean := False;
+   begin
+      for I in Nodes'Range loop
+         Result := Result & (if Need_Comma then ", " else "") &
+           Image (Abstract_Tree'Class (Tree).Base_Token (Nodes (I)), Descriptor);
+         Need_Comma := True;
+      end loop;
+      return -Result;
+   end Image;
+
+   function Image
+     (Tree       : in Abstract_Tree;
+      Nodes      : in Valid_Node_Index_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String;
+      Need_Comma : Boolean := False;
+   begin
+      for I of Nodes loop
+         Result := Result & (if Need_Comma then ", " else "") &
+           Image (Abstract_Tree'Class (Tree).Base_Token (I), Descriptor);
+         Need_Comma := True;
+      end loop;
+      return -Result;
+   end Image;
+
+   function Image
+     (Tree       : in Abstract_Tree;
+      Item       : in Valid_Node_Index_Queues.Queue_Type;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String;
+      Need_Comma : Boolean := False;
+   begin
+      for I in 1 .. Item.Count loop
+         Result := Result & (if Need_Comma then ", " else "") &
+           Image (Abstract_Tree'Class (Tree).Base_Token (Item.Peek (I)), Descriptor);
+         Need_Comma := True;
+      end loop;
+      return -Result;
+   end Image;
+
+   ----------
+   --  Syntax_Tree.Tree operations
+
+   overriding
    function Add_Nonterm
-     (Tree    : aliased in out Syntax_Trees.Tree;
-      Nonterm :         in     Token_ID;
-      Action  :         in     WisiToken.Semantic_State.Semantic_Action := null;
-      Check   :         in     WisiToken.Semantic_Checks.Semantic_Check := null)
+     (Tree    : in out Syntax_Trees.Tree;
+      Nonterm : in     WisiToken.Token_ID;
+      Virtual : in     Boolean                                  := False;
+      Action  : in     WisiToken.Semantic_State.Semantic_Action := null)
      return Valid_Node_Index
    is begin
-      Tree.Nodes.Append ((Nonterm => Nonterm, Action => Action, Check => Check, others => <>));
+      Tree.Nodes.Append
+        ((Label      => Syntax_Trees.Nonterm,
+          Nonterm_ID => Nonterm,
+          Virtual    => Virtual,
+          Action     => Action,
+          others     => <>));
       return Tree.Nodes.Last_Index;
    end Add_Nonterm;
 
+   overriding
    function Add_Terminal
-     (Tree     : aliased in out Syntax_Trees.Tree;
-      Terminal :         in     Positive_Index_Type)
+     (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     Token_Index)
      return Valid_Node_Index
    is begin
-      Tree.Nodes.Append ((Terminal => Terminal, others => <>));
+      Tree.Nodes.Append ((Label => Shared_Terminal, Terminal => Terminal, others => <>));
+      return Tree.Nodes.Last_Index;
+   end Add_Terminal;
+
+   overriding
+   function Add_Terminal
+     (Tree     : in out Syntax_Trees.Tree;
+      Terminal : in     Token_ID)
+     return Valid_Node_Index
+   is begin
+      Tree.Nodes.Append ((Label => Virtual_Terminal, Terminal_ID => Terminal, others => <>));
       return Tree.Nodes.Last_Index;
    end Add_Terminal;
 
@@ -51,14 +124,19 @@ package body WisiToken.Syntax_Trees is
       Tree.Nodes (Child).Parent := Parent;
    end Set_Child;
 
+   overriding
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Index;
-      Children : in     Node_Index_Arrays.Vector)
-   is begin
-      Tree.Nodes (Parent).Children := Children;
-      for Child of Children loop
-         Tree.Nodes (Child).Parent := Parent;
+      Children : in     Valid_Node_Index_Array)
+   is
+      N : Nonterm_Node renames Tree.Nodes (Parent);
+   begin
+      N.Children.Clear;
+      N.Children.Reserve_Capacity (Children'Length);
+      for I in Children'Range loop
+         N.Children (I) := Children (I);
+         Tree.Nodes (Children (I)).Parent := Parent;
       end loop;
    end Set_Children;
 
@@ -74,9 +152,109 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes (Node).Parent /= No_Node_Index;
    end Has_Parent;
 
-   function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Node_Index_Arrays.Vector) return Boolean
+   function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean
    is begin
       return (for some Child of Children => Tree.Nodes (Child).Parent /= No_Node_Index);
    end Has_Parent;
+
+   function Is_Nonterminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   is begin
+      return Tree.Nodes (Node).Label = Nonterm;
+   end Is_Nonterminal;
+
+   overriding
+   function Byte_Region
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Buffer_Region
+   is begin
+      case Tree.Nodes (Node).Label is
+      when Shared_Terminal =>
+         return Tree.Terminals.all (Tree.Nodes (Node).Terminal).Byte_Region;
+      when Virtual_Terminal =>
+         return Null_Buffer_Region;
+      when Nonterm =>
+         return Tree.Nodes (Node).Byte_Region;
+      end case;
+   end Byte_Region;
+
+   overriding
+   function Name_Region
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Buffer_Region
+   is begin
+      case Tree.Nodes (Node).Label is
+      when Shared_Terminal =>
+         return Tree.Terminals.all (Tree.Nodes (Node).Terminal).Byte_Region;
+      when Virtual_Terminal =>
+         return Null_Buffer_Region;
+      when Nonterm =>
+         return Tree.Nodes (Node).Name;
+      end case;
+   end Name_Region;
+
+   overriding
+   procedure Set_Name_Region
+     (Tree   : in out Syntax_Trees.Tree;
+      Node   : in     Valid_Node_Index;
+      Region : in     Buffer_Region)
+   is begin
+      Tree.Nodes (Node).Name := Region;
+   end Set_Name_Region;
+
+   overriding
+   function ID
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return WisiToken.Token_ID
+   is
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      case N.Label is
+      when Shared_Terminal =>
+         return Tree.Terminals.all (N.Terminal).ID;
+      when Virtual_Terminal =>
+         return N.Terminal_ID;
+      when Nonterm =>
+         return N.Nonterm_ID;
+      end case;
+   end ID;
+
+   overriding
+   function Base_Token
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return WisiToken.Base_Token
+   is
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      case N.Label is
+      when Shared_Terminal =>
+         return Tree.Terminals.all (N.Terminal);
+      when Virtual_Terminal =>
+         return (N.Terminal_ID, Null_Buffer_Region);
+      when Nonterm =>
+         return (N.Nonterm_ID, N.Byte_Region);
+      end case;
+   end Base_Token;
+
+   overriding
+   function Virtual
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Boolean
+   is
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      case N.Label is
+      when Shared_Terminal =>
+         return False;
+      when Virtual_Terminal =>
+         return True;
+      when Nonterm =>
+         return N.Virtual;
+      end case;
+   end Virtual;
 
 end WisiToken.Syntax_Trees;

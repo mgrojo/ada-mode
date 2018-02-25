@@ -51,9 +51,10 @@ package WisiToken.Lexer is
    --  quotes), so there can be more than one error.
 
    type Instance
-     (Trace  : not null access WisiToken.Trace'Class;
-      Errors : not null access Error_Lists.List)
-     is abstract new Ada.Finalization.Limited_Controlled with null record;
+     (Trace  : not null access WisiToken.Trace'Class)
+   is abstract new Ada.Finalization.Limited_Controlled with record
+      Errors : Error_Lists.List;
+   end record;
 
    subtype Class is Instance'Class;
 

@@ -39,15 +39,14 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
-with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
-with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Stacks;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
 with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees.Branched;
 package WisiToken.LR is
 
    type Unknown_State_Index is new Integer range -1 .. Integer'Last;
@@ -56,10 +55,9 @@ package WisiToken.LR is
 
    --  Parser stack type. Visible here for error recovery.
    type Parser_Stack_Item is record
-      State : Unknown_State_Index;
-      Token : Base_Token;
+      State : Unknown_State_Index     := LR.Unknown_State;
+      Token : Syntax_Trees.Node_Index := Syntax_Trees.No_Node_Index;
    end record;
-   Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token);
 
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
 
@@ -69,12 +67,13 @@ package WisiToken.LR is
    function Image
      (Stack      : in Parser_Stacks.Stack;
       Descriptor : in WisiToken.Descriptor'Class;
-      Depth      : in SAL.Base_Peek_Type := 0;
-      Top_First  : in Boolean            := True)
+      Tree       : in Syntax_Trees.Abstract_Tree'Class;
+      Depth      : in SAL.Base_Peek_Type := 0)
      return String;
    --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
    --  Stack.Depth) items.
 
+   ----------
    --  Following are the types used in the parse table. The parse
    --  table is an array indexed by parse state that where each state
    --  contains a list of parse actions and a list of gotos.
@@ -330,27 +329,6 @@ package WisiToken.LR is
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
-   package Base_Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Base_Token);
-
-   function Image (Item : in Base_Token_Queues.Queue_Type; Descriptor : in WisiToken.Descriptor'Class) return String;
-
-   type Instance is new Ada.Finalization.Limited_Controlled with record
-      Lexer                   : WisiToken.Lexer.Handle;
-      Table                   : Parse_Table_Ptr;
-      Semantic_State          : WisiToken.Semantic_State.Semantic_State_Access;
-      Shared_Lookahead        : Base_Token_Queues.Queue_Type;
-      Max_Parallel            : SAL.Base_Peek_Type;
-      First_Parser_Label      : Integer;
-      Terminate_Same_State    : Boolean;
-      Enable_McKenzie_Recover : Boolean;
-   end record;
-
-   overriding procedure Finalize (Object : in out Instance);
-   --  Deep free Object.Table.
-
-   --  'Parse' is not declared here, so wisi-generate is independent of
-   --  wisitoken-lr-parser and -lr-mckenzie_recover.
-
    ----------
    --  Useful text output
 
@@ -365,62 +343,60 @@ package WisiToken.LR is
 
    package Fast_Token_ID_Vectors is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Token_ID, Capacity => 20);
+   package Fast_Node_Index_Vectors is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Syntax_Trees.Valid_Node_Index, Capacity => 20);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover.
    --
-   --  This contains just Token_ID, not Base_Vector, because during
-   --  recover we don't insert Name_ID tokens with valid names, so it is
-   --  always Null_Buffer_Region. Recover can create thousands of copies
-   --  of Configuration, so saving space is important.
+   --  This contains just Token_ID or Valid_Node_Index, not Base_Vector,
+   --  because during recover we only know the ID of inserted tokens.
+   --  Recover can create thousands of copies of Configuration, so saving
+   --  space is important.
    --
-   --  Capacity is determined by the maximum number of popped, inserted,
-   --  deleted, or lookahead tokens. The first three are limited by the
+   --  Token_ID capacity is determined by the maximum number of popped, inserted,
+   --  or deleted tokens. These are limited by the
    --  cost_limit McKenzie parameter; in practice, a cost of 20 is too
-   --  high. Lookahead is limited by the check_limit parameter; 20 is
-   --  very high.
+   --  high.
+   --
+   --  Token_Index capacity is Lookahead is limited by tokens inserted
+   --  during Apply_Patterns; 20 has proved enough so far.
 
    function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
+   function Image
+     (Item       : in Fast_Node_Index_Vectors.Vector;
+      Tree       : in Syntax_Trees.Branched.Tree;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
 
-   type Configuration is new WisiToken.Semantic_State.Recover_Data with record
+   type Configuration is record
       Stack : Parser_Stacks.Stack;
-      --  The stack after the operations below have been done; suitable for
-      --  the next operation.
+      Tree  : Syntax_Trees.Branched.Tree;
+      --  The stack and syntax tree after the operations below have been
+      --  done; suitable for the next operation.
 
-      Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
+      --  FIXME: move Current_Token : valid_node_index here from various parameter lists in McKenzie?
 
-      Local_Lookahead        : Fast_Token_ID_Vectors.Vector;
-      Local_Lookahead_Index  : SAL.Base_Peek_Type;
-      --  Local_Lookahead contains token IDs inserted by special rules.
-      --  It is not a queue type, because we always access it via
-      --  Local_Lookahead_Index
+      Shared_Token : Token_Index := Token_Index'First;
+      --  Index into Shared_Parser.Terminals for current input token, when
+      --  local_lookahead and inserted are all parsed.
+
+      Local_Lookahead        : Fast_Node_Index_Vectors.Vector;
+      Local_Lookahead_Index  : SAL.Base_Peek_Type := 0;
+      --  Local_Lookahead contains Tree references to tokens inserted by
+      --  patterns. It is not a queue type, because we always access it via
+      --  Local_Lookahead_Index.
 
       Popped               : Fast_Token_ID_Vectors.Vector;
       Pushed               : Parser_Stacks.Stack;
       Inserted             : Fast_Token_ID_Vectors.Vector;
       Deleted              : Fast_Token_ID_Vectors.Vector;
-      Semantic_Check_Fixes : Semantic_Checks.Error_Label_Set;
+      Semantic_Check_Fixes : Semantic_Checks.Error_Label_Set := (others => False);
       Cost                 : Natural := 0;
    end record;
-
-   overriding
-   function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String;
-   --  Aggregate syntax, for sending to IDE.
 
    function Key (A : in Configuration) return Integer is (A.Cost);
 
    procedure Set_Key (Item : in out Configuration; Key : in Integer);
-
-   Default_Configuration : constant Configuration :=
-     (Stack                  => Parser_Stacks.Empty_Stack,
-      Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
-      Local_Lookahead        => Fast_Token_ID_Vectors.Empty_Vector,
-      Local_Lookahead_Index  => Fast_Token_ID_Vectors.No_Index,
-      Popped                 => Fast_Token_ID_Vectors.Empty_Vector,
-      Pushed                 => Parser_Stacks.Empty_Stack,
-      Inserted               => Fast_Token_ID_Vectors.Empty_Vector,
-      Deleted                => Fast_Token_ID_Vectors.Empty_Vector,
-      Semantic_Check_Fixes   => (others => False),
-      Cost                   => 0);
 
    package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci
      (Element_Type => Configuration,
@@ -439,7 +415,35 @@ package WisiToken.LR is
 
    type McKenzie_Access is access all McKenzie_Data;
 
-   Default_McKenzie : constant McKenzie_Data := (others => <>);
+   type Parse_Error_Label is (Action, Check);
+
+   type Parse_Error
+     (Label          : Parse_Error_Label;
+      First_Terminal : Token_ID;
+      Last_Terminal  : Token_ID)
+   is record
+      Recover : Configuration;
+
+      case Label is
+      when Action =>
+         Error_Token : Syntax_Trees.Valid_Node_Index; -- index into Parser.Tree
+         Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
+
+      when Check =>
+         Code   : Semantic_Checks.Error_Label;
+         Tokens : Syntax_Trees.Valid_Node_Index_Arrays.Vector;
+      end case;
+   end record;
+
+   package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
+
+   procedure Put
+     (Source_File_Name : in String;
+      Errors           : in Parse_Error_Lists.List;
+      Syntax_Tree      : in Syntax_Trees.Tree;
+      Descriptor       : in WisiToken.Descriptor'Class);
+   --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
+
 private
 
    --  Private to enforce use of Add; doesn't succeed, since only
@@ -463,29 +467,23 @@ private
    end record;
 
    function Next_Grammar_Token
-     (Lexer          : not null access WisiToken.Lexer.Instance'Class;
+     (Terminals      : in out          Base_Token_Arrays.Vector;
+      Lexer          : not null access WisiToken.Lexer.Instance'Class;
       Semantic_State : not null access WisiToken.Semantic_State.Semantic_State'Class)
-     return Base_Token;
-   --  Get next token from Lexer, call Semantic_State.Lexer_To_Lookahead.
-   --  If it is a grammar token, return it. Otherwise, repeat.
+     return Token_Index;
+   --  Get next token from Lexer, call Semantic_State.Lexer_To_Augmented.
+   --  If it is a grammar token, store in Terminals and return its ID.
+   --  Otherwise, repeat.
 
    function Reduce_Stack
      (Stack        : in out Parser_Stacks.Stack;
+      Syntax_Tree  : in out Syntax_Trees.Abstract_Tree'Class;
       Action       : in     Reduce_Action_Rec;
-      Nonterm      :    out Base_Token;
+      Nonterm      :    out Syntax_Trees.Valid_Node_Index;
       Lexer        : in     WisiToken.Lexer.Handle;
       Trace        : in out WisiToken.Trace'Class;
       Trace_Level  : in     Integer;
-      Trace_Prefix : in     String)
-     return WisiToken.Semantic_Checks.Check_Status;
-   function Reduce_Stack
-     (Stack       : in out Parser_Stacks.Stack;
-      Action      : in     Reduce_Action_Rec;
-      Nonterm     :    out Base_Token;
-      Tokens      :    out Base_Token_Arrays.Vector;
-      Lexer       : in     WisiToken.Lexer.Handle;
-      Trace       : in out WisiToken.Trace'Class;
-      Trace_Level : in     Integer)
+      Trace_Prefix : in     String := "")
      return WisiToken.Semantic_Checks.Check_Status;
    --  Reduce Stack according to Action, calling Action.Check and
    --  returning result, or Ok if null.

@@ -103,9 +103,9 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with WisiToken.LR.Parser;");
       if Check_Count > 0 then
          Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
+         Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
@@ -200,11 +200,15 @@ is
 
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
+                     Unref_Tree    : Boolean := True;
                      Unref_Lexer   : Boolean := True;
                      Unref_Nonterm : Boolean := True;
                      Unref_Tokens  : Boolean := True;
                   begin
                      for Line of RHS.Check loop
+                        if 0 < Index (Line, "Tree") then
+                           Unref_Tree := False;
+                        end if;
                         if 0 < Index (Line, "Lexer") then
                            Unref_Lexer := False;
                         end if;
@@ -220,12 +224,16 @@ is
 
                      Check_Names (Prod_Index) := new String'(Name & "_check'Access");
                      Indent_Line ("function " & Name & "_check");
-                     Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
-                     Indent_Line ("  Nonterm : in out WisiToken.Base_Token;");
-                     Indent_Line ("  Tokens  : in     WisiToken.Base_Token_Arrays.Vector)");
+                     Indent_Line (" (Tree    : in  out WisiToken.Syntax_Trees.Abstract_Tree'Class;");
+                     Indent_Line ("  Lexer   : in      WisiToken.Lexer.Handle;");
+                     Indent_Line ("  Nonterm : in      WisiToken.Syntax_Trees.Valid_Node_Index;");
+                     Indent_Line ("  Tokens  : in      WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
                      Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
                      Indent_Line ("is");
 
+                     if Unref_Tree then
+                        Indent_Line ("   pragma Unreferenced (Tree);");
+                     end if;
                      if Unref_Lexer then
                         Indent_Line ("   pragma Unreferenced (Lexer);");
                      end if;

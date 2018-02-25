@@ -26,7 +26,7 @@ package body WisiToken.AUnit is
       do
          Result.Reserve_Capacity (Item'Length);
          for I of Item loop
-            Result.Append ((I, Null_Buffer_Region, Null_Buffer_Region, False));
+            Result.Append ((I, Null_Buffer_Region));
          end loop;
       end return;
    end To_Base_Token_Array;
@@ -42,9 +42,11 @@ package body WisiToken.AUnit is
    end To_Token_ID_Set;
 
    procedure Check (Label : in String; Computed, Expected : in Base_Token)
-   is begin
+   is
+      use Standard.AUnit.Checks;
+   begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
-      Check (Label & ".Name", Computed.Name, Expected.Name);
+      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
    end Check;
 
    procedure Check

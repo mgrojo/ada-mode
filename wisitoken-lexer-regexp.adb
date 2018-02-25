@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2015, 2017 Stephe Leake
+--  Copyright (C) 2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -141,12 +141,11 @@ package body WisiToken.Lexer.Regexp is
 
    function New_Lexer
      (Trace  : not null access WisiToken.Trace'Class;
-      Errors : not null access Error_Lists.List;
       Syntax : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle
    is
       use type Token_ID;
-      New_Lexer : constant access Instance := new Instance (Trace, Errors, Syntax'Last);
+      New_Lexer : constant access Instance := new Instance (Trace, Syntax'Last);
    begin
       New_Lexer.Syntax := Syntax;
 

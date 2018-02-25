@@ -26,7 +26,7 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.Parser_Lists;
+with WisiToken.LR.Parser;
 package WisiToken.LR.McKenzie_Recover is
 
    type Recover_Status is
@@ -34,11 +34,8 @@ package WisiToken.LR.McKenzie_Recover is
       Success, --  Error is fixed; parser continue with Resume_Active = True
       Ignore); --  Error is a semantic check, and is ignored; parser continue with Resume_Active = False
 
-   function Recover
-     (Shared_Parser : in out LR.Instance'Class;
-      Parsers       : in out Parser_Lists.List)
-     return Recover_Status;
-   --  Attempt to modify Parsers state and Parser.Lookahead to allow
-   --  recovering from an error state.
+   function Recover (Shared_Parser : in out WisiToken.LR.Parser.Parser) return Recover_Status;
+   --  Attempt to modify Parser.Parsers state and Parser.Lookahead to
+   --  allow recovering from an error state.
 
 end WisiToken.LR.McKenzie_Recover;

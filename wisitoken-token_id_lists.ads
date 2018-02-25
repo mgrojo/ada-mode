@@ -6,7 +6,7 @@
 --  shallow copy of the root pointers. The WisiToken grammar generator
 --  code takes advantage of this.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -46,10 +46,12 @@ package WisiToken.Token_ID_Lists is
    function Has_Element (Position : in Cursor) return Boolean;
 
    function First (Container : in List) return Cursor;
+   function Last (Container : in List) return Cursor;
 
    procedure Next (Position : in out Cursor);
-
    function Next (Position : in Cursor) return Cursor;
+
+   procedure Prev (Position : in out Cursor);
 
    function Element (Position : in Cursor) return Token_ID;
 

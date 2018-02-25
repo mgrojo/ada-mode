@@ -120,15 +120,14 @@ package body Name_Grammar_Test is
 
    procedure Parse_Command
      (Label   : in     String;
-      Parser  : in out WisiToken.LR.Instance;
+      Parser  : in out WisiToken.LR.Parser.Parser;
       Command : in     String)
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
       Parser.Lexer.Reset_With_String (Command);
       State.Reset;
-
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
 
       Ada.Text_IO.Put_Line ("success");
       Ada.Text_IO.New_Line;
@@ -168,11 +167,11 @@ package body Name_Grammar_Test is
 
       Put_Line ("Simple Parser");
       declare
-         Parser : WisiToken.LR.Instance;
+         Parser : WisiToken.LR.Parser.Parser;
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Simple_Grammar,
                LALR_Descriptor,
@@ -190,11 +189,11 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Medium Parser");
       declare
-         Parser : WisiToken.LR.Instance;
+         Parser : WisiToken.LR.Parser.Parser;
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Medium_Grammar,
                LALR_Descriptor,
@@ -211,11 +210,11 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Full Parser");
       declare
-         Parser : WisiToken.LR.Instance;
+         Parser : WisiToken.LR.Parser.Parser;
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Full_Grammar,
                LALR_Descriptor,

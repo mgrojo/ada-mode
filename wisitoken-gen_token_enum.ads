@@ -2,7 +2,7 @@
 --
 --  Support for an enumerated token type
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -52,8 +52,6 @@ package WisiToken.Gen_Token_Enum is
       Comment_ID           => Invalid_Token_ID,
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
-      Terminal_Name_ID     => Invalid_Token_ID,
-      Nonterminal_Name_ID  => Invalid_Token_ID,
       String_1_ID          => Invalid_Token_ID,
       String_2_ID          => Invalid_Token_ID,
       Image                => Token_Enum_Image,
@@ -71,8 +69,6 @@ package WisiToken.Gen_Token_Enum is
       Comment_ID           => Invalid_Token_ID,
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
-      Terminal_Name_ID     => Invalid_Token_ID,
-      Nonterminal_Name_ID  => Invalid_Token_ID,
       String_1_ID          => Invalid_Token_ID,
       String_2_ID          => Invalid_Token_ID,
       Propagate_ID         => +First_Nonterminal,

@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -50,7 +50,7 @@ package WisiToken.LR.AUnit is
 
    type Parser_Stack_Item_Array is array (SAL.Peek_Type range <>) of Parser_Stack_Item;
 
-   function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack_Type;
+   function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack;
 
    procedure Check is new Parser_Stacks.Gen_AUnit (Check);
 
@@ -60,5 +60,13 @@ package WisiToken.LR.AUnit is
 
    package Fast_Token_ID_Vectors_AUnit is new Fast_Token_ID_Vectors.Gen_AUnit
      (SAL.AUnit.Check, WisiToken.AUnit.Check);
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Parse_Error;
+      Expected : in Parse_Error);
+   --  Does not check all fields
 
 end WisiToken.LR.AUnit;

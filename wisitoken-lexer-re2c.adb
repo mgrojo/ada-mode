@@ -44,11 +44,10 @@ package body WisiToken.Lexer.re2c is
    end Finalize;
 
    function New_Lexer
-     (Trace  : not null access WisiToken.Trace'Class;
-      Errors : not null access Error_Lists.List)
+     (Trace  : not null access WisiToken.Trace'Class)
      return Handle
    is
-      New_Lexer : constant access Instance := new Instance (Trace, Errors);
+      New_Lexer : constant access Instance := new Instance (Trace);
    begin
       return Handle (New_Lexer);
    end New_Lexer;

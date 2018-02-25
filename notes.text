@@ -19,28 +19,29 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-build syntax tree, edit that in mckenzie
-    all_tokens: array of base_token; non-grammar, terminal, non-terminal
-    tree: linear array of nodes
-    node contains:
-        token: index to all_tokens
-            terminal for leaves, nonterminal for others
-        children: array of indices to syntax_tree nodes
-        action: semantic_state action to run on the node after parsing (args implied by tree)
-            eliminates pending actions
-
-    edited copy of all_tokens, syntax_tree in each mckenzie config
-        also for each parallel parser?
-        need to save space
-        share beginning of token, tree array
-        all nodes after edit_start are copied/edited
+build syntax tree, use that in recover to pop stack
+    compiles, test hangs
+        need filter in all_harness
 
     record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
 
-    wisitoken-syntax_tree-test.adb
+    debug_production_recover.adb
+        implement state/production matching outlined in syntax_trees-test missing_ends_1
+        looks good
 
-    test_mckenzie Abandon_Pattern
+    test_mckenzie.adb Abandon_Pattern
         edit syntax tree is much cheaper; 'insert end case; end proc_a' cost 6
+
+    https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+
+tokens are no longer copied in recovery; only indices into all_tokens
+    => merge augmented_token into base_token?
+
+possible space optimization:
+    share beginning of token, tree array
+    all nodes after edit_start are copied/edited
+
+review FIXME:
 
 user option end_name_require (ie not optional) makes ada_mode-recover_block_name_mismatch.adb fail?
     need to preserve end name when editing stack

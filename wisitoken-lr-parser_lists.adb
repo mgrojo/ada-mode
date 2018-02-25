@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014-2017  All Rights Reserved.
+--  Copyright (C) 2014-2018  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -18,46 +18,23 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Characters.Handling;
 package body WisiToken.LR.Parser_Lists is
 
-   procedure Pend (State : in out Parser_State; Item : in Pend_Item; Trace : in out WisiToken.Trace'Class)
-   is begin
-      State.Pend_Items.Put (Item);
-      if Trace_Parse > 2 then
-         Trace.Put (Integer'Image (State.Label) & ": pending ");
-         Parser_Lists.Put (Trace, Item);
-         Trace.New_Line;
-      end if;
-   end Pend;
-
    function New_List
-     (First_State_Index  : in State_Index;
-      First_Parser_Label : in Natural)
+     (First_State_Index  : in     State_Index;
+      First_Parser_Label : in     Natural;
+      Terminals          : access Base_Token_Arrays.Vector)
      return List
    is
-      Stack : Parser_Stacks.Stack_Type;
+      Stack : Parser_Stacks.Stack;
    begin
-      Stack.Push ((First_State_Index, Invalid_Token));
+      Stack.Push ((First_State_Index, others => <>));
 
       return Result : List
       do
          Result.Parser_Label := First_Parser_Label;
 
-         Result.Elements.Append
-           ((Current_Token            => Invalid_Token,
-             Current_Token_Is_Virtual => False,
-             Last_Shift_Was_Virtual   => False,
-             Stack                    => Stack,
-             Pend_Items               => Pend_Items_Queues.Empty_Queue,
-             Recover                  => Default_McKenzie,
-             Local_Lookahead          => Base_Token_Queues.Empty_Queue,
-             Shared_Lookahead_Index   => SAL.Peek_Type'First,
-             Zombie_Token_Count       => 0,
-             Label                    => First_Parser_Label,
-             Verb                     => Shift,
-             Prev_Verb                => Parse_Action_Verbs'First,
-             Pre_Reduce_Item          => Default_Parser_Stack_Item));
+         Result.Elements.Append ((Terminals => Terminals, others => <>));
       end return;
    end New_List;
 
@@ -143,11 +120,10 @@ package body WisiToken.LR.Parser_Lists is
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       use all type SAL.Base_Peek_Type;
-      Item  : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Ptr);
-      Stack : Parser_Stacks.Stack_Type renames Item.Stack;
+      Parser_State : Parser_Lists.Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Ptr);
    begin
-      Trace.Put (Natural'Image (Item.Label) & " stack: ");
-      Trace.Put_Line (Image (Stack, Trace.Descriptor.all, Depth => 10));
+      Trace.Put (Natural'Image (Parser_State.Label) & " stack: ");
+      Trace.Put_Line (Image (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree, Depth => 10));
    end Put_Top_10;
 
    procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor)
@@ -161,24 +137,28 @@ package body WisiToken.LR.Parser_Lists is
      (List   : in out Parser_Lists.List;
       Cursor : in     Parser_Lists.Cursor'Class)
    is
-      New_Item : Parser_State;
+      New_Item : Parser_State (Parser_State_Lists.Constant_Reference (Cursor.Ptr).Terminals);
    begin
       List.Parser_Label := List.Parser_Label + 1;
       declare
-         Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Ptr).Element.all;
+         Item : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Ptr).Element.all;
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
       begin
+         --  We specify all items individually, rather copy Item and then
+         --  override a few, to avoid copying large items like Recover.
          New_Item :=
-           (Current_Token            => Item.Current_Token,
+           (Terminals                => Item.Terminals,
+            Shared_Token             => Item.Shared_Token,
+            Local_Lookahead          => Item.Local_Lookahead,
+            Current_Token            => Item.Current_Token,
             Current_Token_Is_Virtual => Item.Current_Token_Is_Virtual,
             Last_Shift_Was_Virtual   => Item.Last_Shift_Was_Virtual,
             Stack                    => Item.Stack,
-            Pend_Items               => Item.Pend_Items,
-            Recover                  => Default_McKenzie,
-            Local_Lookahead          => Item.Local_Lookahead,
-            Shared_Lookahead_Index   => Item.Shared_Lookahead_Index,
+            Tree                     => Item.Tree,
+            Recover                  => (others => <>),
             Zombie_Token_Count       => 0,
+            Errors                   => Item.Errors,
             Label                    => List.Parser_Label,
             Verb                     => Item.Verb,
             Prev_Verb                => Item.Prev_Verb,
@@ -281,52 +261,5 @@ package body WisiToken.LR.Parser_Lists is
    is begin
       return Iterator.Pre_Reduce_Item;
    end Pre_Reduce_Stack_Item;
-
-   ----------
-   --  For unit tests
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Pend_Item : in Parser_Lists.Pend_Item)
-   is
-      use Ada.Characters.Handling;
-   begin
-      Trace.Put (Pend_Semantic_Verbs'Image (Pend_Item.Verb) & " ");
-
-      case Pend_Item.Verb is
-      when Virtual_To_Lookahead .. Push_Current =>
-         Trace.Put (Image (Pend_Item.Token, Trace.Descriptor.all));
-
-      when Discard_Lookahead .. Discard_Stack =>
-         Trace.Put (Image (Pend_Item.Discard_ID, Trace.Descriptor.all));
-
-      when Reduce_Stack =>
-         declare
-            Action_Name : constant String := To_Lower
-              (Image (Pend_Item.Action.LHS, Trace.Descriptor.all)) &
-              "_" & WisiToken.Int_Image (Pend_Item.Action.Index);
-         begin
-            Trace.Put
-              (Action_Name & ": " & Image (Pend_Item.Nonterm, Trace.Descriptor.all) & " <= ");
-            Trace.Put (Image (Pend_Item.Tokens, Trace.Descriptor.all));
-         end;
-
-      when Recover =>
-         null;
-      end case;
-   end Put;
-
-   procedure Put_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
-   is
-      Queue : Pend_Items_Queues.Queue_Type renames Parser_State_Lists.Constant_Reference
-        (Cursor.Ptr).Pend_Items;
-   begin
-      for I in 1 .. Queue.Count loop
-         declare
-            Item : Pend_Item renames Queue.Peek (I);
-         begin
-            Put (Trace, Item);
-            Trace.New_Line;
-         end;
-      end loop;
-   end Put_Pending_Actions;
 
 end WisiToken.LR.Parser_Lists;

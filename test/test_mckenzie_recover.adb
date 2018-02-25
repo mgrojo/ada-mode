@@ -26,12 +26,13 @@ with Ada_Lite;
 with WisiToken.AUnit;
 with WisiToken.LR.AUnit;
 with WisiToken.LR.Parser;
-with WisiToken.Semantic_State.AUnit;
-with WisiToken.Semantic_State;
+with WisiToken.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
+with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
 
-   Parser : WisiToken.LR.Instance;
+   Parser : WisiToken.LR.Parser.Parser;
 
    Orig_Params : WisiToken.LR.McKenzie_Param_Type
      (First_Terminal    => Ada_Lite.Descriptor.First_Terminal,
@@ -53,7 +54,7 @@ package body Test_McKenzie_Recover is
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
 
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
    end Parse_Text;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
@@ -72,7 +73,7 @@ package body Test_McKenzie_Recover is
 
       Ada_Lite.State.Initialize (Line_Count => 49);
       Parser.Lexer.Reset_With_File (File_Name);
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
    end No_Error;
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -118,8 +119,8 @@ package body Test_McKenzie_Recover is
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
       declare
-         use WisiToken.Semantic_State;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         use WisiToken.LR;
+         Error_List : Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
       begin
          Check ("errors.length", Error_List.Length, 1);
       end;
@@ -146,11 +147,13 @@ package body Test_McKenzie_Recover is
 
       declare
          use WisiToken.AUnit;
-         use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.AUnit;
-         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.LR;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.Parse_Error_Lists;
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Cursor       : constant Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check
@@ -158,20 +161,18 @@ package body Test_McKenzie_Recover is
             (Label             => Action,
              First_Terminal    => Descriptor.First_Terminal,
              Last_Terminal     => Descriptor.Last_Terminal,
-             Error_Token       =>
-               (ID             => +SEMICOLON_ID,
-                Name           => WisiToken.Null_Buffer_Region,
-                Line           => 1,
-                Col            => 83,
-                Byte_Region    => (84, 84),
-                Char_Region    => (84, 84),
-                others         => <>),
+             Error_Token       => 1, -- not checked here; see next test
              Expecting         => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
                 (1             => +IF_ID)),
-             Recover           => null),
-            Check_Recover_Data => null);
+             Recover           => (others => <>)));
+
+         Check ("1.error token.id", Tree.ID (Element (Cursor).Error_Token), +SEMICOLON_ID);
+         Check
+           ("1.error token.byte_region",
+            Tree.Byte_Region (Element (Cursor).Error_Token),
+            (84, 84));
 
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       end;
@@ -193,7 +194,7 @@ package body Test_McKenzie_Recover is
       Assert (False, "1.exception: did not get Syntax_Error");
    exception
    when WisiToken.Syntax_Error =>
-      Check ("error.length", State.Active_Error_List.Length, 1);
+      Check ("error.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
    end Error_4;
 
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -208,7 +209,7 @@ package body Test_McKenzie_Recover is
       --
       --  Inserts 'end;', continues to EOF, succeeds
       --  Test hitting EOF and Accept_It in error recovery
-      Check ("errors.length", State.Active_Error_List.Length, 1);
+      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
    exception
    when WisiToken.Syntax_Error =>
@@ -243,13 +244,16 @@ package body Test_McKenzie_Recover is
       --  no more errors.
 
       if WisiToken.Trace_Parse > 0 then
-         for Error of State.Active_Error_List loop
-            Ada.Text_IO.Put_Line
-              ("error_token: " & Error.Error_Token.Image (Ada_Lite.Descriptor, ID_Only => False));
+         for Error of Parser.Parsers.First.State_Ref.Errors loop
+            WisiToken.LR.Put
+              (Source_File_Name => "<string>",
+               Errors           => Parser.Parsers.First.State_Ref.Errors,
+               Syntax_Tree      => Parser.Parsers.First.State_Ref.Tree,
+               Descriptor       => Ada_Lite.Descriptor);
          end loop;
       end if;
 
-      Check ("errors.length", State.Active_Error_List.Length, 1);
+      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
    exception
    when WisiToken.Syntax_Error =>
@@ -286,7 +290,7 @@ package body Test_McKenzie_Recover is
          --  hitting the cost limit after trying hundreds of possible
          --  solutions.
 
-         Check ("1 errors.length", State.Active_Error_List.Length, 1); -- error from surviving parser
+         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
 
       exception
       when WisiToken.Syntax_Error =>
@@ -316,7 +320,7 @@ package body Test_McKenzie_Recover is
          --  This is an example of adjusting the cost limit to allow conflict
          --  resolution.
 
-         Check ("2 errors.length", State.Active_Error_List.Length, 1); -- error from surviving parser
+         Check ("2 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
 
       exception
       when WisiToken.Syntax_Error =>
@@ -344,7 +348,7 @@ package body Test_McKenzie_Recover is
       --  lookahead queue.
       --
       --  both insert semicolon, which leads to identical stacks.
-      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error");
@@ -369,7 +373,7 @@ package body Test_McKenzie_Recover is
          --  terminates 1 at 'begin' 75, shared lookahead not finished. Used to get queue empty error here.
          --  continues to eof, succeeds.
 
-         Check ("1 errors.length", State.Active_Error_List.Length, 1);
+         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -396,7 +400,7 @@ package body Test_McKenzie_Recover is
          --  with Check_Token_Limit = 3, pops "1", deletes To, leaving Result_Length as subtype
          --  continues to eof, succeeds.
 
-         Check ("1 errors.length", State.Active_Error_List.Length, 1);
+         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -421,7 +425,7 @@ package body Test_McKenzie_Recover is
             );
          --  Missing 'end case;'
 
-         Check ("1 errors.length", State.Active_Error_List.Length, 1);
+         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -439,7 +443,7 @@ package body Test_McKenzie_Recover is
          --
          --  error 1 at ';' 56; expecting 'case'.
 
-         Check ("1 errors.length", State.Active_Error_List.Length, 1);
+         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -455,7 +459,7 @@ package body Test_McKenzie_Recover is
 
          --  Missing 'end if;'
 
-         Check ("1 errors.length", State.Active_Error_List.Length, 1);
+         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -469,7 +473,7 @@ package body Test_McKenzie_Recover is
 
          --  Missing 'end loop;'
 
-         Check ("1 errors.length", State.Active_Error_List.Length, 1);
+         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -483,7 +487,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Semantic_State.AUnit;
+      use WisiToken.AUnit;
    begin
       Parse_Text
         ("procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);");
@@ -510,18 +514,19 @@ package body Test_McKenzie_Recover is
       --  The two parsers have different error tokens; make sure the correct
       --  one (from the successful parser 0) is reported.
 
-      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
-         use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.LR.Parse_Error_Lists;
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
+         Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +IDENTIFIER_ID);
          Check
-           ("errors.error_token",
-            Element (Cursor).Error_Token,
-            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25),
-             others => <>));
+           ("1.error token.byte_region",
+            Tree.Byte_Region (Element (Cursor).Error_Token),
+            (23, 25));
       end;
 
    exception
@@ -535,7 +540,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Semantic_State.AUnit;
+      use WisiToken.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -551,18 +556,17 @@ package body Test_McKenzie_Recover is
       --  encountered at 'and' 28. Error recovery for the procedure body
       --  inserts IDENTIFIER; the other fails.
 
-      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
          use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.LR.Parse_Error_Lists;
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
-         Check
-           ("errors.error_token",
-            Element (Cursor).Error_Token,
-            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30),
-             others => <>));
+         Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +AND_ID);
+         Check ("error_token.byte_region", Tree.Byte_Region (Element (Cursor).Error_Token), (28, 30));
       end;
 
    exception
@@ -576,7 +580,7 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Semantic_State.AUnit;
+      use WisiToken.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -599,18 +603,16 @@ package body Test_McKenzie_Recover is
       --  sequence_of_statement_opt' cost 4 (since
       --  sequence_of_statements_opt is empty), and continues to EOF.
 
-      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
-         use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.First;
+         use WisiToken.LR.Parse_Error_Lists;
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
-         Check
-           ("errors 1.error_token",
-            Element (Cursor).Error_Token,
-            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77),
-             others => <>));
+         Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +IF_ID);
+         Check ("error_token.byte_region", Tree.Byte_Region (Element (Cursor).Error_Token), (76, 77));
       end;
 
    exception
@@ -624,7 +626,6 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Semantic_State.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -644,7 +645,7 @@ package body Test_McKenzie_Recover is
       --  still active, so the parser does not become a zombie, but is
       --  terminated immediately. The first parser continues thru EOF.
 
-      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
    exception
    when WisiToken.Syntax_Error =>
@@ -657,7 +658,6 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Semantic_State.AUnit;
    begin
       --  Test that block name matching is used to reject some solutions
       --  during error recovery.
@@ -697,7 +697,6 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-      use WisiToken.Semantic_State.AUnit;
    begin
       --  Test that syntax error recovery handles a missing string quote.
 
@@ -729,7 +728,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Checks;
       use Ada_Lite;
       use WisiToken.AUnit;
-      use WisiToken.Semantic_State.AUnit;
    begin
       Parse_Text
         ("package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;");
@@ -754,22 +752,21 @@ package body Test_McKenzie_Recover is
       --  If we had a syntax tree, we could edit that to delete actual error
       --  'end', based on name matching.
 
-      Check ("errors.length", State.Active_Error_List.Length, 3);
+      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 3);
       declare
-         use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.LR.AUnit;
          use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.Last;
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
       begin
-         Check
-           ("errors 3.error_token",
-            Element (Cursor).Error_Token,
-            (+END_ID, (78, 80), WisiToken.Null_Buffer_Region, False, 1, 77, (78, 80), others => <>));
+         Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +END_ID);
+         Check ("error_token.byte_region", Tree.Byte_Region (Element (Cursor).Error_Token), (78, 80));
          Check
            ("errors 3.recover.deleted",
-            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Deleted,
+            Element (Cursor).Recover.Deleted,
             To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
       end;
    exception
@@ -784,7 +781,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Checks;
       use Ada_Lite;
       use WisiToken.AUnit;
-      use WisiToken.Semantic_State.AUnit;
    begin
       Parse_Text
         ("package body Debug is procedure Find_First is begin begin Match (Middle_Initial_Pat); end Find_First;" &
@@ -806,26 +802,25 @@ package body Test_McKenzie_Recover is
       --  match while checking the root config; it pops 'Find_First ;',
       --  inserts '; end ;'. Then the parse completes.
 
-      Check ("errors.length", State.Active_Error_List.Length, 1);
+      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
-         use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.LR.AUnit;
          use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.Last;
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
       begin
-         Check
-           ("errors 1.error_token",
-            Element (Cursor).Error_Token,
-            (+PROCEDURE_ID, (102, 110), WisiToken.Null_Buffer_Region, False, 1, 101, (102, 110), others => <>));
+         Check ("errors 1.error_token.id", Tree.ID (Element (Cursor).Error_Token), +PROCEDURE_ID);
+         Check ("errors 1.error_token.byte_region", Tree.Byte_Region (Element (Cursor).Error_Token), (102, 110));
          Check
            ("errors 1.recover.popped",
-            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
+            Element (Cursor).Recover.Popped,
             To_Fast_Token_ID_Vector ((+SEMICOLON_ID, +identifier_opt_ID)));
          Check
            ("errors 1.recover.inserted",
-            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Inserted,
+            Element (Cursor).Recover.Inserted,
             To_Fast_Token_ID_Vector ((+SEMICOLON_ID, +END_ID, +SEMICOLON_ID)));
       end;
 
@@ -844,7 +839,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Checks;
       use Ada_Lite;
       use WisiToken.AUnit;
-      use WisiToken.Semantic_State.AUnit;
    begin
       --  Show that the Match_Names_Error pattern is not applied when an
       --  insert has already been done.
@@ -865,7 +859,7 @@ package body Test_McKenzie_Recover is
       --  EOF, resulting in an ambiguous parse; one parser is chosen to
       --  succeed.
 
-      Check ("1 errors.length", State.Active_Error_List.Length, 1); -- error from surviving parser
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
 
    exception
    when WisiToken.Parse_Error =>
@@ -879,7 +873,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Checks;
       use Ada_Lite;
       use WisiToken.AUnit;
-      use WisiToken.Semantic_State.AUnit;
    begin
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_CSV_File is procedure To_Month is begin" &
@@ -898,25 +891,25 @@ package body Test_McKenzie_Recover is
       --
       --  Need syntax tree to avoid throwing away a whole block.
 
-      Check ("errors.length", State.Active_Error_List.Length, 1);
+      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
          use WisiToken.Semantic_State;
-         use WisiToken.Semantic_State.Parser_Error_Data_Lists;
+         use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.Semantic_Checks.AUnit;
          use WisiToken.LR.AUnit;
          use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
          use all type WisiToken.Semantic_Checks.Error_Label;
-         Error_List : Parser_Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Parser_Error_Data_Lists.Cursor := Error_List.Last;
+         Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
+         Cursor : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
       begin
          Check ("errors 1.code", Element (Cursor).Code, Extra_Name_Error);
          Check
            ("errors 1.recover.popped",
-            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Popped,
+            Element (Cursor).Recover.Popped,
             To_Fast_Token_ID_Vector ((1 => +block_statement_ID)));
          Check
            ("errors 1.recover.inserted",
-            WisiToken.LR.Configuration (Element (Cursor).Recover.all).Inserted,
+            Element (Cursor).Recover.Inserted,
             To_Fast_Token_ID_Vector ((+END_ID, +SEMICOLON_ID, +BEGIN_ID, +END_ID, +SEMICOLON_ID)));
       end;
 
@@ -935,7 +928,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Checks;
       use Ada_Lite;
       use WisiToken.AUnit;
-      use WisiToken.Semantic_State.AUnit;
    begin
       Parser.Table.McKenzie_Param.Cost_Limit := 17;
 

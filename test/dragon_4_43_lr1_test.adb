@@ -306,13 +306,12 @@ package body Dragon_4_43_LR1_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : WisiToken.LR.Instance;
+      Parser : WisiToken.LR.Parser.Parser;
 
       procedure Execute_Command (Command : in String)
       is begin
          Parser.Lexer.Reset_With_String (Command);
-
-         WisiToken.LR.Parser.Parse (Parser);
+         Parser.Parse;
       exception
       when E : others =>
          AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
@@ -321,7 +320,7 @@ package body Dragon_4_43_LR1_Test is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+         Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State'Access,

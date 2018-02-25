@@ -83,7 +83,7 @@ package body Trivial_Productions_Test is
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         Parser : WisiToken.LR.Instance;
+         Parser : WisiToken.LR.Parser.Parser;
 
          Text : constant String := "symbol";
       begin
@@ -91,7 +91,7 @@ package body Trivial_Productions_Test is
 
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug > 0),
             State'Access,
@@ -99,7 +99,7 @@ package body Trivial_Productions_Test is
 
          Parser.Lexer.Reset_With_String (Text);
 
-         WisiToken.LR.Parser.Parse (Parser);
+         Parser.Parse;
 
       end Test_One;
    end Expression;
@@ -178,7 +178,7 @@ package body Trivial_Productions_Test is
            Parameter_List_ID   <= +Null_Action and
            Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
-         Parser : WisiToken.LR.Instance;
+         Parser : WisiToken.LR.Parser.Parser;
 
          Text : constant String := "function (symbol) symbol procedure";
       begin
@@ -186,7 +186,7 @@ package body Trivial_Productions_Test is
 
          WisiToken.LR.Parser.New_Parser
            (Parser,
-            Lexer.New_Lexer (Trace'Access, State.Lexer_Errors'Access, Syntax),
+            Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Grammar,
                LALR_Descriptor,
@@ -198,7 +198,7 @@ package body Trivial_Productions_Test is
 
          Parser.Lexer.Reset_With_String (Text);
          WisiToken.Trace_Parse := Test.Debug;
-         WisiToken.LR.Parser.Parse (Parser);
+         Parser.Parse;
 
       end Test_One;
    end Subprograms;

@@ -2,7 +2,7 @@
 --
 --  WisiToken wrapper around the re2c lexer
 --
---  Copyright (C) 2017 Stephe Leake
+--  Copyright (C) 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -71,8 +71,7 @@ package WisiToken.Lexer.re2c is
    overriding procedure Finalize (Object : in out Instance);
 
    function New_Lexer
-     (Trace  : not null access WisiToken.Trace'Class;
-      Errors : not null access Error_Lists.List)
+     (Trace  : not null access WisiToken.Trace'Class)
      return WisiToken.Lexer.Handle;
    --  If the tokens do not include a reporting New_Line token, set
    --  New_Line_ID to Invalid_Token_ID.

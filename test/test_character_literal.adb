@@ -29,7 +29,7 @@ with WisiToken.LR.Parser;
 with WisiToken.Semantic_State;
 package body Test_Character_Literal is
 
-   Parser : WisiToken.LR.Instance;
+   Parser : WisiToken.LR.Parser.Parser;
 
    ----------
    --  Test procedures
@@ -48,7 +48,7 @@ package body Test_Character_Literal is
 
       State.Initialize (Line_Count => 32);
       Parser.Lexer.Reset_With_File (File_Name);
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
 
       Check ("character_literal_count", Character_Literal_Count, 7);
       Check ("string_literal_count", String_Literal_Count, 2);
@@ -73,7 +73,7 @@ package body Test_Character_Literal is
       is begin
          Character_Literal.State.Initialize (Line_Count => 1);
          Parser.Lexer.Reset_With_String (Input);
-         WisiToken.LR.Parser.Parse (Parser);
+         Parser.Parse;
 
          Check (Label, Character_Literal.Char_Region, Expected_Char_Region);
       end Test;

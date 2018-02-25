@@ -19,31 +19,30 @@
 pragma License (GPL);
 
 with WisiToken.AUnit;
-with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Semantic_State.AUnit;
-package body WisiToken.Syntax_Trees.AUnit is
-
-   function "+" (Item : in Node_Index) return Node_Index_Arrays.Vector
-   is begin
-      return Node_Index_Arrays.To_Vector (Item, 1);
-   end "+";
+package body WisiToken.Syntax_Trees.AUnit_Private is
 
    procedure Check
      (Label    : in String;
       Computed : in Node;
       Expected : in Node)
    is
-      use SAL.AUnit;
       use WisiToken.AUnit;
       use WisiToken.Semantic_State.AUnit;
-      use WisiToken.Semantic_Checks.AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public;
    begin
+      Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".parent", Computed.Parent, Expected.Parent);
-      Check (Label & ".terminal", Computed.Terminal, Expected.Terminal);
-      Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
-      Check (Label & ".children", Computed.Children, Expected.Children);
-      Check (Label & ".action", Computed.Action, Expected.Action);
-      Check (Label & ".check", Computed.Check, Expected.Check);
+      case Computed.Label is
+      when Shared_Terminal =>
+         Check (Label & ".terminal", Computed.Terminal, Expected.Terminal);
+      when Virtual_Terminal =>
+         Check (Label & ".terminal_id", Computed.Terminal_ID, Expected.Terminal_ID);
+      when Nonterm =>
+         Check (Label & ".nonterm_id", Computed.Nonterm_ID, Expected.Nonterm_ID);
+         Check (Label & ".children", Computed.Children, Expected.Children);
+         Check (Label & ".action", Computed.Action, Expected.Action);
+      end case;
    end Check;
 
    procedure Check
@@ -51,8 +50,7 @@ package body WisiToken.Syntax_Trees.AUnit is
       Computed : in Tree;
       Expected : in Tree)
    is begin
-      Check (Label & ".root", Computed.Root, Expected.Root);
       Check (Label & ".nodes", Computed.Nodes, Expected.Nodes);
    end Check;
 
-end WisiToken.Syntax_Trees.AUnit;
+end WisiToken.Syntax_Trees.AUnit_Private;

@@ -2,7 +2,7 @@
 --
 --  AUnit Checks for parent
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -18,7 +18,6 @@
 pragma License (Modified_GPL);
 
 with AUnit.Checks.Containers;
-with SAL.AUnit;
 package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Token_ID);
@@ -35,11 +34,13 @@ package WisiToken.AUnit is
 
    procedure Check (Label : in String; Computed, Expected : in Base_Token);
 
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_Index);
+
    procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Index_Type    => Positive_Index_Type,
+     (Index_Type    => Token_Index,
       Element_Type  => Base_Token,
       Container_Pkg => Base_Token_Arrays,
-      Check_Index   => SAL.AUnit.Check,
+      Check_Index   => Check,
       Check_Element => Check);
 
    procedure Check

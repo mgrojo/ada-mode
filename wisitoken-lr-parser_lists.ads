@@ -2,7 +2,7 @@
 --
 --  Utilities used by a generalized LR parser.
 --
---  Copyright (C) 2014-2015, 2017 Stephe Leake
+--  Copyright (C) 2014-2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -21,56 +21,37 @@
 pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
-with SAL.Gen_Definite_Doubly_Linked_Lists;
-with SAL.Gen_Unbounded_Definite_Queues;
+with SAL.Gen_Indefinite_Doubly_Linked_Lists;
+with WisiToken.Syntax_Trees;
 package WisiToken.LR.Parser_Lists is
 
-   type Pend_Semantic_Verbs is
-     (Virtual_To_Lookahead, Push_Current, Discard_Lookahead, Discard_Stack, Reduce_Stack, Recover);
-   --  Verbs correspond to WisiToken.Token.Semantic_State operations.
-
-   type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
-      case Verb is
-      when Virtual_To_Lookahead .. Push_Current =>
-         Token : Base_Token;
-
-      when Discard_Lookahead .. Discard_Stack =>
-         Discard_ID : Token_ID;
-
-      when Reduce_Stack =>
-         Action  : Reduce_Action_Rec;
-         Nonterm : Base_Token;
-         Tokens  : Base_Token_Arrays.Vector;
-
-      when Recover =>
-         Recover : WisiToken.Semantic_State.Recover_Data_Access;
-      end case;
-   end record;
-
-   Null_Pend_Item : constant Pend_Item := (Discard_Lookahead, Invalid_Token_ID);
-
-   package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Pend_Item);
-
-   type Base_Parser_State is tagged record
+   type Base_Parser_State (Terminals : not null access Base_Token_Arrays.Vector) is tagged
+   record
       --  Visible components for direct access
-      Current_Token            : Base_Token;
-      Current_Token_Is_Virtual : Boolean;
-      Last_Shift_Was_Virtual   : Boolean;
-      Stack                    : Parser_Stacks.Stack_Type;
-      Pend_Items               : Pend_Items_Queues.Queue_Type;
-      Recover                  : aliased LR.McKenzie_Data;
-      Local_Lookahead          : Base_Token_Queues.Queue_Type; -- Holds error recovery insertions.
-      Shared_Lookahead_Index   : SAL.Peek_Type;
-      Zombie_Token_Count       : Integer;
-      --  If Zombie_Token_Count > 0, this parser has errored, but is
-      --  waiting to see if other parsers do also.
+
+      Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
+      --  Last token read from Shared_Parser.Terminals.
+
+      Local_Lookahead : Syntax_Trees.Valid_Node_Index_Queues.Queue_Type;
+      --  Tokens in Tree that were inserted during error recovery.
+
+      Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.No_Node_Index;
+      --  Current terminal, in Tree
+
+      Current_Token_Is_Virtual : Boolean := False; -- FIXME: Tree.Virtual (Current_Token)?
+      Last_Shift_Was_Virtual   : Boolean := False;
+      Stack                    : Parser_Stacks.Stack;
+      Tree                     : Syntax_Trees.Tree (Terminals);
+      Recover                  : aliased LR.McKenzie_Data := (others => <>);
+      Zombie_Token_Count       : Integer := 0;
+      --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
+      --  to see if other parsers do also. When it reaches 0, the parser is
+      --  terminated.
+
+      Errors : Parse_Error_Lists.List;
    end record;
 
    type Parser_State is new Base_Parser_State with private;
-
-   procedure Pend (State : in out Parser_State; Item : in Pend_Item; Trace : in out WisiToken.Trace'Class);
-   --  Put Item on State.Pend_Items, and also to Trace if Trace_Parse
-   --  is high enough.
 
    type List is tagged private
    with
@@ -81,7 +62,8 @@ package WisiToken.LR.Parser_Lists is
 
    function New_List
      (First_State_Index  : in State_Index;
-      First_Parser_Label : in Natural)
+      First_Parser_Label : in Natural;
+      Terminals          : access Base_Token_Arrays.Vector)
      return List;
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
@@ -198,22 +180,18 @@ package WisiToken.LR.Parser_Lists is
    function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item;
 
-   ----------
-   --  For unit tests, debug assertions
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Pend_Item : in Parser_Lists.Pend_Item);
-   procedure Put_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
-
 private
 
    type Parser_State is new Base_Parser_State with record
-      Label           : Natural;                -- for debugging/verbosity
-      Verb            : All_Parse_Action_Verbs; -- current action to perform
-      Prev_Verb       : All_Parse_Action_Verbs; -- previous action performed
-      Pre_Reduce_Item : Parser_Stack_Item := Default_Parser_Stack_Item;
+      Label : Natural; -- for debugging/verbosity
+
+      Verb : All_Parse_Action_Verbs := Shift; -- current action to perform
+
+      Prev_Verb       : All_Parse_Action_Verbs := Parse_Action_Verbs'First; -- previous action performed
+      Pre_Reduce_Item : Parser_Stack_Item      := (others => <>);
    end record;
 
-   package Parser_State_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Parser_State);
+   package Parser_State_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Parser_State);
 
    type List is tagged record
       Elements     : aliased Parser_State_Lists.List;

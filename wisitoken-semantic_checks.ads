@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
+with WisiToken.Syntax_Trees;
 package WisiToken.Semantic_Checks is
 
    type Check_Status_Label is (Ok, Error);
@@ -39,7 +40,7 @@ package WisiToken.Semantic_Checks is
       when Error =>
          Code : Error_Label;
 
-         Tokens : Base_Token_Arrays.Vector;
+         Tokens : Syntax_Trees.Valid_Node_Index_Arrays.Vector;
          --  The tokens involved in the error; for example, for
          --  Match_Names_Error, the two name tokens.
       end case;
@@ -49,9 +50,10 @@ package WisiToken.Semantic_Checks is
    function Image (Item : in Check_Status) return String;
 
    type Semantic_Check is access function
-     (Lexer   : in     WisiToken.Lexer.Handle;
-      Nonterm : in out Base_Token;
-      Tokens  : in     Base_Token_Arrays.Vector)
+     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+      Lexer       : in     WisiToken.Lexer.Handle;
+      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
      return Check_Status;
    --  Called during parsing and error recovery to implement higher level
    --  checks, such as block name matching in Ada.
@@ -59,28 +61,31 @@ package WisiToken.Semantic_Checks is
    Null_Check : constant Semantic_Check := null;
 
    function Match_Names
-     (Lexer        : in WisiToken.Lexer.Handle;
-      Tokens       : in Base_Token_Arrays.Vector;
-      Start_Index  : in Positive_Index_Type;
-      End_Index    : in Positive_Index_Type;
+     (Syntax_Tree  : in WisiToken.Syntax_Trees.Abstract_Tree'Class;
+      Lexer        : in WisiToken.Lexer.Handle;
+      Tokens       : in WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Start_Index  : in Ada.Containers.Count_Type;
+      End_Index    : in Ada.Containers.Count_Type;
       End_Optional : in Boolean)
      return Check_Status;
-   --  If buffer text at Tokens (Start_Index).Name equals buffer text at
-   --  Tokens (End_Index).Name, or both are Null_Buffer_Retion, return
-   --  Ok. Otherwise return Error.
+   --  Check that buffer text at Tokens (Start_Index).Name matches buffer
+   --  text at Tokens (End_Index).Name.
 
    function Propagate_Name
-     (Nonterm    : in out Base_Token;
-      Tokens     : in     Base_Token_Arrays.Vector;
-      Name_Index : in     Positive_Index_Type)
+     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Name_Index  : in     Ada.Containers.Count_Type)
      return Check_Status;
-   --  Set Nonterm.Name to Tokens (Name_Index).Name, return Ok.
+   --  Set Syntax_Tree.Name (Nonterm) to Syntax_Tree.Name (Tokens
+   --  (Name_Index)), return Ok.
 
    function Merge_Names
-     (Nonterm     : in out Base_Token;
-      Tokens      : in     Base_Token_Arrays.Vector;
-      First_Index : in     Positive_Index_Type;
-      Last_Index  : in     Positive_Index_Type)
+     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      First_Index : in     Ada.Containers.Count_Type;
+      Last_Index  : in     Ada.Containers.Count_Type)
      return Check_Status;
    --  Then set Nonterm.Name to the merger of Tokens (First_Index ..
    --  Last_Index).Name, return Ok.

@@ -26,9 +26,9 @@
 --  additional permissions described in the GCC Runtime Library Exception,
 --  version 3.1, as published by the Free Software Foundation.
 --
---  This software was originally developed by the following company,
---  and was released as open-source software as a service to the
---  community:
+--  This software was originally developed with the name OpenToken by
+--  the following company, and was released as open-source software as
+--  a service to the community:
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
@@ -39,7 +39,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with SAL;
+with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken is
 
    Syntax_Error : exception; -- no recovery for a syntax error was found
@@ -83,16 +83,10 @@ package WisiToken is
       --
       --  Components are discriminants if they can be specified statically.
 
-      New_Line_ID         : Token_ID;
-      Comment_ID          : Token_ID;
-      Left_Paren_ID       : Token_ID;
-      Right_Paren_ID      : Token_ID;
-      Terminal_Name_ID    : Token_ID;
-      Nonterminal_Name_ID : Token_ID;
-      --  Terminal_Name_ID is a simple identifier; Nonterminal_Name_ID is a
-      --  longer name composed of Terminal_Name_IDs and punctuation. see
-      --  Base_Token.Name below.
-      --
+      New_Line_ID    : Token_ID;
+      Comment_ID     : Token_ID;
+      Left_Paren_ID  : Token_ID;
+      Right_Paren_ID : Token_ID;
       --  If the language does not define these tokens, set them to
       --  Invalid_Token_ID.
 
@@ -203,32 +197,20 @@ package WisiToken is
    type Base_Token is tagged record
       --  Base_Token is used in the core parser and error recovery. The cost
       --  of deleting a token in error recovery depends on whether it is
-      --  empty or not, se we need Byte_Region. One error recovery algorithm
-      --  matches names, so it needs references to the actual input text, in
-      --  Name.
+      --  empty or not, so we need Byte_Region. One error recovery algorithm
+      --  matches names; those are kept in the syntax tree
+      --  (wisitoken-syntax_trees.ads).
       --
       --  We do not include all of the information used by the semantic
-      --  actions here, because thousands of copies of the parser stack can
-      --  be made during error recovery, so minimizing its size is
-      --  important. Only one copy of the full semantic parser stack is
-      --  maintained; see WisiToken.Semantic_State.
+      --  actions here, because thousands of copies of the parser stack and
+      --  syntax tree can be made during error recovery, so minimizing its
+      --  size is important. FIXME: no longer true; only indices into
+      --  Parser.All_Tokens are copied.
 
       ID          : Token_ID      := Invalid_Token_ID;
       Byte_Region : Buffer_Region := Null_Buffer_Region;
-      Name        : Buffer_Region := Null_Buffer_Region;
-      --  Name is set if ID is Descriptor.Terminal_Name_ID or
-      --  Descriptor.Nonterminal_Name_ID, or is a higher level nonterminal
-      --  containing at least one token with Name set; this is the first of
-      --  those.
 
-      Virtual : Boolean := False;
-      --  For non-grammar and terminal tokens, True if inserted by
-      --  error recovery. For nonterminal tokens, True if any
-      --  contained token has Virtual True.
-      --
-      --  Useful in semantic actions and checks; don't report errors if
-      --  can't perform semantic actions or checks on virtual tokens.
-
+      --  FIXME: add Char_Region for Emacs error messages/repair?
    end record;
 
    function Image
@@ -239,7 +221,25 @@ package WisiToken is
 
    Invalid_Token : constant Base_Token := (others => <>);
 
-   package Base_Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Base_Token);
+   type Base_Token_Index is range 0 .. Integer'Last;
+   subtype Token_Index is Base_Token_Index range 1 .. Base_Token_Index'Last;
+
+   --  For invalid Token_Index, use Base_Token_Arrays.No_Index.
+
+   type Token_Index_Array is array (Natural range <>) of Token_Index;
+
+   package Token_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_Index);
+   --  FIXME: used where?
+
+   type Base_Token_Array is array (Natural range <>) of Base_Token;
+
+   package Base_Token_Arrays is new Ada.Containers.Vectors (Token_Index, Base_Token);
+
+   function Image
+     (Item       : in Token_Index_Queues.Queue_Type;
+      Terminals  : in Base_Token_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
 
    function Image
      (Item       : in Base_Token_Arrays.Vector;

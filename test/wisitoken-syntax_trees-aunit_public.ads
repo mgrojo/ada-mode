@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  AUnit checks for parent
+--  Public AUnit checks for parent
 --
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
@@ -19,27 +19,14 @@
 pragma License (GPL);
 
 with AUnit.Checks.Containers;
-with SAL.AUnit;
-private package WisiToken.Syntax_Trees.AUnit is
+package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
 
-   function "+" (Item : in Node_Index) return Node_Index_Arrays.Vector;
+   function "+" (Item : in Node_Index) return Valid_Node_Index_Arrays.Vector
+     is (Valid_Node_Index_Arrays.To_Vector (Item, 1));
 
    procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Positive_Index_Type, Valid_Node_Index, Node_Index_Arrays, SAL.AUnit.Check, Check);
+     (Ada.Containers.Count_Type, Valid_Node_Index, Valid_Node_Index_Arrays, AUnit.Checks.Containers.Check, Check);
 
-   procedure Check
-     (Label    : in String;
-      Computed : in Node;
-      Expected : in Node);
-
-   procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Valid_Node_Index, Node, Node_Arrays, Check, Check);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Tree;
-      Expected : in Tree);
-
-end WisiToken.Syntax_Trees.AUnit;
+end WisiToken.Syntax_Trees.AUnit_Public;

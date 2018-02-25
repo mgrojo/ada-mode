@@ -118,45 +118,27 @@ package body WisiToken.Semantic_State is
      return String
    is
       use all type Ada.Text_IO.Count;
-      ID_Image   : constant String := WisiToken.Image (Item.ID, Descriptor);
-      Name_Image : constant String :=
-        (if Item.Name = Null_Buffer_Region
-         then ""
-         else ", " & Image (Item.Name));
+      ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
    begin
       if ID_Only then
          --  No parens for consistency with previous unit test results.
          return ID_Image;
 
       elsif Item.Line /= Invalid_Line_Number and Trace_Parse <= Detail then
-         return "(" & ID_Image & Name_Image &
+         return "(" & ID_Image &
            Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
 
       elsif Item.Char_Region = Null_Buffer_Region then
-         return "(" & ID_Image & Name_Image & ")";
+         return "(" & ID_Image & ")";
 
       else
-         return "(" & ID_Image & Name_Image & ", " & Image (Item.Char_Region) & ")";
+         return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
       end if;
    end Image;
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token'Class)
    is begin
       Put (Trace, Item.Image (Trace.Descriptor.all, ID_Only => False));
-   end Put;
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token_Queues.Queue_Type)
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
-      Trace.Put ("(");
-      for I in 1 .. Item.Count loop
-         Put (Trace, Item.Peek (I));
-         if I < Item.Count then
-            Put (Trace, ", ");
-         end if;
-      end loop;
-      Trace.Put (")");
    end Put;
 
    function First_Line
@@ -193,48 +175,6 @@ package body WisiToken.Semantic_State is
 
    ----------
    --  Semantic_State
-
-   procedure Put
-     (Source_File_Name : in String;
-      Errors           : in Parser_Error_List_Arrays.Vector;
-      Descriptor       : in WisiToken.Descriptor'Class)
-   is
-      use all type Ada.Containers.Count_Type;
-      use Ada.Text_IO;
-   begin
-      for I in Errors.First_Index .. Errors.Last_Index loop
-         if Errors (I).Length > 0 then
-            Put_Line ("parser" & Integer'Image (I) & " errors:");
-            for Item of Errors (I) loop
-               case Item.Label is
-               when Action =>
-                  if Item.Error_Token.Line = Invalid_Line_Number then
-                     Put_Line
-                       (Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                          ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => False) & "'");
-                  else
-                     Put_Line
-                       (Error_Message
-                          (Source_File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
-                           "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                             ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'"));
-                  end if;
-
-               when Check =>
-                  Put_Line
-                    (Source_File_Name & ": " &
-                       "semantic check error: " & Semantic_Checks.Error_Label'Image (Item.Code) &
-                       ", tokens " & Image (Item.Tokens, Descriptor));
-               end case;
-
-               if Item.Recover /= null then
-                  Put_Line ("   recover: " & Item.Recover.Image (Descriptor));
-               end if;
-            end loop;
-            New_Line;
-         end if;
-      end loop;
-   end Put;
 
    function Find
      (State : in Semantic_State;
@@ -310,16 +250,6 @@ package body WisiToken.Semantic_State is
    procedure Reset (State : not null access Semantic_State)
    is begin
       State.Stack.Clear;
-      State.Lookahead_Queue.Clear;
-
-      --  WORKAROUND: GNAT GPL 2016: just state.errors.clear leaves some
-      --  info in state.errors(0) that comes back when we do Set_Length 2.
-      for List of State.Parser_Errors loop
-         List.Clear;
-      end loop;
-      State.Parser_Errors.Clear;
-      State.Lexer_Errors.Clear;
-
       State.All_Tokens.Clear;
 
       for S of State.Line_Paren_State loop
@@ -328,45 +258,6 @@ package body WisiToken.Semantic_State is
       State.Current_Paren_State := 0;
    end Reset;
 
-   function Active_Error_List
-     (State : not null access Semantic_State)
-     return Parser_Error_List_Arrays.Constant_Reference_Type
-   is
-      use all type Ada.Containers.Count_Type;
-      use Parser_Error_List_Arrays;
-      Cursor : Parser_Error_List_Arrays.Cursor := State.Parser_Errors.First;
-
-      Active_Count : Integer := 0;
-      Active_Index : Natural;
-   begin
-      loop
-         exit when Cursor = No_Element;
-         if Has_Element (Cursor)  and then
-           Element (Cursor).Length > 0
-         then
-            Active_Count := Active_Count + 1;
-            Active_Index := To_Index (Cursor);
-         end if;
-         Next (Cursor);
-      end loop;
-
-      if Active_Count = 1 then
-         return Constant_Reference (State.Parser_Errors, Active_Index);
-      else
-         raise Programmer_Error;
-      end if;
-   end Active_Error_List;
-
-   function Current_Error
-     (State        : not null access Semantic_State;
-      Parser_Label : in              Natural)
-     return Parser_Error_Data
-   is
-      Error_List : Parser_Error_Data_Lists.List renames State.Parser_Errors.Reference (Parser_Label).Element.all;
-   begin
-      return Parser_Error_Data_Lists.Element (Error_List.Last);
-   end Current_Error;
-
    procedure Put (State : not null access Semantic_State)
    is
       use WisiToken.Semantic_State;
@@ -374,12 +265,9 @@ package body WisiToken.Semantic_State is
       State.Trace.Put ("semantic state: stack: ");
       Put (State.Trace.all, State.Stack);
       State.Trace.New_Line;
-      State.Trace.Put ("semantic state: lookahead queue: ");
-      Put (State.Trace.all, State.Lookahead_Queue);
-      State.Trace.New_Line;
    end Put;
 
-   procedure Lexer_To_Lookahead
+   procedure Lexer_To_Augmented
      (State : not null access Semantic_State;
       Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class)
@@ -391,7 +279,6 @@ package body WisiToken.Semantic_State is
 
       Temp : constant Augmented_Token :=
         (Token.ID,
-         Name                        => Token.Name,
          Line                        => Lexer.Line,
          Col                         => Lexer.Column,
          Char_Region                 => Lexer.Char_Region,
@@ -440,19 +327,12 @@ package body WisiToken.Semantic_State is
             end Set_Prev_Trailing;
 
          begin
-            if State.Lookahead_Queue.Length = 0 then
-               if State.Stack.Length = 0 then
-                  --  no previous token
-                  null;
-               else
-                  Set_Prev_Trailing
-                    (Augmented_Token (State.Stack.Reference (SAL.Peek_Type (State.Stack.Length)).Element.all));
-               end if;
+            if State.Stack.Length = 0 then
+               --  no previous token
+               null;
             else
                Set_Prev_Trailing
-                 (Augmented_Token
-                    (State.Lookahead_Queue.Variable_Peek
-                       (State.Lookahead_Queue.Length).Element.all));
+                 (Augmented_Token (State.Stack.Reference (SAL.Peek_Type (State.Stack.Length)).Element.all));
             end if;
          end;
 
@@ -462,6 +342,8 @@ package body WisiToken.Semantic_State is
          end if;
 
       else
+         --  grammar token
+
          if Token.ID = State.Trace.Descriptor.Left_Paren_ID then
             State.Current_Paren_State := State.Current_Paren_State + 1;
 
@@ -469,152 +351,14 @@ package body WisiToken.Semantic_State is
             State.Current_Paren_State := State.Current_Paren_State - 1;
          end if;
 
-         State.Lookahead_Queue.Put (Temp);
-
          if Trace_Parse > Extra then
             State.Trace.Put_Line
-              ("lexer to lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
+              ("lexer to augmented: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
          end if;
       end if;
 
       State.All_Tokens.Append (Temp);
-   end Lexer_To_Lookahead;
-
-   procedure Error
-     (State        : not null access Semantic_State;
-      Parser_Label : in              Natural;
-      Expecting    : in              Token_ID_Set)
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
-      if Parser_Label > State.Parser_Errors.Last_Index then
-         State.Parser_Errors.Set_Length (Ada.Containers.Count_Type (Parser_Label + 1)); -- Parser_Label is 0 indexed.
-         State.Parser_Errors.Replace_Element (Parser_Label, Parser_Error_Data_Lists.Empty_List);
-      end if;
-
-      declare
-         Error_List : Parser_Error_Data_Lists.List renames State.Parser_Errors.Reference (Parser_Label).Element.all;
-      begin
-         Error_List.Append
-           ((Label          => Action,
-             First_Terminal => State.Trace.Descriptor.First_Terminal,
-             Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
-             Error_Token    => State.Lookahead_Queue.Peek (State.Lookahead_Queue.Count).Element.all,
-             Expecting      => Expecting,
-
-             --  The following is set in Recover
-             Recover => null));
-      end;
-   end Error;
-
-   procedure Error
-     (State        : not null access Semantic_State;
-      Parser_Label : in              Natural;
-      Tokens       : in              Base_Token_Arrays.Vector;
-      Code         : in              Semantic_Checks.Error_Label)
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
-      if Parser_Label > State.Parser_Errors.Last_Index then
-         State.Parser_Errors.Set_Length (Ada.Containers.Count_Type (Parser_Label + 1)); -- Parser_Label is 0 indexed.
-         State.Parser_Errors.Replace_Element (Parser_Label, Parser_Error_Data_Lists.Empty_List);
-      end if;
-
-      declare
-         Error_List : Parser_Error_Data_Lists.List renames State.Parser_Errors.Reference (Parser_Label).Element.all;
-      begin
-         Error_List.Append
-           ((Label          => Check,
-             First_Terminal => State.Trace.Descriptor.First_Terminal,
-             Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
-             Tokens         => Tokens,
-             Code           => Code,
-
-             --  The following is set in Recover
-             Recover => null));
-      end;
-   end Error;
-
-   procedure Spawn
-     (State            : not null access Semantic_State;
-      Old_Parser_Label : in              Natural;
-      New_Parser_Label : in              Natural)
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
-      if New_Parser_Label > State.Parser_Errors.Last_Index then
-         State.Parser_Errors.Set_Length (Ada.Containers.Count_Type (New_Parser_Label + 1));
-         --  Parser_Label is 0 indexed.
-         State.Parser_Errors.Replace_Element (New_Parser_Label, Parser_Error_Data_Lists.Empty_List);
-      end if;
-
-      declare
-         Old_Error_List : Parser_Error_Data_Lists.List renames
-           State.Parser_Errors.Reference (Old_Parser_Label).Element.all;
-         New_Error_List : Parser_Error_Data_Lists.List renames
-           State.Parser_Errors.Reference (New_Parser_Label).Element.all;
-      begin
-         New_Error_List := Old_Error_List;
-      end;
-   end Spawn;
-
-   procedure Terminate_Parser
-     (State        : not null access Semantic_State;
-      Parser_Label : in              Natural)
-   is begin
-      --  We don't use Delete because that slides element above Parser_Label,
-      --  changing their indices.
-      State.Parser_Errors (Parser_Label).Clear;
-   end Terminate_Parser;
-
-   procedure Virtual_To_Lookahead
-     (State : not null access Semantic_State;
-      Token : in              Base_Token)
-   is
-      Temp : constant Augmented_Token :=
-        (ID                          => Token.ID,
-         Name                        => Token.Name,
-         Line                        => Invalid_Line_Number,
-         Col                         => 0,
-         Char_Region                 => Null_Buffer_Region,
-         Byte_Region                 => Null_Buffer_Region,
-         Virtual                     => True,
-         First                       => False,
-         First_All_Tokens_Index      => Invalid_All_Tokens_Index,
-         Last_All_Tokens_Index       => Invalid_All_Tokens_Index,
-         First_Indent_Line           => Invalid_Line_Number,
-         Last_Indent_Line            => Invalid_Line_Number,
-         First_Trailing_Comment_Line => Invalid_Line_Number,
-         Last_Trailing_Comment_Line  => Invalid_Line_Number,
-         Paren_State                 => 0);
-   begin
-      State.Lookahead_Queue.Add_To_Head (Temp);
-
-      if Trace_Parse > Extra then
-         State.Trace.Put_Line
-           ("virtual_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
-      end if;
-   end Virtual_To_Lookahead;
-
-   procedure Push_Current
-     (State : not null access Semantic_State;
-      Token : in              Base_Token)
-   is
-      Temp : constant WisiToken.Semantic_State.Augmented_Token := State.Lookahead_Queue.Get;
-   begin
-      if Token.ID /= Temp.ID then
-         raise Programmer_Error with "push_current: ID " &
-           Image (Token.ID, State.Trace.Descriptor.all) &
-           ", Token " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False);
-      end if;
-
-      State.Stack.Append (Temp);
-
-      if Trace_Parse > Extra then
-         State.Trace.Put_Line
-           ("push_current: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
-      end if;
-   end Push_Current;
+   end Lexer_To_Augmented;
 
    procedure Reduce_Stack
      (State       : not null access Semantic_State;
@@ -629,7 +373,6 @@ package body WisiToken.Semantic_State is
 
       Aug_Nonterm : Augmented_Token :=
         (ID                          => Nonterm.ID,
-         Name                        => Nonterm.Name,
          Line                        => Invalid_Line_Number,
          Col                         => 0,
          Byte_Region                 => Nonterm.Byte_Region,
@@ -783,53 +526,5 @@ package body WisiToken.Semantic_State is
 
       State.Stack.Append (Aug_Nonterm);
    end Reduce_Stack;
-
-   procedure Discard_Lookahead
-     (State : not null access Semantic_State;
-      ID    : in              Token_ID)
-   is
-      Token : constant Augmented_Token := Augmented_Token (State.Lookahead_Queue.Get);
-   begin
-      if ID /= Token.ID then
-         raise Programmer_Error with "discard_lookahead: ID " &
-           Image (ID, State.Trace.Descriptor.all) &
-           ", Token " & Token.Image (State.Trace.Descriptor.all, ID_Only => False);
-      end if;
-
-      if Trace_Parse > Extra then
-         State.Trace.Put_Line ("discard_lookahead: " & Token.Image (State.Trace.Descriptor.all, ID_Only => False));
-      end if;
-   end Discard_Lookahead;
-
-   procedure Discard_Stack
-     (State : not null access Semantic_State;
-      ID    : in              Token_ID)
-   is
-      Token : constant Augmented_Token := Augmented_Token
-        (WisiToken.Semantic_State.Augmented_Token_Arrays.Element (State.Stack.Last));
-   begin
-      State.Stack.Delete_Last;
-
-      if ID /= Token.ID then
-         raise Programmer_Error;
-      end if;
-      if Trace_Parse > Extra then
-         State.Trace.Put_Line ("discard_stack: " & Token.Image (State.Trace.Descriptor.all, ID_Only => False));
-      end if;
-   end Discard_Stack;
-
-   procedure Recover
-     (State     : not null access Semantic_State;
-      Parser_Label : in     Natural;
-      Recover   : in     WisiToken.Semantic_State.Recover_Data'Class)
-   is
-      Error_List : Parser_Error_Data_Lists.List renames State.Parser_Errors.Reference (Parser_Label).Element.all;
-      Error      : Parser_Error_Data renames Error_List.Reference (Error_List.Last);
-   begin
-      Error.Recover := new WisiToken.Semantic_State.Recover_Data'Class'(Recover);
-      if Trace_Parse > Extra then
-         State.Trace.Put_Line (Natural'Image (Parser_Label) & ": recover");
-      end if;
-   end Recover;
 
 end WisiToken.Semantic_State;

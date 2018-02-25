@@ -233,8 +233,6 @@ package Wisi is
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
 
-      Nonterminal_Name : Standard.Ada.Strings.Unbounded.Unbounded_String;
-
       Regexps : String_Pair_Lists.List;
       --  Regexps included here because they are used in defining the
       --  Tokens., 2018
