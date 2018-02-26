@@ -20,8 +20,13 @@ org.wisitoken.stephe-1 - available
 
  current work
 build syntax tree, use that in recover to pop stack
-    compiles, test hangs
-        need filter in all_harness
+    compiles, tests fail
+    WISITOKEN.PROGRAMMER_ERROR: need Name_Region in branched nonterm
+
+    when pop token off stack, remove from tree
+        if nonterm, unset parent
+
+        test delete in branched-test
 
     record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
 

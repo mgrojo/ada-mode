@@ -21,20 +21,15 @@ pragma License (Modified_GPL);
 package body WisiToken.LR.Parser_Lists is
 
    function New_List
-     (First_State_Index  : in     State_Index;
-      First_Parser_Label : in     Natural;
+     (First_Parser_Label : in     Natural;
       Terminals          : access Base_Token_Arrays.Vector)
      return List
-   is
-      Stack : Parser_Stacks.Stack;
-   begin
-      Stack.Push ((First_State_Index, others => <>));
-
+   is begin
       return Result : List
       do
          Result.Parser_Label := First_Parser_Label;
 
-         Result.Elements.Append ((Terminals => Terminals, others => <>));
+         Result.Elements.Append ((Terminals => Terminals, Label => First_Parser_Label, others => <>));
       end return;
    end New_List;
 

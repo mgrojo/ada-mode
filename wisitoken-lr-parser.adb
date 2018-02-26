@@ -84,8 +84,8 @@ package body WisiToken.LR.Parser is
       if Trace_Parse > Detail then
          Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
-              State_Image (Parser_State.Stack.Peek.State) & ": " &
-              Image (Parser_State.Tree.ID (Parser_State.Current_Token), Trace.Descriptor.all) & " : ");
+              Image (Parser_State.Stack.Peek.State) & ": " &
+              Image (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) & " : ");
          Put (Trace, Action);
          Trace.New_Line;
       end if;
@@ -119,7 +119,7 @@ package body WisiToken.LR.Parser is
             Current_Parser.Set_Verb (Action.Verb);
 
             if Trace_Parse > Detail then
-               Trace.Put_Line (" ... goto state " & State_Image (Parser_State.Stack.Peek.State));
+               Trace.Put_Line (" ... goto state " & Image (Parser_State.Stack.Peek.State));
             end if;
 
          when Error =>
@@ -191,7 +191,7 @@ package body WisiToken.LR.Parser is
    procedure Parse_Verb
      (Parser           : in out LR.Parser.Parser;
       Verb             :    out All_Parse_Action_Verbs;
-      Max_Shared_Token :    out Token_Index;
+      Max_Shared_Token :    out Base_Token_Index;
       Zombie_Count     :    out SAL.Base_Peek_Type)
    is
       use all type SAL.Base_Peek_Type;
@@ -201,7 +201,7 @@ package body WisiToken.LR.Parser is
       Accept_Count      : SAL.Base_Peek_Type := 0;
       Error_Count       : SAL.Base_Peek_Type := 0;
    begin
-      Max_Shared_Token := Token_Index'First;
+      Max_Shared_Token := Base_Token_Index'First;
       Zombie_Count     := 0;
 
       for Parser_State of Parser.Parsers loop
@@ -287,7 +287,7 @@ package body WisiToken.LR.Parser is
       Current_Parser : Parser_Lists.Cursor;
       Action         : Parse_Action_Node_Ptr;
 
-      Max_Shared_Token : Token_Index;
+      Max_Shared_Token : Base_Token_Index;
       Zombie_Count     : SAL.Base_Peek_Type;
       Resume_Active    : Boolean := False;
 
@@ -334,15 +334,17 @@ package body WisiToken.LR.Parser is
       end Check_Error;
 
    begin
-      --  We do not call Shared_Parser.Semantic_State.Reset here; we assume the
-      --  caller has called Initialize or Reset.
-
+      --  The user must call Lexer.Reset_* to set the input text.
       Shared_Parser.Lexer.Errors.Clear;
 
+      Shared_Parser.Semantic_State.Reset;
+      Shared_Parser.Terminals.Clear;
+
       Shared_Parser.Parsers := Parser_Lists.New_List
-        (First_State_Index  => Shared_Parser.Table.State_First,
-         First_Parser_Label => Shared_Parser.First_Parser_Label,
+        (First_Parser_Label => Shared_Parser.First_Parser_Label,
          Terminals          => Shared_Parser.Terminals'Access);
+
+      Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 
       loop
          --  exit on Accept_It action or syntax error.
@@ -384,8 +386,8 @@ package body WisiToken.LR.Parser is
                      end if;
                   end if;
                else
-                  if Parser_State.Shared_Token < Shared_Parser.Terminals.Last_Index then
-                     Parser_State.Shared_Token  := Parser_State.Shared_Token + 1;
+                  Parser_State.Shared_Token  := Parser_State.Shared_Token + 1;
+                  if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Parser_State.Shared_Token);
                   else
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal

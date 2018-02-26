@@ -104,7 +104,7 @@ package body WisiToken.LR is
       New_Line;
    end Put;
 
-   function State_Image (Item : in Unknown_State_Index) return String
+   function Image (Item : in Unknown_State_Index) return String
    is
       use Ada.Strings;
       use Ada.Strings.Fixed;
@@ -114,7 +114,7 @@ package body WisiToken.LR is
       else
          return Trim (State_Index'Image (Item), Both);
       end if;
-   end State_Image;
+   end Image;
 
    function Image
      (Stack      : in Parser_Stacks.Stack;
@@ -135,7 +135,7 @@ package body WisiToken.LR is
    begin
       for I in 1 .. Last loop
          Result := Result &
-           (State_Image (Stack.Peek (I).State) & " : " &
+           (Image (Stack.Peek (I).State) & " : " &
               (if I = Stack.Depth
                then ""
                else Image (Tree.Base_Token (Stack.Peek (I).Token), Descriptor) & ", "));
@@ -678,6 +678,12 @@ package body WisiToken.LR is
       end loop;
 
       Syntax_Tree.Set_Children (Nonterm, Tokens);
+
+      if Trace_Level > Detail then
+         Trace.Put_Line
+           (Image (Syntax_Tree.Base_Token (Nonterm), Trace.Descriptor.all, ID_Only => False) & " <= " &
+              Syntax_Tree.Image (Tokens, Trace.Descriptor.all));
+      end if;
 
       if Action.Check = null then
          return (Label => Ok);

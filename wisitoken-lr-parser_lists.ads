@@ -41,7 +41,7 @@ package WisiToken.LR.Parser_Lists is
       Current_Token_Is_Virtual : Boolean := False; -- FIXME: Tree.Virtual (Current_Token)?
       Last_Shift_Was_Virtual   : Boolean := False;
       Stack                    : Parser_Stacks.Stack;
-      Tree                     : Syntax_Trees.Tree (Terminals);
+      Tree                     : aliased Syntax_Trees.Tree (Terminals);
       Recover                  : aliased LR.McKenzie_Data := (others => <>);
       Zombie_Token_Count       : Integer := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
@@ -61,8 +61,7 @@ package WisiToken.LR.Parser_Lists is
      Iterator_Element  => Parser_State;
 
    function New_List
-     (First_State_Index  : in State_Index;
-      First_Parser_Label : in Natural;
+     (First_Parser_Label : in Natural;
       Terminals          : access Base_Token_Arrays.Vector)
      return List;
 

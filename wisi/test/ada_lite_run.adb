@@ -41,7 +41,7 @@ is
 
    procedure Put_Usage
    is begin
-      Put_Line ("usage: *_run [-v <integer>] <repeat count> filename");
+      Put_Line ("usage: *_run [-v <trace_parse> <trace_mckenzie] <repeat count> filename");
       Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
    end Put_Usage;
@@ -80,9 +80,10 @@ begin
          Repeat_Count := Integer'Value (Argument (1));
          File_Name := +Argument (2);
 
-      when 4 =>
+      when 5 =>
          if Argument (1) = "-v" then
-            WisiToken.Trace_Parse := Integer'Value (Argument (2));
+            WisiToken.Trace_Parse    := Integer'Value (Argument (2));
+            WisiToken.Trace_McKenzie := Integer'Value (Argument (3));
 
          else
             Set_Exit_Status (Failure);
@@ -90,8 +91,8 @@ begin
             return;
          end if;
 
-         Repeat_Count := Integer'Value (Argument (3));
-         File_Name := +Argument (4);
+         Repeat_Count := Integer'Value (Argument (4));
+         File_Name := +Argument (5);
 
       when others =>
          Set_Exit_Status (Failure);

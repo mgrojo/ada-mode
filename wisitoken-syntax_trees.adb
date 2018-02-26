@@ -28,7 +28,7 @@ package body WisiToken.Syntax_Trees is
      return String
    is
       use Ada.Strings.Unbounded;
-      Result     : Unbounded_String;
+      Result     : Unbounded_String := +"(";
       Need_Comma : Boolean := False;
    begin
       for I in Nodes'Range loop
@@ -36,6 +36,7 @@ package body WisiToken.Syntax_Trees is
            Image (Abstract_Tree'Class (Tree).Base_Token (Nodes (I)), Descriptor);
          Need_Comma := True;
       end loop;
+      Result := Result & ")";
       return -Result;
    end Image;
 
@@ -130,13 +131,38 @@ package body WisiToken.Syntax_Trees is
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
    is
+      use Ada.Containers;
       N : Nonterm_Node renames Tree.Nodes (Parent);
+      J : Count_Type := Count_Type'First;
+
+      Child_Byte_Region : Buffer_Region;
    begin
       N.Children.Clear;
-      N.Children.Reserve_Capacity (Children'Length);
+      N.Children.Set_Length (Children'Length);
       for I in Children'Range loop
-         N.Children (I) := Children (I);
+         N.Children (J) := Children (I);
          Tree.Nodes (Children (I)).Parent := Parent;
+
+         --  FIXME: time with and without this. very useful for debugging, not
+         --  needed until action execute, some actions don't need it.
+         case Tree.Nodes (Children (I)).Label is
+         when Shared_Terminal =>
+            Child_Byte_Region := Tree.Terminals.all (Tree.Nodes (Children (I)).Terminal).Byte_Region;
+         when Virtual_Terminal =>
+            Child_Byte_Region := Null_Buffer_Region;
+         when Nonterm =>
+            Child_Byte_Region := Tree.Nodes (Children (I)).Byte_Region;
+         end case;
+
+         if N.Byte_Region.First > Child_Byte_Region.First then
+            N.Byte_Region.First := Child_Byte_Region.First;
+         end if;
+
+         if N.Byte_Region.Last < Child_Byte_Region.Last then
+            N.Byte_Region.Last := Child_Byte_Region.Last;
+         end if;
+
+         J := J + 1;
       end loop;
    end Set_Children;
 
@@ -157,10 +183,10 @@ package body WisiToken.Syntax_Trees is
       return (for some Child of Children => Tree.Nodes (Child).Parent /= No_Node_Index);
    end Has_Parent;
 
-   function Is_Nonterminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is begin
       return Tree.Nodes (Node).Label = Nonterm;
-   end Is_Nonterminal;
+   end Is_Nonterm;
 
    overriding
    function Byte_Region

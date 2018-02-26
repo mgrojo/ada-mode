@@ -61,7 +61,7 @@ package WisiToken.LR is
 
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
 
-   function State_Image (Item : in Unknown_State_Index) return String;
+   function Image (Item : in Unknown_State_Index) return String;
    --  no leading space; " " for Unknown_State
 
    function Image

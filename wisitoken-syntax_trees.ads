@@ -184,12 +184,12 @@ package WisiToken.Syntax_Trees is
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
-   with Pre => not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children));
+   with Pre => Tree.Is_Nonterm (Parent) and then (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children)));
 
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
-   function Is_Nonterminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
 
    overriding
    function Byte_Region
@@ -208,7 +208,7 @@ package WisiToken.Syntax_Trees is
      (Tree   : in out Syntax_Trees.Tree;
       Node   : in     Valid_Node_Index;
       Region : in     Buffer_Region)
-   with Pre => Tree.Is_Nonterminal (Node);
+   with Pre => Tree.Is_Nonterm (Node);
 
    overriding
    function ID

@@ -662,15 +662,15 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Parser_Algorithm is
       when LALR =>
-         Put_Line (State_Image (Parsers (LALR).State_Last) & ",");
+         Put_Line (Image (Parsers (LALR).State_Last) & ",");
 
       when LR1 =>
-         Put_Line (State_Image (Parsers (LR1).State_Last) & ",");
+         Put_Line (Image (Parsers (LR1).State_Last) & ",");
 
       when LALR_LR1 =>
          Put_Line
-           ("(case Algorithm is when LALR => " & State_Image (Parsers (LALR).State_Last) &
-              ", when LR1 => " & State_Image (Parsers (LR1).State_Last) & "),");
+           ("(case Algorithm is when LALR => " & Image (Parsers (LALR).State_Last) &
+              ", when LR1 => " & Image (Parsers (LR1).State_Last) & "),");
       end case;
       Indent_Line ("First_Terminal    => Descriptor.First_Terminal,");
       Indent_Line ("Last_Terminal     => Descriptor.Last_Terminal,");
@@ -884,13 +884,13 @@ package body Wisi.Gen_Output_Ada_Common is
                begin
                   case Action_Node.Item.Verb is
                   when Shift =>
-                     Line := +"Add_Action (Table.States (" & State_Image (State_Index) & "), " &
+                     Line := +"Add_Action (Table.States (" & Image (State_Index) & "), " &
                        WisiToken.Int_Image (Node.Symbol);
                      Append (", ");
-                     Append (State_Image (Action_Node.Item.State));
+                     Append (Image (Action_Node.Item.State));
 
                   when Reduce | Accept_It =>
-                     Line := +"Add_Action (Table.States (" & State_Image (State_Index) & "), " &
+                     Line := +"Add_Action (Table.States (" & Image (State_Index) & "), " &
                        WisiToken.Int_Image (Node.Symbol);
                      if Action_Node.Item.Verb = Reduce then
                         Append (", Reduce");
@@ -912,7 +912,7 @@ package body Wisi.Gen_Output_Ada_Common is
                          else Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
 
                   when WisiToken.LR.Error =>
-                     Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
+                     Line := +"Add_Error (Table.States (" & Image (State_Index) & ")";
                   end case;
 
                   Action_Node := Action_Node.Next;
@@ -955,8 +955,8 @@ package body Wisi.Gen_Output_Ada_Common is
             loop
                exit when Node = null;
                Set_Col (Indent);
-               Put ("Add_Goto (Table.States (" & State_Image (State_Index) & "), ");
-               Put_Line (WisiToken.Int_Image (Symbol (Node)) & ", " & State_Image (State (Node)) & ");");
+               Put ("Add_Goto (Table.States (" & Image (State_Index) & "), ");
+               Put_Line (WisiToken.Int_Image (Symbol (Node)) & ", " & Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;
          end Gotos;

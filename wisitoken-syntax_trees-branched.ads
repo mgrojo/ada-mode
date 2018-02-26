@@ -29,11 +29,11 @@ package WisiToken.Syntax_Trees.Branched is
 
    type Tree is new Abstract_Tree with private;
 
-   type Access_Constant_Shared_Tree is access constant Syntax_Trees.Tree;
+   type Shared_Tree_Access is access constant Syntax_Trees.Tree;
 
    procedure Initialize
      (Branched_Tree : in out Branched.Tree;
-      Shared_Tree   : in     Access_Constant_Shared_Tree);
+      Shared_Tree   : in     Shared_Tree_Access);
    --  Set Branched_Tree to refer to Shared_Tree.
 
    --  FIXME: operations commented out so we find out which ones we really need.
@@ -70,11 +70,17 @@ package WisiToken.Syntax_Trees.Branched is
      (Tree     : in out Branched.Tree;
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
-   with Pre => not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children));
+   with Pre =>
+     Tree.Is_Nonterm (Parent) and then
+     (not (Tree.Has_Children (Parent) or
+             Tree.Has_Parent (Children)));
+   --  We only set children on newly added nodes, and we don't add nodes
+   --  to the shared tree.
 
    function Has_Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Has_Parent (Tree : in Branched.Tree; Child : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Branched.Tree; Children : in Valid_Node_Index_Array) return Boolean;
-   function Is_Nonterminal (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Nonterm (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
 
    overriding
    function Byte_Region
@@ -93,7 +99,7 @@ package WisiToken.Syntax_Trees.Branched is
      (Tree   : in out Branched.Tree;
       Node   : in     Valid_Node_Index;
       Region : in     Buffer_Region)
-   with Pre => Tree.Is_Nonterminal (Node);
+   with Pre => Tree.Is_Nonterm (Node);
 
    overriding
    function ID
@@ -116,13 +122,11 @@ package WisiToken.Syntax_Trees.Branched is
    ----------
    --  new operations
 
-   procedure Delete (Tree : in out Branched.Tree; Node : in Valid_Node_Index);
+   procedure Delete (Tree : in out Branched.Tree; Node : in Valid_Node_Index)
+   with Pre => not Tree.Has_Parent (Node);
    --  Delete subtree rooted at Node.
    --
    --  If Node is in shared tree, moves branch point to Node.
-   --
-   --  Raises SAL.Invalid_Operation if
-   --  Node.Parent is not No_Node_Index.
 
    function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Array;
    --  Return all terminals in tree rooted at Node, in depth-first order.
@@ -130,36 +134,15 @@ package WisiToken.Syntax_Trees.Branched is
 
 private
 
-   type Node_Label is (Shared_Terminal, New_Terminal, New_Nonterm);
-
-   type Node (Label : Node_Label := New_Terminal) is
-   --  Label has a default to allow use with Ada.Containers.Vectors.
-   record
-      Parent : Node_Index := No_Node_Index;
-
-      case Label is
-      when Shared_Terminal =>
-         Terminal : Token_Index;
-
-      when New_Terminal =>
-         Terminal_ID : WisiToken.Token_ID;
-
-      when New_Nonterm =>
-         Nonterm_ID : WisiToken.Token_ID;
-         Children   : Valid_Node_Index_Arrays.Vector;
-
-         --  No need for the other fields in Syntax_Tree.Node; these are all
-         --  virtual, so the other fields are null.
-      end case;
-   end record;
-
-   subtype New_Terminal_Node is Node (New_Terminal);
-   subtype New_Nonterm_Node is Node (New_Nonterm);
-
-   package Node_Arrays is new Ada.Containers.Vectors (Valid_Node_Index, Node);
+   --  We use the same Node type as parent, to simplify moving the branch
+   --  point, and to support future use of branched trees in shared
+   --  parsers.
 
    type Tree is new Abstract_Tree with record
-      Shared_Tree      : access constant Syntax_Trees.Tree;
+      Shared_Tree : Shared_Tree_Access;
+      --  If we need to set anything (ie parent) in Shared_Tree, we move the
+      --  branch point instead.
+
       Last_Shared_Node : Node_Index;
       Branched_Nodes   : Node_Arrays.Vector;
    end record;
