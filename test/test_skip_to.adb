@@ -48,7 +48,7 @@ package body Test_Skip_To is
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    exception
-   when E : WisiToken.Syntax_Error =>
+   when E : WisiToken.Syntax_Error | WisiToken.Parse_Error =>
       declare
          use Ada.Exceptions;
       begin
@@ -57,7 +57,7 @@ package body Test_Skip_To is
            (File_Name, Parser.Parsers.First.State_Ref.Errors,
             Parser.Parsers.First.State_Ref.Tree, Skip_To_Grammar.Descriptor);
       end;
-      AUnit.Assertions.Assert (False, "syntax error");
+      AUnit.Assertions.Assert (False, "exception");
    end Nominal;
 
    ----------

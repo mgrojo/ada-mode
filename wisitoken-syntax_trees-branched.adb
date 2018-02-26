@@ -336,14 +336,12 @@ package body WisiToken.Syntax_Trees.Branched is
      (Tree   : in out Branched.Tree;
       Node   : in     Valid_Node_Index;
       Region : in     Buffer_Region)
-   is
-      pragma Unreferenced (Region);
-   begin
+   is begin
       if Node <= Tree.Last_Shared_Node then
-         raise Programmer_Error with "setting name in constant shared tree";
-      else
-         raise Programmer_Error with "need Name_Region in branched nonterm";
+         Move_Branch_Point (Tree, Node);
       end if;
+
+      Tree.Branched_Nodes (Node - Tree.Last_Shared_Node).Name := Region;
    end Set_Name_Region;
 
    overriding

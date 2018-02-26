@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 Stephen Leake
+--  Copyright (C) 2017, 2018 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -129,7 +129,7 @@ package body Test_Follow is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/test_follow.adb");
+      return new String'("test_follow.adb");
    end Name;
 
 end Test_Follow;

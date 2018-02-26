@@ -130,7 +130,7 @@ package body Test_Accept_State is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/test_accept_state.adb");
+      return new String'("test_accept_state.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

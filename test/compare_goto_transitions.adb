@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 Stephen Leake
+--  Copyright (C) 2017, 2018 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -179,7 +179,7 @@ package body Compare_Goto_Transitions is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/compare_goto_transitions.adb");
+      return new String'("compare_goto_transitions.adb");
    end Name;
 
 end Compare_Goto_Transitions;

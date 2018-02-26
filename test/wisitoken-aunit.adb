@@ -56,6 +56,8 @@ package body WisiToken.AUnit is
    is
       use Standard.AUnit.Checks;
    begin
+      Check_Valid (Label & ".First valid", Computed.First'Unrestricted_Access);
+      Check_Valid (Label & ".Last valid", Computed.Last'Unrestricted_Access);
       Check (Label & ".First", Computed.First, Expected.First);
       Check (Label & ".Last", Computed.Last, Expected.Last);
    end Check;

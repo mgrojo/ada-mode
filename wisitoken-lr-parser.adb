@@ -475,31 +475,39 @@ package body WisiToken.LR.Parser is
                   return;
 
                else
-                  if Current_Parser.State_Ref.Errors.Length > 0 or
-                    Shared_Parser.Lexer.Errors.Length > 0
-                  then
-                     --  There was an error previously. We assume that caused the ambiguous
-                     --  parse, and we pick the first parser arbitrarily to allow the parse
-                     --  to succeed. We terminate the other parsers so the first parser
-                     --  executes actions.
-                     Current_Parser := Shared_Parser.Parsers.First;
-                     Current_Parser.Next;
-                     loop
-                        Terminate_Parser (Current_Parser);
-                        exit when Current_Parser.Is_Done;
+                  declare
+                     Error_Parser_Count : Integer := (if Shared_Parser.Lexer.Errors.Length > 0 then 1 else 0);
+                  begin
+                     for Parser_State of Shared_Parser.Parsers loop
+                        if Parser_State.Errors.Length > 0 then
+                           Error_Parser_Count := Error_Parser_Count + 1;
+                        end if;
                      end loop;
 
-                     --  FIXME: parser_state.syntax_tree.execute_actions?
-                     return;
+                     if Error_Parser_Count > 0 then
+                        --  There was an error previously. We assume that caused the ambiguous
+                        --  parse, and we pick the first parser arbitrarily to allow the parse
+                        --  to succeed. We terminate the other parsers so the first parser
+                        --  executes actions.
+                        Current_Parser := Shared_Parser.Parsers.First;
+                        Current_Parser.Next;
+                        loop
+                           Terminate_Parser (Current_Parser);
+                           exit when Current_Parser.Is_Done;
+                        end loop;
 
-                  else
-                     --  There were no previous errors. We allow the parse to fail, on the
-                     --  assumption that an otherwise correct input should not yeild an
-                     --  ambiguous parse.
-                     raise WisiToken.Parse_Error with Error_Message
-                       ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
-                        "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
-                  end if;
+                        --  FIXME: parser_state.syntax_tree.execute_actions?
+                        return;
+
+                     else
+                        --  There were no previous errors. We allow the parse to fail, on the
+                        --  assumption that an otherwise correct input should not yeild an
+                        --  ambiguous parse.
+                        raise WisiToken.Parse_Error with Error_Message
+                          ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
+                           "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
+                     end if;
+                  end;
                end if;
             end;
 

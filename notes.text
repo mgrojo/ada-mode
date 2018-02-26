@@ -21,12 +21,19 @@ org.wisitoken.stephe-1 - available
  current work
 build syntax tree, use that in recover to pop stack
     compiles, tests fail
-    WISITOKEN.PROGRAMMER_ERROR: need Name_Region in branched nonterm
+
+
+    character_literal
+        need to execute actions
 
     when pop token off stack, remove from tree
         if nonterm, unset parent
 
         test delete in branched-test
+
+    mckenzie _much_ slower
+        record benchmarks
+        get profile
 
     record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
 
@@ -39,8 +46,17 @@ build syntax tree, use that in recover to pop stack
 
     https://graphviz.gitlab.io/_pages/Download/Download_windows.html
 
-tokens are no longer copied in recovery; only indices into all_tokens
+test_mckenzie_recover.adb Conflict_1
+PROGRAM_ERROR: WisiToken.Base_Token_Arrays.Implementation.TC_Check: attempt to tamper with cursors
+    some other task is holding a cursor on Terminals!?
+        all refs to Shared_Parser.Terminals in McKenzie are in Shared_Lookahead
+    not repeatable. race condition with what?
+
+tokens are no longer copied in recovery; only indices into shared_Parser.Terminals
     => merge augmented_token into base_token?
+    clean up first; compute all possible stuff at action time, not parse time
+    keep line, col: doesn't cost much, very nice for error messages outside Emacs
+        only in error messages, not Image (Base_Token)
 
 possible space optimization:
     share beginning of token, tree array

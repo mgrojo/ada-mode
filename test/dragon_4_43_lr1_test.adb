@@ -337,7 +337,7 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/dragon_4_43_lr1_test.adb");
+      return new String'("dragon_4_43_lr1_test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

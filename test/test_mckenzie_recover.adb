@@ -862,7 +862,7 @@ package body Test_McKenzie_Recover is
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
 
    exception
-   when WisiToken.Parse_Error =>
+   when WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error");
    end Pattern_Block_Match_Names_2;
 
@@ -929,7 +929,8 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use WisiToken.AUnit;
    begin
-      Parser.Table.McKenzie_Param.Cost_Limit := 17;
+      --  FIXME: debugging; really slow, need 17 to pass
+      Parser.Table.McKenzie_Param.Cost_Limit := 8;
 
       Parse_Text
         ("package body Pack_1 is procedure Proc_1 is procedure Proc_A is begin case B is when 1 => a;" &

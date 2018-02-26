@@ -1252,10 +1252,12 @@ package body WisiToken.LR.McKenzie_Recover is
       Root_Config  : in     Configuration;
       Trace        : in out WisiToken.Trace'Class)
    is
+      use all type SAL.Base_Peek_Type;
       use all type Parse_Error_Label;
       Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
    begin
-      if Error.Label = LR.Action and then
+      if (Error.Label = LR.Action and Parser_State.Stack.Depth > 1)
+        and then
         (Parser_State.Tree.ID (Parser_State.Stack.Peek.Token) = Pattern.Stack and
            Parser_State.Tree.ID (Error.Error_Token) = Pattern.Error and
            Error.Expecting (Pattern.Expecting) and
@@ -1293,10 +1295,12 @@ package body WisiToken.LR.McKenzie_Recover is
       Root_Config  : in     Configuration;
       Trace        : in out WisiToken.Trace'Class)
    is
+      use all type SAL.Base_Peek_Type;
       use all type Parse_Error_Label;
       Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
    begin
-      if Error.Label = LR.Action and then
+      if (Error.Label = LR.Action and Parser_State.Stack.Depth > 1)
+        and then
         (Parser_State.Tree.ID (Parser_State.Stack.Peek.Token) = Pattern.Stack and
            Parser_State.Tree.ID (Error.Error_Token) = Pattern.Error and
            Error.Expecting (Pattern.Expecting) and
@@ -1353,9 +1357,9 @@ package body WisiToken.LR.McKenzie_Recover is
 
          declare
             use all type SAL.Base_Peek_Type;
-            Config     : Configuration := Root_Config;
+            Config        : Configuration := Root_Config;
             Deleted_Index : Token_Index;
-            Deleted_ID : Token_ID;
+            Deleted_ID    : Token_ID;
          begin
             loop
                Deleted_Index := Shared.Get_Token (Config.Shared_Token);
