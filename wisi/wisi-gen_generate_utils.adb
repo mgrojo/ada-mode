@@ -19,7 +19,7 @@
 pragma License (GPL);
 with Ada.Exceptions;
 with Wisi.Utils;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Token_ID_Lists;
 package body Wisi.Gen_Generate_Utils is
 
@@ -559,7 +559,7 @@ package body Wisi.Gen_Generate_Utils is
    begin
       begin
          Grammar := Production.List.Only
-           (Descriptor.Accept_ID <= Find_Token_ID (Start_Token) & EOF_ID + WisiToken.Semantic_State.Null_Action);
+           (Descriptor.Accept_ID <= Find_Token_ID (Start_Token) & EOF_ID + WisiToken.Syntax_Trees.Null_Action);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error

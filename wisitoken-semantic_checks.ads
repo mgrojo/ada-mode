@@ -64,8 +64,8 @@ package WisiToken.Semantic_Checks is
      (Syntax_Tree  : in WisiToken.Syntax_Trees.Abstract_Tree'Class;
       Lexer        : in WisiToken.Lexer.Handle;
       Tokens       : in WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Start_Index  : in Ada.Containers.Count_Type;
-      End_Index    : in Ada.Containers.Count_Type;
+      Start_Index  : in Positive_Index_Type;
+      End_Index    : in Positive_Index_Type;
       End_Optional : in Boolean)
      return Check_Status;
    --  Check that buffer text at Tokens (Start_Index).Name matches buffer
@@ -75,7 +75,7 @@ package WisiToken.Semantic_Checks is
      (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
       Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Name_Index  : in     Ada.Containers.Count_Type)
+      Name_Index  : in     Positive_Index_Type)
      return Check_Status;
    --  Set Syntax_Tree.Name (Nonterm) to Syntax_Tree.Name (Tokens
    --  (Name_Index)), return Ok.
@@ -84,8 +84,8 @@ package WisiToken.Semantic_Checks is
      (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
       Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      First_Index : in     Ada.Containers.Count_Type;
-      Last_Index  : in     Ada.Containers.Count_Type)
+      First_Index : in     Positive_Index_Type;
+      Last_Index  : in     Positive_Index_Type)
      return Check_Status;
    --  Then set Nonterm.Name to the merger of Tokens (First_Index ..
    --  Last_Index).Name, return Ok.

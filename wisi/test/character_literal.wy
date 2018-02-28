@@ -4,7 +4,8 @@
 
 %{
 --  spec context clause
---  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -19,20 +20,9 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with WisiToken.Text_IO_Trace;
-
+with WisiToken.Syntax_Trees;
 %%
 --  spec declarations, at end of spec.
-
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
-
---  These could be in test_Character_Literal, but we are testing that
---  declaring them here works.
-
-   Character_Literal_Count : Integer := 0;
-   String_Literal_Count    : Integer := 0;
-   Char_Region             : WisiToken.Buffer_Region;
 
 %%
 --  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
@@ -117,7 +107,7 @@ compilation_unit
 
 statement_list
   : statement
-    (Test_Statement_List_0 (Nonterm);)
+    (Test_Statement_List_0 (Tree.Augmented_Token_Ref (Tree_Nonterm));)
   | statement_list statement
   ;
 
@@ -131,19 +121,31 @@ statement_list
 ;; Action spans two lines to test wisi-rules.adb
 statement
   : IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
-   (Character_Literal_Count :=
-    Character_Literal_Count + 1;
-    Test_Statement_0 (Tokens);)
+    (declare
+        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
+     begin
+        Data.Character_Literal_Count := Data.Character_Literal_Count + 1;
+        Test_Statement_0 (Data, Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens));
+     end;)
 
  ;; A different use of TICK; attribute reference. Action tests character counting.
   | IDENTIFIER tick IDENTIFIER SEMICOLON
-    (Char_Region := Tokens.Element (3).Char_Region;
-     Test_Statement_1 (Tokens);)
+    (declare
+        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
+        Tokens : WisiToken.Semantic_State.Augmented_Token_Array renames Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens);
+     begin
+        Data.Char_Region := Tokens (3).Char_Region;
+        Test_Statement_1 (Tokens);
+     end;)
 
  ;; Here the input is Ada strings, with and without embedded quotes.
   | STRING_LITERAL SEMICOLON
-    (String_Literal_Count := String_Literal_Count + 1;
-     Test_Statement_2 (Tokens);)
+    (declare
+        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
+     begin
+        Data.String_Literal_Count := Data.String_Literal_Count + 1;
+        Test_Statement_2 (Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens));
+     end;)
 
  ;; a use of FOO
   | FOO SEMICOLON

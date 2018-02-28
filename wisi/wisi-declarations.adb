@@ -34,6 +34,7 @@ is
 
    use Standard.Ada.Strings.Fixed;
 
+   Action_Declaration_Str                     : constant String := "%action_declaration";
    Conflict_Str                               : constant String := "%conflict";
    End_If_Str                                 : constant String := "%end if";
    Elisp_Face_Str                             : constant String := "%elisp_face";
@@ -125,6 +126,9 @@ begin
                If_Active := False;
             end if;
 
+         elsif Match (Action_Declaration_Str) then
+            Generate_Params.Action_Declarations.Append (Line (Key_Last + 2 .. Line'Last));
+
          elsif Match (Conflict_Str) then
             declare
                Action_A_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
@@ -156,7 +160,7 @@ begin
             end;
 
          elsif Match (End_If_Str) then
-            --  matching if specified current lexer.
+            --  matching '%if' specified current lexer.
             null;
 
          elsif Match (Elisp_Face_Str) then

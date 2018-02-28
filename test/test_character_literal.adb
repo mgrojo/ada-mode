@@ -27,8 +27,11 @@ with Test_Character_Literal_Aux;
 with WisiToken.AUnit;
 with WisiToken.LR.Parser;
 with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
+with WisiToken.Text_IO_Trace;
 package body Test_Character_Literal is
 
+   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Character_Literal.Descriptor'Access);
    Parser : WisiToken.LR.Parser.Parser;
 
    ----------
@@ -42,26 +45,18 @@ package body Test_Character_Literal is
       use Character_Literal;
 
       File_Name : constant String := "../wisi/test/character_literal.input";
+      Data      : Test_Character_Literal_Aux.User_Data;
    begin
       Test_Character_Literal_Aux.Enable := True;
       Test_Character_Literal_Aux.Lexer  := Parser.Lexer;
 
-      State.Initialize (Line_Count => 32);
+      Parser.Semantic_State.Initialize (Line_Count => 32);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
+      Parser.Execute_Actions (Data, Compute_Indent => True);
 
-      Check ("character_literal_count", Character_Literal_Count, 7);
-      Check ("string_literal_count", String_Literal_Count, 2);
-   exception
-   when AUnit.Assertions.Assertion_Error =>
-      raise;
-
-   when E : WisiToken.Syntax_Error =>
-      Ada.Text_IO.Put_Line (File_Name & ":" & Exception_Message (E));
-      AUnit.Assertions.Assert (False, "syntax error");
-
-   when E : others =>
-      AUnit.Assertions.Assert (False, "parser raised exception: " & Exception_Name (E) & ": " & Exception_Message (E));
+      Check ("character_literal_count", Data.Character_Literal_Count, 7);
+      Check ("string_literal_count", Data.String_Literal_Count, 2);
    end Nominal;
 
    procedure Character_Position (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -70,12 +65,15 @@ package body Test_Character_Literal is
       use WisiToken.AUnit;
 
       procedure Test (Label : in String; Input : in String; Expected_Char_Region : in WisiToken.Buffer_Region)
-      is begin
-         Character_Literal.State.Initialize (Line_Count => 1);
+      is
+         Data : Test_Character_Literal_Aux.User_Data;
+      begin
+         Parser.Semantic_State.Initialize (Line_Count => 1);
          Parser.Lexer.Reset_With_String (Input);
          Parser.Parse;
+         Parser.Execute_Actions (Data, Compute_Indent => False);
 
-         Check (Label, Character_Literal.Char_Region, Expected_Char_Region);
+         Check (Label, Data.Char_Region, Expected_Char_Region);
       end Test;
 
    begin
@@ -114,5 +112,5 @@ package body Test_Character_Literal is
    end Register_Tests;
 
 begin
-   Character_Literal.Create_Parser (Parser, WisiToken.LALR, Character_Literal.State'Access);
+   Character_Literal.Create_Parser (Parser, WisiToken.LALR, Trace'Access);
 end Test_Character_Literal;

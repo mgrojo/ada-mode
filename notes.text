@@ -22,11 +22,8 @@ org.wisitoken.stephe-1 - available
 build syntax tree, use that in recover to pop stack
     compiles, tests fail
 
-
-    character_literal
-        need to execute actions
-
     when pop token off stack, remove from tree
+        preserve indices
         if nonterm, unset parent
 
         test delete in branched-test
@@ -63,6 +60,10 @@ possible space optimization:
     all nodes after edit_start are copied/edited
 
 review FIXME:
+
+add nonterm goto list to mckenzie explore
+    push on stack, rather than insert into token stream
+    => finish current production faster
 
 user option end_name_require (ie not optional) makes ada_mode-recover_block_name_mismatch.adb fail?
     need to preserve end name when editing stack

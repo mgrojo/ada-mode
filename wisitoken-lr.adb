@@ -299,7 +299,7 @@ package body WisiToken.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
       Action   : Parse_Action_Rec;
@@ -334,7 +334,7 @@ package body WisiToken.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec := (Shift, State_Index);
@@ -351,12 +351,12 @@ package body WisiToken.LR is
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Semantic_Action_1 : in     Semantic_State.Semantic_Action;
+      Semantic_Action_1 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     Semantic_Checks.Semantic_Check;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Semantic_Action_2 : in     Semantic_State.Semantic_Action;
+      Semantic_Action_2 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_2  : in     Semantic_Checks.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec   :=
@@ -640,7 +640,8 @@ package body WisiToken.LR is
    function Next_Grammar_Token
      (Terminals      : in out          Base_Token_Arrays.Vector;
       Lexer          : not null access WisiToken.Lexer.Instance'Class;
-      Semantic_State : not null access WisiToken.Semantic_State.Semantic_State'Class)
+      Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
+      Descriptor     : in              WisiToken.Descriptor'Class)
      return Token_Index
    is
       Token : Base_Token;
@@ -649,9 +650,9 @@ package body WisiToken.LR is
          Token.ID := Lexer.Find_Next;
          Token.Byte_Region := Lexer.Byte_Region;
 
-         Semantic_State.Lexer_To_Augmented (Token, Lexer);
+         Semantic_State.Lexer_To_Augmented (Descriptor, Token, Lexer);
 
-         exit when Token.ID >= Semantic_State.Trace.Descriptor.First_Terminal;
+         exit when Token.ID >= Descriptor.First_Terminal;
       end loop;
       Terminals.Append (Token);
       return Terminals.Last_Index;
@@ -670,10 +671,10 @@ package body WisiToken.LR is
    is
       use all type Semantic_Checks.Semantic_Check;
       use all type Semantic_Checks.Check_Status_Label;
-      Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. Action.Token_Count); -- For Check.
+      Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. Positive_Index_Type (Action.Token_Count)); -- For Check.
    begin
-      Nonterm := Syntax_Tree.Add_Nonterm (Action.LHS);
-      for I in reverse 1 .. Action.Token_Count loop
+      Nonterm := Syntax_Tree.Add_Nonterm (Action.LHS, Action => Action.Action);
+      for I in reverse Tokens'Range loop
          Tokens (I) := Stack.Pop.Token;
       end loop;
 

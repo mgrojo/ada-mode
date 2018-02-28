@@ -527,7 +527,9 @@ package body WisiToken.LR.McKenzie_Recover is
          Temp : Token_Index := Index;
       begin
          if Index > Shared_Parser.Terminals.Last_Index then
-            Temp := Next_Grammar_Token (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State);
+            Temp := Next_Grammar_Token
+              (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State,
+               Shared_Parser.Trace.Descriptor.all);
             pragma Assert (Temp = Index);
          end if;
          return Temp;
@@ -1509,7 +1511,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Shared        : in     Shared_Lookahead;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
-      Trace : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
+      Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
    begin
       if Trace_McKenzie > Outline then
          Trace.New_Line;
@@ -1553,7 +1555,7 @@ package body WisiToken.LR.McKenzie_Recover is
    is
       use all type SAL.Base_Peek_Type;
       use all type System.Multiprocessors.CPU_Range;
-      Trace : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
+      Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
       Parsers : Parser_Lists.List renames Shared_Parser.Parsers;
 
@@ -1566,7 +1568,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Shared : aliased Shared_Lookahead (Shared_Parser'Access);
 
       Worker_Tasks   : array (1 .. System.Multiprocessors.Number_Of_CPUs - 1) of Worker_Task
-        (Super'Access, Shared'Access, Shared_Parser.Semantic_State.Trace, Shared_Parser.Table.all'Access);
+        (Super'Access, Shared'Access, Shared_Parser.Trace, Shared_Parser.Table.all'Access);
       --  Keep one CPU free for this main task, and the user.
 
       procedure Cleanup
@@ -1740,10 +1742,6 @@ package body WisiToken.LR.McKenzie_Recover is
             end;
          end if;
       end loop;
-
-      if Trace_McKenzie > Extra then
-         Shared_Parser.Semantic_State.Put;
-      end if;
 
       Cleanup;
 

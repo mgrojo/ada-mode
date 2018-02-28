@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -16,7 +16,6 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Character_Literal;
-with SAL;
 with WisiToken.AUnit;
 package body Test_Character_Literal_Aux is
 
@@ -58,17 +57,19 @@ package body Test_Character_Literal_Aux is
       end if;
    end Test_Statement_List_0;
 
-   procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
+   procedure Test_Statement_0
+     (User_Data   : in out Test_Character_Literal_Aux.User_Data;
+      Wisi_Tokens : in     WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
       use WisiToken.AUnit;
 
-      Character_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (4).Element.all;
-      Semicolon_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (6).Element.all;
+      Character_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (4);
+      Semicolon_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (6);
    begin
       if Enable then
-         case Character_Literal_Count is
+         case User_Data.Character_Literal_Count is
          when 1 =>
             Check ("statement_0 1 char region", Character_Token.Char_Region, (95, 97));
             Check ("statement_0 1 byte region", Character_Token.Byte_Region, (95, 97));
@@ -107,7 +108,7 @@ package body Test_Character_Literal_Aux is
 
    Statement_1_Count : Integer := 0;
 
-   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -118,22 +119,26 @@ package body Test_Character_Literal_Aux is
       case Statement_1_Count is
       when 1 =>
          --  objectπ'attribute;
-         for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
+         for I in Wisi_Tokens'Range loop
             declare
-               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).Element.all;
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I);
             begin
                case I is
                when 1 =>
+                  --  Objectπ
                   Check ("statement_1 1 1.First", Token.First, True);
                   Check ("statement_1 1 1.Line", Token.Line, 17);
                   Check ("statement_1 1 1.Byte_Region", Token.Byte_Region, (248, 255)); -- π occupies 2 bytes
                   Check ("statement_1 1 1.Char_Region", Token.Char_Region, (247, 253));
                when 2 =>
+                  --  '
                   Check ("statement_1 1 2.First", Token.First, False);
                when 3 =>
+                  --  attribute
                   Check ("statement_1 1 3.First", Token.First, False);
                when 4 =>
-                  Check ("statement_1 1 4.First", Token.First, True); -- trailing blank line
+                  --  ;
+                  Check ("statement_1 1 4.First", Token.First, True); -- includes non_grammar trailing blank line
                when others =>
                   raise Programmer_Error;
                end case;
@@ -142,9 +147,9 @@ package body Test_Character_Literal_Aux is
       when 2 =>
          --  object
          --    'attribute;
-         for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
+         for I in Wisi_Tokens'Range loop
             declare
-               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).Element.all;
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I);
             begin
                case I is
                when 1 =>
@@ -157,7 +162,7 @@ package body Test_Character_Literal_Aux is
                when 4 =>
                   Check ("statement_1 2 4.First", Token.First, True);
                when others =>
-                  raise Programmer_Error with "unexpected token" & SAL.Base_Peek_Type'Image (I) &
+                  raise Programmer_Error with "unexpected token" & Positive_Index_Type'Image (I) &
                     Token_ID'Image (Token.ID);
                end case;
             end;
@@ -170,7 +175,7 @@ package body Test_Character_Literal_Aux is
    end Test_Statement_1;
 
    Statement_2_Count : Integer := 0;
-   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
+   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -181,9 +186,9 @@ package body Test_Character_Literal_Aux is
       case Statement_2_Count is
       when 1 =>
          --  " a string with Greek ..."
-         for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
+         for I in Wisi_Tokens'Range loop
             declare
-               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).Element.all;
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I);
             begin
                case I is
                when 1 =>
@@ -194,7 +199,7 @@ package body Test_Character_Literal_Aux is
                   Check ("statement_2 1 2.First", Token.First, True);
 
                when others =>
-                  raise Programmer_Error with "unexpected token" & SAL.Base_Peek_Type'Image (I) &
+                  raise Programmer_Error with "unexpected token" & Positive_Index_Type'Image (I) &
                     Token_ID'Image (Token.ID);
                end case;
             end;

@@ -72,6 +72,8 @@ package Wisi is
    type Interface_Type is (None, Process, Module);
    subtype Valid_Interface is Interface_Type range Process .. Module;
 
+   package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
+
    type Generate_Param_Type is record
       --  Set by grammar file declarations. Error recover parameters
       --  are elsewhere.
@@ -83,9 +85,8 @@ package Wisi is
       First_Parser_Label        : Integer               := 0;
       Keywords_Case_Insensitive : Boolean               := False;
       Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Action_Declarations       : String_Lists.List;
    end record;
-
-   package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
    type Prologues is record
       Spec_Context_Clause : String_Lists.List;

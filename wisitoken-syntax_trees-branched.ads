@@ -42,8 +42,8 @@ package WisiToken.Syntax_Trees.Branched is
    function Add_Nonterm
      (Tree    : in out Branched.Tree;
       Nonterm : in     WisiToken.Token_ID;
-      Virtual : in     Boolean                                  := False;
-      Action  : in     WisiToken.Semantic_State.Semantic_Action := null)
+      Virtual : in     Boolean         := False;
+      Action  : in     Semantic_Action := null)
    return Valid_Node_Index;
 
    overriding
@@ -114,6 +114,20 @@ package WisiToken.Syntax_Trees.Branched is
      return WisiToken.Base_Token;
 
    overriding
+   function Augmented_Token_Ref
+     (Tree : in out Branched.Tree;
+      Node : in     Valid_Node_Index)
+     return Augmented_Ref
+   with Pre => Tree.Is_Nonterm (Node);
+
+   overriding
+   function Augmented_Token_Array
+     (Tree                : in out Branched.Tree;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Nodes               : in     Valid_Node_Index_Array)
+     return Semantic_State.Augmented_Token_Array;
+
+   overriding
    function Virtual
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
@@ -128,7 +142,7 @@ package WisiToken.Syntax_Trees.Branched is
    --
    --  If Node is in shared tree, moves branch point to Node.
 
-   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Array;
+   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return WisiToken.Base_Token_Array;
    --  Return all terminals in tree rooted at Node, in depth-first order.
    --  FIXME: only need IDs?
 

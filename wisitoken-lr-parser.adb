@@ -77,7 +77,7 @@ package body WisiToken.LR.Parser is
       use all type Semantic_Checks.Check_Status_Label;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Trace        : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
+      Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Nonterm      : WisiToken.Syntax_Trees.Valid_Node_Index;
       Status       : Semantic_Checks.Check_Status_Label;
    begin
@@ -276,12 +276,78 @@ package body WisiToken.LR.Parser is
       return False;
    end Duplicate_State;
 
+   ----------
+   --  Public subprograms, declaration order
+
+   overriding
+   procedure Finalize (Object : in out LR.Parser.Parser)
+   is
+      Action : Action_Node_Ptr;
+      Temp_Action : Action_Node_Ptr;
+      Parse_Action : Parse_Action_Node_Ptr;
+      Temp_Parse_Action : Parse_Action_Node_Ptr;
+
+      Got : Goto_Node_Ptr;
+      Temp_Got : Goto_Node_Ptr;
+   begin
+      if Object.Table = null then
+         return;
+      end if;
+
+      for State of Object.Table.States loop
+         Action := State.Action_List;
+         loop
+            exit when Action = null;
+            Parse_Action := Action.Action;
+            loop
+               exit when Parse_Action = null;
+               Temp_Parse_Action := Parse_Action;
+               Parse_Action := Parse_Action.Next;
+               Free (Temp_Parse_Action);
+            end loop;
+
+            Temp_Action := Action;
+            Action := Action.Next;
+            Free (Temp_Action);
+         end loop;
+
+         Got := State.Goto_List;
+         loop
+            exit when Got = null;
+            Temp_Got := Got;
+            Got := Got.Next;
+            Free (Temp_Got);
+         end loop;
+      end loop;
+
+      Free (Object.Table);
+   end Finalize;
+
+   procedure New_Parser
+     (Parser               :    out          LR.Parser.Parser;
+      Trace                : not null access WisiToken.Trace'Class;
+      Lexer                : in              WisiToken.Lexer.Handle;
+      Table                : in              Parse_Table_Ptr;
+      Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      First_Parser_Label   : in              Integer            := 1;
+      Terminate_Same_State : in              Boolean            := True)
+   is begin
+      Parser.Lexer                   := Lexer;
+      Parser.Trace                   := Trace;
+      Parser.Table                   := Table;
+      Parser.Enable_McKenzie_Recover :=
+        Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
+      Parser.Max_Parallel            := Max_Parallel;
+      Parser.First_Parser_Label      := First_Parser_Label;
+      Parser.Terminate_Same_State    := Terminate_Same_State;
+   end New_Parser;
+
    procedure Parse (Shared_Parser : in out LR.Parser.Parser)
    is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
-      Trace : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
+      Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
       Current_Verb   : All_Parse_Action_Verbs;
       Current_Parser : Parser_Lists.Cursor;
@@ -392,7 +458,8 @@ package body WisiToken.LR.Parser is
                   else
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Next_Grammar_Token
-                          (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State));
+                          (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State,
+                           Shared_Parser.Trace.Descriptor.all));
                   end if;
 
                   Parser_State.Current_Token_Is_Virtual := False;
@@ -414,7 +481,6 @@ package body WisiToken.LR.Parser is
                      Trace.Put (Parser_State.Tree.Image (Parser_State.Local_Lookahead, Trace.Descriptor.all));
                      Trace.Put (Token_Index'Image (Parser_State.Shared_Token));
                      Trace.New_Line;
-                     Shared_Parser.Semantic_State.Put;
                   end if;
 
                   if Parser_State.Local_Lookahead.Length > 0 then
@@ -704,67 +770,42 @@ package body WisiToken.LR.Parser is
       end loop;
    end Parse;
 
-   overriding
-   procedure Finalize (Object : in out LR.Parser.Parser)
+   procedure Execute_Actions
+     (Parser         : in out LR.Parser.Parser;
+      User_Data      : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Compute_Indent : in     Boolean)
    is
-      Action : Action_Node_Ptr;
-      Temp_Action : Action_Node_Ptr;
-      Parse_Action : Parse_Action_Node_Ptr;
-      Temp_Parse_Action : Parse_Action_Node_Ptr;
+      Descriptor : WisiToken.Descriptor'Class renames Parser.Trace.Descriptor.all;
 
-      Got : Goto_Node_Ptr;
-      Temp_Got : Goto_Node_Ptr;
+      procedure Process_Node
+        (Tree : in out Syntax_Trees.Tree;
+         Node : in     Syntax_Trees.Valid_Node_Index)
+      is
+         ID : Token_ID renames Tree.ID (Node);
+      begin
+         if ID < Descriptor.First_Nonterminal then
+            return;
+         end if;
+
+         declare
+            use all type Syntax_Trees.Semantic_Action;
+            Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
+            Aug_Nonterm   : Semantic_State.Augmented_Token renames Tree.Augmented_Token_Ref (Node);
+            Aug_Children  : constant Semantic_State.Augmented_Token_Array := Tree.Augmented_Token_Array
+              (Parser.Semantic_State.Terminals, Tree_Children);
+         begin
+            Semantic_State.Reduce (Aug_Nonterm, Aug_Children, Compute_Indent);
+
+            if Tree.Action (Node) /= null then
+               Tree.Action (Node) (User_Data, Parser.Semantic_State, Tree, Node, Tree_Children);
+            end if;
+         end;
+      end Process_Node;
+
    begin
-      if Object.Table = null then
-         return;
-      end if;
-
-      for State of Object.Table.States loop
-         Action := State.Action_List;
-         loop
-            exit when Action = null;
-            Parse_Action := Action.Action;
-            loop
-               exit when Parse_Action = null;
-               Temp_Parse_Action := Parse_Action;
-               Parse_Action := Parse_Action.Next;
-               Free (Temp_Parse_Action);
-            end loop;
-
-            Temp_Action := Action;
-            Action := Action.Next;
-            Free (Temp_Action);
-         end loop;
-
-         Got := State.Goto_List;
-         loop
-            exit when Got = null;
-            Temp_Got := Got;
-            Got := Got.Next;
-            Free (Temp_Got);
-         end loop;
+      for Parser_State of Parser.Parsers loop
+         Parser_State.Tree.Process_Tree (Process_Node'Access);
       end loop;
-
-      Free (Object.Table);
-   end Finalize;
-
-   procedure New_Parser
-     (Parser               :    out LR.Parser.Parser;
-      Lexer                : in     WisiToken.Lexer.Handle;
-      Table                : in     Parse_Table_Ptr;
-      Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
-      Max_Parallel         : in     SAL.Base_Peek_Type := Default_Max_Parallel;
-      First_Parser_Label   : in     Integer            := 1;
-      Terminate_Same_State : in     Boolean            := True)
-   is begin
-      Parser.Lexer                   := Lexer;
-      Parser.Table                   := Table;
-      Parser.Semantic_State          := Semantic_State;
-      Parser.Enable_McKenzie_Recover :=
-        Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
-      Parser.Max_Parallel            := Max_Parallel;
-      Parser.First_Parser_Label      := First_Parser_Label;
-      Parser.Terminate_Same_State    := Terminate_Same_State;
-   end New_Parser;
+   end Execute_Actions;
 
 end WisiToken.LR.Parser;

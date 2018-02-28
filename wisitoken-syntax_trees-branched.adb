@@ -24,10 +24,11 @@ package body WisiToken.Syntax_Trees.Branched is
    function Count_Terminals
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
-     return Integer
+     return SAL.Base_Peek_Type
    is
       use all type SAL.Base_Peek_Type;
-      Result : Integer := 0;
+
+      Result : SAL.Base_Peek_Type := 0;
    begin
       if Node <= Tree.Last_Shared_Node then
          case Tree.Shared_Tree.Nodes (Node).Label is
@@ -77,8 +78,8 @@ package body WisiToken.Syntax_Trees.Branched is
    procedure Get_Terminals
      (Tree   : in     Branched.Tree;
       Node   : in     Valid_Node_Index;
-      Result : in out Base_Token_Array;
-      Last   : in out Integer)
+      Result : in out WisiToken.Base_Token_Array;
+      Last   : in out Positive_Index_Type)
    is
       use all type SAL.Base_Peek_Type;
    begin
@@ -155,7 +156,8 @@ package body WisiToken.Syntax_Trees.Branched is
       Shared_Tree   : in     Shared_Tree_Access)
    is begin
       Branched_Tree :=
-        (Shared_Tree      => Shared_Tree,
+        (Ada.Finalization.Controlled with
+         Shared_Tree      => Shared_Tree,
          Last_Shared_Node => Shared_Tree.Nodes.Last_Index,
          Branched_Nodes   => <>);
    end Initialize;
@@ -164,8 +166,8 @@ package body WisiToken.Syntax_Trees.Branched is
    function Add_Nonterm
      (Tree    : in out Branched.Tree;
       Nonterm : in     WisiToken.Token_ID;
-      Virtual : in     Boolean                                  := False;
-      Action  : in     WisiToken.Semantic_State.Semantic_Action := null)
+      Virtual : in     Boolean         := False;
+      Action  : in     Semantic_Action := null)
      return Valid_Node_Index
    is begin
       Tree.Branched_Nodes.Append
@@ -209,9 +211,7 @@ package body WisiToken.Syntax_Trees.Branched is
      (Tree     : in out Branched.Tree;
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
-   is
-      use Ada.Containers;
-   begin
+   is begin
       if Children'Length = 0 then
          return;
       end if;
@@ -225,8 +225,9 @@ package body WisiToken.Syntax_Trees.Branched is
       end;
 
       declare
+         use all type SAL.Base_Peek_Type;
          N : Nonterm_Node renames Tree.Branched_Nodes (Parent - Tree.Last_Shared_Node);
-         J : Count_Type := Count_Type'First;
+         J : Positive_Index_Type := Positive_Index_Type'First;
       begin
          N.Children.Clear;
          N.Children.Set_Length (Children'Length);
@@ -243,6 +244,7 @@ package body WisiToken.Syntax_Trees.Branched is
    function Has_Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean
    is
       use all type Ada.Containers.Count_Type;
+      use all type Positive_Index_Type;
    begin
       if Node <= Tree.Last_Shared_Node then
          return Tree.Shared_Tree.Nodes (Node).Children.Length > 0;
@@ -412,6 +414,33 @@ package body WisiToken.Syntax_Trees.Branched is
       end if;
    end Base_Token;
 
+   Bogus : aliased Semantic_State.Augmented_Token;
+
+   overriding
+   function Augmented_Token_Ref
+     (Tree : in out Branched.Tree;
+      Node : in     Valid_Node_Index)
+     return Augmented_Ref
+   is
+      pragma Unreferenced (Tree, Node);
+   begin
+      raise SAL.Not_Implemented;
+      return (Element => Bogus'Access);
+   end Augmented_Token_Ref;
+
+   overriding
+   function Augmented_Token_Array
+     (Tree                : in out Branched.Tree;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Nodes               : in     Valid_Node_Index_Array)
+     return Semantic_State.Augmented_Token_Array
+   is
+      pragma Unreferenced (Tree, Augmented_Terminals, Nodes);
+   begin
+      raise SAL.Not_Implemented;
+      return (1 .. 0 => <>);
+   end Augmented_Token_Array;
+
    overriding
    function Virtual
      (Tree : in Branched.Tree;
@@ -448,14 +477,13 @@ package body WisiToken.Syntax_Trees.Branched is
       raise SAL.Programmer_Error with "syntax_trees.branched.delete: move branch point";
    end Delete;
 
-   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Array
+   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return WisiToken.Base_Token_Array
    is
-      Last : Integer := 0;
+      Last : SAL.Base_Peek_Type := 0;
    begin
-      return Result : Base_Token_Array (1 .. Count_Terminals (Tree, Node))  do
+      return Result : WisiToken.Base_Token_Array (1 .. Count_Terminals (Tree, Node))  do
          Get_Terminals (Tree, Node, Result, Last);
       end return;
    end Get_Terminals;
-
 
 end WisiToken.Syntax_Trees.Branched;

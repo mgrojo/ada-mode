@@ -95,7 +95,7 @@ package WisiToken.LR is
          State : State_Index;
       when Reduce | Accept_It =>
          LHS    : Token_ID;
-         Action : WisiToken.Semantic_State.Semantic_Action;
+         Action : WisiToken.Syntax_Trees.Semantic_Action;
          Check  : WisiToken.Semantic_Checks.Semantic_Check;
          Index  : Natural;
          --  Index of production among productions for a nonterminal,
@@ -110,7 +110,7 @@ package WisiToken.LR is
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec :=
-     (Reduce, Token_ID'First, WisiToken.Semantic_State.Null_Action, WisiToken.Semantic_Checks.Null_Check, 0, 0);
+     (Reduce, Token_ID'First, WisiToken.Syntax_Trees.Null_Action, WisiToken.Semantic_Checks.Null_Check, 0, 0);
 
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String;
    --  Ada aggregate syntax, leaving out Semantic_Action in reduce.
@@ -172,7 +172,7 @@ package WisiToken.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
@@ -183,7 +183,7 @@ package WisiToken.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Shift/Reduce conflict to State.
 
@@ -194,12 +194,12 @@ package WisiToken.LR is
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Semantic_Action_1 : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Action_1 : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     WisiToken.Semantic_Checks.Semantic_Check;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Semantic_Action_2 : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Action_2 : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check_2  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
 
@@ -469,7 +469,8 @@ private
    function Next_Grammar_Token
      (Terminals      : in out          Base_Token_Arrays.Vector;
       Lexer          : not null access WisiToken.Lexer.Instance'Class;
-      Semantic_State : not null access WisiToken.Semantic_State.Semantic_State'Class)
+      Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
+      Descriptor     : in              WisiToken.Descriptor'Class)
      return Token_Index;
    --  Get next token from Lexer, call Semantic_State.Lexer_To_Augmented.
    --  If it is a grammar token, store in Terminals and return its ID.

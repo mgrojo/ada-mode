@@ -19,7 +19,19 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Syntax_Trees is
 
-   --  Abstract_Tree operations
+   --  Abstract_Tree public operations
+
+   function Base_Token_Array
+     (Tree  : in Abstract_Tree;
+      Nodes : in Valid_Node_Index_Array)
+     return WisiToken.Base_Token_Array
+   is begin
+      return Result : WisiToken.Base_Token_Array (Nodes'First .. Nodes'Last) do
+         for I in Result'Range loop
+            Result (I) := Abstract_Tree'Class (Tree).Base_Token (Nodes (I));
+         end loop;
+      end return;
+   end Base_Token_Array;
 
    function Image
      (Tree       : in Abstract_Tree;
@@ -77,14 +89,61 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    ----------
-   --  Syntax_Tree.Tree operations
+   --  Syntax_Tree.Tree private operations
+
+   procedure Process_Tree
+     (Tree         : in out Syntax_Trees.Tree;
+      Node         : in     Valid_Node_Index;
+      Process_Node : access procedure
+        (Tree : in out Syntax_Trees.Tree;
+         Node : in     Valid_Node_Index))
+   is
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      if N.Label = Nonterm then
+         for Child of N.Children loop
+            Process_Tree (Tree, Child, Process_Node);
+         end loop;
+      end if;
+
+      Process_Node (Tree, Node);
+   end Process_Tree;
+
+   ----------
+   --  Syntax_Tree.Tree public operations
+
+   overriding procedure Finalize (Tree : in out Syntax_Trees.Tree)
+   is
+      procedure Process_Node
+        (Tree : in out Syntax_Trees.Tree;
+         Node : in     Valid_Node_Index)
+      is begin
+         if Tree.Nodes (Node).Label = Nonterm then
+            Semantic_State.Free (Tree.Nodes (Node).Augmented);
+         end if;
+      end Process_Node;
+
+   begin
+      if Tree.Augmented_Present then
+         Tree.Process_Tree (Process_Node'Access);
+         Tree.Augmented_Present := False;
+      end if;
+   end Finalize;
+
+   overriding procedure Adjust (Tree : in out Syntax_Trees.Tree)
+   is begin
+      if Tree.Augmented_Present then
+         --  FIXME:
+         raise SAL.Not_Implemented;
+      end if;
+   end Adjust;
 
    overriding
    function Add_Nonterm
      (Tree    : in out Syntax_Trees.Tree;
       Nonterm : in     WisiToken.Token_ID;
-      Virtual : in     Boolean                                  := False;
-      Action  : in     WisiToken.Semantic_State.Semantic_Action := null)
+      Virtual : in     Boolean         := False;
+      Action  : in     Semantic_Action := null)
      return Valid_Node_Index
    is begin
       Tree.Nodes.Append
@@ -116,35 +175,29 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes.Last_Index;
    end Add_Terminal;
 
-   procedure Set_Child
-     (Tree   : in out Syntax_Trees.Tree;
-      Parent : in     Valid_Node_Index;
-      Child  : in     Valid_Node_Index)
-   is begin
-      Tree.Nodes (Parent).Children.Append (Child);
-      Tree.Nodes (Child).Parent := Parent;
-   end Set_Child;
-
    overriding
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
    is
-      use Ada.Containers;
+      use all type SAL.Base_Peek_Type;
+
       N : Nonterm_Node renames Tree.Nodes (Parent);
-      J : Count_Type := Count_Type'First;
+      J : Positive_Index_Type := Positive_Index_Type'First;
 
       Child_Byte_Region : Buffer_Region;
    begin
+      if Tree.Traversing then
+         raise Programmer_Error with "called Set_Children while traversing tree";
+      end if;
+
       N.Children.Clear;
       N.Children.Set_Length (Children'Length);
       for I in Children'Range loop
          N.Children (J) := Children (I);
          Tree.Nodes (Children (I)).Parent := Parent;
 
-         --  FIXME: time with and without this. very useful for debugging, not
-         --  needed until action execute, some actions don't need it.
          case Tree.Nodes (Children (I)).Label is
          when Shared_Terminal =>
             Child_Byte_Region := Tree.Terminals.all (Tree.Nodes (Children (I)).Terminal).Byte_Region;
@@ -165,6 +218,17 @@ package body WisiToken.Syntax_Trees is
          J := J + 1;
       end loop;
    end Set_Children;
+
+   function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
+   is
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      return Result : Valid_Node_Index_Array (N.Children.First_Index .. N.Children.Last_Index) do
+         for I in Result'Range loop
+            Result (I) := N.Children (I);
+         end loop;
+      end return;
+   end Children;
 
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is
@@ -282,5 +346,85 @@ package body WisiToken.Syntax_Trees is
          return N.Virtual;
       end case;
    end Virtual;
+
+   function Action
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Semantic_Action
+   is begin
+      return Tree.Nodes (Node).Action;
+   end Action;
+
+   overriding
+   function Augmented_Token_Ref
+     (Tree : in out Syntax_Trees.Tree;
+      Node : in     Valid_Node_Index)
+     return Augmented_Ref
+   is
+      use all type Semantic_State.Augmented_Token_Access;
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      if N.Augmented = null then
+         N.Augmented := new Semantic_State.Augmented_Token'
+           (ID          => N.Nonterm_ID,
+            Byte_Region => N.Byte_Region,
+            others      => <>);
+      end if;
+      return (Element => Tree.Nodes (Node).Augmented);
+   end Augmented_Token_Ref;
+
+   procedure Set_Augmented
+     (Tree      : in out Syntax_Trees.Tree;
+      Node      : in     Valid_Node_Index;
+      Augmented : in     Semantic_State.Augmented_Token)
+   is begin
+      Tree.Nodes (Node).Augmented := new Semantic_State.Augmented_Token'(Augmented);
+
+      Tree.Augmented_Present := True;
+   end Set_Augmented;
+
+   overriding
+   function Augmented_Token_Array
+     (Tree                : in out Syntax_Trees.Tree;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Nodes               : in     Valid_Node_Index_Array)
+     return Semantic_State.Augmented_Token_Array
+   is begin
+      return Result : Semantic_State.Augmented_Token_Array (Nodes'First .. Nodes'Last) do
+         for I in Result'Range loop
+            declare
+               N : Node renames Tree.Nodes (Nodes (I));
+            begin
+               case N.Label is
+               when Shared_Terminal =>
+                  Result (I) := Augmented_Terminals (N.Terminal);
+               when Virtual_Terminal =>
+                  Result (I) := (ID => N.Terminal_ID, others => <>);
+               when Nonterm =>
+                  Result (I) := Tree.Augmented_Token_Ref (Nodes (I));
+               end case;
+            end;
+         end loop;
+      end return;
+   end Augmented_Token_Array;
+
+   procedure Process_Tree
+     (Tree         : in out Syntax_Trees.Tree;
+      Process_Node : access procedure
+        (Tree : in out Syntax_Trees.Tree;
+         Node : in     Valid_Node_Index))
+   is begin
+      Tree.Traversing := True;
+      for N in Tree.Nodes.First_Index .. Tree.Nodes.Last_Index loop
+         if Tree.Nodes (N).Parent = 0 then
+            Process_Tree (Tree, N, Process_Node);
+         end if;
+      end loop;
+      Tree.Traversing := False;
+   exception
+   when others =>
+      Tree.Traversing := False;
+      raise;
+   end Process_Tree;
 
 end WisiToken.Syntax_Trees;

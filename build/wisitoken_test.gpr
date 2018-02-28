@@ -39,16 +39,25 @@ project WisiToken_Test is
    end case;
 
    package Compiler is
-      -- AUnit requires -fno-strict-aliasing
-      for Default_Switches ("Ada") use
-        WisiToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
+      for Default_Switches ("Ada") use WisiToken.Compiler'Default_Switches ("Ada");
+
+      --  User actions are not properly indented; leave out style 'il' layout
+      --  redundant with clauses; add -gnatwR
+      Generated_Debug_Switches := ("-gnaty3abcefhknOprtx") & Standard_Common.Compiler.Debug_Switches & ("-gnatwR");
+      Generated_Release_Switches := ("-gnaty3abcefhknOprtx") & Standard_Common.Compiler.Release_Switches & ("-gnatwR");
 
       case Standard_Common.Build is
       when "Debug" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C_Non_Pedantic;
 
+         for Switches ("character_literal.adb") use Generated_Debug_Switches;
+
       when "Normal" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C_Non_Pedantic;
+
+         --  User actions are not properly indented; leave out 'i' layout
+         for Switches ("character_literal.adb") use Generated_Release_Switches;
+
       end case;
 
    end Compiler;

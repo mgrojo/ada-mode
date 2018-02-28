@@ -56,7 +56,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Output_Language is
       when Ada =>
-         Put_Line ("with WisiToken.Semantic_State;");
+         null;
 
       when Ada_Emacs =>
          case Interface_Kind is
@@ -196,9 +196,9 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser         :    out WisiToken.LR.Parser.Parser;");
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);");
+         Indent_Line ("  (Parser    :    out WisiToken.LR.Parser.Parser;");
+         Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Trace     : not null access WisiToken.Trace'Class);");
          New_Line;
 
       when Ada_Emacs =>
@@ -639,12 +639,9 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("procedure Create_Parser");
       Indent_Line ("  (Parser         :    out WisiToken.LR.Parser.Parser;");
       case Interface_Kind is
-      when None =>
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access)");
-      when Process =>
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access)");
+      when None | Process =>
+         Indent_Line ("   Algorithm : in WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Trace     : not null access WisiToken.Trace'Class)");
       when Module =>
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
          Indent_Line ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value)");
@@ -714,9 +711,9 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("  (Parser,");
       case Interface_Kind is
       when None | Process =>
-         Indent_Line ("   Lexer.New_Lexer (Semantic_State.Trace),");
+         Indent_Line ("   Trace,");
+         Indent_Line ("   Lexer.New_Lexer (Trace),");
          Indent_Line ("   Table,");
-         Indent_Line ("   Semantic_State,");
          Indent_Line ("   Max_Parallel         => 15,");
          Indent_Line ("   First_Parser_Label   => " & WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2013, 2014, 2015, 2017 Stephe Leake
+--  Copyright (C) 2013, 2014, 2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -45,17 +45,17 @@ package body WisiToken.Production is
       end return;
    end "&";
 
-   function "+" (Tokens : in Token_ID_Lists.List; Action : in Semantic_State.Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID_Lists.List; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
       return (Tokens, Action, 0);
    end "+";
 
-   function "+" (Tokens : in Token_ID; Action : in Semantic_State.Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
       return (Only (Tokens), Action, 0);
    end "+";
 
-   function "+" (Action : in Semantic_State.Semantic_Action) return Right_Hand_Side
+   function "+" (Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
       return (Token_ID_Lists.Empty_List, Action, 0);
    end "+";

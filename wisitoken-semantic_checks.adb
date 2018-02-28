@@ -52,8 +52,8 @@ package body WisiToken.Semantic_Checks is
      (Syntax_Tree  : in WisiToken.Syntax_Trees.Abstract_Tree'Class;
       Lexer        : in WisiToken.Lexer.Handle;
       Tokens       : in WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Start_Index  : in Ada.Containers.Count_Type;
-      End_Index    : in Ada.Containers.Count_Type;
+      Start_Index  : in Positive_Index_Type;
+      End_Index    : in Positive_Index_Type;
       End_Optional : in Boolean)
      return Check_Status
    is
@@ -104,7 +104,7 @@ package body WisiToken.Semantic_Checks is
      (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
       Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Name_Index  : in     Ada.Containers.Count_Type)
+      Name_Index  : in     Positive_Index_Type)
      return Check_Status
    is begin
       Syntax_Tree.Set_Name_Region (Nonterm, Syntax_Tree.Name_Region (Tokens (Name_Index)));
@@ -115,8 +115,8 @@ package body WisiToken.Semantic_Checks is
      (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
       Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      First_Index : in     Ada.Containers.Count_Type;
-      Last_Index  : in     Ada.Containers.Count_Type)
+      First_Index : in     Positive_Index_Type;
+      Last_Index  : in     Positive_Index_Type)
      return Check_Status
    is
       First_Name_Region : Buffer_Region renames Syntax_Tree.Name_Region (Tokens (First_Index));

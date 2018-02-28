@@ -32,9 +32,10 @@ package WisiToken.LR.Parser is
    Default_Max_Parallel : constant := 15;
 
    type Parser is new Ada.Finalization.Limited_Controlled with record
+      Trace          : access WisiToken.Trace'Class;
       Lexer          : WisiToken.Lexer.Handle;
       Table          : Parse_Table_Ptr;
-      Semantic_State : WisiToken.Semantic_State.Semantic_State_Access;
+      Semantic_State : WisiToken.Semantic_State.Semantic_State;
 
       Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Does not contain
@@ -58,13 +59,13 @@ package WisiToken.LR.Parser is
    --  wisitoken-lr-parser and -lr-mckenzie_recover.
 
    procedure New_Parser
-     (Parser               :    out LR.Parser.Parser;
-      Lexer                : in     WisiToken.Lexer.Handle;
-      Table                : in     Parse_Table_Ptr;
-      Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
-      Max_Parallel         : in     SAL.Base_Peek_Type := Default_Max_Parallel;
-      First_Parser_Label   : in     Integer            := 1;
-      Terminate_Same_State : in     Boolean            := True);
+     (Parser               :    out          LR.Parser.Parser;
+      Trace                : not null access WisiToken.Trace'Class;
+      Lexer                : in              WisiToken.Lexer.Handle;
+      Table                : in              Parse_Table_Ptr;
+      Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      First_Parser_Label   : in              Integer            := 1;
+      Terminate_Same_State : in              Boolean            := True);
 
    procedure Parse (Shared_Parser : in out LR.Parser.Parser);
    --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
@@ -81,5 +82,11 @@ package WisiToken.LR.Parser is
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message. Semantic_State contains information
    --  about previous recovered errors.
+
+   procedure Execute_Actions
+     (Parser         : in out LR.Parser.Parser;
+      User_Data      : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Compute_Indent : in     Boolean);
+   --  Execute the grammar actions in Parser.
 
 end WisiToken.LR.Parser;

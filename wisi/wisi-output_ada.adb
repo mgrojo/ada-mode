@@ -22,10 +22,11 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.LR.LR1_Generator;
-with WisiToken.LR.LALR_Generator;
+with GNAT.Regexp;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Utils;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LR1_Generator;
 procedure Wisi.Output_Ada
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
@@ -44,17 +45,34 @@ is
    package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Params);
    use Common;
 
+   function Symbol_Regexp (Item : in String) return String
+   is begin
+      --  Return a regular expression string that matches Item as a symbol;
+      --  it must be preceded and followed by non-symbol characters.
+      --
+      --  GNAT.Regexp does not have a char for 'end of string', so we hope
+      --  that doesn't occur. Sigh.
+      return ".*[ (\.]" & Item & "[ );\.].*";
+   end Symbol_Regexp;
+
    procedure Create_Ada_Body
    is
       use all type WisiToken.LR.Unknown_State_Index;
       use Generate_Utils;
+      use GNAT.Regexp;
       use Wisi.Utils;
 
       File_Name               : constant String := Output_File_Name_Root & ".adb";
       Package_Name            : constant String := -Data.Package_Name_Root;
       Lower_Package_Name_Root : constant String := -Data.Lower_Package_Name_Root;
 
-      Body_File    : File_Type;
+      User_Data_Regexp    : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive    => False);
+      State_Regexp        : constant Regexp := Compile (Symbol_Regexp ("State"), Case_Sensitive        => False);
+      Tree_Regexp         : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive         => False);
+      Tree_Nonterm_Regexp : constant Regexp := Compile (Symbol_Regexp ("Tree_Nonterm"), Case_Sensitive => False);
+      Tree_Tokens_Regexp  : constant Regexp := Compile (Symbol_Regexp ("Tree_Tokens"), Case_Sensitive  => False);
+
+      Body_File : File_Type;
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
          Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
@@ -103,9 +121,14 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
+      if Action_Count > 0 then
+         Put_Line ("with WisiToken.Semantic_State;");
+      end if;
+      if Action_Count > 0 or Check_Count > 0 then
+         Put_Line ("with WisiToken.Syntax_Trees;");
+      end if;
       if Check_Count > 0 then
          Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
-         Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
@@ -155,32 +178,82 @@ is
 
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
-                     Unref_Nonterm : Boolean := True;
-                     Unref_Tokens  : Boolean := True;
-                  begin
-                     for Line of RHS.Action loop
-                        if 0 < Index (Line, "Nonterm") then
+                     Unref_User_Data : Boolean := True;
+                     Unref_State     : Boolean := True;
+                     Unref_Tree      : Boolean := True;
+                     Unref_Nonterm   : Boolean := True;
+                     Unref_Tokens    : Boolean := True;
+                     Need_Comma      : Boolean := False;
+
+                     procedure Check_Unref (Line : in String)
+                     is begin
+                        if Match (Line, User_Data_Regexp) then
+                           Unref_User_Data := False;
+                        end if;
+                        if Match (Line, State_Regexp) then
+                           Unref_State := False;
+                        end if;
+                        if Match (Line, Tree_Regexp) then
+                           Unref_Tree := False;
+                        end if;
+                        if Match (Line, Tree_Nonterm_Regexp) then
                            Unref_Nonterm := False;
                         end if;
-                        if 0 < Index (Line, "Tokens") then
+                        if Match (Line, Tree_Tokens_Regexp) then
                            Unref_Tokens := False;
                         end if;
+                     end Check_Unref;
+
+                  begin
+                     for Line of Params.Action_Declarations loop
+                        Check_Unref (Line);
+                     end loop;
+                     for Line of RHS.Action loop
+                        Check_Unref (Line);
                      end loop;
 
                      Action_All_Empty := False;
 
                      Action_Names (Prod_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
-                     Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token;");
-                     Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)");
+                     Indent_Line (" (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
+                     Indent_Line ("  State        : in out WisiToken.Semantic_State.Semantic_State;");
+                     Indent_Line ("  Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;");
+                     Indent_Line ("  Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
+                     Indent_Line ("  Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
                      Indent_Line ("is");
 
-                     if Unref_Nonterm then
-                        Indent_Line ("   pragma Unreferenced (Nonterm);");
+                     if Unref_User_Data or Unref_State or Unref_Tree or Unref_Nonterm or Unref_Tokens then
+                        Indent_Start ("   pragma Unreferenced (");
+
+                        if Unref_User_Data then
+                           Put ((if Need_Comma then ", " else "") & "User_Data");
+                           Need_Comma := True;
+                        end if;
+                        if Unref_State then
+                           Put ((if Need_Comma then ", " else "") & "State");
+                           Need_Comma := True;
+                        end if;
+                        if Unref_Tree then
+                           Put ((if Need_Comma then ", " else "") & "Tree");
+                           Need_Comma := True;
+                        end if;
+                        if Unref_Nonterm then
+                           Put ((if Need_Comma then ", " else "") & "Tree_Nonterm");
+                           Need_Comma := True;
+                        end if;
+                        if Unref_Tokens then
+                           Put ((if Need_Comma then ", " else "") & "Tree_Tokens");
+                           Need_Comma := True;
+                        end if;
+                        Put_Line (");");
                      end if;
-                     if Unref_Tokens then
-                        Indent_Line ("   pragma Unreferenced (Tokens);");
-                     end if;
+
+                     Indent := Indent + 3;
+                     for Line of Params.Action_Declarations loop
+                        Indent_Line (Line);
+                     end loop;
+                     Indent := Indent - 3;
 
                      Indent_Line ("begin");
                      Indent := Indent + 3;

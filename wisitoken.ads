@@ -231,7 +231,9 @@ package WisiToken is
    package Token_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_Index);
    --  FIXME: used where?
 
-   type Base_Token_Array is array (Natural range <>) of Base_Token;
+   type Base_Token_Array is array (Positive_Index_Type range <>) of Base_Token;
+   --  1 indexed to match previous version, and grammar file token
+   --  indices in grammar actions.
 
    package Base_Token_Arrays is new Ada.Containers.Vectors (Token_Index, Base_Token);
 
@@ -268,9 +270,7 @@ package WisiToken is
    --  Extra   - add error recovery parse actions
 
    type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
-   --  Output for tests/debugging. Derived types should support
-   --  Ada.Text_IO, and a protocol for inter-process communication for
-   --  running a parser as a subprocess of an IDE.
+   --  Output for tests/debugging.
 
    procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace display.

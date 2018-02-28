@@ -3,7 +3,7 @@
 --  Type and operations for building grammar
 --  productions.
 --
---  Copyright (C) 2003, 2013 - 2015, 2017 Stephe Leake
+--  Copyright (C) 2003, 2013 - 2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -31,13 +31,13 @@ pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Token_ID_Lists;
 package WisiToken.Production is
 
    type Right_Hand_Side is record
       Tokens : WisiToken.Token_ID_Lists.List;
-      Action : WisiToken.Semantic_State.Semantic_Action;
+      Action : WisiToken.Syntax_Trees.Semantic_Action;
       --  No semantic_check here; only supported in Wisi source files.
       Index  : Integer;
       --  Index of production among productions for a single nonterminal (the LHS)
@@ -48,13 +48,13 @@ package WisiToken.Production is
 
    function "+"
      (Tokens : in Token_ID_Lists.List;
-      Action : in WisiToken.Semantic_State.Semantic_Action)
+      Action : in WisiToken.Syntax_Trees.Semantic_Action)
      return Right_Hand_Side;
    function "+"
      (Tokens : in Token_ID;
-      Action : in WisiToken.Semantic_State.Semantic_Action)
+      Action : in WisiToken.Syntax_Trees.Semantic_Action)
      return Right_Hand_Side;
-   function "+" (Action : in WisiToken.Semantic_State.Semantic_Action) return Right_Hand_Side;
+   function "+" (Action : in WisiToken.Syntax_Trees.Semantic_Action) return Right_Hand_Side;
 
    function "+" (Tokens : in Token_ID_Lists.List; Index  : in Integer) return Right_Hand_Side;
    function "+" (Tokens : in Token_ID; Index  : in Integer) return Right_Hand_Side;
