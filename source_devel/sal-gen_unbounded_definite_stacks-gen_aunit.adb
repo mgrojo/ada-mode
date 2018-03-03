@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -25,8 +25,8 @@ pragma License (Modified_GPL);
 with SAL.AUnit;
 procedure SAL.Gen_Unbounded_Definite_Stacks.Gen_AUnit
   (Label    : in String;
-   Computed : in Stack_Type;
-   Expected : in Stack_Type)
+   Computed : in Stack;
+   Expected : in Stack)
 is begin
    SAL.AUnit.Check (Label & ".Depth", Computed.Depth, Expected.Depth);
    for I in 1 .. Computed.Depth loop

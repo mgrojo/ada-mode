@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -30,7 +30,7 @@ package body Test_Stacks is
 
    procedure Check
      (Label    : in String;
-      Computed : in Unbounded_Definite_Stacks.Stack_Type;
+      Computed : in Unbounded_Definite_Stacks.Stack;
       Expected : in Integer_Array_Type)
    is
       use AUnit.Checks;
@@ -54,7 +54,7 @@ package body Test_Stacks is
       use AUnit.Checks;
       use SAL.AUnit;
 
-      Stack : Unbounded_Definite_Stacks.Stack_Type;
+      Stack : Unbounded_Definite_Stacks.Stack;
    begin
 
       Check ("0a", Stack.Is_Empty, True);
@@ -62,7 +62,7 @@ package body Test_Stacks is
 
       --  Assign (copy) an empty stack; test Adjust
       declare
-         Stack_2 : Unbounded_Definite_Stacks.Stack_Type;
+         Stack_2 : Unbounded_Definite_Stacks.Stack;
          pragma Unreferenced (Stack_2);
       begin
          Stack_2 := Stack;
@@ -125,10 +125,10 @@ package body Test_Stacks is
       use AUnit.Checks;
       use SAL.AUnit;
 
-      Stack_1 : Unbounded_Definite_Stacks.Stack_Type;
-      Stack_2 : Unbounded_Definite_Stacks.Stack_Type;
+      Stack_1 : Unbounded_Definite_Stacks.Stack;
+      Stack_2 : Unbounded_Definite_Stacks.Stack;
 
-      use all type Unbounded_Definite_Stacks.Stack_Type; -- "="
+      use all type Unbounded_Definite_Stacks.Stack; -- "="
    begin
       --  Compare stacks that have different Data'Last, but same content.
       --  Also test Adjust with non-empty stack.

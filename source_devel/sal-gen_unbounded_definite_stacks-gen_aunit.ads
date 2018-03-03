@@ -2,7 +2,7 @@
 --
 --  AUnit check for parent
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,5 +21,5 @@ generic
    with procedure Check_Element (Label : in String; Computed, Expected : in Element_Type);
 procedure SAL.Gen_Unbounded_Definite_Stacks.Gen_AUnit
   (Label    : in String;
-   Computed : in Stack_Type;
-   Expected : in Stack_Type);
+   Computed : in Stack;
+   Expected : in Stack);

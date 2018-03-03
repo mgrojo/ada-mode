@@ -28,57 +28,63 @@ generic
    type Element_Type is private;
 package SAL.Gen_Unbounded_Definite_Stacks is
 
-   type Stack_Type is new Ada.Finalization.Controlled with private;
+   package Sguds renames SAL.Gen_Unbounded_Definite_Stacks;
 
-   Empty_Stack : constant Stack_Type;
+   type Stack is new Ada.Finalization.Controlled with private
+   with
+     Constant_Indexing => Constant_Ref;
 
-   overriding procedure Finalize (Stack : in out Stack_Type);
-   overriding procedure Adjust (Stack : in out Stack_Type);
+   Empty_Stack : constant Stack;
 
-   overriding function "=" (Left, Right : in Stack_Type) return Boolean;
+   overriding procedure Finalize (Stack : in out Sguds.Stack);
+   overriding procedure Adjust (Stack : in out Sguds.Stack);
 
-   procedure Clear (Stack : in out Stack_Type);
+   overriding function "=" (Left, Right : in Sguds.Stack) return Boolean;
+
+   procedure Clear (Stack : in out Sguds.Stack);
    --  Empty Stack of all items.
 
-   function Depth (Stack : in Stack_Type) return Base_Peek_Type;
+   function Depth (Stack : in Sguds.Stack) return Base_Peek_Type;
    --  Returns current count of items in the Stack
 
-   function Is_Empty (Stack : in Stack_Type) return Boolean;
+   function Is_Empty (Stack : in Sguds.Stack) return Boolean;
    --  Returns true iff no items are in Stack.
 
    function Peek
-     (Stack : in Stack_Type;
+     (Stack : in Sguds.Stack;
       Index : in Peek_Type := 1)
      return Element_Type;
    --  Return the Index'th item from the top of Stack; the Item is _not_ removed.
    --  Top item has index 1.
    --
    --  Raises Constraint_Error if Index > Depth.
+   --
+   --  See also Constant_Ref, implicit indexing
 
-   procedure Pop (Stack : in out Stack_Type; Count : in Base_Peek_Type := 1);
+   procedure Pop (Stack : in out Sguds.Stack; Count : in Base_Peek_Type := 1);
    --  Remove Count Items from the top of Stack, discard them.
    --
    --  Raises Container_Empty if there are fewer than Count items on
    --  Stack.
 
-   function Pop (Stack : in out Stack_Type) return Element_Type;
+   function Pop (Stack : in out Sguds.Stack) return Element_Type;
    --  Remove Item from the top of Stack, and return it.
    --
    --  Raises Container_Empty if Is_Empty.
 
-   procedure Push (Stack : in out Stack_Type; Item : in Element_Type);
+   procedure Push (Stack : in out Sguds.Stack; Item : in Element_Type);
    --  Add Item to the top of Stack.
    --
    --  May raise Container_Full.
 
-   function Top (Stack : in Stack_Type) return Element_Type;
+   function Top (Stack : in Sguds.Stack) return Element_Type;
    --  Return the item at the top of Stack; the Item is _not_ removed.
    --  Same as Peek (Stack, 1).
    --
    --  Raises Container_Empty if Is_Empty.
 
    procedure Set_Depth
-     (Stack : in out Stack_Type;
+     (Stack : in out Sguds.Stack;
       Depth : in     Peek_Type);
    --  Empty Stack, set its Depth to Depth. Must be followed by Set
    --  for each element.
@@ -86,7 +92,7 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --  Useful when creating a stack from pre-existing data.
 
    procedure Set
-     (Stack   : in out Stack_Type;
+     (Stack   : in out Sguds.Stack;
       Index   : in     Peek_Type;
       Depth   : in     Peek_Type;
       Element : in     Element_Type);
@@ -97,13 +103,24 @@ package SAL.Gen_Unbounded_Definite_Stacks is
    --
    --  Useful when creating a stack from pre-existing data.
 
+   type Constant_Ref_Type (Element : not null access constant Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record
+   with Implicit_Dereference => Element;
+
+   function Constant_Ref
+     (Container : aliased in Stack'Class;
+      Position  :         in Peek_Type)
+     return Constant_Ref_Type;
+
 private
 
-   type Element_Array is array (Peek_Type range <>) of Element_Type;
+   type Element_Array is array (Peek_Type range <>) of aliased Element_Type;
    type Element_Array_Access is access Element_Array;
    procedure Free is new Ada.Unchecked_Deallocation (Element_Array, Element_Array_Access);
 
-   type Stack_Type is new Ada.Finalization.Controlled with record
+   type Stack is new Ada.Finalization.Controlled with record
       Top  : Base_Peek_Type := Invalid_Peek_Index; -- empty
       Data : Element_Array_Access;
 
@@ -111,6 +128,6 @@ private
       --  Data (1 .. Last_Index) has been set at some point.
    end record;
 
-   Empty_Stack : constant Stack_Type := (Ada.Finalization.Controlled with Invalid_Peek_Index, null);
+   Empty_Stack : constant Stack := (Ada.Finalization.Controlled with Invalid_Peek_Index, null);
 
 end SAL.Gen_Unbounded_Definite_Stacks;

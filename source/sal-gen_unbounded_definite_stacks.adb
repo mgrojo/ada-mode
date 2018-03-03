@@ -30,7 +30,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
    ----------
    --  local subprogram bodies
 
-   procedure Grow (Stack : in out Stack_Type; Desired_Size : in Base_Peek_Type)
+   procedure Grow (Stack : in out Sguds.Stack; Desired_Size : in Base_Peek_Type)
    is
       New_Data : constant Element_Array_Access := new Element_Array (1 .. Desired_Size);
    begin
@@ -41,7 +41,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
 
    ----------
    --  Spec visible subprograms
-   overriding procedure Finalize (Stack : in out Stack_Type)
+   overriding procedure Finalize (Stack : in out Sguds.Stack)
    is begin
       if Stack.Data /= null then
          Free (Stack.Data);
@@ -49,7 +49,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       end if;
    end Finalize;
 
-   overriding procedure Adjust (Stack : in out Stack_Type)
+   overriding procedure Adjust (Stack : in out Sguds.Stack)
    is begin
       if Stack.Data /= null then
          Stack.Data := new Element_Array'(Stack.Data.all);
@@ -57,7 +57,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
    end Adjust;
 
    overriding
-   function "=" (Left, Right : in Stack_Type) return Boolean
+   function "=" (Left, Right : in Sguds.Stack) return Boolean
    is begin
       if Left.Data = null then
          return Right.Data = null;
@@ -74,32 +74,32 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       end if;
    end "=";
 
-   procedure Clear (Stack : in out Stack_Type)
+   procedure Clear (Stack : in out Sguds.Stack)
    is begin
       --  We don't change the reserved capacity, on the assumption the
       --  stack will be used again.
       Stack.Top := 0;
    end Clear;
 
-   function Depth (Stack : in Stack_Type) return Base_Peek_Type
+   function Depth (Stack : in Sguds.Stack) return Base_Peek_Type
    is begin
       return Stack.Top;
    end Depth;
 
-   function Is_Empty (Stack : in Stack_Type) return Boolean
+   function Is_Empty (Stack : in Sguds.Stack) return Boolean
    is begin
       return Stack.Top = 0;
    end Is_Empty;
 
    function Peek
-     (Stack : in Stack_Type;
+     (Stack : in Sguds.Stack;
       Index : in Peek_Type := 1)
      return Element_Type
    is begin
       return Stack.Data (Stack.Top - Index + 1);
    end Peek;
 
-   procedure Pop (Stack : in out Stack_Type; Count : in Base_Peek_Type := 1)
+   procedure Pop (Stack : in out Sguds.Stack; Count : in Base_Peek_Type := 1)
    is begin
       if Stack.Top < Count then
          raise Container_Empty;
@@ -108,7 +108,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       end if;
    end Pop;
 
-   function Pop (Stack : in out Stack_Type) return Element_Type
+   function Pop (Stack : in out Sguds.Stack) return Element_Type
    is begin
       if Stack.Top = 0 then
          raise Container_Empty;
@@ -120,7 +120,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       end if;
    end Pop;
 
-   procedure Push (Stack : in out Stack_Type; Item : in Element_Type)
+   procedure Push (Stack : in out Sguds.Stack; Item : in Element_Type)
    is begin
       if Stack.Data = null then
          --  Adding a generic parameter for a reasonably large default initial
@@ -134,7 +134,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       Stack.Data (Stack.Top) := Item;
    end Push;
 
-   function Top (Stack : in Stack_Type) return Element_Type
+   function Top (Stack : in Sguds.Stack) return Element_Type
    is begin
       if Stack.Top < 1 then
          raise SAL.Container_Empty;
@@ -144,7 +144,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
    end Top;
 
    procedure Set_Depth
-     (Stack : in out Stack_Type;
+     (Stack : in out Sguds.Stack;
       Depth : in     Peek_Type)
    is begin
       if Stack.Data = null then
@@ -155,7 +155,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
    end Set_Depth;
 
    procedure Set
-     (Stack   : in out Stack_Type;
+     (Stack   : in out Sguds.Stack;
       Index   : in     Peek_Type;
       Depth   : in     Peek_Type;
       Element : in     Element_Type)
@@ -164,5 +164,15 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       Stack.Top := Depth;
       Stack.Data (Depth - Index + 1) := Element;
    end Set;
+
+   function Constant_Ref
+     (Container : aliased in Stack'Class;
+      Position  :         in Peek_Type)
+     return Constant_Ref_Type
+   is begin
+      return
+        (Element => Container.Data (Container.Top - Position + 1)'Access,
+         Dummy => 1);
+   end Constant_Ref;
 
 end SAL.Gen_Unbounded_Definite_Stacks;
