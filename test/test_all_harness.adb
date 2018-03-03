@@ -40,7 +40,7 @@ with Test_Red_Black_Trees;
 with Test_Stacks;
 with Test_Stats;
 with Test_Unbounded_Definite_Vectors;
-with Test_Unbounded_Definite_Vectors_Task_Safe;
+with Test_Unbounded_Definite_Vectors_Protected;
 procedure Test_All_Harness
 is
    --  command line arguments: [<verbose> [test_name [routine_name]]]
@@ -105,7 +105,7 @@ begin
    Add_Test (Suite, new Test_Red_Black_Trees.Test_Case);
    Add_Test (Suite, new Test_Stacks.Test_Case);
    Add_Test (Suite, new Test_Stats.Test_Case);
-   Add_Test (Suite, new Test_Unbounded_Definite_Vectors_Task_Safe.Test_Case);
+   Add_Test (Suite, new Test_Unbounded_Definite_Vectors_Protected.Test_Case);
    Add_Test (Suite, new Test_Unbounded_Definite_Vectors.Test_Case);
 
    Run (Suite, Options, Result, Status);

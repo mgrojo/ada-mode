@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Unbounded_Definite_Vectors_Task_Safe is
+package Test_Unbounded_Definite_Vectors_Protected is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Unbounded_Definite_Vectors_Task_Safe is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Unbounded_Definite_Vectors_Task_Safe;
+end Test_Unbounded_Definite_Vectors_Protected;

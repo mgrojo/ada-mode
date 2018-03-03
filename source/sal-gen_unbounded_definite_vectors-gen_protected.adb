@@ -21,7 +21,7 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe is
+package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
 
    ----------
    --  Public subprograms
@@ -29,10 +29,10 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe is
    overriding procedure Initialize (Container : in out Vector)
    is begin
       if Container.Guard /= null then
-         raise Programmer_Error with "Initialize called twice on a SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe";
+         raise Programmer_Error with "Initialize called twice on a SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected";
       end if;
 
-      Container.Guard := new Gen_Task_Safe.Guard;
+      Container.Guard := new Gen_Protected.Guard;
    end Initialize;
 
    overriding procedure Finalize (Container : in out Vector)
@@ -44,10 +44,10 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe is
    is begin
       if Container.Guard.Any_Readers_Or_Writers then
          raise Programmer_Error with
-           "Adjust called with active readers or writers on a SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe";
+           "Adjust called with active readers or writers on a SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected";
       end if;
 
-      Container.Guard := new Gen_Task_Safe.Guard;
+      Container.Guard := new Gen_Protected.Guard;
    end Adjust;
 
    function Length (Container : in Vector) return Ada.Containers.Count_Type
@@ -262,4 +262,4 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe is
    --     return (Super => Object.Super.Previous (Position.Super));
    --  end Previous;
 
-end SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe;
+end SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;

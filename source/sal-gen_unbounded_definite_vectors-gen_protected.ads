@@ -25,7 +25,7 @@
 pragma License (Modified_GPL);
 
 generic
-package SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe is
+package SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
 
    type Vector is new Ada.Finalization.Controlled with private
    with
@@ -195,4 +195,4 @@ private
    --  overriding function Next (Object : in Iterator; Position : in Cursor) return Cursor;
    --  overriding function Previous (Object : in Iterator; Position : in Cursor) return Cursor;
 
-end SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe;
+end SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;

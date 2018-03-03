@@ -20,14 +20,14 @@ with AUnit.Checks.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_Task_Safe;
-package body Test_Unbounded_Definite_Vectors_Task_Safe
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;
+package body Test_Unbounded_Definite_Vectors_Protected
 is
    package Integer_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (Index_Type   => Positive,
       Element_Type => Integer);
 
-   package Task_Safe_Int_Vectors is new Integer_Vectors.Gen_Task_Safe;
+   package Task_Safe_Int_Vectors is new Integer_Vectors.Gen_Protected;
    use Task_Safe_Int_Vectors;
 
    Shared : Vector;
@@ -198,7 +198,7 @@ is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("test_unbounded_definite_vectors_task_safe.adb");
+      return new String'("test_unbounded_definite_vectors_protected.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
@@ -208,4 +208,4 @@ is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
-end Test_Unbounded_Definite_Vectors_Task_Safe;
+end Test_Unbounded_Definite_Vectors_Protected;

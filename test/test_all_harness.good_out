@@ -86,7 +86,7 @@ OK test_red_black_trees.adb : Nominal
 OK ../../test/test_stacks.adb : Nominal
 OK ../../test/test_stacks.adb : Compare
 OK Test_Math_Float_Stats : Test_Stats
-OK test_unbounded_definite_vectors_task_safe.adb : Nominal
+OK test_unbounded_definite_vectors_protected.adb : Nominal
 OK test_unbounded_definite_vectors.adb : Nominal
 
 Total Tests Run:   89
