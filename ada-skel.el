@@ -293,7 +293,7 @@ See `ada-find-other-file' to create library level package body from spec."
 (define-skeleton ada-skel-task-spec
   "Insert a task specification with name from `str'."
   ()
-  "task " str " is\n"
+  "task type " str " is\n"
   _
   "end " str ";")
 

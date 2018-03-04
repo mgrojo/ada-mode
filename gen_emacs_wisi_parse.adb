@@ -250,7 +250,7 @@ begin
                Read_Input (Buffer (1)'Address, Byte_Count);
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
-               Parser.Parse;
+               WisiToken.LR.Parser.Parse (Parser);
                Put (Parse_Data);
                Put (State.Parser_Errors, Trace.Descriptor.all);
                Put (State.Lexer_Errors);

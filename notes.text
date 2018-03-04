@@ -39,6 +39,35 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
+    include package name in error message fix
+
+test cases for Match_Names_Error:
+   overriding
+   procedure Set_Children
+     (Tree     : in out Branched.Tree;
+      Parent   : in     Valid_Node_Index;
+      Children : in     Valid_Node_Index_Array)
+   is begin
+
+      N : Nonterm_Node renames Tree.Nodes (Parent);
+   begin
+      N.Children.Clear;
+      N.Children.Reserve_Capacity (Children'Length);
+      for I in Children'Range loop
+         N.Children (I) := Children (I);
+         Tree.Nodes (Children (I)).Parent := Parent;
+      end loop;
+
+   end Set_Children;
+
+   task type Test_Task is
+
+
+make-subprogram-body should strip aspects.
+
+add subtypes, protected body to xref-completion
+
 apply 'end identifier' pattern to 'end string_literal' as well
     also propagate, match names
 
@@ -182,10 +211,6 @@ plain parse, no actions:
         ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
             0.311213888, 0.317810000
 
-
-consider doing all actions in one parse in process
-    not helpful if dominated by communications time
-
 mckenzie recover
     ada-mode/build/Makefile
         ensure sal, wisitoken, ada-mode built with non-debug
@@ -193,7 +218,8 @@ mckenzie recover
             make echo debug/normal
             gpr_query check compiler options
 
-    run_ada_parser ../test/slow_recover_1.adb --repeat_count 5
+    run_ada_parse.exe ../test/slow_recover_1.adb Indent --repeat_count 5
+
     use binary min heap: ~2.7
     use fibonacci min heap: ~2.57
     sal.bounded_vector in Configuration: 1.700269668, 1.675688670
@@ -204,7 +230,11 @@ mckenzie recover
     "", keep several: 0.611813538, 0.724677583, 0.659352765
     change to Base_Token, prep for block name matching: 0.829402871, 0.822722491, 0.834653581
 
-    add match_names, block_label, loop_label; set check_limit 4; requires --max_parallel 17: 4.822095917 4.955374324
+    27 Dec 2017
+        add match_names, block_label, loop_label; set check_limit 4; requires --max_parallel 17: 4.822095917 4.955374324
+
+    04 Mar 2018
+        misc improvements 1.502121666, 1.833030047
 
 parse navigate
     (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats
