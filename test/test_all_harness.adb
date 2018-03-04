@@ -39,7 +39,6 @@ with Test_Follow;
 with Test_LR_Expecting;
 with Test_McKenzie_Recover;
 with Test_Skip_To;
-with Test_Statement_Actions;
 with Test_Wisi_Suite;
 with Trivial_Productions_Test;
 with WisiToken.Syntax_Trees.Test;
@@ -47,11 +46,13 @@ with WisiToken.Syntax_Trees.Branched.Test;
 procedure Test_All_Harness
 is
    --  command line arguments: [<verbose> [test_name [routine_name [trace_level [mckenzie_trace_level]]]]]
-   --  <verbose> is 1 | 0
+   --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  test_name, routine_name can be '' to set trace for all routines.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
+
+   Cost_Limit : Natural;
 
    Options : constant AUnit.Options.AUnit_Options :=
      (Global_Timer     => False,
@@ -93,6 +94,7 @@ begin
 
       WisiToken.Trace_Parse    := (if Argument_Count > 3 then Integer'Value (Argument (4)) else 0);
       WisiToken.Trace_McKenzie := (if Argument_Count > 4 then Integer'Value (Argument (5)) else 0);
+      Cost_Limit               := (if Argument_Count > 5 then Natural'Value (Argument (6)) else Natural'Last);
    end;
 
    --  Test cases; test package alphabetical order, unless otherwise noted.
@@ -108,9 +110,8 @@ begin
    Add_Test (Suite, new Test_Character_Literal.Test_Case);
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => 0));
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Cost_Limit => Natural'Last));
-   Add_Test (Suite, new Test_Skip_To.Test_Case (Debug => 0));
-   Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => 0));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Cost_Limit));
+   Add_Test (Suite, new Test_Skip_To.Test_Case);
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => 0));
    Add_Test (Suite, new WisiToken.Syntax_Trees.Test.Test_Case);
    Add_Test (Suite, new WisiToken.Syntax_Trees.Branched.Test.Test_Case);
@@ -119,7 +120,6 @@ begin
 
    Run (Suite, Options, Result, Status);
 
-   --  Provide command line option -v to set verbose mode
    AUnit.Reporter.Text.Report (Reporter, Result);
 
 exception

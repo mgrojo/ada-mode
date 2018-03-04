@@ -1,129 +1,129 @@
 LALR_Parser parse:
- 1: 1: (IDENTIFIER, (1 . 7), (1 . 7)) : shift and goto state 2
+ 1: 1: (IDENTIFIER, (1 . 7)) : shift and goto state 2
  1: 2: (SEMICOLON, (8 . 8)) : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ()
+aliased_opt_0: (aliased_opt) <= ()
  ... goto state 7
  1: 7: (SEMICOLON, (8 . 8)) : reduce 0 tokens to constant_opt
-(constant_opt) <= ()
+constant_opt_0: (constant_opt) <= ()
  ... goto state 9
  1: 9: (SEMICOLON, (8 . 8)) : shift and goto state 10
- 1: 10: (IDENTIFIER, (10 . 16), (10 . 16)) : reduce 4 tokens to object_declaration
-(object_declaration, (1 . 8)) <= ((IDENTIFIER, (1 . 7), (1 . 7)), (aliased_opt), (constant_opt), (SEMICOLON, (8 . 8)))
+ 1: 10: (IDENTIFIER, (10 . 16)) : reduce 4 tokens to object_declaration
+object_declaration_0: (object_declaration, (1 . 8)) <= ((IDENTIFIER, (1 . 7)), (aliased_opt), (constant_opt), (SEMICOLON, (8 . 8)))
  ... goto state 4
- 1: 4: (IDENTIFIER, (10 . 16), (10 . 16)) : reduce 1 tokens to object_declaration_list
+ 1: 4: (IDENTIFIER, (10 . 16)) : reduce 1 tokens to object_declaration_list
 object_declaration_list_0: (object_declaration_list, (1 . 8)) <= ((object_declaration, (1 . 8)))
  ... goto state 3
- 1: 3: (IDENTIFIER, (10 . 16), (10 . 16)) : shift and goto state 2
+ 1: 3: (IDENTIFIER, (10 . 16)) : shift and goto state 2
  1: 2: (CONSTANT, (18 . 25)) : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ()
+aliased_opt_0: (aliased_opt) <= ()
  ... goto state 7
  1: 7: (CONSTANT, (18 . 25)) : shift and goto state 8
  1: 8: (SEMICOLON, (26 . 26)) : reduce 1 tokens to constant_opt
-(constant_opt, (18 . 25)) <= ((CONSTANT, (18 . 25)))
+constant_opt_1: (constant_opt, (18 . 25)) <= ((CONSTANT, (18 . 25)))
  ... goto state 9
  1: 9: (SEMICOLON, (26 . 26)) : shift and goto state 10
- 1: 10: (IDENTIFIER, (28 . 34), (28 . 34)) : reduce 4 tokens to object_declaration
-(object_declaration, (10 . 26)) <= ((IDENTIFIER, (10 . 16), (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)), (SEMICOLON, (26 . 26)))
+ 1: 10: (IDENTIFIER, (28 . 34)) : reduce 4 tokens to object_declaration
+object_declaration_0: (object_declaration, (10 . 26)) <= ((IDENTIFIER, (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)), (SEMICOLON, (26 . 26)))
  ... goto state 5
- 1: 5: (IDENTIFIER, (28 . 34), (28 . 34)) : reduce 2 tokens to object_declaration_list
+ 1: 5: (IDENTIFIER, (28 . 34)) : reduce 2 tokens to object_declaration_list
 object_declaration_list_1: (object_declaration_list, (1 . 26)) <= ((object_declaration_list, (1 . 8)), (object_declaration, (10 . 26)))
  ... goto state 3
- 1: 3: (IDENTIFIER, (28 . 34), (28 . 34)) : shift and goto state 2
+ 1: 3: (IDENTIFIER, (28 . 34)) : shift and goto state 2
  1: 2: (ALIASED, (36 . 42)) : shift and goto state 6
  1: 6: (SEMICOLON, (43 . 43)) : reduce 1 tokens to aliased_opt
-(aliased_opt, (36 . 42)) <= ((ALIASED, (36 . 42)))
+aliased_opt_1: (aliased_opt, (36 . 42)) <= ((ALIASED, (36 . 42)))
  ... goto state 7
  1: 7: (SEMICOLON, (43 . 43)) : reduce 0 tokens to constant_opt
-(constant_opt) <= ()
+constant_opt_0: (constant_opt) <= ()
  ... goto state 9
  1: 9: (SEMICOLON, (43 . 43)) : shift and goto state 10
- 1: 10: (IDENTIFIER, (45 . 51), (45 . 51)) : reduce 4 tokens to object_declaration
-(object_declaration, (28 . 43)) <= ((IDENTIFIER, (28 . 34), (28 . 34)), (aliased_opt, (36 . 42)), (constant_opt), (SEMICOLON, (43 . 43)))
+ 1: 10: (IDENTIFIER, (45 . 51)) : reduce 4 tokens to object_declaration
+object_declaration_0: (object_declaration, (28 . 43)) <= ((IDENTIFIER, (28 . 34)), (aliased_opt, (36 . 42)), (constant_opt), (SEMICOLON, (43 . 43)))
  ... goto state 5
- 1: 5: (IDENTIFIER, (45 . 51), (45 . 51)) : reduce 2 tokens to object_declaration_list
+ 1: 5: (IDENTIFIER, (45 . 51)) : reduce 2 tokens to object_declaration_list
 object_declaration_list_1: (object_declaration_list, (1 . 43)) <= ((object_declaration_list, (1 . 26)), (object_declaration, (28 . 43)))
  ... goto state 3
- 1: 3: (IDENTIFIER, (45 . 51), (45 . 51)) : shift and goto state 2
+ 1: 3: (IDENTIFIER, (45 . 51)) : shift and goto state 2
  1: 2: (ALIASED, (53 . 59)) : shift and goto state 6
  1: 6: (CONSTANT, (61 . 68)) : reduce 1 tokens to aliased_opt
-(aliased_opt, (53 . 59)) <= ((ALIASED, (53 . 59)))
+aliased_opt_1: (aliased_opt, (53 . 59)) <= ((ALIASED, (53 . 59)))
  ... goto state 7
  1: 7: (CONSTANT, (61 . 68)) : shift and goto state 8
  1: 8: (SEMICOLON, (69 . 69)) : reduce 1 tokens to constant_opt
-(constant_opt, (61 . 68)) <= ((CONSTANT, (61 . 68)))
+constant_opt_1: (constant_opt, (61 . 68)) <= ((CONSTANT, (61 . 68)))
  ... goto state 9
  1: 9: (SEMICOLON, (69 . 69)) : shift and goto state 10
  1: 10: (Wisi_EOI, (71 . 70)) : reduce 4 tokens to object_declaration
-(object_declaration, (45 . 69)) <= ((IDENTIFIER, (45 . 51), (45 . 51)), (aliased_opt, (53 . 59)), (constant_opt, (61 . 68)), (SEMICOLON, (69 . 69)))
+object_declaration_0: (object_declaration, (45 . 69)) <= ((IDENTIFIER, (45 . 51)), (aliased_opt, (53 . 59)), (constant_opt, (61 . 68)), (SEMICOLON, (69 . 69)))
  ... goto state 5
  1: 5: (Wisi_EOI, (71 . 70)) : reduce 2 tokens to object_declaration_list
 object_declaration_list_1: (object_declaration_list, (1 . 69)) <= ((object_declaration_list, (1 . 43)), (object_declaration, (45 . 69)))
  ... goto state 3
  1: 3: (Wisi_EOI, (71 . 70)) : accept it
-(wisitoken_accept, (1 . 69)) <= ((object_declaration_list, (1 . 69)))
+wisitoken_accept_0: (wisitoken_accept, (1 . 69)) <= ((object_declaration_list, (1 . 69)))
  1: succeed
 
 LR1_Parser parse:
- 1: 1: (IDENTIFIER, (1 . 7), (1 . 7)) : shift and goto state 2
+ 1: 1: (IDENTIFIER, (1 . 7)) : shift and goto state 2
  1: 2: (SEMICOLON, (8 . 8)) : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ()
+aliased_opt_0: (aliased_opt) <= ()
  ... goto state 7
  1: 7: (SEMICOLON, (8 . 8)) : reduce 0 tokens to constant_opt
-(constant_opt) <= ()
+constant_opt_0: (constant_opt) <= ()
  ... goto state 9
  1: 9: (SEMICOLON, (8 . 8)) : shift and goto state 10
- 1: 10: (IDENTIFIER, (10 . 16), (10 . 16)) : reduce 4 tokens to object_declaration
-(object_declaration, (1 . 8)) <= ((IDENTIFIER, (1 . 7), (1 . 7)), (aliased_opt), (constant_opt), (SEMICOLON, (8 . 8)))
+ 1: 10: (IDENTIFIER, (10 . 16)) : reduce 4 tokens to object_declaration
+object_declaration_0: (object_declaration, (1 . 8)) <= ((IDENTIFIER, (1 . 7)), (aliased_opt), (constant_opt), (SEMICOLON, (8 . 8)))
  ... goto state 4
- 1: 4: (IDENTIFIER, (10 . 16), (10 . 16)) : reduce 1 tokens to object_declaration_list
+ 1: 4: (IDENTIFIER, (10 . 16)) : reduce 1 tokens to object_declaration_list
 object_declaration_list_0: (object_declaration_list, (1 . 8)) <= ((object_declaration, (1 . 8)))
  ... goto state 3
- 1: 3: (IDENTIFIER, (10 . 16), (10 . 16)) : shift and goto state 2
+ 1: 3: (IDENTIFIER, (10 . 16)) : shift and goto state 2
  1: 2: (CONSTANT, (18 . 25)) : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ()
+aliased_opt_0: (aliased_opt) <= ()
  ... goto state 7
  1: 7: (CONSTANT, (18 . 25)) : shift and goto state 8
  1: 8: (SEMICOLON, (26 . 26)) : reduce 1 tokens to constant_opt
-(constant_opt, (18 . 25)) <= ((CONSTANT, (18 . 25)))
+constant_opt_1: (constant_opt, (18 . 25)) <= ((CONSTANT, (18 . 25)))
  ... goto state 9
  1: 9: (SEMICOLON, (26 . 26)) : shift and goto state 10
- 1: 10: (IDENTIFIER, (28 . 34), (28 . 34)) : reduce 4 tokens to object_declaration
-(object_declaration, (10 . 26)) <= ((IDENTIFIER, (10 . 16), (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)), (SEMICOLON, (26 . 26)))
+ 1: 10: (IDENTIFIER, (28 . 34)) : reduce 4 tokens to object_declaration
+object_declaration_0: (object_declaration, (10 . 26)) <= ((IDENTIFIER, (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)), (SEMICOLON, (26 . 26)))
  ... goto state 5
- 1: 5: (IDENTIFIER, (28 . 34), (28 . 34)) : reduce 2 tokens to object_declaration_list
+ 1: 5: (IDENTIFIER, (28 . 34)) : reduce 2 tokens to object_declaration_list
 object_declaration_list_1: (object_declaration_list, (1 . 26)) <= ((object_declaration_list, (1 . 8)), (object_declaration, (10 . 26)))
  ... goto state 3
- 1: 3: (IDENTIFIER, (28 . 34), (28 . 34)) : shift and goto state 2
+ 1: 3: (IDENTIFIER, (28 . 34)) : shift and goto state 2
  1: 2: (ALIASED, (36 . 42)) : shift and goto state 6
  1: 6: (SEMICOLON, (43 . 43)) : reduce 1 tokens to aliased_opt
-(aliased_opt, (36 . 42)) <= ((ALIASED, (36 . 42)))
+aliased_opt_1: (aliased_opt, (36 . 42)) <= ((ALIASED, (36 . 42)))
  ... goto state 7
  1: 7: (SEMICOLON, (43 . 43)) : reduce 0 tokens to constant_opt
-(constant_opt) <= ()
+constant_opt_0: (constant_opt) <= ()
  ... goto state 9
  1: 9: (SEMICOLON, (43 . 43)) : shift and goto state 10
- 1: 10: (IDENTIFIER, (45 . 51), (45 . 51)) : reduce 4 tokens to object_declaration
-(object_declaration, (28 . 43)) <= ((IDENTIFIER, (28 . 34), (28 . 34)), (aliased_opt, (36 . 42)), (constant_opt), (SEMICOLON, (43 . 43)))
+ 1: 10: (IDENTIFIER, (45 . 51)) : reduce 4 tokens to object_declaration
+object_declaration_0: (object_declaration, (28 . 43)) <= ((IDENTIFIER, (28 . 34)), (aliased_opt, (36 . 42)), (constant_opt), (SEMICOLON, (43 . 43)))
  ... goto state 5
- 1: 5: (IDENTIFIER, (45 . 51), (45 . 51)) : reduce 2 tokens to object_declaration_list
+ 1: 5: (IDENTIFIER, (45 . 51)) : reduce 2 tokens to object_declaration_list
 object_declaration_list_1: (object_declaration_list, (1 . 43)) <= ((object_declaration_list, (1 . 26)), (object_declaration, (28 . 43)))
  ... goto state 3
- 1: 3: (IDENTIFIER, (45 . 51), (45 . 51)) : shift and goto state 2
+ 1: 3: (IDENTIFIER, (45 . 51)) : shift and goto state 2
  1: 2: (ALIASED, (53 . 59)) : shift and goto state 6
  1: 6: (CONSTANT, (61 . 68)) : reduce 1 tokens to aliased_opt
-(aliased_opt, (53 . 59)) <= ((ALIASED, (53 . 59)))
+aliased_opt_1: (aliased_opt, (53 . 59)) <= ((ALIASED, (53 . 59)))
  ... goto state 7
  1: 7: (CONSTANT, (61 . 68)) : shift and goto state 8
  1: 8: (SEMICOLON, (69 . 69)) : reduce 1 tokens to constant_opt
-(constant_opt, (61 . 68)) <= ((CONSTANT, (61 . 68)))
+constant_opt_1: (constant_opt, (61 . 68)) <= ((CONSTANT, (61 . 68)))
  ... goto state 9
  1: 9: (SEMICOLON, (69 . 69)) : shift and goto state 10
  1: 10: (Wisi_EOI, (71 . 70)) : reduce 4 tokens to object_declaration
-(object_declaration, (45 . 69)) <= ((IDENTIFIER, (45 . 51), (45 . 51)), (aliased_opt, (53 . 59)), (constant_opt, (61 . 68)), (SEMICOLON, (69 . 69)))
+object_declaration_0: (object_declaration, (45 . 69)) <= ((IDENTIFIER, (45 . 51)), (aliased_opt, (53 . 59)), (constant_opt, (61 . 68)), (SEMICOLON, (69 . 69)))
  ... goto state 5
  1: 5: (Wisi_EOI, (71 . 70)) : reduce 2 tokens to object_declaration_list
 object_declaration_list_1: (object_declaration_list, (1 . 69)) <= ((object_declaration_list, (1 . 43)), (object_declaration, (45 . 69)))
  ... goto state 3
  1: 3: (Wisi_EOI, (71 . 70)) : accept it
-(wisitoken_accept, (1 . 69)) <= ((object_declaration_list, (1 . 69)))
+wisitoken_accept_0: (wisitoken_accept, (1 . 69)) <= ((object_declaration_list, (1 . 69)))
  1: succeed

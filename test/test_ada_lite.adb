@@ -25,8 +25,9 @@ with Ada.Text_IO;
 with Ada_Lite;
 with GNAT.Traceback.Symbolic;
 with WisiToken.LR.Parser;
-with WisiToken.Semantic_State;
 package body Test_Ada_Lite is
+
+   Orig_Trace_Parse : Integer;
 
    Parser : WisiToken.LR.Parser.Parser;
 
@@ -51,7 +52,7 @@ package body Test_Ada_Lite is
       Create (Output_File, Out_File, Output_File_Name);
       Set_Output (Output_File);
 
-      State.Initialize (Line_Count => 20);
+      Parser.Semantic_State.Initialize (Line_Count => 20);
       Parser.Lexer.Reset_With_File (Input_File_Name);
       begin
          Parser.Parse;
@@ -92,13 +93,20 @@ package body Test_Ada_Lite is
       Register_Routine (T, Propagate_Names'Access, "Propagate_Names");
    end Register_Tests;
 
+   overriding procedure Set_Up_Case (Test : in out Test_Case)
+   is
+      pragma Unreferenced (Test);
+   begin
+      Orig_Trace_Parse := WisiToken.Trace_Parse;
+   end Set_Up_Case;
+
    overriding procedure Tear_Down_Case (Test : in out Test_Case)
    is
       pragma Unreferenced (Test);
    begin
-      WisiToken.Trace_Parse := 0;
+      WisiToken.Trace_Parse := Orig_Trace_Parse;
    end Tear_Down_Case;
 
 begin
-   Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.State'Access);
+   Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.Trace'Access);
 end Test_Ada_Lite;

@@ -2,7 +2,7 @@
 ;;; sets, so conflicts have the same name in LALR and LR1 parsers.
 ;;
 %{
---  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -38,11 +38,9 @@
 
 %%
 
-
 aggregate
   : LEFT_PAREN name RIGHT_PAREN
   ;
-
 
 attribute_reference : name TICK attribute_designator ;
 
@@ -50,11 +48,10 @@ attribute_designator
   : name
   ;
 
-
 name
   : IDENTIFIER
     ()
-    (return Propagate_Name (Nonterm, Tokens, 1);) 
+    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
   | attribute_reference
   | qualified_expression
   ;

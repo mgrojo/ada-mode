@@ -34,7 +34,7 @@ accept_statement
 
 name : IDENTIFIER
     ()
-    (return Propagate_Name (Nonterm, Tokens, 1);)
+    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
   ;
 
 parameter_profile

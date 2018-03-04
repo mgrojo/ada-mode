@@ -467,7 +467,7 @@ private
    end record;
 
    function Next_Grammar_Token
-     (Terminals      : in out          Base_Token_Arrays.Vector;
+     (Terminals      : in out          Protected_Base_Token_Arrays.Vector;
       Lexer          : not null access WisiToken.Lexer.Instance'Class;
       Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
       Descriptor     : in              WisiToken.Descriptor'Class)

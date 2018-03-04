@@ -17,7 +17,8 @@
 
 pragma License (Modified_GPL);
 
-with AUnit.Checks.Containers;
+with AUnit.Checks;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Token_ID);
@@ -36,11 +37,8 @@ package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_Index);
 
-   procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Index_Type    => Token_Index,
-      Element_Type  => Base_Token,
-      Container_Pkg => Base_Token_Arrays,
-      Check_Index   => Check,
+   procedure Check is new Base_Token_Arrays.Gen_AUnit
+     (Check_Index   => Check,
       Check_Element => Check);
 
    procedure Check

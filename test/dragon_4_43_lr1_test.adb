@@ -30,7 +30,7 @@ with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken_AUnit; use WisiToken_AUnit;
 package body Dragon_4_43_LR1_Test is
@@ -65,7 +65,7 @@ package body Dragon_4_43_LR1_Test is
    use all type WisiToken.Production.Right_Hand_Side;
    use all type WisiToken.Production.List.Instance;
 
-   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : constant WisiToken.Production.List.Instance :=
      --  [dragon] (2.21) pg 231
@@ -107,7 +107,6 @@ package body Dragon_4_43_LR1_Test is
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    ----------
    --  Test procedures
@@ -320,12 +319,11 @@ package body Dragon_4_43_LR1_Test is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
+         Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
-         State'Access,
-           First_Parser_Label);
-      WisiToken.Trace_Parse := Test.Debug;
+         First_Parser_Label);
 
       Execute_Command ("cdcd");
    end Test_Parse;

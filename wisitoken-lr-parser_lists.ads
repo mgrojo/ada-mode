@@ -25,7 +25,7 @@ with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR.Parser_Lists is
 
-   type Base_Parser_State (Terminals : not null access Base_Token_Arrays.Vector) is tagged
+   type Base_Parser_State (Terminals : not null access Protected_Base_Token_Arrays.Vector) is tagged
    record
       --  Visible components for direct access
 
@@ -62,7 +62,7 @@ package WisiToken.LR.Parser_Lists is
 
    function New_List
      (First_Parser_Label : in Natural;
-      Terminals          : access Base_Token_Arrays.Vector)
+      Terminals          : access Protected_Base_Token_Arrays.Vector)
      return List;
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;

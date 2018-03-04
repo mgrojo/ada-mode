@@ -29,7 +29,7 @@ with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Name_Grammar_Test is
 
@@ -78,7 +78,7 @@ package body Name_Grammar_Test is
    use all type WisiToken.Production.List.Instance;   --  "and"
    use all type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid names:
    --  Module (Index)
@@ -116,7 +116,6 @@ package body Name_Grammar_Test is
      Component_ID      <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    procedure Parse_Command
      (Label   : in     String;
@@ -126,7 +125,7 @@ package body Name_Grammar_Test is
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
       Parser.Lexer.Reset_With_String (Command);
-      State.Reset;
+      Parser.Semantic_State.Reset;
       Parser.Parse;
 
       Ada.Text_IO.Put_Line ("success");
@@ -148,6 +147,8 @@ package body Name_Grammar_Test is
       use Ada.Directories;
       use Ada.Text_IO;
       use AUnit.Checks.Text_IO;
+
+      Orig_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
 
       Trace_File_Name : constant String := "name_grammar_test.out";
       Trace_File : File_Type;
@@ -171,6 +172,7 @@ package body Name_Grammar_Test is
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
+            Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Simple_Grammar,
@@ -179,7 +181,6 @@ package body Name_Grammar_Test is
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
                Ignore_Unused_Tokens => True),
-            State'Access,
             First_Parser_Label);
 
          Parse_Command ("Simple Parser", Parser, "Module (Index)");
@@ -193,6 +194,7 @@ package body Name_Grammar_Test is
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
+            Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Medium_Grammar,
@@ -201,7 +203,6 @@ package body Name_Grammar_Test is
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
                Ignore_Unused_Tokens => True),
-            State'Access,
             First_Parser_Label);
          Parse_Command ("Medium Parser", Parser, "Module.Symbol (Index)");
          Parse_Command ("Medium Parser", Parser, "Module.Symbol.Component");
@@ -214,6 +215,7 @@ package body Name_Grammar_Test is
       begin
          WisiToken.LR.Parser.New_Parser
            (Parser,
+            Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Full_Grammar,
@@ -222,7 +224,6 @@ package body Name_Grammar_Test is
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
                Ignore_Unused_Tokens => False),
-            State'Access,
             First_Parser_Label);
          Parse_Command ("Full Parser", Parser, "Module.Symbol");
          Parse_Command ("Full Parser", Parser, "Module.Symbol (Index)");
@@ -233,6 +234,7 @@ package body Name_Grammar_Test is
 
       Close (Trace_File);
       Set_Output (Standard_Output);
+      WisiToken.Trace_Parse := Orig_Trace_Parse;
 
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception
@@ -241,6 +243,7 @@ package body Name_Grammar_Test is
          Close (Trace_File);
          Set_Output (Standard_Output);
       end if;
+      WisiToken.Trace_Parse := Orig_Trace_Parse;
       raise;
    end Nominal;
 

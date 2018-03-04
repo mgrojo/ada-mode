@@ -211,9 +211,9 @@ package body Subprograms_Process is
    end use_clause_0;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.LR.Instance;
-      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access)
+     (Parser         :    out WisiToken.LR.Parser.Parser;
+      Algorithm : in WisiToken.Parser_Algorithm_Type;
+      Trace     : not null access WisiToken.Trace'Class)
    is
       use WisiToken.LR;
       use all type WisiToken.Parser_Algorithm_Type;
@@ -471,9 +471,9 @@ package body Subprograms_Process is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
-         Lexer.New_Lexer (Semantic_State.Trace, Semantic_State.Lexer_Errors'Access),
+         Trace,
+         Lexer.New_Lexer (Trace),
          Table,
-         Semantic_State,
          Max_Parallel         => 15,
          First_Parser_Label   => 0,
          Terminate_Same_State => True);

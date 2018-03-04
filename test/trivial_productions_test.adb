@@ -27,7 +27,7 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Trivial_Productions_Test is
 
@@ -59,7 +59,6 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-      State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
       procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -76,7 +75,7 @@ package body Trivial_Productions_Test is
          use type WisiToken.Production.Right_Hand_Side;
          use type WisiToken.Production.List.Instance;
 
-         Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+         Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
          Grammar : constant WisiToken.Production.List.Instance :=
            E_ID <= T_ID & EOF_ID + Null_Action and
@@ -91,10 +90,10 @@ package body Trivial_Productions_Test is
 
          WisiToken.LR.Parser.New_Parser
            (Parser,
+            Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug > 0),
-            State'Access,
             First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);
@@ -141,7 +140,6 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-      State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
       procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -166,7 +164,7 @@ package body Trivial_Productions_Test is
          use type WisiToken.Production.Right_Hand_Side;
          use type WisiToken.Production.List.Instance;
 
-         Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+         Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
          Grammar : constant WisiToken.Production.List.Instance :=
            WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
@@ -186,6 +184,7 @@ package body Trivial_Productions_Test is
 
          WisiToken.LR.Parser.New_Parser
            (Parser,
+            Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate
               (Grammar,
@@ -193,11 +192,9 @@ package body Trivial_Productions_Test is
                First_State_Index,
                Trace           => Test.Debug > 0,
                Put_Parse_Table => Test.Debug > 0),
-            State'Access,
             First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);
-         WisiToken.Trace_Parse := Test.Debug;
          Parser.Parse;
 
       end Test_One;
@@ -218,7 +215,7 @@ package body Trivial_Productions_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/trivial_productions_test.adb");
+      return new String'("trivial_productions_test.adb");
    end Name;
 
 end Trivial_Productions_Test;

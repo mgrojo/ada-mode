@@ -26,7 +26,7 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Production;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_Accept_State is
 
@@ -74,7 +74,7 @@ package body Test_Accept_State is
    use all type WisiToken.Production.List.Instance;   --  "and"
    use all type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : constant WisiToken.Production.List.Instance :=
      --  First production in Grammar must be the terminating
@@ -85,7 +85,6 @@ package body Test_Accept_State is
    Parser : WisiToken.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    ----------
    --  Test procedures
@@ -98,6 +97,7 @@ package body Test_Accept_State is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
+         Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar,
@@ -105,10 +105,7 @@ package body Test_Accept_State is
             First_State_Index,
             Trace           => Test.Debug > 0,
             Put_Parse_Table => Test.Debug > 0),
-         State'Access,
          First_Parser_Label);
-
-      WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Lexer.Reset_With_String ("set A = 2");
 

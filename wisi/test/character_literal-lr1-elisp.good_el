@@ -3,7 +3,8 @@
 ;;; ../wisi/test/character_literal.wy
 
 ;;  spec context clause
-;;  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+
+;;  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 ;;
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -17,7 +18,6 @@
 ;;
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
 
 
 (require 'wisi)
@@ -54,19 +54,31 @@
        ((statement_list )))
       (statement_list
        ((statement )
-        (Test_Statement_List_0 (Nonterm);))
+        (Test_Statement_List_0 (Tree.Augmented_Token_Ref (Tree_Nonterm));))
        ((statement_list statement )))
       (statement
        ((IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON )
-        (Character_Literal_Count :=
-        Character_Literal_Count + 1;
-        Test_Statement_0 (Tokens);))
+        (declare
+        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
+        begin
+        Data.Character_Literal_Count := Data.Character_Literal_Count + 1;
+        Test_Statement_0 (Data, Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens));
+        end;))
        ((IDENTIFIER tick IDENTIFIER SEMICOLON )
-        (Char_Region := Tokens.Element (3).Char_Region;
-        Test_Statement_1 (Tokens);))
+        (declare
+        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
+        Tokens : WisiToken.Semantic_State.Augmented_Token_Array renames Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens);
+        begin
+        Data.Char_Region := Tokens (3).Char_Region;
+        Test_Statement_1 (Tokens);
+        end;))
        ((STRING_LITERAL SEMICOLON )
-        (String_Literal_Count := String_Literal_Count + 1;
-        Test_Statement_2 (Tokens);))
+        (declare
+        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
+        begin
+        Data.String_Literal_Count := Data.String_Literal_Count + 1;
+        Test_Statement_2 (Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens));
+        end;))
        ((FOO SEMICOLON )))
       (tick
        ((TICK_1 ))))

@@ -32,7 +32,8 @@ with WisiToken.Semantic_State;
 with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
 
-   Parser : WisiToken.LR.Parser.Parser;
+   Parser    : WisiToken.LR.Parser.Parser;
+   User_Data : WisiToken.Syntax_Trees.User_Data_Type;
 
    Orig_Params : WisiToken.LR.McKenzie_Param_Type
      (First_Terminal    => Ada_Lite.Descriptor.First_Terminal,
@@ -49,12 +50,13 @@ package body Test_McKenzie_Recover is
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
-      Ada_Lite.State.Initialize (Line_Count);
+      Parser.Semantic_State.Initialize (Line_Count);
       Parser.Lexer.Reset_With_String (Text & "   ");
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
 
       Parser.Parse;
+      Parser.Execute_Actions (User_Data, Compute_Indent => False);
    end Parse_Text;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
@@ -71,7 +73,7 @@ package body Test_McKenzie_Recover is
    begin
       --  The test is that there is no exception.
 
-      Ada_Lite.State.Initialize (Line_Count => 49);
+      Parser.Semantic_State.Initialize (Line_Count => 49);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    end No_Error;
@@ -161,7 +163,7 @@ package body Test_McKenzie_Recover is
             (Label             => Action,
              First_Terminal    => Descriptor.First_Terminal,
              Last_Terminal     => Descriptor.Last_Terminal,
-             Error_Token       => 1, -- not checked here; see next test
+             Error_Token       => 73,
              Expecting         => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -499,22 +501,28 @@ package body Test_McKenzie_Recover is
       --  generic instantiation.
       --
       --  parser 0 for generic_instantiation errors at 'Ada' 23, expecting
-      --  'new'. It inserts 'new' cost 3. Continues to EOF, succeeds.
+      --  'new'; becomes a zombie.
       --
       --  parser 1 for subprogram_body parser keeps going, thinking it's the
-      --  start of an object declaration; errors at '.' 26. It inserts ':
-      --  IDENTIFIER' cost 7. Continues to EOF, becomes a zombie.
+      --  start of an object declaration; errors at '.' 26.
       --
-      --  parser 0 is a zombie until parser 1 errors at '.'; both participate in
-      --  error recovery, and find a solution.
+      --  both parsers participate in error recovery:
       --
-      --  Parser 1 becomes a zombie again at EOF, but parser 0 accepts, so
-      --  no error recovery is attempted.
+      --     parser 0 inserts 'new' cost 3.
       --
-      --  The two parsers have different error tokens; make sure the correct
+      --     parser 1 inserts ': IDENTIFIER' cost 7.
+      --
+      --  parser 0 continues to EOF, succeeds.
+      --
+      --  parser 1 continues to ( 77, spawns another parser. parser 1
+      --  assumes 'primary', parser 2 assumes 'subtype_indication'.
+      --
+      --  parser 1 continues to EOF, becomes a zombie, is terminated.
+      --  parser 2 continues to EOF, becomes a zombie, is terminated.
+      --
+      --  The three parsers have different error tokens; make sure the correct
       --  one (from the successful parser 0) is reported.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
@@ -522,6 +530,20 @@ package body Test_McKenzie_Recover is
          Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
+         Check ("parser label", Parser_State.Label, 0);
+
+         if WisiToken.Trace_Parse > 0 then
+            for Error of Error_List loop
+               WisiToken.LR.Put
+                 (Source_File_Name => "<string>",
+                  Errors           => Parser.Parsers.First.State_Ref.Errors,
+                  Syntax_Tree      => Parser.Parsers.First.State_Ref.Tree,
+                  Descriptor       => Ada_Lite.Descriptor);
+            end loop;
+         end if;
+
+         Check ("errors.length", Error_List.Length, 1);
+
          Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +IDENTIFIER_ID);
          Check
            ("1.error token.byte_region",
@@ -791,8 +813,9 @@ package body Test_McKenzie_Recover is
       --  Missing 'end' 87.
       --
       --  Error recovery entered at 'procedure' 102, expecting statement.
-      --  The semantic check that would fail on ""/"Find_First" is not done,
-      --  because the block_statement is not reduced.
+      --  The semantic check that would fail at Find_First 90 (begin 53 "" =
+      --  "Find_First") is not done, because the block_statement is not
+      --  reduced.
       --
       --  Without pattern_block_mismatched_names, recover fails to find a
       --  solution.
@@ -950,6 +973,9 @@ package body Test_McKenzie_Recover is
       --  The desired solution is 'pop block_statement', 'insert end case;
       --  end <proc_a>; end <proc_1>;' cost (+ 8 1 3 1 1 1 1 1) => 17
       --
+      --  Even better; pop block_statement terminals from syntax tree to
+      --  local_lookahead, insert 'end case ;', reparse block_statement.
+      --
 
    exception
    when WisiToken.Syntax_Error =>
@@ -1000,7 +1026,7 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.State'Access);
+      Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.Trace'Access);
       Orig_Params := Parser.Table.McKenzie_Param;
    end Set_Up_Case;
 

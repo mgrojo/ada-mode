@@ -20,14 +20,6 @@ package body WisiToken.Semantic_State.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Semantic_Action;
-      Expected : in Semantic_Action)
-   is begin
-      Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
-   end Check;
-
-   procedure Check
-     (Label    : in String;
       Computed : in Augmented_Token;
       Expected : in Augmented_Token)
    is

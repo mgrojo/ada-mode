@@ -36,10 +36,10 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Queues;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;
 package WisiToken is
 
    Syntax_Error : exception; -- no recovery for a syntax error was found
@@ -235,7 +235,9 @@ package WisiToken is
    --  1 indexed to match previous version, and grammar file token
    --  indices in grammar actions.
 
-   package Base_Token_Arrays is new Ada.Containers.Vectors (Token_Index, Base_Token);
+   package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Base_Token);
+
+   package Protected_Base_Token_Arrays is new Base_Token_Arrays.Gen_Protected;
 
    function Image
      (Item       : in Token_Index_Queues.Queue_Type;

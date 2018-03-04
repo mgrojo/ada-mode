@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Private AUnit checks for parent
+--  See spec
 --
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
@@ -18,23 +18,15 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
-with WisiToken.Syntax_Trees.AUnit_Public;
-private package WisiToken.Syntax_Trees.AUnit_Private is
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Label);
+with AUnit.Assertions;
+package body WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check
      (Label    : in String;
-      Computed : in Node;
-      Expected : in Node);
+      Computed : in Semantic_Action;
+      Expected : in Semantic_Action)
+   is begin
+      Standard.AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+   end Check;
 
-   procedure Check is new Node_Arrays.Gen_AUnit (AUnit_Public.Check, Check);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Tree;
-      Expected : in Tree);
-
-end WisiToken.Syntax_Trees.AUnit_Private;
+end WisiToken.Syntax_Trees.AUnit_Public;

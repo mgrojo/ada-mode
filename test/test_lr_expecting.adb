@@ -26,7 +26,7 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Production;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_LR_Expecting is
 
@@ -82,7 +82,7 @@ package body Test_LR_Expecting is
       Grammar : constant WisiToken.Production.List.Instance :=
         --  set symbol = value
         WisiToken.Production.List.Only
-        (Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Semantic_State.Null_Action);
+        (Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Syntax_Trees.Null_Action);
 
    end Set_Statement;
 
@@ -92,7 +92,7 @@ package body Test_LR_Expecting is
         --  verify symbol = value +- tolerance
         WisiToken.Production.List.Only
           (Statement_ID  <= Verify_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID +
-             WisiToken.Semantic_State.Null_Action);
+             WisiToken.Syntax_Trees.Null_Action);
    end Verify_Statement;
 
    package Lexer renames WisiToken.Lexer.Regexp;
@@ -111,21 +111,20 @@ package body Test_LR_Expecting is
       ));
 
    Grammar : constant WisiToken.Production.List.Instance :=
-     Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Semantic_State.Null_Action and
+     Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
    Parser : WisiToken.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    procedure Execute
      (Command  : in String;
       Expected : in WisiToken.Token_ID_Set)
    is begin
       Parser.Lexer.Reset_With_String (Command);
-      State.Reset;
+      Parser.Semantic_State.Reset;
       Parser.Parse;
       AUnit.Assertions.Assert (False, Command & "; no exception");
    exception
@@ -149,6 +148,7 @@ package body Test_LR_Expecting is
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
+         Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar,
@@ -156,10 +156,7 @@ package body Test_LR_Expecting is
             First_State_Index,
             Trace           => Test.Debug > 0,
             Put_Parse_Table => Test.Debug > 0),
-         State'Access,
          First_Parser_Label);
-
-      WisiToken.Trace_Parse := Test.Debug;
 
       Execute
         ("set A = 2",

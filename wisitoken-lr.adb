@@ -27,6 +27,7 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -638,7 +639,7 @@ package body WisiToken.LR is
    end Put;
 
    function Next_Grammar_Token
-     (Terminals      : in out          Base_Token_Arrays.Vector;
+     (Terminals      : in out          Protected_Base_Token_Arrays.Vector;
       Lexer          : not null access WisiToken.Lexer.Instance'Class;
       Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
       Descriptor     : in              WisiToken.Descriptor'Class)
@@ -671,7 +672,7 @@ package body WisiToken.LR is
    is
       use all type Semantic_Checks.Semantic_Check;
       use all type Semantic_Checks.Check_Status_Label;
-      Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. Positive_Index_Type (Action.Token_Count)); -- For Check.
+      Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count)); -- For Check.
    begin
       Nonterm := Syntax_Tree.Add_Nonterm (Action.LHS, Action => Action.Action);
       for I in reverse Tokens'Range loop
@@ -681,9 +682,15 @@ package body WisiToken.LR is
       Syntax_Tree.Set_Children (Nonterm, Tokens);
 
       if Trace_Level > Detail then
-         Trace.Put_Line
-           (Image (Syntax_Tree.Base_Token (Nonterm), Trace.Descriptor.all, ID_Only => False) & " <= " &
-              Syntax_Tree.Image (Tokens, Trace.Descriptor.all));
+         declare
+            Action_Name : constant String := Ada.Characters.Handling.To_Lower
+              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Int_Image (Action.Index);
+         begin
+            Trace.Put_Line
+              (Trace_Prefix & Action_Name & ": " &
+                 Image (Syntax_Tree.Base_Token (Nonterm), Trace.Descriptor.all, ID_Only => False) & " <= " &
+                 Syntax_Tree.Image (Tokens, Trace.Descriptor.all));
+         end;
       end if;
 
       if Action.Check = null then

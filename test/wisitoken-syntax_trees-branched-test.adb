@@ -51,14 +51,16 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       use all type Node_Arrays.Vector;
       use all type Valid_Node_Index_Arrays.Vector;
 
-      Terminals     : aliased Base_Token_Arrays.Vector;
+      Terminals     : aliased Protected_Base_Token_Arrays.Vector;
       Shared_Tree   : aliased WisiToken.Syntax_Trees.Tree (Terminals'Access);
       Branched_Tree : WisiToken.Syntax_Trees.Branched.Tree;
-      Junk     : Node_Index;
+      Junk          : Node_Index;
       pragma Unreferenced (Junk);
       Node_Ident_1  : Node_Index;
       Node_Ident_2  : Node_Index;
       Node_Name     : Node_Index;
+
+      Expected_Branched_Nodes : Node_Arrays.Vector;
    begin
       --  Create a branched tree, set a child of a new node to a shared
       --  node, thus invoking Move_Branch_Point.
@@ -76,6 +78,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
 
       Node_Name := Branched_Tree.Add_Nonterm (Nonterm => +name_ID); -- 4
       Branched_Tree.Set_Children (Parent => Node_Name, Children => (1 => Node_Ident_1));
+      --  moves branch point; Branched_Tree.Last_Shared_Node is now 1.
 
       Check ("node 4", Node_Name, 4);
 
@@ -84,28 +87,36 @@ package body WisiToken.Syntax_Trees.Branched.Test is
 
       Check ("node 5", Node_Ident_2, 5);
 
+      Expected_Branched_Nodes.Set_First (2);
+      Expected_Branched_Nodes.Append
+        ((Shared_Terminal,
+          Parent       => 4,
+          Terminal     => 2));  -- 2
+
+      Expected_Branched_Nodes.Append
+        ((Shared_Terminal,
+          Parent     => 0,
+          Terminal   => 3));  -- 3
+
+      Expected_Branched_Nodes.Append
+        ((Nonterm,
+          Parent     => 0,
+          Nonterm_ID => +name_ID,
+          Children   => +2,
+          others     => <>)); -- 4
+
+      Expected_Branched_Nodes.Append
+        ((Shared_Terminal,
+          Parent     => 0,
+          Terminal   => 4));    -- 5
+
       Check
         ("branched tree",
          Branched_Tree,
-         ((Shared_Tree      => Shared_Tree'Unchecked_Access,
+         ((Ada.Finalization.Controlled with
+           Shared_Tree      => Shared_Tree'Unchecked_Access,
            Last_Shared_Node => 1,
-           Branched_Nodes   =>
-             (
-              (Shared_Terminal,
-               Parent       => 4,
-               Terminal     => 2) &  -- 2
-                (Shared_Terminal,
-                 Parent     => 0,
-                 Terminal   => 3) &  -- 3
-                (Nonterm,
-                 Parent     => 0,
-                 Nonterm_ID => +name_ID,
-                 Children   => +2,
-                 others     => <>) & -- 4
-                (Shared_Terminal,
-                 Parent     => 0,
-                 Terminal   => 4)    -- 5
-             ))));
+           Branched_Nodes   => Expected_Branched_Nodes)));
 
       Check ("nodes 2", Branched_Tree.Base_Token (2), Shared_Tree.Base_Token (2));
       Check ("nodes 3", Branched_Tree.Base_Token (3), Shared_Tree.Base_Token (3));

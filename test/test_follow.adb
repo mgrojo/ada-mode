@@ -26,7 +26,7 @@ with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR;
 with WisiToken.Production;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 package body Test_Follow is
 
    package Subprograms is
@@ -63,7 +63,7 @@ package body Test_Follow is
       use all type WisiToken.Production.Right_Hand_Side;
       use all type WisiToken.Production.List.Instance;
 
-      Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+      Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
       --  This grammar has right recursion on Declarations_ID, and an
       --  empty production for Parameter_List_ID

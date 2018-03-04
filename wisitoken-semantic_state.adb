@@ -202,7 +202,7 @@ package body WisiToken.Semantic_State is
                Trailing_Blank : constant Boolean :=
                  Token.ID = Descriptor.New_Line_ID and
                  (Containing_Token.Non_Grammar.Length > 0 and then
-                    Containing_Token.Non_Grammar (Containing_Token.Non_Grammar.Last).ID = Descriptor.New_Line_ID);
+                    Containing_Token.Non_Grammar (Containing_Token.Non_Grammar.Last_Index).ID = Descriptor.New_Line_ID);
             begin
                Containing_Token.First := Containing_Token.First or
                  (Lexer.First and (Token.ID = Descriptor.Comment_ID or Trailing_Blank));

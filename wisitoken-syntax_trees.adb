@@ -221,13 +221,18 @@ package body WisiToken.Syntax_Trees is
 
    function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
    is
+      use all type Ada.Containers.Count_Type;
       N : Syntax_Trees.Node renames Tree.Nodes (Node);
    begin
-      return Result : Valid_Node_Index_Array (N.Children.First_Index .. N.Children.Last_Index) do
-         for I in Result'Range loop
-            Result (I) := N.Children (I);
-         end loop;
-      end return;
+      if N.Children.Length = 0 then
+         return (1 .. 0 => <>);
+      else
+         return Result : Valid_Node_Index_Array (N.Children.First_Index .. N.Children.Last_Index) do
+            for I in Result'Range loop
+               Result (I) := N.Children (I);
+            end loop;
+         end return;
+      end if;
    end Children;
 
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean

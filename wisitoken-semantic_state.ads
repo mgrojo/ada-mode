@@ -110,12 +110,12 @@ package WisiToken.Semantic_State is
    --  1 indexed to match previous version, and grammar file token
    --  indices in grammar actions.
 
-   package Augmented_Token_Arrays is new Ada.Containers.Vectors (Token_Index, Augmented_Token);
+   package Augmented_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Augmented_Token);
 
    ----------
    --  Semantic_State
 
-   package Int_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Integer);
+   package Int_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Integer);
 
    type Semantic_State is tagged limited record
       Terminals : Augmented_Token_Arrays.Vector;

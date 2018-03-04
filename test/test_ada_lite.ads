@@ -33,6 +33,8 @@ package Test_Ada_Lite is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
+   overriding procedure Set_Up_Case (Test : in out Test_Case);
+
    overriding procedure Tear_Down_Case (Test : in out Test_Case);
 
 end Test_Ada_Lite;

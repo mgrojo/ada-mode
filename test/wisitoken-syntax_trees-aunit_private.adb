@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with WisiToken.AUnit;
-with WisiToken.Semantic_State.AUnit;
 package body WisiToken.Syntax_Trees.AUnit_Private is
 
    procedure Check
@@ -28,7 +27,6 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Expected : in Node)
    is
       use WisiToken.AUnit;
-      use WisiToken.Semantic_State.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
    begin
       Check (Label & ".label", Computed.Label, Expected.Label);

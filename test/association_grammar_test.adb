@@ -29,7 +29,7 @@ with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Association_Grammar_Test is
 
@@ -78,7 +78,7 @@ package body Association_Grammar_Test is
    use type WisiToken.Production.List.Instance;   --  "and"
    use type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+   Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid syntax:
    --  (identifier)
@@ -100,15 +100,13 @@ package body Association_Grammar_Test is
    Parser : WisiToken.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
 
    procedure Parse_Command (Command : in String)
    is begin
       Trace.Put_Line ("'" & Command & "'");
 
       Parser.Lexer.Reset_With_String (Command);
-      State.Reset;
-
+      Parser.Semantic_State.Reset;
       Parser.Parse;
 
       Trace.Put_Line ("success");
@@ -132,6 +130,8 @@ package body Association_Grammar_Test is
       use Ada.Text_IO;
       use AUnit.Checks.Text_IO;
 
+      Orig_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
+
       Trace_File_Name : constant String := "association_grammar_test.out";
       Expected_Trace_File_Name : constant String := "../Test/association_grammar_test.good_out";
    begin
@@ -146,14 +146,14 @@ package body Association_Grammar_Test is
 
       WisiToken.LR.Parser.New_Parser
         (Parser,
+         Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Full_Grammar,
             LALR_Descriptor,
             First_State_Index => 1,
-            Put_Parse_Table => Test.Debug,
-            Trace           => Test.Debug),
-         State'Access,
+            Put_Parse_Table   => Test.Debug,
+            Trace             => Test.Debug),
          First_Parser_Label);
 
       WisiToken.Trace_Parse := WisiToken.Detail + 1;
@@ -166,7 +166,7 @@ package body Association_Grammar_Test is
 
       Trace.Clear_File;
       Close (Trace_File);
-      WisiToken.Trace_Parse := 0;
+      WisiToken.Trace_Parse := Orig_Trace_Parse;
 
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception
@@ -176,7 +176,7 @@ package body Association_Grammar_Test is
          Close (Trace_File);
          Set_Output (Standard_Output);
       end if;
-      WisiToken.Trace_Parse := 0;
+      WisiToken.Trace_Parse := Orig_Trace_Parse;
       raise;
    end Nominal;
 

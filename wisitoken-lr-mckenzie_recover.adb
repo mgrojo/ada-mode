@@ -36,8 +36,10 @@ package body WisiToken.LR.McKenzie_Recover is
 
       --  Build a string, call trace.put_line once, so output from multiple
       --  tasks is not interleaved (mostly).
-      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
       use all type Ada.Strings.Unbounded.Unbounded_String;
+      use all type SAL.Base_Peek_Type;
+
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         (if Include_Task_ID then +Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else +"") &
          Integer'Image (Parser_Label) & ": " & Message & ":";
@@ -190,7 +192,11 @@ package body WisiToken.LR.McKenzie_Recover is
    protected type Shared_Lookahead (Shared_Parser : not null access LR.Parser.Parser)
    is
       --  There is only one object of this type, declared in Recover. It
-      --  controls access to the shared Terminals and the lexer input.
+      --  controls access to Get_Next_Token and direct access to shared
+      --  Terminals.
+      --
+      --  It does not control access via Syntax_Tree.Terminals; those are
+      --  protected by the protected object in shared Terminals.
 
       function Get_Token (Index : in Token_Index) return Token_Index;
       --  Return Index, after assuring there is a token in shared Terminals
@@ -624,6 +630,7 @@ package body WisiToken.LR.McKenzie_Recover is
            not Config.Semantic_Check_Fixes (Status.Code)
          then
             declare
+               use all type Ada.Containers.Count_Type;
                use all type SAL.Base_Peek_Type;
                Pattern : Recover_Block_Mismatched_Names renames Recover_Block_Mismatched_Names (Pat);
             begin
@@ -689,6 +696,9 @@ package body WisiToken.LR.McKenzie_Recover is
                            --        Put_Line (Trace, Parser_Label, "Match_Names_Error pattern");
                            --     end if;
 
+                           --  if Trace_McKenzie > Detail then
+                           --     Put ("enqueue", Trace, Parser_Label, Config);
+                           --  end if;
                            --     Local_Config_Heap.Add (New_Config);
 
                            --     return False;
@@ -745,10 +755,13 @@ package body WisiToken.LR.McKenzie_Recover is
                         New_Config.Semantic_Check_Fixes (Status.Code) := True;
                         Config.Semantic_Check_Fixes (Status.Code) := True; -- Avoid duplication.
 
-                        if Trace_McKenzie > Extra then
+                        if Trace_McKenzie > Detail then
                            Put_Line (Trace, Parser_Label, "Extra_Name_Error pattern");
                         end if;
 
+                        if Trace_McKenzie > Detail then
+                           Put ("enqueue", Trace, Parser_Label, New_Config);
+                        end if;
                         Local_Config_Heap.Add (New_Config);
 
                         return False;
@@ -790,7 +803,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Status       : Semantic_Checks.Check_Status;
 
       Trace_Prefix : constant String :=
-        (if Trace_McKenzie > Extra
+        (if Trace_McKenzie > Detail
          then Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) & Integer'Image (Parser_Label) & ": "
          else "");
    begin
@@ -802,8 +815,9 @@ package body WisiToken.LR.McKenzie_Recover is
         (New_Config_1.Stack, New_Config_1.Tree, Action, Nonterm, Lexer, Trace, Trace_McKenzie, Trace_Prefix);
 
       if Status.Label = Error then
+         --  Fixes apply to Config, before the failed reduce.
          if not Try_Semantic_Check_Fixes
-           (Trace, Parser_Label, Table.McKenzie_Param, Lexer, Local_Config_Heap, New_Config_1, Status)
+           (Trace, Parser_Label, Table.McKenzie_Param, Lexer, Local_Config_Heap, Config, Status)
          then
             return;
          end if;
@@ -872,19 +886,19 @@ package body WisiToken.LR.McKenzie_Recover is
       --  If any actions are a conflict, add the conflict action to
       --  Check_Item_Queue.
 
+      use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
       Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
 
-      Item         : Check_Item        := Check_Item_Queue.Get;
+      Item         : Check_Item := Check_Item_Queue.Get;
       Check_Config : Configuration renames Item.Config;
       Check_Token  : Syntax_Trees.Valid_Node_Index renames Item.Current_Token;
-      Check_ID     : constant Token_ID := Check_Config.Tree.ID (Check_Token);
 
       Action : Parse_Action_Node_Ptr :=
         (if Item.Action = null
-         then Action_For (Table, Check_Config.Stack.Peek.State, Check_ID)
+         then Action_For (Table, Check_Config.Stack.Peek.State, Check_Config.Tree.ID (Check_Token))
          else Item.Action);
 
       New_State          : Unknown_State_Index;
@@ -898,17 +912,14 @@ package body WisiToken.LR.McKenzie_Recover is
          else "");
    begin
       if Trace_McKenzie > Detail then
-         Put ("check  ", Trace, Parser_Label, Check_Config);
-         if Trace_McKenzie > Extra then
-            Put_Line (Trace, Parser_Label, "   action " & Image (Action.Item, Descriptor));
-         end if;
+         Put ("check", Trace, Parser_Label, Check_Config);
       end if;
 
       loop
          if Trace_McKenzie > Extra then
             Put_Line
               (Trace, Parser_Label, "checking :" & State_Index'Image (Check_Config.Stack.Peek.State) &
-                 " : " & Image (Check_ID, Descriptor) &
+                 " : " & Image (Check_Config.Tree.ID (Check_Token), Descriptor) &
                  " : " & Image (Action.Item, Descriptor));
          end if;
 
@@ -922,11 +933,11 @@ package body WisiToken.LR.McKenzie_Recover is
          case Action.Item.Verb is
          when Shift =>
             Check_Config.Stack.Push
-              ((Action.Item.State, Check_Config.Tree.Add_Terminal (Check_ID)));
+              ((Action.Item.State, Check_Config.Tree.Add_Terminal (Check_Config.Tree.ID (Check_Token))));
 
             --  Get next token
             if Check_Config.Local_Lookahead.Length > 0 and
-              Check_Config.Local_Lookahead.Length > Check_Config.Local_Lookahead_Index
+              Check_Config.Local_Lookahead.Last_Index > Check_Config.Local_Lookahead_Index
             then
                --  These don't count towards Check_Limit
                Check_Config.Local_Lookahead_Index := Check_Config.Local_Lookahead_Index + 1;
@@ -981,7 +992,7 @@ package body WisiToken.LR.McKenzie_Recover is
            Action.Item.Verb = Accept_It or
            Check_Config.Shared_Token > Shared_Token_Goal;
 
-         Action := Action_For (Table, Check_Config.Stack.Peek.State, Check_ID);
+         Action := Action_For (Table, Check_Config.Stack.Peek.State, Check_Config.Tree.ID (Check_Token));
       end loop;
 
       return Keep_Going;
@@ -1047,6 +1058,7 @@ package body WisiToken.LR.McKenzie_Recover is
       --  Get one config from Super, check to see if it is a viable
       --  solution. If not, enqueue variations to check.
 
+      use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
       McKenzie_Param : McKenzie_Param_Type renames Table.McKenzie_Param;
@@ -1119,7 +1131,7 @@ package body WisiToken.LR.McKenzie_Recover is
                else McKenzie_Param.Delete (ID));
 
             New_Config.Popped.Append (ID);
-            if Trace_McKenzie > Extra then
+            if Trace_McKenzie > Detail then
                Put_Line (Trace, Parser_Label, "try pop " & Image (ID, Trace.Descriptor.all));
                Put ("enqueue", Trace, Parser_Label, Config);
             end if;
@@ -1178,12 +1190,12 @@ package body WisiToken.LR.McKenzie_Recover is
                New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (Deleted_ID);
 
                New_Config.Deleted.Append (Deleted_ID);
-               if Trace_McKenzie > Extra then
-                  Put_Line (Trace, Parser_Label, "delete " & Image (Deleted_ID, Trace.Descriptor.all));
-               end if;
-
                New_Config.Shared_Token := Shared.Get_Token (New_Config.Shared_Token + 1);
 
+               if Trace_McKenzie > Detail then
+                  Put_Line (Trace, Parser_Label, "delete " & Image (Deleted_ID, Trace.Descriptor.all));
+                  Put ("enqueue", Trace, Parser_Label, Config);
+               end if;
                Local_Config_Heap.Add (New_Config);
             end if;
          end;
@@ -1700,6 +1712,7 @@ package body WisiToken.LR.McKenzie_Recover is
       for Parser_State of Parsers loop
          if Parser_State.Recover.Success then
             declare
+               use all type Ada.Containers.Count_Type;
                use Parser_Lists;
                Data   : McKenzie_Data renames Parser_State.Recover;
                Result : Configuration renames Data.Results.Peek;
@@ -1739,6 +1752,8 @@ package body WisiToken.LR.McKenzie_Recover is
                   --  No change in Parser_State.Current_Token
                   Parser_State.Current_Token_Is_Virtual := False;
                end if;
+
+               Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
             end;
          end if;
       end loop;

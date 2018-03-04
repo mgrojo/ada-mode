@@ -2,27 +2,27 @@
  0: 2: (BODY, (80 . 83)) : shift and goto state 21
  0: 21: (IDENTIFIER, (85 . 90)) : shift and goto state 18
  0: 18: (DOT, (91 . 91)) : reduce 1 tokens to name
-(name, (85 . 90)) <= ((IDENTIFIER, (85 . 90)))
+name_0: (name, (85 . 90)) <= ((IDENTIFIER, (85 . 90)))
 semantic check OK
  ... goto state 32
  0: 32: (DOT, (91 . 91)) : shift and goto state 26
  0: 26: (IDENTIFIER, (92 . 96)) : shift and goto state 111
  0: 111: (IS, (98 . 99)) : reduce 3 tokens to selected_component
-(selected_component, (85 . 96)) <= ((name, (85 . 90)), (DOT, (91 . 91)), (IDENTIFIER, (92 . 96)))
+selected_component_0: (selected_component, (85 . 96)) <= ((name, (85 . 90)), (DOT, (91 . 91)), (IDENTIFIER, (92 . 96)))
 semantic check OK
  ... goto state 20
  0: 20: (IS, (98 . 99)) : reduce 1 tokens to name
-(name, (85 . 96)) <= ((selected_component, (85 . 96)))
+name_2: (name, (85 . 96)) <= ((selected_component, (85 . 96)))
 semantic check OK
  ... goto state 32
  0: 32: (IS, (98 . 99)) : reduce 0 tokens to aspect_specification_opt
-(aspect_specification_opt) <= ()
+aspect_specification_opt_0: (aspect_specification_opt) <= ()
  ... goto state 104
  0: 104: (IS, (98 . 99)) : shift and goto state 125
  0: 125: (PROCEDURE, (124 . 132)) : shift and goto state 86
  0: 86: (IDENTIFIER, (134 . 137)) : shift and goto state 18
  0: 18: (LEFT_PAREN, (139 . 139)) : reduce 1 tokens to name
-(name, (134 . 137)) <= ((IDENTIFIER, (134 . 137)))
+name_0: (name, (134 . 137)) <= ((IDENTIFIER, (134 . 137)))
 semantic check OK
  ... goto state 132
  0: 132: (LEFT_PAREN, (139 . 139)) : shift and goto state 24
@@ -30,34 +30,34 @@ semantic check OK
  0: 113: (COLON, (142 . 142)) : shift and goto state 118
  0: 118: (IDENTIFIER, (144 . 150)) : shift and goto state 180
  0: 180: (RIGHT_PAREN, (151 . 151)) : reduce 3 tokens to parameter_specification
-(parameter_specification, (140 . 150)) <= ((IDENTIFIER, (140 . 140)), (COLON, (142 . 142)), (IDENTIFIER, (144 . 150)))
+parameter_specification_2: (parameter_specification, (140 . 150)) <= ((IDENTIFIER, (140 . 140)), (COLON, (142 . 142)), (IDENTIFIER, (144 . 150)))
  ... goto state 114
  0: 114: (RIGHT_PAREN, (151 . 151)) : reduce 1 tokens to parameter_specification_list
-(parameter_specification_list, (140 . 150)) <= ((parameter_specification, (140 . 150)))
+parameter_specification_list_0: (parameter_specification_list, (140 . 150)) <= ((parameter_specification, (140 . 150)))
  ... goto state 115
  0: 115: (RIGHT_PAREN, (151 . 151)) : shift and goto state 116
  0: 116: (IS, (153 . 154)) : reduce 3 tokens to formal_part
-(formal_part, (139 . 151)) <= ((LEFT_PAREN, (139 . 139)), (parameter_specification_list, (140 . 150)), (RIGHT_PAREN, (151 . 151)))
+formal_part_0: (formal_part, (139 . 151)) <= ((LEFT_PAREN, (139 . 139)), (parameter_specification_list, (140 . 150)), (RIGHT_PAREN, (151 . 151)))
  ... goto state 34
  0: 34: (IS, (153 . 154)) : reduce 1 tokens to parameter_profile_opt
-(parameter_profile_opt, (139 . 151)) <= ((formal_part, (139 . 151)))
+parameter_profile_opt_1: (parameter_profile_opt, (139 . 151)) <= ((formal_part, (139 . 151)))
  ... goto state 35
  0: 35: (IS, (153 . 154)) : reduce 3 tokens to procedure_specification
-(procedure_specification, (124 . 151)) <= ((PROCEDURE, (124 . 132)), (name, (134 . 137)), (parameter_profile_opt, (139 . 151)))
+procedure_specification_0: (procedure_specification, (124 . 151)) <= ((PROCEDURE, (124 . 132)), (name, (134 . 137)), (parameter_profile_opt, (139 . 151)))
 semantic check OK
  ... goto state 10
  0: 10: (IS, (153 . 154)) : reduce 1 tokens to subprogram_specification
-(subprogram_specification, (124 . 151)) <= ((procedure_specification, (124 . 151)))
+subprogram_specification_0: (subprogram_specification, (124 . 151)) <= ((procedure_specification, (124 . 151)))
 semantic check OK
  ... goto state 101
 spawn parser from 0 (2 active)
  1: 101: (IS, (153 . 154)) : reduce 0 tokens to aspect_specification_opt
-(aspect_specification_opt) <= ()
+aspect_specification_opt_0: (aspect_specification_opt) <= ()
  ... goto state 16
  0: 101: (IS, (153 . 154)) : shift and goto state 127
  1: 16: (IS, (153 . 154)) : shift and goto state 36
  1: 36: (BEGIN, (156 . 160)) : reduce 0 tokens to declarative_part_opt
-(declarative_part_opt) <= ()
+declarative_part_opt_0: (declarative_part_opt) <= ()
  ... goto state 93
  0: 127: (BEGIN, (156 . 160)) : ERROR
  0: expecting: SEPARATE
@@ -65,11 +65,11 @@ spawn parser from 0 (2 active)
  1: 93: (BEGIN, (156 . 160)) : shift and goto state 128
  0: zombie
  1: 128: (END, (162 . 164)) : reduce 0 tokens to sequence_of_statements_opt
-(sequence_of_statements_opt) <= ()
+sequence_of_statements_opt_0: (sequence_of_statements_opt) <= ()
  ... goto state 169
  0: zombie
  1: 169: (END, (162 . 164)) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements) <= ((sequence_of_statements_opt))
+handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence_of_statements_opt))
  ... goto state 162
  0: zombie
  1: 162: (END, (162 . 164)) : shift and goto state 192
@@ -77,56 +77,56 @@ spawn parser from 0 (2 active)
  1: 192: (IDENTIFIER, (166 . 169)) : shift and goto state 18
  0: zombie
  1: 18: (SEMICOLON, (170 . 170)) : reduce 1 tokens to name
-(name, (166 . 169)) <= ((IDENTIFIER, (166 . 169)))
+name_0: (name, (166 . 169)) <= ((IDENTIFIER, (166 . 169)))
 semantic check OK
  ... goto state 235
  0: terminate (1 active)
  1: 235: (SEMICOLON, (170 . 170)) : reduce 1 tokens to name_opt
-(name_opt, (166 . 169)) <= ((name, (166 . 169)))
+name_opt_1: (name_opt, (166 . 169)) <= ((name, (166 . 169)))
 semantic check OK
  ... goto state 236
  1: 236: (SEMICOLON, (170 . 170)) : shift and goto state 253
  1: 253: (PROCEDURE, (240 . 248)) : reduce 9 tokens to subprogram_body
-(subprogram_body, (124 . 170)) <= ((subprogram_specification, (124 . 151)), (aspect_specification_opt), (IS, (153 . 154)), (declarative_part_opt), (BEGIN, (156 . 160)), (handled_sequence_of_statements), (END, (162 . 164)), (name_opt, (166 . 169)), (SEMICOLON, (170 . 170)))
+subprogram_body_0: (subprogram_body, (124 . 170)) <= ((subprogram_specification, (124 . 151)), (aspect_specification_opt), (IS, (153 . 154)), (declarative_part_opt), (BEGIN, (156 . 160)), (handled_sequence_of_statements), (END, (162 . 164)), (name_opt, (166 . 169)), (SEMICOLON, (170 . 170)))
 semantic check OK
  ... goto state 98
  1: 98: (PROCEDURE, (240 . 248)) : reduce 1 tokens to proper_body
-(proper_body, (124 . 170)) <= ((subprogram_body, (124 . 170)))
+proper_body_1: (proper_body, (124 . 170)) <= ((subprogram_body, (124 . 170)))
  ... goto state 97
  1: 97: (PROCEDURE, (240 . 248)) : reduce 1 tokens to body_g
-(body_g, (124 . 170)) <= ((proper_body, (124 . 170)))
+body_g_0: (body_g, (124 . 170)) <= ((proper_body, (124 . 170)))
  ... goto state 89
  1: 89: (PROCEDURE, (240 . 248)) : reduce 1 tokens to declaration
-(declaration, (124 . 170)) <= ((body_g, (124 . 170)))
+declaration_0: (declaration, (124 . 170)) <= ((body_g, (124 . 170)))
  ... goto state 91
  1: 91: (PROCEDURE, (240 . 248)) : reduce 1 tokens to declarations
-(declarations, (124 . 170)) <= ((declaration, (124 . 170)))
+declarations_0: (declarations, (124 . 170)) <= ((declaration, (124 . 170)))
  ... goto state 92
  1: 92: (PROCEDURE, (240 . 248)) : shift and goto state 86
  1: 86: (IDENTIFIER, (250 . 255)) : shift and goto state 18
  1: 18: (IS, (257 . 258)) : reduce 1 tokens to name
-(name, (250 . 255)) <= ((IDENTIFIER, (250 . 255)))
+name_0: (name, (250 . 255)) <= ((IDENTIFIER, (250 . 255)))
 semantic check OK
  ... goto state 132
  1: 132: (IS, (257 . 258)) : reduce 0 tokens to parameter_profile_opt
-(parameter_profile_opt) <= ()
+parameter_profile_opt_0: (parameter_profile_opt) <= ()
  ... goto state 35
  1: 35: (IS, (257 . 258)) : reduce 3 tokens to procedure_specification
-(procedure_specification, (240 . 255)) <= ((PROCEDURE, (240 . 248)), (name, (250 . 255)), (parameter_profile_opt))
+procedure_specification_0: (procedure_specification, (240 . 255)) <= ((PROCEDURE, (240 . 248)), (name, (250 . 255)), (parameter_profile_opt))
 semantic check OK
  ... goto state 10
  1: 10: (IS, (257 . 258)) : reduce 1 tokens to subprogram_specification
-(subprogram_specification, (240 . 255)) <= ((procedure_specification, (240 . 255)))
+subprogram_specification_0: (subprogram_specification, (240 . 255)) <= ((procedure_specification, (240 . 255)))
 semantic check OK
  ... goto state 101
 spawn parser from 1 (2 active)
  2: 101: (IS, (257 . 258)) : reduce 0 tokens to aspect_specification_opt
-(aspect_specification_opt) <= ()
+aspect_specification_opt_0: (aspect_specification_opt) <= ()
  ... goto state 16
  1: 101: (IS, (257 . 258)) : shift and goto state 127
  2: 16: (IS, (257 . 258)) : shift and goto state 36
  2: 36: (BEGIN, (260 . 264)) : reduce 0 tokens to declarative_part_opt
-(declarative_part_opt) <= ()
+declarative_part_opt_0: (declarative_part_opt) <= ()
  ... goto state 93
  1: 127: (BEGIN, (260 . 264)) : ERROR
  1: expecting: SEPARATE
@@ -134,11 +134,11 @@ spawn parser from 1 (2 active)
  2: 93: (BEGIN, (260 . 264)) : shift and goto state 128
  1: zombie
  2: 128: (END, (266 . 268)) : reduce 0 tokens to sequence_of_statements_opt
-(sequence_of_statements_opt) <= ()
+sequence_of_statements_opt_0: (sequence_of_statements_opt) <= ()
  ... goto state 169
  1: zombie
  2: 169: (END, (266 . 268)) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements) <= ((sequence_of_statements_opt))
+handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence_of_statements_opt))
  ... goto state 162
  1: zombie
  2: 162: (END, (266 . 268)) : shift and goto state 192
@@ -146,58 +146,58 @@ spawn parser from 1 (2 active)
  2: 192: (IDENTIFIER, (270 . 273)) : shift and goto state 18
  1: zombie
  2: 18: (SEMICOLON, (274 . 274)) : reduce 1 tokens to name
-(name, (270 . 273)) <= ((IDENTIFIER, (270 . 273)))
+name_0: (name, (270 . 273)) <= ((IDENTIFIER, (270 . 273)))
 semantic check OK
  ... goto state 235
  1: terminate (1 active)
  2: 235: (SEMICOLON, (274 . 274)) : reduce 1 tokens to name_opt
-(name_opt, (270 . 273)) <= ((name, (270 . 273)))
+name_opt_1: (name_opt, (270 . 273)) <= ((name, (270 . 273)))
 semantic check OK
  ... goto state 236
  2: 236: (SEMICOLON, (274 . 274)) : shift and goto state 253
  2: 253: (PROCEDURE, (340 . 348)) : reduce 9 tokens to subprogram_body
-(subprogram_body, (240 . 274)) <= ((subprogram_specification, (240 . 255)), (aspect_specification_opt), (IS, (257 . 258)), (declarative_part_opt), (BEGIN, (260 . 264)), (handled_sequence_of_statements), (END, (266 . 268)), (name_opt, (270 . 273)), (SEMICOLON, (274 . 274)))
+subprogram_body_0: (subprogram_body, (240 . 274)) <= ((subprogram_specification, (240 . 255)), (aspect_specification_opt), (IS, (257 . 258)), (declarative_part_opt), (BEGIN, (260 . 264)), (handled_sequence_of_statements), (END, (266 . 268)), (name_opt, (270 . 273)), (SEMICOLON, (274 . 274)))
 semantic check (ERROR, MATCH_NAMES_ERROR) (subprogram_body, (240 . 274))(subprogram_specification, (240 . 255)), (name_opt, (270 . 273))
  2: zombie
 recover: succeed
 
  2: 98: (PROCEDURE, (340 . 348)) : reduce 1 tokens to proper_body
-(proper_body, (240 . 274)) <= ((subprogram_body, (240 . 274)))
+proper_body_1: (proper_body, (240 . 274)) <= ((subprogram_body, (240 . 274)))
  ... goto state 97
  2: 97: (PROCEDURE, (340 . 348)) : reduce 1 tokens to body_g
-(body_g, (240 . 274)) <= ((proper_body, (240 . 274)))
+body_g_0: (body_g, (240 . 274)) <= ((proper_body, (240 . 274)))
  ... goto state 89
  2: 89: (PROCEDURE, (340 . 348)) : reduce 1 tokens to declaration
-(declaration, (240 . 274)) <= ((body_g, (240 . 274)))
+declaration_0: (declaration, (240 . 274)) <= ((body_g, (240 . 274)))
  ... goto state 129
  2: 129: (PROCEDURE, (340 . 348)) : reduce 2 tokens to declarations
-(declarations, (124 . 274)) <= ((declarations, (124 . 170)), (declaration, (240 . 274)))
+declarations_1: (declarations, (124 . 274)) <= ((declarations, (124 . 170)), (declaration, (240 . 274)))
  ... goto state 92
  2: 92: (PROCEDURE, (340 . 348)) : shift and goto state 86
  2: 86: (IDENTIFIER, (350 . 355)) : shift and goto state 18
  2: 18: (IS, (357 . 358)) : reduce 1 tokens to name
-(name, (350 . 355)) <= ((IDENTIFIER, (350 . 355)))
+name_0: (name, (350 . 355)) <= ((IDENTIFIER, (350 . 355)))
 semantic check OK
  ... goto state 132
  2: 132: (IS, (357 . 358)) : reduce 0 tokens to parameter_profile_opt
-(parameter_profile_opt) <= ()
+parameter_profile_opt_0: (parameter_profile_opt) <= ()
  ... goto state 35
  2: 35: (IS, (357 . 358)) : reduce 3 tokens to procedure_specification
-(procedure_specification, (340 . 355)) <= ((PROCEDURE, (340 . 348)), (name, (350 . 355)), (parameter_profile_opt))
+procedure_specification_0: (procedure_specification, (340 . 355)) <= ((PROCEDURE, (340 . 348)), (name, (350 . 355)), (parameter_profile_opt))
 semantic check OK
  ... goto state 10
  2: 10: (IS, (357 . 358)) : reduce 1 tokens to subprogram_specification
-(subprogram_specification, (340 . 355)) <= ((procedure_specification, (340 . 355)))
+subprogram_specification_0: (subprogram_specification, (340 . 355)) <= ((procedure_specification, (340 . 355)))
 semantic check OK
  ... goto state 101
 spawn parser from 2 (2 active)
  3: 101: (IS, (357 . 358)) : reduce 0 tokens to aspect_specification_opt
-(aspect_specification_opt) <= ()
+aspect_specification_opt_0: (aspect_specification_opt) <= ()
  ... goto state 16
  2: 101: (IS, (357 . 358)) : shift and goto state 127
  3: 16: (IS, (357 . 358)) : shift and goto state 36
  3: 36: (BEGIN, (360 . 364)) : reduce 0 tokens to declarative_part_opt
-(declarative_part_opt) <= ()
+declarative_part_opt_0: (declarative_part_opt) <= ()
  ... goto state 93
  2: 127: (BEGIN, (360 . 364)) : ERROR
  2: expecting: SEPARATE
@@ -207,86 +207,86 @@ spawn parser from 2 (2 active)
  3: 128: (IDENTIFIER, (369 . 369)) : shift and goto state 154
  2: zombie
  3: 154: (SEMICOLON, (370 . 370)) : reduce 1 tokens to name
-(name, (369 . 369)) <= ((IDENTIFIER, (369 . 369)))
+name_0: (name, (369 . 369)) <= ((IDENTIFIER, (369 . 369)))
 semantic check OK
  ... goto state 166
  2: zombie
  3: 166: (SEMICOLON, (370 . 370)) : shift and goto state 190
  2: zombie
  3: 190: (END, (372 . 374)) : reduce 2 tokens to procedure_call_statement
-(procedure_call_statement, (369 . 370)) <= ((name, (369 . 369)), (SEMICOLON, (370 . 370)))
+procedure_call_statement_0: (procedure_call_statement, (369 . 370)) <= ((name, (369 . 369)), (SEMICOLON, (370 . 370)))
  ... goto state 167
  2: terminate (1 active)
  3: 167: (END, (372 . 374)) : reduce 1 tokens to simple_statement
-(simple_statement, (369 . 370)) <= ((procedure_call_statement, (369 . 370)))
+simple_statement_2: (simple_statement, (369 . 370)) <= ((procedure_call_statement, (369 . 370)))
  ... goto state 171
  3: 171: (END, (372 . 374)) : reduce 1 tokens to statement
-(statement, (369 . 370)) <= ((simple_statement, (369 . 370)))
+statement_0: (statement, (369 . 370)) <= ((simple_statement, (369 . 370)))
  ... goto state 172
  3: 172: (END, (372 . 374)) : reduce 1 tokens to sequence_of_statements
-(sequence_of_statements, (369 . 370)) <= ((statement, (369 . 370)))
+sequence_of_statements_0: (sequence_of_statements, (369 . 370)) <= ((statement, (369 . 370)))
  ... goto state 168
  3: 168: (END, (372 . 374)) : reduce 1 tokens to sequence_of_statements_opt
-(sequence_of_statements_opt, (369 . 370)) <= ((sequence_of_statements, (369 . 370)))
+sequence_of_statements_opt_1: (sequence_of_statements_opt, (369 . 370)) <= ((sequence_of_statements, (369 . 370)))
  ... goto state 169
  3: 169: (END, (372 . 374)) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements, (369 . 370)) <= ((sequence_of_statements_opt, (369 . 370)))
+handled_sequence_of_statements_1: (handled_sequence_of_statements, (369 . 370)) <= ((sequence_of_statements_opt, (369 . 370)))
  ... goto state 162
  3: 162: (END, (372 . 374)) : shift and goto state 192
  3: 192: (IDENTIFIER, (376 . 381)) : shift and goto state 18
  3: 18: (DOT, (382 . 382)) : reduce 1 tokens to name
-(name, (376 . 381)) <= ((IDENTIFIER, (376 . 381)))
+name_0: (name, (376 . 381)) <= ((IDENTIFIER, (376 . 381)))
 semantic check OK
  ... goto state 235
  3: 235: (DOT, (382 . 382)) : shift and goto state 26
  3: 26: (IDENTIFIER, (383 . 387)) : shift and goto state 111
  3: 111: (SEMICOLON, (388 . 388)) : reduce 3 tokens to selected_component
-(selected_component, (376 . 387)) <= ((name, (376 . 381)), (DOT, (382 . 382)), (IDENTIFIER, (383 . 387)))
+selected_component_0: (selected_component, (376 . 387)) <= ((name, (376 . 381)), (DOT, (382 . 382)), (IDENTIFIER, (383 . 387)))
 semantic check OK
  ... goto state 20
  3: 20: (SEMICOLON, (388 . 388)) : reduce 1 tokens to name
-(name, (376 . 387)) <= ((selected_component, (376 . 387)))
+name_2: (name, (376 . 387)) <= ((selected_component, (376 . 387)))
 semantic check OK
  ... goto state 235
  3: 235: (SEMICOLON, (388 . 388)) : reduce 1 tokens to name_opt
-(name_opt, (376 . 387)) <= ((name, (376 . 387)))
+name_opt_1: (name_opt, (376 . 387)) <= ((name, (376 . 387)))
 semantic check OK
  ... goto state 236
  3: 236: (SEMICOLON, (388 . 388)) : shift and goto state 253
  3: 253: (Wisi_EOI, (389 . 388)) : reduce 9 tokens to subprogram_body
-(subprogram_body, (340 . 388)) <= ((subprogram_specification, (340 . 355)), (aspect_specification_opt), (IS, (357 . 358)), (declarative_part_opt), (BEGIN, (360 . 364)), (handled_sequence_of_statements, (369 . 370)), (END, (372 . 374)), (name_opt, (376 . 387)), (SEMICOLON, (388 . 388)))
+subprogram_body_0: (subprogram_body, (340 . 388)) <= ((subprogram_specification, (340 . 355)), (aspect_specification_opt), (IS, (357 . 358)), (declarative_part_opt), (BEGIN, (360 . 364)), (handled_sequence_of_statements, (369 . 370)), (END, (372 . 374)), (name_opt, (376 . 387)), (SEMICOLON, (388 . 388)))
 semantic check (ERROR, MATCH_NAMES_ERROR) (subprogram_body, (340 . 388))(subprogram_specification, (340 . 355)), (name_opt, (376 . 387))
  3: zombie
 recover: succeed
 
  3: 92: (BEGIN) : reduce 1 tokens to declarative_part_opt
-(declarative_part_opt, (124 . 274)) <= ((declarations, (124 . 274)))
+declarative_part_opt_1: (declarative_part_opt, (124 . 274)) <= ((declarations, (124 . 274)))
  ... goto state 175
  3: 175: (BEGIN) : shift and goto state 184
  3: 184: (END) : reduce 0 tokens to sequence_of_statements_opt
-(sequence_of_statements_opt) <= ()
+sequence_of_statements_opt_0: (sequence_of_statements_opt) <= ()
  ... goto state 169
  3: 169: (END) : reduce 1 tokens to handled_sequence_of_statements
-(handled_sequence_of_statements) <= ((sequence_of_statements_opt))
+handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence_of_statements_opt))
  ... goto state 244
  3: 244: (END) : shift and goto state 246
  3: 246: (SEMICOLON) : reduce 0 tokens to name_opt
-(name_opt) <= ()
+name_opt_0: (name_opt) <= ()
  ... goto state 284
  3: 284: (SEMICOLON) : shift and goto state 285
  3: 285: (Wisi_EOI, (389 . 388)) : reduce 11 tokens to package_body
-(package_body, (72 . 274)) <= ((PACKAGE, (72 . 78)), (BODY, (80 . 83)), (name, (85 . 96)), (aspect_specification_opt), (IS, (98 . 99)), (declarative_part_opt, (124 . 274)), (BEGIN), (handled_sequence_of_statements), (END), (name_opt), (SEMICOLON))
+package_body_0: (package_body, (72 . 274)) <= ((PACKAGE, (72 . 78)), (BODY, (80 . 83)), (name, (85 . 96)), (aspect_specification_opt), (IS, (98 . 99)), (declarative_part_opt, (124 . 274)), (BEGIN), (handled_sequence_of_statements), (END), (name_opt), (SEMICOLON))
 semantic check OK
  ... goto state 9
  3: 9: (Wisi_EOI, (389 . 388)) : reduce 1 tokens to library_item
-(library_item, (72 . 274)) <= ((package_body, (72 . 274)))
+library_item_0: (library_item, (72 . 274)) <= ((package_body, (72 . 274)))
  ... goto state 8
  3: 8: (Wisi_EOI, (389 . 388)) : reduce 1 tokens to compilation_unit
-(compilation_unit, (72 . 274)) <= ((library_item, (72 . 274)))
+compilation_unit_0: (compilation_unit, (72 . 274)) <= ((library_item, (72 . 274)))
  ... goto state 4
  3: 4: (Wisi_EOI, (389 . 388)) : reduce 1 tokens to compilation_unit_list
-(compilation_unit_list, (72 . 274)) <= ((compilation_unit, (72 . 274)))
+compilation_unit_list_0: (compilation_unit_list, (72 . 274)) <= ((compilation_unit, (72 . 274)))
  ... goto state 5
  3: 5: (Wisi_EOI, (389 . 388)) : accept it
-(wisitoken_accept, (72 . 274)) <= ((compilation_unit_list, (72 . 274)))
+wisitoken_accept_0: (wisitoken_accept, (72 . 274)) <= ((compilation_unit_list, (72 . 274)))
  3: succeed

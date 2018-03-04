@@ -26,6 +26,8 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with WisiToken.LR.Parser;
+with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Parser_Run
 is
@@ -42,21 +44,22 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State  : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+
+   User_Data : WisiToken.Syntax_Trees.User_Data_Type;
 
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
    is
       use all type WisiToken.Token_ID;
-      Parser : WisiToken.LR.Instance;
+      Parser : WisiToken.LR.Parser.Parser;
    begin
       case Algorithm is
       when WisiToken.LALR =>
-         Create_Parser (Parser, WisiToken.LALR, State'Unchecked_Access);
+         Create_Parser (Parser, WisiToken.LALR, Trace'Unchecked_Access);
          Put_Line ("LALR_Parser parse:");
 
       when WisiToken.LR1 =>
-         Create_Parser (Parser, WisiToken.LR1, State'Unchecked_Access);
+         Create_Parser (Parser, WisiToken.LR1, Trace'Unchecked_Access);
          Put_Line ("LR1_Parser parse:");
       end case;
 
@@ -65,10 +68,12 @@ is
          exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
       end loop;
 
-      State.Initialize (Line_Count => Parser.Lexer.Line);
+      Parser.Semantic_State.Initialize (Line_Count => Parser.Lexer.Line);
 
       Parser.Lexer.Reset;
-      WisiToken.LR.Parser.Parse (Parser);
+      Parser.Parse;
+      Parser.Execute_Actions (User_Data, Compute_Indent => True);
+
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));

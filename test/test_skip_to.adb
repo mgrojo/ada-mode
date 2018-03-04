@@ -29,7 +29,6 @@ with WisiToken.Semantic_State;
 package body Test_Skip_To is
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar.Descriptor'Access);
-   State  : aliased WisiToken.Semantic_State.Semantic_State (Trace'Access);
    Parser : WisiToken.LR.Parser.Parser;
 
    ----------
@@ -37,14 +36,13 @@ package body Test_Skip_To is
 
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
 
       File_Name : constant String := "../wisi/test/skip_to_grammar.input";
    begin
-      WisiToken.Trace_Parse := Test.Debug;
       Test_Skip_To_Aux.Enable := True;
 
-      State.Initialize (Line_Count => 8);
+      Parser.Semantic_State.Initialize (Line_Count => 8);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    exception
@@ -78,5 +76,5 @@ package body Test_Skip_To is
    end Register_Tests;
 
 begin
-   Skip_To_Grammar.Create_Parser (Parser, WisiToken.LALR, State'Access);
+   Skip_To_Grammar.Create_Parser (Parser, WisiToken.LALR, Trace'Access);
 end Test_Skip_To;

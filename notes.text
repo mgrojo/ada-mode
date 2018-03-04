@@ -20,19 +20,8 @@ org.wisitoken.stephe-1 - available
 
  current work
 build syntax tree, use that in recover to pop stack
-    compiles, tests fail
-
-    when pop token off stack, remove from tree
-        preserve indices
-        if nonterm, unset parent
-
-        test delete in branched-test
-
-    mckenzie _much_ slower
+    parse, mckenzie slower?
         record benchmarks
-        get profile
-
-    record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
 
     debug_production_recover.adb
         implement state/production matching outlined in syntax_trees-test missing_ends_1
@@ -41,23 +30,22 @@ build syntax tree, use that in recover to pop stack
     test_mckenzie.adb Abandon_Pattern
         edit syntax tree is much cheaper; 'insert end case; end proc_a' cost 6
 
-    https://graphviz.gitlab.io/_pages/Download/Download_windows.html
 
-test_mckenzie_recover.adb Conflict_1
-PROGRAM_ERROR: WisiToken.Base_Token_Arrays.Implementation.TC_Check: attempt to tamper with cursors
-    some other task is holding a cursor on Terminals!?
-        all refs to Shared_Parser.Terminals in McKenzie are in Shared_Lookahead
-    not repeatable. race condition with what?
+    when pop token off stack, remove from tree
+        preserve indices
+        if nonterm, unset parent
+
+        test delete in branched-test
+
+    record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
+
+    https://graphviz.gitlab.io/_pages/Download/Download_windows.html
 
 tokens are no longer copied in recovery; only indices into shared_Parser.Terminals
     => merge augmented_token into base_token?
     clean up first; compute all possible stuff at action time, not parse time
     keep line, col: doesn't cost much, very nice for error messages outside Emacs
         only in error messages, not Image (Base_Token)
-
-possible space optimization:
-    share beginning of token, tree array
-    all nodes after edit_start are copied/edited
 
 review FIXME:
 
@@ -69,18 +57,8 @@ user option end_name_require (ie not optional) makes ada_mode-recover_block_name
     need to preserve end name when editing stack
     => lookahead must be array of base token
 
-delete line, col
-    only needed by non-emacs users
-        can be computeded from state.line_end_pos, if we add that
-    also other fields?
-
-Use correction cost to pick parser in terminate duplicate
-
 update NEWS.text
 
-Can compute max tokens length for actions from grammar - use fixed array size
-    may cause generic explosion
-    may be slower
 
 Fixed size stack speed mckenzie?
     init current to 50 was slightly slower
@@ -103,8 +81,10 @@ reorganize into three package hierarchies:
     eliminate dependence of wisi-generate.exe on wisitoken-lr-mckenzie_recover.
 
 do multi-cpu parsing?
-    won't help as much in absence of errors
+    benefit depends on density, duration of conflicts
     errors are when speed is noticeable
+    make shared_terminals task-safe; protected object for access to .Last_Index, Add
+    move lexer data to shared_terminals
 
 
 cache recover for subsequent parse?

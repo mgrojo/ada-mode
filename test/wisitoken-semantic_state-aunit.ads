@@ -21,11 +21,6 @@ package WisiToken.Semantic_State.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Semantic_Action;
-      Expected : in Semantic_Action);
-
-   procedure Check
-     (Label    : in String;
       Computed : in Augmented_Token;
       Expected : in Augmented_Token);
    --  Does not check all fields

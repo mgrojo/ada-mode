@@ -21,33 +21,29 @@ with Test_Skip_To_Aux; use Test_Skip_To_Aux;
 
 %start compilation_unit_list
 
-%conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token PERCENT
-%conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token PREAMBLE
-
 %%
 
 declaration
   : PERCENT IDENTIFIER declaration_item_list
-  (Test_Declaration_0 (Nonterm);)
-;
+  (Test_Declaration_0 (Tree.Augmented_Token_Ref (Tree_Nonterm));)
+  ;
 
-  declaration_item_list
+declaration_item_list
   : declaration_item
   | declaration_item_list declaration_item
   ;
-  
-  declaration_item
+
+declaration_item
   : IDENTIFIER
   ;
 
-  compilation_unit
-  : PREAMBLE 
+compilation_unit
+  : PREAMBLE
   | declaration
 ;
 
 compilation_unit_list
-: ;; empty, just comments
-| compilation_unit
+  : compilation_unit
   | compilation_unit_list compilation_unit
 ;
 %%

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -59,7 +59,7 @@ package body WisiToken.Gen_Token_Enum is
 
    function "+"
      (Left  : in Token_Enum_ID;
-      Right : in WisiToken.Semantic_State.Semantic_Action)
+      Right : in WisiToken.Syntax_Trees.Semantic_Action)
      return WisiToken.Production.Right_Hand_Side
    is begin
       return WisiToken.Production."+" (+Left, Right);

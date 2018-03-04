@@ -32,9 +32,9 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Vectors;
 with Ada.Finalization;
 with SAL.Gen_Unbounded_Definite_Queues;
+with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Semantic_State;
 package WisiToken.Syntax_Trees is
 
@@ -48,7 +48,7 @@ package WisiToken.Syntax_Trees is
    type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
    --  Index matches Base_Token_Array, Augmented_Token_Array
 
-   package Valid_Node_Index_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Valid_Node_Index);
+   package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive_Index_Type, Valid_Node_Index);
    --  Index matches Valid_Node_Index_Array.
 
    package Valid_Node_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (Valid_Node_Index);
@@ -177,7 +177,7 @@ package WisiToken.Syntax_Trees is
    --  Concrete tree for parsers. See wisitoken-syntax_trees-branched.adb for
    --  recovery tree.
 
-   type Tree (Terminals : not null access Base_Token_Arrays.Vector) is new Abstract_Tree with private;
+   type Tree (Terminals : not null access Protected_Base_Token_Arrays.Vector) is new Abstract_Tree with private;
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
@@ -354,10 +354,12 @@ private
 
    subtype Nonterm_Node is Node (Nonterm);
 
-   package Node_Arrays is new Ada.Containers.Vectors (Valid_Node_Index, Node);
+   package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
 
-   type Tree (Terminals : not null access Base_Token_Arrays.Vector) is new Abstract_Tree with record
-      Nodes : Node_Arrays.Vector; -- FIXME: use sal.gen_unbounded_definite_vectors for faster recover
+   type Tree (Terminals : not null access Protected_Base_Token_Arrays.Vector) is new Abstract_Tree with record
+      Nodes : Node_Arrays.Vector;
+      --  During McKenzie_Recover, tokens are added to Terminals by parallel
+      --  tasks, but not to the shared syntax_tree.
 
       Augmented_Present : Boolean := False;
       --  True if Set_Augmented has been called on any node.

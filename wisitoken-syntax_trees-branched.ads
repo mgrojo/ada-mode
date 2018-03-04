@@ -150,7 +150,8 @@ private
 
    --  We use the same Node type as parent, to simplify moving the branch
    --  point, and to support future use of branched trees in shared
-   --  parsers.
+   --  parsers. We don't need protected node arrays; these are only
+   --  accessed from one task at a time.
 
    type Tree is new Abstract_Tree with record
       Shared_Tree : Shared_Tree_Access;

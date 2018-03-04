@@ -2,7 +2,7 @@
 --
 --  Main program to run a parser.
 --
---  Copyright (C) 2015, 2017 Stephe Leake
+--  Copyright (C) 2015, 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -20,15 +20,14 @@
 
 pragma License (GPL);
 
-with WisiToken.LR;
-with WisiToken.Semantic_State;
+with WisiToken.LR.Parser;
 generic
    Descriptor : in WisiToken.Descriptor'Class;
 
    with procedure  Create_Parser
-     (Parser         :    out WisiToken.LR.Instance;
-      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);
+     (Parser    :    out          WisiToken.LR.Parser.Parser;
+      Algorithm : in              WisiToken.Parser_Algorithm_Type;
+      Trace     : not null access WisiToken.Trace'Class);
 
    LR1 : in Boolean;
 procedure Gen_Parser_Run;

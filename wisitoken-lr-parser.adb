@@ -263,12 +263,51 @@ package body WisiToken.LR.Parser is
       Current_Parser : in     Parser_Lists.Cursor)
      return Boolean
    is
-      --  WORKAROUND: Parsers could be 'in', but GNAT GPL 2016 requires 'in out'
-      use all type Parser_Stacks.Stack;
+      --  WORKAROUND: Parsers could be 'in', but GNAT GPL 2016, 2017 requires 'in out'
+      use all type SAL.Base_Peek_Type;
+
+      function Compare
+        (Stack_1 : in Parser_Stacks.Stack;
+         Tree_1  : in Syntax_Trees.Tree;
+         Stack_2 : in Parser_Stacks.Stack;
+         Tree_2  : in Syntax_Trees.Tree)
+        return Boolean
+      is
+      begin
+         if Stack_1.Depth /= Stack_2.Depth then
+            return False;
+         else
+            for I in reverse 1 .. Stack_1.Depth - 1 loop
+               --  Assume they differ near the top; no point in comparing bottom
+               --  item. The syntax trees will differ even if the tokens on the stack
+               --  are the same, so compare the tokens.
+               declare
+                  Item_1 : Parser_Stack_Item renames Stack_1 (I);
+                  Item_2 : Parser_Stack_Item renames Stack_2 (I);
+               begin
+                  if Item_1.State /= Item_2.State then
+                     return False;
+                  else
+                     declare
+                        Token_1 : Base_Token renames Tree_1.Base_Token (Item_1.Token);
+                        Token_2 : Base_Token renames Tree_2.Base_Token (Item_2.Token);
+                     begin
+                        if Token_1 /= Token_2 then
+                           return False;
+                        end if;
+                     end;
+                  end if;
+               end;
+            end loop;
+            return True;
+         end if;
+      end Compare;
+
    begin
       for Parser_State of Parsers loop
          if Parser_State.Label /= Current_Parser.Label and then
-           Parser_State.Stack = Current_Parser.State_Ref.Stack
+           Compare
+             (Parser_State.Stack, Parser_State.Tree, Current_Parser.State_Ref.Stack, Current_Parser.State_Ref.Tree)
          then
             return True;
          end if;
@@ -513,6 +552,7 @@ package body WisiToken.LR.Parser is
             end loop;
 
          when Accept_It =>
+            --  All parsers accepted or are zombies.
             declare
                Count : constant SAL.Base_Peek_Type := Shared_Parser.Parsers.Count;
             begin
@@ -531,10 +571,10 @@ package body WisiToken.LR.Parser is
                         if Trace_Parse > Outline then
                            Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": succeed");
                         end if;
+                        Current_Parser.Next;
                      else
                         Terminate_Parser (Current_Parser);
                      end if;
-                     Current_Parser.Next;
                      exit when Current_Parser.Is_Done;
                   end loop;
 

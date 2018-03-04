@@ -22,7 +22,7 @@ package body WisiToken.LR.Parser_Lists is
 
    function New_List
      (First_Parser_Label : in     Natural;
-      Terminals          : access Base_Token_Arrays.Vector)
+      Terminals          : access Protected_Base_Token_Arrays.Vector)
      return List
    is begin
       return Result : List

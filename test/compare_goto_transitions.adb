@@ -27,7 +27,7 @@ with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.LR1_Items;
 with WisiToken.Production;
-with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 with WisiToken_AUnit;
 package body Compare_Goto_Transitions is
 
@@ -68,7 +68,7 @@ package body Compare_Goto_Transitions is
       use all type WisiToken.Production.Right_Hand_Side;
       use all type WisiToken.Production.List.Instance;
 
-      Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
+      Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
       --  This grammar has an empty production (number 6); test that
       --  Closure and Goto_Transitions handle it properly.

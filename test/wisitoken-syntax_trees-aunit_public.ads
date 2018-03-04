@@ -18,7 +18,9 @@
 
 pragma License (GPL);
 
-with AUnit.Checks.Containers;
+with AUnit.Checks;
+with SAL.AUnit;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
@@ -26,7 +28,13 @@ package WisiToken.Syntax_Trees.AUnit_Public is
    function "+" (Item : in Node_Index) return Valid_Node_Index_Arrays.Vector
      is (Valid_Node_Index_Arrays.To_Vector (Item, 1));
 
-   procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Ada.Containers.Count_Type, Valid_Node_Index, Valid_Node_Index_Arrays, AUnit.Checks.Containers.Check, Check);
+   procedure Check is new Valid_Node_Index_Arrays.Gen_AUnit
+     (Check_Index   => SAL.AUnit.Check,
+      Check_Element => Check);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Semantic_Action;
+      Expected : in Semantic_Action);
 
 end WisiToken.Syntax_Trees.AUnit_Public;
