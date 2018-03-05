@@ -33,20 +33,23 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    is
       --  Reallocate Elements so Elements (Index) is a valid element.
 
-      Old_First : constant Peek_Type := Elements'First;
-      Old_Last  : constant Peek_Type := Elements'Last;
-      New_First : Peek_Type'Base     := Old_First;
-      New_Last  : Peek_Type          := Old_Last;
+      Old_First  : constant Peek_Type := Elements'First;
+      Old_Last   : constant Peek_Type := Elements'Last;
+      New_First  : Peek_Type          := Old_First;
+      New_Last   : Peek_Type          := Old_Last;
+      New_Length : Peek_Type          := Elements'Length;
 
       New_Array : Array_Access;
    begin
       loop
          exit when New_First <= Index;
-         New_First := Elements'Last - 2 * Elements'Length + 1;
+         New_Length := New_Length * 2;
+         New_First  := Peek_Type'Max (Peek_Type'First, Elements'Last - New_Length + 1);
       end loop;
       loop
          exit when New_Last >= Index;
-         New_Last := Elements'First + 2 * Elements'Length - 1;
+         New_Length := New_Length * 2;
+         New_Last   := Peek_Type'Min (Peek_Type'Last, Elements'First + New_Length - 1);
       end loop;
 
       --  Because of the way we've defined To_Peek_Type, To_Index_Type, we
@@ -125,11 +128,12 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    is
       J : constant Peek_Type :=
         (if Container.Last = No_Index
-         then Peek_Type'First
+         then To_Peek_Type (Index_Type'First)
          else To_Peek_Type (Container.Last + 1));
    begin
       if Container.Elements = null then
          Container.Elements := new Array_Type (J .. J);
+         Container.First := To_Index_Type (J);
 
       elsif J > Container.Elements'Last then
          Grow (Container.Elements, J);
@@ -143,7 +147,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    is
       J : constant Peek_Type'Base :=
         (if Container.Elements = null
-         then Peek_Type'First
+         then To_Peek_Type (Index_Type'First)
          else To_Peek_Type (Container.First - 1));
    begin
       if Container.Elements = null then
@@ -157,41 +161,133 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       Container.First        := To_Index_Type (J);
    end Prepend;
 
-   procedure Set_First (Container : in out Vector; First : in Index_Type)
+   procedure Prepend
+     (Target       : in out Vector;
+      Source       : in     Vector;
+      Source_First : in     Index_Type;
+      Source_Last  : in     Index_Type)
+   is
+      Source_I : constant Peek_Type := To_Peek_Type (Source_First);
+      Source_J : constant Peek_Type := To_Peek_Type (Source_Last);
+   begin
+      if Target.Elements = null then
+         Target.Elements := new Array_Type'(Source.Elements (Source_I .. Source_J));
+         Target.First    := Source_First;
+         Target.Last     := Source_Last;
+      else
+         declare
+            New_First : constant Index_Type := Target.First - (Source_Last - Source_First + 1);
+            I         : constant Peek_Type  := To_Peek_Type (New_First);
+            J         : constant Peek_Type  := To_Peek_Type (Target.First - 1);
+         begin
+            if Target.Elements'First > I then
+               Grow (Target.Elements, I);
+            end if;
+            Target.Elements (I .. J) := Source.Elements (Source_I .. Source_J);
+            Target.First := New_First;
+         end;
+      end if;
+   end Prepend;
+
+   function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector
    is begin
-      --  FIXME: grow!
+      return Result : Vector do
+         for I in 1 .. Count loop
+            Result.Append (Item);
+         end loop;
+      end return;
+   end To_Vector;
+
+   function "&" (Left, Right : in Element_Type) return Vector
+   is begin
+      return Result : Vector do
+         Result.Append (Left);
+         Result.Append (Right);
+      end return;
+   end "&";
+
+   function "&" (Left : in Vector; Right : in Element_Type) return Vector
+   is begin
+      return Result : Vector := Left do
+         Result.Append (Right);
+      end return;
+   end "&";
+
+   procedure Set_First (Container : in out Vector; First : in Index_Type)
+   is
+      J : constant Peek_Type := To_Peek_Type (First);
+   begin
       Container.First := First;
       if Container.Last = No_Index then
-         Container.Last  := First - 1;
+         Container.Last := First - 1;
+      end if;
+
+      if Container.Last >= First then
+         if Container.Elements = null then
+            Container.Elements := new Array_Type'(J .. To_Peek_Type (Container.Last) => <>);
+
+         elsif Container.Elements'First > J then
+            Grow (Container.Elements, J);
+         end if;
       end if;
    end Set_First;
 
    procedure Set_Last (Container : in out Vector; Last : in Index_Type)
-   is begin
-      --  FIXME: grow!
+   is
+      J : constant Peek_Type := To_Peek_Type (Last);
+   begin
       Container.Last := Last;
+      if Container.First = No_Index then
+         Container.First := Last + 1;
+      end if;
+
+      if Last >= Container.First then
+         if Container.Elements = null then
+            Container.Elements := new Array_Type'(To_Peek_Type (Container.First) .. J => <>);
+
+         elsif Container.Elements'Last < J then
+            Grow (Container.Elements, J);
+         end if;
+      end if;
    end Set_Last;
+
+   procedure Set_Length (Container : in out Vector; Length : in Ada.Containers.Count_Type)
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Container.First = No_Index then
+         Container.First := Index_Type'First;
+         Container.Last  := Container.First - 1;
+      end if;
+      if Length > 0 then
+         Container.Set_Last (Index_Type (Length) + Container.First - 1);
+      end if;
+   end Set_Length;
+
+   procedure Delete (Container : in out Vector; Index : in Index_Type)
+   is
+      J : constant Peek_Type := To_Peek_Type (Index);
+   begin
+      Container.Elements (J .. J) := (J => <>);
+      if Index = Container.Last then
+         Container.Last := Container.Last - 1;
+      end if;
+   end Delete;
 
    function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
    is
-      J : constant Peek_Type := Peek_Type (Index - Index_Type'First + 1);
+      J : constant Peek_Type := To_Peek_Type (Index);
    begin
-      if Index > Container.Last then
-         raise Constraint_Error;
-      end if;
       return (Element => Container.Elements (J)'Access);
    end Constant_Reference;
 
    function Variable_Reference
-     (Container : aliased in out Vector;
-      Index     :         in     Index_Type)
+     (Container : aliased in Vector;
+      Index     :         in Index_Type)
      return Variable_Reference_Type
    is
-      J : constant Peek_Type := Peek_Type (Index - Index_Type'First + 1);
+      J : constant Peek_Type := To_Peek_Type (Index);
    begin
-      if Index > Container.Last then
-         raise Constraint_Error;
-      end if;
       return (Element => Container.Elements (J)'Access);
    end Variable_Reference;
 
@@ -202,7 +298,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
    overriding function First (Object : Iterator) return Cursor
    is begin
-      if Object.Container.First = No_Index then
+      if Object.Container.Elements = null then
          return (null, Invalid_Peek_Index);
       else
          return (Object.Container, To_Peek_Type (Object.Container.First_Index));
@@ -211,7 +307,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
    overriding function Last  (Object : Iterator) return Cursor
    is begin
-      if Object.Container.Last = No_Index then
+      if Object.Container.Elements = null then
          return (null, Invalid_Peek_Index);
       else
          return (Object.Container, To_Peek_Type (Object.Container.Last_Index));
@@ -236,14 +332,22 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Previous;
 
-   function Iterate (Container : aliased in out Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class
+   function Iterate (Container : aliased in Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class
    is begin
-      return Iterator'(Container => Container'Access);
+      return Iterator'(Container => Container'Unrestricted_Access);
    end Iterate;
 
    function Constant_Reference (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
    is begin
       return (Element => Container.Elements (Position.Index)'Access);
    end Constant_Reference;
+
+   function Variable_Reference
+     (Container : aliased in Vector;
+      Position  :         in Cursor)
+     return Variable_Reference_Type
+   is begin
+      return (Element => Container.Elements (Position.Index)'Access);
+   end Variable_Reference;
 
 end SAL.Gen_Unbounded_Definite_Vectors;

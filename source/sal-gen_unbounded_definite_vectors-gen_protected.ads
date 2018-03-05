@@ -38,6 +38,8 @@ package SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
    overriding procedure Finalize (Container : in out Vector);
    overriding procedure Adjust (Container : in out Vector);
 
+   procedure Clear (Container : in out Vector);
+
    function Length (Container : in Vector) return Ada.Containers.Count_Type;
    function Capacity (Container : in Vector) return Ada.Containers.Count_Type;
 

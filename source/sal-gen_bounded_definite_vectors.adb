@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,11 +19,11 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Bounded_Definite_Vectors is
 
-   function Length (Container : in Vector) return SAL.Base_Peek_Type
+   function Length (Container : in Vector) return Ada.Containers.Count_Type
    is begin
       --  We assume the type ranges are sensible, so no exceptions occur
       --  here.
-      return SAL.Base_Peek_Type (Container.Last - Index_Type'First + 1);
+      return Ada.Containers.Count_Type (Container.Last - Index_Type'First + 1);
    end Length;
 
    procedure Clear (Container : in out Vector)

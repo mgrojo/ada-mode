@@ -50,6 +50,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
       Container.Guard := new Gen_Protected.Guard;
    end Adjust;
 
+   procedure Clear (Container : in out Vector)
+   is begin
+      Container.Super.Clear;
+   end Clear;
+
    function Length (Container : in Vector) return Ada.Containers.Count_Type
    is
       use Ada.Containers;

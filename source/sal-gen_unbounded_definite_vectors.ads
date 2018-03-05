@@ -73,24 +73,43 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  Raises Constraint_Error if index of new item would be less than
    --  Index_Type'First.
 
+   procedure Prepend
+     (Target       : in out Vector;
+      Source       : in     Vector;
+      Source_First : in     Index_Type;
+      Source_Last  : in     Index_Type);
+   --  Copy Source (Source_First .. Source_Last) to Target, before
+   --  Target.First_Index.
+
+   function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector;
+
+   function "&" (Left, Right : in Element_Type) return Vector;
+   function "&" (Left : in Vector; Right : in Element_Type) return Vector;
+
    procedure Set_First (Container : in out Vector; First : in Index_Type);
    procedure Set_Last (Container : in out Vector; Last : in Index_Type);
    --  Default First is Index_Type'First.
    --  Elements with First <= index <= Last that have not been set have
    --  Element_Type default value.
 
+   procedure Set_Length (Container : in out Vector; Length : in Ada.Containers.Count_Type);
+   --  Set Last so Container.Length returns Length.
+
+   procedure Delete (Container : in out Vector; Index : in Index_Type);
+   --  Replace Index element contents with default. If Index =
+   --  Container.Last_Index, Container.Last_Index is decremented.
+
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type;
+   function Constant_Reference (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
+   with Pre => Index >= Container.First_Index or Index <= Container.Last_Index;
 
    type Variable_Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Variable_Reference
-     (Container : aliased in out Vector;
-      Index     :         in     Index_Type)
-     return Variable_Reference_Type;
+   function Variable_Reference (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
+   with Pre => Index >= Container.First_Index or Index <= Container.Last_Index;
 
    type Cursor is private;
 
@@ -98,10 +117,13 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    package Vector_Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   function Iterate (Container : aliased in out Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class;
+   function Iterate (Container : aliased in Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class;
 
-   function Constant_Reference (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type;
+   function Constant_Reference (Container : aliased in Vector; Position : in Cursor) return Constant_Reference_Type
+   with Pre => Has_Element (Position);
 
+   function Variable_Reference (Container : aliased in Vector; Position  : in Cursor) return Variable_Reference_Type
+   with Pre => Has_Element (Position);
 private
 
    type Array_Type is array (SAL.Peek_Type range <>) of aliased Element_Type;

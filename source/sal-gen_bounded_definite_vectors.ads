@@ -84,7 +84,7 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
 private
 
-   type Array_Type is array (Peek_Type range 1 .. Capacity) of aliased Element_Type;
+   type Array_Type is array (Peek_Type range 1 .. Peek_Type (Capacity)) of aliased Element_Type;
 
    type Vector is tagged
    record
