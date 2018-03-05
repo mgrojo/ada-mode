@@ -115,10 +115,17 @@ package WisiToken.Syntax_Trees.Branched is
 
    overriding
    function Augmented_Token_Ref
-     (Tree : in out Branched.Tree;
-      Node : in     Valid_Node_Index)
-     return Augmented_Ref
-   with Pre => Tree.Is_Nonterm (Node);
+     (Tree                : in out Branched.Tree;
+      Node                : in     Valid_Node_Index;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
+     return Augmented_Ref;
+
+   overriding
+   function Constant_Aug_Token_Ref
+     (Tree                : in Branched.Tree;
+      Node                : in Valid_Node_Index;
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+     return Constant_Augmented_Ref;
 
    overriding
    function Augmented_Token_Array

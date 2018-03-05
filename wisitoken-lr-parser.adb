@@ -830,7 +830,8 @@ package body WisiToken.LR.Parser is
          declare
             use all type Syntax_Trees.Semantic_Action;
             Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
-            Aug_Nonterm   : Semantic_State.Augmented_Token renames Tree.Augmented_Token_Ref (Node);
+            Aug_Nonterm   : Semantic_State.Augmented_Token renames Tree.Augmented_Token_Ref
+              (Node, Parser.Semantic_State.Terminals);
             Aug_Children  : constant Semantic_State.Augmented_Token_Array := Tree.Augmented_Token_Array
               (Parser.Semantic_State.Terminals, Tree_Children);
          begin

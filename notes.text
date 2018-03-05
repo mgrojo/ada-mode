@@ -20,8 +20,14 @@ org.wisitoken.stephe-1 - available
 
  current work
 build syntax tree, use that in recover to pop stack
+    fix ada-mode to match wisitoken code changes
+        o.e.a.s-4
+
     parse, mckenzie slower?
-        record benchmarks
+        record benchmarks in o.e.a.s-2 notes
+
+    merge mckenzie result directly into parser?
+        no need to reparse terminals?
 
     debug_production_recover.adb
         implement state/production matching outlined in syntax_trees-test missing_ends_1

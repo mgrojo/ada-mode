@@ -174,9 +174,10 @@ package body WisiToken.Syntax_Trees.Branched is
      return Valid_Node_Index
    is begin
       Tree.Branched_Nodes.Append
-        ((Label       => Virtual_Terminal,
-          Parent      => No_Node_Index,
-          Terminal_ID => Terminal));
+        ((Label             => Virtual_Terminal,
+          Parent            => No_Node_Index,
+          Terminal_ID       => Terminal,
+          Virtual_Augmented => null));
       return Tree.Branched_Nodes.Last_Index;
    end Add_Terminal;
 
@@ -368,15 +369,29 @@ package body WisiToken.Syntax_Trees.Branched is
 
    overriding
    function Augmented_Token_Ref
-     (Tree : in out Branched.Tree;
-      Node : in     Valid_Node_Index)
+     (Tree                : in out Branched.Tree;
+      Node                : in     Valid_Node_Index;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
      return Augmented_Ref
    is
-      pragma Unreferenced (Tree, Node);
+      pragma Unreferenced (Tree, Node, Augmented_Terminals);
    begin
       raise SAL.Not_Implemented;
       return (Element => Bogus'Access);
    end Augmented_Token_Ref;
+
+   overriding
+   function Constant_Aug_Token_Ref
+     (Tree                : in Branched.Tree;
+      Node                : in Valid_Node_Index;
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+     return Constant_Augmented_Ref
+   is
+      pragma Unreferenced (Tree, Node, Augmented_Terminals);
+   begin
+      raise SAL.Not_Implemented;
+      return (Element => Bogus'Access);
+   end Constant_Aug_Token_Ref;
 
    overriding
    function Augmented_Token_Array

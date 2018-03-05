@@ -39,6 +39,8 @@ with WisiToken.Semantic_State;
 package WisiToken.Syntax_Trees is
 
    type Abstract_Tree is abstract new Ada.Finalization.Controlled with null record;
+   --  WORKAROUND: GNAT GPL 2017 is confused by this:
+   --  with Variable_Indexing => Augmented_Token_Ref;
 
    type Node_Index is range 0 .. Integer'Last;
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
@@ -136,20 +138,38 @@ package WisiToken.Syntax_Trees is
    with Implicit_Dereference => Element;
 
    function Augmented_Token_Ref
-     (Tree : in out Abstract_Tree;
-      Node : in     Valid_Node_Index)
+     (Tree                : in out Abstract_Tree;
+      Node                : in     Valid_Node_Index;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
      return Augmented_Ref is abstract;
+   --  If Nodes (I) is a nonterm, returns result of Set_Augmented, or
+   --  (Nodes (I).terminal_id, Nodes (I).Byte_Region, others => <>)
+   --
+   --  If a virtual terminal, returns result of Set_Augmented, or
+   --  (Nodes (I).terminal_id, others => <>).
+   --
+   --  If a terminal, returns Augmented_Terminals (I).
+
+   type Constant_Augmented_Ref (Element : access constant Semantic_State.Augmented_Token) is null record
+   with Implicit_Dereference => Element;
+
+   function Constant_Aug_Token_Ref
+     (Tree                : in Abstract_Tree;
+      Node                : in Valid_Node_Index;
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+     return Constant_Augmented_Ref is abstract;
+   --  If Nodes (I) is a nonterm, returns result of Set_Augmented, or
+   --  raises Constraint_Error if Set_Augmented has not been called.
+   --
+   --  If a virtual terminal, returns (ID => Nodes (I).terminal_id, others => <>).
+   --
+   --  If a terminal, returns Augmented_Terminals (I).
 
    function Augmented_Token_Array
      (Tree                : in out Abstract_Tree;
       Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Nodes               : in     Valid_Node_Index_Array)
      return Semantic_State.Augmented_Token_Array is abstract;
-   --  If Nodes (I) is a nonterm, returns Augmented_Token_Ref.
-   --
-   --  If a virtual terminal, returns (ID => Nodes (I).terminal_id, others => <>).
-   --
-   --  If a terminal, returns (Terminals (Nodes (I) with others => <>).
 
    function Virtual
      (Tree : in Abstract_Tree;
@@ -218,7 +238,10 @@ package WisiToken.Syntax_Trees is
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
+   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+
+   function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
 
    overriding
    function Byte_Region
@@ -265,18 +288,23 @@ package WisiToken.Syntax_Trees is
 
    overriding
    function Augmented_Token_Ref
-     (Tree : in out Syntax_Trees.Tree;
-      Node : in     Valid_Node_Index)
-     return Augmented_Ref
-   with Pre => Tree.Is_Nonterm (Node);
-   --  If Set_Augmented (Node) has not yet been called a default
-   --  Augmented_Token is provided.
+     (Tree                : in out Syntax_Trees.Tree;
+      Node                : in     Valid_Node_Index;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
+     return Augmented_Ref;
+
+   overriding
+   function Constant_Aug_Token_Ref
+     (Tree                : in Syntax_Trees.Tree;
+      Node                : in Valid_Node_Index;
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+     return Constant_Augmented_Ref;
 
    procedure Set_Augmented
      (Tree      : in out Syntax_Trees.Tree;
       Node      : in     Valid_Node_Index;
       Augmented : in     Semantic_State.Augmented_Token)
-   with Pre => Tree.Is_Nonterm (Node);
+   with Pre => Tree.Is_Nonterm (Node) or Tree.Is_Virtual_Terminal (Node);
 
    overriding
    function Augmented_Token_Array
@@ -284,6 +312,31 @@ package WisiToken.Syntax_Trees is
       Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Nodes               : in     Valid_Node_Index_Array)
      return Semantic_State.Augmented_Token_Array;
+
+   function Find_Ancestor
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index;
+   --  Return the ancestor of Node that contains ID, or No_Node_Index if
+   --  none match.
+
+   function Find_Sibling
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index
+   with Pre => Tree.Has_Parent (Node);
+   --  Return the sibling of Node that contains ID, or No_Node_Index if
+   --  none match.
+
+   function Find_Child
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index;
+   --  Return the child of Node that contains ID, or No_Node_Index if
+   --  none match.
 
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
@@ -316,6 +369,8 @@ private
       when Virtual_Terminal =>
          Terminal_ID : WisiToken.Token_ID;
 
+         Virtual_Augmented : Semantic_State.Augmented_Token_Access := null;
+
       when Nonterm =>
          Nonterm_ID  : WisiToken.Token_ID;
 
@@ -344,7 +399,7 @@ private
          Action : Semantic_Action := null;
          --  FIXME: add Index for action name in trace?
 
-         Augmented : Semantic_State.Augmented_Token_Access := null;
+         Nonterm_Augmented : Semantic_State.Augmented_Token_Access := null;
          --  We store Augmented_Token_Access rather than Augmented_Token, to
          --  save memory space and copy time during Recover. Note that
          --  Augmented is null during recover; it is only set after parsing is

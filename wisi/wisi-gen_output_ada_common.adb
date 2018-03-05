@@ -65,7 +65,6 @@ package body Wisi.Gen_Output_Ada_Common is
 
          when Process =>
             Put_Line ("with WisiToken.Wisi_Runtime." & Language_Name & ";");
-            Put_Line ("with WisiToken.Semantic_State;");
 
          when Module =>
             Put_Line ("with Emacs_Module_Aux;");
@@ -212,9 +211,9 @@ package body Wisi.Gen_Output_Ada_Common is
             New_Line;
 
             Indent_Line ("procedure Create_Parser");
-            Indent_Line ("  (Parser         :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);");
+            Indent_Line ("  (Parser    :    out WisiToken.LR.Parser.Parser;");
+            Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Trace     : not null access WisiToken.Trace'Class);");
             New_Line;
 
          when Module =>
