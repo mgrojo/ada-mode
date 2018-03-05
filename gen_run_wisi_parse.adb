@@ -36,8 +36,7 @@ is
    use all type WisiToken.Wisi_Runtime.Parse_Action_Type;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State  : WisiToken.Semantic_State.Semantic_State (Trace'Access);
-   Parser : WisiToken.LR.Instance;
+   Parser : aliased WisiToken.LR.Parser.Parser;
 
    procedure Put_Usage
    is
@@ -81,7 +80,7 @@ is
    Start         : Ada.Real_Time.Time;
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
-   Create_Parser (Parser, WisiToken.LALR, State'Unrestricted_Access);
+   Create_Parser (Parser, WisiToken.LALR, Trace'Unrestricted_Access);
 
    declare
       use Ada.Command_Line;
@@ -159,15 +158,16 @@ begin
       exception
       when WisiToken.Syntax_Error =>
          Parser.Lexer.Discard_Rest_Of_Input;
-         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+         WisiToken.Wisi_Runtime.Put (Parser.Lexer.Errors);
          Put_Line ("(lexer_error)");
       end;
    end loop;
    Line_Count := Parser.Lexer.Line;
 
+   Parser.Semantic_State.Initialize (Line_Count);
    Parse_Data.Initialize
-     (Semantic_State   => Parser.Semantic_State,
-      Parse_Action     => Parse_Action,
+     (Parse_Action     => Parse_Action,
+      Descriptor       => Descriptor'Access,
       Source_File_Name => -Source_File_Name,
       Line_Count       => Line_Count,
       Params           => -Indent_Params);
@@ -177,6 +177,20 @@ begin
    end if;
 
    for I in 1 .. Repeat_Count loop
+      declare
+         procedure Clean_Up
+         is begin
+            Parser.Lexer.Discard_Rest_Of_Input;
+            if Repeat_Count = 1 then
+               WisiToken.Wisi_Runtime.Put
+                 (Parser.Parsers.First.State_Ref.Errors,
+                  Parser.Semantic_State,
+                  Parser.Parsers.First.State_Ref.Tree,
+                  Trace.Descriptor.all);
+               WisiToken.Wisi_Runtime.Put (Parser.Lexer.Errors);
+            end if;
+         end Clean_Up;
+
       begin
          Parse_Data.Reset;
          Parser.Lexer.Reset;
@@ -194,30 +208,30 @@ begin
                --  above.
             end;
          else
-            WisiToken.LR.Parser.Parse (Parser);
+            Parser.Parse;
+            Parser.Execute_Actions (Parse_Data, Compute_Indent => Parse_Action = Indent);
+
             if Repeat_Count = 1 then
                WisiToken.Wisi_Runtime.Put (Parse_Data);
-               WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
-               WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+               WisiToken.Wisi_Runtime.Put
+                 (Parser.Parsers.First.State_Ref.Errors,
+                  Parser.Semantic_State,
+                  Parser.Parsers.First.State_Ref.Tree,
+                  Trace.Descriptor.all);
+               WisiToken.Wisi_Runtime.Put (Parser.Lexer.Errors);
             end if;
          end if;
       exception
       when WisiToken.Syntax_Error =>
-         Parser.Lexer.Discard_Rest_Of_Input;
-         WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
-         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+         Clean_Up;
          Put_Line ("(parse_error)");
 
       when E : WisiToken.Parse_Error =>
-         Parser.Lexer.Discard_Rest_Of_Input;
-         WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
-         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+         Clean_Up;
          Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
 
       when E : WisiToken.Fatal_Error =>
-         Parser.Lexer.Discard_Rest_Of_Input;
-         WisiToken.Wisi_Runtime.Put (State.Parser_Errors, Trace.Descriptor.all);
-         WisiToken.Wisi_Runtime.Put (State.Lexer_Errors);
+         Clean_Up;
          Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
       end;
 

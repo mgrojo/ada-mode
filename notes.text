@@ -27,18 +27,34 @@ run test from emacs -Q using source:
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal")
-  (xmtn . "c:/Projects/org.wisitoken")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"        . "../org.wisitoken.stephe-1")
    ("."                       . "../org.emacs.ada-mode.stephe-4")))
 
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.stephe_leake.makerules")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
+
+(dvc-propagate-multiple
+ '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("."                       . "../org.emacs.ada-mode.stephe-2")))
+
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+wisitoken changes
+    compiles; run tests
+
+emacs track parse-max, don't reparse just for different action; just execute action.
+
 wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
     include package name in error message fix
 

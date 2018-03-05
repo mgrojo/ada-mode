@@ -189,7 +189,6 @@
 %non_grammar <comment> COMMENT (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n]*)|("{"[^}]*"}")
 
 %token <symbol> IDENTIFIER ([a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)*
-%nonterminal_symbol selected_component
 
 %token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
 
@@ -2162,6 +2161,7 @@ record_definition
                          [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record* 'TYPE 1 ada-indent)]
                          (ada-indent-record* 'TYPE 1 0)
                          0])
+ ;; ' terminate quote
   | NULL RECORD
   ;
 

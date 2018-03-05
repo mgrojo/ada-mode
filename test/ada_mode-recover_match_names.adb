@@ -1,10 +1,10 @@
 --  Abstract :
 --
---  One each of all grammar statements that can use the Match_Name
---  check in error recovery. In each case, the name of the statement in
---  this file matches the nonterminal being tested; the code in the
---  contruct causes an error for which recovery call Match_Name on the
---  statement; it should fail.
+-- One each of all grammar statements that can use the Match_Names
+-- check in error recovery. In each case, the name of the statement in
+-- this file matches the nonterminal being tested; the code in the
+-- contruct causes an error for which recovery calls Match_Names on
+-- the statement; it should fail.
 --
 -- The error recovery behavior for all of this is similar to
 -- subprogram_body_0: without the Match_Name check, error recovery
@@ -12,7 +12,7 @@
 -- cascade until a lot of new 'end's are needed at EOF.
 --
 -- With the Match_Name check, error recovery inserts the required 'end
--- loop's in the right place, so the errors do not cascade, and 'end
+-- loop' in the right place, so the errors do not cascade, and 'end
 -- subprogram_body' is indented properly.
 --
 --  Does not compile.

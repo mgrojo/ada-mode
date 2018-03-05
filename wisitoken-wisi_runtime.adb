@@ -18,7 +18,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Bounded;
-with WisiToken.LR;
 with WisiToken.Semantic_Checks;
 package body WisiToken.Wisi_Runtime is
 
@@ -43,9 +42,10 @@ package body WisiToken.Wisi_Runtime is
      return Integer;
 
    function Paren_In_Anchor_Line
-     (Data         : in Parse_Data_Type'Class;
-      Anchor_Token : in Semantic_State.Augmented_Token;
-      Offset       : in Integer)
+     (Data         : in out Parse_Data_Type'Class;
+      State        : in     Semantic_State.Semantic_State;
+      Anchor_Token : in     Semantic_State.Augmented_Token;
+      Offset       : in     Integer)
      return Integer;
 
    ----------
@@ -140,6 +140,7 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Line
      (Data         : in out Parse_Data_Type;
+      State        : in     Semantic_State.Semantic_State;
       Line         : in     Line_Number_Type;
       Delta_Indent : in     Delta_Type)
    is
@@ -167,7 +168,7 @@ package body WisiToken.Wisi_Runtime is
                   Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_1, Indent);
                end case;
             else
-               if Delta_Indent.Hanging_Paren_State = Data.Semantic_State.Line_Paren_State (Line) then
+               if Delta_Indent.Hanging_Paren_State = State.Line_Paren_State (Line) then
                   case Delta_Indent.Hanging_Delta_2.Label is
                   when Int =>
                      Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta);
@@ -230,28 +231,28 @@ package body WisiToken.Wisi_Runtime is
    end Max_Anchor_ID;
 
    function Paren_In_Anchor_Line
-     (Data         : in Parse_Data_Type'Class;
-      Anchor_Token : in Semantic_State.Augmented_Token;
-      Offset       : in Integer)
+     (Data         : in out Parse_Data_Type'Class;
+      State        : in     Semantic_State.Semantic_State;
+      Anchor_Token : in     Semantic_State.Augmented_Token;
+      Offset       : in     Integer)
      return Integer
    is
       use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
 
-      Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
-      Left_Paren_ID  : WisiToken.Token_ID renames Descriptor.Left_Paren_ID;
-      Right_Paren_ID : WisiToken.Token_ID renames Descriptor.Right_Paren_ID;
+      Left_Paren_ID  : WisiToken.Token_ID renames Data.Descriptor.Left_Paren_ID;
+      Right_Paren_ID : WisiToken.Token_ID renames Data.Descriptor.Right_Paren_ID;
 
-      I              : Positive_Index_Type := Anchor_Token.First_All_Tokens_Index;
-      Paren_Count    : Integer             := 0;
-      Paren_Char_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
-      Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
+      I              : Base_Token_Index := Anchor_Token.First_Terminals_Index;
+      Paren_Count    : Integer          := 0;
+      Paren_Char_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
+      Text_Begin_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
    begin
       --  [1] wisi-elisp-parse--paren-in-anchor-line. That uses elisp syntax-ppss; here
       --  we search All_Tokens.
       loop
          declare
-            Tok : Semantic_State.Augmented_Token renames Data.Semantic_State.All_Tokens (I).Element.all;
+            Tok : Semantic_State.Augmented_Token renames State.Terminals (I);
          begin
             if Tok.ID = Left_Paren_ID then
                Paren_Count := Paren_Count + 1;
@@ -350,13 +351,17 @@ package body WisiToken.Wisi_Runtime is
       end case;
    end Put;
 
-   procedure Put (Item : in WisiToken.LR.Configuration; Descriptor : in WisiToken.Descriptor'Class)
+   procedure Put
+     (Item       : in LR.Configuration;
+      Tree       : in Syntax_Trees.Tree;
+      Descriptor : in WisiToken.Descriptor'Class)
    is
       use all type SAL.Base_Peek_Type;
+      use Ada.Containers;
       subtype Bounded_Token_ID is WisiToken.Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
         (Max => 10 + Bounded_Token_ID'Width * Integer
-           (Item.Popped.Length + Item.Pushed.Depth + Item.Inserted.Length + Item.Deleted.Length));
+           (Item.Popped.Length + Count_Type (Item.Pushed.Depth) + Item.Inserted.Length + Item.Deleted.Length));
       use Bounded;
 
       Line : Bounded_String := To_Bounded_String ("[");
@@ -375,7 +380,7 @@ package body WisiToken.Wisi_Runtime is
          end loop;
       end To_Codes;
 
-      procedure To_Codes (Stack : in WisiToken.LR.Parser_Stacks.Stack_Type)
+      procedure To_Codes (Stack : in WisiToken.LR.Parser_Stacks.Stack)
       is
          First : Boolean := True;
       begin
@@ -383,8 +388,8 @@ package body WisiToken.Wisi_Runtime is
             Append
               (Line,
                (if First
-                then Int_Image ((Stack.Peek (I).Token.ID)) -- elisp does not need Name
-                else WisiToken.Token_ID'Image (Stack.Peek (I).Token.ID)));
+                then Int_Image (Tree.ID (Stack.Peek (I).Token)) -- elisp does not need Name
+                else WisiToken.Token_ID'Image (Tree.ID (Stack.Peek (I).Token))));
             First := False;
          end loop;
       end To_Codes;
@@ -486,7 +491,7 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
+      Descriptor       : access constant WisiToken.Descriptor'Class;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -494,9 +499,7 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Params);
    begin
-      Data.Semantic_State := Semantic_State;
-      Data.Semantic_State.Initialize (Line_Count);
-
+      Data.Descriptor       := Descriptor;
       Data.Source_File_Name := +Source_File_Name;
       Data.Parse_Action     := Parse_Action;
 
@@ -507,15 +510,11 @@ package body WisiToken.Wisi_Runtime is
          Data.Indents.Set_Length (Ada.Containers.Count_Type (Line_Count));
       end case;
 
-      Data.Reset (Init_Done => True);
+      Data.Reset;
    end Initialize;
 
-   procedure Reset (Data : in out Parse_Data_Type; Init_Done : in Boolean := False)
+   procedure Reset (Data : in out Parse_Data_Type)
    is begin
-      if not Init_Done then
-         Data.Semantic_State.Reset;
-      end if;
-
       case Data.Parse_Action is
       when Navigate =>
          Data.Navigate_Caches.Finalize;
@@ -546,8 +545,10 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array)
    is
       First_Item         : Boolean     := True;
@@ -557,7 +558,8 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Pair of Params loop
          declare
-            Token : WisiToken.Semantic_State.Augmented_Token renames Tokens.Constant_Reference (Pair.Index);
+            Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+              (Tokens (Pair.Index), State.Terminals);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                declare
@@ -570,13 +572,13 @@ package body WisiToken.Wisi_Runtime is
                         Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cursor);
                      begin
                         Cache.Class          := (if Override_Start_Set then Override_Start else Pair.Class);
-                        Cache.Statement_ID   := Nonterm.ID;
+                        Cache.Statement_ID   := Tree.ID (Nonterm);
                         Cache.Containing_Pos := Containing_Pos;
                      end;
                   else
                      Cursor := Data.Navigate_Caches.Insert
                        ((Pos            => Token.Char_Region.First,
-                         Statement_ID   => Nonterm.ID,
+                         Statement_ID   => Tree.ID (Nonterm),
                          ID             => Token.ID,
                          Length         => Length (Token.Char_Region),
                          Class          => (if Override_Start_Set then Override_Start else Pair.Class),
@@ -614,8 +616,10 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
-      Nonterm    : in     Semantic_State.Augmented_Token;
-      Tokens     : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State      : in     Semantic_State.Semantic_State;
+      Tree       : in     Syntax_Trees.Tree;
+      Nonterm    : in     Syntax_Trees.Valid_Node_Index;
+      Tokens     : in     Syntax_Trees.Valid_Node_Index_Array;
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type)
    is
@@ -624,16 +628,16 @@ package body WisiToken.Wisi_Runtime is
       --  [2] wisi-containing-action
       use Navigate_Cache_Trees;
       use WisiToken.Semantic_State;
-      Containing_Tok    : Augmented_Token renames Tokens (Containing);
+      Containing_Tok    : Augmented_Token renames Tree.Constant_Aug_Token_Ref (Tokens (Containing), State.Terminals);
       Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
-      Contained_Tok     : Augmented_Token renames Tokens (Contained);
+      Contained_Tok     : Augmented_Token renames Tree.Constant_Aug_Token_Ref (Tokens (Contained), State.Terminals);
       Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
       Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
       Cursor            : Navigate_Cache_Trees.Cursor;
       Mark              : constant Buffer_Pos                    := Containing_Region.First;
    begin
       if Containing_Region = Null_Buffer_Region then
-         if Containing_Tok.Virtual then
+         if Tree.Virtual (Tokens (Containing)) then
             return;
          else
             raise Fatal_Error with Error_Message
@@ -641,7 +645,7 @@ package body WisiToken.Wisi_Runtime is
                Line      => Containing_Tok.Line,
                Col       => Containing_Tok.Col,
                Message   => "wisi-containing-action: containing-region " &
-                 Containing_Tok.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => True) &
+                 Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
                  " is empty. grammar error; bad action.");
          end if;
       end if;
@@ -652,7 +656,7 @@ package body WisiToken.Wisi_Runtime is
             Line      => Containing_Tok.Line,
             Col       => Containing_Tok.Col,
             Message   => "wisi-containing-action: containing token " &
-              Containing_Tok.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => True) &
+              Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
               " has no cache. grammar error; missing action.");
       end if;
 
@@ -707,8 +711,10 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Motion_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -744,7 +750,8 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token  : Semantic_State.Augmented_Token renames Tokens (Param.Index);
+            Token  : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+              (Tokens (Param.Index), State.Terminals);
             Region : constant Buffer_Region := Token.Char_Region;
          begin
             if Region /= Null_Buffer_Region then
@@ -754,7 +761,7 @@ package body WisiToken.Wisi_Runtime is
 
                Cache_Cur := Find (Iter, Region.First, Direction => Ascending);
                if not Has_Element (Cache_Cur) then
-                  if Token.Virtual then
+                  if Tree.Virtual (Tokens (Param.Index)) then
                      return;
                   else
                      raise Fatal_Error with Error_Message
@@ -762,7 +769,7 @@ package body WisiToken.Wisi_Runtime is
                         Line      => Token.Line,
                         Col       => Token.Col,
                         Message   => "wisi-motion-action: token " &
-                          Token.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => False) &
+                          Token.Image (Data.Descriptor.all, ID_Only => False) &
                           " has no cache; add to statement-action.");
                   end if;
                end if;
@@ -809,8 +816,10 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -824,7 +833,8 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
+            Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+              (Tokens (Param.Index), State.Terminals);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
@@ -865,8 +875,10 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -879,7 +891,8 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
+            Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+              (Tokens (Param.Index), State.Terminals);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
@@ -906,8 +919,10 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Mark_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -920,7 +935,8 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Param of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Tokens (Param.Index);
+            Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+              (Tokens (Param.Index), State.Terminals);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find (Iter, Token.Char_Region.First, Direction => Ascending);
@@ -952,8 +968,10 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Face_Remove_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Remove_Param_Array)
    is
       pragma Unreferenced (Nonterm);
@@ -967,7 +985,8 @@ package body WisiToken.Wisi_Runtime is
    begin
       for I of Params loop
          declare
-            Token : Semantic_State.Augmented_Token renames Tokens (I);
+            Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+              (Tokens (I), State.Terminals);
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
@@ -1007,29 +1026,34 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Indent_Param_Array)
    is
       pragma Unreferenced (Nonterm);
    begin
       --  [2] wisi-indent-action
-      for I in Tokens.First_Index .. Tokens.Last_Index loop
+      for I in Tokens'Range loop
          declare
             use all type SAL.Base_Peek_Type;
-            Token             : Semantic_State.Augmented_Token renames Tokens (I);
+            Tree_Token        : constant Syntax_Trees.Valid_Node_Index := Tokens (I);
+            Token             : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+              (Tokens (I), State.Terminals);
             Pair              : Indent_Pair renames Params (I);
             Code_Delta        : Delta_Type;
             Comment_Param     : Indent_Param;
-            Comment_Param_Set : Boolean := False;
+            Comment_Param_Set : Boolean                       := False;
             Comment_Delta     : Delta_Type;
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                if Token.First_Indent_Line /= Invalid_Line_Number then
-                  Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token, Indenting_Comment => False);
+                  Code_Delta := Indent_Compute_Delta
+                    (Data, State, Tree, Tokens, Pair.Code_Delta, Tree_Token, Indenting_Comment => False);
 
                   if Code_Delta /= Null_Delta then
-                     Indent_Token_1 (Data, Token, Code_Delta, Indenting_Comment => False);
+                     Indent_Token_1 (Data, State, Token, Code_Delta, Indenting_Comment => False);
                   end if;
                end if;
 
@@ -1038,17 +1062,17 @@ package body WisiToken.Wisi_Runtime is
                      Comment_Param     := Pair.Comment_Delta;
                      Comment_Param_Set := True;
 
-                  elsif I < Tokens.Last_Index  then
+                  elsif I < Tokens'Last  then
                      Comment_Param     := Params (I + 1).Code_Delta;
                      Comment_Param_Set := True;
                   end if;
 
                   if Comment_Param_Set then
                      Comment_Delta := Indent_Compute_Delta
-                       (Data, Tokens, Comment_Param, Token, Indenting_Comment => True);
+                       (Data, State, Tree, Tokens, Comment_Param, Tree_Token, Indenting_Comment => True);
 
                      if Comment_Delta /= Null_Delta then
-                        Indent_Token_1 (Data, Token, Comment_Delta, Indenting_Comment => True);
+                        Indent_Token_1 (Data, State, Token, Comment_Delta, Indenting_Comment => True);
                      end if;
                   end if;
                end if;
@@ -1059,15 +1083,17 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_1
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       N       : in     Positive_Index_Type;
       Params  : in     Indent_Param_Array)
    is begin
       --  [2] wisi-indent-action*
-      for I in Tokens.First_Index .. N loop
-         if Semantic_State.Augmented_Token (Tokens (I).Element.all).First then
-            Indent_Action_0 (Data, Nonterm, Tokens, Params);
+      for I in Tokens'First .. N loop
+         if Tree.Constant_Aug_Token_Ref (Tokens (I), State.Terminals).First then
+            Indent_Action_0 (Data, State, Tree, Nonterm, Tokens, Params);
             return;
          end if;
       end loop;
@@ -1075,32 +1101,38 @@ package body WisiToken.Wisi_Runtime is
 
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
-      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Indenting_Token   : in     Semantic_State.Augmented_Token;
+      State             : in     Semantic_State.Semantic_State;
+      Tree              : in     Syntax_Trees.Tree;
+      Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
       Option            : in     Boolean;
       Accumulate        : in     Boolean)
      return Delta_Type
-   is begin
+   is
+      Indenting_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+        (Tree_Indenting, State.Terminals);
+   begin
       --  [2] wisi-elisp-parse--hanging-1
       if Indenting_Comment then
-         return Indent_Compute_Delta (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment);
+         return Indent_Compute_Delta
+           (Data, State, Tree, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment);
       else
          return
            (Hanging,
             Hanging_First_Line  => Indenting_Token.Line,
             Hanging_Paren_State => Indenting_Token.Paren_State,
             Hanging_Delta_1     => Indent_Compute_Delta
-              (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment).Simple_Delta,
+              (Data, State, Tree, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta,
             Hanging_Delta_2     =>
               (if (not Option) or
                  Indenting_Token.Line = Indenting_Token.First_Indent_Line -- first token in tok is first on line
                then Indent_Compute_Delta
-                 (Data, Tokens, (Simple, Delta_2), Indenting_Token, Indenting_Comment).Simple_Delta
+                 (Data, State, Tree, Tokens, (Simple, Delta_2), Tree_Indenting, Indenting_Comment).Simple_Delta
                else Indent_Compute_Delta
-                 (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment).Simple_Delta),
+                 (Data, State, Tree, Tokens, (Simple, Delta_1), Tree_Indenting, Indenting_Comment).Simple_Delta),
             Hanging_Accumulate => Accumulate);
       end if;
    end Indent_Hanging_1;
@@ -1132,32 +1164,36 @@ package body WisiToken.Wisi_Runtime is
    end Put;
 
    procedure Put
-     (Errors     : in WisiToken.Semantic_State.Parser_Error_List_Arrays.Vector;
+     (Errors     : in LR.Parse_Error_Lists.List;
+      State      : in Semantic_State.Semantic_State;
+      Tree       : in Syntax_Trees.Tree;
       Descriptor : in WisiToken.Descriptor'Class)
    is
+      use all type LR.Configuration;
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
    begin
-      for I in Errors.First_Index .. Errors.Last_Index loop
-         for Item of Errors (I) loop
-            --  We don't include parser id here; not very useful.
-            case Item.Label is
-            when Semantic_State.Action =>
-               Put_Line
-                 ('[' & Parser_Error_Code & Buffer_Pos'Image (Item.Error_Token.Char_Region.First) &
-                    " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                    ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'""]");
-            when Semantic_State.Check =>
-               Put_Line
-                 ('[' & Check_Error_Code & Integer'Image (Semantic_Checks.Error_Label'Pos (Item.Code)) &
-                    Buffer_Pos'Image (Item.Tokens (Item.Tokens.First_Index).Byte_Region.First) &
-                    " ""check error""]");
-            end case;
+      for Item of Errors loop
+         --  We don't include parser id here; not very useful.
+         case Item.Label is
+         when LR.Action =>
+            Put_Line
+              ('[' & Parser_Error_Code & Buffer_Pos'Image
+                 (Tree.Constant_Aug_Token_Ref (Item.Error_Token, State.Terminals).Char_Region.First) &
+                 " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                 ", found '" & Image (Tree.ID (Item.Error_Token), Descriptor) & "'""]");
+         when LR.Check =>
+            Put_Line
+              ('[' & Check_Error_Code & Integer'Image (Semantic_Checks.Error_Label'Pos (Item.Code)) &
+                 Buffer_Pos'Image
+                   (Tree.Constant_Aug_Token_Ref
+                      (Item.Tokens (Item.Tokens.First_Index), State.Terminals).Byte_Region.First) &
+                 " ""check error""]");
+         end case;
 
-            if Item.Recover /= null then
-               Put (WisiToken.LR.Configuration (Item.Recover.all), Descriptor);
-            end if;
-         end loop;
+         if Item.Recover /= (others => <>) then
+            Put (Item.Recover, Tree, Descriptor);
+         end if;
       end loop;
    end Put;
 
@@ -1199,6 +1235,7 @@ package body WisiToken.Wisi_Runtime is
 
    function Current_Indent_Offset
      (Data         : in Parse_Data_Type;
+      State        : in WisiToken.Semantic_State.Semantic_State;
       Anchor_Token : in Semantic_State.Augmented_Token;
       Offset       : in Integer)
      return Integer
@@ -1209,28 +1246,11 @@ package body WisiToken.Wisi_Runtime is
         (if Anchor_Token.First and
            Anchor_Token.First_Indent_Line = Anchor_Token.Line
          then Anchor_Token.Char_Region.First
-         else Data.Semantic_State.All_Tokens
-           (Data.Semantic_State.Find_Line_Begin (Anchor_Token.Line, Anchor_Token)).Char_Region.First);
+         else State.Terminals
+           (State.Find_Line_Begin (Data.Descriptor.all, Anchor_Token.Line, Anchor_Token)).Char_Region.First);
    begin
       return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
    end Current_Indent_Offset;
-
-   function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Semantic_State.Augmented_Token
-   is
-      use all type SAL.Base_Peek_Type;
-      I : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
-   begin
-      loop
-         exit when I < Data.Semantic_State.Stack.First_Index;
-         exit when Data.Semantic_State.Stack (I).ID = ID;
-         I := I - 1;
-      end loop;
-      if I < Data.Semantic_State.Stack.First_Index then
-         raise Programmer_Error with
-           "token ID " & Image (ID, Data.Semantic_State.Trace.Descriptor.all) & " not found on parse stack";
-      end if;
-      return Semantic_State.Augmented_Token (Data.Semantic_State.Stack (I).Element.all);
-   end Find_Token_On_Stack;
 
    function Indent_Anchored_2
      (Data        : in out Parse_Data_Type;
@@ -1274,12 +1294,17 @@ package body WisiToken.Wisi_Runtime is
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State             : in     Semantic_State.Semantic_State;
+      Tree              : in     Syntax_Trees.Tree;
+      Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Param             : in     Indent_Param;
-      Indenting_Token   : in     Semantic_State.Augmented_Token;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean)
      return Delta_Type
-   is begin
+   is
+      Indenting_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+        (Tree_Indenting, State.Terminals);
+   begin
       --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
       case Param.Label is
       when Simple =>
@@ -1289,7 +1314,8 @@ package body WisiToken.Wisi_Runtime is
 
          when Anchored_Label =>
             declare
-               Anchor_Token : Semantic_State.Augmented_Token renames Tokens (Param.Param.Anchored_Index);
+               Anchor_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
+                 (Tokens (Param.Param.Anchored_Index), State.Terminals);
             begin
                if Indenting_Token.Byte_Region = Null_Buffer_Region or
                  Anchor_Token.Byte_Region = Null_Buffer_Region
@@ -1304,7 +1330,7 @@ package body WisiToken.Wisi_Runtime is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
                   when Anchored_1 =>
@@ -1313,7 +1339,7 @@ package body WisiToken.Wisi_Runtime is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Paren_In_Anchor_Line (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
                   when Anchored_2 =>
@@ -1322,7 +1348,7 @@ package body WisiToken.Wisi_Runtime is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Paren_In_Anchor_Line (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
                   when Anchored_3 =>
@@ -1332,7 +1358,7 @@ package body WisiToken.Wisi_Runtime is
                           (Data,
                            Anchor_Line => Anchor_Token.Line,
                            Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                           Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                           Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
                            Accumulate  => True);
 
                      else
@@ -1345,7 +1371,7 @@ package body WisiToken.Wisi_Runtime is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
                   end case;
@@ -1353,22 +1379,26 @@ package body WisiToken.Wisi_Runtime is
             end;
 
          when Language =>
-            return Param.Param.Function_Ptr (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Param.Args);
+            return Param.Param.Function_Ptr
+              (Data, State, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Param.Args);
          end case;
 
       when Hanging_Label =>
          case Hanging_Label'(Param.Label) is
          when Hanging_0 => -- wisi-hanging
             return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+              (Data, State, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+               Param.Hanging_Delta_2,
                Option => False, Accumulate => True);
          when Hanging_1 => -- wisi-hanging%
             return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+              (Data, State, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+               Param.Hanging_Delta_2,
                Option => True, Accumulate => True);
          when Hanging_2 => -- wisi-hanging%-
             return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+              (Data, State, Tree, Tokens, Tree_Indenting, Indenting_Comment, Param.Hanging_Delta_1,
+               Param.Hanging_Delta_2,
                Option => True, Accumulate => False);
          end case;
       end case;
@@ -1376,6 +1406,7 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
+      State             : in     Semantic_State.Semantic_State;
       Indenting_Token   : in     Semantic_State.Augmented_Token;
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean)
@@ -1388,18 +1419,18 @@ package body WisiToken.Wisi_Runtime is
             declare
                use all type Ada.Text_IO.Count;
 
-               I : constant Positive_Index_Type := Data.Semantic_State.Find_Line_Begin (Line, Indenting_Token);
+               I : constant Base_Token_Index := State.Find_Line_Begin (Data.Descriptor.all, Line, Indenting_Token);
             begin
-               if Data.Semantic_State.All_Tokens (I).ID = Data.Semantic_State.Trace.Descriptor.Comment_ID and
-                 Data.Semantic_State.All_Tokens (I).Col = 0
+               if State.Terminals (I).ID = Data.Descriptor.Comment_ID and
+                 State.Terminals (I).Col = 0
                then
                   null;
                else
-                  Indent_Line (Data, Line, Delta_Indent);
+                  Indent_Line (Data, State, Line, Delta_Indent);
                end if;
             end;
          else
-            Indent_Line (Data, Line, Delta_Indent);
+            Indent_Line (Data, State, Line, Delta_Indent);
          end if;
       end loop;
    end Indent_Token_1;

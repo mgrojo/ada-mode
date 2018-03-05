@@ -17,26 +17,23 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Wisi_Runtime.Ada;
-with WisiToken.Semantic_State;
-with WisiToken.LR;
+with WisiToken.LR.Parser;
 package Ada_Process is
 
    Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal      => 3,
-      Last_Terminal       => 107,
-      First_Nonterminal   => 108,
-      Last_Nonterminal    => 336,
-      EOF_ID              => 107,
-      Accept_ID           => 108,
-      New_Line_ID         => 1,
-      Comment_ID          => 2,
-      Left_Paren_ID       => 76,
-      Right_Paren_ID      => 77,
-      Terminal_Name_ID    => 104,
-      Nonterminal_Name_ID => 297,
-      String_1_ID         => 106,
-      String_2_ID         => 105,
-      Image               =>
+     (First_Terminal    => 3,
+      Last_Terminal     => 107,
+      First_Nonterminal => 108,
+      Last_Nonterminal  => 336,
+      EOF_ID            => 107,
+      Accept_ID         => 108,
+      New_Line_ID       => 1,
+      Comment_ID        => 2,
+      Left_Paren_ID     => 76,
+      Right_Paren_ID    => 77,
+      String_1_ID       => 106,
+      String_2_ID       => 105,
+      Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
@@ -725,8 +722,8 @@ package Ada_Process is
    Parse_Data : WisiToken.Wisi_Runtime.Ada.Parse_Data_Type;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.LR.Instance;
-      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);
+     (Parser    :    out WisiToken.LR.Parser.Parser;
+      Algorithm : in     WisiToken.Parser_Algorithm_Type;
+      Trace     : not null access WisiToken.Trace'Class);
 
 end Ada_Process;
