@@ -24,7 +24,6 @@ project Standard_Common is
          "-fstack-check",
          "-g",
          "-gnat2012",
-         "-gnata",  -- assertions
          "-gnatfoqQ",
          "-gnatw.d",
          "-gnatwaBCeJL",
@@ -36,6 +35,7 @@ project Standard_Common is
       Debug_Switches := Common_Switches &
         (
          "-O0",
+         "-gnata",  -- assertions, pre/post-conditions
          "-gnatVa", -- validity checks
          "-gnateE", -- extra info in exceptions
          "-gnatwaP"
