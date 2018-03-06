@@ -199,8 +199,8 @@ package WisiToken.Wisi_Runtime is
      (Data              : in out Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
       Tree              : in     Syntax_Trees.Tree;
-      Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
-      Indenting         : in     Syntax_Trees.Valid_Node_Index;
+      Tree_Tokens       : in     Syntax_Trees.Valid_Node_Index_Array;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
       Args              : in     Indent_Arg_Arrays.Vector)
      return Delta_Type;
@@ -453,8 +453,7 @@ private
    --  Utilities for language-specific child packages
 
    function Current_Indent_Offset
-     (Data         : in Parse_Data_Type;
-      State        : in WisiToken.Semantic_State.Semantic_State;
+     (State        : in WisiToken.Semantic_State.Semantic_State;
       Anchor_Token : in Semantic_State.Augmented_Token;
       Offset       : in Integer)
      return Integer;

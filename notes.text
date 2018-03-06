@@ -52,6 +52,8 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
  current work
 wisitoken changes
     compiles; run tests
+    subprograms.input passes
+
 
 emacs track parse-max, don't reparse just for different action; just execute action.
 

@@ -1234,22 +1234,13 @@ package body WisiToken.Wisi_Runtime is
    --  Spec visible private subprograms, alphabetical
 
    function Current_Indent_Offset
-     (Data         : in Parse_Data_Type;
-      State        : in WisiToken.Semantic_State.Semantic_State;
+     (State        : in WisiToken.Semantic_State.Semantic_State;
       Anchor_Token : in Semantic_State.Augmented_Token;
       Offset       : in Integer)
      return Integer
-   is
+   is begin
       --  [2] compute delta in wisi-elisp-parse--anchored-1.
-
-      Line_Begin_Pos : constant Buffer_Pos :=
-        (if Anchor_Token.First and
-           Anchor_Token.First_Indent_Line = Anchor_Token.Line
-         then Anchor_Token.Char_Region.First
-         else State.Terminals
-           (State.Find_Line_Begin (Data.Descriptor.all, Anchor_Token.Line, Anchor_Token)).Char_Region.First);
-   begin
-      return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
+      return Offset + Integer (Anchor_Token.Char_Region.First - State.Line_Begin_Pos (Anchor_Token.Line));
    end Current_Indent_Offset;
 
    function Indent_Anchored_2
@@ -1330,7 +1321,7 @@ package body WisiToken.Wisi_Runtime is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Current_Indent_Offset (State, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
                   when Anchored_1 =>
@@ -1358,7 +1349,7 @@ package body WisiToken.Wisi_Runtime is
                           (Data,
                            Anchor_Line => Anchor_Token.Line,
                            Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                           Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
+                           Offset      => Current_Indent_Offset (State, Anchor_Token, Param.Param.Anchored_Delta),
                            Accumulate  => True);
 
                      else
@@ -1371,7 +1362,7 @@ package body WisiToken.Wisi_Runtime is
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
                         Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Param.Param.Anchored_Delta),
+                        Offset      => Current_Indent_Offset (State, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
                   end case;
@@ -1418,14 +1409,18 @@ package body WisiToken.Wisi_Runtime is
          if Data.Indent_Comment_Col_0 then
             declare
                use all type Ada.Text_IO.Count;
-
-               I : constant Base_Token_Index := State.Find_Line_Begin (Data.Descriptor.all, Line, Indenting_Token);
+               Indent : Boolean := True;
             begin
-               if State.Terminals (I).ID = Data.Descriptor.Comment_ID and
-                 State.Terminals (I).Col = 0
-               then
-                  null;
-               else
+               if State.Line_Begin_Token (Line) /= Semantic_State.Augmented_Token_Arrays.No_Index then
+                  for Tok of State.Terminals (State.Line_Begin_Token (Line)).Non_Grammar loop
+                     if Tok.ID = Data.Descriptor.Comment_ID and Tok.Col = 0 then
+                        Indent := False;
+                        exit;
+                     end if;
+                  end loop;
+               end if;
+
+               if Indent then
                   Indent_Line (Data, State, Line, Delta_Indent);
                end if;
             end;

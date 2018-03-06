@@ -45,8 +45,8 @@ is
       Put_Line ("usage: " & Name & "_wisi_parse <file_name> <parse_action> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
       Put_Line ("options:");
-      Put_Line ("--verbosity n m :");
-      Put_Line ("   n: parser; m: mckenzie");
+      Put_Line ("--verbosity n m l:");
+      Put_Line ("   n: parser; m: mckenzie; l: action");
       Put_Line ("   0 - only report parse errors");
       Put_Line ("   1 - shows each parser cycle, spawn/terminate parallel parsers, error recovery enter/exit");
       Put_Line ("   2 - add parse stack in each cycle, error recovery enqueue/check");
@@ -101,7 +101,8 @@ begin
          if Argument (Arg) = "--verbosity" then
             WisiToken.Trace_Parse    := Integer'Value (Argument (Arg + 1));
             WisiToken.Trace_McKenzie := Integer'Value (Argument (Arg + 2));
-            Arg                      := Arg + 3;
+            WisiToken.Trace_Action   := Integer'Value (Argument (Arg + 3));
+            Arg                      := Arg + 4;
 
          elsif Argument (Arg) = "--cost_limit" then
             Parser.Table.McKenzie_Param.Cost_Limit := Integer'Value (Argument (Arg + 1));
@@ -163,6 +164,10 @@ begin
       end;
    end loop;
    Line_Count := Parser.Lexer.Line;
+
+   if WisiToken.Trace_Action > WisiToken.Outline then
+      Put_Line ("line_count:" & Line_Number_Type'Image (Line_Count));
+   end if;
 
    Parser.Semantic_State.Initialize (Line_Count);
    Parse_Data.Initialize
