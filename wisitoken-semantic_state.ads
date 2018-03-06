@@ -31,6 +31,15 @@ with Ada.Unchecked_Deallocation;
 with WisiToken.Lexer;
 package WisiToken.Semantic_State is
 
+   type Non_Grammar_Token is record
+      ID   : Token_ID;
+      Line : Line_Number_Type;
+      Col  : Ada.Text_IO.Count;
+      --  Column is needed to detect comments in column 0.
+   end record;
+
+   package Non_Grammar_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Non_Grammar_Token);
+
    type Augmented_Token is new Base_Token with record
       --  Most fields are set by Lexer_To_Augmented at parse time; others
       --  are set by Reduce for nonterminals.
@@ -62,7 +71,7 @@ package WisiToken.Semantic_State is
       --  For non-virtual nonterminal tokens, index of last contained token in
       --  State.Terminals (normally a new-line).
       --
-      --  For all others tokens, No_Index.
+      --  For all others, same as First_Terminals_Index.
 
       First_Indent_Line : Line_Number_Type := Invalid_Line_Number;
       Last_Indent_Line  : Line_Number_Type := Invalid_Line_Number;
@@ -79,7 +88,7 @@ package WisiToken.Semantic_State is
       --  token) that need indenting. Excludes comments following code on a
       --  line. If there are no such lines, these are Invalid_Line_Number.
 
-      Non_Grammar : Base_Token_Arrays.Vector;
+      Non_Grammar : Non_Grammar_Token_Arrays.Vector;
       --  For terminals, non-grammar tokens immediately following. For
       --  nonterminals, empty.
 
@@ -106,16 +115,23 @@ package WisiToken.Semantic_State is
    type Augmented_Token_Access is access all Augmented_Token;
    procedure Free is new Ada.Unchecked_Deallocation (Augmented_Token, Augmented_Token_Access);
 
-   type Augmented_Token_Array is array (Positive_Index_Type range <>) of Augmented_Token;
-   --  1 indexed to match previous version, and grammar file token
-   --  indices in grammar actions.
+   type Augmented_Token_Access_Array is array (Positive_Index_Type range <>) of Augmented_Token_Access;
+   --  1 indexed to match token numbers in grammar actions.
+
+   function Image
+     (Item       : in Augmented_Token_Access_Array;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
 
    package Augmented_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Augmented_Token);
+   --  Index matches Base_Token_Arrays.
 
    ----------
    --  Semantic_State
 
-   package Int_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Integer);
+   package Line_Paren_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Integer);
+   package Line_Begin_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Buffer_Pos);
+   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
 
    type Semantic_State is tagged limited record
       Terminals : Augmented_Token_Arrays.Vector;
@@ -128,7 +144,14 @@ package WisiToken.Semantic_State is
       Leading_Non_Grammar : Base_Token_Arrays.Vector;
       --  non-grammar tokens before first grammar token.
 
-      Line_Paren_State : Int_Vectors.Vector;
+      Line_Begin_Pos : Line_Begin_Pos_Vectors.Vector;
+      --  Character position at the start of the first token on each line.
+
+      Line_Begin_Token : Line_Begin_Token_Vectors.Vector;
+      --  Index into Terminals of first token on line; may be a Non_Grammar
+      --  contained by the token.
+
+      Line_Paren_State : Line_Paren_Vectors.Vector;
       --  Parenthesis nesting state at the start of each line; used by
       --  Indent. Set by Lexer_To_Augmented on New_Line_ID.
 
@@ -146,19 +169,6 @@ package WisiToken.Semantic_State is
    --  Return index to State.Terminals of first token in
    --  Token.Char_Region with ID. If not found, return
    --  No_Index.
-
-   function Find_Line_Begin
-     (State      : in Semantic_State;
-      Descriptor : in WisiToken.Descriptor'Class;
-      Line       : in Line_Number_Type;
-      Start      : in Augmented_Token'Class)
-     return Base_Token_Index;
-   --  Return index to State.Terminals of first grammar, comment, or
-   --  new-line token on Line. Start is used to find a starting point to
-   --  search State.Terminals; Line must be <=
-   --  Start.Last_All_Tokens_Index line.
-   --
-   --  If the result is a new-line token, the line is empty.
 
    ----------
    --  Operations on Semantic_State
@@ -193,9 +203,10 @@ package WisiToken.Semantic_State is
 
    procedure Reduce
      (Nonterm        : in out Augmented_Token'Class;
-      Tokens         : in     Augmented_Token_Array;
+      Tokens         : in     Augmented_Token_Access_Array;
+      Descriptor     : in     WisiToken.Descriptor'Class;
       Compute_Indent : in     Boolean);
-   --  Reduce Tokens to Nonterm.ID, update Nonterm. Nonterm.Byte_Region
+   --  Reduce Tokens to Nonterm.ID, update Tokens, Nonterm. Nonterm.Byte_Region
    --  is computed by caller. If Compute_Indent, compute values only
    --  needed by indent.
 

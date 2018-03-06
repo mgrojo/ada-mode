@@ -97,7 +97,7 @@ package body WisiToken.LR.McKenzie_Recover is
    --
    --  For 1), worker_tasks always get the lowest cost configuration
    --  available. However, some active worker_task may have a lower cost
-   --  configuration that it is not yet delivered to Supervisor.
+   --  configuration that it has not yet delivered to Supervisor.
    --  Therefore we always wait until all current active worker_tasks
    --  deliver their results before deciding we are done.
    --

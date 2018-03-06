@@ -70,10 +70,11 @@ package WisiToken.Syntax_Trees is
    Null_Action : constant Semantic_Action := null;
 
    function Add_Nonterm
-     (Tree    : in out Abstract_Tree;
-      Nonterm : in     Token_ID;
-      Virtual : in     Boolean         := False;
-      Action  : in     Semantic_Action := null)
+     (Tree         : in out Abstract_Tree;
+      Nonterm      : in     Token_ID;
+      Virtual      : in     Boolean         := False;
+      Action       : in     Semantic_Action := null;
+      Action_Index : in     Natural         := 0)
    return Valid_Node_Index is abstract;
    --  Add a new Nonterm node with no parent. Result points to the added
    --  node.
@@ -165,12 +166,6 @@ package WisiToken.Syntax_Trees is
    --
    --  If a terminal, returns Augmented_Terminals (I).
 
-   function Augmented_Token_Array
-     (Tree                : in out Abstract_Tree;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Nodes               : in     Valid_Node_Index_Array)
-     return Semantic_State.Augmented_Token_Array is abstract;
-
    function Virtual
      (Tree : in Abstract_Tree;
       Node : in Valid_Node_Index)
@@ -207,10 +202,11 @@ package WisiToken.Syntax_Trees is
 
    overriding
    function Add_Nonterm
-     (Tree    : in out Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Token_ID;
-      Virtual : in     Boolean         := False;
-      Action  : in     Semantic_Action := null)
+     (Tree         : in out Syntax_Trees.Tree;
+      Nonterm      : in     WisiToken.Token_ID;
+      Virtual      : in     Boolean         := False;
+      Action       : in     Semantic_Action := null;
+      Action_Index : in     Natural         := 0)
    return Valid_Node_Index;
 
    overriding
@@ -286,6 +282,12 @@ package WisiToken.Syntax_Trees is
      return Semantic_Action
    with Pre => Tree.Is_Nonterm (Node);
 
+   function Action_Index
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Natural
+   with Pre => Tree.Is_Nonterm (Node);
+
    overriding
    function Augmented_Token_Ref
      (Tree                : in out Syntax_Trees.Tree;
@@ -306,12 +308,11 @@ package WisiToken.Syntax_Trees is
       Augmented : in     Semantic_State.Augmented_Token)
    with Pre => Tree.Is_Nonterm (Node) or Tree.Is_Virtual_Terminal (Node);
 
-   overriding
    function Augmented_Token_Array
      (Tree                : in out Syntax_Trees.Tree;
       Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Nodes               : in     Valid_Node_Index_Array)
-     return Semantic_State.Augmented_Token_Array;
+     return Semantic_State.Augmented_Token_Access_Array;
 
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
@@ -377,6 +378,10 @@ private
          Virtual : Boolean;
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
          --  set. Used by Semantic_Check actions.
+
+         Action_Index : Natural := 0;
+         --  Production for nonterm_id used to produce this element, for debug
+         --  messages.
 
          Byte_Region : Buffer_Region := Null_Buffer_Region;
          --  Computed by Set_Children, used in debug messages.

@@ -138,19 +138,21 @@ package body WisiToken.Syntax_Trees.Branched is
 
    overriding
    function Add_Nonterm
-     (Tree    : in out Branched.Tree;
-      Nonterm : in     WisiToken.Token_ID;
-      Virtual : in     Boolean         := False;
-      Action  : in     Semantic_Action := null)
+     (Tree         : in out Branched.Tree;
+      Nonterm      : in     WisiToken.Token_ID;
+      Virtual      : in     Boolean         := False;
+      Action       : in     Semantic_Action := null;
+      Action_Index : in     Natural         := 0)
      return Valid_Node_Index
    is begin
       Tree.Branched_Nodes.Append
-        ((Label      => Syntax_Trees.Nonterm,
-          Parent     => No_Node_Index,
-          Nonterm_ID => Nonterm,
-          Virtual    => Virtual,
-          Action     => Action,
-          others     => <>));
+        ((Label        => Syntax_Trees.Nonterm,
+          Parent       => No_Node_Index,
+          Nonterm_ID   => Nonterm,
+          Virtual      => Virtual,
+          Action       => Action,
+          Action_Index => Action_Index,
+          others       => <>));
       return Tree.Branched_Nodes.Last_Index;
    end Add_Nonterm;
 
@@ -392,19 +394,6 @@ package body WisiToken.Syntax_Trees.Branched is
       raise SAL.Not_Implemented;
       return (Element => Bogus'Access);
    end Constant_Aug_Token_Ref;
-
-   overriding
-   function Augmented_Token_Array
-     (Tree                : in out Branched.Tree;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Nodes               : in     Valid_Node_Index_Array)
-     return Semantic_State.Augmented_Token_Array
-   is
-      pragma Unreferenced (Tree, Augmented_Terminals, Nodes);
-   begin
-      raise SAL.Not_Implemented;
-      return (1 .. 0 => <>);
-   end Augmented_Token_Array;
 
    overriding
    function Virtual

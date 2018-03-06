@@ -36,14 +36,13 @@ package WisiToken.Syntax_Trees.Branched is
       Shared_Tree   : in     Shared_Tree_Access);
    --  Set Branched_Tree to refer to Shared_Tree.
 
-   --  FIXME: operations commented out so we find out which ones we really need.
-
    overriding
    function Add_Nonterm
-     (Tree    : in out Branched.Tree;
-      Nonterm : in     WisiToken.Token_ID;
-      Virtual : in     Boolean         := False;
-      Action  : in     Semantic_Action := null)
+     (Tree         : in out Branched.Tree;
+      Nonterm      : in     WisiToken.Token_ID;
+      Virtual      : in     Boolean         := False;
+      Action       : in     Semantic_Action := null;
+      Action_Index : in     Natural         := 0)
    return Valid_Node_Index;
 
    overriding
@@ -57,13 +56,6 @@ package WisiToken.Syntax_Trees.Branched is
      (Tree     : in out Branched.Tree;
       Terminal : in     Token_ID)
      return Valid_Node_Index;
-
-   --  overriding
-   --  procedure Set_Child
-   --    (Tree   : in out Branched.Tree;
-   --     Parent : in     Valid_Node_Index;
-   --     Child  : in     Valid_Node_Index)
-   --  with Pre => not Tree.Has_Parent (Child);
 
    overriding
    procedure Set_Children
@@ -126,13 +118,6 @@ package WisiToken.Syntax_Trees.Branched is
       Node                : in Valid_Node_Index;
       Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
      return Constant_Augmented_Ref;
-
-   overriding
-   function Augmented_Token_Array
-     (Tree                : in out Branched.Tree;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Nodes               : in     Valid_Node_Index_Array)
-     return Semantic_State.Augmented_Token_Array;
 
    overriding
    function Virtual

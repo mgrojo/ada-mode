@@ -160,18 +160,20 @@ package body WisiToken.Syntax_Trees is
 
    overriding
    function Add_Nonterm
-     (Tree    : in out Syntax_Trees.Tree;
-      Nonterm : in     WisiToken.Token_ID;
-      Virtual : in     Boolean         := False;
-      Action  : in     Semantic_Action := null)
+     (Tree         : in out Syntax_Trees.Tree;
+      Nonterm      : in     WisiToken.Token_ID;
+      Virtual      : in     Boolean         := False;
+      Action       : in     Semantic_Action := null;
+      Action_Index : in     Natural         := 0)
      return Valid_Node_Index
    is begin
       Tree.Nodes.Append
-        ((Label      => Syntax_Trees.Nonterm,
-          Nonterm_ID => Nonterm,
-          Virtual    => Virtual,
-          Action     => Action,
-          others     => <>));
+        ((Label        => Syntax_Trees.Nonterm,
+          Nonterm_ID   => Nonterm,
+          Virtual      => Virtual,
+          Action       => Action,
+          Action_Index => Action_Index,
+          others       => <>));
       return Tree.Nodes.Last_Index;
    end Add_Nonterm;
 
@@ -384,6 +386,14 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes (Node).Action;
    end Action;
 
+   function Action_Index
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Natural
+   is begin
+      return Tree.Nodes (Node).Action_Index;
+   end Action_Index;
+
    overriding
    function Augmented_Token_Ref
      (Tree                : in out Syntax_Trees.Tree;
@@ -459,16 +469,41 @@ package body WisiToken.Syntax_Trees is
       Tree.Augmented_Present := True;
    end Set_Augmented;
 
-   overriding
    function Augmented_Token_Array
      (Tree                : in out Syntax_Trees.Tree;
       Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Nodes               : in     Valid_Node_Index_Array)
-     return Semantic_State.Augmented_Token_Array
-   is begin
-      return Result : Semantic_State.Augmented_Token_Array (Nodes'First .. Nodes'Last) do
+     return Semantic_State.Augmented_Token_Access_Array
+   is
+      use all type Semantic_State.Augmented_Token_Access;
+   begin
+      return Result : Semantic_State.Augmented_Token_Access_Array (Nodes'First .. Nodes'Last) do
          for I in Result'Range loop
-            Result (I) := Tree.Augmented_Token_Ref (Nodes (I), Augmented_Terminals);
+            declare
+               N : Syntax_Trees.Node renames Tree.Nodes (Nodes (I));
+            begin
+               case N.Label is
+               when Shared_Terminal =>
+                  Result (I) := Semantic_State.Augmented_Token_Access (Augmented_Terminals.Variable_Ref (N.Terminal));
+
+               when Virtual_Terminal =>
+                  if N.Virtual_Augmented = null then
+                     N.Virtual_Augmented := new Semantic_State.Augmented_Token'
+                       (ID     => N.Terminal_ID,
+                        others => <>);
+                  end if;
+                  Result (I) := N.Virtual_Augmented;
+
+               when Nonterm =>
+                  if N.Nonterm_Augmented = null then
+                     N.Nonterm_Augmented := new Semantic_State.Augmented_Token'
+                       (ID          => N.Nonterm_ID,
+                        Byte_Region => N.Byte_Region,
+                        others      => <>);
+                  end if;
+                  Result (I) := N.Nonterm_Augmented;
+               end case;
+            end;
          end loop;
       end return;
    end Augmented_Token_Array;

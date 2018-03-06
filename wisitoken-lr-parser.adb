@@ -28,6 +28,8 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Characters.Handling;
+with Ada.Characters;
 with WisiToken.LR.McKenzie_Recover;
 package body WisiToken.LR.Parser is
 
@@ -832,10 +834,26 @@ package body WisiToken.LR.Parser is
             Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
             Aug_Nonterm   : Semantic_State.Augmented_Token renames Tree.Augmented_Token_Ref
               (Node, Parser.Semantic_State.Terminals);
-            Aug_Children  : constant Semantic_State.Augmented_Token_Array := Tree.Augmented_Token_Array
+            Aug_Children  : constant Semantic_State.Augmented_Token_Access_Array := Tree.Augmented_Token_Array
               (Parser.Semantic_State.Terminals, Tree_Children);
          begin
-            Semantic_State.Reduce (Aug_Nonterm, Aug_Children, Compute_Indent);
+            Semantic_State.Reduce (Aug_Nonterm, Aug_Children, Descriptor, Compute_Indent);
+
+            if Trace_Action > Detail then
+               declare
+                  Action_Name : constant String :=
+                    (if Tree.Action (Node) /= null
+                     then Ada.Characters.Handling.To_Lower
+                       (Image (Aug_Nonterm.ID, Descriptor)) & "_" &
+                        Int_Image (Tree.Action_Index (Node)) & ": "
+                     else "");
+               begin
+                  Parser.Trace.Put_Line
+                    (Action_Name &
+                       Aug_Nonterm.Image (Descriptor, ID_Only => False) & " <= " &
+                       Semantic_State.Image (Aug_Children, Descriptor));
+               end;
+            end if;
 
             if Tree.Action (Node) /= null then
                Tree.Action (Node) (User_Data, Parser.Semantic_State, Tree, Node, Tree_Children);

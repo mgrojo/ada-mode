@@ -38,7 +38,6 @@ pragma License (Modified_GPL);
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;
 package WisiToken is
 
@@ -228,22 +227,11 @@ package WisiToken is
 
    type Token_Index_Array is array (Natural range <>) of Token_Index;
 
-   package Token_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_Index);
-   --  FIXME: used where?
-
    type Base_Token_Array is array (Positive_Index_Type range <>) of Base_Token;
-   --  1 indexed to match previous version, and grammar file token
-   --  indices in grammar actions.
 
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Base_Token);
 
    package Protected_Base_Token_Arrays is new Base_Token_Arrays.Gen_Protected;
-
-   function Image
-     (Item       : in Token_Index_Queues.Queue_Type;
-      Terminals  : in Base_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return String;
 
    function Image
      (Item       : in Base_Token_Arrays.Vector;
@@ -270,6 +258,9 @@ package WisiToken is
    --  Outline - error recovery enter/exit
    --  Detail  - add each error recovery configuration
    --  Extra   - add error recovery parse actions
+
+   Trace_Action : Integer := 0;
+   --  Output during Execute_Action.
 
    type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
    --  Output for tests/debugging.

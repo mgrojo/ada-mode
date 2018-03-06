@@ -300,26 +300,6 @@ package body WisiToken is
    end Image;
 
    function Image
-     (Item       : in Token_Index_Queues.Queue_Type;
-      Terminals  : in Base_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return String
-   is
-      use Ada.Strings.Unbounded;
-      use all type SAL.Base_Peek_Type;
-      Result : Unbounded_String := +"(";
-   begin
-      for I in 1 .. Item.Count loop
-         Result := Result & Image (Terminals (Item.Peek (I)), Descriptor);
-         if I < Item.Count then
-            Result := Result & ", ";
-         end if;
-      end loop;
-      Result := Result & ")";
-      return -Result;
-   end Image;
-
-   function Image
      (Item       : in Base_Token_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
      return String

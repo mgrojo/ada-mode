@@ -47,7 +47,7 @@ package body WisiToken.Semantic_State is
          --  No parens for consistency with previous unit test results.
          return ID_Image;
 
-      elsif Item.Line /= Invalid_Line_Number and Trace_Parse <= Detail then
+      elsif Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
          return "(" & ID_Image &
            Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
 
@@ -91,6 +91,25 @@ package body WisiToken.Semantic_State is
             else Token.Last_Indent_Line));
    end Last_Line;
 
+   function Image
+     (Item       : in Augmented_Token_Access_Array;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is
+      use all type SAL.Base_Peek_Type;
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := +"(";
+   begin
+      for I in Item'Range loop
+         Result := Result & Image (Item (I).all, Descriptor);
+         if I /= Item'Last then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return -Result;
+   end Image;
+
    ----------
    --  Semantic_State
 
@@ -109,59 +128,16 @@ package body WisiToken.Semantic_State is
       return Augmented_Token_Arrays.No_Index;
    end Find;
 
-   function Find_Line_Begin
-     (State      : in Semantic_State;
-      Descriptor : in WisiToken.Descriptor'Class;
-      Line       : in Line_Number_Type;
-      Start      : in Augmented_Token'Class)
-     return Base_Token_Index
-   is
-      Current : Base_Token_Index :=
-        (if Line <= Start.Line
-         then Start.First_Terminals_Index
-         else Start.Last_Terminals_Index);
-   begin
-      --  FIXME: look in Token.Non_Grammar
-      if State.Terminals (Current).Line >= Line then
-         --  Search backwards
-         loop
-            exit when Current = State.Terminals.First_Index or else
-              (State.Terminals (Current - 1).Line = Line - 1 and
-                 State.Terminals (Current - 1).ID = Descriptor.New_Line_ID);
-            Current := Current - 1;
-         end loop;
-         if State.Terminals (Current).ID = Descriptor.New_Line_ID then
-            return Current - 1;
-         else
-            return Current;
-         end if;
-
-      else
-         --  Search forwards
-         loop
-            exit when Current = State.Terminals.Last_Index or else
-              State.Terminals (Current).ID = Descriptor.New_Line_ID;
-            Current := Current + 1;
-         end loop;
-
-         if Current = State.Terminals.Last_Index then
-            return Current;
-         elsif State.Terminals (Current + 1).ID = Descriptor.New_Line_ID then
-            return Current;
-         else
-            return Current + 1;
-         end if;
-      end if;
-   end Find_Line_Begin;
-
-   ----------
-   --  Parser operations on Semantic_State
-
    procedure Initialize
      (State      : in out Semantic_State;
       Line_Count : in     Line_Number_Type)
    is begin
-      State.Line_Paren_State.Set_Length (Ada.Containers.Count_Type (Line_Count));
+      State.Line_Begin_Pos.Set_Length (Ada.Containers.Count_Type (Line_Count), Default => Invalid_Buffer_Pos);
+      State.Line_Begin_Token.Set_Length
+        (Ada.Containers.Count_Type (Line_Count), Default => Augmented_Token_Arrays.No_Index);
+
+      State.Line_Paren_State.Set_Length (Ada.Containers.Count_Type (Line_Count + 1));
+      --  + 1 for paren state on line following last line; see Lexer_To_Augmented.
 
       State.Reset;
    end Initialize;
@@ -186,6 +162,10 @@ package body WisiToken.Semantic_State is
       use all type SAL.Base_Peek_Type;
 
    begin
+      if Lexer.First then
+         State.Line_Begin_Pos (Lexer.Line) := Lexer.Char_Region.First;
+      end if;
+
       if Token.ID < Descriptor.First_Terminal then
          --  Non-grammar token
 
@@ -207,7 +187,11 @@ package body WisiToken.Semantic_State is
                Containing_Token.First := Containing_Token.First or
                  (Lexer.First and (Token.ID = Descriptor.Comment_ID or Trailing_Blank));
 
-               Containing_Token.Non_Grammar.Append (Token);
+               Containing_Token.Non_Grammar.Append ((Token.ID, Lexer.Line, Lexer.Column));
+
+               if Lexer.First then
+                  State.Line_Begin_Token (Lexer.Line) := State.Terminals.Last_Index;
+               end if;
             end;
          end if;
 
@@ -223,9 +207,9 @@ package body WisiToken.Semantic_State is
                First                       => Lexer.First,
                Paren_State                 => State.Current_Paren_State,
                First_Terminals_Index       => State.Terminals.Last_Index + 1,
-               Last_Terminals_Index        => Augmented_Token_Arrays.No_Index,
-               First_Indent_Line           => Invalid_Line_Number,
-               Last_Indent_Line            => Invalid_Line_Number,
+               Last_Terminals_Index        => State.Terminals.Last_Index + 1,
+               First_Indent_Line           => (if Lexer.First then Lexer.Line else Invalid_Line_Number),
+               Last_Indent_Line            => (if Lexer.First then Lexer.Line else Invalid_Line_Number),
                First_Trailing_Comment_Line => Invalid_Line_Number,
                Last_Trailing_Comment_Line  => Invalid_Line_Number,
                Non_Grammar                 => <>);
@@ -238,14 +222,45 @@ package body WisiToken.Semantic_State is
             end if;
 
             State.Terminals.Append (Temp);
+
+            if Lexer.First then
+               State.Line_Begin_Token (Lexer.Line) := State.Terminals.Last_Index;
+            end if;
          end;
       end if;
 
    end Lexer_To_Augmented;
 
+   function First_Comment_Line
+     (Tokens     : in Non_Grammar_Token_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return Line_Number_Type
+   is begin
+      for Token of Tokens loop
+         if Token.ID = Descriptor.Comment_ID then
+            return Token.Line;
+         end if;
+      end loop;
+      return Invalid_Line_Number;
+   end First_Comment_Line;
+
+   function Last_Comment_Line
+     (Tokens     : in Non_Grammar_Token_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return Line_Number_Type
+   is begin
+      for Token of reverse Tokens loop
+         if Token.ID = Descriptor.Comment_ID then
+            return Token.Line;
+         end if;
+      end loop;
+      return Invalid_Line_Number;
+   end Last_Comment_Line;
+
    procedure Reduce
      (Nonterm        : in out Augmented_Token'Class;
-      Tokens         : in     Augmented_Token_Array;
+      Tokens         : in     Augmented_Token_Access_Array;
+      Descriptor     : in     WisiToken.Descriptor'Class;
       Compute_Indent : in     Boolean)
    is
       use all type Ada.Containers.Count_Type;
@@ -254,51 +269,55 @@ package body WisiToken.Semantic_State is
       First_Set       : Boolean := False;
       Paren_State_Set : Boolean := False;
    begin
-      if not Compute_Indent then
-         return;
-      end if;
-
       for I in Tokens'Range loop
          declare
             use all type SAL.Base_Peek_Type;
-            Aug_Token : Augmented_Token renames Tokens (I);
+            Aug_Token : Augmented_Token renames Tokens (I).all;
          begin
             if Aug_Token.Byte_Region /= Null_Buffer_Region then
                --  Aug_Token not entirely virtual
 
-               if Nonterm.First_Terminals_Index = Augmented_Token_Arrays.No_Index then
-                  Nonterm.First_Terminals_Index := Aug_Token.First_Terminals_Index;
-               end if;
+               if Compute_Indent then
+                  Aug_Token.First_Trailing_Comment_Line := First_Comment_Line (Aug_Token.Non_Grammar, Descriptor);
+                  Aug_Token.Last_Trailing_Comment_Line  := Last_Comment_Line (Aug_Token.Non_Grammar, Descriptor);
 
-               if Aug_Token.Last_Terminals_Index /= Augmented_Token_Arrays.No_Index then
-                  Nonterm.Last_Terminals_Index := Aug_Token.Last_Terminals_Index;
-               else
-                  Nonterm.Last_Terminals_Index := Aug_Token.First_Terminals_Index;
-               end if;
+                  if Nonterm.First_Terminals_Index = Augmented_Token_Arrays.No_Index then
+                     Nonterm.First_Terminals_Index := Aug_Token.First_Terminals_Index;
+                  end if;
 
-               if not First_Set then
-                  if Aug_Token.First then
-                     Nonterm.First := True;
-                     First_Set         := True;
+                  if Nonterm.Last_Terminals_Index /= Augmented_Token_Arrays.No_Index then
+                     Nonterm.Last_Terminals_Index := Aug_Token.Last_Terminals_Index;
+                  else
+                     Nonterm.Last_Terminals_Index := Aug_Token.First_Terminals_Index;
+                  end if;
 
-                     if I = Tokens'Last then
-                        Nonterm.First_Indent_Line := Aug_Token.First_Indent_Line;
-                        Nonterm.Last_Indent_Line  := Aug_Token.Last_Indent_Line;
-                     else
+                  if not First_Set then
+                     if Aug_Token.First then
+                        Nonterm.First := True;
+                        First_Set     := True;
+
                         if Aug_Token.First_Indent_Line = Invalid_Line_Number then
                            Nonterm.First_Indent_Line := Aug_Token.First_Trailing_Comment_Line;
                         else
                            Nonterm.First_Indent_Line := Aug_Token.First_Indent_Line;
                         end if;
-
-                        if Aug_Token.Last_Trailing_Comment_Line = Invalid_Line_Number then
-                           Nonterm.Last_Indent_Line := Aug_Token.Last_Indent_Line;
-                        else
-                           Nonterm.Last_Indent_Line := Aug_Token.Last_Trailing_Comment_Line;
-                        end if;
                      end if;
                   end if;
-               end if;
+
+                  if Aug_Token.First then
+                     if Aug_Token.Last_Trailing_Comment_Line /= Invalid_Line_Number then
+                        Nonterm.Last_Indent_Line := Aug_Token.Last_Trailing_Comment_Line;
+                     elsif Aug_Token.Last_Indent_Line /= Invalid_Line_Number then
+                        Nonterm.Last_Indent_Line := Aug_Token.Last_Indent_Line;
+                     end if;
+                  end if;
+
+                  if I = Tokens'Last then
+                     Nonterm.First_Trailing_Comment_Line := Aug_Token.First_Trailing_Comment_Line;
+                     Nonterm.Last_Trailing_Comment_Line  := Aug_Token.Last_Trailing_Comment_Line;
+                  end if;
+
+               end if; --  Compute_Indent
 
                if Nonterm.Line = Invalid_Line_Number and Aug_Token.Line /= Invalid_Line_Number then
                   Nonterm.Line := Aug_Token.Line;
@@ -312,12 +331,12 @@ package body WisiToken.Semantic_State is
                if Nonterm.Char_Region.Last < Aug_Token.Char_Region.Last then
                   Nonterm.Char_Region.Last := Aug_Token.Char_Region.Last;
                end if;
-            end if; -- Aug_Token not virtual
 
-            if not Paren_State_Set then
-               Nonterm.Paren_State := Aug_Token.Paren_State;
-               Paren_State_Set := True;
-            end if;
+               if not Paren_State_Set then
+                  Nonterm.Paren_State := Aug_Token.Paren_State;
+                  Paren_State_Set := True;
+               end if;
+            end if; -- Aug_Token not virtual
          end;
       end loop;
    end Reduce;
