@@ -31,6 +31,8 @@ generic
    type Element_Type is private;
 package SAL.Gen_Unbounded_Definite_Vectors is
 
+   type Element_Access_Type is access all Element_Type;
+
    subtype Extended_Index is Index_Type'Base
      range Index_Type'First - 1 ..
            Index_Type'Min (Index_Type'Base'Last - 1, Index_Type'Last) + 1;
@@ -93,7 +95,15 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  Element_Type default value.
 
    procedure Set_Length (Container : in out Vector; Length : in Ada.Containers.Count_Type);
-   --  Set Last so Container.Length returns Length.
+   --  Set Last so Container.Length returns Length. New elements have
+   --  Element_Type default value.
+
+   procedure Set_Length
+     (Container : in out Vector;
+      Length    : in     Ada.Containers.Count_Type;
+      Default   : in     Element_Type);
+   --  Set Last so Container.Length returns Length. New elements have
+   --  Default value.
 
    procedure Delete (Container : in out Vector; Index : in Index_Type);
    --  Replace Index element contents with default. If Index =
@@ -110,6 +120,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    function Variable_Reference (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
    with Pre => Index >= Container.First_Index or Index <= Container.Last_Index;
+
+   function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Element_Access_Type;
 
    type Cursor is private;
 

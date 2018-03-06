@@ -264,6 +264,22 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Set_Length;
 
+   procedure Set_Length
+     (Container : in out Vector;
+      Length    : in     Ada.Containers.Count_Type;
+      Default   : in     Element_Type)
+   is
+      Old_First : constant Extended_Index := Container.First;
+      Old_Last  : constant Extended_Index := Container.Last;
+   begin
+      Set_Length (Container, Length);
+      if Old_First = No_Index then
+         Container.Elements.all := (others => Default);
+      else
+         Container.Elements (To_Peek_Type (Old_Last + 1) .. To_Peek_Type (Container.Last)) := (others => Default);
+      end if;
+   end Set_Length;
+
    procedure Delete (Container : in out Vector; Index : in Index_Type)
    is
       J : constant Peek_Type := To_Peek_Type (Index);
@@ -290,6 +306,13 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    begin
       return (Element => Container.Elements (J)'Access);
    end Variable_Reference;
+
+   function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Element_Access_Type
+   is
+      J : constant Peek_Type := To_Peek_Type (Index);
+   begin
+      return Container.Elements (J)'Access;
+   end Variable_Ref;
 
    function Has_Element (Position : Cursor) return Boolean is
    begin
