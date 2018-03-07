@@ -17,7 +17,7 @@ project Ada_Mode_Compile is
       "ada_mode-ada2012.ads", -- font-lock only
 
       -- incomplete code deliberately
-      "ada_mode-ambiguous_parse.adb"
+      "ada_mode-ambiguous_parse.adb",
 
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
@@ -69,6 +69,7 @@ project Ada_Mode_Compile is
 
       -- deliberate errors to test error recovery
       "slow_recover_1.adb",
+      "slow_recover_2.adb",
 
       -- deliberate errors to test error recovery
       "virtual_renames.adb"

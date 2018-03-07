@@ -76,7 +76,7 @@ package body WisiToken.Wisi_Runtime.Ada is
             Anchor_Line => Anchor_Token.Line,
             Last_Line   => Indenting_Token.Last_Line (Indenting_Comment),
             Offset      => Current_Indent_Offset
-              (Data, State, Anchor_Token,
+              (State, Anchor_Token,
                Offset   =>
                  (if Anchor_Token.Line = Record_Token.Line
                   then Offset
@@ -213,7 +213,7 @@ package body WisiToken.Wisi_Runtime.Ada is
               (Delta_1,
                Indent_Anchored_2
                  (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
-                  Current_Indent_Offset (Data, State, Indenting_Token, 0),
+                  Current_Indent_Offset (State, Indenting_Token, 0),
                   Accumulate => False).Simple_Delta);
          else
             --  Test case in test/aspects.ads
@@ -226,7 +226,7 @@ package body WisiToken.Wisi_Runtime.Ada is
          declare
             New_Delta_2 : constant Simple_Delta_Type := Indent_Anchored_2
               (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
-               Current_Indent_Offset (Data, State, Indenting_Token, Ada_Indent_Broken),
+               Current_Indent_Offset (State, Indenting_Token, Ada_Indent_Broken),
                Accumulate => False).Simple_Delta;
          begin
             if not Option or Indenting_Token.Line = Indenting_Token.First_Indent_Line then
@@ -370,7 +370,7 @@ package body WisiToken.Wisi_Runtime.Ada is
                  (Data,
                   Anchor_Line => Paren_Tok.Line,
                   Last_Line   => Renames_Tok.Last_Line (Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, State, Paren_Tok, abs Ada_Indent_Renames),
+                  Offset      => Current_Indent_Offset (State, Paren_Tok, abs Ada_Indent_Renames),
                   Accumulate  => True);
             end if;
          end;
@@ -418,7 +418,7 @@ package body WisiToken.Wisi_Runtime.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Indenting.Last_Line (Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Args (2) + abs Ada_Indent_Return),
+                  Offset      => Current_Indent_Offset (State, Anchor_Token, Args (2) + abs Ada_Indent_Return),
                   Accumulate  => True);
             end;
          else
@@ -432,7 +432,7 @@ package body WisiToken.Wisi_Runtime.Ada is
                  (Data,
                   Anchor_Line => Anchor_Token.Line,
                   Last_Line   => Indenting.Last_Line (Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, State, Anchor_Token, Args (2) + abs Ada_Indent_Return),
+                  Offset      => Current_Indent_Offset (State, Anchor_Token, Args (2) + abs Ada_Indent_Return),
                   Accumulate  => True);
             end;
          end if;

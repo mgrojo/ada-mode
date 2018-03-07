@@ -53,7 +53,12 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
 wisitoken changes
     compiles; run tests
     subprograms.input passes
+    test/ada_mode-recover_indent_1.adb passes
 
+
+
+merge wisitoken.semantic_state into wisi_runtime
+    provide hook for lexer_to_augmented
 
 emacs track parse-max, don't reparse just for different action; just execute action.
 
@@ -653,12 +658,23 @@ Add Ada parser to gnu global?
  debug hints, relevant files
 gdb run_ada_parse
     in wisitoken-wisi_runtime.adb Indent_Action_0:
-        break on 'if token.first_indent_line then' line 981
-        p data.semantic_state.trace.descriptor.image (nonterm.id)
-        p data.semantic_state.trace.descriptor.image (token.id)
-        p token.char_region
+        break on 'if token.first_indent_line then' line 1050
+        call wisitoken.syntax_trees.id (tree, nonterm)
+        p data.descriptor.image ($)
+        p i
+        p data.descriptor.image (token.id)
+        p token.line
+        p token.col
+        p pair
+        p data.indents.elements.ea(token.line)
 
-        p data.indents.elements.ea
+    in wisitoken-semantic_state.adb Reduce
+        break on 'nonterm.paren_state := ' line 334
+        p descriptor.image (nonterm.id)
+        p i
+        p descriptor.image (aug_token.id)
+        p aug_token
+        p nonterm
 
 to change process executable for all current and future buffers:
 
