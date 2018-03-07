@@ -32,9 +32,10 @@ with WisiToken.Lexer;
 package WisiToken.Semantic_State is
 
    type Non_Grammar_Token is record
-      ID   : Token_ID;
-      Line : Line_Number_Type;
-      Col  : Ada.Text_IO.Count;
+      ID    : Token_ID;
+      Line  : Line_Number_Type;
+      Col   : Ada.Text_IO.Count;
+      First : Boolean;
       --  Column is needed to detect comments in column 0.
    end record;
 
@@ -44,7 +45,7 @@ package WisiToken.Semantic_State is
       --  Most fields are set by Lexer_To_Augmented at parse time; others
       --  are set by Reduce for nonterminals.
 
-      Line        : Line_Number_Type  := Invalid_Line_Number; -- at start of token
+      Line        : Line_Number_Type  := Invalid_Line_Number; -- At start of token. Not set for nonterm.
       Col         : Ada.Text_IO.Count := 0;
       Char_Region : Buffer_Region     := Null_Buffer_Region;
 
@@ -54,7 +55,8 @@ package WisiToken.Semantic_State is
       --  For a terminal, True if the token is not empty and it is first on
       --  a line, or if it contains trailing blank or comment lines.
       --
-      --  For a nonterminal, True if some contained token's First is True.
+      --  For a nonterminal, True if some contained token's First is True,
+      --  including trailing comments and blank lines.
 
       Paren_State : Integer := 0;
       --  Parenthesis nesting count, before token.
@@ -68,8 +70,8 @@ package WisiToken.Semantic_State is
       --  State.Terminals.
 
       Last_Terminals_Index : Base_Token_Index := Base_Token_Arrays.No_Index;
-      --  For non-virtual nonterminal tokens, index of last contained token in
-      --  State.Terminals (normally a new-line).
+      --  For non-virtual nonterminal tokens, index of last contained
+      --  token in State.Terminals.
       --
       --  For all others, same as First_Terminals_Index.
 
