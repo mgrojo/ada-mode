@@ -41,18 +41,30 @@ package WisiToken.LR.Parser is
       --  All terminal grammar tokens, in lexical order. Does not contain
       --  virtual tokens. Tokens past Parser.Current_Token are lookahead.
       --
-      --  We use Protected, for safe multi-task access in McKensie_Recover.
+      --  We use Protected, for safe multi-task access in McKenzie_Recover.
+
+      Shared_Tree : aliased Syntax_Trees.Tree;
+      --  Each parser (normal and recover) has its own branched syntax tree,
+      --  all branched from this tree. Terminals are added to the tree when
+      --  they become the current token.
+      --
+      --  It is never the case that terminals are added to this shared tree
+      --  when there is more than one task active, so we don't need a
+      --  protected tree.
+      --
+      --  See WisiToken.LR.Parser_Lists Parser_State for more discussion of
+      --  Shared_Tree.
 
       Parsers : aliased Parser_Lists.List;
-      --  Each parser (normal and recover) has its own syntax tree.
-      --  Terminals are added to the tree when they become the current
-      --  token.
 
       Max_Parallel            : SAL.Base_Peek_Type;
       First_Parser_Label      : Integer;
       Terminate_Same_State    : Boolean;
       Enable_McKenzie_Recover : Boolean;
    end record;
+
+   overriding procedure Initialize (Object : in out LR.Parser.Parser);
+   --  Set Shared_Tree.Terminals.
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);
    --  Deep free Object.Table.

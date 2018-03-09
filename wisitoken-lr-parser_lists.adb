@@ -21,15 +21,16 @@ pragma License (Modified_GPL);
 package body WisiToken.LR.Parser_Lists is
 
    function New_List
-     (First_Parser_Label : in     Natural;
-      Terminals          : access Protected_Base_Token_Arrays.Vector)
+     (First_Parser_Label : in Natural;
+      Shared_Tree        : in Syntax_Trees.Tree_Access)
      return List
    is begin
       return Result : List
       do
          Result.Parser_Label := First_Parser_Label;
 
-         Result.Elements.Append ((Terminals => Terminals, Label => First_Parser_Label, others => <>));
+         Result.Elements.Append ((Shared_Tree, Label => First_Parser_Label, others => <>));
+         Parser_State_Lists.Reference (Result.Elements.First).Tree.Initialize (Shared_Tree);
       end return;
    end New_List;
 
@@ -132,7 +133,7 @@ package body WisiToken.LR.Parser_Lists is
      (List   : in out Parser_Lists.List;
       Cursor : in     Parser_Lists.Cursor'Class)
    is
-      New_Item : Parser_State (Parser_State_Lists.Constant_Reference (Cursor.Ptr).Terminals);
+      New_Item : Parser_State (Parser_State_Lists.Constant_Reference (Cursor.Ptr).Shared_Tree);
    begin
       List.Parser_Label := List.Parser_Label + 1;
       declare
@@ -143,7 +144,7 @@ package body WisiToken.LR.Parser_Lists is
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
          New_Item :=
-           (Terminals                => Item.Terminals,
+           (Shared_Tree              => Item.Shared_Tree,
             Shared_Token             => Item.Shared_Token,
             Local_Lookahead          => Item.Local_Lookahead,
             Current_Token            => Item.Current_Token,

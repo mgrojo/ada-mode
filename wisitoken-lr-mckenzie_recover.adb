@@ -834,9 +834,10 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Next_Action := Action_For (Table, New_State, Inserted_Token);
       loop
+         exit when Next_Action = null;
+
          New_Config_2 := New_Config_1;
 
-         exit when Next_Action = null;
          case Next_Action.Item.Verb is
          when Shift =>
             Do_Shift
@@ -1546,9 +1547,7 @@ package body WisiToken.LR.McKenzie_Recover is
       begin
          Orig.Stack := Parser_State.Stack;
 
-         Orig.Tree.Initialize (Parser_State.Tree'Unchecked_Access);
-         --  Orig has the same  or shorter lifetime Parser_State does.
-         --  FIXME: try making Parser_State aliased or access.
+         Orig.Tree.Initialize (Parser_State.Tree);
 
          --  Parser_State.Local_Lookahead must be empty (else we would not get
          --  here). Therefore Parser_State current token is in

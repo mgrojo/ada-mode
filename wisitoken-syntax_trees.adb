@@ -89,7 +89,7 @@ package body WisiToken.Syntax_Trees is
    end Image;
 
    ----------
-   --  Syntax_Tree.Tree body operations
+   --  Syntax_Tree.Tree body operations, alphabetical
 
    function Get_ID (N : in Node; Terminals : in Protected_Base_Token_Arrays.Vector) return Token_ID
       with inline
@@ -125,6 +125,13 @@ package body WisiToken.Syntax_Trees is
    ----------
    --  Syntax_Tree.Tree public operations
 
+   procedure Initialize
+     (Tree      : in out Syntax_Trees.Tree;
+      Terminals : in     Protected_Base_Token_Arrays.Vector_Access_Constant)
+   is begin
+      Tree.Terminals := Terminals;
+   end Initialize;
+
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree)
    is
       procedure Process_Node
@@ -158,7 +165,6 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Adjust;
 
-   overriding
    function Add_Nonterm
      (Tree         : in out Syntax_Trees.Tree;
       Nonterm      : in     WisiToken.Token_ID;
@@ -177,7 +183,6 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes.Last_Index;
    end Add_Nonterm;
 
-   overriding
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Token_Index)
@@ -187,7 +192,6 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes.Last_Index;
    end Add_Terminal;
 
-   overriding
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Token_ID)
@@ -197,7 +201,6 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes.Last_Index;
    end Add_Terminal;
 
-   overriding
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Index;
@@ -210,10 +213,6 @@ package body WisiToken.Syntax_Trees is
 
       Child_Byte_Region : Buffer_Region;
    begin
-      if Tree.Traversing then
-         raise Programmer_Error with "called Set_Children while traversing tree";
-      end if;
-
       N.Children.Clear;
       N.Children.Set_Length (Children'Length);
       for I in Children'Range loop
@@ -241,20 +240,13 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Set_Children;
 
-   function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
-   is
-      use all type Ada.Containers.Count_Type;
-      N : Syntax_Trees.Node renames Tree.Nodes (Node);
-   begin
-      if N.Children.Length = 0 then
-         return (1 .. 0 => <>);
-      else
-         return Result : Valid_Node_Index_Array (N.Children.First_Index .. N.Children.Last_Index) do
-            for I in Result'Range loop
-               Result (I) := N.Children (I);
-            end loop;
-         end return;
-      end if;
+   overriding
+   function Children
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Valid_Node_Index_Array
+   is begin
+      return Children (Tree.Nodes (Node));
    end Children;
 
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
@@ -283,6 +275,11 @@ package body WisiToken.Syntax_Trees is
    is begin
       return Tree.Nodes (Node).Label = Nonterm;
    end Is_Nonterm;
+
+   function Traversing (Tree : in Syntax_Trees.Tree) return Boolean
+   is begin
+      return Tree.Traversing;
+   end Traversing;
 
    function Parent
      (Tree : in Syntax_Trees.Tree;
@@ -361,40 +358,6 @@ package body WisiToken.Syntax_Trees is
    end Base_Token;
 
    overriding
-   function Virtual
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Boolean
-   is
-      N : Syntax_Trees.Node renames Tree.Nodes (Node);
-   begin
-      case N.Label is
-      when Shared_Terminal =>
-         return False;
-      when Virtual_Terminal =>
-         return True;
-      when Nonterm =>
-         return N.Virtual;
-      end case;
-   end Virtual;
-
-   function Action
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Semantic_Action
-   is begin
-      return Tree.Nodes (Node).Action;
-   end Action;
-
-   function Action_Index
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Natural
-   is begin
-      return Tree.Nodes (Node).Action_Index;
-   end Action_Index;
-
-   overriding
    function Augmented_Token_Ref
      (Tree                : in out Syntax_Trees.Tree;
       Node                : in     Valid_Node_Index;
@@ -469,6 +432,7 @@ package body WisiToken.Syntax_Trees is
       Tree.Augmented_Present := True;
    end Set_Augmented;
 
+   overriding
    function Augmented_Token_Array
      (Tree                : in out Syntax_Trees.Tree;
       Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
@@ -507,6 +471,42 @@ package body WisiToken.Syntax_Trees is
          end loop;
       end return;
    end Augmented_Token_Array;
+
+   overriding
+   function Virtual
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Boolean
+   is
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      case N.Label is
+      when Shared_Terminal =>
+         return False;
+      when Virtual_Terminal =>
+         return True;
+      when Nonterm =>
+         return N.Virtual;
+      end case;
+   end Virtual;
+
+   overriding
+   function Action
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Semantic_Action
+   is begin
+      return Tree.Nodes (Node).Action;
+   end Action;
+
+   overriding
+   function Action_Index
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Natural
+   is begin
+      return Tree.Nodes (Node).Action_Index;
+   end Action_Index;
 
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
@@ -585,5 +585,24 @@ package body WisiToken.Syntax_Trees is
       Tree.Traversing := False;
       raise;
    end Process_Tree;
+
+   ----------
+   --  Spec private operations
+
+   function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if N.Children.Length = 0 then
+         return (1 .. 0 => <>);
+      else
+         return Result : Valid_Node_Index_Array (N.Children.First_Index .. N.Children.Last_Index) do
+            for I in Result'Range loop
+               Result (I) := N.Children (I);
+            end loop;
+         end return;
+      end if;
+   end Children;
+
 
 end WisiToken.Syntax_Trees;

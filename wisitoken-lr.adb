@@ -661,25 +661,29 @@ package body WisiToken.LR is
 
    function Reduce_Stack
      (Stack        : in out Parser_Stacks.Stack;
-      Syntax_Tree  : in out Syntax_Trees.Abstract_Tree'Class;
+      Syntax_Tree  : in out Syntax_Trees.Branched.Tree;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Syntax_Trees.Valid_Node_Index;
       Lexer        : in     WisiToken.Lexer.Handle;
       Trace        : in out WisiToken.Trace'Class;
       Trace_Level  : in     Integer;
-      Trace_Prefix : in     String := "")
+      Trace_Prefix : in     String := "";
+      Flush_Tree   : in     Boolean := False)
      return Semantic_Checks.Check_Status
    is
       use all type Semantic_Checks.Semantic_Check;
       use all type Semantic_Checks.Check_Status_Label;
-      Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count)); -- For Check.
+      Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
+      --  For Check, Set_Children.
    begin
-      Nonterm := Syntax_Tree.Add_Nonterm (Action.LHS, Action => Action.Action, Action_Index => Action.Index);
+      Nonterm := Syntax_Tree.Add_Nonterm
+        (Action.LHS, Flush_Tree, Action => Action.Action, Action_Index => Action.Index);
+
       for I in reverse Tokens'Range loop
          Tokens (I) := Stack.Pop.Token;
       end loop;
 
-      Syntax_Tree.Set_Children (Nonterm, Tokens);
+      Syntax_Tree.Set_Children (Nonterm, Tokens, Flush_Tree);
 
       if Trace_Level > Detail then
          declare

@@ -98,13 +98,14 @@ package body Grune_9_30 is
 
    procedure Test_Item_Sets (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use Ada.Text_IO;
       use WisiToken_AUnit;
       use WisiToken.LR.LR1_Items;
 
       Computed : Item_Set_List := WisiToken.LR.LR1_Generator.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug > 0);
+        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor,
+         Trace => WisiToken.Trace_Generate > 0);
 
       Expected : Item_Set_List :=
         --  Item sets from [Grune] fig 9.31 a. States are numbered as in
@@ -128,7 +129,7 @@ package body Grune_9_30 is
       --  no gotos from state 4
       Add_Gotos (Expected, 5, +(+Lower_C_ID, Get_Set (6, Expected)));
 
-      if Test.Debug > 0 then
+      if WisiToken.Trace_Generate > 0 then
          Put_Line ("computed:");
          Put (LR1_Descriptor, Computed);
          Put_Line ("expected:");
@@ -143,7 +144,7 @@ package body Grune_9_30 is
 
    procedure Test_Parse (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
 
       Parser : WisiToken.LR.Parser.Parser;
 
@@ -163,7 +164,7 @@ package body Grune_9_30 is
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate
-           (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
+           (Grammar, LR1_Descriptor, First_State_Index, Trace => WisiToken.Trace_Generate > WisiToken.Outline),
          First_Parser_Label);
 
       Execute_Command ("abc");
@@ -184,12 +185,8 @@ package body Grune_9_30 is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug > 0 then
-         Register_Routine (T, Test_Parse'Access, "Debug");
-      else
-         Register_Routine (T, Test_Item_Sets'Access, "Test_Item_Sets");
-         Register_Routine (T, Test_Parse'Access, "Test_Parse");
-      end if;
+      Register_Routine (T, Test_Item_Sets'Access, "Test_Item_Sets");
+      Register_Routine (T, Test_Parse'Access, "Test_Parse");
    end Register_Tests;
 
 end Grune_9_30;

@@ -8,30 +8,31 @@ ZIP_VERSION := 6.0b
 all : test-clean tests
 #all : library doc zip tag
 
-# ../Test/test_one_harness.adb
-# ../Test/test_all_harness.adb
+# test_one_harness.adb
+# test_all_harness.adb
 #
-# mingw implementation of Gnu make runs dependencies in different
-# order than Cygwin Gnu make!
-# t_one_1 : one-clean
-t_one_2 : ada_lite_re2c.c
+#t_one : one-clean
+#t_one : character_literal_re2c.c
 t_one : export Standard_Common_Build := Debug
-#t_one : RUN_ARGS ?= Indent_Hanging_1 1
-t_one : t_one_1 t_one_2 test_one_harness.run
+# t_one : RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
+t_one : test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
 t_all : ./wisi-generate.exe
 t_all : ada_lite_re2c.c
 t_all : character_literal_re2c.c
+t_all : skip_to_grammar_re2c.c
+#t_all : RUN_ARGS ?= 1 test_mckenzie_recover.adb Error_1 1 3 5 > test.log
 t_all : test_all_harness.run
 
 one-clean :
-	rm -rf ada_lite*
+	rm -rf character_literal*
+
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
 one : export Standard_Common_Build := Debug
 #one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
-one : ada_lite_re2c.c ada_lite_run.exe
-	./ada_lite_run.exe -v 4 c:/Projects/org.emacs.ada-mode.stephe-2/test/debug.adb
+one : identifier_list_name_conflict_run.exe
+	./identifier_list_name_conflict_run.exe -v 3 ../wisi/test/identifier_list_name_conflict.input
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make

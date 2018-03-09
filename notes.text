@@ -20,21 +20,23 @@ org.wisitoken.stephe-1 - available
 
  current work
 build syntax tree, use that in recover to pop stack
-    fix ada-mode to match wisitoken code changes
-        o.e.a.s-4
+    parse, mckenzie very slow compared to no syntax tree
 
-    parse, mckenzie slower?
-        record benchmarks in o.e.a.s-2 notes
+        main parser: keep one root syntax tree, use branched for parallel parsers
+            when spawn, copy branched, don't branch again
+            edited, one test passes
 
-    merge mckenzie result directly into parser?
-        no need to reparse terminals?
+        mckenzie: don't do syntax tree at all until needed for a fix
+
+        sal unbounded vectors:
+            shrink elements to exact size on copy?
 
     debug_production_recover.adb
         implement state/production matching outlined in syntax_trees-test missing_ends_1
         looks good
 
     test_mckenzie.adb Abandon_Pattern
-        edit syntax tree is much cheaper; 'insert end case; end proc_a' cost 6
+        use syntax tree to pop stack, reparse is much cheaper; 'insert end case; end proc_a' cost 6
 
 
     when pop token off stack, remove from tree
@@ -49,6 +51,7 @@ build syntax tree, use that in recover to pop stack
 
 tokens are no longer copied in recovery; only indices into shared_Parser.Terminals
     => merge augmented_token into base_token?
+    or merge all of semantic_state into emacs wisitoken_runtime
     clean up first; compute all possible stuff at action time, not parse time
     keep line, col: doesn't cost much, very nice for error messages outside Emacs
         only in error messages, not Image (Base_Token)
@@ -58,6 +61,9 @@ review FIXME:
 add nonterm goto list to mckenzie explore
     push on stack, rather than insert into token stream
     => finish current production faster
+
+merge mckenzie result directly into parser?
+    no need to reparse terminals?
 
 user option end_name_require (ie not optional) makes ada_mode-recover_block_name_mismatch.adb fail?
     need to preserve end name when editing stack

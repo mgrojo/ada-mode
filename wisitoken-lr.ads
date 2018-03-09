@@ -478,13 +478,14 @@ private
 
    function Reduce_Stack
      (Stack        : in out Parser_Stacks.Stack;
-      Syntax_Tree  : in out Syntax_Trees.Abstract_Tree'Class;
+      Syntax_Tree  : in out Syntax_Trees.Branched.Tree;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Syntax_Trees.Valid_Node_Index;
       Lexer        : in     WisiToken.Lexer.Handle;
       Trace        : in out WisiToken.Trace'Class;
       Trace_Level  : in     Integer;
-      Trace_Prefix : in     String := "")
+      Trace_Prefix : in     String := "";
+      Flush_Tree   : in     Boolean := False)
      return WisiToken.Semantic_Checks.Check_Status;
    --  Reduce Stack according to Action, calling Action.Check and
    --  returning result, or Ok if null.

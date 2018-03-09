@@ -132,12 +132,11 @@ package body WisiToken.Semantic_State is
      (State      : in out Semantic_State;
       Line_Count : in     Line_Number_Type)
    is begin
-      State.Line_Begin_Pos.Set_Length (Ada.Containers.Count_Type (Line_Count), Default => Invalid_Buffer_Pos);
+      --  + 1 for data on line following last line; see Lexer_To_Augmented.
+      State.Line_Begin_Pos.Set_Length (Ada.Containers.Count_Type (Line_Count + 1), Default => Invalid_Buffer_Pos);
       State.Line_Begin_Token.Set_Length
-        (Ada.Containers.Count_Type (Line_Count), Default => Augmented_Token_Arrays.No_Index);
-
+        (Ada.Containers.Count_Type (Line_Count + 1), Default => Augmented_Token_Arrays.No_Index);
       State.Line_Paren_State.Set_Length (Ada.Containers.Count_Type (Line_Count + 1));
-      --  + 1 for paren state on line following last line; see Lexer_To_Augmented.
 
       State.Reset;
    end Initialize;

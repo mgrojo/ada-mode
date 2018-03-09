@@ -29,50 +29,73 @@ package WisiToken.Syntax_Trees.Branched is
 
    type Tree is new Abstract_Tree with private;
 
-   type Shared_Tree_Access is access constant Syntax_Trees.Tree;
+   procedure Initialize
+     (Branched_Tree : in out Branched.Tree;
+      Shared_Tree   : in     Syntax_Trees.Tree_Access);
+   --  Set Branched_Tree to refer to Shared_Tree.
 
    procedure Initialize
      (Branched_Tree : in out Branched.Tree;
-      Shared_Tree   : in     Shared_Tree_Access);
-   --  Set Branched_Tree to refer to Shared_Tree.
+      Shared_Tree   : in     Branched.Tree);
+   --  Set Branched_Tree to refer to Shared_Tree.Shared_Tree, copy all
+   --  branched nodes to Branched_Tree.
 
-   overriding
+   procedure Flush (Tree : in out Branched.Tree);
+   --  Move all nodes in branched part to shared tree.
+
    function Add_Nonterm
      (Tree         : in out Branched.Tree;
       Nonterm      : in     WisiToken.Token_ID;
+      Flush        : in     Boolean;
       Virtual      : in     Boolean         := False;
       Action       : in     Semantic_Action := null;
       Action_Index : in     Natural         := 0)
-   return Valid_Node_Index;
+   return Valid_Node_Index
+   with Pre => not Tree.Traversing;
+   --  Add a new Nonterm node with no parent. If Flush, add the new node
+   --  to the shared tree. Result points to the added node.
 
-   overriding
    function Add_Terminal
      (Tree     : in out Branched.Tree;
-      Terminal : in     Token_Index)
-     return Valid_Node_Index;
+      Terminal : in     Token_Index;
+      Flush    : in     Boolean := False)
+     return Valid_Node_Index
+   with Pre => not Tree.Traversing;
+   --  Add a new Terminal node with no parent. Terminal must be an index
+   --  into Tree.Terminals. If Flush, add the new node to the shared
+   --  tree. Result points to the added node.
 
-   overriding
    function Add_Terminal
      (Tree     : in out Branched.Tree;
-      Terminal : in     Token_ID)
-     return Valid_Node_Index;
+      Terminal : in     Token_ID;
+      Flush    : in     Boolean := False)
+     return Valid_Node_Index
+   with Pre => not Tree.Traversing;
+   --  Add a new virtual terminal node with no parent. If Flush, add the
+   --  new node to the shared tree. Result points to the added node.
 
-   overriding
    procedure Set_Children
      (Tree     : in out Branched.Tree;
       Parent   : in     Valid_Node_Index;
-      Children : in     Valid_Node_Index_Array)
-   with Pre =>
-     Tree.Is_Nonterm (Parent) and then
-     (not (Tree.Has_Children (Parent) or
-             Tree.Has_Parent (Children)));
-   --  We only set children on newly added nodes, and we don't add nodes
-   --  to the shared tree.
+      Children : in     Valid_Node_Index_Array;
+      Flush    : in     Boolean)
+   with Pre => not Tree.Traversing and
+               (if Flush then not Tree.Has_Branched_Nodes) and
+               (Tree.Is_Nonterm (Parent) and then (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children))));
+   --  Set the Children of Parent. If Flush, leave all nodes in the
+   --  shared tree. If not Flush, copy nodes to branched tree before
+   --  modifying.
 
+   overriding
+   function Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
+   with Pre => Tree.Is_Nonterm (Node);
+
+   function Has_Branched_Nodes (Tree : in Branched.Tree) return Boolean;
    function Has_Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Branched.Tree; Child : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Branched.Tree; Children : in Valid_Node_Index_Array) return Boolean;
    function Is_Nonterm (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Traversing (Tree : in Branched.Tree) return Boolean;
 
    overriding
    function Byte_Region
@@ -120,16 +143,42 @@ package WisiToken.Syntax_Trees.Branched is
      return Constant_Augmented_Ref;
 
    overriding
+   function Augmented_Token_Array
+     (Tree                : in out Branched.Tree;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Nodes               : in     Valid_Node_Index_Array)
+     return Semantic_State.Augmented_Token_Access_Array;
+
+   overriding
    function Virtual
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
      return Boolean;
 
-   ----------
-   --  new operations
+   overriding
+   function Action
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index)
+     return Semantic_Action
+   with Pre => Tree.Is_Nonterm (Node);
+
+   overriding
+   function Action_Index
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index)
+     return Natural
+   with Pre => Tree.Is_Nonterm (Node);
+
+   procedure Process_Tree
+     (Tree         : in out Branched.Tree;
+      Process_Node : access procedure
+        (Tree : in out Branched.Tree;
+         Node : in     Valid_Node_Index));
+   --  Traverse Tree in depth-first order, calling Process_Node on each
+   --  node.
 
    procedure Delete (Tree : in out Branched.Tree; Node : in Valid_Node_Index)
-   with Pre => not Tree.Has_Parent (Node);
+   with Pre => not Tree.Traversing and not Tree.Has_Parent (Node);
    --  Delete subtree rooted at Node.
    --
    --  If Node is in shared tree, moves branch point to Node.
@@ -146,7 +195,7 @@ private
    --  accessed from one task at a time.
 
    type Tree is new Abstract_Tree with record
-      Shared_Tree : Shared_Tree_Access;
+      Shared_Tree : Syntax_Trees.Tree_Access;
       --  If we need to set anything (ie parent) in Shared_Tree, we move the
       --  branch point instead.
 

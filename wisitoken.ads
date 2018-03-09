@@ -262,6 +262,9 @@ package WisiToken is
    Trace_Action : Integer := 0;
    --  Output during Execute_Action.
 
+   Trace_Generate : Integer := 0;
+   --  Output during grammar generation.
+
    type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
    --  Output for tests/debugging.
 

@@ -69,36 +69,10 @@ package WisiToken.Syntax_Trees is
 
    Null_Action : constant Semantic_Action := null;
 
-   function Add_Nonterm
-     (Tree         : in out Abstract_Tree;
-      Nonterm      : in     Token_ID;
-      Virtual      : in     Boolean         := False;
-      Action       : in     Semantic_Action := null;
-      Action_Index : in     Natural         := 0)
-   return Valid_Node_Index is abstract;
-   --  Add a new Nonterm node with no parent. Result points to the added
-   --  node.
-
-   function Add_Terminal
-     (Tree     : in out Abstract_Tree;
-      Terminal : in     Token_Index)
-     return Valid_Node_Index is abstract;
-   --  Add a new Terminal node with no parent. Terminal must be an index
-   --  into Tree.Terminals. Result points to the added node.
-
-   function Add_Terminal
-     (Tree     : in out Abstract_Tree;
-      Terminal : in     Token_ID)
-     return Valid_Node_Index is abstract;
-   --  Add a new virtual terminal node with no parent. Result points to
-   --  the added node.
-
-   procedure Set_Children
-     (Tree     : in out Abstract_Tree;
-      Parent   : in     Valid_Node_Index;
-      Children : in     Valid_Node_Index_Array)
-     is abstract;
-   --  Set the Children of Parent. Children.Parent must be unset.
+   function Children
+     (Tree : in Abstract_Tree;
+      Node : in Valid_Node_Index)
+     return Valid_Node_Index_Array is abstract;
 
    function Byte_Region
      (Tree : in Abstract_Tree;
@@ -159,17 +133,31 @@ package WisiToken.Syntax_Trees is
       Node                : in Valid_Node_Index;
       Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
      return Constant_Augmented_Ref is abstract;
-   --  If Nodes (I) is a nonterm, returns result of Set_Augmented, or
-   --  raises Constraint_Error if Set_Augmented has not been called.
+   --  If Nodes (I) is a nonterm or virtual terminal, returns result of
+   --  Set_Augmented, which may be null.
    --
-   --  If a virtual terminal, returns (ID => Nodes (I).terminal_id, others => <>).
-   --
-   --  If a terminal, returns Augmented_Terminals (I).
+   --  If a terminal, returns access to Augmented_Terminals (I).
+
+   function Augmented_Token_Array
+     (Tree                : in out Abstract_Tree;
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Nodes               : in     Valid_Node_Index_Array)
+     return Semantic_State.Augmented_Token_Access_Array is abstract;
 
    function Virtual
      (Tree : in Abstract_Tree;
       Node : in Valid_Node_Index)
      return Boolean is abstract;
+
+   function Action
+     (Tree : in Abstract_Tree;
+      Node : in Valid_Node_Index)
+     return Semantic_Action is abstract;
+
+   function Action_Index
+     (Tree : in Abstract_Tree;
+      Node : in Valid_Node_Index)
+     return Natural is abstract;
 
    function Image
      (Tree       : in Abstract_Tree;
@@ -192,7 +180,14 @@ package WisiToken.Syntax_Trees is
    --  Concrete tree for parsers. See wisitoken-syntax_trees-branched.adb for
    --  recovery tree.
 
-   type Tree (Terminals : not null access Protected_Base_Token_Arrays.Vector) is new Abstract_Tree with private;
+   type Tree is new Abstract_Tree with private;
+
+   type Tree_Access is access all Syntax_Trees.Tree;
+
+   procedure Initialize
+     (Tree      : in out Syntax_Trees.Tree;
+      Terminals : in     Protected_Base_Token_Arrays.Vector_Access_Constant);
+   --  Set the Terminals array for Tree.
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
@@ -200,42 +195,52 @@ package WisiToken.Syntax_Trees is
    overriding procedure Adjust (Tree : in out Syntax_Trees.Tree);
    --  Copy any allocated storage.
 
-   overriding
    function Add_Nonterm
      (Tree         : in out Syntax_Trees.Tree;
       Nonterm      : in     WisiToken.Token_ID;
       Virtual      : in     Boolean         := False;
       Action       : in     Semantic_Action := null;
       Action_Index : in     Natural         := 0)
-   return Valid_Node_Index;
+   return Valid_Node_Index
+   with Pre => not Tree.Traversing;
+   --  Add a new Nonterm node with no parent. Result points to the added
+   --  node.
 
-   overriding
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Token_Index)
-     return Valid_Node_Index;
+     return Valid_Node_Index
+   with Pre => not Tree.Traversing;
+   --  Add a new Terminal node with no parent. Terminal must be an index
+   --  into Tree.Terminals. Result points to the added node.
 
-   overriding
    function Add_Terminal
      (Tree     : in out Syntax_Trees.Tree;
       Terminal : in     Token_ID)
-     return Valid_Node_Index;
+     return Valid_Node_Index
+   with Pre => not Tree.Traversing;
+   --  Add a new virtual terminal node with no parent. Result points to
+   --  the added node.
 
-   overriding
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
-   with Pre => Tree.Is_Nonterm (Parent) and then (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children)));
+   with Pre => not Tree.Traversing and
+               (Tree.Is_Nonterm (Parent) and then
+               (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children))));
+   --  Set the Children of Parent.
 
+   overriding
    function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
    with Pre => Tree.Is_Nonterm (Node);
 
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
-   function Has_Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
-   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Has_Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
    function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
 
@@ -271,24 +276,6 @@ package WisiToken.Syntax_Trees is
      return WisiToken.Base_Token;
 
    overriding
-   function Virtual
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Boolean;
-
-   function Action
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Semantic_Action
-   with Pre => Tree.Is_Nonterm (Node);
-
-   function Action_Index
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Natural
-   with Pre => Tree.Is_Nonterm (Node);
-
-   overriding
    function Augmented_Token_Ref
      (Tree                : in out Syntax_Trees.Tree;
       Node                : in     Valid_Node_Index;
@@ -308,11 +295,32 @@ package WisiToken.Syntax_Trees is
       Augmented : in     Semantic_State.Augmented_Token)
    with Pre => Tree.Is_Nonterm (Node) or Tree.Is_Virtual_Terminal (Node);
 
+   overriding
    function Augmented_Token_Array
      (Tree                : in out Syntax_Trees.Tree;
       Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
       Nodes               : in     Valid_Node_Index_Array)
      return Semantic_State.Augmented_Token_Access_Array;
+
+   overriding
+   function Virtual
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Boolean;
+
+   overriding
+   function Action
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Semantic_Action
+   with Pre => Tree.Is_Nonterm (Node);
+
+   overriding
+   function Action_Index
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Natural
+   with Pre => Tree.Is_Nonterm (Node);
 
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
@@ -346,8 +354,6 @@ package WisiToken.Syntax_Trees is
          Node : in     Valid_Node_Index));
    --  Traverse Tree in depth-first order, calling Process_Node on each
    --  node.
-   --
-   --  Raises Program_Error if Process_Node calls Set_Children.
 
 private
 
@@ -416,8 +422,14 @@ private
 
    package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
 
-   type Tree (Terminals : not null access Protected_Base_Token_Arrays.Vector) is new Abstract_Tree with record
+   type Tree is new Abstract_Tree with record
+      Terminals : Protected_Base_Token_Arrays.Vector_Access_Constant;
+
       Nodes : Node_Arrays.Vector;
+      --  During normal parsing, tokens are added to Nodes by "parallel"
+      --  parsers, but they are all run from one Ada task, so there's no
+      --  need for Nodes to be Protected.
+      --
       --  During McKenzie_Recover, tokens are added to Terminals by parallel
       --  tasks, but not to the shared syntax_tree.
 
@@ -428,6 +440,10 @@ private
       --  True while traversing tree in Process_Tree.
 
    end record;
-   type Tree_Access is access all Tree;
+
+   ----------
+   --  For child packages
+
+   function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array;
 
 end WisiToken.Syntax_Trees;

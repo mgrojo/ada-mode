@@ -25,7 +25,7 @@ with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR.Parser_Lists is
 
-   type Base_Parser_State (Terminals : not null access Protected_Base_Token_Arrays.Vector) is tagged
+   type Base_Parser_State (Shared_Tree : not null access Syntax_Trees.Tree) is tagged
    record
       --  Visible components for direct access
 
@@ -38,12 +38,28 @@ package WisiToken.LR.Parser_Lists is
       Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.No_Node_Index;
       --  Current terminal, in Tree
 
-      Current_Token_Is_Virtual : Boolean := False; -- FIXME: Tree.Virtual (Current_Token)?
+      Current_Token_Is_Virtual : Boolean := False;
       Last_Shift_Was_Virtual   : Boolean := False;
-      Stack                    : Parser_Stacks.Stack;
-      Tree                     : aliased Syntax_Trees.Tree (Terminals);
-      Recover                  : aliased LR.McKenzie_Data := (others => <>);
-      Zombie_Token_Count       : Integer := 0;
+
+      Stack : Parser_Stacks.Stack;
+      --  There is no need to use a branched stack; max stack length is
+      --  proportional to source text nesting depth, not source text length.
+
+      Tree : Syntax_Trees.Branched.Tree;
+      --  We use a branched tree to avoid copying large trees for each
+      --  spawned parser; tree size is proportional to source text size. In
+      --  normal parsing, parallel parsers are short-lived; the each process
+      --  a few tokens, to resolve a grammar conflict.
+      --
+      --  When there is only one parser, tree nodes are written directly to
+      --  the shared tree (via the branched tree, with Flush => True).
+      --
+      --  When there is more than one, tree nodes are written to the
+      --  branched tree. Then when all but one parsers are terminated, the
+      --  remaining branched tree is flushed into the shared tree.
+
+      Recover            : aliased LR.McKenzie_Data := (others => <>);
+      Zombie_Token_Count : Integer                  := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also. When it reaches 0, the parser is
       --  terminated.
@@ -62,7 +78,7 @@ package WisiToken.LR.Parser_Lists is
 
    function New_List
      (First_Parser_Label : in Natural;
-      Terminals          : access Protected_Base_Token_Arrays.Vector)
+      Shared_Tree        : in Syntax_Trees.Tree_Access)
      return List;
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;

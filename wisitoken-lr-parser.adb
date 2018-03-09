@@ -38,7 +38,8 @@ package body WisiToken.LR.Parser is
       Action         : in     Reduce_Action_Rec;
       Nonterm        :    out WisiToken.Syntax_Trees.Valid_Node_Index;
       Lexer          : in     WisiToken.Lexer.Handle;
-      Trace          : in out WisiToken.Trace'Class)
+      Trace          : in out WisiToken.Trace'Class;
+      Flush_Tree     : in     Boolean)
      return WisiToken.Semantic_Checks.Check_Status_Label
    is
       use all type SAL.Base_Peek_Type;
@@ -46,7 +47,9 @@ package body WisiToken.LR.Parser is
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Status       : constant Semantic_Checks.Check_Status :=
-        Reduce_Stack (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse);
+        Reduce_Stack
+          (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse,
+           Flush_Tree => Flush_Tree);
    begin
       --  We treat semantic check errors as parse errors here, to allow
       --  error recovery to take better advantage of them. One recovery
@@ -105,7 +108,7 @@ package body WisiToken.LR.Parser is
          Current_Parser.Pre_Reduce_Stack_Save;
 
          Status := Reduce_Stack_1
-           (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace);
+           (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace, Flush_Tree => Shared_Parser.Parsers.Count = 1);
 
          --  Even when Reduce_Stack_1 returns Error, it did reduce the stack, so
          --  push Nonterm.
@@ -134,7 +137,7 @@ package body WisiToken.LR.Parser is
          case Reduce_Stack_1
            (Current_Parser,
             (Reduce, Action.LHS, Action.Action, Action.Check, Action.Index, Action.Token_Count),
-            Nonterm, Shared_Parser.Lexer, Trace)
+            Nonterm, Shared_Parser.Lexer, Trace, Flush_Tree => Shared_Parser.Parsers.Count = 1)
          is
          when Ok =>
             Current_Parser.Set_Verb (Action.Verb);
@@ -270,9 +273,9 @@ package body WisiToken.LR.Parser is
 
       function Compare
         (Stack_1 : in Parser_Stacks.Stack;
-         Tree_1  : in Syntax_Trees.Tree;
+         Tree_1  : in Syntax_Trees.Branched.Tree;
          Stack_2 : in Parser_Stacks.Stack;
-         Tree_2  : in Syntax_Trees.Tree)
+         Tree_2  : in Syntax_Trees.Branched.Tree)
         return Boolean
       is
       begin
@@ -320,8 +323,12 @@ package body WisiToken.LR.Parser is
    ----------
    --  Public subprograms, declaration order
 
-   overriding
-   procedure Finalize (Object : in out LR.Parser.Parser)
+   overriding procedure Initialize (Object : in out LR.Parser.Parser)
+   is begin
+      Object.Shared_Tree.Initialize (Object.Terminals'Unrestricted_Access);
+   end Initialize;
+
+   overriding procedure Finalize (Object : in out LR.Parser.Parser)
    is
       Action : Action_Node_Ptr;
       Temp_Action : Action_Node_Ptr;
@@ -407,18 +414,22 @@ package body WisiToken.LR.Parser is
          end if;
 
          Cur.Free;
+
+         if Shared_Parser.Parsers.Count = 1 then
+            --  Cur now points to the only remaining parser
+            Cur.State_Ref.Tree.Flush;
+         end if;
       end Terminate_Parser;
 
       procedure Check_Error (Check_Parser : in out Parser_Lists.Cursor)
       is begin
          if Check_Parser.Verb = Error then
-            --  This parser errored on last input, and some other parser(s) can
-            --  continue (else we would have handled this elsewhere). This is how
-            --  grammar conflicts are resolved when the input text is valid, in
-            --  which case we should just terminate this parser. However, this may
-            --  be due to invalid input text, so we keep the parser alive but
-            --  suspended for a few tokens, to see if the other parsers also
-            --  error, in which case they all participate in error recovery.
+            --  This parser errored on last input. This is how grammar conflicts
+            --  are resolved when the input text is valid, in which case we should
+            --  just terminate this parser. However, this may be due to invalid
+            --  input text, so we keep the parser alive but suspended for a few
+            --  tokens, to see if the other parsers also error, in which case they
+            --  all participate in error recovery.
 
             --  We do not create zombie parsers during resume.
             if not Resume_Active then
@@ -430,6 +441,9 @@ package body WisiToken.LR.Parser is
 
             else
                if Shared_Parser.Parsers.Count = 1 then
+                  if Trace_Parse > Detail then
+                     Trace.Put_Line (Integer'Image (Check_Parser.Label) & ": error during resume");
+                  end if;
                   raise Syntax_Error;
                else
                   Terminate_Parser (Check_Parser);
@@ -449,7 +463,7 @@ package body WisiToken.LR.Parser is
 
       Shared_Parser.Parsers := Parser_Lists.New_List
         (First_Parser_Label => Shared_Parser.First_Parser_Label,
-         Terminals          => Shared_Parser.Terminals'Access);
+         Shared_Tree        => Shared_Parser.Shared_Tree'Unchecked_Access);
 
       Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 
@@ -495,12 +509,14 @@ package body WisiToken.LR.Parser is
                else
                   Parser_State.Shared_Token  := Parser_State.Shared_Token + 1;
                   if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
-                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Parser_State.Shared_Token);
+                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                       (Parser_State.Shared_Token, Flush => Shared_Parser.Parsers.Count = 1);
                   else
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Next_Grammar_Token
                           (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State,
-                           Shared_Parser.Trace.Descriptor.all));
+                           Shared_Parser.Trace.Descriptor.all),
+                        Flush => Shared_Parser.Parsers.Count = 1);
                   end if;
 
                   Parser_State.Current_Token_Is_Virtual := False;
@@ -541,7 +557,8 @@ package body WisiToken.LR.Parser is
                         Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
                      end if;
 
-                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Parser_State.Shared_Token);
+                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                       (Parser_State.Shared_Token, Flush => Shared_Parser.Parsers.Count = 1);
 
                      Parser_State.Current_Token_Is_Virtual := False; -- in case we transition to normal parsing.
 
@@ -820,7 +837,7 @@ package body WisiToken.LR.Parser is
       Descriptor : WisiToken.Descriptor'Class renames Parser.Trace.Descriptor.all;
 
       procedure Process_Node
-        (Tree : in out Syntax_Trees.Tree;
+        (Tree : in out Syntax_Trees.Branched.Tree;
          Node : in     Syntax_Trees.Valid_Node_Index)
       is
          ID : Token_ID renames Tree.ID (Node);

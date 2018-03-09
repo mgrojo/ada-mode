@@ -9,7 +9,7 @@
 --
 --  [Grune] Parsing Techniques, A Practical Guide. Dick Grune, Ceriel J.H. Jacobs, second edition.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -28,7 +28,7 @@ pragma License (GPL);
 with AUnit.Test_Cases;
 package Grune_9_30 is
 
-   type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 
