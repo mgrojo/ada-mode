@@ -45,6 +45,12 @@ package SAL.Gen_Unbounded_Definite_Vectors is
       Default_Iterator  => Iterate,
       Iterator_Element  => Element_Type;
 
+   type Vector_Access_Constant is access constant Vector;
+   for Vector_Access_Constant'Storage_Size use 0;
+
+   type Vector_Access is access all Vector;
+   for Vector_Access'Storage_Size use 0;
+
    Empty_Vector : constant Vector;
 
    overriding procedure Finalize (Container : in out Vector);
@@ -82,6 +88,12 @@ package SAL.Gen_Unbounded_Definite_Vectors is
       Source_Last  : in     Index_Type);
    --  Copy Source (Source_First .. Source_Last) to Target, before
    --  Target.First_Index.
+
+   procedure Splice
+     (Target : in out Vector;
+      Source : in out Vector);
+   --  Append all elements from Source to Target, deleting them from
+   --  Source.
 
    function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector;
 
@@ -148,9 +160,6 @@ private
       First    : Extended_Index := No_Index;
       Last     : Extended_Index := No_Index;
    end record;
-
-   type Vector_Access is access all Vector;
-   for Vector_Access'Storage_Size use 0;
 
    type Cursor is record
       Container : Vector_Access;

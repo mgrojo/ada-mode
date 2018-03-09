@@ -34,6 +34,9 @@ package SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
       --  Default_Iterator  => Iterate,
       Iterator_Element  => Element_Type;
 
+   type Vector_Access_Constant is access constant Vector;
+   for Vector_Access_Constant'Storage_Size use 0;
+
    overriding procedure Initialize (Container : in out Vector);
    overriding procedure Finalize (Container : in out Vector);
    overriding procedure Adjust (Container : in out Vector);

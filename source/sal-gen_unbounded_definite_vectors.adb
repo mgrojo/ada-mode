@@ -52,14 +52,24 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          New_Last   := Peek_Type'Min (Peek_Type'Last, Elements'First + New_Length - 1);
       end loop;
 
-      --  Because of the way we've defined To_Peek_Type, To_Index_Type, we
-      --  can't get New_First < Peek_Type'First here.
-
       New_Array := new Array_Type (New_First .. New_Last);
 
-      New_Array (New_First .. Old_First - 1) := (others => <>);
-      New_Array (Old_First .. Old_Last)      := Elements.all;
-      New_Array (Old_Last + 1 .. New_Last)   := (others => <>);
+      --  We'd like to use this:
+      --
+      --  New_Array (New_First .. Old_First - 1) := (others => <>);
+      --
+      --  but that can overflow the stack, since the aggregate is allocated
+      --  on the stack.
+
+      for I in New_First .. Old_First - 1 loop
+         New_Array (I .. I) := (others => <>);
+      end loop;
+
+      New_Array (Old_First .. Old_Last) := Elements.all;
+
+      for I in Old_Last + 1 .. New_Last loop
+         New_Array (I .. I)   := (others => <>);
+      end loop;
 
       Free (Elements);
       Elements := New_Array;
@@ -109,7 +119,9 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    function First_Index (Container : Vector) return Extended_Index
    is begin
       if Container.Elements = null then
-         return No_Index;
+         --  We return No_Index + 1 here so 'for I in Container.First_Index .. Container.Last_Index loop'
+         --  is correct.
+         return No_Index + 1;
       else
          return Container.First;
       end if;
@@ -188,6 +200,38 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          end;
       end if;
    end Prepend;
+
+   procedure Splice
+     (Target : in out Vector;
+      Source : in out Vector)
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Source.Length = 0 then
+         null;
+
+      elsif Target.Length = 0 then
+         Target := Source;
+         Source.Clear;
+
+      else
+         declare
+            New_Last : constant Index_Type := Target.Last + Extended_Index (Source.Length);
+            Old_J    : constant Peek_Type  := To_Peek_Type (Target.Last);
+            J        : constant Peek_Type  := To_Peek_Type (New_Last);
+         begin
+            if J > Target.Elements'Last then
+               Grow (Target.Elements, J);
+            end if;
+
+            Target.Elements (Old_J + 1 .. J) := Source.Elements
+              (To_Peek_Type (Source.First) .. To_Peek_Type (Source.Last));
+
+            Target.Last := New_Last;
+            Source.Clear;
+         end;
+      end if;
+   end Splice;
 
    function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector
    is begin
