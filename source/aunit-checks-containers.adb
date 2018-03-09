@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2016  All Rights Reserved.
+--  Copyright (C) 2016, 2018  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -34,9 +34,11 @@ package body AUnit.Checks.Containers is
       Expected       : in Container_Pkg.Vector;
       Strict_Indices : in Boolean := True)
    is
+      use all type Ada.Containers.Count_Type;
       J : Index_Type := Expected.First_Index;
    begin
-      if Strict_Indices then
+      if Strict_Indices and Computed.Length > 0 then
+         --  Can't check indices if length = 0
          Check_Index (Label & ".First", Computed.First_Index, Expected.First_Index);
          Check_Index (Label & ".Last", Computed.Last_Index, Expected.Last_Index);
       else

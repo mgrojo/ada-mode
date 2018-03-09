@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2009, 2012, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2009, 2012, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,6 +25,13 @@
 
 with AUnit.Assertions;
 package body AUnit.Checks is
+
+   procedure Gen_Check_Valid
+     (Label    : in     String;
+      Computed : access Item_Type)
+   is begin
+      AUnit.Assertions.Assert (Computed.all'Valid, Label & ": object value not valid");
+   end Gen_Check_Valid;
 
    procedure Gen_Check_Access
      (Label    : in String;
