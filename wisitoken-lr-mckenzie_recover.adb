@@ -1547,7 +1547,8 @@ package body WisiToken.LR.McKenzie_Recover is
       begin
          Orig.Stack := Parser_State.Stack;
 
-         Orig.Tree.Initialize (Parser_State.Tree);
+         Orig.Tree := Parser_State.Tree;
+         Orig.Tree.Set_Flush_False;
 
          --  Parser_State.Local_Lookahead must be empty (else we would not get
          --  here). Therefore Parser_State current token is in

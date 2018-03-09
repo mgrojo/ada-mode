@@ -24,12 +24,15 @@ build syntax tree, use that in recover to pop stack
 
         main parser: keep one root syntax tree, use branched for parallel parsers
             when spawn, copy branched, don't branch again
-            edited, one test passes
+            edited, doing t_all
+
 
         mckenzie: don't do syntax tree at all until needed for a fix
 
         sal unbounded vectors:
             shrink elements to exact size on copy?
+
+    move base_token_Array Terminals into Syntax_Trees.Tree, avoid access type
 
     debug_production_recover.adb
         implement state/production matching outlined in syntax_trees-test missing_ends_1

@@ -59,14 +59,14 @@ package body Test_Character_Literal_Aux is
 
    procedure Test_Statement_0
      (User_Data   : in out Test_Character_Literal_Aux.User_Data;
-      Wisi_Tokens : in     WisiToken.Semantic_State.Augmented_Token_Array)
+      Wisi_Tokens : in     WisiToken.Semantic_State.Augmented_Token_Access_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
       use WisiToken.AUnit;
 
-      Character_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (4);
-      Semicolon_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (6);
+      Character_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (4).all;
+      Semicolon_Token : WisiToken.Semantic_State.Augmented_Token renames Wisi_Tokens (6).all;
    begin
       if Enable then
          case User_Data.Character_Literal_Count is
@@ -108,7 +108,7 @@ package body Test_Character_Literal_Aux is
 
    Statement_1_Count : Integer := 0;
 
-   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Access_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -121,7 +121,7 @@ package body Test_Character_Literal_Aux is
          --  objectπ'attribute;
          for I in Wisi_Tokens'Range loop
             declare
-               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I);
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).all;
             begin
                case I is
                when 1 =>
@@ -149,7 +149,7 @@ package body Test_Character_Literal_Aux is
          --    'attribute;
          for I in Wisi_Tokens'Range loop
             declare
-               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I);
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).all;
             begin
                case I is
                when 1 =>
@@ -175,7 +175,7 @@ package body Test_Character_Literal_Aux is
    end Test_Statement_1;
 
    Statement_2_Count : Integer := 0;
-   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
+   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Access_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -188,7 +188,7 @@ package body Test_Character_Literal_Aux is
          --  " a string with Greek ..."
          for I in Wisi_Tokens'Range loop
             declare
-               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I);
+               Token : Semantic_State.Augmented_Token renames Wisi_Tokens (I).all;
             begin
                case I is
                when 1 =>

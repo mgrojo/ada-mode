@@ -51,12 +51,14 @@ package body WisiToken.Syntax_Trees.Test is
       use all type Valid_Node_Index_Arrays.Vector;
 
       Terminals  : aliased Protected_Base_Token_Arrays.Vector;
-      Tree       : WisiToken.Syntax_Trees.Tree (Terminals'Access);
+      Tree       : WisiToken.Syntax_Trees.Tree;
       Node_Proc  : Node_Index;
       Node_Ident : Node_Index;
       Node_Name  : Node_Index;
       Node_Prof  : Node_Index;
    begin
+      Tree.Initialize (Terminals'Unchecked_Access);
+
       Terminals.Append ((+PROCEDURE_ID, (1, 9)));
       Node_Proc := Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 1
 
@@ -82,7 +84,7 @@ package body WisiToken.Syntax_Trees.Test is
         ("1",
          Tree,
          ((Ada.Finalization.Controlled with
-           Terminals        => Terminals'Access,
+           Terminals        => Terminals'Unchecked_Access,
            Nodes            =>
              ((Shared_Terminal,
                Parent       => 5,

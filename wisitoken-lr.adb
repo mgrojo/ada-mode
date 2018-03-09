@@ -606,7 +606,7 @@ package body WisiToken.LR is
    procedure Put
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
-      Syntax_Tree      : in Syntax_Trees.Tree;
+      Syntax_Tree      : in Syntax_Trees.Abstract_Tree'Class;
       Descriptor       : in WisiToken.Descriptor'Class)
    is
       use all type Ada.Containers.Count_Type;
@@ -667,8 +667,7 @@ package body WisiToken.LR is
       Lexer        : in     WisiToken.Lexer.Handle;
       Trace        : in out WisiToken.Trace'Class;
       Trace_Level  : in     Integer;
-      Trace_Prefix : in     String := "";
-      Flush_Tree   : in     Boolean := False)
+      Trace_Prefix : in     String := "")
      return Semantic_Checks.Check_Status
    is
       use all type Semantic_Checks.Semantic_Check;
@@ -677,13 +676,13 @@ package body WisiToken.LR is
       --  For Check, Set_Children.
    begin
       Nonterm := Syntax_Tree.Add_Nonterm
-        (Action.LHS, Flush_Tree, Action => Action.Action, Action_Index => Action.Index);
+        (Action.LHS, Action => Action.Action, Action_Index => Action.Index);
 
       for I in reverse Tokens'Range loop
          Tokens (I) := Stack.Pop.Token;
       end loop;
 
-      Syntax_Tree.Set_Children (Nonterm, Tokens, Flush_Tree);
+      Syntax_Tree.Set_Children (Nonterm, Tokens); --  Computes Nonterm.Byte_Region
 
       if Trace_Level > Detail then
          declare

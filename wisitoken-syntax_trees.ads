@@ -114,8 +114,8 @@ package WisiToken.Syntax_Trees is
 
    function Augmented_Token_Ref
      (Tree                : in out Abstract_Tree;
-      Node                : in     Valid_Node_Index;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in     Valid_Node_Index)
      return Augmented_Ref is abstract;
    --  If Nodes (I) is a nonterm, returns result of Set_Augmented, or
    --  (Nodes (I).terminal_id, Nodes (I).Byte_Region, others => <>)
@@ -130,8 +130,8 @@ package WisiToken.Syntax_Trees is
 
    function Constant_Aug_Token_Ref
      (Tree                : in Abstract_Tree;
-      Node                : in Valid_Node_Index;
-      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in Valid_Node_Index)
      return Constant_Augmented_Ref is abstract;
    --  If Nodes (I) is a nonterm or virtual terminal, returns result of
    --  Set_Augmented, which may be null.
@@ -278,15 +278,15 @@ package WisiToken.Syntax_Trees is
    overriding
    function Augmented_Token_Ref
      (Tree                : in out Syntax_Trees.Tree;
-      Node                : in     Valid_Node_Index;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in     Valid_Node_Index)
      return Augmented_Ref;
 
    overriding
    function Constant_Aug_Token_Ref
      (Tree                : in Syntax_Trees.Tree;
-      Node                : in Valid_Node_Index;
-      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in Valid_Node_Index)
      return Constant_Augmented_Ref;
 
    procedure Set_Augmented

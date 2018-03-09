@@ -52,7 +52,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       use all type Valid_Node_Index_Arrays.Vector;
 
       Terminals     : aliased Protected_Base_Token_Arrays.Vector;
-      Shared_Tree   : aliased WisiToken.Syntax_Trees.Tree (Terminals'Access);
+      Shared_Tree   : aliased WisiToken.Syntax_Trees.Tree;
       Branched_Tree : WisiToken.Syntax_Trees.Branched.Tree;
       Junk          : Node_Index;
       pragma Unreferenced (Junk);
@@ -64,6 +64,8 @@ package body WisiToken.Syntax_Trees.Branched.Test is
    begin
       --  Create a branched tree, set a child of a new node to a shared
       --  node, thus invoking Move_Branch_Point.
+
+      Shared_Tree.Initialize (Terminals'Unchecked_Access, Flush => False);
 
       Terminals.Append ((+PROCEDURE_ID, (1, 9)));
       Junk := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 1

@@ -360,8 +360,8 @@ package body WisiToken.Syntax_Trees is
    overriding
    function Augmented_Token_Ref
      (Tree                : in out Syntax_Trees.Tree;
-      Node                : in     Valid_Node_Index;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in     Valid_Node_Index)
      return Augmented_Ref
    is
       use all type Semantic_State.Augmented_Token_Access;
@@ -393,8 +393,8 @@ package body WisiToken.Syntax_Trees is
    overriding
    function Constant_Aug_Token_Ref
      (Tree                : in Syntax_Trees.Tree;
-      Node                : in Valid_Node_Index;
-      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in Valid_Node_Index)
      return Constant_Augmented_Ref
    is
       N : Syntax_Trees.Node renames Tree.Nodes (Node);

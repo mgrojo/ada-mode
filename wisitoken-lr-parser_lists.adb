@@ -24,13 +24,16 @@ package body WisiToken.LR.Parser_Lists is
      (First_Parser_Label : in Natural;
       Shared_Tree        : in Syntax_Trees.Tree_Access)
      return List
-   is begin
+   is
+      Parser : Parser_State := (Shared_Tree, Label => First_Parser_Label, others => <>);
+   begin
+      Parser.Tree.Initialize (Shared_Tree, Flush => True);
+
       return Result : List
       do
          Result.Parser_Label := First_Parser_Label;
 
-         Result.Elements.Append ((Shared_Tree, Label => First_Parser_Label, others => <>));
-         Parser_State_Lists.Reference (Result.Elements.First).Tree.Initialize (Shared_Tree);
+         Result.Elements.Append (Parser);
       end return;
    end New_List;
 
@@ -137,10 +140,12 @@ package body WisiToken.LR.Parser_Lists is
    begin
       List.Parser_Label := List.Parser_Label + 1;
       declare
-         Item : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Ptr).Element.all;
+         Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Ptr).Element.all;
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
       begin
+         Item.Tree.Set_Flush_False;
+
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
          New_Item :=
@@ -168,6 +173,9 @@ package body WisiToken.LR.Parser_Lists is
       Temp : Parser_State_Lists.Cursor := Cursor.Ptr;
    begin
       Parser_State_Lists.Next (Cursor.Ptr);
+      if not Parser_State_Lists.Has_Element (Cursor.Ptr) then
+         Cursor.Ptr := Cursor.Elements.First;
+      end if;
       Parser_State_Lists.Delete (Cursor.Elements.all, Temp);
    end Free;
 

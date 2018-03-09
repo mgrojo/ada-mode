@@ -440,7 +440,7 @@ package WisiToken.LR is
    procedure Put
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
-      Syntax_Tree      : in Syntax_Trees.Tree;
+      Syntax_Tree      : in Syntax_Trees.Abstract_Tree'Class;
       Descriptor       : in WisiToken.Descriptor'Class);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
@@ -484,8 +484,7 @@ private
       Lexer        : in     WisiToken.Lexer.Handle;
       Trace        : in out WisiToken.Trace'Class;
       Trace_Level  : in     Integer;
-      Trace_Prefix : in     String := "";
-      Flush_Tree   : in     Boolean := False)
+      Trace_Prefix : in     String := "")
      return WisiToken.Semantic_Checks.Check_Status;
    --  Reduce Stack according to Action, calling Action.Check and
    --  returning result, or Ok if null.

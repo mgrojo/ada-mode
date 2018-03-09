@@ -38,10 +38,10 @@ package Test_Character_Literal_Aux is
 
    procedure Test_Statement_0
      (User_Data   : in out Test_Character_Literal_Aux.User_Data;
-      Wisi_Tokens : in     WisiToken.Semantic_State.Augmented_Token_Array);
+      Wisi_Tokens : in     WisiToken.Semantic_State.Augmented_Token_Access_Array);
 
-   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array);
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Access_Array);
 
-   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array);
+   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Access_Array);
 
 end Test_Character_Literal_Aux;

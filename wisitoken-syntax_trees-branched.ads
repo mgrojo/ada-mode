@@ -4,6 +4,12 @@
 --  data but referencing the old, optimized for using during error
 --  recovery.
 --
+--  All operations are affected by the Flush mode; if Flush mode is
+--  True, new nodes are written to Tree.Shared_Tree.Nodes, and nodes
+--  in Shared_Tree.Nodes may be modified. If False, new nodes are
+--  written to Tree.Branched_Nodes, and nodes in Shared_Tree.Nodes
+--  that must be modified are copied to Branched_Nodes first.
+--
 --  Rationale :
 --
 --  There is one branched tree for each recover configuration. The
@@ -31,60 +37,51 @@ package WisiToken.Syntax_Trees.Branched is
 
    procedure Initialize
      (Branched_Tree : in out Branched.Tree;
-      Shared_Tree   : in     Syntax_Trees.Tree_Access);
+      Shared_Tree   : in     Syntax_Trees.Tree_Access;
+      Flush         : in     Boolean);
    --  Set Branched_Tree to refer to Shared_Tree.
 
-   procedure Initialize
-     (Branched_Tree : in out Branched.Tree;
-      Shared_Tree   : in     Branched.Tree);
-   --  Set Branched_Tree to refer to Shared_Tree.Shared_Tree, copy all
-   --  branched nodes to Branched_Tree.
-
    procedure Flush (Tree : in out Branched.Tree);
-   --  Move all nodes in branched part to shared tree.
+   --  Move all nodes in branched part to shared tree, set Flush mode
+   --  True.
+
+   procedure Set_Flush_False (Tree : in out Branched.Tree);
+   --  Set Flush mode False; use Flush to set True.
 
    function Add_Nonterm
      (Tree         : in out Branched.Tree;
       Nonterm      : in     WisiToken.Token_ID;
-      Flush        : in     Boolean;
       Virtual      : in     Boolean         := False;
       Action       : in     Semantic_Action := null;
       Action_Index : in     Natural         := 0)
    return Valid_Node_Index
    with Pre => not Tree.Traversing;
-   --  Add a new Nonterm node with no parent. If Flush, add the new node
-   --  to the shared tree. Result points to the added node.
+   --  Add a new Nonterm node with no parent. Result points to the added
+   --  node.
 
    function Add_Terminal
      (Tree     : in out Branched.Tree;
-      Terminal : in     Token_Index;
-      Flush    : in     Boolean := False)
+      Terminal : in     Token_Index)
      return Valid_Node_Index
    with Pre => not Tree.Traversing;
    --  Add a new Terminal node with no parent. Terminal must be an index
-   --  into Tree.Terminals. If Flush, add the new node to the shared
-   --  tree. Result points to the added node.
+   --  into Tree.Terminals. Result points to the added node.
 
    function Add_Terminal
      (Tree     : in out Branched.Tree;
-      Terminal : in     Token_ID;
-      Flush    : in     Boolean := False)
+      Terminal : in     Token_ID)
      return Valid_Node_Index
    with Pre => not Tree.Traversing;
-   --  Add a new virtual terminal node with no parent. If Flush, add the
-   --  new node to the shared tree. Result points to the added node.
+   --  Add a new virtual terminal node with no parent. Result points to
+   --  the added node.
 
    procedure Set_Children
      (Tree     : in out Branched.Tree;
       Parent   : in     Valid_Node_Index;
-      Children : in     Valid_Node_Index_Array;
-      Flush    : in     Boolean)
+      Children : in     Valid_Node_Index_Array)
    with Pre => not Tree.Traversing and
-               (if Flush then not Tree.Has_Branched_Nodes) and
                (Tree.Is_Nonterm (Parent) and then (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children))));
-   --  Set the Children of Parent. If Flush, leave all nodes in the
-   --  shared tree. If not Flush, copy nodes to branched tree before
-   --  modifying.
+   --  Set the Children of Parent.
 
    overriding
    function Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
@@ -131,15 +128,15 @@ package WisiToken.Syntax_Trees.Branched is
    overriding
    function Augmented_Token_Ref
      (Tree                : in out Branched.Tree;
-      Node                : in     Valid_Node_Index;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in     Valid_Node_Index)
      return Augmented_Ref;
 
    overriding
    function Constant_Aug_Token_Ref
      (Tree                : in Branched.Tree;
-      Node                : in Valid_Node_Index;
-      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector)
+      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector;
+      Node                : in Valid_Node_Index)
      return Constant_Augmented_Ref;
 
    overriding
@@ -199,8 +196,12 @@ private
       --  If we need to set anything (ie parent) in Shared_Tree, we move the
       --  branch point instead.
 
-      Last_Shared_Node : Node_Index;
+      Last_Shared_Node : Node_Index := No_Node_Index;
       Branched_Nodes   : Node_Arrays.Vector;
-   end record;
+      Flush            : Boolean    := False;
+      --  We maintain Last_Shared_Node when Flush is True, so subprograms
+      --  that have no reason to check Flush can rely on Last_Shared_Node.
+   end record with
+     Type_Invariant => (if Tree.Flush then not Tree.Has_Branched_Nodes);
 
 end WisiToken.Syntax_Trees.Branched;

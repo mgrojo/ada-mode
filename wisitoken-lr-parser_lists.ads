@@ -130,7 +130,7 @@ package WisiToken.LR.Parser_Lists is
 
    procedure Free (Cursor : in out Parser_Lists.Cursor'Class);
    --  Delete the Cursor parser. It will not appear in future
-   --  iterations. On return, Cursor points to next parser (or none).
+   --  iterations. On return, Cursor points to next parser, or List.First.
 
    ----------
    --  Stuff for iterators, to allow

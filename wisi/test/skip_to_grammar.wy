@@ -25,7 +25,7 @@ with Test_Skip_To_Aux; use Test_Skip_To_Aux;
 
 declaration
   : PERCENT IDENTIFIER declaration_item_list
-  (Test_Declaration_0 (Tree.Augmented_Token_Ref (Tree_Nonterm));)
+  (Test_Declaration_0 (Tree.Augmented_Token_Ref (State.Terminals, Tree_Nonterm));)
   ;
 
 declaration_item_list

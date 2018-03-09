@@ -29,7 +29,7 @@ with WisiToken.LR.Parser;
 with WisiToken.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Semantic_State;
-with WisiToken.Syntax_Trees;
+with WisiToken.Syntax_Trees.Branched;
 package body Test_McKenzie_Recover is
 
    Parser    : WisiToken.LR.Parser.Parser;
@@ -154,7 +154,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("errors.length", Error_List.Length, 1);
@@ -527,7 +527,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("parser label", Parser_State.Label, 0);
@@ -584,7 +584,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +AND_ID);
@@ -630,7 +630,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +IF_ID);
@@ -781,7 +781,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
       begin
          Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +END_ID);
@@ -832,7 +832,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit.Fast_Token_ID_Vectors_AUnit;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
       begin
          Check ("errors 1.error_token.id", Tree.ID (Element (Cursor).Error_Token), +PROCEDURE_ID);

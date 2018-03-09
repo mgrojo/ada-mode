@@ -32,6 +32,7 @@ with Ada_Lite;
 with GNAT.Traceback.Symbolic;
 with WisiToken.LR.Parser;
 with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 procedure Ada_Lite_Run
 is
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
@@ -49,18 +50,21 @@ is
    File_Name    : Ada.Strings.Unbounded.Unbounded_String;
    Repeat_Count : Integer;
 
+   User_Data : WisiToken.Syntax_Trees.User_Data_Type;
+
    procedure Parse
    is
       Parser : WisiToken.LR.Parser.Parser;
    begin
-      Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.State'Unchecked_Access);
+      Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.Trace'Unchecked_Access);
       Parser.Lexer.Reset_With_File (-File_Name);
 
       for I in 1 .. Repeat_Count loop
-         Ada_Lite.State.Initialize (Line_Count => 100); -- big enough
+         Parser.Semantic_State.Initialize (Line_Count => 100); -- big enough
 
          Parser.Lexer.Reset;
          Parser.Parse;
+         Parser.Execute_Actions (User_Data, Compute_Indent => True);
       end loop;
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>

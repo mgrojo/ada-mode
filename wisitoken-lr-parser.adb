@@ -38,8 +38,7 @@ package body WisiToken.LR.Parser is
       Action         : in     Reduce_Action_Rec;
       Nonterm        :    out WisiToken.Syntax_Trees.Valid_Node_Index;
       Lexer          : in     WisiToken.Lexer.Handle;
-      Trace          : in out WisiToken.Trace'Class;
-      Flush_Tree     : in     Boolean)
+      Trace          : in out WisiToken.Trace'Class)
      return WisiToken.Semantic_Checks.Check_Status_Label
    is
       use all type SAL.Base_Peek_Type;
@@ -48,8 +47,7 @@ package body WisiToken.LR.Parser is
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Status       : constant Semantic_Checks.Check_Status :=
         Reduce_Stack
-          (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse,
-           Flush_Tree => Flush_Tree);
+          (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse);
    begin
       --  We treat semantic check errors as parse errors here, to allow
       --  error recovery to take better advantage of them. One recovery
@@ -108,7 +106,7 @@ package body WisiToken.LR.Parser is
          Current_Parser.Pre_Reduce_Stack_Save;
 
          Status := Reduce_Stack_1
-           (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace, Flush_Tree => Shared_Parser.Parsers.Count = 1);
+           (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace);
 
          --  Even when Reduce_Stack_1 returns Error, it did reduce the stack, so
          --  push Nonterm.
@@ -137,7 +135,7 @@ package body WisiToken.LR.Parser is
          case Reduce_Stack_1
            (Current_Parser,
             (Reduce, Action.LHS, Action.Action, Action.Check, Action.Index, Action.Token_Count),
-            Nonterm, Shared_Parser.Lexer, Trace, Flush_Tree => Shared_Parser.Parsers.Count = 1)
+            Nonterm, Shared_Parser.Lexer, Trace)
          is
          when Ok =>
             Current_Parser.Set_Verb (Action.Verb);
@@ -510,13 +508,12 @@ package body WisiToken.LR.Parser is
                   Parser_State.Shared_Token  := Parser_State.Shared_Token + 1;
                   if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                       (Parser_State.Shared_Token, Flush => Shared_Parser.Parsers.Count = 1);
+                       (Parser_State.Shared_Token);
                   else
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Next_Grammar_Token
                           (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State,
-                           Shared_Parser.Trace.Descriptor.all),
-                        Flush => Shared_Parser.Parsers.Count = 1);
+                           Shared_Parser.Trace.Descriptor.all));
                   end if;
 
                   Parser_State.Current_Token_Is_Virtual := False;
@@ -557,8 +554,7 @@ package body WisiToken.LR.Parser is
                         Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
                      end if;
 
-                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                       (Parser_State.Shared_Token, Flush => Shared_Parser.Parsers.Count = 1);
+                     Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Parser_State.Shared_Token);
 
                      Parser_State.Current_Token_Is_Virtual := False; -- in case we transition to normal parsing.
 
@@ -850,7 +846,7 @@ package body WisiToken.LR.Parser is
             use all type Syntax_Trees.Semantic_Action;
             Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
             Aug_Nonterm   : Semantic_State.Augmented_Token renames Tree.Augmented_Token_Ref
-              (Node, Parser.Semantic_State.Terminals);
+              (Parser.Semantic_State.Terminals, Node);
             Aug_Children  : constant Semantic_State.Augmented_Token_Access_Array := Tree.Augmented_Token_Array
               (Parser.Semantic_State.Terminals, Tree_Children);
          begin
