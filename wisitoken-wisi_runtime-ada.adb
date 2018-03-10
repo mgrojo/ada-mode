@@ -158,7 +158,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       State             : in     WisiToken.Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -170,7 +170,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    is
       use all type Syntax_Trees.Node_Index;
       Indenting_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-        (Tree_Indenting, State.Terminals);
+        (State.Terminals, Tree_Indenting);
 
       function Result (Delta_1 : in Simple_Indent_Param; Delta_2 : in Simple_Delta_Type) return Delta_Type
       is begin
@@ -296,7 +296,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Aggregate
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -308,7 +308,10 @@ package body WisiToken.Wisi_Runtime.Ada is
       pragma Unreferenced (Indenting_Comment);
       pragma Unreferenced (Args);
       pragma Unreferenced (Tokens);
+
+      use all type Syntax_Trees.Node_Index;
       use Ada_Process;
+
       --  In our grammar, 'aggregate' can be an Ada aggregate, or a
       --  parenthesized expression.
       --
@@ -316,12 +319,12 @@ package body WisiToken.Wisi_Runtime.Ada is
       --  ada-indent-broken. However, in some places in the grammar,
       --  'aggregate' is indented by ada-indent. The following checks for
       --  those places, and returns a correction value.
-      --
-      --  `ada-indent-aggregate' is used in only one place in the grammar,
-      --  in 'primary'. So there is always an 'expression_opt' ancestor node.
-      Expression : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Ancestor (Tree_Indenting, +expression_opt_ID);
+
+      Expression : constant Syntax_Trees.Node_Index := Tree.Find_Ancestor (Tree_Indenting, +expression_opt_ID);
    begin
-      if Tree.ID (Tree.Parent (Expression)) = +if_expression_ID or
+      if Expression = Syntax_Trees.No_Node_Index then
+         return Null_Delta;
+      elsif Tree.ID (Tree.Parent (Expression)) = +if_expression_ID or
         Tree.ID (Tree.Parent (Expression)) = +case_expression_alternative_ID
       then
          return (Simple, (Int, Ada_Indent_Broken - Ada_Indent));
@@ -333,7 +336,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Renames_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -341,9 +344,9 @@ package body WisiToken.Wisi_Runtime.Ada is
      return WisiToken.Wisi_Runtime.Delta_Type
    is
       Subp_Tok    : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-        (Tokens (Positive_Index_Type (Integer'(Args (1)))), State.Terminals);
+        (State.Terminals, Tokens (Positive_Index_Type (Integer'(Args (1)))));
       Renames_Tok : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-        (Tree_Indenting, State.Terminals);
+        (State.Terminals, Tree_Indenting);
       Paren_I     : Base_Token_Index;
    begin
       if Subp_Tok.Char_Region = Null_Buffer_Region then
@@ -387,7 +390,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Return_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -406,13 +409,13 @@ package body WisiToken.Wisi_Runtime.Ada is
       Parameter_And_Result_Profile : constant Syntax_Trees.Valid_Node_Index := Tree.Parent (Tree_Indenting);
 
       Indenting : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-        (Tree_Indenting, State.Terminals);
+        (State.Terminals, Tree_Indenting);
    begin
       if Indenting.Line = Indenting.First_Indent_Line then
          if Ada_Indent_Return <= 0 then
             declare
                Anchor_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-                 (Tokens (Positive_Index_Type (Integer'(Args (1)))), State.Terminals);
+                 (State.Terminals, Tokens (Positive_Index_Type (Integer'(Args (1)))));
             begin
                return Indent_Anchored_2
                  (Data,
@@ -426,7 +429,7 @@ package body WisiToken.Wisi_Runtime.Ada is
                Function_N   : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Sibling
                  (Parameter_And_Result_Profile, +FUNCTION_ID);
                Anchor_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-                 (Function_N, State.Terminals);
+                 (State.Terminals, Function_N);
             begin
                return Indent_Anchored_2
                  (Data,
@@ -445,7 +448,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Record_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -456,18 +459,18 @@ package body WisiToken.Wisi_Runtime.Ada is
         (Parse_Data_Type (Data),
          State,
          Anchor_Token      => Tree.Constant_Aug_Token_Ref
-           (Tokens (Positive_Index_Type (Integer'(Args (1)))), State.Terminals),
+           (State.Terminals, Tokens (Positive_Index_Type (Integer'(Args (1))))),
          Record_Token      => Tree.Constant_Aug_Token_Ref
-           (Tokens (Positive_Index_Type (Integer'(Args (2)))), State.Terminals),
+           (State.Terminals, Tokens (Positive_Index_Type (Integer'(Args (2))))),
          Offset            => Args (3),
-         Indenting_Token   => Tree.Constant_Aug_Token_Ref (Tree_Indenting, State.Terminals),
+         Indenting_Token   => Tree.Constant_Aug_Token_Ref (State.Terminals, Tree_Indenting),
          Indenting_Comment => Indenting_Comment);
    end Ada_Indent_Record_0;
 
    function Ada_Indent_Record_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -486,14 +489,14 @@ package body WisiToken.Wisi_Runtime.Ada is
       Tree_Anchor : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Child
         (Full_Type_Declaration, Token_ID (Integer'(Args (1))));
 
-      Anchor_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref (Tree_Anchor, State.Terminals);
+      Anchor_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref (State.Terminals, Tree_Anchor);
 
       --  Args (2) is the index of RECORD in Tokens
       Record_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-        (Tokens (Positive_Index_Type (Integer'(Args (2)))), State.Terminals);
+        (State.Terminals, Tokens (Positive_Index_Type (Integer'(Args (2)))));
 
       Indenting_Token : Semantic_State.Augmented_Token renames Tree.Constant_Aug_Token_Ref
-        (Tree_Indenting, State.Terminals);
+        (State.Terminals, Tree_Indenting);
    begin
       --  Args (3) is the offset
       return Indent_Record

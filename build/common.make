@@ -128,6 +128,10 @@ GPRBUILD := gprbuild
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
 
+# for recompiling with release options
+clean-recursive : force
+	gprclean -r -P ../ada_mode_wisi_parse.gpr
+
 clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
 	rm -f check_xref.gpr Makefile.conf
 

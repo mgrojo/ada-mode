@@ -51,11 +51,29 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
 wisitoken changes
-    compiles; run tests
-    subprograms.input passes
-    test/ada_mode-recover_indent_1.adb passes
+    mckenzie _really_ slow, and not finding same solutions as o.e.a.s-2
 
+    test/ada_mode-interactive_recover.adb   ok, fast
+    test/ada_mode-recover_align_1.adb       ok, fast
+    test/ada_mode-recover_bad_char.adb      ok, slow
+        o.e.a.s-2: 0.145636766
+        o.e.a.s-4: branched tree in mckenzie 2.757418621 seconds/iteration
+        o.e.a.s-4: branched tree in main parser 2.045493021
 
+        mckenzie can not do syntax tree until actually needed.
+            that requires stack hold base_token, not tree index. sigh.
+            maybe only need syntax tree temporarily, while computing fix
+
+add syntax-tree edit, see how much of patterns that replaces
+
+test/ada_mode-recover_match_names.adb
+    parse fails with (parse_error), error during resume
+        and only two mckenzies, both in Accept_Statement_0
+        ignore for now; will change again
+
+test/ada_mode.adb auto-case test fails
+    works when done manually; some race condition!?
+    also changes ada_mode.ads; it should not!?
 
 merge wisitoken.semantic_state into wisi_runtime
     provide hook for lexer_to_augmented
@@ -181,6 +199,8 @@ Ada 2020 features:
  speed issues
 
 benchmarks:
+    update only in o.e.a.s-2
+    make recursive-clean build_ada_executables
 
 /Projects/org.wisitoken/Test/gnatcoll-xref.adb
     copied to c:/tmp/gnatcoll-xref.adb

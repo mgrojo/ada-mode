@@ -48,16 +48,15 @@ package body Ada_Skel is
    end Task_1;
 
    --  ada-skel-task-spec
-   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 3)(kill-word 1)(forward-line 1)(kill-line 1)(forward-char -1)(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
-   task Task_1 is
+   --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(kill-line 2)(forward-char -1)(insert "\ntask Task_1")(let ((ada-skel-test-input "spec"))(funcall ada-expand)))
+   task type Task_1 is
    end Task_1;
 
    --  ada-skel-return
    function Function_1 return Integer
    is begin
       --EMACSCMD:(progn (when (eq ada-parser 'process))(forward-line 1)(forward-word 1)(forward-char 1)(kill-line 2)(forward-char -1)(funcall ada-expand))
-      return
-      do
+      return  do
       end return;
 
    end Function_1;

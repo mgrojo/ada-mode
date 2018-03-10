@@ -58,7 +58,7 @@ package WisiToken.Wisi_Runtime.Ada is
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       State             : in     WisiToken.Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -76,7 +76,7 @@ package WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Aggregate
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -87,7 +87,7 @@ package WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Renames_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -98,7 +98,7 @@ package WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Return_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -109,7 +109,7 @@ package WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Record_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -120,7 +120,7 @@ package WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Record_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Tree;
+      Tree              : in     Syntax_Trees.Branched.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
