@@ -173,9 +173,6 @@ package body WisiToken.LR.Parser_Lists is
       Temp : Parser_State_Lists.Cursor := Cursor.Ptr;
    begin
       Parser_State_Lists.Next (Cursor.Ptr);
-      if not Parser_State_Lists.Has_Element (Cursor.Ptr) then
-         Cursor.Ptr := Cursor.Elements.First;
-      end if;
       Parser_State_Lists.Delete (Cursor.Elements.all, Temp);
    end Free;
 

@@ -41,6 +41,8 @@ package WisiToken.Syntax_Trees.Branched is
       Flush         : in     Boolean);
    --  Set Branched_Tree to refer to Shared_Tree.
 
+   overriding procedure Clear (Tree : in out Branched.Tree);
+
    procedure Flush (Tree : in out Branched.Tree);
    --  Move all nodes in branched part to shared tree, set Flush mode
    --  True.
@@ -93,6 +95,8 @@ package WisiToken.Syntax_Trees.Branched is
    function Has_Parent (Tree : in Branched.Tree; Children : in Valid_Node_Index_Array) return Boolean;
    function Is_Nonterm (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Branched.Tree) return Boolean;
+
+   overriding function Parent (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Index;
 
    overriding
    function Byte_Region
@@ -164,6 +168,29 @@ package WisiToken.Syntax_Trees.Branched is
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
      return Natural
+   with Pre => Tree.Is_Nonterm (Node);
+
+   overriding
+   function Find_Ancestor
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index;
+
+   overriding
+   function Find_Sibling
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index
+   with Pre => Tree.Has_Parent (Node);
+
+   overriding
+   function Find_Child
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index
    with Pre => Tree.Is_Nonterm (Node);
 
    procedure Process_Tree

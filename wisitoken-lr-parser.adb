@@ -45,8 +45,7 @@ package body WisiToken.LR.Parser is
       use all type Semantic_Checks.Check_Status_Label;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Status       : constant Semantic_Checks.Check_Status :=
-        Reduce_Stack
+      Status       : constant Semantic_Checks.Check_Status := Reduce_Stack
           (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse);
    begin
       --  We treat semantic check errors as parse errors here, to allow
@@ -105,8 +104,7 @@ package body WisiToken.LR.Parser is
       when Reduce =>
          Current_Parser.Pre_Reduce_Stack_Save;
 
-         Status := Reduce_Stack_1
-           (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace);
+         Status := Reduce_Stack_1 (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace);
 
          --  Even when Reduce_Stack_1 returns Error, it did reduce the stack, so
          --  push Nonterm.
@@ -414,8 +412,7 @@ package body WisiToken.LR.Parser is
          Cur.Free;
 
          if Shared_Parser.Parsers.Count = 1 then
-            --  Cur now points to the only remaining parser
-            Cur.State_Ref.Tree.Flush;
+            Shared_Parser.Parsers.First.State_Ref.Tree.Flush;
          end if;
       end Terminate_Parser;
 
@@ -458,6 +455,7 @@ package body WisiToken.LR.Parser is
 
       Shared_Parser.Semantic_State.Reset;
       Shared_Parser.Terminals.Clear;
+      Shared_Parser.Shared_Tree.Clear;
 
       Shared_Parser.Parsers := Parser_Lists.New_List
         (First_Parser_Label => Shared_Parser.First_Parser_Label,
@@ -728,7 +726,7 @@ package body WisiToken.LR.Parser is
          --  We don't use 'for Parser_State of Parsers loop' here,
          --  because terminate on error and spawn on conflict require
          --  changing the parser list.
-         Current_Parser := Parser_Lists.First (Shared_Parser.Parsers);
+         Current_Parser := Shared_Parser.Parsers.First;
          loop
             exit when Current_Parser.Is_Done;
 

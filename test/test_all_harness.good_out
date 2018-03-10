@@ -50,17 +50,14 @@ OK test_mckenzie_recover.adb : Pattern_End_EOF
 OK test_mckenzie_recover.adb : Pattern_Block_Match_Names_1
 OK test_mckenzie_recover.adb : Pattern_Block_Match_Names_2
 OK test_mckenzie_recover.adb : Pattern_Block_Extra_Name_1
+OK test_mckenzie_recover.adb : Abandon_Pattern
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-test.adb : Nominal
 OK wisitoken-syntax_trees-branched-test.adb : Test_Move_Branch_Point
 
-FAIL test_mckenzie_recover.adb : Abandon_Pattern
-    1 exception: got Syntax_Error
-    at test_mckenzie_recover.adb:982
-
 Total Tests Run:   57
-Successful Tests:  56
+Successful Tests:  57
 Failed Assertions: 1
 Unexpected Errors: 0

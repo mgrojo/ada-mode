@@ -163,10 +163,17 @@ package body WisiToken.Syntax_Trees.Branched is
       Branched_Tree.Branched_Nodes.Set_First (Shared_Tree.Nodes.Last_Index + 1);
    end Initialize;
 
+   overriding procedure Clear (Tree : in out Branched.Tree)
+   is begin
+      Tree.Shared_Tree.Clear;
+      Tree.Last_Shared_Node := No_Node_Index;
+      Tree.Branched_Nodes.Clear;
+   end Clear;
+
    procedure Flush (Tree : in out Branched.Tree)
    is begin
       --  This is the opposite of Move_Branch_Point
-      Tree.Shared_Tree.Nodes.Splice (Tree.Branched_Nodes);
+      Tree.Shared_Tree.Nodes.Merge (Tree.Branched_Nodes);
       Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
       Tree.Flush            := True;
    end Flush;
@@ -283,9 +290,24 @@ package body WisiToken.Syntax_Trees.Branched is
             N.Children.Set_Length (Children'Length);
             for I in Children'Range loop
                N.Children (J) := Children (I);
-               Tree.Branched_Nodes (Children (I)).Parent := Parent;
-               --  FIXME: compute parent.byte_region for semantic checks
+               declare
+                  K : Syntax_Trees.Node renames Tree.Branched_Nodes (Children (I));
+                  Child_Byte_Region : constant Buffer_Region :=
+                    (case K.Label is
+                     when Shared_Terminal  => Tree.Shared_Tree.Terminals.all (K.Terminal).Byte_Region,
+                     when Virtual_Terminal => Null_Buffer_Region,
+                     when Nonterm          => K.Byte_Region);
+               begin
+                  K.Parent := Parent;
 
+                  if N.Byte_Region.First > Child_Byte_Region.First then
+                     N.Byte_Region.First := Child_Byte_Region.First;
+                  end if;
+
+                  if N.Byte_Region.Last < Child_Byte_Region.Last then
+                     N.Byte_Region.Last := Child_Byte_Region.Last;
+                  end if;
+               end;
                J := J + 1;
             end loop;
          end;
@@ -353,6 +375,15 @@ package body WisiToken.Syntax_Trees.Branched is
    is begin
       return Tree.Shared_Tree.Traversing;
    end Traversing;
+
+   overriding function Parent (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Index
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Tree.Shared_Tree.Nodes (Node).Parent;
+      else
+         return Tree.Branched_Nodes (Node).Parent;
+      end if;
+   end Parent;
 
    overriding
    function Byte_Region
@@ -470,8 +501,6 @@ package body WisiToken.Syntax_Trees.Branched is
           else Tree.Branched_Nodes (Node)));
    end Base_Token;
 
-   Bogus : aliased Semantic_State.Augmented_Token;
-
    overriding
    function Augmented_Token_Ref
      (Tree                : in out Branched.Tree;
@@ -546,10 +575,27 @@ package body WisiToken.Syntax_Trees.Branched is
       Node                : in Valid_Node_Index)
      return Constant_Augmented_Ref
    is
-      pragma Unreferenced (Tree, Node, Augmented_Terminals);
+      use all type Semantic_State.Augmented_Token_Access;
+
+      function Compute (N : in Syntax_Trees.Node) return Constant_Augmented_Ref
+      is begin
+         case N.Label is
+         when Shared_Terminal =>
+            return (Element => Augmented_Terminals (N.Terminal).Element);
+
+         when Virtual_Terminal =>
+            return (Element => N.Virtual_Augmented);
+
+         when Nonterm =>
+            return (Element => N.Nonterm_Augmented);
+         end case;
+      end Compute;
+
    begin
-      raise SAL.Not_Implemented;
-      return (Element => Bogus'Access);
+      return Compute
+        (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes (Node)
+         else Tree.Branched_Nodes (Node));
    end Constant_Aug_Token_Ref;
 
    overriding
@@ -644,6 +690,111 @@ package body WisiToken.Syntax_Trees.Branched is
          then Tree.Shared_Tree.Nodes (Node).Action_Index
          else Tree.Branched_Nodes (Node).Action_Index);
    end Action_Index;
+
+   overriding
+   function Find_Ancestor
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index
+   is
+      N : Node_Index := Node;
+   begin
+      loop
+         N :=
+           (if N <= Tree.Last_Shared_Node
+            then Tree.Shared_Tree.Nodes (N).Parent
+            else Tree.Branched_Nodes (N).Parent);
+
+         exit when N = No_Node_Index;
+         exit when Get_ID
+           ((if N <= Tree.Last_Shared_Node
+             then Tree.Shared_Tree.Nodes (N)
+             else Tree.Branched_Nodes (N)),
+            Tree.Shared_Tree.Terminals.all) = ID;
+      end loop;
+      return N;
+   end Find_Ancestor;
+
+   overriding
+   function Find_Sibling
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index
+   is
+      function Compute_2 (N : in Syntax_Trees.Node) return Node_Index
+      is begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal =>
+            return No_Node_Index;
+
+         when Nonterm =>
+            for C of N.Children loop
+               if Get_ID
+                 ((if C <= Tree.Last_Shared_Node
+                   then Tree.Shared_Tree.Nodes (C)
+                   else Tree.Branched_Nodes (C)),
+                  Tree.Shared_Tree.Terminals.all) = ID
+               then
+                  return C;
+               end if;
+            end loop;
+            return No_Node_Index;
+         end case;
+      end Compute_2;
+
+      function Compute_1 (Parent : in Node_Index) return Node_Index
+      is begin
+         if Parent = No_Node_Index then
+            return No_Node_Index;
+
+         else
+            return Compute_2
+              ((if Parent <= Tree.Last_Shared_Node
+                then Tree.Shared_Tree.Nodes (Parent)
+                else Tree.Branched_Nodes (Parent)));
+         end if;
+      end Compute_1;
+   begin
+      return Compute_1
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node).Parent
+          else Tree.Branched_Nodes (Node).Parent));
+   end Find_Sibling;
+
+   overriding
+   function Find_Child
+     (Tree : in Branched.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index
+   is
+      function Compute (N : in Syntax_Trees.Node) return Node_Index
+      is begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal =>
+            return No_Node_Index;
+         when Nonterm =>
+            for C of N.Children loop
+               if Get_ID
+                 ((if C <= Tree.Last_Shared_Node
+                   then Tree.Shared_Tree.Nodes (C)
+                   else Tree.Branched_Nodes (C)),
+                  Tree.Shared_Tree.Terminals.all) = ID
+               then
+                  return C;
+               end if;
+            end loop;
+            return No_Node_Index;
+         end case;
+      end Compute;
+   begin
+      return Compute
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node)
+          else Tree.Branched_Nodes (Node)));
+   end Find_Child;
 
    procedure Process_Tree
      (Tree         : in out Branched.Tree;

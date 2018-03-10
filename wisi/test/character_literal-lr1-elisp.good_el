@@ -54,7 +54,7 @@
        ((statement_list )))
       (statement_list
        ((statement )
-        (Test_Statement_List_0 (Tree.Augmented_Token_Ref (Tree_Nonterm));))
+        (Test_Statement_List_0 (Tree.Augmented_Token_Ref (State.Terminals, Tree_Nonterm));))
        ((statement_list statement )))
       (statement
        ((IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON )
@@ -67,7 +67,7 @@
        ((IDENTIFIER tick IDENTIFIER SEMICOLON )
         (declare
         Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
-        Tokens : WisiToken.Semantic_State.Augmented_Token_Array renames Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens);
+        Tokens : WisiToken.Semantic_State.Augmented_Token_Access_Array renames Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens);
         begin
         Data.Char_Region := Tokens (3).Char_Region;
         Test_Statement_1 (Tokens);

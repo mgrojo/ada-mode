@@ -822,10 +822,10 @@ is
          Indent_Line ("  Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
          Indent_Line ("  Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
          Indent_Line ("is");
-         Indent_Line ("   Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames");
-         Indent_Line ("     WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);");
-         Indent_Line ("   Tree : WisiToken.Syntax_Trees.Tree renames");
-         Indent_Line ("     WisiToken.Syntax_Trees.Tree (Abstract_Tree);");
+         Indent_Start ("   Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames");
+         Put_Line (" WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);");
+         Indent_Start ("   Tree : WisiToken.Syntax_Trees.Branched.Tree renames");
+         Put_Line (" WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);");
          Indent_Line ("begin");
          Indent := Indent + 3;
 
@@ -942,7 +942,7 @@ is
       end if;
       Put_Line ("with WisiToken.Semantic_State;");
       if Action_Count > 0 or Check_Count > 0 then
-         Put_Line ("with WisiToken.Syntax_Trees;");
+         Put_Line ("with WisiToken.Syntax_Trees.Branched;");
       end if;
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
       Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");

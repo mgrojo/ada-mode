@@ -144,6 +144,9 @@ package body WisiToken.Semantic_State is
    procedure Reset (State : in out Semantic_State)
    is begin
       State.Terminals.Clear;
+      State.Leading_Non_Grammar.Clear;
+      --  State.Line_Begin_Pos  set in Initialize, overwritten in Lexer_To_Augmented
+      --  State.Line_Begin_Token  ""
 
       for S of State.Line_Paren_State loop
          S := 0;

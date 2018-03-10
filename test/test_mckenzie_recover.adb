@@ -41,11 +41,16 @@ package body Test_McKenzie_Recover is
       First_Nonterminal => Ada_Lite.Descriptor.First_Nonterminal,
       Last_Nonterminal  => Ada_Lite.Descriptor.Last_Nonterminal);
 
-   procedure Parse_Text (Text : in String; Line_Count : in WisiToken.Line_Number_Type := 1)
-   is begin
+   procedure Parse_Text
+     (Text             : in String;
+      Line_Count       : in WisiToken.Line_Number_Type := 1;
+      Expect_Exception : in Boolean                    := False)
+   is
+      use AUnit.Checks;
+   begin
       Ada_Lite.Action_Count := (others => 0);
 
-      if WisiToken.Trace_Parse > 0 then
+      if WisiToken.Trace_Parse > WisiToken.Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
@@ -57,6 +62,30 @@ package body Test_McKenzie_Recover is
 
       Parser.Parse;
       Parser.Execute_Actions (User_Data, Compute_Indent => False);
+
+      if WisiToken.Trace_Parse > WisiToken.Outline then
+         WisiToken.LR.Put
+           (Source_File_Name => "<string>",
+            Errors           => Parser.Parsers.First.State_Ref.Errors,
+            Syntax_Tree      => Parser.Parsers.First.State_Ref.Tree,
+            Descriptor       => Parser.Trace.Descriptor.all);
+      end if;
+
+      Check ("exception", False, Expect_Exception);
+   exception
+   when WisiToken.Syntax_Error =>
+      if WisiToken.Trace_Parse > WisiToken.Outline then
+         WisiToken.LR.Put
+           (Source_File_Name => "<string>",
+            Errors           => Parser.Parsers.First.State_Ref.Errors,
+            Syntax_Tree      => Parser.Parsers.First.State_Ref.Tree,
+            Descriptor       => Parser.Trace.Descriptor.all);
+      end if;
+
+      Check ("exception", True, Expect_Exception);
+      if Expect_Exception then
+         raise;
+      end if;
    end Parse_Text;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
@@ -95,9 +124,6 @@ package body Test_McKenzie_Recover is
       --  error 1 at ';' 39, expecting 'if'. Inserts 'if', succeeds.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "exception: got syntax error exception.");
    end Error_1;
 
    procedure Error_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -126,9 +152,6 @@ package body Test_McKenzie_Recover is
       begin
          Check ("errors.length", Error_List.Length, 1);
       end;
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "exception: got Syntax_Error");
    end Error_2;
 
    procedure Error_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -178,9 +201,6 @@ package body Test_McKenzie_Recover is
 
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       end;
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1.exception: got Syntax_Error");
    end Error_3;
 
    procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -190,10 +210,11 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parse_Text ("else then ");
+      Parse_Text ("else then ", Expect_Exception => True);
       --  Bogus syntax; test no exceptions due to empty stack etc.
 
       Assert (False, "1.exception: did not get Syntax_Error");
+
    exception
    when WisiToken.Syntax_Error =>
       Check ("error.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
@@ -212,10 +233,6 @@ package body Test_McKenzie_Recover is
       --  Inserts 'end;', continues to EOF, succeeds
       --  Test hitting EOF and Accept_It in error recovery
       Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (True, "1.exception: got Syntax_Error");
    end Check_Accept;
 
    procedure Extra_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -256,10 +273,6 @@ package body Test_McKenzie_Recover is
       end if;
 
       Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1.exception: got Syntax_Error");
    end Extra_Begin;
 
    procedure Conflict_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -269,67 +282,50 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      begin
-         Parse_Text
-           ("procedure Check_1 is end begin end Check_1;");
-            --        |10       |20       |30       |40       |50       |60       |70       |80
+      Parse_Text
+        ("procedure Check_1 is end begin end Check_1;");
+      --        |10       |20       |30       |40       |50       |60       |70       |80
 
-         --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
-         --
-         --  parser 1 for subprogram_body (should succeed): delete 'end' 22, cost 1.
-         --  Continue to EOF, succeed.
-         --
-         --  parser 0 for generic_instantiation (should fail): finds: insert
-         --  'new', delete 'end begin end' cost 6, succeed.
+      --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
+      --
+      --  parser 1 for subprogram_body (should succeed): delete 'end' 22, cost 1.
+      --  Continue to EOF, succeed.
+      --
+      --  parser 0 for generic_instantiation (should fail): finds: insert
+      --  'new', delete 'end begin end' cost 6, succeed.
 
-         --  Thus there is an ambiguous parse. But since there was an error,
-         --  one parser is chosen to succeed.
-         --
-         --  This is an example of error recovery defeating conflict
-         --  resolution. In real programs it should not happen often; the
-         --  incorrect parser will not find a viable error resolution. However,
-         --  that means it will be slow, since error resolution only fails by
-         --  hitting the cost limit after trying hundreds of possible
-         --  solutions.
+      --  Thus there is an ambiguous parse. But since there was an error,
+      --  one parser is chosen to succeed.
+      --
+      --  This is an example of error recovery defeating conflict
+      --  resolution. In real programs it should not happen often; the
+      --  incorrect parser will not find a viable error resolution. However,
+      --  that means it will be slow, since error resolution only fails by
+      --  hitting the cost limit after trying hundreds of possible
+      --  solutions.
 
-         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
-
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
-
-      when WisiToken.Parse_Error =>
-         Assert (False, "1 exception: got Parse_Error");
-      end;
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
 
       --  Symmetric case where generic_instantiation is desired
-      begin
 
-         Parser.Table.McKenzie_Param.Cost_Limit := 6;
+      Parser.Table.McKenzie_Param.Cost_Limit := 6;
 
-         Parse_Text
-           ("procedure Check_2 is end new Check_2;");
-            --        |10       |20       |30       |40       |50       |60       |70       |80
+      Parse_Text
+        ("procedure Check_2 is end new Check_2;");
+      --        |10       |20       |30       |40       |50       |60       |70       |80
 
-         --  Syntax error (extra 'end' 22) while two parsers are sorting out a
-         --  conflict.
-         --
-         --  parser 1 for subprogram_body (should fail): hits cost limit, fails.
-         --
-         --  parser 0 for generic_instantiation (should succeed):
-         --  finds: delete 'end', cost 1. Continue to eof, accept
-         --
-         --  This is an example of adjusting the cost limit to allow conflict
-         --  resolution.
+      --  Syntax error (extra 'end' 22) while two parsers are sorting out a
+      --  conflict.
+      --
+      --  parser 1 for subprogram_body (should fail): hits cost limit, fails.
+      --
+      --  parser 0 for generic_instantiation (should succeed):
+      --  finds: delete 'end', cost 1. Continue to eof, accept
+      --
+      --  This is an example of adjusting the cost limit to allow conflict
+      --  resolution.
 
-         Check ("2 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
-
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "2 exception: got Syntax_Error");
-      when WisiToken.Parse_Error =>
-         Assert (False, "2 exception: got Parse_Error");
-      end;
+      Check ("2 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
    end Conflict_1;
 
    procedure Conflict_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -351,9 +347,6 @@ package body Test_McKenzie_Recover is
       --
       --  both insert semicolon, which leads to identical stacks.
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Conflict_2;
 
    procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -363,25 +356,18 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      begin
-         Parse_Text
-           ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; "
-            --        |10       |20       |30       |40       |50       |60       |70       |80       |90
-            );
-         --  Missing 'return foo' in function spec.
-         --
-         --  error 1 at 'is' 72; expecting 'return'. Inserts 'return IDENTIFIER'.
-         --  Spawns 1 parser in state 91: subprogram_body_stub/subprogram_body
-         --  terminates 1 at 'begin' 75, shared lookahead not finished. Used to get queue empty error here.
-         --  continues to eof, succeeds.
+      Parse_Text
+        ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; "
+         --        |10       |20       |30       |40       |50       |60       |70       |80       |90
+        );
+      --  Missing 'return foo' in function spec.
+      --
+      --  error 1 at 'is' 72; expecting 'return'. Inserts 'return IDENTIFIER'.
+      --  Spawns 1 parser in state 91: subprogram_body_stub/subprogram_body
+      --  terminates 1 at 'begin' 75, shared lookahead not finished. Used to get queue empty error here.
+      --  continues to eof, succeeds.
 
-         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
-
-      end;
-
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
    end Missing_Return;
 
    procedure Loop_Bounds (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -391,23 +377,17 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      begin
-         Parse_Text
-           ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end;"
-            --        |10       |20       |30       |40       |50       |60       |70       |80
-            );
-         --  'To' should be '..'
-         --
-         --  error 1 at 'To' 35; expecting '..'.
-         --  with Check_Token_Limit = 3, pops "1", deletes To, leaving Result_Length as subtype
-         --  continues to eof, succeeds.
+      Parse_Text
+        ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end;"
+         --        |10       |20       |30       |40       |50       |60       |70       |80
+        );
+      --  'To' should be '..'
+      --
+      --  error 1 at 'To' 35; expecting '..'.
+      --  with Check_Token_Limit = 3, pops "1", deletes To, leaving Result_Length as subtype
+      --  continues to eof, succeeds.
 
-         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
-      end;
-
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
    end Loop_Bounds;
 
    procedure Pattern_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -420,67 +400,46 @@ package body Test_McKenzie_Recover is
       Parser.Table.McKenzie_Param.Cost_Limit := 1; -- show that matching the pattern reduces cost
 
       --  Test 'recover_pattern_1' for CASE
-      begin
-         Parse_Text
-           ("procedure Test_CASE_1 is begin case I is when 1 => A; end;"
-            --        |10       |20       |30       |40       |50       |60       |70       |80
-            );
-         --  Missing 'end case;'
+      Parse_Text
+        ("procedure Test_CASE_1 is begin case I is when 1 => A; end;"
+         --        |10       |20       |30       |40       |50       |60       |70       |80
+        );
+      --  Missing 'end case;'
 
-         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
-      end;
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
       --  FIXME: recover finds "insert 'case; end'"; need another pattern
       Parser.Table.McKenzie_Param.Cost_Limit := 10; -- no pattern matching here
-      begin
-         Parse_Text
-           ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;"
-            --        |10       |20       |30       |40       |50       |60       |70       |80
-            );
-         --  Missing 'end case;'
-         --
-         --  error 1 at ';' 56; expecting 'case'.
+      Parse_Text
+        ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;"
+         --        |10       |20       |30       |40       |50       |60       |70       |80
+        );
+      --  Missing 'end case;'
+      --
+      --  error 1 at ';' 56; expecting 'case'.
 
-         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
-      end;
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
       Parser.Table.McKenzie_Param.Cost_Limit := 2; -- show that matching the pattern reduces enqueues
 
       --  Test 'recover_pattern_1' for IF
-      begin
-         Parse_Text
-           ("procedure Test_IF is begin if A then B; end;");
-            --        |10       |20       |30       |40       |50       |60       |70       |80
+      Parse_Text
+        ("procedure Test_IF is begin if A then B; end;");
+      --        |10       |20       |30       |40       |50       |60       |70       |80
 
-         --  Missing 'end if;'
+      --  Missing 'end if;'
 
-         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
-      end;
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
       --  Test 'recover_pattern_1' for LOOP
-      begin
-         Parse_Text
-           ("procedure Test_LOOP is begin for I in A loop B; end;");
-            --        |10       |20       |30       |40       |50       |60       |70       |80
+      Parse_Text
+        ("procedure Test_LOOP is begin for I in A loop B; end;");
+      --        |10       |20       |30       |40       |50       |60       |70       |80
 
-         --  Missing 'end loop;'
+      --  Missing 'end loop;'
 
-         Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
-      end;
-
+      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
    end Pattern_1;
 
    procedure Revive_Zombie_Parser (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -550,10 +509,6 @@ package body Test_McKenzie_Recover is
             Tree.Byte_Region (Element (Cursor).Error_Token),
             (23, 25));
       end;
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Revive_Zombie_Parser;
 
    procedure Error_Token_When_Parallel (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -590,10 +545,6 @@ package body Test_McKenzie_Recover is
          Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +AND_ID);
          Check ("error_token.byte_region", Tree.Byte_Region (Element (Cursor).Error_Token), (28, 30));
       end;
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Error_Token_When_Parallel;
 
    procedure If_In_Handler (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -636,10 +587,6 @@ package body Test_McKenzie_Recover is
          Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +IF_ID);
          Check ("error_token.byte_region", Tree.Byte_Region (Element (Cursor).Error_Token), (76, 77));
       end;
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end If_In_Handler;
 
    procedure Zombie_In_Resume (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -668,10 +615,6 @@ package body Test_McKenzie_Recover is
       --  terminated immediately. The first parser continues thru EOF.
 
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Zombie_In_Resume;
 
    procedure Match_Name (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -707,10 +650,6 @@ package body Test_McKenzie_Recover is
       --
       --  This used to fail recovery, so the test is there is no
       --  Syntax_Error.
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Match_Name;
 
    procedure Missing_Quote (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -737,10 +676,6 @@ package body Test_McKenzie_Recover is
       --
       --  That leads to a parse error at '"' 50; missing operator. Simplest
       --  solution is to delete the STRING_LITERAL.
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Missing_Quote;
 
    procedure Pattern_End_EOF (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -791,9 +726,6 @@ package body Test_McKenzie_Recover is
             Element (Cursor).Recover.Deleted,
             To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
       end;
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_End_EOF;
 
    procedure Pattern_Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -850,9 +782,6 @@ package body Test_McKenzie_Recover is
       --  FIXME: "procedure Name_A is begin end Name_B;" edit one? see pattern_end_eof
       --  FIXME: required name missing
 
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_Block_Match_Names_1;
 
    procedure Pattern_Block_Match_Names_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -883,10 +812,6 @@ package body Test_McKenzie_Recover is
       --  succeed.
 
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_Block_Match_Names_2;
 
    procedure Pattern_Block_Extra_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -939,9 +864,6 @@ package body Test_McKenzie_Recover is
       --  FIXME: "procedure Name_A is begin end Name_B;" edit one? see pattern_end_eof
       --  FIXME: required name missing
 
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Pattern_Block_Extra_Name_1;
 
    procedure Abandon_Pattern (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -975,11 +897,7 @@ package body Test_McKenzie_Recover is
       --
       --  Even better; pop block_statement terminals from syntax tree to
       --  local_lookahead, insert 'end case ;', reparse block_statement.
-      --
 
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
    end Abandon_Pattern;
 
    ----------

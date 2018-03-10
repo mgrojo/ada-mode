@@ -69,10 +69,16 @@ package WisiToken.Syntax_Trees is
 
    Null_Action : constant Semantic_Action := null;
 
+   procedure Clear (Tree : in out Abstract_Tree) is abstract;
+   --  Delete all Elements and free associated memory; keep results of
+   --  Initialize.
+
    function Children
      (Tree : in Abstract_Tree;
       Node : in Valid_Node_Index)
      return Valid_Node_Index_Array is abstract;
+
+   function Parent (Tree : in Abstract_Tree; Node : in Valid_Node_Index) return Node_Index is abstract;
 
    function Byte_Region
      (Tree : in Abstract_Tree;
@@ -159,6 +165,30 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index)
      return Natural is abstract;
 
+   function Find_Ancestor
+     (Tree : in Abstract_Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index is abstract;
+   --  Return the ancestor of Node that contains ID, or No_Node_Index if
+   --  none match.
+
+   function Find_Sibling
+     (Tree : in Abstract_Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index is abstract;
+   --  Return the sibling of Node that contains ID, or No_Node_Index if
+   --  none match.
+
+   function Find_Child
+     (Tree : in Abstract_Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index is abstract;
+   --  Return the child of Node that contains ID, or No_Node_Index if
+   --  none match.
+
    function Image
      (Tree       : in Abstract_Tree;
       Nodes      : in Valid_Node_Index_Array;
@@ -191,6 +221,8 @@ package WisiToken.Syntax_Trees is
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
+
+   overriding procedure Clear (Tree : in out Syntax_Trees.Tree);
 
    overriding procedure Adjust (Tree : in out Syntax_Trees.Tree);
    --  Copy any allocated storage.
@@ -242,7 +274,7 @@ package WisiToken.Syntax_Trees is
    function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
-   function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
+   overriding function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
 
    overriding
    function Byte_Region
@@ -322,30 +354,28 @@ package WisiToken.Syntax_Trees is
      return Natural
    with Pre => Tree.Is_Nonterm (Node);
 
+   overriding
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index;
-   --  Return the ancestor of Node that contains ID, or No_Node_Index if
-   --  none match.
 
+   overriding
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index
    with Pre => Tree.Has_Parent (Node);
-   --  Return the sibling of Node that contains ID, or No_Node_Index if
-   --  none match.
 
+   overriding
    function Find_Child
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
-     return Node_Index;
-   --  Return the child of Node that contains ID, or No_Node_Index if
-   --  none match.
+     return Node_Index
+   with Pre => Tree.Is_Nonterm (Node);
 
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
@@ -445,5 +475,8 @@ private
    --  For child packages
 
    function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array;
+
+   function Get_ID (N : in Node; Terminals : in Protected_Base_Token_Arrays.Vector) return Token_ID
+   with Inline;
 
 end WisiToken.Syntax_Trees;

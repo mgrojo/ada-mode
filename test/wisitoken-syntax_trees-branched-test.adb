@@ -65,7 +65,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       --  Create a branched tree, set a child of a new node to a shared
       --  node, thus invoking Move_Branch_Point.
 
-      Shared_Tree.Initialize (Terminals'Unchecked_Access, Flush => False);
+      Shared_Tree.Initialize (Terminals'Unchecked_Access);
 
       Terminals.Append ((+PROCEDURE_ID, (1, 9)));
       Junk := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 1
@@ -76,7 +76,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       Terminals.Append ((+IDENTIFIER_ID, (18, 19)));
       Junk := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 3
 
-      Branched_Tree.Initialize (Shared_Tree'Unchecked_Access);
+      Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => False);
 
       Node_Name := Branched_Tree.Add_Nonterm (Nonterm => +name_ID); -- 4
       Branched_Tree.Set_Children (Parent => Node_Name, Children => (1 => Node_Ident_1));
@@ -118,7 +118,8 @@ package body WisiToken.Syntax_Trees.Branched.Test is
          ((Ada.Finalization.Controlled with
            Shared_Tree      => Shared_Tree'Unchecked_Access,
            Last_Shared_Node => 1,
-           Branched_Nodes   => Expected_Branched_Nodes)));
+           Branched_Nodes   => Expected_Branched_Nodes,
+           Flush            => False)));
 
       Check ("nodes 2", Branched_Tree.Base_Token (2), Shared_Tree.Base_Token (2));
       Check ("nodes 3", Branched_Tree.Base_Token (3), Shared_Tree.Base_Token (3));

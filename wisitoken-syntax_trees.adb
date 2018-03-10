@@ -91,19 +91,6 @@ package body WisiToken.Syntax_Trees is
    ----------
    --  Syntax_Tree.Tree body operations, alphabetical
 
-   function Get_ID (N : in Node; Terminals : in Protected_Base_Token_Arrays.Vector) return Token_ID
-      with inline
-   is begin
-      case N.Label is
-      when Shared_Terminal =>
-         return Terminals (N.Terminal).ID;
-      when Virtual_Terminal =>
-         return N.Terminal_ID;
-      when Nonterm =>
-         return N.Nonterm_ID;
-      end case;
-   end Get_ID;
-
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
       Node         : in     Valid_Node_Index;
@@ -151,11 +138,42 @@ package body WisiToken.Syntax_Trees is
       end Process_Node;
 
    begin
+      Tree.Traversing := False;
       if Tree.Augmented_Present then
          Tree.Process_Tree (Process_Node'Access);
          Tree.Augmented_Present := False;
       end if;
+      Tree.Nodes.Finalize;
+      Tree.Terminals := null;
    end Finalize;
+
+   overriding procedure Clear (Tree : in out Syntax_Trees.Tree)
+   is
+      procedure Process_Node
+        (Tree : in out Syntax_Trees.Tree;
+         Node : in     Valid_Node_Index)
+      is begin
+         case Tree.Nodes (Node).Label is
+         when Shared_Terminal =>
+            null;
+
+         when Virtual_Terminal =>
+            Semantic_State.Free (Tree.Nodes (Node).Virtual_Augmented);
+
+         when Nonterm =>
+            Semantic_State.Free (Tree.Nodes (Node).Nonterm_Augmented);
+         end case;
+      end Process_Node;
+
+   begin
+      --  don't reset Tree.Terminals.
+      Tree.Traversing := False;
+      if Tree.Augmented_Present then
+         Tree.Process_Tree (Process_Node'Access);
+         Tree.Augmented_Present := False;
+      end if;
+      Tree.Nodes.Finalize;
+   end Clear;
 
    overriding procedure Adjust (Tree : in out Syntax_Trees.Tree)
    is begin
@@ -210,31 +228,29 @@ package body WisiToken.Syntax_Trees is
 
       N : Nonterm_Node renames Tree.Nodes (Parent);
       J : Positive_Index_Type := Positive_Index_Type'First;
-
-      Child_Byte_Region : Buffer_Region;
    begin
       N.Children.Clear;
       N.Children.Set_Length (Children'Length);
       for I in Children'Range loop
          N.Children (J) := Children (I);
-         Tree.Nodes (Children (I)).Parent := Parent;
+         declare
+            K : Syntax_Trees.Node renames Tree.Nodes (Children (I));
+            Child_Byte_Region : constant Buffer_Region :=
+              (case K.Label is
+               when Shared_Terminal  => Tree.Terminals.all (K.Terminal).Byte_Region,
+               when Virtual_Terminal => Null_Buffer_Region,
+               when Nonterm          => K.Byte_Region);
+         begin
+            K.Parent := Parent;
 
-         case Tree.Nodes (Children (I)).Label is
-         when Shared_Terminal =>
-            Child_Byte_Region := Tree.Terminals.all (Tree.Nodes (Children (I)).Terminal).Byte_Region;
-         when Virtual_Terminal =>
-            Child_Byte_Region := Null_Buffer_Region;
-         when Nonterm =>
-            Child_Byte_Region := Tree.Nodes (Children (I)).Byte_Region;
-         end case;
+            if N.Byte_Region.First > Child_Byte_Region.First then
+               N.Byte_Region.First := Child_Byte_Region.First;
+            end if;
 
-         if N.Byte_Region.First > Child_Byte_Region.First then
-            N.Byte_Region.First := Child_Byte_Region.First;
-         end if;
-
-         if N.Byte_Region.Last < Child_Byte_Region.Last then
-            N.Byte_Region.Last := Child_Byte_Region.Last;
-         end if;
+            if N.Byte_Region.Last < Child_Byte_Region.Last then
+               N.Byte_Region.Last := Child_Byte_Region.Last;
+            end if;
+         end;
 
          J := J + 1;
       end loop;
@@ -281,10 +297,7 @@ package body WisiToken.Syntax_Trees is
       return Tree.Traversing;
    end Traversing;
 
-   function Parent
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Node_Index
+   overriding function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
    is begin
       return Tree.Nodes (Node).Parent;
    end Parent;
@@ -508,6 +521,7 @@ package body WisiToken.Syntax_Trees is
       return Tree.Nodes (Node).Action_Index;
    end Action_Index;
 
+   overriding
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
@@ -524,6 +538,7 @@ package body WisiToken.Syntax_Trees is
       return N;
    end Find_Ancestor;
 
+   overriding
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
@@ -546,6 +561,7 @@ package body WisiToken.Syntax_Trees is
       end case;
    end Find_Sibling;
 
+   overriding
    function Find_Child
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
@@ -587,7 +603,7 @@ package body WisiToken.Syntax_Trees is
    end Process_Tree;
 
    ----------
-   --  Spec private operations
+   --  Spec private operations, alphabetical
 
    function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array
    is
@@ -604,5 +620,16 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Children;
 
+   function Get_ID (N : in Node; Terminals : in Protected_Base_Token_Arrays.Vector) return Token_ID
+   is begin
+      case N.Label is
+      when Shared_Terminal =>
+         return Terminals (N.Terminal).ID;
+      when Virtual_Terminal =>
+         return N.Terminal_ID;
+      when Nonterm =>
+         return N.Nonterm_ID;
+      end case;
+   end Get_ID;
 
 end WisiToken.Syntax_Trees;

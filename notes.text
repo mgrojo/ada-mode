@@ -24,10 +24,11 @@ build syntax tree, use that in recover to pop stack
 
         main parser: keep one root syntax tree, use branched for parallel parsers
             when spawn, copy branched, don't branch again
-            edited, doing t_all
+            all tests pass; much faster
 
 
         mckenzie: don't do syntax tree at all until needed for a fix
+            stack hold base_token, not tree index
 
         sal unbounded vectors:
             shrink elements to exact size on copy?
