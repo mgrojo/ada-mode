@@ -201,7 +201,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Prepend;
 
-   procedure Splice
+   procedure Merge
      (Target : in out Vector;
       Source : in out Vector)
    is
@@ -216,22 +216,28 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
       else
          declare
-            New_Last : constant Index_Type := Target.Last + Extended_Index (Source.Length);
-            Old_J    : constant Peek_Type  := To_Peek_Type (Target.Last);
-            J        : constant Peek_Type  := To_Peek_Type (New_Last);
+            New_First : constant Index_Type := Extended_Index'Min (Target.First, Source.First);
+            New_Last  : constant Index_Type := Extended_Index'Max (Target.Last, Source.Last);
+            New_I     : constant Peek_Type  := To_Peek_Type (New_First);
+            New_J     : constant Peek_Type  := To_Peek_Type (New_Last);
          begin
-            if J > Target.Elements'Last then
-               Grow (Target.Elements, J);
+            if New_I < Target.Elements'First then
+               Grow (Target.Elements, New_I);
+            end if;
+            if New_J > Target.Elements'Last then
+               Grow (Target.Elements, New_J);
             end if;
 
-            Target.Elements (Old_J + 1 .. J) := Source.Elements
+            Target.Elements (To_Peek_Type (Source.First) .. To_Peek_Type (Source.Last)) := Source.Elements
               (To_Peek_Type (Source.First) .. To_Peek_Type (Source.Last));
 
-            Target.Last := New_Last;
+            Target.First := New_First;
+            Target.Last  := New_Last;
+
             Source.Clear;
          end;
       end if;
-   end Splice;
+   end Merge;
 
    function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector
    is begin

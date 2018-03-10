@@ -89,11 +89,11 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  Copy Source (Source_First .. Source_Last) to Target, before
    --  Target.First_Index.
 
-   procedure Splice
+   procedure Merge
      (Target : in out Vector;
       Source : in out Vector);
-   --  Append all elements from Source to Target, deleting them from
-   --  Source.
+   --  Copy all elements from Source to Target, to the same index range,
+   --  deleting them from Source, and overwriting overlapping ranges.
 
    function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector;
 
