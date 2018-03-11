@@ -190,7 +190,7 @@ package body WisiToken.LR is
             exit when Iter.Item /= null;
          end loop;
       else
-         Iter.Item := Iter.Item.Next;
+         Iter.Item := Iter.Item.Next; -- a conflict
       end if;
    end Next;
 
@@ -579,23 +579,29 @@ package body WisiToken.LR is
    end Image;
 
    function Image
-     (Item       : in Fast_Node_Index_Vectors.Vector;
-      Tree       : in Syntax_Trees.Branched.Tree;
-      Descriptor : in WisiToken.Descriptor'Class)
+     (Stack      : in Recover_Stacks.Stack;
+      Descriptor : in WisiToken.Descriptor'Class;
+      Depth      : in SAL.Base_Peek_Type := 0)
      return String
    is
       use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
-      Result : Unbounded_String := To_Unbounded_String ("(");
+
+      Last : constant SAL.Base_Peek_Type :=
+        (if Depth = 0
+         then Stack.Depth
+         else SAL.Base_Peek_Type'Min (Depth, Stack.Depth));
+
+      Result : Unbounded_String := +"(";
    begin
-      for I in Item.First_Index .. Item.Last_Index loop
-         Result := Result & Image (Tree.ID (Item (I)), Descriptor);
-         if I /= Item.Last_Index then
-            Result := Result & ", ";
-         end if;
+      for I in 1 .. Last loop
+         Result := Result &
+           (Image (Stack.Peek (I).State) & " : " &
+              (if I = Stack.Depth
+               then ""
+               else Image (Stack.Peek (I).ID, Descriptor) & ", "));
       end loop;
-      Result := Result & ")";
-      return To_String (Result);
+      return To_String (Result & ")");
    end Image;
 
    procedure Set_Key (Item : in out Configuration; Key : in Integer)
@@ -609,6 +615,7 @@ package body WisiToken.LR is
       Syntax_Tree      : in Syntax_Trees.Abstract_Tree'Class;
       Descriptor       : in WisiToken.Descriptor'Class)
    is
+      use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
    begin
@@ -631,7 +638,7 @@ package body WisiToken.LR is
                  ", tokens " & Syntax_Tree.Image (Item.Tokens, Descriptor));
          end case;
 
-         if Item.Recover /= (others => <>) then
+         if Item.Recover.Stack.Depth /= 0 then
             Put_Line ("   recovered");
          end if;
       end loop;

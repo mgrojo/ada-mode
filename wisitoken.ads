@@ -223,13 +223,13 @@ package WisiToken is
    type Base_Token_Index is range 0 .. Integer'Last;
    subtype Token_Index is Base_Token_Index range 1 .. Base_Token_Index'Last;
 
-   --  For invalid Token_Index, use Base_Token_Arrays.No_Index.
-
    type Token_Index_Array is array (Natural range <>) of Token_Index;
 
    type Base_Token_Array is array (Positive_Index_Type range <>) of Base_Token;
 
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Base_Token);
+
+   Invalid_Token_Index : constant Base_Token_Index := Base_Token_Arrays.No_Index;
 
    package Protected_Base_Token_Arrays is new Base_Token_Arrays.Gen_Protected;
 

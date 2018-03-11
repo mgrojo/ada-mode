@@ -55,7 +55,7 @@ package WisiToken.LR is
 
    --  Parser stack type. Visible here for error recovery.
    type Parser_Stack_Item is record
-      State : Unknown_State_Index     := LR.Unknown_State;
+      State : Unknown_State_Index     := Unknown_State;
       Token : Syntax_Trees.Node_Index := Syntax_Trees.No_Node_Index;
    end record;
 
@@ -149,6 +149,9 @@ package WisiToken.LR is
    end record;
 
    type Action_List_Iterator is tagged private;
+   --  Loops over all shift/reduce actions for a state, including
+   --  conflicts.
+
    function First_Action (State : in Parse_State) return Action_List_Iterator;
    function Is_Done (Iter : in Action_List_Iterator) return Boolean;
    procedure Next (Iter : in out Action_List_Iterator);
@@ -343,55 +346,58 @@ package WisiToken.LR is
 
    package Fast_Token_ID_Vectors is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Token_ID, Capacity => 20);
-   package Fast_Node_Index_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Syntax_Trees.Valid_Node_Index, Capacity => 20);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover.
    --
-   --  This contains just Token_ID or Valid_Node_Index, not Base_Vector,
+   --  This contains just Token_ID, not Base_Vector,
    --  because during recover we only know the ID of inserted tokens.
    --  Recover can create thousands of copies of Configuration, so saving
    --  space is important.
    --
-   --  Token_ID capacity is determined by the maximum number of popped, inserted,
-   --  or deleted tokens. These are limited by the
-   --  cost_limit McKenzie parameter; in practice, a cost of 20 is too
-   --  high.
+   --  Capacity is determined by the maximum number of popped, inserted,
+   --  or deleted tokens. These are limited by the cost_limit McKenzie
+   --  parameter; in practice, a cost of 20 is too high.
    --
-   --  Token_Index capacity is Lookahead is limited by tokens inserted
-   --  during Apply_Patterns; 20 has proved enough so far.
+   --  Lookahead capacity is determined by tokens inserted during
+   --  Apply_Patterns; 20 has proved enough so far.
 
    function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
+
+   type Recover_Stack_Item is record
+      State       : Unknown_State_Index;
+      ID          : Token_ID;
+      Byte_Region : Buffer_Region;
+   end record;
+
+   package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
+
    function Image
-     (Item       : in Fast_Node_Index_Vectors.Vector;
-      Tree       : in Syntax_Trees.Branched.Tree;
-      Descriptor : in WisiToken.Descriptor'Class)
+     (Stack      : in Recover_Stacks.Stack;
+      Descriptor : in WisiToken.Descriptor'Class;
+      Depth      : in SAL.Base_Peek_Type := 0)
      return String;
 
    type Configuration is record
-      Stack : Parser_Stacks.Stack;
-      Tree  : Syntax_Trees.Branched.Tree;
-      --  The stack and syntax tree after the operations below have been
-      --  done; suitable for the next operation.
+      --  We don't maintain a syntax tree during recover; it's too slow, and
+      --  only needed temporarily for a couple of repair strategies.
+      --
+      --  We keep Byte_Region on the stack to allow detecting empty items,
+      --  for 0 cost deletion.
 
-      --  FIXME: move Current_Token : valid_node_index here from various parameter lists in McKenzie?
+      Stack : Recover_Stacks.Stack;
+      --  Initially built from the parser stack, with ID replacing the tree
+      --  index in each item. During recover, the stack after Inserted thru
+      --  Current_Inserted and then Shared_Parser.Terminals
+      --  (Last_Shared_Token + 1 .. Current_Shared_Token) have been parsed.
 
-      Shared_Token : Token_Index := Token_Index'First;
-      --  Index into Shared_Parser.Terminals for current input token, when
-      --  local_lookahead and inserted are all parsed.
+      Next_Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
+      --  Index into Shared_Parser.Terminals for next input token, after
+      --  all of Inserted is input. Initially the error token.
 
-      Local_Lookahead        : Fast_Node_Index_Vectors.Vector;
-      Local_Lookahead_Index  : SAL.Base_Peek_Type := 0;
-      --  Local_Lookahead contains Tree references to tokens inserted by
-      --  patterns. It is not a queue type, because we always access it via
-      --  Local_Lookahead_Index.
-
-      Popped               : Fast_Token_ID_Vectors.Vector;
-      Pushed               : Parser_Stacks.Stack;
-      Inserted             : Fast_Token_ID_Vectors.Vector;
-      Deleted              : Fast_Token_ID_Vectors.Vector;
-      Semantic_Check_Fixes : Semantic_Checks.Error_Label_Set := (others => False);
-      Cost                 : Natural := 0;
+      Popped   : Fast_Token_ID_Vectors.Vector;
+      Inserted : Fast_Token_ID_Vectors.Vector;
+      Deleted  : Fast_Token_ID_Vectors.Vector;
+      Cost     : Natural := 0;
    end record;
 
    function Key (A : in Configuration) return Integer is (A.Cost);

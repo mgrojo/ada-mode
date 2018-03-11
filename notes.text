@@ -26,14 +26,9 @@ build syntax tree, use that in recover to pop stack
             when spawn, copy branched, don't branch again
             all tests pass; much faster
 
-
         mckenzie: don't do syntax tree at all until needed for a fix
-            stack hold base_token, not tree index
-
-        sal unbounded vectors:
-            shrink elements to exact size on copy?
-
-    move base_token_Array Terminals into Syntax_Trees.Tree, avoid access type
+            delete patterns, semantic_check_fixes for now, get basic mckenzie working
+            compile ada-mode, time
 
     debug_production_recover.adb
         implement state/production matching outlined in syntax_trees-test missing_ends_1
@@ -49,9 +44,14 @@ build syntax tree, use that in recover to pop stack
 
         test delete in branched-test
 
-    record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
+    don't need protected nodes in syntax_tree?
 
-    https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+    sal unbounded vectors:
+        shrink elements to exact size on copy?
+
+    move base_token_Array Terminals into Syntax_Trees.Tree, avoid access type
+
+    record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
 
 tokens are no longer copied in recovery; only indices into shared_Parser.Terminals
     => merge augmented_token into base_token?
@@ -65,6 +65,8 @@ review FIXME:
 add nonterm goto list to mckenzie explore
     push on stack, rather than insert into token stream
     => finish current production faster
+
+    if that succeeds, convert to miminum token stream on main parser input, so repair error can work
 
 merge mckenzie result directly into parser?
     no need to reparse terminals?

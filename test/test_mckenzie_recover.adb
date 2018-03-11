@@ -115,7 +115,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Checks;
    begin
       Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;");
-      --                1        |10       |20       |30       |40
+      --           1        |10       |20       |30       |40
       --  Missing "if" in "end if;"
       --
       --  This not a likely error, so the pattern rule for the likely error
@@ -230,7 +230,7 @@ package body Test_McKenzie_Recover is
       Parse_Text ("procedure Debug is begin A; ");
       --  Missing "end;"
       --
-      --  Inserts 'end;', continues to EOF, succeeds
+      --  Inserts 'end ;', continues to EOF, succeeds
       --  Test hitting EOF and Accept_It in error recovery
       Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
    end Check_Accept;
@@ -255,9 +255,9 @@ package body Test_McKenzie_Recover is
       --  While checking the prefered solution, there are conflicts that
       --  must be handled.
       --
-      --  The desired solution is pop 'begin 20' and reduced
+      --  The desired solution is pop 'begin' 20 and reduced
       --  declarative_part_opt, leaving 'is' 17 on the parse stack.
-      --  That has cost 2 due to grammar cost settings. That allows
+      --  That has cost 1. That allows
       --  parsing to continue to EOF. Error recovery finds 3 solutions
       --  with cost 2, and the desired succeeds, because it encounters
       --  no more errors.
