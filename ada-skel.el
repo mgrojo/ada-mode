@@ -270,7 +270,7 @@ See `ada-find-other-file' to create library level package body from spec."
 (define-skeleton ada-skel-return
   "Insert an extended return statement."
   ()
-  "return" _ "do\n"
+  "return " _ " do\n"
   "end return;")
 
 (define-skeleton ada-skel-select

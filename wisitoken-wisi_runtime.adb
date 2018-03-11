@@ -353,7 +353,6 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Put
      (Item       : in LR.Configuration;
-      Tree       : in Syntax_Trees.Abstract_Tree'Class;
       Descriptor : in WisiToken.Descriptor'Class)
    is
       use all type SAL.Base_Peek_Type;
@@ -361,7 +360,7 @@ package body WisiToken.Wisi_Runtime is
       subtype Bounded_Token_ID is WisiToken.Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
         (Max => 10 + Bounded_Token_ID'Width * Integer
-           (Item.Popped.Length + Count_Type (Item.Pushed.Depth) + Item.Inserted.Length + Item.Deleted.Length));
+           (Item.Popped.Length + Item.Inserted.Length + Item.Deleted.Length));
       use Bounded;
 
       Line : Bounded_String := To_Bounded_String ("[");
@@ -380,26 +379,11 @@ package body WisiToken.Wisi_Runtime is
          end loop;
       end To_Codes;
 
-      procedure To_Codes (Stack : in WisiToken.LR.Parser_Stacks.Stack)
-      is
-         First : Boolean := True;
-      begin
-         for I in SAL.Peek_Type'First .. Stack.Depth loop
-            Append
-              (Line,
-               (if First
-                then Int_Image (Tree.ID (Stack.Peek (I).Token)) -- elisp does not need Name
-                else WisiToken.Token_ID'Image (Tree.ID (Stack.Peek (I).Token))));
-            First := False;
-         end loop;
-      end To_Codes;
-
    begin
       Append (Line, Recover_Code);
       Append (Line, '[');
       To_Codes (Item.Popped);
       Append (Line, "][");
-      To_Codes (Item.Pushed);
       To_Codes (Item.Inserted);
       Append (Line, "][");
       To_Codes (Item.Deleted);
@@ -1169,6 +1153,7 @@ package body WisiToken.Wisi_Runtime is
       Tree       : in Syntax_Trees.Abstract_Tree'Class;
       Descriptor : in WisiToken.Descriptor'Class)
    is
+      use all type SAL.Base_Peek_Type;
       use all type LR.Configuration;
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
@@ -1227,8 +1212,8 @@ package body WisiToken.Wisi_Runtime is
                  " ""check error""]");
          end case;
 
-         if Item.Recover /= (others => <>) then
-            Put (Item.Recover, Tree, Descriptor);
+         if Item.Recover.Stack.Depth > 0 then
+            Put (Item.Recover, Descriptor);
          end if;
       end loop;
    end Put;

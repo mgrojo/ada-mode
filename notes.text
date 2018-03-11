@@ -62,6 +62,8 @@ wisitoken changes
 
         mckenzie can not do syntax tree until actually needed.
             that requires stack hold base_token, not tree index. sigh.
+                actually branched from parser stack, to access name_region already there
+
             maybe only need syntax tree temporarily, while computing fix
 
 add syntax-tree edit, see how much of patterns that replaces
