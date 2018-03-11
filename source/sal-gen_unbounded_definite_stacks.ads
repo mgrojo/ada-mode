@@ -1,6 +1,6 @@
 --  Abstract:
 --
---  Stack implementation using Ada.Containers.Vectors.
+--  Stack implementation.
 --
 --  Copyright (C) 1998-2000, 2002-2003, 2009, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
