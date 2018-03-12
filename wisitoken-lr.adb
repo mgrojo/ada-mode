@@ -297,9 +297,10 @@ package body WisiToken.LR is
      (State           : in out LR.Parse_State;
       Symbol          : in     Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
+      Production      : in     Positive;
       LHS_ID          : in     Token_ID;
-      Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
@@ -309,9 +310,9 @@ package body WisiToken.LR is
    begin
       case Verb is
       when Reduce =>
-         Action := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
+         Action := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, RHS_Token_Count, Production, Name_Index);
       when Accept_It =>
-         Action := (Accept_It, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
+         Action := (Accept_It, LHS_ID, Semantic_Action, Semantic_Check, RHS_Token_Count, Production, Name_Index);
       when others =>
          null;
       end case;
@@ -332,14 +333,16 @@ package body WisiToken.LR is
      (State           : in out LR.Parse_State;
       Symbol          : in     Token_ID;
       State_Index     : in     LR.State_Index;
+      Production      : in     Positive;
       LHS_ID          : in     Token_ID;
-      Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec := (Shift, State_Index);
-      Action_2 : constant Parse_Action_Rec := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
+      Action_2 : constant Parse_Action_Rec :=
+        (Reduce, LHS_ID, Semantic_Action, Semantic_Check, RHS_Token_Count, Production, Name_Index);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -349,24 +352,28 @@ package body WisiToken.LR is
      (State             : in out LR.Parse_State;
       Symbol            : in     Token_ID;
       Verb              : in     LR.Parse_Action_Verbs;
+      Production_1      : in     Positive;
       LHS_ID_1          : in     Token_ID;
-      Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
+      Name_Index_1      : in     Natural;
       Semantic_Action_1 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     Semantic_Checks.Semantic_Check;
+      Production_2      : in     Positive;
       LHS_ID_2          : in     Token_ID;
-      Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
+      Name_Index_2      : in     Natural;
       Semantic_Action_2 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_2  : in     Semantic_Checks.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec   :=
         (case Verb is
-         when Reduce    => (Reduce, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, Index_1, RHS_Token_Count_1),
-         when Accept_It => (Accept_It, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, Index_1, RHS_Token_Count_1),
+         when Reduce    =>
+           (Reduce, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1, Production_1, Name_Index_1),
+         when Accept_It =>
+           (Accept_It, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1, Production_1, Name_Index_1),
          when others => raise WisiToken.Programmer_Error);
       Action_2 : constant Parse_Action_Rec :=
-        (Reduce, LHS_ID_2, Semantic_Action_2, Semantic_Check_2, Index_2, RHS_Token_Count_2);
+        (Reduce, LHS_ID_2, Semantic_Action_2, Semantic_Check_2, RHS_Token_Count_2, Production_2, Name_Index_2);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -418,6 +425,16 @@ package body WisiToken.LR is
          end if;
       end if;
    end Add_Goto;
+
+   procedure Add_Production
+     (Vector : in out Token_ID_Arrays.Vector;
+      Tokens : in     Token_ID_Array)
+   is begin
+      Vector.Set_Length (Tokens'Length);
+      for I in Tokens'Range loop
+         Vector (I) := Tokens (I);
+      end loop;
+   end Add_Production;
 
    function Action_For
      (Table : in Parse_Table;
@@ -546,9 +563,6 @@ package body WisiToken.LR is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("Follow:");
-      Put (Descriptor, Table.Follow);
-
       if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
          Put_Line ("McKenzie_Param:");
          Put (Descriptor, Table.McKenzie_Param);
@@ -682,19 +696,18 @@ package body WisiToken.LR is
       Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
       --  For Check, Set_Children.
    begin
-      Nonterm := Syntax_Tree.Add_Nonterm
-        (Action.LHS, Action => Action.Action, Action_Index => Action.Index);
+      Nonterm := Syntax_Tree.Add_Nonterm (Action.LHS, Action.Action, Action.Production, Action.Name_Index);
 
       for I in reverse Tokens'Range loop
          Tokens (I) := Stack.Pop.Token;
       end loop;
 
-      Syntax_Tree.Set_Children (Nonterm, Tokens); --  Computes Nonterm.Byte_Region
+      Syntax_Tree.Set_Children (Nonterm, Tokens); --  Computes Nonterm.Byte_Region, virtual
 
       if Trace_Level > Detail then
          declare
             Action_Name : constant String := Ada.Characters.Handling.To_Lower
-              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Int_Image (Action.Index);
+              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Int_Image (Action.Name_Index);
          begin
             Trace.Put_Line
               (Trace_Prefix & Action_Name & ": " &

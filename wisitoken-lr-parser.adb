@@ -132,7 +132,7 @@ package body WisiToken.LR.Parser is
       when Accept_It =>
          case Reduce_Stack_1
            (Current_Parser,
-            (Reduce, Action.LHS, Action.Action, Action.Check, Action.Index, Action.Token_Count),
+            (Reduce, Action.LHS, Action.Action, Action.Check, Action.Token_Count, Action.Production, Action.Name_Index),
             Nonterm, Shared_Parser.Lexer, Trace)
          is
          when Ok =>
@@ -171,7 +171,6 @@ package body WisiToken.LR.Parser is
             end if;
          end;
       end case;
-
    end Do_Action;
 
    --  Return the type of parser cycle to execute.
@@ -856,7 +855,7 @@ package body WisiToken.LR.Parser is
                     (if Tree.Action (Node) /= null
                      then Ada.Characters.Handling.To_Lower
                        (Image (Aug_Nonterm.ID, Descriptor)) & "_" &
-                        Int_Image (Tree.Action_Index (Node)) & ": "
+                        Int_Image (Tree.Name_Index (Node)) & ": "
                      else "");
                begin
                   Parser.Trace.Put_Line

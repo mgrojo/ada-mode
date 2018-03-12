@@ -111,7 +111,7 @@ package body Test_LR_Expecting is
       ));
 
    Grammar : constant WisiToken.Production.List.Instance :=
-     Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action and
+     +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action) and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 

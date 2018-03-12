@@ -78,7 +78,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
 
       Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => False);
 
-      Node_Name := Branched_Tree.Add_Nonterm (Nonterm => +name_ID); -- 4
+      Node_Name := Branched_Tree.Add_Nonterm (+name_ID, null, 1, 0); -- 4
       Branched_Tree.Set_Children (Parent => Node_Name, Children => (1 => Node_Ident_1));
       --  moves branch point; Branched_Tree.Last_Shared_Node is now 1.
 

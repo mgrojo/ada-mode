@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017 Stephe Leake
+--  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -344,6 +344,11 @@ package body WisiToken.LR.LR1_Items is
    is begin
       return Item.Prod;
    end Prod;
+
+   function Prod_Index (Item : in Item_Ptr) return Positive
+   is begin
+      return Item.Prod.Index;
+   end Prod_Index;
 
    function LHS (Item : in Item_Ptr) return Token_ID
    is begin

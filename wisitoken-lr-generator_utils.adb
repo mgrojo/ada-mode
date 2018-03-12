@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -156,8 +156,9 @@ package body WisiToken.LR.Generator_Utils is
                   --  source files, not grammars defined in Ada code.
                   Add_Action
                     (Dot_ID,
-                     (Accept_It, LHS (Item), RHS (Item).Action, null, RHS (Item).Index,
-                        RHS (Item).Tokens.Length - 1), -- EOF is not pushed on stack
+                     (Accept_It, LHS (Item), RHS (Item).Action, null,
+                      RHS (Item).Tokens.Length - 1, -- EOF is not pushed on stack
+                      Prod_Index (Item), RHS (Item).Name_Index),
                      Table.States (State).Action_List,
                      Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                else
@@ -259,7 +260,8 @@ package body WisiToken.LR.Generator_Utils is
       --  Note that semantic_check is null; we only support semantic checks
       --  in Wisi source files, not grammars defined in Ada code.
       Action : constant Parse_Action_Rec :=
-        (Reduce, LHS (Item), RHS (Item).Action, null, RHS (Item).Index, RHS (Item).Tokens.Length);
+        (Reduce, LHS (Item), RHS (Item).Action, null, RHS (Item).Tokens.Length, Prod_Index (Item),
+         RHS (Item).Name_Index);
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("processing lookaheads");

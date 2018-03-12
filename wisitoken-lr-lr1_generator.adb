@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephe Leake
+--  Copyright (C) 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -220,10 +220,6 @@ package body WisiToken.LR.LR1_Generator is
          New_Line;
       end if;
 
-      Put_Line ("Follow:");
-      Put (Descriptor, Table.Follow);
-      New_Line;
-
       for State in Table.States'Range loop
          LR1_Items.Put
            (Descriptor, LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
@@ -337,8 +333,6 @@ package body WisiToken.LR.LR1_Generator is
       else
          Table.McKenzie_Param := McKenzie_Param;
       end if;
-
-      Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);
 
       Add_Actions (Item_Sets, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
 

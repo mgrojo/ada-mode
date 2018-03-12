@@ -241,11 +241,6 @@ package body Dragon_4_43_LR1_Test is
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
    begin
-      Expected.Follow := To_Nonterminal_Array_Terminal_Set
-        ((Accept_ID  => (others => False),
-          Upper_S_ID => (EOF_ID => True, others => False),
-          Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True, others => False)));
-
       --  figure 4.41 pg 239
       --  'r1' means reduce by production 1, 0 indexed; our production 2
       --  'acc' = reduce by our production 1
@@ -256,7 +251,7 @@ package body Dragon_4_43_LR1_Test is
       Add_Goto (Expected.States (Map (0)), +Upper_C_ID, Map (2));
       Add_Goto (Expected.States (Map (0)), +Upper_S_ID, Map (1));
 
-      Add_Action (Expected.States (Map (1)), +EOF_ID, Accept_It, +Accept_ID, 0, 1, Null_Action, null);
+      Add_Action (Expected.States (Map (1)), +EOF_ID, Accept_It, 1, +Accept_ID, 1, 0, Null_Action, null);
       Add_Error (Expected.States (Map (1)));
 
       Add_Action (Expected.States (Map (2)), +Lower_C_ID, Map (6));
@@ -269,11 +264,11 @@ package body Dragon_4_43_LR1_Test is
       Add_Error (Expected.States (Map (3)));
       Add_Goto (Expected.States (Map (3)), +Upper_C_ID, Map (8));
 
-      Add_Action (Expected.States (Map (4)), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action, null);
-      Add_Action (Expected.States (Map (4)), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action, null);
+      Add_Action (Expected.States (Map (4)), +Lower_C_ID, Reduce, 4, +Upper_C_ID, 1, 0, Null_Action, null);
+      Add_Action (Expected.States (Map (4)), +Lower_D_ID, Reduce, 4, +Upper_C_ID, 1, 0, Null_Action, null);
       Add_Error (Expected.States (Map (4))); -- default = error
 
-      Add_Action (Expected.States (Map (5)), +EOF_ID, Reduce, +Upper_S_ID, 0, 2, Null_Action, null);
+      Add_Action (Expected.States (Map (5)), +EOF_ID, Reduce, 3, +Upper_S_ID, 2, 0, Null_Action, null);
       Add_Error (Expected.States (Map (5)));
 
       Add_Action (Expected.States (Map (6)), +Lower_C_ID, Map (6));
@@ -281,14 +276,14 @@ package body Dragon_4_43_LR1_Test is
       Add_Error (Expected.States (Map (6)));
       Add_Goto (Expected.States (Map (6)), +Upper_C_ID, Map (9));
 
-      Add_Action (Expected.States (Map (7)), +EOF_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action, null);
+      Add_Action (Expected.States (Map (7)), +EOF_ID, Reduce, 4, +Upper_C_ID, 1, 0, Null_Action, null);
       Add_Error (Expected.States (Map (7)));
 
-      Add_Action (Expected.States (Map (8)), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action, null);
-      Add_Action (Expected.States (Map (8)), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action, null);
+      Add_Action (Expected.States (Map (8)), +Lower_C_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
+      Add_Action (Expected.States (Map (8)), +Lower_D_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
       Add_Error (Expected.States (Map (8)));
 
-      Add_Action (Expected.States (Map (9)), +EOF_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action, null);
+      Add_Action (Expected.States (Map (9)), +EOF_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
       Add_Error (Expected.States (Map (9)));
 
       if Test.Debug > 0 then

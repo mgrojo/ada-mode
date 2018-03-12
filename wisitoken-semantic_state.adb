@@ -28,6 +28,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 package body WisiToken.Semantic_State is
 
    ----------

@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 package body WisiToken.Syntax_Trees.Branched is
 
    --  body subprograms, alphabetical
@@ -185,33 +186,33 @@ package body WisiToken.Syntax_Trees.Branched is
    end Set_Flush_False;
 
    function Add_Nonterm
-     (Tree         : in out Branched.Tree;
-      Nonterm      : in     WisiToken.Token_ID;
-      Virtual      : in     Boolean         := False;
-      Action       : in     Semantic_Action := null;
-      Action_Index : in     Natural         := 0)
+     (Tree       : in out Branched.Tree;
+      Nonterm    : in     WisiToken.Token_ID;
+      Action     : in     Semantic_Action;
+      Production : in     Positive;
+      Name_Index : in     Natural)
      return Valid_Node_Index
    is begin
       if Tree.Flush then
          Tree.Shared_Tree.Nodes.Append
-           ((Label        => Syntax_Trees.Nonterm,
-             Parent       => No_Node_Index,
-             Nonterm_ID   => Nonterm,
-             Virtual      => Virtual,
-             Action       => Action,
-             Action_Index => Action_Index,
-             others       => <>));
+           ((Label      => Syntax_Trees.Nonterm,
+             Parent     => No_Node_Index,
+             Nonterm_ID => Nonterm,
+             Action     => Action,
+             Production => Production,
+             Name_Index => Name_Index,
+             others     => <>));
          Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
          return Tree.Last_Shared_Node;
       else
          Tree.Branched_Nodes.Append
-           ((Label        => Syntax_Trees.Nonterm,
-             Parent       => No_Node_Index,
-             Nonterm_ID   => Nonterm,
-             Virtual      => Virtual,
-             Action       => Action,
-             Action_Index => Action_Index,
-             others       => <>));
+           ((Label      => Syntax_Trees.Nonterm,
+             Parent     => No_Node_Index,
+             Nonterm_ID => Nonterm,
+             Action     => Action,
+             Production => Production,
+             Name_Index => Name_Index,
+             others     => <>));
          return Tree.Branched_Nodes.Last_Index;
       end if;
    end Add_Nonterm;
@@ -299,6 +300,12 @@ package body WisiToken.Syntax_Trees.Branched is
                      when Nonterm          => K.Byte_Region);
                begin
                   K.Parent := Parent;
+
+                  N.Virtual := N.Virtual or
+                    (case K.Label is
+                     when Shared_Terminal  => False,
+                     when Virtual_Terminal => True,
+                     when Nonterm          => K.Virtual);
 
                   if N.Byte_Region.First > Child_Byte_Region.First then
                      N.Byte_Region.First := Child_Byte_Region.First;
@@ -680,16 +687,16 @@ package body WisiToken.Syntax_Trees.Branched is
    end Action;
 
    overriding
-   function Action_Index
+   function Name_Index
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
      return Natural
    is begin
       return
         (if Node <= Tree.Last_Shared_Node
-         then Tree.Shared_Tree.Nodes (Node).Action_Index
-         else Tree.Branched_Nodes (Node).Action_Index);
-   end Action_Index;
+         then Tree.Shared_Tree.Nodes (Node).Name_Index
+         else Tree.Branched_Nodes (Node).Name_Index);
+   end Name_Index;
 
    overriding
    function Find_Ancestor

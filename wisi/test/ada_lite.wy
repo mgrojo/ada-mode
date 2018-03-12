@@ -32,6 +32,7 @@ with WisiToken.Text_IO_Trace;
 
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 %}
+;; ' terminate quote
 
 %keyword AND "and"
 %keyword BEGIN "begin"

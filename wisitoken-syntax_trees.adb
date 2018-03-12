@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 package body WisiToken.Syntax_Trees is
 
    --  Abstract_Tree public operations
@@ -184,20 +185,21 @@ package body WisiToken.Syntax_Trees is
    end Adjust;
 
    function Add_Nonterm
-     (Tree         : in out Syntax_Trees.Tree;
-      Nonterm      : in     WisiToken.Token_ID;
-      Virtual      : in     Boolean         := False;
-      Action       : in     Semantic_Action := null;
-      Action_Index : in     Natural         := 0)
+     (Tree       : in out Syntax_Trees.Tree;
+      Nonterm    : in     WisiToken.Token_ID;
+      Action     : in     Semantic_Action;
+      Production : in     Positive;
+      Name_Index : in     Natural)
      return Valid_Node_Index
    is begin
       Tree.Nodes.Append
-        ((Label        => Syntax_Trees.Nonterm,
-          Nonterm_ID   => Nonterm,
-          Virtual      => Virtual,
-          Action       => Action,
-          Action_Index => Action_Index,
-          others       => <>));
+        ((Label      => Syntax_Trees.Nonterm,
+          Nonterm_ID => Nonterm,
+          Virtual    => False,
+          Action     => Action,
+          Production => Production,
+          Name_Index => Name_Index,
+          others     => <>));
       return Tree.Nodes.Last_Index;
    end Add_Nonterm;
 
@@ -242,6 +244,12 @@ package body WisiToken.Syntax_Trees is
                when Nonterm          => K.Byte_Region);
          begin
             K.Parent := Parent;
+
+            N.Virtual := N.Virtual or
+              (case K.Label is
+               when Shared_Terminal  => False,
+               when Virtual_Terminal => True,
+               when Nonterm          => K.Virtual);
 
             if N.Byte_Region.First > Child_Byte_Region.First then
                N.Byte_Region.First := Child_Byte_Region.First;
@@ -513,13 +521,13 @@ package body WisiToken.Syntax_Trees is
    end Action;
 
    overriding
-   function Action_Index
+   function Name_Index
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
      return Natural
    is begin
-      return Tree.Nodes (Node).Action_Index;
-   end Action_Index;
+      return Tree.Nodes (Node).Name_Index;
+   end Name_Index;
 
    overriding
    function Find_Ancestor

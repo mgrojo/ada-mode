@@ -51,12 +51,12 @@ package WisiToken.Syntax_Trees.Branched is
    --  Set Flush mode False; use Flush to set True.
 
    function Add_Nonterm
-     (Tree         : in out Branched.Tree;
-      Nonterm      : in     WisiToken.Token_ID;
-      Virtual      : in     Boolean         := False;
-      Action       : in     Semantic_Action := null;
-      Action_Index : in     Natural         := 0)
-   return Valid_Node_Index
+     (Tree       : in out Branched.Tree;
+      Nonterm    : in     WisiToken.Token_ID;
+      Action     : in     Semantic_Action;
+      Production : in     Positive;
+      Name_Index : in     Natural)
+     return Valid_Node_Index
    with Pre => not Tree.Traversing;
    --  Add a new Nonterm node with no parent. Result points to the added
    --  node.
@@ -164,7 +164,7 @@ package WisiToken.Syntax_Trees.Branched is
    with Pre => Tree.Is_Nonterm (Node);
 
    overriding
-   function Action_Index
+   function Name_Index
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
      return Natural

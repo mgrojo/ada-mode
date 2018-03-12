@@ -77,7 +77,7 @@ package body WisiToken.Production is
 
    function "<=" (LHS : in Token_ID; RHS : in Right_Hand_Side) return Instance
    is begin
-      return (LHS, RHS);
+      return (Index => 1, LHS => LHS, RHS => RHS);
    end "<=";
 
    function First_Token (Item : in Instance) return Token_ID_Lists.Cursor
@@ -138,47 +138,58 @@ package body WisiToken.Production is
          return Iterator'(Container => Container'Access);
       end Iterate;
 
+      function Length (Container : in Instance) return Ada.Containers.Count_Type
+      is begin
+         return Container.Count;
+      end Length;
+
       function Only (Subject : in Production.Instance) return Instance
       is
          New_Node : constant List_Node_Ptr := new List_Node'(Subject, null);
       begin
-         return (Head => New_Node, Tail => New_Node);
+         return (Count => 1, Head => New_Node, Tail => New_Node);
       end Only;
 
-      function "and" (Left  : in Production.Instance; Right : in Production.Instance) return Instance
+      function "and" (Left : in Production.Instance; Right : in Production.Instance) return Instance
       is
          Right_Node : constant List_Node_Ptr := new List_Node'(Right, null);
+         Left_Node  : constant List_Node_Ptr := new List_Node'(Left, Right_Node);
       begin
-         return
-           (Head => new List_Node'(Left, Right_Node),
-            Tail => Right_Node);
-      end "and";
+         Left_Node.Production.Index  := 1;
+         Right_Node.Production.Index := 2;
 
-      function "and" (Left  : in Production.Instance; Right : in Instance) return Instance
-      is begin
          return
-           (Head => new List_Node'(Left, Right.Head),
-            Tail => Right.Tail);
+           (Count => 2,
+            Head  => Left_Node,
+            Tail  => Right_Node);
       end "and";
 
       function "and" (Left  : in Instance; Right : in Production.Instance) return Instance
       is
+         use all type Ada.Containers.Count_Type;
+
          New_Node : constant List_Node_Ptr := new List_Node'(Right, null);
       begin
+         New_Node.Production.Index := Integer (Left.Count) + 1;
+
          Left.Tail.Next := New_Node;
 
          return
-           (Head => Left.Head,
-            Tail => New_Node);
+           (Count => Left.Count + 1,
+            Head  => Left.Head,
+            Tail  => New_Node);
       end "and";
 
-      function "and" (Left  : in Instance; Right : in Instance) return Instance
-      is begin
+      function "and" (Left : in Instance; Right : in Instance) return Instance
+      is
+         use all type Ada.Containers.Count_Type;
+      begin
          Left.Tail.Next := Right.Head;
 
          return
-           (Head => Left.Head,
-            Tail => Right.Tail);
+           (Count => Left.Count + Right.Count,
+            Head  => Left.Head,
+            Tail  => Right.Tail);
       end "and";
 
       procedure Clean (List : in out Instance)
@@ -192,8 +203,10 @@ package body WisiToken.Production is
             Node := Next;
          end loop;
 
-         List.Head := null;
-         List.Tail := null;
+         List :=
+           (Count => 0,
+            Head  => null,
+            Tail  => null);
       end Clean;
 
       function First (List : in Instance) return List_Iterator

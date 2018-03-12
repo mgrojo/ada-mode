@@ -132,8 +132,6 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
-
-      use all type WisiToken.Region_Lists.Cursor;
    begin
       Parse_Text
         ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc; ");

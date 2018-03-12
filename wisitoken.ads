@@ -35,7 +35,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;
@@ -113,6 +112,10 @@ package WisiToken is
    function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
 
+   type Token_ID_Array is array (Positive range <>) of Token_ID;
+
+   package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
+
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
 
    function Any (Item : in Token_ID_Set) return Boolean;
@@ -169,9 +172,6 @@ package WisiToken is
    overriding
    function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in LALR_Descriptor) return String;
 
-   ----------
-   --  Tokens
-
    type Buffer_Pos is range 1 .. Integer'Last; -- match Emacs buffer origin.
    type Buffer_Region is record
       First : Buffer_Pos;
@@ -190,8 +190,6 @@ package WisiToken is
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
    --  Return region enclosing both Left and Right.
-
-   package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
 
    type Base_Token is tagged record
       --  Base_Token is used in the core parser and error recovery. The cost

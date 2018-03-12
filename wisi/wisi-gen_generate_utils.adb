@@ -569,7 +569,7 @@ package body Wisi.Gen_Generate_Utils is
 
       for Rule of Tokens.Rules loop
          declare
-            Index : Natural := 0; -- Semantic_Action defines Index as zero-origin
+            Name_Index : Natural := 0; -- Semantic_Action defines Name_Index as zero-origin
          begin
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
@@ -580,14 +580,14 @@ package body Wisi.Gen_Generate_Utils is
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;
                   end loop;
-                  Grammar := Grammar and Find_Token_ID (-Rule.Left_Hand_Side) <= Tokens + Index;
+                  Grammar := Grammar and Find_Token_ID (-Rule.Left_Hand_Side) <= Tokens + Name_Index;
                exception
                when E : Not_Found =>
                   Wisi.Utils.Put_Error
                     (Source_File_Name, Right_Hand_Side.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
                   Error := True;
                end;
-               Index := Index + 1;
+               Name_Index := Name_Index + 1;
             end loop;
          end;
       end loop;

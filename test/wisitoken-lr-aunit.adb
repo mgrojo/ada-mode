@@ -39,8 +39,7 @@ package body WisiToken.LR.AUnit is
          Check (Label & ".State", Computed.State, Expected.State);
       when Reduce | Accept_It =>
          Check (Label & ".LHS", Computed.LHS, Expected.LHS);
-         --  Ignoring Action
-         Check (Label & ".Index", Computed.Index, Expected.Index);
+         --  Ignoring Production, Action, Name_Index
          Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);
       when Error =>
          null;
@@ -163,8 +162,8 @@ package body WisiToken.LR.AUnit is
          Check
            (Label & ".States." & State_Index'Image (I), Computed.States (I), Expected.States (I));
       end loop;
+      --  Ignoring Production.
       --  We do not check McKenzie, since that is not computed.
-      Check (Label & ".Follow", Computed.Follow, Expected.Follow);
    end Check;
 
    procedure Check

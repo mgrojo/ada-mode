@@ -29,6 +29,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
 with WisiToken.Syntax_Trees;
@@ -36,10 +37,10 @@ with WisiToken.Token_ID_Lists;
 package WisiToken.Production is
 
    type Right_Hand_Side is record
-      Tokens : WisiToken.Token_ID_Lists.List;
-      Action : WisiToken.Syntax_Trees.Semantic_Action;
+      Tokens     : WisiToken.Token_ID_Lists.List;
+      Action     : WisiToken.Syntax_Trees.Semantic_Action;
       --  No semantic_check here; only supported in Wisi source files.
-      Index  : Integer;
+      Name_Index : Integer;
       --  Index of production among productions for a single nonterminal (the LHS)
    end record;
 
@@ -65,8 +66,9 @@ package WisiToken.Production is
    --  and generated grammar table source code.
 
    type Instance is record
-      LHS : Token_ID;
-      RHS : aliased Right_Hand_Side;
+      Index : Positive; --  Index into Parse_Table.Productions at parse time.
+      LHS   : Token_ID;
+      RHS   : aliased Right_Hand_Side;
    end record;
    type Handle is access all Instance;
 
@@ -99,14 +101,17 @@ package WisiToken.Production is
       package Iterator_Interfaces is new Ada.Iterator_Interfaces (List_Node_Ptr, Has_Element);
       function Iterate (Container : aliased Instance) return Iterator_Interfaces.Forward_Iterator'Class;
 
+      function Length (Container : in Instance) return Ada.Containers.Count_Type;
+
       function Only (Subject : in Production.Instance) return Instance;
       function "+" (Subject : in Production.Instance) return Instance
         renames Only;
 
       function "and" (Left : in Production.Instance; Right : in Production.Instance) return Instance;
-      function "and" (Left : in Production.Instance; Right : in Instance) return Instance;
       function "and" (Left : in Instance; Right : in Production.Instance) return Instance;
+
       function "and" (Left : in Instance; Right : in Instance) return Instance;
+      --  ie Grammar <= Sub_Grammar_1 and Sub_Grammar_2;
 
       procedure Clean (List : in out Instance);
       --  Delete all elements from list, freeing them.
@@ -137,8 +142,9 @@ package WisiToken.Production is
       end record;
 
       type Instance is tagged record
-         Head : List_Node_Ptr;
-         Tail : List_Node_Ptr;
+         Count : Ada.Containers.Count_Type := 0;
+         Head  : List_Node_Ptr;
+         Tail  : List_Node_Ptr;
       end record;
 
       type List_Iterator is new List_Node_Ptr;

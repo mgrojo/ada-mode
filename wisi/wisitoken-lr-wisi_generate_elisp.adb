@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2012-2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -62,7 +62,7 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
                         when Reduce =>
                            Put
                              ("(" & Image (Parse_Action.LHS, Descriptor) & " ." &
-                                Integer'Image (Parse_Action.Index) & ")");
+                                Integer'Image (Parse_Action.Name_Index) & ")");
 
                         when Shift =>
                            Put (State_Index'Image (Parse_Action.State));

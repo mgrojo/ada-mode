@@ -94,23 +94,24 @@ package WisiToken.LR is
       when Shift =>
          State : State_Index;
       when Reduce | Accept_It =>
-         LHS    : Token_ID;
-         Action : WisiToken.Syntax_Trees.Semantic_Action;
-         Check  : WisiToken.Semantic_Checks.Semantic_Check;
-         Index  : Natural;
+         LHS         : Token_ID;
+         Action      : WisiToken.Syntax_Trees.Semantic_Action;
+         Check       : WisiToken.Semantic_Checks.Semantic_Check;
+         Token_Count : Ada.Containers.Count_Type;
+
+         Production : Natural := 0;
+         --  Index into Parse_Table.Productions, for McKenzie_Recover.
+
+         Name_Index : Natural;
          --  Index of production among productions for a nonterminal,
          --  for generating action names
 
-         Token_Count : Ada.Containers.Count_Type;
       when Error =>
          null;
       end case;
    end record;
    subtype Shift_Action_Rec is Parse_Action_Rec (Shift);
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
-
-   Null_Reduce_Action_Rec : constant Reduce_Action_Rec :=
-     (Reduce, Token_ID'First, WisiToken.Syntax_Trees.Null_Action, WisiToken.Semantic_Checks.Null_Check, 0, 0);
 
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String;
    --  Ada aggregate syntax, leaving out Semantic_Action in reduce.
@@ -148,6 +149,8 @@ package WisiToken.LR is
       Goto_List   : Goto_Node_Ptr;
    end record;
 
+   type Parse_State_Array is array (State_Index range <>) of Parse_State;
+
    type Action_List_Iterator is tagged private;
    --  Loops over all shift/reduce actions for a state, including
    --  conflicts.
@@ -160,7 +163,7 @@ package WisiToken.LR is
    function Action (Iter : in Action_List_Iterator) return Parse_Action_Rec;
 
    ----------
-   --  Run-time parse table construction subprograms:
+   --  Run-time parse table construction
 
    procedure Add_Action
      (State       : in out Parse_State;
@@ -172,9 +175,10 @@ package WisiToken.LR is
      (State           : in out Parse_State;
       Symbol          : in     Token_ID;
       Verb            : in     Parse_Action_Verbs;
+      Production      : in     Positive;
       LHS_ID          : in     Token_ID;
-      Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Reduce or Accept_It action to tail of State action list.
@@ -183,9 +187,10 @@ package WisiToken.LR is
      (State           : in out Parse_State;
       Symbol          : in     Token_ID;
       State_Index     : in     LR.State_Index;
+      Production      : in     Positive;
       LHS_ID          : in     Token_ID;
-      Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Shift/Reduce conflict to State.
@@ -194,14 +199,16 @@ package WisiToken.LR is
      (State             : in out Parse_State;
       Symbol            : in     Token_ID;
       Verb              : in     Parse_Action_Verbs;
+      Production_1      : in     Positive;
       LHS_ID_1          : in     Token_ID;
-      Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
+      Name_Index_1      : in     Natural;
       Semantic_Action_1 : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     WisiToken.Semantic_Checks.Semantic_Check;
+      Production_2      : in     Positive;
       LHS_ID_2          : in     Token_ID;
-      Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
+      Name_Index_2      : in     Natural;
       Semantic_Action_2 : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check_2  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
@@ -215,12 +222,12 @@ package WisiToken.LR is
       To_State : in     State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
 
-   type Parse_State_Array is array (State_Index range <>) of Parse_State;
+   --  FIXME: delete Pattern, or put back in McKenzie_Recover
 
    type Pattern is abstract tagged null record;
    --  We don't declare a dispatching operation to implement Pattern
    --  here, because the required types are not visible. See
-   --  wisitoken-parser-lr-mckenzie_recover.adb
+   --  wisitoken-lr-mckenzie_recover.adb
 
    function Image (Item : in Pattern) return String is abstract;
    --  Return image of Item, using Token_ID'Image for any Token_IDs,
@@ -298,6 +305,14 @@ package WisiToken.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
    --  Put Item to Ada.Text_IO.Current_Output
 
+   package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID_Arrays.Vector);
+   --  Element is right hand side; left hand side is given by
+   --  Parse_Action_Rec.
+
+   procedure Add_Production
+     (Vector : in out Token_ID_Arrays.Vector;
+      Tokens : in     Token_ID_Array);
+
    type Parse_Table
      (State_First       : State_Index;
       State_Last        : State_Index;
@@ -309,7 +324,7 @@ package WisiToken.LR is
    record
       States         : Parse_State_Array (State_First .. State_Last);
       McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Follow         : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
+      Productions    : Production_Arrays.Vector;
    end record;
 
    type Parse_Table_Ptr is access Parse_Table;
@@ -331,9 +346,6 @@ package WisiToken.LR is
    --  Return the action for State, terminal ID.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
-
-   ----------
-   --  Useful text output
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);

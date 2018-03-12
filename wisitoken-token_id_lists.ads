@@ -26,10 +26,15 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
+with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 package WisiToken.Token_ID_Lists is
 
    type List is tagged private;
+   --  List is _not_ Controlled; assignment does a shallow copy of
+   --  the root list pointers. WisiToken.LR.LR1_Items takes advantage of
+   --  this.
 
    Empty_List : constant List;
 

@@ -65,15 +65,15 @@ package body WisiToken.Syntax_Trees.Test is
       Terminals.Append ((+IDENTIFIER_ID, (11, 16)));
       Node_Ident := Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 2
 
-      Node_Name := Tree.Add_Nonterm (Nonterm => +name_ID); -- 3
+      Node_Name := Tree.Add_Nonterm (+name_ID, null, 1, 0); -- 3
       Tree.Set_Children (Parent => Node_Name, Children => (1 => Node_Ident));
       Tree.Set_Name_Region (Node_Name, (11, 16));
 
-      Node_Prof := Tree.Add_Nonterm (+parameter_profile_opt_ID); -- 4
+      Node_Prof := Tree.Add_Nonterm (+parameter_profile_opt_ID, null, 1, 0); -- 4
 
       --  procedure_specification : PROCEDURE name parameter_profile_opt
       declare
-         Nonterm : constant Node_Index := Tree.Add_Nonterm (+procedure_specification_ID); -- 5
+         Nonterm : constant Node_Index := Tree.Add_Nonterm (+procedure_specification_ID, null, 1, 0); -- 5
 
          Children : constant Valid_Node_Index_Array := (Node_Proc, Node_Name, Node_Prof);
       begin

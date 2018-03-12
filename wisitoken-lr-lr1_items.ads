@@ -2,7 +2,7 @@
 --
 --  Types and operatorion for LR(1) items.
 --
---  Copyright (C) 2003, 2008, 2013-2015, 2017 Stephe Leake
+--  Copyright (C) 2003, 2008, 2013-2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -42,6 +42,7 @@ package WisiToken.LR.LR1_Items is
    type Item_Ptr is access Item_Node;
 
    function Prod (Item : in Item_Ptr) return Production.Instance;
+   function Prod_Index (Item : in Item_Ptr) return Positive;
    function LHS (Item : in Item_Ptr) return Token_ID;
    function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side;
    function Dot (Item : in Item_Ptr) return Token_ID_Lists.Cursor;

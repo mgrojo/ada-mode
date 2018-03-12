@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 Stephe Leake
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -133,10 +133,6 @@ package body WisiToken.LR.LALR_Generator is
          Put (Descriptor, Table.McKenzie_Param);
          New_Line;
       end if;
-
-      Put_Line ("Follow:");
-      Put (Descriptor, Table.Follow);
-      New_Line;
 
       for State in Table.States'Range loop
          Kernel := LR1_Items.Find (State, Kernels);
@@ -738,8 +734,6 @@ package body WisiToken.LR.LALR_Generator is
       else
          Table.McKenzie_Param := McKenzie_Param;
       end if;
-
-      Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);
 
       Add_Actions
         (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);

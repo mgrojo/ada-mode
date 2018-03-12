@@ -20,7 +20,7 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;
-with WisiToken;
+with WisiToken.Token_ID_Lists;
 package body Wisi.Gen_Output_Ada_Common is
 
    --  Public subprograms in alphabetical order
@@ -728,14 +728,14 @@ package body Wisi.Gen_Output_Ada_Common is
 
    procedure Create_Parser_Core (Table : in WisiToken.LR.Parse_Table_Ptr)
    is
+      use all type Standard.Ada.Containers.Count_Type;
       use all type WisiToken.LR.Patterns.List;
       use all type WisiToken.Token_ID;
       use all type WisiToken.LR.McKenzie_Param_Type;
       use Generate_Utils;
       use Wisi.Utils;
 
-      Paren_Done      : Boolean  := False;
-      Count           : Integer;
+      Count          : Integer;
       Items_Per_Line : constant := 8;
 
       function Natural_Image (Item : in Natural) return String
@@ -804,42 +804,33 @@ package body Wisi.Gen_Output_Ada_Common is
             end loop;
          end;
       end if;
+      New_Line;
 
-      if not WisiToken.Any (Table.Follow) then
-         Indent_Line ("Table.Follow := (others => (others => False));");
-      else
-         Indent_Line ("Table.Follow :=");
-         Indent_Start ("  (");
-         Indent := Indent + 3;
-         for I in Table.Follow'Range (1) loop
-            if WisiToken.Any (Table.Follow, I) then
-               Indent_Line (WisiToken.Int_Image (I) & " =>");
-               Indent_Start ("  (");
-               Indent := Indent + 3;
-               Paren_Done := False;
-               for J in Table.Follow'Range (2) loop
-                  if Table.Follow (I, J) then
-                     if Paren_Done then
-                        Put_Line (" |");
-                        Indent_Start (" " & WisiToken.Int_Image (J));
-                     else
-                        Paren_Done := True;
-                        Put (WisiToken.Int_Image (J));
-                     end if;
+      Indent_Line ("Table.Productions.Set_Length (" & WisiToken.Int_Image (Integer (Data.Grammar.Length)) & ");");
+
+      for P of Data.Grammar loop
+         Indent_Start ("Add_Production (Table.Productions (" & WisiToken.Int_Image (P.Index) & "), (");
+         declare
+            use WisiToken.Token_ID_Lists;
+            Token_I : Cursor := P.RHS.Tokens.First;
+         begin
+            if P.RHS.Tokens.Length = 0 then
+               Put ("1 .. 0 => <>");
+            elsif P.RHS.Tokens.Length = 1 then
+               Put ("1 => " & Int_Image (Element (Token_I)));
+            else
+               loop
+                  exit when not Has_Element (Token_I);
+                  Put (Int_Image (Element (Token_I)));
+                  Next (Token_I);
+                  if Has_Element (Token_I) then
+                     Put (", ");
                   end if;
                end loop;
-               if Paren_Done then
-                  Put_Line (" => True,");
-                  Indent_Line (" others => False),");
-               else
-                  Put_Line ("others => False),");
-               end if;
-               Indent := Indent - 3;
             end if;
-         end loop;
-         Indent_Line ("others => (others => False));");
-         Indent := Indent - 3;
-      end if;
+         end;
+         Put_Line ("));");
+      end loop;
       New_Line;
 
       Data.Table_Entry_Count := 0;
@@ -893,19 +884,20 @@ package body Wisi.Gen_Output_Ada_Common is
                      else
                         Append (", Accept_It");
                      end if;
-                     Append (", ");
-                     Append (WisiToken.Int_Image (Action_Node.Item.LHS) & ",");
-                     Append (Integer'Image (Action_Node.Item.Index) & ", ");
-                     Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
+                     Append (",");
+                     Append (Integer'Image (Action_Node.Item.Production) & ",");
+                     Append (WisiToken.Token_ID'Image (Action_Node.Item.LHS) & ",");
+                     Append (Count_Type'Image (Action_Node.Item.Token_Count) & ",");
+                     Append (Integer'Image (Action_Node.Item.Name_Index) & ", ");
                      Append
                        ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
-                         elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
-                         else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+                         elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index) = null then "null"
+                         else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index).all));
                      Append (", ");
                      Append
                        ((if Ada_Check_Names (Action_Node.Item.LHS) = null then "null"
-                         elsif Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
-                         else Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+                         elsif Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index) = null then "null"
+                         else Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index).all));
 
                   when WisiToken.LR.Error =>
                      Line := +"Add_Error (Table.States (" & Image (State_Index) & ")";
@@ -917,19 +909,22 @@ package body Wisi.Gen_Output_Ada_Common is
                      --  The added parameters are the same in either case.
                      case Action_Node.Item.Verb is
                      when Reduce | Accept_It =>
-                        Append (", ");
-                        Append (WisiToken.Int_Image (Action_Node.Item.LHS) & ",");
-                        Append (Integer'Image (Action_Node.Item.Index) & ", ");
-                        Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
+                        Append (",");
+                        Append (Integer'Image (Action_Node.Item.Production) & ",");
+                        Append (WisiToken.Token_ID'Image (Action_Node.Item.LHS) & ",");
+                        Append (Count_Type'Image (Action_Node.Item.Token_Count) & ",");
+                        Append (Integer'Image (Action_Node.Item.Name_Index) & ", ");
                         Append
                           ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
-                            elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
-                            else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+                            elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index) = null
+                            then "null"
+                            else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index).all));
                         Append (", ");
                         Append
                           ((if Ada_Check_Names (Action_Node.Item.LHS) = null then "null"
-                            elsif Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
-                            else Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+                            elsif Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index) = null
+                            then "null"
+                            else Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Name_Index).all));
 
                      when others =>
                         raise Programmer_Error with "conflict second action verb: " &

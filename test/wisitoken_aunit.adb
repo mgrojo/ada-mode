@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,7 +33,7 @@ package body WisiToken_AUnit is
       use AUnit.Checks;
       use WisiToken.Token_ID_Lists.AUnit;
    begin
-      Check (Label & ".Index", Computed.RHS.Index, Expected.RHS.Index);
+      Check (Label & ".Name_Index", Computed.RHS.Name_Index, Expected.RHS.Name_Index);
       Check (Label & ".LHS", Computed.LHS, Expected.LHS);
       Check (Label & ".RHS", Computed.RHS.Tokens.First, Expected.RHS.Tokens.First);
    end Check;

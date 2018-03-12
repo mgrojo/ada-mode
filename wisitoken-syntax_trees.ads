@@ -160,7 +160,7 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index)
      return Semantic_Action is abstract;
 
-   function Action_Index
+   function Name_Index
      (Tree : in Abstract_Tree;
       Node : in Valid_Node_Index)
      return Natural is abstract;
@@ -228,11 +228,11 @@ package WisiToken.Syntax_Trees is
    --  Copy any allocated storage.
 
    function Add_Nonterm
-     (Tree         : in out Syntax_Trees.Tree;
-      Nonterm      : in     WisiToken.Token_ID;
-      Virtual      : in     Boolean         := False;
-      Action       : in     Semantic_Action := null;
-      Action_Index : in     Natural         := 0)
+     (Tree       : in out Syntax_Trees.Tree;
+      Nonterm    : in     WisiToken.Token_ID;
+      Action     : in     Semantic_Action;
+      Production : in     Positive;
+      Name_Index : in     Natural)
    return Valid_Node_Index
    with Pre => not Tree.Traversing;
    --  Add a new Nonterm node with no parent. Result points to the added
@@ -348,7 +348,7 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Is_Nonterm (Node);
 
    overriding
-   function Action_Index
+   function Name_Index
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
      return Natural
@@ -409,13 +409,16 @@ private
          Virtual_Augmented : Semantic_State.Augmented_Token_Access := null;
 
       when Nonterm =>
-         Nonterm_ID  : WisiToken.Token_ID;
+         Nonterm_ID  : WisiToken.Token_ID := Invalid_Token_ID;
 
-         Virtual : Boolean;
+         Virtual : Boolean := False;
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
          --  set. Used by Semantic_Check actions.
 
-         Action_Index : Natural := 0;
+         Production : Natural := 0;
+         --  Index into Parse_Table.Productions.
+
+         Name_Index : Natural := 0;
          --  Production for nonterm_id used to produce this element, for debug
          --  messages.
 
