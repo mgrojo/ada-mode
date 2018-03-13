@@ -20,22 +20,11 @@ org.wisitoken.stephe-1 - available
 
  current work
 build syntax tree, use that in recover to pop stack
-    debug_production_recover.adb
-        implement state/production matching
-            Need_End is not accurate; subprogram_specification can be matched with SEMICOLON rather than END
-            add match_block semantic check?
-            duplicates grammar info
-
     new mckenzie ops:
-        push_back: pop token from stack, move its terminals to back to current input
-            to try inserting virtual tokens there.
-            "move terminals to current input" is just subtract from Next_Shared_Terminal
-            use syntax tree to get terminals count
-                don't need to delete tokens from tree until edit main parse_state
-            could just store terminals count on stack!
+        push_back, insert nonterms from gotos
+            testing
 
-        insert_nonterms: from gotos
-            when edit main parse_state for this, insert minimal terminals for repair error?
+        when edit main parse_state for insert nonterm, insert minimal terminals for repair error?
 
 
     test_mckenzie.adb Abandon_Pattern
@@ -69,19 +58,17 @@ review FIXME:
 
 use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
 
-add nonterm goto list to mckenzie explore
-    push on stack, rather than insert into token stream
-    => finish current production faster
-
-    if that succeeds, convert to miminum token stream on main parser input, so repair error can work
-
-
 user option end_name_require (ie not optional) makes ada_mode-recover_block_name_mismatch.adb fail?
     need to preserve end name when editing stack
     => lookahead must be array of base token
 
 update NEWS.text
 
+implement state/production matching?
+    debug_production_recover.adb
+    Need_End is not accurate; subprogram_specification can be matched with SEMICOLON rather than END
+    add match_block semantic check?
+    duplicates grammar info
 
 Fixed size stack speed mckenzie?
     init current to 50 was slightly slower

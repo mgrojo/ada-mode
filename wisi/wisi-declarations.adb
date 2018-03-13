@@ -246,14 +246,18 @@ begin
 
          elsif Match (McKenzie_Cost_Default_Str) then
             declare
-               Insert_First      : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
-               Insert_Last       : constant Integer := -1 + Index_Blank (Line, Insert_First);
-               Delete_Term_First : constant Integer := Index_Non_Blank (Line, Insert_Last + 1);
-               Delete_Term_Last  : constant Integer := -1 + Index_Blank (Line, Delete_Term_First);
+               Insert_First         : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Insert_Last          : constant Integer := -1 + Index_Blank (Line, Insert_First);
+               Delete_Term_First    : constant Integer := Index_Non_Blank (Line, Insert_Last + 1);
+               Delete_Term_Last     : constant Integer := -1 + Index_Blank (Line, Delete_Term_First);
+               Delete_Nonterm_First : constant Integer := Index_Non_Blank (Line, Delete_Term_Last + 1);
+               Delete_Nonterm_Last  : constant Integer := -1 + Index_Blank (Line, Delete_Nonterm_First);
             begin
                McKenzie_Recover.Default_Insert := Natural'Value (Line (Insert_First .. Insert_Last));
                McKenzie_Recover.Default_Delete_Terminal := Natural'Value (Line (Delete_Term_First .. Delete_Term_Last));
-               McKenzie_Recover.Default_Delete_Nonterminal := Natural'Value (Line (Delete_Term_Last + 1 .. Line'Last));
+               McKenzie_Recover.Default_Delete_Nonterminal := Natural'Value
+                 (Line (Delete_Nonterm_First .. Delete_Nonterm_Last));
+               McKenzie_Recover.Default_Push_Back := Natural'Value (Line (Delete_Nonterm_Last + 1 .. Line'Last));
             end;
 
          elsif Match (McKenzie_Cost_Delete_Str) then

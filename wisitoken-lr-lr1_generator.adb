@@ -325,6 +325,7 @@ package body WisiToken.LR.LR1_Generator is
             Last_Terminal     => Descriptor.Last_Terminal,
             First_Nonterminal => Descriptor.First_Nonterminal,
             Last_Nonterminal  => Descriptor.Last_Nonterminal,
+            Push_Back         => (others => 0),
             Insert            => (others => 0),
             Delete            => (others => 0),
             Cost_Limit        => Default_McKenzie_Param.Cost_Limit,

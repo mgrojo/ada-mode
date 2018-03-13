@@ -152,15 +152,25 @@ package WisiToken.LR is
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
 
    type Action_List_Iterator is tagged private;
-   --  Loops over all shift/reduce actions for a state, including
+   --  Iterates over all shift/reduce actions for a state, including
    --  conflicts.
 
-   function First_Action (State : in Parse_State) return Action_List_Iterator;
+   function First (State : in Parse_State) return Action_List_Iterator;
    function Is_Done (Iter : in Action_List_Iterator) return Boolean;
    procedure Next (Iter : in out Action_List_Iterator);
 
    function Symbol (Iter : in Action_List_Iterator) return Token_ID;
    function Action (Iter : in Action_List_Iterator) return Parse_Action_Rec;
+
+   type Goto_List_Iterator is tagged private;
+   --  Iterates over all gotos for a state.
+
+   function First (State : in Parse_State) return Goto_List_Iterator;
+   function Is_Done (Iter : in Goto_List_Iterator) return Boolean;
+   procedure Next (Iter : in out Goto_List_Iterator);
+
+   function Symbol (Iter : in Goto_List_Iterator) return Token_ID;
+   function State (Iter : in Goto_List_Iterator) return State_Index;
 
    ----------
    --  Run-time parse table construction
@@ -278,11 +288,12 @@ package WisiToken.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert : Token_ID_Array_Natural (First_Terminal .. Last_Terminal);
+      Insert : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       Delete : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      --  Cost of inserting or deleting tokens. Insert includes nonterms
-      --  pushed onto the parse stack; delete includes nonterms popped off
-      --  the parse stack
+      Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      --  Cost of inserting, deleting, or pushing back tokens. Insert
+      --  includes nonterms pushed onto the parse stack; delete includes
+      --  nonterms popped off the parse stack
 
       Cost_Limit  : Natural; -- max cost of configurations to look at
       Check_Limit : Natural; -- max tokens to parse ahead when checking a configuration.
@@ -296,6 +307,7 @@ package WisiToken.LR is
       Last_Terminal     => Token_ID'First,
       First_Nonterminal => Token_ID'Last,
       Last_Nonterminal  => Token_ID'First,
+      Push_Back         => (others => 0),
       Insert            => (others => 0),
       Delete            => (others => 0),
       Cost_Limit        => Natural'Last,
@@ -358,6 +370,8 @@ package WisiToken.LR is
 
    package Fast_Token_ID_Vectors is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Token_ID, Capacity => 20);
+   package Fast_Tree_Index_Vectors is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Syntax_Trees.Node_Index, Capacity => 20);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover.
    --
@@ -366,19 +380,24 @@ package WisiToken.LR is
    --  Recover can create thousands of copies of Configuration, so saving
    --  space is important.
    --
-   --  Capacity is determined by the maximum number of popped, inserted,
-   --  or deleted tokens. These are limited by the cost_limit McKenzie
-   --  parameter; in practice, a cost of 20 is too high.
-   --
-   --  Lookahead capacity is determined by tokens inserted during
-   --  Apply_Patterns; 20 has proved enough so far.
+   --  Pushed_Back, Popped, inserted, and deleted capacity is determined
+   --  by the maximum number of pushed back, popped, inserted, or deleted
+   --  tokens. These are limited by the cost_limit McKenzie parameter; in
+   --  practice, a cost of 20 is too high.
 
    function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
+
+   function Image
+     (Item       : in Fast_Tree_Index_Vectors.Vector;
+      Tree       : in Syntax_Trees.Branched.Tree;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
 
    type Recover_Stack_Item is record
       State       : Unknown_State_Index;
       ID          : Token_ID;
       Byte_Region : Buffer_Region;
+      Tree_Index  : Syntax_Trees.Node_Index;
    end record;
 
    package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
@@ -406,10 +425,11 @@ package WisiToken.LR is
       --  Index into Shared_Parser.Terminals for next input token, after
       --  all of Inserted is input. Initially the error token.
 
-      Popped   : Fast_Token_ID_Vectors.Vector;
-      Inserted : Fast_Token_ID_Vectors.Vector;
-      Deleted  : Fast_Token_ID_Vectors.Vector;
-      Cost     : Natural := 0;
+      Pushed_Back : Fast_Tree_Index_Vectors.Vector;
+      Popped      : Fast_Token_ID_Vectors.Vector;
+      Inserted    : Fast_Token_ID_Vectors.Vector;
+      Deleted     : Fast_Token_ID_Vectors.Vector;
+      Cost        : Natural := 0;
    end record;
 
    function Key (A : in Configuration) return Integer is (A.Cost);
@@ -423,7 +443,6 @@ package WisiToken.LR is
       Set_Key      => Set_Key);
 
    type McKenzie_Data is tagged record
-      Parser_Label  : Natural; --  For trace.
       Config_Heap   : Config_Heaps.Heap_Type;
       Enqueue_Count : Integer := 0;
       Check_Count   : Integer := 0;
@@ -482,6 +501,10 @@ private
    type Action_List_Iterator is tagged record
       Node : Action_Node_Ptr;
       Item : Parse_Action_Node_Ptr;
+   end record;
+
+   type Goto_List_Iterator is tagged record
+      Node : Goto_Node_Ptr;
    end record;
 
    function Next_Grammar_Token

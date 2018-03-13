@@ -781,6 +781,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
          Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
          Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
+         Put ("Push_Back", Table.McKenzie_Param.Push_Back);
          Put ("Insert", Table.McKenzie_Param.Insert);
          Put ("Delete", Table.McKenzie_Param.Delete);
          Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");

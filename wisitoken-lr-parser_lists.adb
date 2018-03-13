@@ -111,11 +111,6 @@ package body WisiToken.LR.Parser_Lists is
       return (Element => Reference (Ptr).Element);
    end State_Ref_2;
 
-   function McKenzie_Ref (Position : in Parser_Node_Access) return McKenzie_Access
-   is begin
-      return Parser_State_Lists.Persistent_Ref (Position.Ptr).Recover'Access;
-   end McKenzie_Ref;
-
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       use all type SAL.Base_Peek_Type;
@@ -191,9 +186,7 @@ package body WisiToken.LR.Parser_Lists is
    is
       pragma Unreferenced (Container);
    begin
-      return
-        (Element => Parser_State_Lists.Constant_Reference (Position.Ptr).Element,
-         Dummy   => 1);
+      return (Element => Parser_State_Lists.Constant_Reference (Position.Ptr).Element);
    end Constant_Reference;
 
    function Reference
@@ -205,6 +198,11 @@ package body WisiToken.LR.Parser_Lists is
    begin
       return (Element => Parser_State_Lists.Reference (Position.Ptr).Element);
    end Reference;
+
+   function Persistent_State_Ref (Position : in Parser_Node_Access) return State_Access
+   is begin
+      return State_Access (Parser_State_Lists.Persistent_Ref (Position.Ptr));
+   end Persistent_State_Ref;
 
    type List_Access is access all List;
 

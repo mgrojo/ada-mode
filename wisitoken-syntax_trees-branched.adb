@@ -22,35 +22,6 @@ package body WisiToken.Syntax_Trees.Branched is
 
    --  body subprograms, alphabetical
 
-   function Count_Terminals
-     (Tree : in Branched.Tree;
-      Node : in Valid_Node_Index)
-     return SAL.Base_Peek_Type
-   is
-      use all type SAL.Base_Peek_Type;
-
-      function Compute (N : in Syntax_Trees.Node) return SAL.Base_Peek_Type
-      is
-         Result : SAL.Base_Peek_Type := 0;
-      begin
-         case Tree.Shared_Tree.Nodes (Node).Label is
-         when Shared_Terminal | Virtual_Terminal =>
-            return 1;
-         when Nonterm =>
-            for I of N.Children loop
-               Result := Result + Count_Terminals (Tree, I);
-            end loop;
-            return Result;
-         end case;
-      end Compute;
-
-   begin
-      return Compute
-        ((if Node <= Tree.Last_Shared_Node
-          then Tree.Shared_Tree.Nodes (Node)
-          else Tree.Branched_Nodes (Node)));
-   end Count_Terminals;
-
    procedure Delete_Subtree (Tree : in out Node_Arrays.Vector; Node : in Valid_Node_Index)
    is
       --  Can't hold a Tree.Nodes cursor while recursing; that prevents
@@ -321,6 +292,15 @@ package body WisiToken.Syntax_Trees.Branched is
       end if;
    end Set_Children;
 
+   overriding function Label (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Label
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Tree.Shared_Tree.Nodes (Node).Label;
+      else
+         return Tree.Branched_Nodes (Node).Label;
+      end if;
+   end Label;
+
    overriding
    function Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
    is
@@ -377,6 +357,21 @@ package body WisiToken.Syntax_Trees.Branched is
          return Tree.Branched_Nodes (Node).Label = Nonterm;
       end if;
    end Is_Nonterm;
+
+   function Is_Virtual (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean
+   is
+      function Compute (N : in Syntax_Trees.Node) return Boolean
+      is begin
+         return N.Label = Virtual_Terminal or (N.Label = Nonterm and then N.Virtual);
+      end Compute;
+
+   begin
+      if Node <= Tree.Last_Shared_Node then
+         return Compute (Tree.Shared_Tree.Nodes (Node));
+      else
+         return Compute (Tree.Branched_Nodes (Node));
+      end if;
+   end Is_Virtual;
 
    function Traversing (Tree : in Branched.Tree) return Boolean
    is begin
@@ -838,17 +833,30 @@ package body WisiToken.Syntax_Trees.Branched is
       raise SAL.Programmer_Error with "syntax_trees.branched.delete: move branch point";
    end Delete;
 
-   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return WisiToken.Base_Token_Array
+   function Count_Shared_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index
    is
-      Last : SAL.Base_Peek_Type := 0;
-      Lock : Protected_Base_Token_Arrays.Read_Lock_Type (Tree.Shared_Tree.Terminals);
-      pragma Unreferenced (Lock);
-      --  Don't allow adding nodes between Count_Terminals and Get_Terminals.
+      function Compute (N : in Syntax_Trees.Node) return Base_Token_Index
+      is
+         Result : Base_Token_Index := 0;
+      begin
+         case N.Label is
+         when Shared_Terminal =>
+            return 1;
+         when Virtual_Terminal =>
+            return 0;
+         when Nonterm =>
+            for I of N.Children loop
+               Result := Result + Count_Shared_Terminals (Tree, I);
+            end loop;
+            return Result;
+         end case;
+      end Compute;
+
    begin
-      Tree.Shared_Tree.Traversing := True;
-      return Result : WisiToken.Base_Token_Array (1 .. Count_Terminals (Tree, Node))  do
-         Get_Terminals (Tree, Node, Result, Last);
-      end return;
-   end Get_Terminals;
+      return Compute
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node)
+          else Tree.Branched_Nodes (Node)));
+   end Count_Shared_Terminals;
 
 end WisiToken.Syntax_Trees.Branched;

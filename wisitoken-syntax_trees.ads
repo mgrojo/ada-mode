@@ -55,6 +55,8 @@ package WisiToken.Syntax_Trees is
 
    package Valid_Node_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (Valid_Node_Index);
 
+   type Node_Label is (Shared_Terminal, Virtual_Terminal, Nonterm);
+
    type User_Data_Type is tagged limited null record;
 
    type Semantic_Action is access procedure
@@ -72,6 +74,8 @@ package WisiToken.Syntax_Trees is
    procedure Clear (Tree : in out Abstract_Tree) is abstract;
    --  Delete all Elements and free associated memory; keep results of
    --  Initialize.
+
+   function Label (Tree : in Abstract_Tree; Node : in Valid_Node_Index) return Node_Label is abstract;
 
    function Children
      (Tree : in Abstract_Tree;
@@ -263,6 +267,8 @@ package WisiToken.Syntax_Trees is
                (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children))));
    --  Set the Children of Parent.
 
+   overriding function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label;
+
    overriding
    function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
    with Pre => Tree.Is_Nonterm (Node);
@@ -270,8 +276,9 @@ package WisiToken.Syntax_Trees is
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
    function Has_Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
-   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
-   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+     is (Tree.Label (Node) = Nonterm);
+   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
    overriding function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
@@ -325,7 +332,7 @@ package WisiToken.Syntax_Trees is
      (Tree      : in out Syntax_Trees.Tree;
       Node      : in     Valid_Node_Index;
       Augmented : in     Semantic_State.Augmented_Token)
-   with Pre => Tree.Is_Nonterm (Node) or Tree.Is_Virtual_Terminal (Node);
+   with Pre => Tree.Label (Node) in Virtual_Terminal .. Nonterm;
 
    overriding
    function Augmented_Token_Array
@@ -386,12 +393,6 @@ package WisiToken.Syntax_Trees is
    --  node.
 
 private
-
-   type Node_Label is (Shared_Terminal, Virtual_Terminal, Nonterm);
-   --  Recover reads from the lexer when checking that the parse will
-   --  succeed; those tokens are stored in Shared_Tree.Terminals. Recover
-   --  inserts tokens to fix the error; those are virtual, and stored
-   --  only in Tree.
 
    type Node (Label : Node_Label := Virtual_Terminal) is
    --  Label has a default to allow use with Ada.Containers.Vectors; all

@@ -85,6 +85,8 @@ package WisiToken.Syntax_Trees.Branched is
                (Tree.Is_Nonterm (Parent) and then (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children))));
    --  Set the Children of Parent.
 
+   overriding function Label (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Label;
+
    overriding
    function Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
    with Pre => Tree.Is_Nonterm (Node);
@@ -94,6 +96,7 @@ package WisiToken.Syntax_Trees.Branched is
    function Has_Parent (Tree : in Branched.Tree; Child : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Branched.Tree; Children : in Valid_Node_Index_Array) return Boolean;
    function Is_Nonterm (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Virtual (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Branched.Tree) return Boolean;
 
    overriding function Parent (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Index;
@@ -207,9 +210,8 @@ package WisiToken.Syntax_Trees.Branched is
    --
    --  If Node is in shared tree, moves branch point to Node.
 
-   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return WisiToken.Base_Token_Array;
-   --  Return all terminals in tree rooted at Node, in depth-first order.
-   --  FIXME: only need IDs?
+   function Count_Shared_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   with Pre => not Tree.Is_Virtual (Node);
 
 private
 

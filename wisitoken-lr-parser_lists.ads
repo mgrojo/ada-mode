@@ -58,16 +58,17 @@ package WisiToken.LR.Parser_Lists is
       --  branched tree. Then when all but one parsers are terminated, the
       --  remaining branched tree is flushed into the shared tree.
 
-      Recover            : aliased LR.McKenzie_Data := (others => <>);
-      Zombie_Token_Count : Integer                  := 0;
+      Recover : aliased LR.McKenzie_Data := (others => <>);
+
+      Zombie_Token_Count : Integer := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
-      --  to see if other parsers do also. When it reaches 0, the parser is
-      --  terminated.
+      --  to see if other parsers do also.
 
       Errors : Parse_Error_Lists.List;
    end record;
 
    type Parser_State is new Base_Parser_State with private;
+   type State_Access is access all Parser_State;
 
    type List is tagged private
    with
@@ -164,10 +165,7 @@ package WisiToken.LR.Parser_Lists is
 
    function To_Cursor (Ptr : in Parser_Node_Access) return Cursor;
 
-   type Constant_Reference_Type (Element : not null access constant Parser_State) is
-   record
-      Dummy : Integer := raise Program_Error with "uninitialized reference";
-   end record
+   type Constant_Reference_Type (Element : not null access constant Parser_State) is null record
    with Implicit_Dereference => Element;
 
    function Constant_Reference
@@ -180,7 +178,7 @@ package WisiToken.LR.Parser_Lists is
       Position  :         in     Parser_Node_Access)
      return State_Reference;
 
-   function McKenzie_Ref (Position : in Parser_Node_Access) return McKenzie_Access;
+   function Persistent_State_Ref (Position : in Parser_Node_Access) return State_Access;
 
    function Has_Element (Iterator : in Parser_Node_Access) return Boolean;
 

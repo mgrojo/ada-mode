@@ -264,6 +264,11 @@ package body WisiToken.Syntax_Trees is
       end loop;
    end Set_Children;
 
+   overriding function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label
+   is begin
+      return Tree.Nodes (Node).Label;
+   end Label;
+
    overriding
    function Children
      (Tree : in Syntax_Trees.Tree;
@@ -290,15 +295,12 @@ package body WisiToken.Syntax_Trees is
       return (for some Child of Children => Tree.Nodes (Child).Parent /= No_Node_Index);
    end Has_Parent;
 
-   function Is_Virtual_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
-   is begin
-      return Tree.Nodes (Node).Label = Virtual_Terminal;
-   end Is_Virtual_Terminal;
-
-   function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
-   is begin
-      return Tree.Nodes (Node).Label = Nonterm;
-   end Is_Nonterm;
+   function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   is
+      N : Syntax_Trees.Node renames Tree.Nodes (Node);
+   begin
+      return N.Label = Virtual_Terminal or (N.Label = Nonterm and then N.Virtual);
+   end Is_Virtual;
 
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean
    is begin

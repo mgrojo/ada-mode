@@ -159,7 +159,7 @@ package body WisiToken.LR is
       return List.Next;
    end Next;
 
-   function First_Action (State : in Parse_State) return Action_List_Iterator
+   function First (State : in Parse_State) return Action_List_Iterator
    is begin
       return Iter : Action_List_Iterator := (Node => State.Action_List, Item => null) do
          loop
@@ -169,7 +169,7 @@ package body WisiToken.LR is
             Iter.Node := Iter.Node.Next;
          end loop;
       end return;
-   end First_Action;
+   end First;
 
    function Is_Done (Iter : in Action_List_Iterator) return Boolean
    is begin
@@ -203,6 +203,33 @@ package body WisiToken.LR is
    is begin
       return Iter.Item.Item;
    end Action;
+
+   function First (State : in Parse_State) return Goto_List_Iterator
+   is begin
+      return (Node => State.Goto_List);
+   end First;
+
+   function Is_Done (Iter : in Goto_List_Iterator) return Boolean
+   is begin
+      return Iter.Node = null;
+   end Is_Done;
+
+   procedure Next (Iter : in out Goto_List_Iterator)
+   is begin
+      if Iter.Node /= null then
+         Iter.Node := Iter.Node.Next;
+      end if;
+   end Next;
+
+   function Symbol (Iter : in Goto_List_Iterator) return Token_ID
+   is begin
+      return Iter.Node.Symbol;
+   end Symbol;
+
+   function State (Iter : in Goto_List_Iterator) return State_Index
+   is begin
+      return Iter.Node.State;
+   end State;
 
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String
    is
@@ -584,6 +611,26 @@ package body WisiToken.LR is
    begin
       for I in Item.First_Index .. Item.Last_Index loop
          Result := Result & Image (Item (I), Descriptor);
+         if I /= Item.Last_Index then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return To_String (Result);
+   end Image;
+
+   function Image
+     (Item       : in Fast_Tree_Index_Vectors.Vector;
+      Tree       : in Syntax_Trees.Branched.Tree;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is
+      use all type SAL.Base_Peek_Type;
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := To_Unbounded_String ("(");
+   begin
+      for I in Item.First_Index .. Item.Last_Index loop
+         Result := Result & Image (Tree.ID (Item (I)), Descriptor);
          if I /= Item.Last_Index then
             Result := Result & ", ";
          end if;
