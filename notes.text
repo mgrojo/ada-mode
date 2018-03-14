@@ -23,8 +23,7 @@ build syntax tree, use that in recover to pop stack
     new mckenzie ops:
         push_back, insert nonterms from gotos
             testing
-
-        when edit main parse_state for insert nonterm, insert minimal terminals for repair error?
+            test delete tree
 
 
     test_mckenzie.adb Abandon_Pattern

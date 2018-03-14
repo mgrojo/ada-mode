@@ -116,6 +116,8 @@ package WisiToken is
 
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
 
+   function Image (Item : in Token_ID_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
+
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
 
    function Any (Item : in Token_ID_Set) return Boolean;
@@ -126,7 +128,8 @@ package WisiToken is
    function Image
      (Item      : in Token_ID_Set;
       Desc      : in Descriptor'Class;
-      Max_Count : in Integer := Integer'Last)
+      Max_Count : in Integer := Integer'Last;
+      Inverted  : in Boolean := False)
      return String;
 
    type Token_Array_Token_Set is array (Token_ID range <>, Token_ID range <>) of Boolean;

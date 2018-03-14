@@ -4,7 +4,7 @@
 --  LR, because they are only needed at generator time, not parse
 --  time.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -21,6 +21,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with WisiToken.LR.LR1_Items;
+with WisiToken.Production;
 package WisiToken.LR.Generator_Utils is
 
    Error : Boolean := False;
@@ -119,5 +120,10 @@ package WisiToken.LR.Generator_Utils is
      (Item       : in Conflict_Lists.List;
       File       : in Ada.Text_IO.File_Type;
       Descriptor : in WisiToken.Descriptor'Class);
+
+   procedure Compute_Terminal_Sequences
+     (Grammar    : in     Production.List.Instance;
+      Descriptor : in     WisiToken.Descriptor'Class;
+      Result     : in out Token_Sequence_Arrays.Vector);
 
 end WisiToken.LR.Generator_Utils;

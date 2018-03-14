@@ -81,25 +81,6 @@ package body Name_Grammar_Test is
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid names:
-   --  Module (Index)
-   --  Module.Component
-   Simple_Grammar : constant WisiToken.Production.List.Instance :=
-     Statement_ID  <= Name_ID & EOF_ID + Null_Action and
-     Name_ID       <= Identifier_ID & Component_ID + Null_Action and
-     Component_ID  <= Dot_ID & Identifier_ID + Null_Action and
-     Component_ID  <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
-
-   --  valid names:
-   --  Module.Symbol (Index)
-   --  Module.Symbol.Component
-   Medium_Grammar : constant WisiToken.Production.List.Instance :=
-     Statement_ID   <= Name_ID & EOF_ID + Null_Action and
-     Name_ID        <= Symbol_Name_ID & Component_ID + Null_Action and
-     Symbol_Name_ID <= Identifier_ID & Dot_ID & Identifier_ID + Null_Action and
-     Component_ID   <= Dot_ID & Identifier_ID + Null_Action and
-     Component_ID   <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
-
-   --  valid names:
    --  Module.Symbol
    --  Module.Symbol (Index)
    --  Module.Symbol.Component
@@ -142,7 +123,7 @@ package body Name_Grammar_Test is
 
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
 
       use Ada.Directories;
       use Ada.Text_IO;
@@ -166,48 +147,6 @@ package body Name_Grammar_Test is
       Set_Output (Trace_File);
       Set_Error (Trace_File);
 
-      Put_Line ("Simple Parser");
-      declare
-         Parser : WisiToken.LR.Parser.Parser;
-      begin
-         WisiToken.LR.Parser.New_Parser
-           (Parser,
-            Trace'Access,
-            Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate
-              (Simple_Grammar,
-               LALR_Descriptor,
-               First_State_Index,
-               Put_Parse_Table      => Test.Debug,
-               Trace                => Test.Debug,
-               Ignore_Unused_Tokens => True),
-            First_Parser_Label);
-
-         Parse_Command ("Simple Parser", Parser, "Module (Index)");
-         Parse_Command ("Simple Parser", Parser, "Module.Component");
-      end;
-
-      New_Line;
-      Put_Line ("Medium Parser");
-      declare
-         Parser : WisiToken.LR.Parser.Parser;
-      begin
-         WisiToken.LR.Parser.New_Parser
-           (Parser,
-            Trace'Access,
-            Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate
-              (Medium_Grammar,
-               LALR_Descriptor,
-               First_State_Index,
-               Put_Parse_Table      => Test.Debug,
-               Trace                => Test.Debug,
-               Ignore_Unused_Tokens => True),
-            First_Parser_Label);
-         Parse_Command ("Medium Parser", Parser, "Module.Symbol (Index)");
-         Parse_Command ("Medium Parser", Parser, "Module.Symbol.Component");
-      end;
-
       New_Line;
       Put_Line ("Full Parser");
       declare
@@ -221,8 +160,6 @@ package body Name_Grammar_Test is
               (Full_Grammar,
                LALR_Descriptor,
                First_State_Index,
-               Put_Parse_Table      => Test.Debug,
-               Trace                => Test.Debug,
                Ignore_Unused_Tokens => False),
             First_Parser_Label);
          Parse_Command ("Full Parser", Parser, "Module.Symbol");

@@ -124,7 +124,7 @@ package body Association_Grammar_Test is
 
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
 
       use Ada.Directories;
       use Ada.Text_IO;
@@ -151,9 +151,7 @@ package body Association_Grammar_Test is
          WisiToken.LR.LALR_Generator.Generate
            (Full_Grammar,
             LALR_Descriptor,
-            First_State_Index => 1,
-            Put_Parse_Table   => Test.Debug,
-            Trace             => Test.Debug),
+            First_State_Index => 1),
          First_Parser_Label);
 
       WisiToken.Trace_Parse := WisiToken.Detail + 1;

@@ -273,8 +273,6 @@ package Wisi is
 
    function "+" (List : in RHS_Lists.List; Item : in RHS_Type) return RHS_Lists.List;
 
-   Verbosity : Integer := 0;
-
    procedure Put_Command_Line (Comment_Prefix : in String);
    --  Put command line to current output
 

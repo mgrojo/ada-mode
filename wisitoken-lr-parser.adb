@@ -675,6 +675,14 @@ package body WisiToken.LR.Parser is
                      Shift_Local_Count : Integer := 0;
                   begin
                      for Parser_State of Shared_Parser.Parsers loop
+                        if Trace_Parse > Outline then
+                           Trace.Put_Line
+                             (Integer'Image (Parser_State.Label) & ": Current_Token " &
+                                Image
+                                  (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) &
+                                " Shared_Token " & Image
+                                  (Shared_Parser.Terminals (Parser_State.Shared_Token), Trace.Descriptor.all));
+                        end if;
                         case Parser_State.Verb is
                         when Shift_Local_Lookahead =>
                            Shift_Local_Count := Shift_Local_Count + 1;

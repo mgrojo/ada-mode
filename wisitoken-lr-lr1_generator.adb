@@ -335,6 +335,8 @@ package body WisiToken.LR.LR1_Generator is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
+      Generator_Utils.Compute_Terminal_Sequences (Grammar, Descriptor, Table.Terminal_Sequences);
+
       Add_Actions (Item_Sets, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
 
       if Put_Parse_Table then

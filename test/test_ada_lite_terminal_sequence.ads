@@ -1,8 +1,11 @@
 --  Abstract :
 --
---  Test WisiToken.Production.Parser.Expecting
+--  Test WisiToken.LR.Generator_Utils.Compute_Terminal_Sequences on
+--  Ada_Lite grammar; it's large.
 --
---  Copyright (C) 2009, 2010, 2012, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Tests grouped together because they use the same simple grammar.
+--
+--  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -17,9 +20,9 @@
 --  MA 02111-1307, USA.
 
 with AUnit.Test_Cases;
-package Test_LR_Expecting is
+package Test_Ada_Lite_Terminal_Sequence is
 
-   type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 
@@ -27,4 +30,4 @@ package Test_LR_Expecting is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_LR_Expecting;
+end Test_Ada_Lite_Terminal_Sequence;

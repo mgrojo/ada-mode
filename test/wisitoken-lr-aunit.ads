@@ -26,6 +26,7 @@ with AUnit.Checks;
 with SAL.AUnit;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_AUnit;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 with WisiToken.AUnit;
 package WisiToken.LR.AUnit is
 
@@ -60,6 +61,10 @@ package WisiToken.LR.AUnit is
 
    package Fast_Token_ID_Vectors_AUnit is new Fast_Token_ID_Vectors.Gen_AUnit
      (SAL.AUnit.Check, WisiToken.AUnit.Check);
+
+   procedure Check is new Token_Sequence_Arrays.Gen_AUnit
+     (Check_Index   => WisiToken.AUnit.Check,
+      Check_Element => WisiToken.AUnit.Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
 

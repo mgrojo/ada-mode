@@ -2,7 +2,7 @@
 --
 --  Output Elisp code implementing the grammar defined by the parameters.
 --
---  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -81,10 +81,8 @@ is
             Generate_Utils.To_Conflicts
               (Input_File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
                Reduce_Reduce_Conflict_Count),
-            Trace                    => Verbosity > 1,
-            Put_Parse_Table          => Verbosity > 0,
-            Ignore_Unused_Tokens     => Verbosity > 1,
-            Ignore_Unknown_Conflicts => Verbosity > 1);
+            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
+            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
       when LR1                       =>
          Parser := WisiToken.LR.LR1_Generator.Generate
@@ -94,10 +92,10 @@ is
             Generate_Utils.To_Conflicts
               (Input_File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
                Reduce_Reduce_Conflict_Count),
-            Trace                    => Verbosity > 1,
-            Put_Parse_Table          => Verbosity > 0,
-            Ignore_Unused_Tokens     => Verbosity > 1,
-            Ignore_Unknown_Conflicts => Verbosity > 1);
+            Trace                    => WisiToken.Trace_Generate > 1,
+            Put_Parse_Table          => WisiToken.Trace_Generate > 0,
+            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
+            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
       end case;
 
       Create (File, Out_File, -Elisp_Package_1 & "-elisp.el");
@@ -136,7 +134,7 @@ begin
       Create_Elisp (LR1);
    end case;
 
-   if Verbosity > 0 then
+   if WisiToken.Trace_Generate > 0 then
       --  Match wisi-output_ada.adb, wisi-output_ada_emacs.adb format
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &

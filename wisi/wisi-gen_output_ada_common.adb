@@ -810,7 +810,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Table.Productions.Set_Length (" & WisiToken.Int_Image (Integer (Data.Grammar.Length)) & ");");
 
       for P of Data.Grammar loop
-         Indent_Start ("Add_Production (Table.Productions (" & WisiToken.Int_Image (P.Index) & "), (");
+         Indent_Start ("Set_Token_Sequence (Table.Productions (" & WisiToken.Int_Image (P.Index) & "), (");
          declare
             use WisiToken.Token_ID_Lists;
             Token_I : Cursor := P.RHS.Tokens.First;
@@ -825,6 +825,37 @@ package body Wisi.Gen_Output_Ada_Common is
                   Put (Int_Image (Element (Token_I)));
                   Next (Token_I);
                   if Has_Element (Token_I) then
+                     Put (", ");
+                  end if;
+               end loop;
+            end if;
+         end;
+         Put_Line ("));");
+      end loop;
+      New_Line;
+
+      Indent_Line
+        ("Table.Terminal_Sequences.Set_First (" & WisiToken.Int_Image
+           (Integer (Table.Terminal_Sequences.First_Index)) & ");");
+
+      Indent_Line
+        ("Table.Terminal_Sequences.Set_Last (" & WisiToken.Int_Image
+           (Integer (Table.Terminal_Sequences.Last_Index)) & ");");
+
+      for I in Table.Terminal_Sequences.First_Index .. Table.Terminal_Sequences.Last_Index loop
+         Indent_Start ("Set_Token_Sequence (Table.Terminal_Sequences (" & WisiToken.Int_Image (I) & "), (");
+
+         declare
+            S : WisiToken.Token_ID_Arrays.Vector renames Table.Terminal_Sequences (I);
+         begin
+            if S.Length = 0 then
+               Put ("1 .. 0 => <>");
+            elsif S.Length = 1 then
+               Put ("1 =>" & WisiToken.Token_ID'Image (S (S.First_Index)));
+            else
+               for J in S.First_Index .. S.Last_Index loop
+                  Put (Int_Image (S (J)));
+                  if J /= S.Last_Index then
                      Put (", ");
                   end if;
                end loop;

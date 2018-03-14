@@ -3,7 +3,7 @@
 --  Test computing Accept_State on grammars that WisiToken used to get
 --  wrong.
 --
---  Copyright (C) 2010, 2012, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2010, 2012, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,7 @@
 with AUnit.Test_Cases;
 package Test_Accept_State is
 
-   type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 

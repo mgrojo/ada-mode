@@ -502,4 +502,148 @@ package body WisiToken.LR.Generator_Utils is
       end loop;
    end Put;
 
+   procedure Terminal_Sequence
+     (Grammar       : in     Production.List.Instance;
+      Descriptor    : in     WisiToken.Descriptor'Class;
+      All_Sequences : in out Token_Sequence_Arrays.Vector;
+      All_Set       : in out Token_ID_Set;
+      Recursing     : in out Token_ID_Set;
+      Nonterm       : in     Token_ID)
+   is
+      use WisiToken.Production.List;
+      use Ada.Containers;
+      L                 : List_Iterator := Find (Grammar, Nonterm);
+      Temp              : Token_Sequence_Arrays.Vector;
+      Min_Length        : Count_Type    := Count_Type'Last;
+      Skipped_Recursive : Boolean       := False;
+   begin
+      --  We get here because All_Sequences (Nonterm) has not been comptued
+      --  yet. Attempt to compute All_Sequences (Nonterm); if succesful, set
+      --  All_Set (Nonterm) True.
+
+      --  First fill Temp with terminals from each production for Nonterm.
+      loop
+         exit when Is_Done (L);
+
+         if Current (L).RHS.Tokens.Length = 0 then
+            All_Set (Nonterm) := True;
+
+            if Trace_Generate > Detail then
+               Ada.Text_IO.Put_Line (Image (Nonterm, Descriptor) & " => ()");
+            end if;
+
+            return;
+         end if;
+
+         if Token_ID_Lists.Element (Current (L).RHS.Tokens.First) = Nonterm then
+            --  The first RHS token = LHS; a recursive list. This will never be
+            --  the shortest production, so just skip it.
+            null;
+
+         else
+            declare
+               Sequence : Token_ID_Arrays.Vector;
+            begin
+               for ID of Current (L).RHS.Tokens loop
+                  if ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+                     Sequence.Append (ID);
+
+                  else
+                     if not All_Set (ID) then
+                        if Recursing (ID) then
+                           --  This nonterm is mutually recursive with some other. This
+                           --  production will never be the shortest unless it's the only one,
+                           --  so skip it.
+                           if Trace_Generate > Detail then
+                              Ada.Text_IO.Put_Line (Image (ID, Descriptor) & " mutual recurse skipped");
+                           end if;
+                           Skipped_Recursive := True;
+                           goto Skip;
+                        else
+                           Recursing (ID) := True;
+                           if Trace_Generate > Detail then
+                              Ada.Text_IO.Put_Line (Image (ID, Descriptor) & " recurse");
+                           end if;
+                           Terminal_Sequence (Grammar, Descriptor, All_Sequences, All_Set, Recursing, ID);
+                           Recursing (ID) := False;
+
+                           if not All_Set (ID) then
+                              --  abandoned because of recursion
+                              Skipped_Recursive := True;
+                              goto Skip;
+                           end if;
+                        end if;
+                     end if;
+                     Sequence.Append (All_Sequences (ID));
+                  end if;
+               end loop;
+
+               if Trace_Generate > Detail then
+                  Ada.Text_IO.Put_Line (Image (Nonterm, Descriptor) & " -> " & Image (Sequence, Descriptor));
+               end if;
+               Temp.Append (Sequence);
+            end;
+         end if;
+
+         <<Skip>>
+         Next (L);
+      end loop;
+
+      --  Now find the minimum length.
+      if Temp.Length = 0 and Skipped_Recursive then
+         --  better luck next time.
+         return;
+      end if;
+
+      for S of Temp loop
+         if S.Length <= Min_Length then
+            Min_Length := S.Length;
+
+            All_Sequences (Nonterm) := S;
+         end if;
+      end loop;
+
+      if Trace_Generate > Detail then
+         Ada.Text_IO.Put_Line (Image (Nonterm, Descriptor) & " ==> " & Image (All_Sequences (Nonterm), Descriptor));
+      end if;
+
+      All_Set (Nonterm) := True;
+   end Terminal_Sequence;
+
+   procedure Compute_Terminal_Sequences
+     (Grammar    : in     Production.List.Instance;
+      Descriptor : in     WisiToken.Descriptor'Class;
+      Result     : in out Token_Sequence_Arrays.Vector)
+   is
+      --  Result (ID).Length = 0 is a valid sequence (ie the nonterminal can
+      --  be empty), so we use an auxilliary array to track whether Result
+      --  (ID) has been computed.
+      --
+      --  We also need to detect mutual recursion, and incomplete grammars.
+
+      All_Set   : Token_ID_Set := (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal => False);
+      Recursing : Token_ID_Set := (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal => False);
+
+      Last_Count : Integer := 0;
+      This_Count : Integer;
+   begin
+      Result.Set_First (Descriptor.First_Nonterminal);
+      Result.Set_Last (Descriptor.Last_Nonterminal);
+
+      loop
+         exit when (for all B of All_Set => B);
+         for P of Grammar loop
+            if not All_Set (P.LHS) then
+               Terminal_Sequence (Grammar, Descriptor, Result, All_Set, Recursing, P.LHS);
+            end if;
+         end loop;
+         This_Count := Count (All_Set);
+         if This_Count = Last_Count then
+            raise Grammar_Error with "nonterminals have no minimum terminal sequence: " &
+              Image (All_Set, Descriptor, Inverted => True);
+         end if;
+         Last_Count := This_Count;
+      end loop;
+   end Compute_Terminal_Sequences;
+
 end WisiToken.LR.Generator_Utils;

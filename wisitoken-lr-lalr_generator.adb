@@ -134,6 +134,12 @@ package body WisiToken.LR.LALR_Generator is
          New_Line;
       end if;
 
+      Put_Line ("Terminal_Sequences:");
+      for I in Table.Terminal_Sequences.First_Index .. Table.Terminal_Sequences.Last_Index loop
+         Put_Line (Image (I, Descriptor) & " => " & Image (Table.Terminal_Sequences (I), Descriptor));
+      end loop;
+      New_Line;
+
       for State in Table.States'Range loop
          Kernel := LR1_Items.Find (State, Kernels);
          if Kernel = null then
@@ -156,8 +162,7 @@ package body WisiToken.LR.LALR_Generator is
       Symbol     : in Token_ID;
       First      : in Token_Array_Token_Set;
       Grammar    : in Production.List.Instance;
-      Descriptor : in LALR_Descriptor;
-      Trace      : in Boolean)
+      Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set
    is
       use Token_ID_Lists;
@@ -191,7 +196,7 @@ package body WisiToken.LR.LALR_Generator is
                      State      => Unknown_State, -- replaced in Kernels
                      Lookaheads => Lookaheads (Item)));
 
-               if Trace then
+               if Trace_Generate > Detail then
                   Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Image (Symbol, Descriptor));
                   Put (Descriptor, Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
                end if;
@@ -229,7 +234,7 @@ package body WisiToken.LR.LALR_Generator is
 
                            --  else already in goto set
 
-                           if Trace then
+                           if Trace_Generate > Detail then
                               Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Image (Symbol, Descriptor));
                               Put (Descriptor, Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
                            end if;
@@ -252,8 +257,7 @@ package body WisiToken.LR.LALR_Generator is
      (Grammar           : in Production.List.Instance;
       First             : in Token_Array_Token_Set;
       First_State_Index : in State_Index;
-      Descriptor        : in LALR_Descriptor;
-      Trace             : in Boolean)
+      Descriptor        : in LALR_Descriptor)
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
@@ -285,14 +289,14 @@ package body WisiToken.LR.LALR_Generator is
          --  For all items in the kernel list that haven't been checked yet...
          Checking_Set := Kernel_List.Head;
          while Checking_Set /= null loop
-            if Trace then
+            if Trace_Generate > Detail then
                Ada.Text_IO.Put ("Checking ");
                Put (Descriptor, Checking_Set.all);
             end if;
 
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop
 
-               New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar, Descriptor, Trace);
+               New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar, Descriptor);
 
                if New_Items.Set /= null then
 
@@ -306,7 +310,7 @@ package body WisiToken.LR.LALR_Generator is
 
                      Set_State (New_Items.Set, New_Items.State);
 
-                     if Trace then
+                     if Trace_Generate > Detail then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Items.State));
                      end if;
 
@@ -323,7 +327,7 @@ package body WisiToken.LR.LALR_Generator is
                         Set       => New_Items_Set,
                         Goto_List => Checking_Set.Goto_List)
                      then
-                        if Trace then
+                        if Trace_Generate > Detail then
                            Ada.Text_IO.Put_Line
                              ("  state" & Unknown_State_Index'Image (Checking_Set.State) &
                                 " adding goto on " & Image (Symbol, Descriptor) & " to state" &
@@ -345,7 +349,7 @@ package body WisiToken.LR.LALR_Generator is
 
       end loop;
 
-      if Trace then
+      if Trace_Generate > Detail then
          Ada.Text_IO.New_Line;
       end if;
 
@@ -627,7 +631,6 @@ package body WisiToken.LR.LALR_Generator is
       First                : in     Token_Array_Token_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
-      Trace                : in     Boolean;
       Descriptor           : in     LALR_Descriptor)
    is
       use type LR1_Items.Item_Set_Ptr;
@@ -639,13 +642,13 @@ package body WisiToken.LR.LALR_Generator is
          Closure := LR1_Items.Closure
            (Kernel.all, Has_Empty_Production, First, Grammar, Descriptor, Trace => False);
 
-         Add_Actions (Closure, Table, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
+         Add_Actions (Closure, Table, Has_Empty_Production, First, Conflicts, Trace_Generate > Detail, Descriptor);
          Kernel := Kernel.Next;
 
          LR1_Items.Free (Closure);
       end loop;
 
-      if Trace then
+      if Trace_Generate > Detail then
          Ada.Text_IO.New_Line;
       end if;
    end Add_Actions;
@@ -656,8 +659,6 @@ package body WisiToken.LR.LALR_Generator is
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Trace                    : in Boolean             := False;
-      Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
       Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr
@@ -671,11 +672,12 @@ package body WisiToken.LR.LALR_Generator is
 
       Has_Empty_Production : constant Token_ID_Set := LR1_Items.Has_Empty_Production (Grammar, Descriptor);
 
-      First : constant Token_Array_Token_Set := LR1_Items.First (Grammar, Descriptor, Has_Empty_Production, Trace);
+      First : constant Token_Array_Token_Set := LR1_Items.First
+        (Grammar, Descriptor, Has_Empty_Production, Trace_Generate > Detail);
 
       Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 
-      Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First, First_State_Index, Descriptor, Trace);
+      Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First, First_State_Index, Descriptor);
 
       First_Production : Production.Instance renames Production.List.Current (Grammar.First);
 
@@ -688,7 +690,9 @@ package body WisiToken.LR.LALR_Generator is
 
       Used_Tokens (First_Production.LHS) := True;
 
-      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace, Descriptor);
+      Fill_In_Lookaheads
+        (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace_Generate > Detail,
+         Descriptor);
 
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then
@@ -705,7 +709,7 @@ package body WisiToken.LR.LALR_Generator is
          Ada.Text_IO.New_Line;
       end if;
 
-      if Trace then
+      if Trace_Generate > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Kernels:");
          LR1_Items.Put (Descriptor, Kernels, Show_Lookaheads => True);
@@ -736,10 +740,11 @@ package body WisiToken.LR.LALR_Generator is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Add_Actions
-        (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
+      Generator_Utils.Compute_Terminal_Sequences (Grammar, Descriptor, Table.Terminal_Sequences);
 
-      if Put_Parse_Table then
+      Add_Actions (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Descriptor);
+
+      if Trace_Generate > Outline then
          LALR_Generator.Put_Parse_Table (Table, Kernels, Descriptor);
       end if;
 

@@ -91,7 +91,7 @@ package body Test_Accept_State is
 
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
    begin
       --  The test is that there are no exceptions.
 
@@ -99,12 +99,7 @@ package body Test_Accept_State is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generator.Generate
-           (Grammar,
-            LALR_Descriptor,
-            First_State_Index,
-            Trace           => Test.Debug > 0,
-            Put_Parse_Table => Test.Debug > 0),
+         WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
          First_Parser_Label);
 
       Parser.Lexer.Reset_With_String ("set A = 2");

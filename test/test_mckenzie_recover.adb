@@ -165,8 +165,10 @@ package body Test_McKenzie_Recover is
          );
       --  Missing "end if" at 67.
       --
-      --  This used to insert lots of stuff finishing all the blocks;
-      --  now it uses recover_pattern_1 for 'if'.
+      --  Enters error recovery on ';' 84 expecting 'IF'. Inserts 'IF ;
+      --  END', succeeds. Demonstrates the need for Check_Limit = 3; with
+      --  Check_Limit = 2, only inserts 'if ;', and errors again on 'loop'
+      --  90.
 
       declare
          use WisiToken.AUnit;
@@ -179,17 +181,6 @@ package body Test_McKenzie_Recover is
          Cursor       : constant Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("errors.length", Error_List.Length, 1);
-         Check
-           ("1", Element (Cursor),
-            (Label             => Action,
-             First_Terminal    => Descriptor.First_Terminal,
-             Last_Terminal     => Descriptor.Last_Terminal,
-             Error_Token       => 73,
-             Expecting         => To_Token_ID_Set
-               (Descriptor.First_Terminal,
-                Descriptor.Last_Terminal,
-                (1             => +IF_ID)),
-             Recover           => (others => <>)));
 
          Check ("1.error token.id", Tree.ID (Element (Cursor).Error_Token), +SEMICOLON_ID);
          Check
@@ -197,6 +188,13 @@ package body Test_McKenzie_Recover is
             Tree.Byte_Region (Element (Cursor).Error_Token),
             (84, 84));
 
+         Check
+           ("1.expecting", Element (Cursor).Expecting, To_Token_ID_Set
+               (Descriptor.First_Terminal,
+                Descriptor.Last_Terminal,
+               (1 => +IF_ID)));
+
+         --  Confirm that the subprogram_body was parsed:
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       end;
    end Error_3;
@@ -358,11 +356,9 @@ package body Test_McKenzie_Recover is
         ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; "
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90
         );
-      --  Missing 'return foo' in function spec.
+      --  Missing 'return <type>' at 69.
       --
-      --  error 1 at 'is' 72; expecting 'return'. Inserts 'return IDENTIFIER'.
-      --  Spawns 1 parser in state 91: subprogram_body_stub/subprogram_body
-      --  terminates 1 at 'begin' 75, shared lookahead not finished. Used to get queue empty error here.
+      --  Enter recover at 'is' 69; expecting 'return'. Inserts 'return IDENTIFIER'.
       --  continues to eof, succeeds.
 
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
@@ -395,9 +391,10 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie_Param.Cost_Limit := 1; -- show that matching the pattern reduces cost
+      --  We used to need a pattern to find a solution to these quickly, now
+      --  it just works.
+      Parser.Table.McKenzie_Param.Cost_Limit := 5;
 
-      --  Test 'recover_pattern_1' for CASE
       Parse_Text
         ("procedure Test_CASE_1 is begin case I is when 1 => A; end;"
          --        |10       |20       |30       |40       |50       |60       |70       |80
@@ -407,8 +404,6 @@ package body Test_McKenzie_Recover is
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
-      --  FIXME: recover finds "insert 'case; end'"; need another pattern
-      Parser.Table.McKenzie_Param.Cost_Limit := 10; -- no pattern matching here
       Parse_Text
         ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;"
          --        |10       |20       |30       |40       |50       |60       |70       |80
@@ -419,9 +414,6 @@ package body Test_McKenzie_Recover is
 
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
-      Parser.Table.McKenzie_Param.Cost_Limit := 2; -- show that matching the pattern reduces enqueues
-
-      --  Test 'recover_pattern_1' for IF
       Parse_Text
         ("procedure Test_IF is begin if A then B; end;");
       --        |10       |20       |30       |40       |50       |60       |70       |80
@@ -430,7 +422,6 @@ package body Test_McKenzie_Recover is
 
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
 
-      --  Test 'recover_pattern_1' for LOOP
       Parse_Text
         ("procedure Test_LOOP is begin for I in A loop B; end;");
       --        |10       |20       |30       |40       |50       |60       |70       |80
@@ -615,18 +606,14 @@ package body Test_McKenzie_Recover is
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
    end Zombie_In_Resume;
 
-   procedure Match_Name (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Push_Back_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use Ada_Lite;
       use AUnit.Assertions;
-      use AUnit.Checks;
+      use WisiToken.AUnit;
    begin
-      --  Test that block name matching is used to reject some solutions
-      --  during error recovery.
-
-      Parser.Table.McKenzie_Param.Check_Limit := 4;
-      --  Force checking solution thru '; end Remove;'
+      --  Test that push_back error recovery works.
 
       Parse_Text
         ("procedure Remove is begin loop A := B; loop; end Remove;");
@@ -634,21 +621,23 @@ package body Test_McKenzie_Recover is
 
       --  Typed 'loop;' instead of 'end loop;'
       --
-      --  Error at ';' 44. Desired solutions are:
+      --  Error at ';' 44. Desired solution is:
       --
-      --  (pop loop)(insert 'end loop ')
-      --
-      --  or
-      --
-      --  (insert 'end loop ; end loop ')
-      --
-      --  both cost 7. With help from the Match_Name semantic check, and
-      --  cost_limit 4, this finds both. The ambiguity is resolved by
-      --  a duplicate parse state.
-      --
-      --  This used to fail recovery, so the test is there is no
-      --  Syntax_Error.
-   end Match_Name;
+      --  (push_back loop)()(insert end) cost 3
+
+      declare
+         use WisiToken.LR.Parse_Error_Lists;
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
+         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
+      begin
+         Check ("error_token.id", Tree.ID (Error.Error_Token), +SEMICOLON_ID);
+         Check ("recover.push_back.length", Error.Recover.Pushed_Back.Length, 1);
+         Check ("recover.push_back.data", Tree.ID (Error.Recover.Pushed_Back (1)), +LOOP_ID);
+      end;
+   end Push_Back_1;
 
    procedure Missing_Quote (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -928,7 +917,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Error_Token_When_Parallel'Access, "Error_Token_When_Parallel");
       Register_Routine (T, If_In_Handler'Access, "If_In_Handler");
       Register_Routine (T, Zombie_In_Resume'Access, "Zombie_In_Resume");
-      Register_Routine (T, Match_Name'Access, "Match_Name");
+      Register_Routine (T, Push_Back_1'Access, "Push_Back_1");
       Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
       Register_Routine (T, Pattern_End_EOF'Access, "Pattern_End_EOF");
       Register_Routine (T, Pattern_Block_Match_Names_1'Access, "Pattern_Block_Match_Names_1");

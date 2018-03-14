@@ -2,7 +2,7 @@
 --
 --  Generalized LALR parse table generator.
 --
---  Copyright (C) 2002 - 2003, 2009 - 2010, 2013 - 2015, 2017 Stephe Leake
+--  Copyright (C) 2002 - 2003, 2009 - 2010, 2013 - 2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
@@ -32,8 +32,6 @@ package WisiToken.LR.LALR_Generator is
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Trace                    : in Boolean             := False;
-      Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
       Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr;
@@ -62,16 +60,14 @@ package WisiToken.LR.LALR_Generator is
       Symbol     : in Token_ID;
       First      : in Token_Array_Token_Set;
       Grammar    : in Production.List.Instance;
-      Descriptor : in LALR_Descriptor;
-      Trace      : in Boolean)
+      Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set;
 
    function LALR_Kernels
      (Grammar           : in Production.List.Instance;
       First             : in Token_Array_Token_Set;
       First_State_Index : in State_Index;
-      Descriptor        : in LALR_Descriptor;
-      Trace             : in Boolean)
+      Descriptor        : in LALR_Descriptor)
      return LR1_Items.Item_Set_List;
 
 end WisiToken.LR.LALR_Generator;

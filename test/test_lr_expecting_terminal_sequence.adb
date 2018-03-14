@@ -19,16 +19,19 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with WisiToken.AUnit;
 with Ada.Characters.Latin_1;
+with Ada.Text_IO;
+with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Lexer.Regexp;
+with WisiToken.LR.AUnit;
+with WisiToken.LR.Generator_Utils;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
+with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-package body Test_LR_Expecting is
+package body Test_LR_Expecting_Terminal_Sequence is
 
    --  A simple grammar for testing the Expecting function for generating nice error messages.
    --
@@ -58,8 +61,8 @@ package body Test_LR_Expecting is
       EOF_ID,
 
       --  non-terminals
-      Statement_ID,
-      Parse_Sequence_ID);
+      Statement_ID,       -- 9
+      Parse_Sequence_ID); -- 10
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
@@ -81,8 +84,7 @@ package body Test_LR_Expecting is
 
       Grammar : constant WisiToken.Production.List.Instance :=
         --  set symbol = value
-        WisiToken.Production.List.Only
-        (Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Syntax_Trees.Null_Action);
+        +(Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Syntax_Trees.Null_Action);
 
    end Set_Statement;
 
@@ -90,9 +92,8 @@ package body Test_LR_Expecting is
 
       Grammar : constant WisiToken.Production.List.Instance :=
         --  verify symbol = value +- tolerance
-        WisiToken.Production.List.Only
-          (Statement_ID  <= Verify_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID +
-             WisiToken.Syntax_Trees.Null_Action);
+        +(Statement_ID  <= Verify_ID & Identifier_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID +
+            WisiToken.Syntax_Trees.Null_Action);
    end Verify_Statement;
 
    package Lexer renames WisiToken.Lexer.Regexp;
@@ -141,21 +142,16 @@ package body Test_LR_Expecting is
    ----------
    --  Test procedures
 
-   procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Expecting (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      Test : Test_Case renames Test_Case (T);
+      pragma Unreferenced (T);
       use WisiToken.AUnit;
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generator.Generate
-           (Grammar,
-            LALR_Descriptor,
-            First_State_Index,
-            Trace           => Test.Debug > 0,
-            Put_Parse_Table => Test.Debug > 0),
+         WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
          First_Parser_Label);
 
       Execute
@@ -177,23 +173,57 @@ package body Test_LR_Expecting is
       Execute
         ("2",
          To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (+Set_ID, +Verify_ID)));
-   end Nominal;
+   end Test_Expecting;
+
+   procedure Test_Terminal_Sequence (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken.LR.AUnit;
+      Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;
+      Expected : WisiToken.LR.Token_Sequence_Arrays.Vector;
+      Sequence : WisiToken.Token_ID_Arrays.Vector;
+   begin
+      WisiToken.LR.Generator_Utils.Compute_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
+
+      Expected.Set_First (+Statement_ID);
+      Expected.Set_Last (+Parse_Sequence_ID);
+
+      Sequence.Append (+Set_ID);
+      Sequence.Append (+Identifier_ID);
+      Sequence.Append (+Equals_ID);
+      Sequence.Append (+Int_ID);
+      Expected (+Statement_ID) := Sequence;
+
+      --  We don't do Sequence.Clear here; Parse_Sequence_ID begins with Statement_ID
+      Sequence.Append (+Semicolon_ID);
+      Sequence.Append (+EOF_ID);
+      Expected (+Parse_Sequence_ID) := Sequence;
+
+      if WisiToken.Trace_Generate > WisiToken.Outline then
+         Ada.Text_IO.Put_Line ("Computed:");
+         for S of Computed loop
+            Ada.Text_IO.Put_Line (WisiToken.Image (S, LALR_Descriptor));
+         end loop;
+      end if;
+      Check ("1", Computed, Expected);
+   end Test_Terminal_Sequence;
 
    ----------
    --  Public subprograms
-
-   overriding function Name (T : Test_Case) return AUnit.Message_String
-   is
-      pragma Unreferenced (T);
-   begin
-      return new String'("test_lr_expecting.adb");
-   end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Test_Expecting'Access, "Test_Expecting");
+      Register_Routine (T, Test_Terminal_Sequence'Access, "Test_Terminal_Sequence");
    end Register_Tests;
 
-end Test_LR_Expecting;
+   overriding function Name (T : Test_Case) return AUnit.Message_String
+   is
+      pragma Unreferenced (T);
+   begin
+      return new String'("test_lr_expecting_terminal_sequence.adb");
+   end Name;
+
+end Test_LR_Expecting_Terminal_Sequence;

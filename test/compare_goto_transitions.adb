@@ -119,7 +119,7 @@ package body Compare_Goto_Transitions is
                Free (LR1);
 
                LALR := WisiToken.LR.LALR_Generator.LALR_Goto_Transitions
-                 (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor, Trace => False);
+                 (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor);
 
                WisiToken_AUnit.Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);
                Free (LR1_Filtered);

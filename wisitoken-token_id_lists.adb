@@ -27,6 +27,56 @@ package body WisiToken.Token_ID_Lists is
    ---------
    --  Public operations, declaration order.
 
+   function Constant_Reference
+     (Container : aliased in List'Class;
+      Position  :         in Node_Access)
+     return Constant_Reference_Type
+   is
+      pragma Unreferenced (Container);
+   begin
+      return (Element => Position.Element'Access);
+   end Constant_Reference;
+
+   function Has_Element (Cursor : in Node_Access) return Boolean
+   is begin
+      return Cursor /= null;
+   end Has_Element;
+
+   type List_Access_Constant is access constant List;
+   type Iterator is new Iterator_Interfaces.Forward_Iterator with record
+      Container : List_Access_Constant;
+   end record;
+
+   overriding function First (Object : Iterator) return Node_Access;
+   overriding function Next
+     (Object   : Iterator;
+      Position : Node_Access)
+     return Node_Access;
+
+   overriding function First (Object : Iterator) return Node_Access
+   is begin
+      return Object.Container.Head;
+   end First;
+
+   overriding function Next
+     (Object   : Iterator;
+      Position : Node_Access)
+     return Node_Access
+   is
+      pragma Unreferenced (Object);
+   begin
+      if Position = null then
+         return null;
+      else
+         return Position.Next;
+      end if;
+   end Next;
+
+   function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class
+   is begin
+      return Iterator'(Container => Container'Access);
+   end Iterate;
+
    function Length (Container : in List) return Ada.Containers.Count_Type
    is
       use Ada.Containers;

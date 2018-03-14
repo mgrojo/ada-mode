@@ -211,39 +211,55 @@ package body WisiToken.Production is
 
       function First (List : in Instance) return List_Iterator
       is begin
-         return List_Iterator (List.Head);
+         return (List.Head, Invalid_Token_ID);
       end First;
+
+      function Find (List : in Instance; Nonterm : in Token_ID) return List_Iterator
+      is
+         Node : List_Node_Ptr := List.Head;
+      begin
+         loop
+            exit when Node = null;
+            exit when Node.Production.LHS = Nonterm;
+            Node := Node.Next;
+         end loop;
+
+         return (Node, Nonterm);
+      end Find;
 
       procedure Next (Iterator : in out List_Iterator)
       is begin
-         if Iterator /= null then
-            Iterator := List_Iterator (Iterator.Next);
+         if Iterator.Ptr /= null then
+            Iterator.Ptr := Iterator.Ptr.Next;
+
+            if Iterator.Find_ID /= Invalid_Token_ID then
+               if Iterator.Ptr /= null and then
+                 Iterator.Ptr.Production.LHS /= Iterator.Find_ID
+               then
+                  Iterator.Ptr := null;
+               end if;
+            end if;
          end if;
       end Next;
 
       function Current (Iterator : in List_Iterator) return Production.Instance
       is begin
-         return Iterator.Production;
+         return Iterator.Ptr.Production;
       end Current;
 
       function LHS (Iterator : in List_Iterator) return Token_ID
       is begin
-         return Iterator.Production.LHS;
+         return Iterator.Ptr.Production.LHS;
       end LHS;
 
       function RHS (Iterator : in List_Iterator) return Right_Hand_Side
       is begin
-         return Iterator.Production.RHS;
+         return Iterator.Ptr.Production.RHS;
       end RHS;
-
-      function Last_Production (Iterator : in List_Iterator) return Boolean
-      is begin
-         return Iterator = null or else Iterator.Next = null;
-      end Last_Production;
 
       function Is_Done (Iterator : in List_Iterator) return Boolean
       is begin
-         return Iterator = null;
+         return Iterator.Ptr = null;
       end Is_Done;
 
    end List;

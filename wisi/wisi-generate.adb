@@ -3,7 +3,7 @@
 --  Parser for Wisi grammar files, producing Ada or Elisp source
 --  files for a parser.
 --
---  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -131,7 +131,7 @@ begin
 
          if Argument (Arg_Next) = "-v" then
             Arg_Next  := Arg_Next + 1;
-            Verbosity := Integer'Value (Argument (Arg_Next));
+            WisiToken.Trace_Generate := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--enum" then

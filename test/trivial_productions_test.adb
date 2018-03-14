@@ -62,6 +62,7 @@ package body Trivial_Productions_Test is
 
       procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
       is
+         pragma Unreferenced (Test);
 
          First_State_Index  : constant := 1;
          First_Parser_Label : constant := 1;
@@ -92,8 +93,7 @@ package body Trivial_Productions_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate
-              (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug > 0),
+            WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
             First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);
@@ -143,7 +143,7 @@ package body Trivial_Productions_Test is
 
       procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is
-         Test : Test_Case renames Test_Case (T);
+         pragma Unreferenced (T);
 
          First_State_Index  : constant := 1;
          First_Parser_Label : constant := 1;
@@ -186,12 +186,7 @@ package body Trivial_Productions_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate
-              (Grammar,
-               LALR_Descriptor,
-               First_State_Index,
-               Trace           => Test.Debug > 0,
-               Put_Parse_Table => Test.Debug > 0),
+            WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
             First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);

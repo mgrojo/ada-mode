@@ -83,10 +83,8 @@ is
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
-            Trace                    => Verbosity > 1,
-            Put_Parse_Table          => Verbosity > 0,
-            Ignore_Unused_Tokens     => Verbosity > 1,
-            Ignore_Unknown_Conflicts => Verbosity > 1);
+            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
+            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
          Data.Parser_State_Count := Parsers (LALR).State_Last - Parsers (LALR).State_First + 1;
       end if;
@@ -100,10 +98,10 @@ is
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
-            Trace                    => Verbosity > 1,
-            Put_Parse_Table          => Verbosity > 0,
-            Ignore_Unused_Tokens     => Verbosity > 1,
-            Ignore_Unknown_Conflicts => Verbosity > 1);
+            Trace                    => WisiToken.Trace_Generate > 1,
+            Put_Parse_Table          => WisiToken.Trace_Generate > 0,
+            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
+            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
          Data.Parser_State_Count := WisiToken.LR.Unknown_State_Index'Max
            (Data.Parser_State_Count,

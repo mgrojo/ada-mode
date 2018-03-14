@@ -318,12 +318,10 @@ package WisiToken.LR is
    --  Put Item to Ada.Text_IO.Current_Output
 
    package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID_Arrays.Vector);
-   --  Element is right hand side; left hand side is given by
-   --  Parse_Action_Rec.
 
-   procedure Add_Production
-     (Vector : in out Token_ID_Arrays.Vector;
-      Tokens : in     Token_ID_Array);
+   package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
+
+   procedure Set_Token_Sequence (Vector : in out Token_ID_Arrays.Vector; Tokens : in Token_ID_Array);
 
    type Parse_Table
      (State_First       : State_Index;
@@ -334,9 +332,10 @@ package WisiToken.LR is
       Last_Nonterminal  : Token_ID)
      is
    record
-      States         : Parse_State_Array (State_First .. State_Last);
-      McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Productions    : Production_Arrays.Vector;
+      States             : Parse_State_Array (State_First .. State_Last);
+      McKenzie_Param     : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
+      Productions        : Production_Arrays.Vector; -- Indexed by Production.Index
+      Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
    end record;
 
    type Parse_Table_Ptr is access Parse_Table;
@@ -358,6 +357,14 @@ package WisiToken.LR is
    --  Return the action for State, terminal ID.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
+
+   function Minimal_Terminal_Sequence
+     (Table   : in Parse_Table;
+      Nonterm : in Token_ID)
+     return Token_ID_Arrays.Vector;
+   --  Return the minimal terminal sequence for Nonterm; this can be
+   --  inserted as virtual terminals in the input stream when
+   --  McKenzie_Recover inserts a nonterm.
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);
@@ -421,8 +428,8 @@ package WisiToken.LR is
       --  Current_Inserted and then Shared_Parser.Terminals
       --  (Last_Shared_Token + 1 .. Current_Shared_Token) have been parsed.
 
-      Next_Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
-      --  Index into Shared_Parser.Terminals for next input token, after
+      Current_Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
+      --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 
       Pushed_Back : Fast_Tree_Index_Vectors.Vector;

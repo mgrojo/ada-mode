@@ -120,14 +120,13 @@ package WisiToken.Production is
 
       function First (List : in Instance) return List_Iterator;
 
+      function Find (List : in Instance; Nonterm : in Token_ID) return List_Iterator;
+
       procedure Next (Iterator : in out List_Iterator);
 
       function Current (Iterator : in List_Iterator) return Production.Instance;
       function LHS (Iterator : in List_Iterator) return Token_ID;
       function RHS (Iterator : in List_Iterator) return Right_Hand_Side;
-
-      function Last_Production (Iterator : in List_Iterator) return Boolean;
-      --  Return true if the iterator is at the last production.
 
       function Is_Done (Iterator : in List_Iterator) return Boolean;
       function Is_Null (Iterator : in List_Iterator) return Boolean renames Is_Done;
@@ -147,7 +146,10 @@ package WisiToken.Production is
          Tail  : List_Node_Ptr;
       end record;
 
-      type List_Iterator is new List_Node_Ptr;
+      type List_Iterator is record
+         Ptr     : List_Node_Ptr;
+         Find_ID : Token_ID := Invalid_Token_ID;
+      end record;
 
       procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);
 

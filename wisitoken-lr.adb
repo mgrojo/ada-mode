@@ -453,7 +453,7 @@ package body WisiToken.LR is
       end if;
    end Add_Goto;
 
-   procedure Add_Production
+   procedure Set_Token_Sequence
      (Vector : in out Token_ID_Arrays.Vector;
       Tokens : in     Token_ID_Array)
    is begin
@@ -461,7 +461,7 @@ package body WisiToken.LR is
       for I in Tokens'Range loop
          Vector (I) := Tokens (I);
       end loop;
-   end Add_Production;
+   end Set_Token_Sequence;
 
    function Action_For
      (Table : in Parse_Table;
@@ -518,6 +518,14 @@ package body WisiToken.LR is
       end loop;
       return Result;
    end Expecting;
+
+   function Minimal_Terminal_Sequence
+     (Table   : in Parse_Table;
+      Nonterm : in Token_ID)
+     return Token_ID_Arrays.Vector
+   is begin
+      return Table.Terminal_Sequences (Nonterm);
+   end Minimal_Terminal_Sequence;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
    is

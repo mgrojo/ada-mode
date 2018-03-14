@@ -28,13 +28,32 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Finalization;
+with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
 package WisiToken.Token_ID_Lists is
 
-   type List is tagged private;
+   type List is tagged private
+   with
+     Constant_Indexing => Constant_Reference,
+     Default_Iterator  => Iterate,
+     Iterator_Element  => Token_ID;
    --  List is _not_ Controlled; assignment does a shallow copy of
    --  the root list pointers. WisiToken.LR.LR1_Items takes advantage of
    --  this.
+
+   type Constant_Reference_Type (Element : not null access constant Token_ID) is null record
+   with Implicit_Dereference => Element;
+
+   type Node_Access is private;
+
+   function Constant_Reference
+     (Container : aliased in List'Class;
+      Position  :         in Node_Access)
+     return Constant_Reference_Type;
+
+   function Has_Element (Cursor : in Node_Access) return Boolean;
+   package Iterator_Interfaces is new Ada.Iterator_Interfaces (Node_Access, Has_Element);
+   function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class;
 
    Empty_List : constant List;
 

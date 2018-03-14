@@ -571,7 +571,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Item   : Check_Item := Check_Item_Queue.Get;
       Config : Configuration renames Item.Config;
 
-      Current_Input : Token_ID := Shared.ID (Config.Next_Shared_Token);
+      Current_Input : Token_ID := Shared.ID (Config.Current_Shared_Token);
 
       Action : Parse_Action_Node_Ptr :=
         (if Item.Action = null
@@ -582,21 +582,11 @@ package body WisiToken.LR.McKenzie_Recover is
       Keep_Going : Boolean := True;
 
    begin
-      --  Increment 'next' whenever use it.
-      Config.Next_Shared_Token := Shared.Get_Token (Config.Next_Shared_Token + 1);
-
       if Trace_McKenzie > Detail then
          Put ("check " & Image (Current_Input, Descriptor), Super, Parser_Index, Config);
       end if;
 
       loop
-         if Trace_McKenzie > Extra then
-            Put_Line
-              (Trace, Super.Label (Parser_Index), "checking :" & State_Index'Image (Config.Stack.Peek.State) &
-                 " : " & Image (Current_Input, Descriptor) &
-                 " : " & Image (Action.Item, Descriptor));
-         end if;
-
          if Action.Next /= null then
             if Trace_McKenzie > Detail then
                Put_Line
@@ -606,12 +596,19 @@ package body WisiToken.LR.McKenzie_Recover is
             Check_Item_Queue.Put ((Config, Action.Next));
          end if;
 
+         if Trace_McKenzie > Extra then
+            Put_Line
+              (Trace, Super.Label (Parser_Index), "checking :" & State_Index'Image (Config.Stack.Peek.State) &
+                 " : " & Image (Current_Input, Descriptor) &
+                 " : " & Image (Action.Item, Descriptor));
+         end if;
+
          case Action.Item.Verb is
          when Shift =>
             Config.Stack.Push ((Action.Item.State, Current_Input, Null_Buffer_Region, Syntax_Trees.No_Node_Index));
 
-            Current_Input            := Shared.ID (Config.Next_Shared_Token);
-            Config.Next_Shared_Token := Shared.Get_Token (Config.Next_Shared_Token + 1);
+            Config.Current_Shared_Token := Shared.Get_Token (Config.Current_Shared_Token + 1);
+            Current_Input               := Shared.ID (Config.Current_Shared_Token);
 
          when Reduce =>
             Config.Stack.Pop (SAL.Base_Peek_Type (Action.Item.Token_Count));
@@ -634,7 +631,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
          exit when not Keep_Going or
            Action.Item.Verb = Accept_It or
-           Config.Next_Shared_Token >= Shared_Token_Goal;
+           Config.Current_Shared_Token >= Shared_Token_Goal;
 
          Action := Action_For (Table, Config.Stack.Peek.State, Current_Input);
       end loop;
@@ -825,33 +822,19 @@ package body WisiToken.LR.McKenzie_Recover is
       --  later in the actual parser, and that there are no duplicate
       --  solutions found.
       --
-      --  All possible permutations will be explored.
+      --  All possible permutations will be explored, except pop only occurs
+      --  after all pushed_back; mixing them would leave holes in
+      --  Shared_Parser.Terminals, which we can't handle. This allows
+      --  pushing back to the correct error location, and deleting an erroneous
+      --  token at that point.
 
-      if Config.Deleted.Length = 0 and
+      if Config.Popped.Length = 0 and
+        Config.Deleted.Length = 0 and
         Config.Inserted.Length = 0 and
         Config.Stack.Depth > 1 -- can't delete the first state
       then
-         --  Try deleting stack top
-         New_Config := Config;
-
          declare
-            Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
-         begin
-            New_Config.Cost := New_Config.Cost +
-              (if Item.Byte_Region = Null_Buffer_Region
-               then 0
-               else McKenzie_Param.Delete (Item.ID));
-
-            New_Config.Popped.Append (Item.ID);
-            if Trace_McKenzie > Detail then
-               Put ("pop " & Image (Item.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
-            end if;
-
-            Local_Config_Heap.Add (New_Config);
-         end;
-
-         declare
-            Item : constant Recover_Stack_Item := New_Config.Stack.Peek;
+            Item : constant Recover_Stack_Item := Config.Stack.Peek;
             Tree : Syntax_Trees.Branched.Tree renames Super.Parser_State (Parser_Index).Tree;
          begin
             --  Try pushing back the stack top, to allow insert and other
@@ -871,6 +854,7 @@ package body WisiToken.LR.McKenzie_Recover is
                New_Config.Stack.Pop;
                New_Config.Cost := New_Config.Cost + McKenzie_Param.Push_Back (Item.ID);
                New_Config.Pushed_Back.Append (Item.Tree_Index);
+               New_Config.Current_Shared_Token := New_Config.Current_Shared_Token - 1;
                if Trace_McKenzie > Detail then
                   Put ("push_back " & Image (Item.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
                end if;
@@ -893,6 +877,8 @@ package body WisiToken.LR.McKenzie_Recover is
 
                   New_Config.Stack.Pop;
                   New_Config.Cost := New_Config.Cost + McKenzie_Param.Push_Back (Item.ID);
+                  New_Config.Current_Shared_Token := New_Config.Current_Shared_Token -
+                    Tree.Count_Shared_Terminals (Item.Tree_Index);
                   New_Config.Pushed_Back.Append (Item.Tree_Index);
                   if Trace_McKenzie > Detail then
                      Put ("push_back " & Image (Item.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
@@ -903,6 +889,31 @@ package body WisiToken.LR.McKenzie_Recover is
             end case;
          end;
 
+      end if;
+
+      if Config.Pushed_Back.Length = 0 and
+        Config.Deleted.Length = 0 and
+        Config.Inserted.Length = 0 and
+        Config.Stack.Depth > 1 -- can't delete the first state
+      then
+         --  Try deleting stack top
+         New_Config := Config;
+
+         declare
+            Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
+         begin
+            New_Config.Cost := New_Config.Cost +
+              (if Item.Byte_Region = Null_Buffer_Region
+               then 0
+               else McKenzie_Param.Delete (Item.ID));
+
+            New_Config.Popped.Append (Item.ID);
+            if Trace_McKenzie > Detail then
+               Put ("pop " & Image (Item.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
+            end if;
+
+            Local_Config_Heap.Add (New_Config);
+         end;
       end if;
 
       if Config.Deleted.Length = 0 then
@@ -976,7 +987,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
       --  Try deleting (= skipping) the current shared input token.
       declare
-         ID : constant Token_ID := Shared.ID (Config.Next_Shared_Token);
+         ID : constant Token_ID := Shared.ID (Config.Current_Shared_Token);
       begin
          if ID /= EOF_ID then
             --  can't delete EOF
@@ -984,7 +995,7 @@ package body WisiToken.LR.McKenzie_Recover is
             New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (ID);
 
             New_Config.Deleted.Append (ID);
-            New_Config.Next_Shared_Token := Shared.Get_Token (New_Config.Next_Shared_Token + 1);
+            New_Config.Current_Shared_Token := Shared.Get_Token (New_Config.Current_Shared_Token + 1);
 
             if Trace_McKenzie > Detail then
                Put ("delete " & Image (ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
@@ -1067,7 +1078,8 @@ package body WisiToken.LR.McKenzie_Recover is
          Trace.New_Line;
          Trace.Put_Line
            ("parser" & Integer'Image (Parser_State.Label) & ": Current_Token " &
-              Image (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all));
+              Image (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) &
+           " Shared_Token " & Image (Shared_Parser.Terminals (Parser_State.Shared_Token), Trace.Descriptor.all));
          if Trace_McKenzie > Extra then
             Put_Line (Trace, Parser_State.Label, Image (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree));
          end if;
@@ -1086,7 +1098,7 @@ package body WisiToken.LR.McKenzie_Recover is
          --  here). Therefore Parser_State current token is in
          --  Shared_Parser.Shared_Token.
 
-         Orig.Next_Shared_Token := Parser_State.Shared_Token;
+         Orig.Current_Shared_Token := Parser_State.Shared_Token;
 
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Parser_State.Label, Orig, Parser_State.Tree, Include_Task_ID => False);
@@ -1248,24 +1260,66 @@ package body WisiToken.LR.McKenzie_Recover is
             declare
                use all type Ada.Containers.Count_Type;
                use Parser_Lists;
-               Data   : McKenzie_Data renames Parser_State.Recover;
-               Result : Configuration renames Data.Results.Peek;
+               Descriptor : WisiToken.Descriptor'Class renames Shared_Parser.Trace.Descriptor.all;
+               Table      : Parse_Table renames Shared_Parser.Table.all;
+               Data       : McKenzie_Data renames Parser_State.Recover;
+               Result     : Configuration renames Data.Results.Peek;
             begin
+               if Result.Deleted.Length > 0 then
+                  --  Parser_State.Current_Token is the first item in Deleted, and the
+                  --  most recently added terminal in Parser_State.Tree. The rest of
+                  --  Deleted are in Shared_Parser.Terminals, but not yet in Tree.
+                  Parser_State.Tree.Delete (Parser_State.Current_Token);
+               end if;
+
                for ID of Result.Popped loop
-                  Parser_State.Stack.Pop;
+                  declare
+                     Item : constant Parser_Stack_Item := Parser_State.Stack.Pop;
+                  begin
+                     Parser_State.Tree.Delete (Item.Token);
+                  end;
+               end loop;
+
+               for ID of Result.Pushed_Back loop
+                  declare
+                     Item : constant Parser_Stack_Item := Parser_State.Stack.Pop;
+                  begin
+                     Parser_State.Tree.Delete (Item.Token);
+                  end;
                end loop;
 
                for ID of reverse Result.Inserted loop
-                  Parser_State.Local_Lookahead.Add_To_Head (Parser_State.Tree.Add_Terminal (ID));
+                  if ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+                     Parser_State.Local_Lookahead.Add_To_Head (Parser_State.Tree.Add_Terminal (ID));
+                  else
+                     --  This nonterm was pushed on the stack; change that to a sequence of
+                     --  terminals in lookahead
+                     Parser_State.Stack.Pop;
+                     for T of reverse Table.Terminal_Sequences (ID) loop
+                        Parser_State.Local_Lookahead.Add_To_Head (Parser_State.Tree.Add_Terminal (ID));
+                     end loop;
+                  end if;
                end loop;
 
+               --  Update Shared_Token; this may not be needed, but is always correct.
+               Parser_State.Shared_Token := Result.Current_Shared_Token;
+
+               --  Update Current_Token, Current_Token_Is_Virtual
                if Parser_State.Local_Lookahead.Count > 0 then
                   Parser_State.Current_Token := Parser_State.Local_Lookahead.Get;
 
                   Parser_State.Current_Token_Is_Virtual := True;
 
+               elsif Result.Pushed_Back.Length > 0 then
+                  --  Result.Current_Shared_Token is in Shared_Parser.Terminals but
+                  --  deleted from Parser_State.Tree. So we add it again.
+                  Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Parser_State.Shared_Token);
+
+                  Parser_State.Current_Token_Is_Virtual := False;
+
                elsif Result.Deleted.Length > 0 then
-                  Parser_State.Shared_Token  := Result.Next_Shared_Token;
+                  --  Result.Current_Shared_Token is in Shared_Parser.Terminals, but not
+                  --  yet in Tree; enter it there for Parser_State.Current_Token.
                   Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Parser_State.Shared_Token);
 
                   Parser_State.Current_Token_Is_Virtual := False;

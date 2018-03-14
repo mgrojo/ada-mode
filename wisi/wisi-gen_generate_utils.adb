@@ -689,7 +689,7 @@ package body Wisi.Gen_Generate_Utils is
 begin
    Set_Token_Images;
 
-   if Verbosity > 0 then
+   if WisiToken.Trace_Generate > 0 then
       Put_Tokens;
    end if;
 

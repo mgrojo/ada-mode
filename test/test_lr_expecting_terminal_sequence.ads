@@ -1,8 +1,10 @@
 --  Abstract :
 --
---  Test handling of trivial productions
+--  Test WisiToken.LR.Expecting, and WisiToken.LR.Generator_Utils.Compute_Terminal_Sequences.
 --
---  Copyright (C) 2012, 2013, 2018 Stephen Leake.  All Rights Reserved.
+--  Tests grouped together because they use the same simple grammar.
+--
+--  Copyright (C) 2009, 2010, 2012, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -17,7 +19,7 @@
 --  MA 02111-1307, USA.
 
 with AUnit.Test_Cases;
-package Trivial_Productions_Test is
+package Test_LR_Expecting_Terminal_Sequence is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -27,4 +29,4 @@ package Trivial_Productions_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Trivial_Productions_Test;
+end Test_LR_Expecting_Terminal_Sequence;
