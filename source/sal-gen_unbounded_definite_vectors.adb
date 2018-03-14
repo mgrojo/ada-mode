@@ -19,11 +19,6 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Unbounded_Definite_Vectors is
 
-   function To_Index_Type (Item : in Peek_Type) return Index_Type'Base with Inline
-   is begin
-      return Index_Type'Base (Item - Peek_Type'First) + Index_Type'First;
-   end To_Index_Type;
-
    function To_Peek_Type (Item : in Index_Type) return Peek_Type'Base
    is begin
       return Peek_Type'Base (Item - Index_Type'First) + Peek_Type'First;
@@ -119,8 +114,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    function First_Index (Container : Vector) return Extended_Index
    is begin
       if Container.Elements = null then
-         --  We return No_Index + 1 here so 'for I in Container.First_Index .. Container.Last_Index loop'
-         --  is correct.
          return No_Index + 1;
       else
          return Container.First;
@@ -137,40 +130,81 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    end Last_Index;
 
    procedure Append (Container : in out Vector; New_Item : in Element_Type)
-   is
-      J : constant Peek_Type :=
-        (if Container.Last = No_Index
-         then To_Peek_Type (Index_Type'First)
-         else To_Peek_Type (Container.Last + 1));
-   begin
-      if Container.Elements = null then
-         Container.Elements := new Array_Type (J .. J);
-         Container.First := To_Index_Type (J);
-
-      elsif J > Container.Elements'Last then
-         Grow (Container.Elements, J);
+   is begin
+      if Container.First = No_Index then
+         Container.First := Index_Type'First;
+         Container.Last  := Index_Type'First;
+      else
+         Container.Last := Container.Last + 1;
       end if;
 
-      Container.Elements (J) := New_Item;
-      Container.Last         := To_Index_Type (J);
+      declare
+         J : constant Peek_Type := To_Peek_Type (Container.Last);
+      begin
+         if Container.Elements = null then
+            Container.Elements := new Array_Type (J .. J);
+
+         elsif J > Container.Elements'Last then
+            Grow (Container.Elements, J);
+         end if;
+
+         Container.Elements (J) := New_Item;
+      end;
+   end Append;
+
+   procedure Append (Container : in out Vector; New_Items : in Vector)
+   is
+      use all type Ada.Containers.Count_Type;
+      Old_Last : Extended_Index := Container.Last;
+   begin
+      if New_Items.Length = 0 then
+         return;
+      end if;
+
+      if Container.First = No_Index then
+         Container.First := Index_Type'First;
+         Old_Last        := Container.First - 1;
+         Container.Last  := Container.First + Extended_Index (New_Items.Length) - 1;
+      else
+         Container.Last := Container.Last + Extended_Index (New_Items.Length);
+      end if;
+
+      declare
+         I : constant Peek_Type := To_Peek_Type (Old_Last + 1);
+         J : constant Peek_Type := To_Peek_Type (Container.Last);
+      begin
+         if Container.Elements = null then
+            Container.Elements := new Array_Type (I .. J);
+         elsif J > Container.Elements'Last then
+            Grow (Container.Elements, J);
+         end if;
+
+         Container.Elements (I .. J) := New_Items.Elements
+           (To_Peek_Type (New_Items.First) .. To_Peek_Type (New_Items.Last));
+      end;
    end Append;
 
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type)
-   is
-      J : constant Peek_Type'Base :=
-        (if Container.Elements = null
-         then To_Peek_Type (Index_Type'First)
-         else To_Peek_Type (Container.First - 1));
-   begin
-      if Container.Elements = null then
-         Container.Elements := new Array_Type (J .. J);
-
-      elsif J < Container.Elements'First then
-         Grow (Container.Elements, J);
+   is begin
+      if Container.First = No_Index then
+         Container.First := Index_Type'First;
+         Container.Last  := Index_Type'First;
+      else
+         Container.First := Container.First - 1;
       end if;
 
-      Container.Elements (J) := New_Item;
-      Container.First        := To_Index_Type (J);
+      declare
+         J : constant Peek_Type := To_Peek_Type (Container.First);
+      begin
+         if Container.Elements = null then
+            Container.Elements := new Array_Type (J .. J);
+
+         elsif J < Container.Elements'First then
+            Grow (Container.Elements, J);
+         end if;
+
+         Container.Elements (J) := New_Item;
+      end;
    end Prepend;
 
    procedure Prepend

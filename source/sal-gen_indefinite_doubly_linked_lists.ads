@@ -68,6 +68,8 @@ package SAL.Gen_Indefinite_Doubly_Linked_Lists is
 
    function Constant_Reference (Position : in Cursor) return Constant_Reference_Type;
 
+   function Constant_Ref (Container : in List'Class; Position : in Peek_Type) return Constant_Reference_Type;
+
    type Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 

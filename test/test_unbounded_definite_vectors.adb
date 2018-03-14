@@ -56,10 +56,12 @@ is
       use AUnit.Checks;
       use AUnit.Checks.Containers;
 
-      Test_Item : Vector;
+      Test_Item   : Vector;
+      Test_Item_2 : Vector;
    begin
       Test_Item.Set_First (1);
-      Check ("0", Test_Item.First_Index, No_Index);
+      Check ("0a", Test_Item.First_Index, No_Index + 1);
+      Check ("0b", Test_Item.Last_Index, No_Index);
 
       Test_Item.Append (1);
       Test_Item.Append (2);
@@ -80,7 +82,45 @@ is
       Check ("3.first_index", Test_Item.First_Index, -1);
       Check ("3.last_index", Test_Item.Last_Index, 3);
       Check ("3.data", Test_Item (3), 5);
+
+      Test_Item_2.Append (4);
+      Test_Item_2.Append (5);
+
+      Test_Item.Append (Test_Item_2);
+      Check ("4", Test_Item, (-1 => 4, 0 => 3, 1 => 1, 2 => 2, 3 => 5, 4 => 4, 5 => 5));
    end Nominal;
+
+   procedure Test_Set_First (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+
+      Test_Item   : Vector;
+      Test_Item_2 : Vector;
+   begin
+      Test_Item.Set_First (-4);
+      Check ("0a", Test_Item.First_Index, No_Index + 1);
+      Check ("0b", Test_Item.Last_Index, No_Index);
+
+      Test_Item.Append (3);
+      Check ("1", Test_Item, (-4 => 3));
+
+      Finalize (Test_Item);
+
+      Test_Item.Set_First (4);
+      Test_Item.Prepend (3);
+      Check ("2", Test_Item, (3 => 3));
+
+      Finalize (Test_Item);
+
+      Test_Item_2.Append (4);
+      Test_Item_2.Append (5);
+
+      Test_Item.Set_First (3);
+      Test_Item.Append (Test_Item_2);
+      Check ("3", Test_Item, (3 => 4, 4 => 5));
+   end Test_Set_First;
 
    procedure Test_Set_Length (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -91,7 +131,7 @@ is
       Test_Item : Vector;
    begin
       Test_Item.Set_Length (0);
-      Check ("-1a", Test_Item.First_Index, No_Index);
+      Check ("-1a", Test_Item.First_Index, No_Index + 1);
       Check ("-1b", Test_Item.Last_Index, No_Index);
 
       Test_Item.Set_Length (3);
@@ -174,6 +214,7 @@ is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Test_Set_First'Access, "Test_Set_First");
       Register_Routine (T, Test_Set_Length'Access, "Test_Set_Length");
       Register_Routine (T, Prepend'Access, "Prepend");
       Register_Routine (T, Test_Grow_1'Access, "Test_Grow_1");

@@ -73,6 +73,7 @@ OK sal-time_conversions-test.adb : Test_TAI_To_UTC
 OK sal-time_conversions-test.adb : Test_GPS
 OK sal-time_conversions-test.adb : Test_Calendar
 OK ../../test/test_gen_images.adb : Nominal
+OK test_graphs.adb : Nominal
 OK test_bounded_definite_queues.adb : Nominal
 OK test_bounded_definite_queues.adb : Errors
 OK test_bounded_definite_queues.adb : Overwrite
@@ -88,8 +89,13 @@ OK ../../test/test_stacks.adb : Compare
 OK Test_Math_Float_Stats : Test_Stats
 OK test_unbounded_definite_vectors_protected.adb : Nominal
 OK test_unbounded_definite_vectors.adb : Nominal
+OK test_unbounded_definite_vectors.adb : Test_Set_First
+OK test_unbounded_definite_vectors.adb : Test_Set_Length
+OK test_unbounded_definite_vectors.adb : Prepend
+OK test_unbounded_definite_vectors.adb : Test_Grow_1
+OK test_unbounded_definite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   89
-Successful Tests:  89
+Total Tests Run:   95
+Successful Tests:  95
 Failed Assertions: 0
 Unexpected Errors: 0

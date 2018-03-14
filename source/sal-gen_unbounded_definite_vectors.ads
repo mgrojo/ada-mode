@@ -63,6 +63,9 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    renames Finalize;
 
    function First_Index (Container : Vector) return Extended_Index;
+   --  No_Index + 1 when Container is empty, so "for I in C.First_Index
+   --  .. C.Last_Index loop" works.
+
    function Last_Index (Container : Vector) return Extended_Index;
    --  No_Index when Container is empty.
 
@@ -74,6 +77,9 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --
    --  Raises Constraint_Error if index of new item would be greater than
    --  Index_Type'Last.
+
+   procedure Append (Container : in out Vector; New_Items : in Vector);
+   --  Insert all elements of New_Items at end of Container.
 
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type);
    --  Insert New_Item at beginning of Container.
@@ -125,13 +131,13 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    with Implicit_Dereference => Element;
 
    function Constant_Reference (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
-   with Pre => Index >= Container.First_Index or Index <= Container.Last_Index;
+   with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
 
    type Variable_Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
    function Variable_Reference (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
-   with Pre => Index >= Container.First_Index or Index <= Container.Last_Index;
+   with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
 
    function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Element_Access_Type;
 

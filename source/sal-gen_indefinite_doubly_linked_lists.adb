@@ -186,6 +186,16 @@ package body SAL.Gen_Indefinite_Doubly_Linked_Lists is
       return (Element => Position.Ptr.all.Element);
    end Constant_Reference;
 
+   function Constant_Ref (Container : in List'Class; Position : in Peek_Type) return Constant_Reference_Type
+   is
+      Ptr : Node_Access := Container.Head;
+   begin
+      for I in 2 .. Position loop
+         Ptr := Ptr.Next;
+      end loop;
+      return (Element => Ptr.all.Element);
+   end Constant_Ref;
+
    function Reference (Position : in Cursor) return Reference_Type
    is begin
       return (Element => Position.Ptr.all.Element);
