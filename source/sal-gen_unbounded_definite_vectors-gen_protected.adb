@@ -90,11 +90,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
    end Last_Index;
 
    function Element (Container : Vector; Index : Index_Type) return Element_Type
-   is
-   begin
-      --  Generated stub: replace with real body!
-      raise Program_Error with "Unimplemented function Element";
-      return Element (Container => Container, Index => Index);
+   is begin
+      Container.Guard.Acquire_Read;
+      return Result : constant Element_Type := Container.Super.Elements (To_Peek_Type (Index)) do
+         Container.Guard.Release_Read;
+      end return;
    end Element;
 
    procedure Append
@@ -129,45 +129,48 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
       Container.Guard.Release_Write;
    end Set_Last;
 
-   function Constant_Reference
-     (Container : aliased in Vector;
-      Index     :         in Index_Type)
-     return Constant_Reference_Type
-   is begin
-      return Result : Constant_Reference_Type
-        (Element   => Container.Super.Elements (To_Peek_Type (Index))'Access,
-         Container => Container'Access);
-   end Constant_Reference;
+   --  function Constant_Reference
+   --    (Container : aliased in Vector;
+   --     Index     :         in Index_Type)
+   --    return Constant_Reference_Type
+   --  is begin
+   --     return Result : Constant_Reference_Type
+   --       (Element   => Container.Super.Elements (To_Peek_Type (Index))'Access,
+   --        Container => Container'Access);
+   --  end Constant_Reference;
 
-   function Variable_Reference
-     (Container : aliased in out Vector;
-      Index     :         in     Index_Type)
-     return Variable_Reference_Type
-   is begin
-      return Result : Variable_Reference_Type
-        (Element   => Container.Super.Elements (To_Peek_Type (Index))'Access,
-         Container => Container'Access);
-   end Variable_Reference;
+   --  function Variable_Reference
+   --    (Container : aliased in out Vector;
+   --     Index     :         in     Index_Type)
+   --    return Variable_Reference_Type
+   --  is begin
+   --     return Result : Variable_Reference_Type
+   --       (Element   => Container.Super.Elements (To_Peek_Type (Index))'Access,
+   --        Container => Container'Access);
+   --  end Variable_Reference;
 
-   overriding procedure Initialize (Lock : in out Read_Lock_Type)
+   overriding procedure Initialize (Lock : in out Lock_Type)
    is begin
       if Lock.Initialized then
          raise Programmer_Error with "read_lock initialize called twice";
       end if;
-      Lock.Container.Guard.Acquire_Read;
+      if Lock.Write then
+         Lock.Container.Guard.Acquire_Write;
+      else
+         Lock.Container.Guard.Acquire_Read;
+      end if;
       Lock.Initialized := True;
       Lock.Finalized   := False;
    end Initialize;
 
-   overriding procedure Adjust (Lock : in out Read_Lock_Type)
-   is begin
-      Lock.Container.Guard.Acquire_Read;
-   end Adjust;
-
-   overriding procedure Finalize (Lock : in out Read_Lock_Type)
+   overriding procedure Finalize (Lock : in out Lock_Type)
    is begin
       if not Lock.Finalized then
-         Lock.Container.Guard.Release_Read;
+         if Lock.Write then
+            Lock.Container.Guard.Release_Write;
+         else
+            Lock.Container.Guard.Release_Read;
+         end if;
          Lock.Finalized   := True;
          Lock.Initialized := False;
       end if;

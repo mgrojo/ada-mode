@@ -2,7 +2,7 @@
 --
 --  AUnit checks for instantiations of parent.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -20,8 +20,4 @@ pragma License (Modified_GPL);
 generic
    with procedure Check_Index (Label : in String; Computed, Expected : in Index_Type);
    with procedure Check_Element (Label : in String; Computed, Expected : in Element_Type);
-package SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit is
-
-   procedure Check (Label : in String; Computed, Expected : in Vector);
-
-end SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
+procedure SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit (Label : in String; Computed, Expected : in Vector);

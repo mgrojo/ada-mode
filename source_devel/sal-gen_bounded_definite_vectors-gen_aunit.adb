@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,14 +17,10 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit is
-
-   procedure Check (Label : in String; Computed, Expected : in Vector)
-   is begin
-      Check_Index (Label & "'Last", Computed.Last, Expected.Last);
-      for I in Computed.Elements'First .. Base_Peek_Type (Computed.Last - Index_Type'First + 1) loop
-         Check_Element (Label & "." & Base_Peek_Type'Image (I), Computed.Elements (I), Expected.Elements (I));
-      end loop;
-   end Check;
-
+procedure SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit (Label : in String; Computed, Expected : in Vector)
+is begin
+   Check_Index (Label & "'Last", Computed.Last, Expected.Last);
+   for I in Computed.Elements'First .. Base_Peek_Type (Computed.Last - Index_Type'First + 1) loop
+      Check_Element (Label & "." & Base_Peek_Type'Image (I), Computed.Elements (I), Expected.Elements (I));
+   end loop;
 end SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;

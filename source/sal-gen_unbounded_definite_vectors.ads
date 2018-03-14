@@ -70,7 +70,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  No_Index when Container is empty.
 
    function Element (Container : Vector; Index : Index_Type) return Element_Type;
-   --  Index of first element in vector is Index_Type'First.
+
+   procedure Replace_Element (Container : Vector; Index : Index_Type; New_Item : in Element_Type);
 
    procedure Append (Container : in out Vector; New_Item : in Element_Type);
    --  Insert New_Item at end of Container.

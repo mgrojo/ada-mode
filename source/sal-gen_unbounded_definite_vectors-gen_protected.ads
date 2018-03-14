@@ -27,12 +27,7 @@ pragma License (Modified_GPL);
 generic
 package SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
 
-   type Vector is new Ada.Finalization.Controlled with private
-   with
-      Constant_Indexing => Constant_Reference,
-      Variable_Indexing => Variable_Reference,
-      --  Default_Iterator  => Iterate,
-      Iterator_Element  => Element_Type;
+   type Vector is new Ada.Finalization.Controlled with private;
 
    type Vector_Access_Constant is access constant Vector;
    for Vector_Access_Constant'Storage_Size use 0;
@@ -58,43 +53,46 @@ package SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected is
    procedure Set_First (Container : in out Vector; First : in Index_Type);
    procedure Set_Last (Container : in out Vector; Last : in Index_Type);
 
-   type Constant_Reference_Type
-     (Element   : not null access constant Element_Type;
-      Container : not null access constant Vector)
-   is private
-   with Implicit_Dereference => Element;
+   --  WORKAROUND: GNAT GPL 2017 does not properly finalize the
+   --  *_Reference object after a reference completes, leaving the Vector
+   --  read-locked. On the other hand, this allows Lock_Type to be
+   --  Limited, which allows it to include write lock.
+   --
+   --  type Constant_Reference_Type
+   --    (Element   : not null access constant Element_Type;
+   --     Container : not null access constant Vector)
+   --  is private
+   --  with Implicit_Dereference => Element;
 
-   function Constant_Reference
-     (Container : aliased in Vector;
-      Index     :         in Index_Type)
-     return Constant_Reference_Type;
+   --  function Constant_Reference
+   --    (Container : aliased in Vector;
+   --     Index     :         in Index_Type)
+   --    return Constant_Reference_Type;
 
-   type Variable_Reference_Type
-     (Container : not null access Vector;
-      Element   : not null access Element_Type)
-   is private
-   with Implicit_Dereference => Element;
+   --  type Variable_Reference_Type
+   --    (Container : not null access Vector;
+   --     Element   : not null access Element_Type)
+   --  is private
+   --  with Implicit_Dereference => Element;
 
-   function Variable_Reference
-     (Container : aliased in out Vector;
-      Index     :         in     Index_Type)
-     return Variable_Reference_Type;
+   --  function Variable_Reference
+   --    (Container : aliased in out Vector;
+   --     Index     :         in     Index_Type)
+   --    return Variable_Reference_Type;
 
-   type Read_Lock_Type (Container : not null access constant Vector)
-     is new Ada.Finalization.Controlled with private;
-   --  For applications that require an extended read lock.
+   type Lock_Type (Container : not null access constant Vector; Write : Boolean)
+     is new Ada.Finalization.Limited_Controlled with private;
+   --  For applications that require an extended read or write lock. If
+   --  Write, lock for write; otherwise lock for read.
    --
    --  Note that iterators do _not_ hold a read lock (due to a bug in
    --  GNAT GPL 2017), so a separate lock is needed for iterator use.
 
-   overriding procedure Initialize (Lock : in out Read_Lock_Type);
-   --  Acquire read lock.
+   overriding procedure Initialize (Lock : in out Lock_Type);
+   --  Acquire lock.
 
-   overriding procedure Adjust (Lock : in out Read_Lock_Type);
-   --  Acquire read lock again, since both copies will be Finalized.
-
-   overriding procedure Finalize (Lock : in out Read_Lock_Type);
-   --  Release read lock.
+   overriding procedure Finalize (Lock : in out Lock_Type);
+   --  Release lock.
 
    function Locked (Container : in Vector) return Boolean;
    --  True if Container is locked for read or write.
@@ -131,7 +129,7 @@ private
    type Vector is new Ada.Finalization.Controlled with record
       Super : Gen_Unbounded_Definite_Vectors.Vector;
       --  We wrap Super, rather than deriving from it, because it is not
-      --  possible to add a Read_Lock_Type to Constant_Reference_Type.
+      --  possible to add a Lock_Type to Constant_Reference_Type.
 
       Guard : Guard_Access;
       --  We use an access type here for two reasons:
@@ -139,8 +137,8 @@ private
       --  2 - it allows writing to Guard when the Vector object is 'in'.
    end record;
 
-   type Read_Lock_Type (Container : not null access constant Vector)
-     is new Ada.Finalization.Controlled with
+   type Lock_Type (Container : not null access constant Vector; Write : Boolean)
+     is new Ada.Finalization.Limited_Controlled with
    record
       Initialized : Boolean := False;
       --  Enforce Initialize called only once (sometimes it's hard to tell
@@ -151,19 +149,19 @@ private
       --  more than once.
    end record;
 
-   type Constant_Reference_Type
-     (Element   : not null access constant Element_Type;
-      Container : not null access constant Vector)
-     is record
-      Lock : Read_Lock_Type (Container);
-   end record;
+   --  type Constant_Reference_Type
+   --    (Element   : not null access constant Element_Type;
+   --     Container : not null access constant Vector)
+   --    is record
+   --     Lock : Lock_Type (Container);
+   --  end record;
 
-   type Variable_Reference_Type
-     (Container : not null access Vector;
-      Element   : not null access Element_Type)
-     is record
-      Lock : Read_Lock_Type (Container);
-   end record;
+   --  type Variable_Reference_Type
+   --    (Container : not null access Vector;
+   --     Element   : not null access Element_Type)
+   --    is record
+   --     Lock : Lock_Type (Container);
+   --  end record;
 
    --  WORKAROUND: GNAT GPL 2017 does not properly finalize the Iterator
    --  object after a loop completes, leaving the Vector read-locked.
@@ -190,7 +188,7 @@ private
    --  type Iterator (Container : not null access Vector) is new Vector_Iterator_Interfaces.Reversible_Iterator with
    --  record
    --     Super : Gen_Unbounded_Definite_Vectors.Iterator;
-   --     Lock  : Read_Lock_Type (Container);
+   --     Lock  : Lock_Type (Container);
    --  end record;
 
    --  function Iterate (Container : aliased in out Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class;

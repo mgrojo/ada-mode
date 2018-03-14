@@ -111,6 +111,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       return Container.Elements (To_Peek_Type (Index));
    end Element;
 
+   procedure Replace_Element (Container : Vector; Index : Index_Type; New_Item : in Element_Type)
+   is begin
+      Container.Elements (To_Peek_Type (Index)) := New_Item;
+   end Replace_Element;
+
    function First_Index (Container : Vector) return Extended_Index
    is begin
       if Container.Elements = null then
