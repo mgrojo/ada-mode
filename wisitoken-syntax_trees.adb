@@ -127,7 +127,7 @@ package body WisiToken.Syntax_Trees is
          Node : in     Valid_Node_Index)
       is begin
          case Tree.Nodes (Node).Label is
-         when Shared_Terminal =>
+         when Empty | Shared_Terminal =>
             null;
 
          when Virtual_Terminal =>
@@ -155,7 +155,7 @@ package body WisiToken.Syntax_Trees is
          Node : in     Valid_Node_Index)
       is begin
          case Tree.Nodes (Node).Label is
-         when Shared_Terminal =>
+         when Empty | Shared_Terminal =>
             null;
 
          when Virtual_Terminal =>
@@ -239,7 +239,8 @@ package body WisiToken.Syntax_Trees is
             K : Syntax_Trees.Node renames Tree.Nodes (Children (I));
             Child_Byte_Region : constant Buffer_Region :=
               (case K.Label is
-               when Shared_Terminal  => Tree.Terminals.all (K.Terminal).Byte_Region,
+               when Empty => raise SAL.Programmer_Error with "parent has deleted child",
+               when Shared_Terminal  => Tree.Terminals.Element (K.Terminal).Byte_Region,
                when Virtual_Terminal => Null_Buffer_Region,
                when Nonterm          => K.Byte_Region);
          begin
@@ -247,6 +248,7 @@ package body WisiToken.Syntax_Trees is
 
             N.Virtual := N.Virtual or
               (case K.Label is
+               when Empty            => False,
                when Shared_Terminal  => False,
                when Virtual_Terminal => True,
                when Nonterm          => K.Virtual);
@@ -320,8 +322,8 @@ package body WisiToken.Syntax_Trees is
    is begin
       case Tree.Nodes (Node).Label is
       when Shared_Terminal =>
-         return Tree.Terminals.all (Tree.Nodes (Node).Terminal).Byte_Region;
-      when Virtual_Terminal =>
+         return Tree.Terminals.Element (Tree.Nodes (Node).Terminal).Byte_Region;
+      when Empty | Virtual_Terminal =>
          return Null_Buffer_Region;
       when Nonterm =>
          return Tree.Nodes (Node).Byte_Region;
@@ -336,8 +338,8 @@ package body WisiToken.Syntax_Trees is
    is begin
       case Tree.Nodes (Node).Label is
       when Shared_Terminal =>
-         return Tree.Terminals.all (Tree.Nodes (Node).Terminal).Byte_Region;
-      when Virtual_Terminal =>
+         return Tree.Terminals.Element (Tree.Nodes (Node).Terminal).Byte_Region;
+      when Empty | Virtual_Terminal =>
          return Null_Buffer_Region;
       when Nonterm =>
          return Tree.Nodes (Node).Name;
@@ -371,8 +373,10 @@ package body WisiToken.Syntax_Trees is
       N : Syntax_Trees.Node renames Tree.Nodes (Node);
    begin
       case N.Label is
+      when Empty =>
+         return (Invalid_Token_ID, Null_Buffer_Region);
       when Shared_Terminal =>
-         return Tree.Terminals.all (N.Terminal);
+         return Tree.Terminals.Element (N.Terminal);
       when Virtual_Terminal =>
          return (N.Terminal_ID, Null_Buffer_Region);
       when Nonterm =>
@@ -391,6 +395,9 @@ package body WisiToken.Syntax_Trees is
       N : Syntax_Trees.Node renames Tree.Nodes (Node);
    begin
       case N.Label is
+      when Empty =>
+         raise SAL.Programmer_Error;
+
       when Shared_Terminal =>
          return (Element => Augmented_Terminals (N.Terminal).Element);
 
@@ -423,6 +430,9 @@ package body WisiToken.Syntax_Trees is
       N : Syntax_Trees.Node renames Tree.Nodes (Node);
    begin
       case N.Label is
+      when Empty =>
+         raise SAL.Programmer_Error;
+
       when Shared_Terminal =>
          return (Element => Augmented_Terminals (N.Terminal).Element);
 
@@ -442,6 +452,9 @@ package body WisiToken.Syntax_Trees is
       N : Syntax_Trees.Node renames Tree.Nodes (Node);
    begin
       case N.Label is
+      when Empty =>
+         raise SAL.Programmer_Error;
+
       when Shared_Terminal =>
          raise Program_Error;
 
@@ -470,6 +483,9 @@ package body WisiToken.Syntax_Trees is
                N : Syntax_Trees.Node renames Tree.Nodes (Nodes (I));
             begin
                case N.Label is
+               when Empty =>
+                  raise SAL.Programmer_Error;
+
                when Shared_Terminal =>
                   Result (I) := Semantic_State.Augmented_Token_Access (Augmented_Terminals.Variable_Ref (N.Terminal));
 
@@ -504,7 +520,7 @@ package body WisiToken.Syntax_Trees is
       N : Syntax_Trees.Node renames Tree.Nodes (Node);
    begin
       case N.Label is
-      when Shared_Terminal =>
+      when Empty | Shared_Terminal =>
          return False;
       when Virtual_Terminal =>
          return True;
@@ -558,6 +574,9 @@ package body WisiToken.Syntax_Trees is
       Parent : Syntax_Trees.Node renames Tree.Nodes (Tree.Nodes (Node).Parent);
    begin
       case Parent.Label is
+      when Empty =>
+         raise SAL.Programmer_Error with "child has empty parent";
+
       when Shared_Terminal | Virtual_Terminal =>
          return No_Node_Index;
 
@@ -581,7 +600,7 @@ package body WisiToken.Syntax_Trees is
       N : constant Syntax_Trees.Node := Tree.Nodes (Node);
    begin
       case N.Label is
-      when Shared_Terminal | Virtual_Terminal =>
+      when Empty | Shared_Terminal | Virtual_Terminal =>
          return No_Node_Index;
       when Nonterm =>
          for C of N.Children loop
@@ -633,13 +652,38 @@ package body WisiToken.Syntax_Trees is
    function Get_ID (N : in Node; Terminals : in Protected_Base_Token_Arrays.Vector) return Token_ID
    is begin
       case N.Label is
+      when Empty =>
+         return Invalid_Token_ID;
       when Shared_Terminal =>
-         return Terminals (N.Terminal).ID;
+         return Terminals.Element (N.Terminal).ID;
       when Virtual_Terminal =>
          return N.Terminal_ID;
       when Nonterm =>
          return N.Nonterm_ID;
       end case;
    end Get_ID;
+
+   function Min_Descendant (Nodes : in Node_Arrays.Vector; Node : in Valid_Node_Index) return Valid_Node_Index
+   is
+      N : Syntax_Trees.Node renames Nodes (Node);
+   begin
+      case N.Label is
+      when Empty =>
+         raise SAL.Programmer_Error;
+
+      when Shared_Terminal | Virtual_Terminal =>
+         return Node;
+
+      when Nonterm =>
+         declare
+            Min : Node_Index := Node;
+         begin
+            for C of N.Children loop
+               Min := Node_Index'Min (Min, Min_Descendant (Nodes, C));
+            end loop;
+            return Min;
+         end;
+      end case;
+   end Min_Descendant;
 
 end WisiToken.Syntax_Trees;

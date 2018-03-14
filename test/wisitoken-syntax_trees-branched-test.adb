@@ -21,8 +21,9 @@
 pragma License (GPL);
 
 with WisiToken.AUnit;
-with WisiToken.Syntax_Trees.Branched.AUnit_Private;
+with WisiToken.Syntax_Trees.AUnit_Private;
 with WisiToken.Syntax_Trees.AUnit_Public;
+with WisiToken.Syntax_Trees.Branched.AUnit_Private;
 package body WisiToken.Syntax_Trees.Branched.Test is
 
    --  Example tokens taken from ada_lite.wy. We don't use Ada_Lite
@@ -125,6 +126,65 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       Check ("nodes 3", Branched_Tree.Base_Token (3), Shared_Tree.Base_Token (3));
    end Test_Move_Branch_Point;
 
+   procedure Test_Delete_Flushed (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use WisiToken.AUnit;
+      use WisiToken.Syntax_Trees.Branched.AUnit_Private;
+      use WisiToken.Syntax_Trees.AUnit_Private;
+      use all type Node_Arrays.Vector;
+      use all type Valid_Node_Index_Arrays.Vector;
+
+      Terminals     : aliased Protected_Base_Token_Arrays.Vector;
+      Shared_Tree   : aliased WisiToken.Syntax_Trees.Tree;
+      Branched_Tree : WisiToken.Syntax_Trees.Branched.Tree;
+      Junk          : Node_Index;
+      pragma Unreferenced (Junk);
+      Ident_1 : Node_Index;
+      Ident_2 : Node_Index;
+      Parent : Node_Index;
+
+      Expected_Nodes : Node_Arrays.Vector;
+   begin
+      --  Create a flushed branched tree, delete a nonterm and its children.
+
+      Shared_Tree.Initialize (Terminals'Unchecked_Access);
+
+      Terminals.Append ((+PROCEDURE_ID, (1, 9)));
+      Junk := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 1
+
+      Terminals.Append ((+IDENTIFIER_ID, (11, 16)));
+      Ident_1 := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 2
+
+      Terminals.Append ((+IDENTIFIER_ID, (18, 19)));
+      Ident_2 := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 3
+
+      Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
+
+      Parent := Branched_Tree.Add_Nonterm (+name_ID, null, 1, 0); -- 4
+      Branched_Tree.Set_Children (Parent => Parent, Children => (1 => Ident_1, 2 => Ident_2));
+
+      Terminals.Append ((+IDENTIFIER_ID, (21, 22)));
+      Junk := Branched_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 5
+
+      Branched_Tree.Delete (Parent);
+
+      Expected_Nodes.Set_First (1);
+      Expected_Nodes.Set_Last (5);
+
+      Expected_Nodes.Replace_Element (1, (Shared_Terminal, Parent   => No_Node_Index, Terminal => 1));
+
+      for I in Node_Index'(2) .. 4 loop
+         Expected_Nodes.Replace_Element (I, (Empty, Parent => No_Node_Index));
+      end loop;
+
+      Expected_Nodes.Replace_Element (5, (Shared_Terminal, Parent => No_Node_Index, Terminal => 4));
+
+      Check ("nodes", Shared_Tree.Nodes, Expected_Nodes);
+
+   end Test_Delete_Flushed;
+
    ----------
    --  Public subprograms
 
@@ -133,6 +193,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       use Standard.AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Move_Branch_Point'Access, "Test_Move_Branch_Point");
+      Register_Routine (T, Test_Delete_Flushed'Access, "Test_Delete_Flushed");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return Standard.AUnit.Message_String

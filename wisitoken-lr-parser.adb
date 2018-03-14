@@ -681,7 +681,7 @@ package body WisiToken.LR.Parser is
                                 Image
                                   (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) &
                                 " Shared_Token " & Image
-                                  (Shared_Parser.Terminals (Parser_State.Shared_Token), Trace.Descriptor.all));
+                                  (Shared_Parser.Terminals.Element (Parser_State.Shared_Token), Trace.Descriptor.all));
                         end if;
                         case Parser_State.Verb is
                         when Shift_Local_Lookahead =>
@@ -841,9 +841,10 @@ package body WisiToken.LR.Parser is
         (Tree : in out Syntax_Trees.Branched.Tree;
          Node : in     Syntax_Trees.Valid_Node_Index)
       is
+         use all type Syntax_Trees.Node_Label;
          ID : Token_ID renames Tree.ID (Node);
       begin
-         if ID < Descriptor.First_Nonterminal then
+         if ID < Descriptor.First_Nonterminal or Tree.Label (Node) /= Nonterm then
             return;
          end if;
 

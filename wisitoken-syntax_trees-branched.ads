@@ -208,7 +208,7 @@ package WisiToken.Syntax_Trees.Branched is
    with Pre => not Tree.Traversing and not Tree.Has_Parent (Node);
    --  Delete subtree rooted at Node.
    --
-   --  If Node is in shared tree, moves branch point to Node.
+   --  If Node is in shared tree, and Flush = False, moves branch point to Node.
 
    function Count_Shared_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index
    with Pre => not Tree.Is_Virtual (Node);
@@ -223,7 +223,7 @@ private
    type Tree is new Abstract_Tree with record
       Shared_Tree : Syntax_Trees.Tree_Access;
       --  If we need to set anything (ie parent) in Shared_Tree, we move the
-      --  branch point instead.
+      --  branch point instead, unless Flush = True.
 
       Last_Shared_Node : Node_Index := No_Node_Index;
       Branched_Nodes   : Node_Arrays.Vector;

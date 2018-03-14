@@ -518,7 +518,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
       function ID (Index : in Token_Index) return Token_ID
       is begin
-         return Shared_Parser.Terminals (Index).ID;
+         return Shared_Parser.Terminals.Element (Index).ID;
       end ID;
 
    end Shared_Lookahead;
@@ -543,6 +543,40 @@ package body WisiToken.LR.McKenzie_Recover is
    end record;
 
    package Check_Item_Queues is new SAL.Gen_Unbounded_Definite_Queues (Check_Item);
+
+   --  FIXME: add syntax_tree in config, add this. Semantic_Actions require writeable syntax_tree.
+   --  Get everything else working first, time difference
+   --
+   --  function Reduce_Stack
+   --    (Super        : not null access Supervisor;
+   --     Shared       : not null access Shared_Lookahead;
+   --     Parser_Index : in              SAL.Peek_Type;
+   --     Action       : in              Reduce_Action_Rec;
+   --     Stack        : in out          Recover_Stacks.Stack)
+   --    return Semantic_Checks.Check_Status_Label
+   --  is
+   --     use all type Semantic_Checks.Semantic_Check;
+   --  begin
+   --     if Action.Check /= null then
+   --        declare
+   --           Tokens : Syntax_Trees.Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
+   --        begin
+   --           for I in reverse Tokens'Range loop
+   --              Tokens (I) := Stack.Pop.Tree_Index;
+   --           end loop;
+   --           return Action.Check
+   --             (Super.Parser_State (Parser_Index).Tree,
+   --              Shared.Shared_Parser.Lexer,
+   --              Nonterm => Syntax_Trees.No_Node_Index,
+   --              Tokens  => Tokens)
+   --             .Label;
+   --        end;
+
+   --     else
+   --        Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
+   --        return Semantic_Checks.Ok;
+   --     end if;
+   --  end Reduce_Stack;
 
    function Check_One_Item
      (Super             : not null access Supervisor;
@@ -848,6 +882,9 @@ package body WisiToken.LR.McKenzie_Recover is
             --  no other recover operations on this config.
 
             case Tree.Label (Item.Tree_Index) is
+            when Syntax_Trees.Empty =>
+               raise SAL.Programmer_Error;
+
             when Syntax_Trees.Shared_Terminal =>
                New_Config := Config;
 
@@ -1079,7 +1116,8 @@ package body WisiToken.LR.McKenzie_Recover is
          Trace.Put_Line
            ("parser" & Integer'Image (Parser_State.Label) & ": Current_Token " &
               Image (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) &
-           " Shared_Token " & Image (Shared_Parser.Terminals (Parser_State.Shared_Token), Trace.Descriptor.all));
+              " Shared_Token " & Image
+                (Shared_Parser.Terminals.Element (Parser_State.Shared_Token), Trace.Descriptor.all));
          if Trace_McKenzie > Extra then
             Put_Line (Trace, Parser_State.Label, Image (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree));
          end if;
@@ -1269,6 +1307,8 @@ package body WisiToken.LR.McKenzie_Recover is
                   --  Parser_State.Current_Token is the first item in Deleted, and the
                   --  most recently added terminal in Parser_State.Tree. The rest of
                   --  Deleted are in Shared_Parser.Terminals, but not yet in Tree.
+
+                  --  FIXME: better to not delete, doesn't hurt anything.
                   Parser_State.Tree.Delete (Parser_State.Current_Token);
                end if;
 

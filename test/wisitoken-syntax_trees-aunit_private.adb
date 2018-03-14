@@ -32,6 +32,8 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".parent", Computed.Parent, Expected.Parent);
       case Computed.Label is
+      when Empty =>
+         null;
       when Shared_Terminal =>
          Check (Label & ".terminal", Computed.Terminal, Expected.Terminal);
       when Virtual_Terminal =>

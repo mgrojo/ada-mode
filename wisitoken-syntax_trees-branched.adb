@@ -22,18 +22,36 @@ package body WisiToken.Syntax_Trees.Branched is
 
    --  body subprograms, alphabetical
 
-   procedure Delete_Subtree (Tree : in out Node_Arrays.Vector; Node : in Valid_Node_Index)
+   procedure Delete_Subtree (Tree : in out Branched.Tree; Node : in Valid_Node_Index)
    is
-      --  Can't hold a Tree.Nodes cursor while recursing; that prevents
-      --  deleting nodes.
+      procedure Compute (Nodes : in out Node_Arrays.Vector; Node : in Valid_Node_Index)
+      is begin
+         case Nodes (Node).Label is
+         when Empty =>
+            raise SAL.Programmer_Error with "deleting empty node";
 
-      Children : constant Valid_Node_Index_Arrays.Vector := Tree (Node).Children;
+         when Shared_Terminal | Virtual_Terminal =>
+            Nodes.Delete (Node);
+
+         when Nonterm =>
+            declare
+               Children : constant Valid_Node_Index_Arrays.Vector := Nodes (Node).Children;
+            begin
+               --  Delete in reverse order added, so Nodes.Last_Index is reduced as
+               --  well (if possible).
+               Nodes.Delete (Node);
+               for C of reverse Children loop
+                  Delete_Subtree (Tree, C);
+               end loop;
+            end;
+         end case;
+      end Compute;
    begin
-      --  Delete in reverse order added, so Tree.Last_Index is reduced as well.
-      Tree.Delete (Node);
-      for I of reverse Children loop
-         Delete_Subtree (Tree, I);
-      end loop;
+      if Node <= Tree.Last_Shared_Node then
+         Compute (Tree.Shared_Tree.Nodes, Node);
+      else
+         Compute (Tree.Branched_Nodes, Node);
+      end if;
    end Delete_Subtree;
 
    procedure Get_Terminals
@@ -47,9 +65,12 @@ package body WisiToken.Syntax_Trees.Branched is
       procedure Compute (N : in Syntax_Trees.Node)
       is begin
          case N.Label is
+         when Empty =>
+            raise SAL.Programmer_Error;
+
          when Shared_Terminal =>
             Last := Last + 1;
-            Result (Last) := Tree.Shared_Tree.Terminals.all (N.Terminal);
+            Result (Last) := Tree.Shared_Tree.Terminals.Element (N.Terminal);
 
          when Virtual_Terminal =>
             Last := Last + 1;
@@ -82,9 +103,38 @@ package body WisiToken.Syntax_Trees.Branched is
       return Result;
    end Min;
 
+   function Min_Descendant (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Valid_Node_Index
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Min_Descendant (Tree.Shared_Tree.Nodes, Node);
+      else
+         declare
+            N : Syntax_Trees.Node renames Tree.Branched_Nodes (Node);
+         begin
+            case N.Label is
+            when Empty =>
+               raise SAL.Programmer_Error;
+
+            when Shared_Terminal | Virtual_Terminal =>
+               return Node;
+
+            when Nonterm =>
+               declare
+                  Min : Node_Index := Node;
+               begin
+                  for C of N.Children loop
+                     Min := Node_Index'Min (Min, Min_Descendant (Tree, C));
+                  end loop;
+                  return Min;
+               end;
+            end case;
+         end;
+      end if;
+   end Min_Descendant;
+
    procedure Move_Branch_Point (Tree : in out Branched.Tree; Required_Node : in Valid_Node_Index)
    is
-      Lock : Protected_Base_Token_Arrays.Read_Lock_Type (Tree.Shared_Tree.Terminals);
+      Lock : Protected_Base_Token_Arrays.Lock_Type (Tree.Shared_Tree.Terminals, Write => False);
       pragma Unreferenced (Lock);
    begin
       --  Note that this preserves all stored indices in Branched_Nodes.
@@ -266,7 +316,8 @@ package body WisiToken.Syntax_Trees.Branched is
                   K : Syntax_Trees.Node renames Tree.Branched_Nodes (Children (I));
                   Child_Byte_Region : constant Buffer_Region :=
                     (case K.Label is
-                     when Shared_Terminal  => Tree.Shared_Tree.Terminals.all (K.Terminal).Byte_Region,
+                     when Empty            => raise SAL.Programmer_Error,
+                     when Shared_Terminal  => Tree.Shared_Tree.Terminals.Element (K.Terminal).Byte_Region,
                      when Virtual_Terminal => Null_Buffer_Region,
                      when Nonterm          => K.Byte_Region);
                begin
@@ -274,6 +325,7 @@ package body WisiToken.Syntax_Trees.Branched is
 
                   N.Virtual := N.Virtual or
                     (case K.Label is
+                     when Empty            => False,
                      when Shared_Terminal  => False,
                      when Virtual_Terminal => True,
                      when Nonterm          => K.Virtual);
@@ -397,8 +449,8 @@ package body WisiToken.Syntax_Trees.Branched is
       is begin
          case N.Label is
          when Shared_Terminal =>
-            return Tree.Shared_Tree.Terminals.all (N.Terminal).Byte_Region;
-         when Virtual_Terminal =>
+            return Tree.Shared_Tree.Terminals.Element (N.Terminal).Byte_Region;
+         when Empty | Virtual_Terminal =>
             return Null_Buffer_Region;
          when Nonterm =>
             return N.Byte_Region;
@@ -421,8 +473,8 @@ package body WisiToken.Syntax_Trees.Branched is
       is begin
          case N.Label is
          when Shared_Terminal =>
-            return Tree.Shared_Tree.Terminals.all (N.Terminal).Byte_Region;
-         when Virtual_Terminal =>
+            return Tree.Shared_Tree.Terminals.Element (N.Terminal).Byte_Region;
+         when Empty | Virtual_Terminal =>
             return Null_Buffer_Region;
          when Nonterm =>
             return N.Name;
@@ -462,8 +514,11 @@ package body WisiToken.Syntax_Trees.Branched is
       function Compute (N : in Syntax_Trees.Node) return Token_ID
       is begin
          case N.Label is
+         when Empty =>
+            return Invalid_Token_ID;
+
          when Shared_Terminal =>
-            return Tree.Shared_Tree.Terminals.all (N.Terminal).ID;
+            return Tree.Shared_Tree.Terminals.Element (N.Terminal).ID;
 
          when Virtual_Terminal =>
             return N.Terminal_ID;
@@ -488,8 +543,10 @@ package body WisiToken.Syntax_Trees.Branched is
       function Compute (N : in Syntax_Trees.Node) return WisiToken.Base_Token
       is begin
          case N.Label is
+         when Empty =>
+            return (Invalid_Token_ID, Null_Buffer_Region);
          when Shared_Terminal =>
-            return Tree.Shared_Tree.Terminals.all (N.Terminal);
+            return Tree.Shared_Tree.Terminals.Element (N.Terminal);
          when Virtual_Terminal =>
             return (N.Terminal_ID, Null_Buffer_Region);
          when Nonterm =>
@@ -515,6 +572,9 @@ package body WisiToken.Syntax_Trees.Branched is
       function Compute (N : in out Syntax_Trees.Node) return Augmented_Ref
       is begin
          case N.Label is
+         when Empty =>
+            raise SAL.Programmer_Error;
+
          when Shared_Terminal =>
             return (Element => Augmented_Terminals (N.Terminal).Element);
 
@@ -543,6 +603,9 @@ package body WisiToken.Syntax_Trees.Branched is
             N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
          begin
             case N.Label is
+            when Empty =>
+               raise SAL.Programmer_Error;
+
             when Shared_Terminal =>
                return (Element => Augmented_Terminals (Tree.Shared_Tree.Nodes (Node).Terminal).Element);
 
@@ -582,6 +645,9 @@ package body WisiToken.Syntax_Trees.Branched is
       function Compute (N : in Syntax_Trees.Node) return Constant_Augmented_Ref
       is begin
          case N.Label is
+         when Empty =>
+            raise SAL.Programmer_Error;
+
          when Shared_Terminal =>
             return (Element => Augmented_Terminals (N.Terminal).Element);
 
@@ -612,6 +678,9 @@ package body WisiToken.Syntax_Trees.Branched is
          use all type Semantic_State.Augmented_Token_Access;
       begin
          case N.Label is
+         when Empty =>
+            raise SAL.Programmer_Error;
+
          when Shared_Terminal =>
             return Semantic_State.Augmented_Token_Access (Augmented_Terminals.Variable_Ref (N.Terminal));
 
@@ -654,7 +723,7 @@ package body WisiToken.Syntax_Trees.Branched is
       function Compute (N : in Syntax_Trees.Node) return Boolean
       is begin
          case N.Label is
-         when Shared_Terminal =>
+         when Empty | Shared_Terminal =>
             return False;
          when Virtual_Terminal =>
             return True;
@@ -728,7 +797,7 @@ package body WisiToken.Syntax_Trees.Branched is
       function Compute_2 (N : in Syntax_Trees.Node) return Node_Index
       is begin
          case N.Label is
-         when Shared_Terminal | Virtual_Terminal =>
+         when Empty | Shared_Terminal | Virtual_Terminal =>
             return No_Node_Index;
 
          when Nonterm =>
@@ -775,7 +844,7 @@ package body WisiToken.Syntax_Trees.Branched is
       function Compute (N : in Syntax_Trees.Node) return Node_Index
       is begin
          case N.Label is
-         when Shared_Terminal | Virtual_Terminal =>
+         when Empty | Shared_Terminal | Virtual_Terminal =>
             return No_Node_Index;
          when Nonterm =>
             for C of N.Children loop
@@ -804,7 +873,7 @@ package body WisiToken.Syntax_Trees.Branched is
         (Tree : in out Branched.Tree;
          Node : in     Valid_Node_Index))
    is
-      Lock : Protected_Base_Token_Arrays.Read_Lock_Type (Tree.Shared_Tree.Terminals);
+      Lock : Protected_Base_Token_Arrays.Lock_Type (Tree.Shared_Tree.Terminals, Write => False);
       pragma Unreferenced (Lock);
    begin
       Tree.Shared_Tree.Traversing := True;
@@ -826,11 +895,18 @@ package body WisiToken.Syntax_Trees.Branched is
    end Process_Tree;
 
    procedure Delete (Tree : in out Branched.Tree; Node : in Valid_Node_Index)
-   is begin
-      --  FIXME: Node is always in shared tree; move branch point first.
-      Tree.Shared_Tree.Traversing := True;
-      Delete_Subtree (Tree.Branched_Nodes, Node);
-      raise SAL.Programmer_Error with "syntax_trees.branched.delete: move branch point";
+   is
+      --  We are not deleting from Tree.Shared_Tree.Terminals, nor reading
+      --  that, so we don't need a lock.
+      Min : constant Valid_Node_Index := Min_Descendant (Tree, Node);
+   begin
+      if Min <= Tree.Last_Shared_Node then
+         if not Tree.Flush then
+            Move_Branch_Point (Tree, Min);
+         end if;
+      end if;
+
+      Delete_Subtree (Tree, Node);
    end Delete;
 
    function Count_Shared_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index
@@ -840,6 +916,8 @@ package body WisiToken.Syntax_Trees.Branched is
          Result : Base_Token_Index := 0;
       begin
          case N.Label is
+         when Empty =>
+            raise SAL.Programmer_Error;
          when Shared_Terminal =>
             return 1;
          when Virtual_Terminal =>

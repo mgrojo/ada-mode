@@ -59,7 +59,7 @@ package WisiToken.LR.AUnit is
      (Item : in WisiToken.AUnit.Plain_Token_ID_Array)
      return Fast_Token_ID_Vectors.Vector;
 
-   package Fast_Token_ID_Vectors_AUnit is new Fast_Token_ID_Vectors.Gen_AUnit
+   procedure Check is new Fast_Token_ID_Vectors.Gen_AUnit
      (SAL.AUnit.Check, WisiToken.AUnit.Check);
 
    procedure Check is new Token_Sequence_Arrays.Gen_AUnit

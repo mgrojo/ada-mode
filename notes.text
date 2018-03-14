@@ -23,19 +23,20 @@ build syntax tree, use that in recover to pop stack
     new mckenzie ops:
         push_back, insert nonterms from gotos
             testing
-            test delete tree
+
+            don't delete pushed_back, popped from tree?
+                if delete, recover info is invalid; can't repair error
+                if don't delete, not a problem; nodes will not be referenced.
+                avoid branching tree!
 
 
     test_mckenzie.adb Abandon_Pattern
         rename to "missing_two_ends"
 
-
-    when editing Parser for successful Result:
-        for Popped, remove from tree
-        preserve indices
-        if nonterm, unset parent in children
-
-        test delete in branched-test
+    Pattern_Block_Match_Names_1
+        need semantic checks in mckenzie reduce
+        => need syntax_tree in checked
+            maybe it won't be so bad with flush => true until changed.
 
     don't need protected nodes in syntax_tree?
 

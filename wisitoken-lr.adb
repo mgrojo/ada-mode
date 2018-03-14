@@ -750,6 +750,7 @@ package body WisiToken.LR is
       use all type Semantic_Checks.Check_Status_Label;
       Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
       --  For Check, Set_Children.
+      --  FIXME: move back to -lr-parser.adb
    begin
       Nonterm := Syntax_Tree.Add_Nonterm (Action.LHS, Action.Action, Action.Production, Action.Name_Index);
 
