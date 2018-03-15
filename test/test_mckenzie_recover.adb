@@ -662,10 +662,13 @@ package body Test_McKenzie_Recover is
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
          Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
+         Check ("error count", Error_List.Length, 1);
          Check ("error_token.id", Tree.ID (Error.Error_Token), +SEMICOLON_ID);
          Check ("recover.push_back.length", Error.Recover.Pushed_Back.Length, 1);
          Check ("recover.push_back.data", Tree.ID
                   (Error.Recover.Pushed_Back (Error.Recover.Pushed_Back.First_Index)), +LOOP_ID);
+         Check ("recover.inserted.length", Error.Recover.Inserted.Length, 1);
+         Check ("recover.inserted.data", Error.Recover.Inserted (Error.Recover.Inserted.First_Index), +END_ID);
       end;
    end Push_Back_1;
 
@@ -880,7 +883,7 @@ package body Test_McKenzie_Recover is
 
    end Pattern_Block_Extra_Name_1;
 
-   procedure Abandon_Pattern (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Two_Missing_Ends (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use AUnit.Assertions;
@@ -888,8 +891,8 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use WisiToken.AUnit;
    begin
-      --  FIXME: debugging; really slow, need 17 to pass
-      Parser.Table.McKenzie_Param.Cost_Limit := 8;
+      --  FIXME: debugging; really slow, need 12 to pass
+      Parser.Table.McKenzie_Param.Cost_Limit := 12;
 
       Parse_Text
         ("package body Pack_1 is procedure Proc_1 is procedure Proc_A is begin case B is when 1 => a;" &
@@ -897,22 +900,19 @@ package body Test_McKenzie_Recover is
            " begin end Proc_1; end Pack_1;");
       --    |92     |100      |110
       --
-      --  Missing 'end case; end Proc_A' 91.
+      --  Missing 'end case; end Proc_A;' 91; a typical editing situation.
       --
       --  Error recovery 1 entered at 'end' 111, with extra_name_error from
       --  the preceding block (no label on preceding 'begin').
-      --  extra_name_error pattern matches, replacing 'begin end Proc_1;'
-      --  with 'end; begin end;'. That fails on the first virtual ';',
-      --  expecting 'end case;'. In a previous version, that config was
-      --  continued incorrectly, causing the parse to fail.
       --
-      --  The desired solution is 'pop block_statement', 'insert end case;
-      --  end <proc_a>; end <proc_1>;' cost (+ 8 1 3 1 1 1 1 1) => 17
+      --  The desired solution is push_back block_statement, insert 'end
+      --  case ; end Proc_A ;'.
       --
-      --  Even better; pop block_statement terminals from syntax tree to
-      --  local_lookahead, insert 'end case ;', reparse block_statement.
+      --  McKenzie currently ignores semantic checks, so it finds a
+      --  solution, but not a good one, and it takes a long time.
 
-   end Abandon_Pattern;
+      --  FIXME: tests
+   end Two_Missing_Ends;
 
    ----------
    --  Public subprograms
@@ -950,7 +950,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Pattern_Block_Match_Names_1'Access, "Pattern_Block_Match_Names_1");
       Register_Routine (T, Pattern_Block_Match_Names_2'Access, "Pattern_Block_Match_Names_2");
       Register_Routine (T, Pattern_Block_Extra_Name_1'Access, "Pattern_Block_Extra_Name_1");
-      Register_Routine (T, Abandon_Pattern'Access, "Abandon_Pattern");
+      Register_Routine (T, Two_Missing_Ends'Access, "Two_Missing_Ends");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)

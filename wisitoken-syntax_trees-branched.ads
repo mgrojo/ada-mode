@@ -204,14 +204,9 @@ package WisiToken.Syntax_Trees.Branched is
    --  Traverse Tree in depth-first order, calling Process_Node on each
    --  node.
 
-   procedure Delete (Tree : in out Branched.Tree; Node : in Valid_Node_Index)
-   with Pre => not Tree.Traversing and not Tree.Has_Parent (Node);
-   --  Delete subtree rooted at Node.
-   --
-   --  If Node is in shared tree, and Flush = False, moves branch point to Node.
-
-   function Count_Shared_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index
-   with Pre => not Tree.Is_Virtual (Node);
+   function Min_Shared_Terminal_Index (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
+   --  Returns lowest index of shared terminal in subtree under Node. If
+   --  result is Invalid_Token_Index, all terminals are virtual.
 
 private
 

@@ -665,7 +665,6 @@ package body WisiToken.LR.Parser is
                         Trace.Put_Line ("recover: fail");
                      end if;
                   end if;
-                  Trace.New_Line;
                end if;
 
                if Recover_Result in Success | Ignore then
@@ -682,6 +681,7 @@ package body WisiToken.LR.Parser is
                                   (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) &
                                 " Shared_Token " & Image
                                   (Shared_Parser.Terminals.Element (Parser_State.Shared_Token), Trace.Descriptor.all));
+                           Trace.New_Line;
                         end if;
                         case Parser_State.Verb is
                         when Shift_Local_Lookahead =>

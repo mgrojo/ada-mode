@@ -401,10 +401,14 @@ package WisiToken.LR is
      return String;
 
    type Recover_Stack_Item is record
-      State       : Unknown_State_Index;
-      ID          : Token_ID;
+      State : Unknown_State_Index;
+      ID    : Token_ID;
+
       Byte_Region : Buffer_Region;
-      Tree_Index  : Syntax_Trees.Node_Index;
+      --  Byte_Region is used to detect empty tokens, for cost and other issues.
+
+      Tree_Index : Syntax_Trees.Node_Index;
+      --  Tree_Index is used to push_back.
    end record;
 
    package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);

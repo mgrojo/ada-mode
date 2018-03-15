@@ -24,28 +24,31 @@ build syntax tree, use that in recover to pop stack
         push_back, insert nonterms from gotos
             testing
 
-            don't delete pushed_back, popped from tree?
-                if delete, recover info is invalid; can't repair error
-                if don't delete, not a problem; nodes will not be referenced.
-                avoid branching tree!
+        find, doc test case for insert nonterm
 
+    update ada-mode benchmarks
 
-    test_mckenzie.adb Abandon_Pattern
-        rename to "missing_two_ends"
+    put back branched syntax trees in mckenzie
 
-    Pattern_Block_Match_Names_1
+    Pattern_*
         need semantic checks in mckenzie reduce
-        => need syntax_tree in checked
+        => need syntax_tree in Check, but not Do_Reduce
+            we do many fewer check than reduce
             maybe it won't be so bad with flush => true until changed.
 
-    don't need protected nodes in syntax_tree?
+        also match_names pattern?
+            or more generalized state/production matching?
+
+    missing_two_ends very slow
+        to speed up, need try_semantic_check_fixes or  to take advantage of mismatched name info in first mckenzie
+
+        record edits with more detail, so can do semantic_check_fixes after insert/delete/pop?
 
     sal unbounded vectors:
         shrink elements to exact size on copy?
 
     move base_token_Array Terminals into Syntax_Trees.Tree, avoid access type
 
-    record edits with more detail, so can do semantic_check_fixes after insert/delete/pop
 
 tokens are no longer copied in recovery; only indices into shared_Parser.Terminals
     => merge augmented_token into base_token?
@@ -63,12 +66,6 @@ user option end_name_require (ie not optional) makes ada_mode-recover_block_name
     => lookahead must be array of base token
 
 update NEWS.text
-
-implement state/production matching?
-    debug_production_recover.adb
-    Need_End is not accurate; subprogram_specification can be matched with SEMICOLON rather than END
-    add match_block semantic check?
-    duplicates grammar info
 
 Fixed size stack speed mckenzie?
     init current to 50 was slightly slower

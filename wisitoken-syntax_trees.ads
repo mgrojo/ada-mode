@@ -55,7 +55,7 @@ package WisiToken.Syntax_Trees is
 
    package Valid_Node_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (Valid_Node_Index);
 
-   type Node_Label is (Empty, Shared_Terminal, Virtual_Terminal, Nonterm);
+   type Node_Label is (Shared_Terminal, Virtual_Terminal, Nonterm);
 
    type User_Data_Type is tagged limited null record;
 
@@ -394,19 +394,13 @@ package WisiToken.Syntax_Trees is
 
 private
 
-   type Node (Label : Node_Label := Empty) is
+   type Node (Label : Node_Label := Virtual_Terminal) is
    --  Label has a default to allow use with Ada.Containers.Vectors; all
    --  entries are the same size.
    record
       Parent : Node_Index := No_Node_Index;
-      --  We don't need Parent when Label => Empty, but we also don't want
-      --  to be bothered with Shared_Terminal_Parent,
-      --  Virtual_Terminal_Parent, etc.
 
       case Label is
-      when Empty =>
-         null;
-
       when Shared_Terminal =>
          Terminal : Token_Index;
 
@@ -488,7 +482,5 @@ private
 
    function Get_ID (N : in Node; Terminals : in Protected_Base_Token_Arrays.Vector) return Token_ID
    with Inline;
-
-   function Min_Descendant (Nodes : in Node_Arrays.Vector; Node : in Valid_Node_Index) return Valid_Node_Index;
 
 end WisiToken.Syntax_Trees;

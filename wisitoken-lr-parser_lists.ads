@@ -48,7 +48,7 @@ package WisiToken.LR.Parser_Lists is
       Tree : Syntax_Trees.Branched.Tree;
       --  We use a branched tree to avoid copying large trees for each
       --  spawned parser; tree size is proportional to source text size. In
-      --  normal parsing, parallel parsers are short-lived; the each process
+      --  normal parsing, parallel parsers are short-lived; they each process
       --  a few tokens, to resolve a grammar conflict.
       --
       --  When there is only one parser, tree nodes are written directly to

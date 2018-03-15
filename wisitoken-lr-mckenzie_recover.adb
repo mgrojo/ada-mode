@@ -882,9 +882,6 @@ package body WisiToken.LR.McKenzie_Recover is
             --  no other recover operations on this config.
 
             case Tree.Label (Item.Tree_Index) is
-            when Syntax_Trees.Empty =>
-               raise SAL.Programmer_Error;
-
             when Syntax_Trees.Shared_Terminal =>
                New_Config := Config;
 
@@ -914,8 +911,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                   New_Config.Stack.Pop;
                   New_Config.Cost := New_Config.Cost + McKenzie_Param.Push_Back (Item.ID);
-                  New_Config.Current_Shared_Token := New_Config.Current_Shared_Token -
-                    Tree.Count_Shared_Terminals (Item.Tree_Index);
+                  New_Config.Current_Shared_Token := Tree.Min_Shared_Terminal_Index (Item.Tree_Index);
                   New_Config.Pushed_Back.Append (Item.Tree_Index);
                   if Trace_McKenzie > Detail then
                      Put ("push_back " & Image (Item.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
@@ -1303,30 +1299,16 @@ package body WisiToken.LR.McKenzie_Recover is
                Data       : McKenzie_Data renames Parser_State.Recover;
                Result     : Configuration renames Data.Results.Peek;
             begin
-               if Result.Deleted.Length > 0 then
-                  --  Parser_State.Current_Token is the first item in Deleted, and the
-                  --  most recently added terminal in Parser_State.Tree. The rest of
-                  --  Deleted are in Shared_Parser.Terminals, but not yet in Tree.
+               --  There's no need to modify Parser_State.Tree for pushed_back,
+               --  popped, or deleted. The tree nodes created for those tokens are
+               --  useful for error repair, and will just be ignored in future
+               --  parsing. This also avoids enlarging a non-flushed branched tree,
+               --  which saves time and space.
+               --
+               --  We do have to modify Parser_State.Stack.
 
-                  --  FIXME: better to not delete, doesn't hurt anything.
-                  Parser_State.Tree.Delete (Parser_State.Current_Token);
-               end if;
-
-               for ID of Result.Popped loop
-                  declare
-                     Item : constant Parser_Stack_Item := Parser_State.Stack.Pop;
-                  begin
-                     Parser_State.Tree.Delete (Item.Token);
-                  end;
-               end loop;
-
-               for ID of Result.Pushed_Back loop
-                  declare
-                     Item : constant Parser_Stack_Item := Parser_State.Stack.Pop;
-                  begin
-                     Parser_State.Tree.Delete (Item.Token);
-                  end;
-               end loop;
+               Parser_State.Stack.Pop (SAL.Base_Peek_Type (Result.Popped.Length));
+               Parser_State.Stack.Pop (SAL.Base_Peek_Type (Result.Pushed_Back.Length));
 
                for ID of reverse Result.Inserted loop
                   if ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
