@@ -55,11 +55,11 @@ package WisiToken.Syntax_Trees.Branched is
       Nonterm    : in     WisiToken.Token_ID;
       Action     : in     Semantic_Action;
       Production : in     Positive;
-      Name_Index : in     Natural)
+      Name_Index : in     Natural;
+      Children   : in     Valid_Node_Index_Array)
      return Valid_Node_Index
    with Pre => not Tree.Traversing;
-   --  Add a new Nonterm node with no parent. Result points to the added
-   --  node.
+   --  Add a new Nonterm node. Result points to the added node.
 
    function Add_Terminal
      (Tree     : in out Branched.Tree;
@@ -77,13 +77,12 @@ package WisiToken.Syntax_Trees.Branched is
    --  Add a new virtual terminal node with no parent. Result points to
    --  the added node.
 
-   procedure Set_Children
-     (Tree     : in out Branched.Tree;
-      Parent   : in     Valid_Node_Index;
-      Children : in     Valid_Node_Index_Array)
-   with Pre => not Tree.Traversing and
-               (Tree.Is_Nonterm (Parent) and then (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children))));
-   --  Set the Children of Parent.
+   procedure Set_State
+     (Tree  : in out Branched.Tree;
+      Node  : in     Valid_Node_Index;
+      State : in     State_Index);
+
+   function State (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Unknown_State_Index;
 
    overriding function Label (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Label;
 
@@ -101,19 +100,6 @@ package WisiToken.Syntax_Trees.Branched is
 
    overriding function Parent (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Index;
 
-   overriding
-   function Byte_Region
-     (Tree : in Branched.Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region;
-
-   overriding
-   function Name_Region
-     (Tree : in Branched.Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region;
-
-   overriding
    procedure Set_Name_Region
      (Tree   : in out Branched.Tree;
       Node   : in     Valid_Node_Index;
@@ -126,11 +112,27 @@ package WisiToken.Syntax_Trees.Branched is
       Node : in Valid_Node_Index)
      return WisiToken.Token_ID;
 
-   overriding
-   function Base_Token
+   function Same_Token
+     (Tree_1  : in Branched.Tree'Class;
+      Index_1 : in Valid_Node_Index;
+      Tree_2  : in Branched.Tree'Class;
+      Index_2 : in Valid_Node_Index)
+     return Boolean;
+   --  True if the two tokens have the same ID and Byte_Region.
+
+   function Recover_Token
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
-     return WisiToken.Base_Token;
+     return WisiToken.Recover_Token;
+   --  For non-virtual terminals, copied from Tree.Terminals. For others,
+   --  constructed from Tree data.
+
+   function Recover_Token_Array
+     (Tree  : in Branched.Tree;
+      Nodes : in Valid_Node_Index_Array)
+     return WisiToken.Recover_Token_Array;
+   --  For non-virtual terminals, copied from Tree.Terminals. For others,
+   --  constructed from Tree data.
 
    overriding
    function Augmented_Token_Ref
@@ -207,6 +209,13 @@ package WisiToken.Syntax_Trees.Branched is
    function Min_Shared_Terminal_Index (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
    --  Returns lowest index of shared terminal in subtree under Node. If
    --  result is Invalid_Token_Index, all terminals are virtual.
+
+   overriding
+   function Image
+     (Tree       : in Branched.Tree;
+      Node       : in Valid_Node_Index;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
 
 private
 

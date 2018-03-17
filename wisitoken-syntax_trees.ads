@@ -42,6 +42,8 @@ package WisiToken.Syntax_Trees is
    --  WORKAROUND: GNAT GPL 2017 is confused by this:
    --  with Variable_Indexing => Augmented_Token_Ref;
 
+   --  FIXME: move all operations to Branched, unless used by that.
+
    type Node_Index is range 0 .. Integer'Last;
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
 
@@ -84,40 +86,10 @@ package WisiToken.Syntax_Trees is
 
    function Parent (Tree : in Abstract_Tree; Node : in Valid_Node_Index) return Node_Index is abstract;
 
-   function Byte_Region
-     (Tree : in Abstract_Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region is abstract;
-
-   function Name_Region
-     (Tree : in Abstract_Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region is abstract;
-
-   procedure Set_Name_Region
-     (Tree   : in out Abstract_Tree;
-      Node   : in     Valid_Node_Index;
-      Region : in     Buffer_Region)
-     is abstract;
-
    function ID
      (Tree : in Abstract_Tree;
       Node : in Valid_Node_Index)
      return WisiToken.Token_ID is abstract;
-
-   function Base_Token
-     (Tree : in Abstract_Tree;
-      Node : in Valid_Node_Index)
-     return WisiToken.Base_Token is abstract;
-   --  For non-virtual terminals, copied from Tree.Terminals. For others,
-   --  constructed from Tree data.
-
-   function Base_Token_Array
-     (Tree  : in Abstract_Tree;
-      Nodes : in Valid_Node_Index_Array)
-     return WisiToken.Base_Token_Array;
-   --  For non-virtual terminals, copied from Tree.Terminals. For others,
-   --  constructed from Tree data.
 
    type Augmented_Ref (Element : access Semantic_State.Augmented_Token) is null record
    with Implicit_Dereference => Element;
@@ -195,6 +167,11 @@ package WisiToken.Syntax_Trees is
 
    function Image
      (Tree       : in Abstract_Tree;
+      Node       : in Valid_Node_Index;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String is abstract;
+   function Image
+     (Tree       : in Abstract_Tree;
       Nodes      : in Valid_Node_Index_Array;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
@@ -220,7 +197,7 @@ package WisiToken.Syntax_Trees is
 
    procedure Initialize
      (Tree      : in out Syntax_Trees.Tree;
-      Terminals : in     Protected_Base_Token_Arrays.Vector_Access_Constant);
+      Terminals : in     Base_Token_Arrays.Vector_Access_Constant);
    --  Set the Terminals array for Tree.
 
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
@@ -258,15 +235,6 @@ package WisiToken.Syntax_Trees is
    --  Add a new virtual terminal node with no parent. Result points to
    --  the added node.
 
-   procedure Set_Children
-     (Tree     : in out Syntax_Trees.Tree;
-      Parent   : in     Valid_Node_Index;
-      Children : in     Valid_Node_Index_Array)
-   with Pre => not Tree.Traversing and
-               (Tree.Is_Nonterm (Parent) and then
-               (not (Tree.Has_Children (Parent) or Tree.Has_Parent (Children))));
-   --  Set the Children of Parent.
-
    overriding function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label;
 
    overriding
@@ -284,35 +252,10 @@ package WisiToken.Syntax_Trees is
    overriding function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
 
    overriding
-   function Byte_Region
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region;
-
-   overriding
-   function Name_Region
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region;
-
-   overriding
-   procedure Set_Name_Region
-     (Tree   : in out Syntax_Trees.Tree;
-      Node   : in     Valid_Node_Index;
-      Region : in     Buffer_Region)
-   with Pre => Tree.Is_Nonterm (Node);
-
-   overriding
    function ID
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
      return WisiToken.Token_ID;
-
-   overriding
-   function Base_Token
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return WisiToken.Base_Token;
 
    overriding
    function Augmented_Token_Ref
@@ -392,6 +335,13 @@ package WisiToken.Syntax_Trees is
    --  Traverse Tree in depth-first order, calling Process_Node on each
    --  node.
 
+   overriding
+   function Image
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Index;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
+
 private
 
    type Node (Label : Node_Label := Virtual_Terminal) is
@@ -399,6 +349,10 @@ private
    --  entries are the same size.
    record
       Parent : Node_Index := No_Node_Index;
+
+      State : Unknown_State_Index := Unknown_State;
+      --  Parse state that was on stack with this token, to allow undoing a
+      --  reduce.
 
       case Label is
       when Shared_Terminal =>
@@ -423,6 +377,8 @@ private
          --  Production for nonterm_id used to produce this element, for debug
          --  messages.
 
+         Action : Semantic_Action := null;
+
          Byte_Region : Buffer_Region := Null_Buffer_Region;
          --  Computed by Set_Children, used in debug messages.
          --
@@ -441,8 +397,9 @@ private
 
          Children : Valid_Node_Index_Arrays.Vector;
 
-         Action : Semantic_Action := null;
-         --  FIXME: add Index for action name in trace?
+         Min_Terminal_Index : Base_Token_Index;
+         --  Cached for push_back of nonterminals during recovery
+         --  FIXME: tree is available; can compute when needed.
 
          Nonterm_Augmented : Semantic_State.Augmented_Token_Access := null;
          --  We store Augmented_Token_Access rather than Augmented_Token, to
@@ -457,7 +414,7 @@ private
    package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
 
    type Tree is new Abstract_Tree with record
-      Terminals : Protected_Base_Token_Arrays.Vector_Access_Constant;
+      Terminals : Base_Token_Arrays.Vector_Access_Constant;
 
       Nodes : Node_Arrays.Vector;
       --  During normal parsing, tokens are added to Nodes by "parallel"
@@ -480,7 +437,19 @@ private
 
    function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array;
 
-   function Get_ID (N : in Node; Terminals : in Protected_Base_Token_Arrays.Vector) return Token_ID
+   function Get_ID (N : in Node; Terminals : in Base_Token_Arrays.Vector) return Token_ID
    with Inline;
+
+   function Image
+     (N          : in Syntax_Trees.Node;
+      Terminals  : in Base_Token_Arrays.Vector_Access_Constant;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
+
+   procedure Set_Children
+     (Nodes     : in out Node_Arrays.Vector;
+      Terminals : in     Base_Token_Arrays.Vector_Access_Constant;
+      Parent    : in     Valid_Node_Index;
+      Children  : in     Valid_Node_Index_Array);
 
 end WisiToken.Syntax_Trees;

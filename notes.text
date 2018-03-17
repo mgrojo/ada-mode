@@ -19,24 +19,14 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-build syntax tree, use that in recover to pop stack
-    new mckenzie ops:
-        push_back, insert nonterms from gotos
-            testing
+add intelligence to Mckenzie_Recover to fix remaining test_mckenzie_recover
+    Missing_Name_1 failing
 
-        find, doc test case for insert nonterm
-
-    update ada-mode benchmarks
-
-    put back branched syntax trees in mckenzie
+    verify don't use Protected for Terminals; syntax_tree not read in parallel tasks in McKenzie_Recover
+        othewise need protected for Terminals, since it is appended in parallel tasks
 
     Pattern_*
-        need semantic checks in mckenzie reduce
-        => need syntax_tree in Check, but not Do_Reduce
-            we do many fewer check than reduce
-            maybe it won't be so bad with flush => true until changed.
-
-        also match_names pattern?
+        need match_names pattern?
             or more generalized state/production matching?
 
     missing_two_ends very slow
@@ -44,11 +34,10 @@ build syntax tree, use that in recover to pop stack
 
         record edits with more detail, so can do semantic_check_fixes after insert/delete/pop?
 
-    sal unbounded vectors:
-        shrink elements to exact size on copy?
+sal unbounded vectors:
+    shrink elements to exact size on copy?
 
-    move base_token_Array Terminals into Syntax_Trees.Tree, avoid access type
-
+move base_token_Array Terminals into Syntax_Trees.Tree, avoid access type
 
 tokens are no longer copied in recovery; only indices into shared_Parser.Terminals
     => merge augmented_token into base_token?
@@ -56,6 +45,10 @@ tokens are no longer copied in recovery; only indices into shared_Parser.Termina
     clean up first; compute all possible stuff at action time, not parse time
     keep line, col: doesn't cost much, very nice for error messages outside Emacs
         only in error messages, not Image (Base_Token)
+
+syntax tree still useful in main parse?
+    can reuse syntax tree for different action compute
+    maybe not worth it
 
 review FIXME:
 

@@ -78,14 +78,14 @@ package body WisiToken.LR is
         ")";
    end Image;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type)
+   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class)
    is
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
    begin
       Put_Line ("(Insert =>");
       for I in Item.Insert'Range loop
-         Put (" " & Image (I, Descriptor, Pad => True) & " =>" & Natural'Image (Item.Insert (I)));
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Insert (I)));
          if I = Item.Insert'Last then
             Put_Line (")");
          else
@@ -94,7 +94,7 @@ package body WisiToken.LR is
       end loop;
       Put_Line ("(Delete =>");
       for I in Item.Delete'Range loop
-         Put (" " & Image (I, Descriptor, Pad => True) & " =>" & Natural'Image (Item.Delete (I)));
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Delete (I)));
          if I = Item.Delete'Last then
             Put_Line (")");
          else
@@ -104,18 +104,6 @@ package body WisiToken.LR is
       Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
       New_Line;
    end Put;
-
-   function Image (Item : in Unknown_State_Index) return String
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-   begin
-      if Item = Unknown_State then
-         return " ";
-      else
-         return Trim (State_Index'Image (Item), Both);
-      end if;
-   end Image;
 
    function Image
      (Stack      : in Parser_Stacks.Stack;
@@ -139,7 +127,7 @@ package body WisiToken.LR is
            (Image (Stack.Peek (I).State) & " : " &
               (if I = Stack.Depth
                then ""
-               else Image (Tree.Base_Token (Stack.Peek (I).Token), Descriptor) & ", "));
+               else Tree.Image (Stack.Peek (I).Token, Descriptor) & ", "));
       end loop;
       return To_String (Result & ")");
    end Image;
@@ -302,7 +290,7 @@ package body WisiToken.LR is
    procedure Add_Action
      (State       : in out LR.Parse_State;
       Symbol      : in     Token_ID;
-      State_Index : in     LR.State_Index)
+      State_Index : in     WisiToken.State_Index)
    is
       Action   : constant Parse_Action_Rec := (Shift, State_Index);
       New_Node : constant Action_Node_Ptr  := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
@@ -359,7 +347,7 @@ package body WisiToken.LR is
    procedure Add_Action
      (State           : in out LR.Parse_State;
       Symbol          : in     Token_ID;
-      State_Index     : in     LR.State_Index;
+      State_Index     : in     WisiToken.State_Index;
       Production      : in     Positive;
       LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
@@ -600,7 +588,7 @@ package body WisiToken.LR is
    begin
       if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
          Put_Line ("McKenzie_Param:");
-         Put (Descriptor, Table.McKenzie_Param);
+         Put (Table.McKenzie_Param, Descriptor);
          New_Line;
       end if;
 
@@ -611,68 +599,6 @@ package body WisiToken.LR is
       end loop;
    end Put;
 
-   function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String
-   is
-      use all type SAL.Base_Peek_Type;
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String := To_Unbounded_String ("(");
-   begin
-      for I in Item.First_Index .. Item.Last_Index loop
-         Result := Result & Image (Item (I), Descriptor);
-         if I /= Item.Last_Index then
-            Result := Result & ", ";
-         end if;
-      end loop;
-      Result := Result & ")";
-      return To_String (Result);
-   end Image;
-
-   function Image
-     (Item       : in Fast_Tree_Index_Vectors.Vector;
-      Tree       : in Syntax_Trees.Branched.Tree;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return String
-   is
-      use all type SAL.Base_Peek_Type;
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String := To_Unbounded_String ("(");
-   begin
-      for I in Item.First_Index .. Item.Last_Index loop
-         Result := Result & Image (Tree.ID (Item (I)), Descriptor);
-         if I /= Item.Last_Index then
-            Result := Result & ", ";
-         end if;
-      end loop;
-      Result := Result & ")";
-      return To_String (Result);
-   end Image;
-
-   function Image
-     (Stack      : in Recover_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor'Class;
-      Depth      : in SAL.Base_Peek_Type := 0)
-     return String
-   is
-      use all type SAL.Base_Peek_Type;
-      use Ada.Strings.Unbounded;
-
-      Last : constant SAL.Base_Peek_Type :=
-        (if Depth = 0
-         then Stack.Depth
-         else SAL.Base_Peek_Type'Min (Depth, Stack.Depth));
-
-      Result : Unbounded_String := +"(";
-   begin
-      for I in 1 .. Last loop
-         Result := Result &
-           (Image (Stack.Peek (I).State) & " : " &
-              (if I = Stack.Depth
-               then ""
-               else Image (Stack.Peek (I).ID, Descriptor) & ", "));
-      end loop;
-      return To_String (Result & ")");
-   end Image;
-
    procedure Set_Key (Item : in out Configuration; Key : in Integer)
    is begin
       Item.Cost := Key;
@@ -681,7 +607,7 @@ package body WisiToken.LR is
    procedure Put
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
-      Syntax_Tree      : in Syntax_Trees.Abstract_Tree'Class;
+      Tree             : in Syntax_Trees.Abstract_Tree'Class;
       Descriptor       : in WisiToken.Descriptor'Class)
    is
       use all type SAL.Base_Peek_Type;
@@ -698,13 +624,13 @@ package body WisiToken.LR is
          when Action =>
             Put_Line
               (Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                 ", found '" & Image (Syntax_Tree.Base_Token (Item.Error_Token), Descriptor) & "'");
+                 ", found '" & Tree.Image (Item.Error_Token, Descriptor) & "'");
 
          when Check =>
             Put_Line
               (Source_File_Name & ": " &
                  "semantic check error: " & Semantic_Checks.Error_Label'Image (Item.Code) &
-                 ", tokens " & Syntax_Tree.Image (Item.Tokens, Descriptor));
+                 ", tokens " & Image (Item.Tokens, Descriptor));
          end case;
 
          if Item.Recover.Stack.Depth /= 0 then
@@ -715,7 +641,7 @@ package body WisiToken.LR is
    end Put;
 
    function Next_Grammar_Token
-     (Terminals      : in out          Protected_Base_Token_Arrays.Vector;
+     (Terminals      : in out          Base_Token_Arrays.Vector;
       Lexer          : not null access WisiToken.Lexer.Instance'Class;
       Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
       Descriptor     : in              WisiToken.Descriptor'Class)
@@ -737,7 +663,7 @@ package body WisiToken.LR is
 
    function Reduce_Stack
      (Stack        : in out Parser_Stacks.Stack;
-      Syntax_Tree  : in out Syntax_Trees.Branched.Tree;
+      Tree         : in out Syntax_Trees.Branched.Tree;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Syntax_Trees.Valid_Node_Index;
       Lexer        : in     WisiToken.Lexer.Handle;
@@ -748,17 +674,18 @@ package body WisiToken.LR is
    is
       use all type Semantic_Checks.Semantic_Check;
       use all type Semantic_Checks.Check_Status_Label;
-      Tokens : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
-      --  For Check, Set_Children.
+
+      Children_Tree : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
+      --  for Set_Children.
+
       --  FIXME: move back to -lr-parser.adb
    begin
-      Nonterm := Syntax_Tree.Add_Nonterm (Action.LHS, Action.Action, Action.Production, Action.Name_Index);
-
-      for I in reverse Tokens'Range loop
-         Tokens (I) := Stack.Pop.Token;
+      for I in reverse Children_Tree'Range loop
+         Children_Tree (I) := Stack.Pop.Token;
       end loop;
 
-      Syntax_Tree.Set_Children (Nonterm, Tokens); --  Computes Nonterm.Byte_Region, virtual
+      Nonterm := Tree.Add_Nonterm (Action.LHS, Action.Action, Action.Production, Action.Name_Index, Children_Tree);
+      --  Computes Nonterm.Byte_Region, Virtual
 
       if Trace_Level > Detail then
          declare
@@ -767,8 +694,8 @@ package body WisiToken.LR is
          begin
             Trace.Put_Line
               (Trace_Prefix & Action_Name & ": " &
-                 Image (Syntax_Tree.Base_Token (Nonterm), Trace.Descriptor.all, ID_Only => False) & " <= " &
-                 Syntax_Tree.Image (Tokens, Trace.Descriptor.all));
+                 Tree.Image (Nonterm, Trace.Descriptor.all) & " <= " &
+                 Tree.Image (Children_Tree, Trace.Descriptor.all));
          end;
       end if;
 
@@ -776,20 +703,27 @@ package body WisiToken.LR is
          return (Label => Ok);
 
       else
-         return Status : constant Semantic_Checks.Check_Status := Action.Check
-           (Syntax_Tree, Lexer, Nonterm, Tokens)
-         do
-            if Trace_Level > Detail then
-               if Status.Label = Ok then
-                  Trace.Put_Line (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status));
-               else
-                  Trace.Put_Line
-                    (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status) & " " &
-                       Image (Syntax_Tree.Base_Token (Nonterm), Trace.Descriptor.all) &
-                       Syntax_Tree.Image (Status.Tokens, Trace.Descriptor.all));
+         declare
+            Nonterm_Token  : Recover_Token := Tree.Recover_Token (Nonterm);
+            Children_Token : constant Recover_Token_Array := Tree.Recover_Token_Array (Children_Tree);
+         begin
+            return Status : constant Semantic_Checks.Check_Status := Action.Check
+              (Lexer, Nonterm_Token, Children_Token)
+            do
+               Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
+
+               if Trace_Level > Detail then
+                  if Status.Label = Ok then
+                     Trace.Put_Line (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status));
+                  else
+                     Trace.Put_Line
+                       (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status) & " " &
+                          Tree.Image (Nonterm, Trace.Descriptor.all) &
+                          Image (Status.Tokens, Trace.Descriptor.all));
+                  end if;
                end if;
-            end if;
-         end return;
+            end return;
+         end;
       end if;
    end Reduce_Stack;
 

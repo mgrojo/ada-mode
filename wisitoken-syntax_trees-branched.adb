@@ -69,10 +69,7 @@ package body WisiToken.Syntax_Trees.Branched is
    end Min;
 
    procedure Move_Branch_Point (Tree : in out Branched.Tree; Required_Node : in Valid_Node_Index)
-   is
-      Lock : Protected_Base_Token_Arrays.Lock_Type (Tree.Shared_Tree.Terminals, Write => False);
-      pragma Unreferenced (Lock);
-   begin
+   is begin
       --  Note that this preserves all stored indices in Branched_Nodes.
       Tree.Branched_Nodes.Prepend (Tree.Shared_Tree.Nodes, Required_Node, Tree.Last_Shared_Node);
       Tree.Last_Shared_Node := Required_Node - 1;
@@ -147,31 +144,53 @@ package body WisiToken.Syntax_Trees.Branched is
       Nonterm    : in     WisiToken.Token_ID;
       Action     : in     Semantic_Action;
       Production : in     Positive;
-      Name_Index : in     Natural)
+      Name_Index : in     Natural;
+      Children   : in     Valid_Node_Index_Array)
      return Valid_Node_Index
-   is begin
+   is
+      Nonterm_Node : Valid_Node_Index;
+   begin
       if Tree.Flush then
          Tree.Shared_Tree.Nodes.Append
            ((Label      => Syntax_Trees.Nonterm,
-             Parent     => No_Node_Index,
              Nonterm_ID => Nonterm,
              Action     => Action,
              Production => Production,
              Name_Index => Name_Index,
              others     => <>));
          Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
-         return Tree.Last_Shared_Node;
+         Nonterm_Node := Tree.Last_Shared_Node;
       else
          Tree.Branched_Nodes.Append
            ((Label      => Syntax_Trees.Nonterm,
-             Parent     => No_Node_Index,
              Nonterm_ID => Nonterm,
              Action     => Action,
              Production => Production,
              Name_Index => Name_Index,
              others     => <>));
-         return Tree.Branched_Nodes.Last_Index;
+         Nonterm_Node := Tree.Branched_Nodes.Last_Index;
       end if;
+
+      if Children'Length = 0 then
+         return Nonterm_Node;
+      end if;
+
+      if Tree.Flush then
+         Set_Children (Tree.Shared_Tree.Nodes, Tree.Shared_Tree.Terminals, Nonterm_Node, Children);
+
+      else
+         declare
+            Min_Child_Node : constant Valid_Node_Index := Min (Children);
+         begin
+            if Min_Child_Node <= Tree.Last_Shared_Node then
+               Move_Branch_Point (Tree, Min_Child_Node);
+            end if;
+         end;
+
+         Set_Children (Tree.Branched_Nodes, Tree.Shared_Tree.Terminals, Nonterm_Node, Children);
+      end if;
+
+      return Nonterm_Node;
    end Add_Nonterm;
 
    function Add_Terminal
@@ -182,15 +201,15 @@ package body WisiToken.Syntax_Trees.Branched is
       if Tree.Flush then
          Tree.Shared_Tree.Nodes.Append
            ((Label    => Shared_Terminal,
-             Parent   => No_Node_Index,
-             Terminal => Terminal));
+             Terminal => Terminal,
+             others   => <>));
          Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
          return Tree.Last_Shared_Node;
       else
          Tree.Branched_Nodes.Append
            ((Label    => Shared_Terminal,
-             Parent   => No_Node_Index,
-             Terminal => Terminal));
+             Terminal => Terminal,
+             others   => <>));
          return Tree.Branched_Nodes.Last_Index;
       end if;
    end Add_Terminal;
@@ -202,81 +221,44 @@ package body WisiToken.Syntax_Trees.Branched is
    is begin
       if Tree.Flush then
          Tree.Shared_Tree.Nodes.Append
-           ((Label             => Virtual_Terminal,
-             Parent            => No_Node_Index,
-             Terminal_ID       => Terminal,
-             Virtual_Augmented => null));
+           ((Label       => Virtual_Terminal,
+             Terminal_ID => Terminal,
+             others      => <>));
          Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
          return Tree.Last_Shared_Node;
       else
          Tree.Branched_Nodes.Append
-           ((Label             => Virtual_Terminal,
-             Parent            => No_Node_Index,
-             Terminal_ID       => Terminal,
-             Virtual_Augmented => null));
+           ((Label       => Virtual_Terminal,
+             Terminal_ID => Terminal,
+             others      => <>));
          return Tree.Branched_Nodes.Last_Index;
       end if;
    end Add_Terminal;
 
-   procedure Set_Children
-     (Tree     : in out Branched.Tree;
-      Parent   : in     Valid_Node_Index;
-      Children : in     Valid_Node_Index_Array)
+   procedure Set_State
+     (Tree  : in out Branched.Tree;
+      Node  : in     Valid_Node_Index;
+      State : in     State_Index)
    is begin
-      if Children'Length = 0 then
-         return;
-      end if;
-
       if Tree.Flush then
-         Set_Children (Tree.Shared_Tree.all, Parent, Children);
-
+         Tree.Shared_Tree.Nodes (Node).State := State;
       else
-         declare
-            Min_Child_Node : constant Valid_Node_Index := Min (Children);
-         begin
-            if Min_Child_Node <= Tree.Last_Shared_Node then
-               Move_Branch_Point (Tree, Min_Child_Node);
-            end if;
-         end;
-
-         declare
-            use all type SAL.Base_Peek_Type;
-            N : Nonterm_Node renames Tree.Branched_Nodes (Parent);
-            J : Positive_Index_Type := Positive_Index_Type'First;
-         begin
-            N.Children.Clear;
-            N.Children.Set_Length (Children'Length);
-            for I in Children'Range loop
-               N.Children (J) := Children (I);
-               declare
-                  K : Syntax_Trees.Node renames Tree.Branched_Nodes (Children (I));
-                  Child_Byte_Region : constant Buffer_Region :=
-                    (case K.Label is
-                     when Shared_Terminal  => Tree.Shared_Tree.Terminals.Element (K.Terminal).Byte_Region,
-                     when Virtual_Terminal => Null_Buffer_Region,
-                     when Nonterm          => K.Byte_Region);
-               begin
-                  K.Parent := Parent;
-
-                  N.Virtual := N.Virtual or
-                    (case K.Label is
-                     when Shared_Terminal  => False,
-                     when Virtual_Terminal => True,
-                     when Nonterm          => K.Virtual);
-
-                  if N.Byte_Region.First > Child_Byte_Region.First then
-                     N.Byte_Region.First := Child_Byte_Region.First;
-                  end if;
-
-                  if N.Byte_Region.Last < Child_Byte_Region.Last then
-                     N.Byte_Region.Last := Child_Byte_Region.Last;
-                  end if;
-               end;
-               J := J + 1;
-            end loop;
-         end;
+         if Node <= Tree.Last_Shared_Node then
+            Tree.Shared_Tree.Nodes (Node).State := State;
+         else
+            Tree.Branched_Nodes (Node).State := State;
+         end if;
       end if;
-   end Set_Children;
+   end Set_State;
+
+   function State (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Unknown_State_Index
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Tree.Shared_Tree.Nodes (Node).State;
+      else
+         return Tree.Branched_Nodes (Node).State;
+      end if;
+   end State;
 
    overriding function Label (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Label
    is begin
@@ -373,55 +355,6 @@ package body WisiToken.Syntax_Trees.Branched is
       end if;
    end Parent;
 
-   overriding
-   function Byte_Region
-     (Tree : in Branched.Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region
-   is
-      function Compute (N : in Syntax_Trees.Node) return Buffer_Region
-      is begin
-         case N.Label is
-         when Shared_Terminal =>
-            return Tree.Shared_Tree.Terminals.Element (N.Terminal).Byte_Region;
-         when Virtual_Terminal =>
-            return Null_Buffer_Region;
-         when Nonterm =>
-            return N.Byte_Region;
-         end case;
-      end Compute;
-   begin
-      return Compute
-        ((if Node <= Tree.Last_Shared_Node
-          then Tree.Shared_Tree.Nodes (Node)
-          else Tree.Branched_Nodes (Node)));
-   end Byte_Region;
-
-   overriding
-   function Name_Region
-     (Tree : in Branched.Tree;
-      Node : in Valid_Node_Index)
-     return Buffer_Region
-   is
-      function Compute (N : in Syntax_Trees.Node) return Buffer_Region
-      is begin
-         case N.Label is
-         when Shared_Terminal =>
-            return Tree.Shared_Tree.Terminals.Element (N.Terminal).Byte_Region;
-         when Virtual_Terminal =>
-            return Null_Buffer_Region;
-         when Nonterm =>
-            return N.Name;
-         end case;
-      end Compute;
-   begin
-      return Compute
-        ((if Node <= Tree.Last_Shared_Node
-          then Tree.Shared_Tree.Nodes (Node)
-          else Tree.Branched_Nodes (Node)));
-   end Name_Region;
-
-   overriding
    procedure Set_Name_Region
      (Tree   : in out Branched.Tree;
       Node   : in     Valid_Node_Index;
@@ -465,21 +398,72 @@ package body WisiToken.Syntax_Trees.Branched is
           else Tree.Branched_Nodes (Node)));
    end ID;
 
-   overriding
-   function Base_Token
+   function Same_Token
+     (Tree_1  : in Branched.Tree'Class;
+      Index_1 : in Valid_Node_Index;
+      Tree_2  : in Branched.Tree'Class;
+      Index_2 : in Valid_Node_Index)
+     return Boolean
+   is
+      function Compute (N_1, N_2 : in Syntax_Trees.Node) return Boolean
+      is begin
+         if N_1.Label = N_2.Label then
+            case N_1.Label is
+            when Shared_Terminal =>
+               return N_1.Terminal = N_2.Terminal;
+
+            when Virtual_Terminal =>
+               return N_1.Terminal_ID = N_2.Terminal_ID;
+
+            when Nonterm =>
+               return N_1.Nonterm_ID = N_2.Nonterm_ID and
+                 N_1.Byte_Region = N_2.Byte_Region;
+            end case;
+         else
+            return False;
+         end if;
+      end Compute;
+   begin
+      return Compute
+        ((if Index_1 <= Tree_1.Last_Shared_Node
+          then Tree_1.Shared_Tree.Nodes (Index_1)
+          else Tree_1.Branched_Nodes (Index_1)),
+        (if Index_2 <= Tree_2.Last_Shared_Node
+          then Tree_2.Shared_Tree.Nodes (Index_2)
+          else Tree_2.Branched_Nodes (Index_2)));
+   end Same_Token;
+
+   function Recover_Token
      (Tree : in Branched.Tree;
       Node : in Valid_Node_Index)
-     return WisiToken.Base_Token
+     return WisiToken.Recover_Token
    is
-      function Compute (N : in Syntax_Trees.Node) return WisiToken.Base_Token
+      function Compute (N : Syntax_Trees.Node) return WisiToken.Recover_Token
       is begin
          case N.Label is
          when Shared_Terminal =>
-            return Tree.Shared_Tree.Terminals.Element (N.Terminal);
+            return
+              (ID                 => Tree.Shared_Tree.Terminals.all (N.Terminal).ID,
+               Byte_Region        => Tree.Shared_Tree.Terminals.all (N.Terminal).Byte_Region,
+               Min_Terminal_Index => N.Terminal,
+               Name               => Null_Buffer_Region,
+               Virtual            => False);
+
          when Virtual_Terminal =>
-            return (N.Terminal_ID, Null_Buffer_Region);
+            return
+              (ID                 => N.Terminal_ID,
+               Byte_Region        => Null_Buffer_Region,
+               Min_Terminal_Index => Invalid_Token_Index,
+               Name               => Null_Buffer_Region,
+               Virtual            => True);
+
          when Nonterm =>
-            return (N.Nonterm_ID, N.Byte_Region);
+            return
+              (ID                 => N.Nonterm_ID,
+               Byte_Region        => N.Byte_Region,
+               Min_Terminal_Index => N.Min_Terminal_Index,
+               Name               => N.Name,
+               Virtual            => False);
          end case;
       end Compute;
    begin
@@ -487,7 +471,19 @@ package body WisiToken.Syntax_Trees.Branched is
         ((if Node <= Tree.Last_Shared_Node
           then Tree.Shared_Tree.Nodes (Node)
           else Tree.Branched_Nodes (Node)));
-   end Base_Token;
+   end Recover_Token;
+
+   function Recover_Token_Array
+     (Tree  : in Branched.Tree;
+      Nodes : in Valid_Node_Index_Array)
+     return WisiToken.Recover_Token_Array
+   is begin
+      return Result : WisiToken.Recover_Token_Array (Nodes'First .. Nodes'Last) do
+         for I in Result'Range loop
+            Result (I) := Tree.Recover_Token (Nodes (I));
+         end loop;
+      end return;
+   end Recover_Token_Array;
 
    overriding
    function Augmented_Token_Ref
@@ -789,10 +785,7 @@ package body WisiToken.Syntax_Trees.Branched is
       Process_Node : access procedure
         (Tree : in out Branched.Tree;
          Node : in     Valid_Node_Index))
-   is
-      Lock : Protected_Base_Token_Arrays.Lock_Type (Tree.Shared_Tree.Terminals, Write => False);
-      pragma Unreferenced (Lock);
-   begin
+   is begin
       Tree.Shared_Tree.Traversing := True;
       for N in Tree.Shared_Tree.Nodes.First_Index .. Tree.Shared_Tree.Nodes.Last_Index loop
          if Tree.Shared_Tree.Nodes (N).Parent = 0 then
@@ -840,5 +833,20 @@ package body WisiToken.Syntax_Trees.Branched is
           then Tree.Shared_Tree.Nodes (Node)
           else Tree.Branched_Nodes (Node)));
    end Min_Shared_Terminal_Index;
+
+   overriding
+   function Image
+     (Tree       : in Branched.Tree;
+      Node       : in Valid_Node_Index;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is begin
+      return Image
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node)
+          else Tree.Branched_Nodes (Node)),
+         Tree.Shared_Tree.Terminals,
+         Descriptor);
+   end Image;
 
 end WisiToken.Syntax_Trees.Branched;

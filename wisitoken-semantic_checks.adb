@@ -49,27 +49,26 @@ package body WisiToken.Semantic_Checks is
    end Image;
 
    function Match_Names
-     (Syntax_Tree  : in WisiToken.Syntax_Trees.Abstract_Tree'Class;
-      Lexer        : in WisiToken.Lexer.Handle;
-      Tokens       : in WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+     (Lexer        : in WisiToken.Lexer.Handle;
+      Tokens       : in Recover_Token_Array;
       Start_Index  : in Positive_Index_Type;
       End_Index    : in Positive_Index_Type;
       End_Optional : in Boolean)
      return Check_Status
    is
-      use all type Syntax_Trees.Valid_Node_Index_Arrays.Vector;
+      use all type Recover_Token_Arrays.Vector;
    begin
-      if Syntax_Tree.Virtual (Tokens (Start_Index)) or Syntax_Tree.Virtual (Tokens (End_Index)) then
+      if Tokens (Start_Index).Virtual or Tokens (End_Index).Virtual then
          return (Label => Ok);
 
       elsif End_Optional then
-         if Syntax_Tree.Name_Region (Tokens (End_Index)) = Null_Buffer_Region then
+         if Tokens (End_Index).Name = Null_Buffer_Region then
             return (Label => Ok);
-         elsif Syntax_Tree.Name_Region (Tokens (Start_Index)) = Null_Buffer_Region then
+         elsif Tokens (Start_Index).Name = Null_Buffer_Region then
             return (Error, Extra_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
          else
-            if Lexer.Buffer_Text (Syntax_Tree.Name_Region (Tokens (Start_Index))) =
-              Lexer.Buffer_Text (Syntax_Tree.Name_Region (Tokens (End_Index)))
+            if Lexer.Buffer_Text (Tokens (Start_Index).Name) =
+              Lexer.Buffer_Text (Tokens (End_Index).Name)
             then
                return (Label => Ok);
             else
@@ -78,19 +77,19 @@ package body WisiToken.Semantic_Checks is
          end if;
 
       else
-         if Syntax_Tree.Name_Region (Tokens (Start_Index)) = Null_Buffer_Region then
-            if Syntax_Tree.Name_Region (Tokens (End_Index)) = Null_Buffer_Region then
+         if Tokens (Start_Index).Name = Null_Buffer_Region then
+            if Tokens (End_Index).Name = Null_Buffer_Region then
                return (Label => Ok);
             else
                return (Error, Extra_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
             end if;
 
-         elsif Syntax_Tree.Name_Region (Tokens (End_Index)) = Null_Buffer_Region then
+         elsif Tokens (End_Index).Name = Null_Buffer_Region then
             return (Error, Missing_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
 
          else
-            if Lexer.Buffer_Text (Syntax_Tree.Name_Region (Tokens (Start_Index))) =
-              Lexer.Buffer_Text (Syntax_Tree.Name_Region (Tokens (End_Index)))
+            if Lexer.Buffer_Text (Tokens (Start_Index).Name) =
+              Lexer.Buffer_Text (Tokens (End_Index).Name)
             then
                return (Label => Ok);
             else
@@ -101,33 +100,34 @@ package body WisiToken.Semantic_Checks is
    end Match_Names;
 
    function Propagate_Name
-     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Name_Index  : in     Positive_Index_Type)
+     (Nonterm    : in out Recover_Token;
+      Tokens     : in     Recover_Token_Array;
+      Name_Index : in     Positive_Index_Type)
      return Check_Status
    is begin
-      Syntax_Tree.Set_Name_Region (Nonterm, Syntax_Tree.Name_Region (Tokens (Name_Index)));
+      if Tokens (Name_Index).Name = Null_Buffer_Region then
+         Nonterm.Name := Tokens (Name_Index).Byte_Region;
+      else
+         Nonterm.Name := Tokens (Name_Index).Name;
+      end if;
       return (Label => Ok);
    end Propagate_Name;
 
    function Merge_Names
-     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+     (Nonterm     : in out Recover_Token;
+      Tokens      : in     Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
      return Check_Status
    is
-      First_Name_Region : Buffer_Region renames Syntax_Tree.Name_Region (Tokens (First_Index));
-      Last_Name_Region  : Buffer_Region renames Syntax_Tree.Name_Region (Tokens (Last_Index));
+      First_Name : Buffer_Region renames Tokens (First_Index).Name;
+      Last_Name  : Buffer_Region renames Tokens (Last_Index).Name;
    begin
-      Syntax_Tree.Set_Name_Region
-        (Nonterm,
-         First_Name_Region and
-           (if Last_Name_Region = Null_Buffer_Region
-            then Syntax_Tree.Byte_Region (Tokens (Last_Index))
-            else Last_Name_Region));
+      Nonterm.Name :=
+        First_Name and
+          (if Last_Name = Null_Buffer_Region
+           then Tokens (Last_Index).Byte_Region
+           else Last_Name);
       return (Label => Ok);
    end Merge_Names;
 

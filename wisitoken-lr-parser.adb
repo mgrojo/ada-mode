@@ -78,7 +78,7 @@ package body WisiToken.LR.Parser is
       use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
-      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Nonterm      : WisiToken.Syntax_Trees.Valid_Node_Index;
       Status       : Semantic_Checks.Check_Status_Label;
@@ -87,7 +87,7 @@ package body WisiToken.LR.Parser is
          Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
               Image (Parser_State.Stack.Peek.State) & ": " &
-              Image (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) & " : ");
+              Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : ");
          Put (Trace, Action);
          Trace.New_Line;
       end if;
@@ -95,9 +95,8 @@ package body WisiToken.LR.Parser is
       case Action.Verb is
       when Shift =>
          Current_Parser.Set_Verb (Action.Verb);
-         Parser_State.Stack.Push
-           ((Action.State,
-             Parser_State.Current_Token));
+         Parser_State.Stack.Push ((Action.State, Parser_State.Current_Token));
+         Parser_State.Tree.Set_State (Parser_State.Current_Token, Action.State);
 
          Parser_State.Last_Shift_Was_Virtual := Parser_State.Current_Token_Is_Virtual;
 
@@ -108,10 +107,11 @@ package body WisiToken.LR.Parser is
 
          --  Even when Reduce_Stack_1 returns Error, it did reduce the stack, so
          --  push Nonterm.
+         Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);
          Parser_State.Stack.Push
            ((State    => Goto_For
                (Table => Shared_Parser.Table.all,
-                State => Parser_State.Stack.Peek.State,
+                State => Parser_State.Stack (1).State,
                 ID    => Action.LHS),
              Token    => Nonterm));
 
@@ -288,14 +288,9 @@ package body WisiToken.LR.Parser is
                   if Item_1.State /= Item_2.State then
                      return False;
                   else
-                     declare
-                        Token_1 : Base_Token renames Tree_1.Base_Token (Item_1.Token);
-                        Token_2 : Base_Token renames Tree_2.Base_Token (Item_2.Token);
-                     begin
-                        if Token_1 /= Token_2 then
-                           return False;
-                        end if;
-                     end;
+                     if Syntax_Trees.Branched.Same_Token (Tree_1, Item_1.Token, Tree_2, Item_2.Token) then
+                        return False;
+                     end if;
                   end if;
                end;
             end loop;
@@ -677,8 +672,7 @@ package body WisiToken.LR.Parser is
                         if Trace_Parse > Outline then
                            Trace.Put_Line
                              (Integer'Image (Parser_State.Label) & ": Current_Token " &
-                                Image
-                                  (Parser_State.Tree.Base_Token (Parser_State.Current_Token), Trace.Descriptor.all) &
+                                Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
                                 " Shared_Token " & Image
                                   (Shared_Parser.Terminals.Element (Parser_State.Shared_Token), Trace.Descriptor.all));
                            Trace.New_Line;
@@ -868,8 +862,7 @@ package body WisiToken.LR.Parser is
                      else "");
                begin
                   Parser.Trace.Put_Line
-                    (Action_Name &
-                       Aug_Nonterm.Image (Descriptor, ID_Only => False) & " <= " &
+                    (Action_Name & Aug_Nonterm.Image (Descriptor) & " <= " &
                        Semantic_State.Image (Aug_Children, Descriptor));
                end;
             end if;

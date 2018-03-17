@@ -37,7 +37,7 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux;
 package WisiToken is
 
    Syntax_Error : exception; -- no recovery for a syntax error was found
@@ -53,6 +53,13 @@ package WisiToken is
    Programmer_Error : exception; -- a programming convention has been violated
 
    subtype Positive_Index_Type is SAL.Peek_Type;
+
+   type Unknown_State_Index is new Integer range -1 .. Integer'Last;
+   subtype State_Index is Unknown_State_Index range 0 .. Unknown_State_Index'Last;
+   Unknown_State : constant Unknown_State_Index := -1;
+
+   function Image (Item : in Unknown_State_Index) return String;
+   --  no leading space; " " for Unknown_State
 
    ----------
    --  Token IDs
@@ -102,9 +109,12 @@ package WisiToken is
       Image_Width          : Integer; --  max width of Image
    end record;
 
-   function Image (Item : in Token_ID; Desc : in Descriptor'Class; Pad : in Boolean := False) return String;
-   --  Return Desc.Image (Item), possibly padded to
-   --  Terminal_Image_Width (if Item is a terminal) or to Image_Width.
+   function Padded_Image (Item : in Token_ID; Desc : in Descriptor'Class) return String;
+   --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
+   --  is a terminal) or to Image_Width.
+
+   function Image (Item : in Token_ID; Desc : in Descriptor'Class) return String;
+   --  Return Desc.Image (Item), or empty string for Invalid_Token_ID.
 
    function Int_Image (Item : in Token_ID) return String;
    --  Return Token_ID'Image, leading space stripped.
@@ -117,6 +127,7 @@ package WisiToken is
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
 
    function Image (Item : in Token_ID_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
+   --  FIXME: use .Gen_Image; similarly for other container images.
 
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
 
@@ -195,28 +206,16 @@ package WisiToken is
    --  Return region enclosing both Left and Right.
 
    type Base_Token is tagged record
-      --  Base_Token is used in the core parser and error recovery. The cost
-      --  of deleting a token in error recovery depends on whether it is
-      --  empty or not, so we need Byte_Region. One error recovery algorithm
-      --  matches names; those are kept in the syntax tree
-      --  (wisitoken-syntax_trees.ads).
-      --
-      --  We do not include all of the information used by the semantic
-      --  actions here, because thousands of copies of the parser stack and
-      --  syntax tree can be made during error recovery, so minimizing its
-      --  size is important. FIXME: no longer true; only indices into
-      --  Parser.All_Tokens are copied.
-
+      --  Base_Token is used in the core parser.
       ID          : Token_ID      := Invalid_Token_ID;
       Byte_Region : Buffer_Region := Null_Buffer_Region;
 
-      --  FIXME: add Char_Region for Emacs error messages/repair?
+      --  FIXME: delete byte_region; it's in the syntax tree
    end record;
 
    function Image
      (Item       : in Base_Token;
-      Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean := False)
+      Descriptor : in WisiToken.Descriptor'Class)
      return String;
 
    Invalid_Token : constant Base_Token := (others => <>);
@@ -232,12 +231,42 @@ package WisiToken is
 
    Invalid_Token_Index : constant Base_Token_Index := Base_Token_Arrays.No_Index;
 
-   package Protected_Base_Token_Arrays is new Base_Token_Arrays.Gen_Protected;
+   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+
+   type Recover_Token is record
+      --  Maintaining a syntax tree during recover is too slow, so we store
+      --  enough information in the recover stack to perform
+      --  semantic_checks.
+      ID : Token_ID := Invalid_Token_ID;
+
+      Byte_Region : Buffer_Region := Null_Buffer_Region;
+      --  Byte_Region is used to detect empty tokens, for cost and other issues.
+
+      Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
+      --  For terminals, index of this token in Shared_Parser.Terminals. For
+      --  nonterminals, minimum of contained tokens. For virtuals,
+      --  Invalid_Token_Index. Used for push_back of nonterminals in
+      --  recover.
+
+      Name : Buffer_Region := Null_Buffer_Region;
+      --  Set and used by semantic_checks.
+
+      Virtual : Boolean := False;
+      --  For terminals, True if inserted by recover. For nonterminals, True
+      --  if any contained token has Virtual = True. Used by Semantic_Checks
+      --  and push_back.
+   end record;
 
    function Image
-     (Item       : in Base_Token_Arrays.Vector;
+     (Item       : in Recover_Token;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
+
+   type Recover_Token_Array is array (Positive_Index_Type range <>) of Recover_Token;
+
+   package Recover_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Recover_Token);
+
+   function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    ----------
    --  Trace

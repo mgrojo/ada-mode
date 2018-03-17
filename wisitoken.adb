@@ -27,17 +27,26 @@
 with Ada.Strings.Fixed;
 package body WisiToken is
 
-   function Image (Item : in Token_ID; Desc : in Descriptor'Class; Pad : in Boolean := False) return String
+   function Image (Item : in Unknown_State_Index) return String
+   is
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+   begin
+      return (if Item = Unknown_State then " " else Trim (State_Index'Image (Item), Left));
+   end Image;
+
+   function Padded_Image (Item : in Token_ID; Desc : in Descriptor'Class) return String
    is begin
-      if Pad then
-         return Ada.Strings.Fixed.Head
-           (Desc.Image (Item).all,
-            (if Item in Desc.First_Terminal .. Desc.Last_Terminal
-             then Desc.Terminal_Image_Width
-             else Desc.Image_Width));
-      else
-         return Desc.Image (Item).all;
-      end if;
+      return Ada.Strings.Fixed.Head
+        (Desc.Image (Item).all,
+         (if Item in Desc.First_Terminal .. Desc.Last_Terminal
+          then Desc.Terminal_Image_Width
+          else Desc.Image_Width));
+   end Padded_Image;
+
+   function Image (Item : in Token_ID; Desc : in Descriptor'Class) return String
+   is begin
+      return (if Item = Invalid_Token_ID then "" else Desc.Image (Item).all);
    end Image;
 
    function Int_Image (Item : in Token_ID) return String
@@ -312,37 +321,20 @@ package body WisiToken is
 
    function Image
      (Item       : in Base_Token;
-      Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean := False)
+      Descriptor : in WisiToken.Descriptor'Class)
      return String
-   is
-      ID_Image : constant String := Image (Item.ID, Descriptor);
-   begin
-      if ID_Only or Item.Byte_Region = Null_Buffer_Region then
-         return "(" & ID_Image & ")";
-      else
-         return "(" & ID_Image &
-           (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
-      end if;
+   is begin
+      return "(" & Image (Item.ID, Descriptor) &
+        (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
    end Image;
 
    function Image
-     (Item       : in Base_Token_Arrays.Vector;
+     (Item       : in Recover_Token;
       Descriptor : in WisiToken.Descriptor'Class)
      return String
-   is
-      use all type SAL.Base_Peek_Type;
-      use Ada.Strings.Unbounded;
-      --  No outer parens, for compatibility with existing tests.
-      Result : Unbounded_String;
-   begin
-      for I in Item.First_Index .. Item.Last_Index loop
-         Result := Result & Image (Item (I), Descriptor);
-         if I /= Item.Last_Index then
-            Result := Result & ", ";
-         end if;
-      end loop;
-      return -Result;
+   is begin
+      return "(" & Image (Item.ID, Descriptor) &
+        (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
    end Image;
 
 end WisiToken;

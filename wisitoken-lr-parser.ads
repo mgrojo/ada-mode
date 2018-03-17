@@ -37,7 +37,7 @@ package WisiToken.LR.Parser is
       Table          : Parse_Table_Ptr;
       Semantic_State : WisiToken.Semantic_State.Semantic_State;
 
-      Terminals : aliased Protected_Base_Token_Arrays.Vector;
+      Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Does not contain
       --  virtual tokens. Tokens past Parser.Current_Token are lookahead.
       --

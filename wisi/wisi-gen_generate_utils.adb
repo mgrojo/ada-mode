@@ -496,7 +496,6 @@ package body Wisi.Gen_Generate_Utils is
      return WisiToken.LR.Generator_Utils.Conflict_Lists.List
    is
       use WisiToken.LR.Generator_Utils;
-      use all type WisiToken.LR.Unknown_State_Index;
       use all type WisiToken.LR.Parse_Action_Verbs;
       Result   : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
       Conflict : WisiToken.LR.Generator_Utils.Conflict;

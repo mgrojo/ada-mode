@@ -216,7 +216,7 @@ package body WisiToken.LR.LR1_Generator is
 
       if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
          Put_Line ("McKenzie:");
-         Put (Descriptor, Table.McKenzie_Param);
+         Put (Table.McKenzie_Param, Descriptor);
          New_Line;
       end if;
 

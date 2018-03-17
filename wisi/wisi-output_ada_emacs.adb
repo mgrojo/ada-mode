@@ -869,7 +869,7 @@ is
 
    procedure Create_Ada_Body
    is
-      use all type WisiToken.LR.Unknown_State_Index;
+      use all type WisiToken.Unknown_State_Index;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -891,7 +891,7 @@ is
          Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
-            WisiToken.LR.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -906,7 +906,7 @@ is
          Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
            (Data.Grammar,
             LR1_Descriptor,
-            WisiToken.LR.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -916,7 +916,7 @@ is
             Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
             Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
-         Data.Parser_State_Count := WisiToken.LR.Unknown_State_Index'Max
+         Data.Parser_State_Count := WisiToken.Unknown_State_Index'Max
            (Data.Parser_State_Count,
             Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
       end if;
@@ -1089,7 +1089,7 @@ is
            (Integer'Image (Rule_Count) & " rules," &
               Integer'Image (Action_Count) & " actions," &
               Integer'Image (Check_Count) & " checks," &
-              WisiToken.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+              WisiToken.State_Index'Image (Data.Parser_State_Count) & " states," &
               Integer'Image (Data.Table_Entry_Count) & " table entries");
          Put_Line
            (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &

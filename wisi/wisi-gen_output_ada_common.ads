@@ -47,7 +47,7 @@ package Wisi.Gen_Output_Ada_Common is
       Shift_Reduce_Conflict_Count  : Integer := -1;
       Reduce_Reduce_Conflict_Count : Integer := -1;
       Table_Entry_Count            : Integer := -1;
-      Parser_State_Count           : WisiToken.LR.Unknown_State_Index := 0;
+      Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
 
       Grammar : WisiToken.Production.List.Instance;
 

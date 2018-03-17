@@ -30,6 +30,8 @@ with WisiToken.Text_IO_Trace;
 %%
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
+   End_Name_Optional : Boolean := True;
+
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 %}
 ;; ' terminate quote
@@ -225,17 +227,17 @@ block_label_opt
   : ;; empty
   | IDENTIFIER COLON
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   ;
 
 block_statement
   : block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     ()
-    (return Match_Names (Tree, Lexer, Tokens, 1, 7, True);)
+    (return Match_Names (Lexer, Tokens, 1, 7, End_Name_Optional);)
 
   | block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     ()
-    (return Match_Names (Tree, Lexer, Tokens, 1, 5, True);)
+    (return Match_Names (Lexer, Tokens, 1, 5, End_Name_Optional);)
   ;
 
 body_g :
@@ -379,7 +381,7 @@ full_type_declaration
 function_specification
   : FUNCTION name parameter_and_result_profile
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 2);)
+    (return Propagate_Name (Nonterm, Tokens, 2);)
   ;
 
 generic_instantiation
@@ -396,7 +398,7 @@ identifier_opt
   : ;; empty
   | IDENTIFIER
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   ;
 
 if_statement
@@ -431,11 +433,11 @@ multiplying_operator : STAR | SLASH ;
 name
   : IDENTIFIER
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   | name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
   | selected_component
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   | name actual_parameter_part ;; function_call, procedure call.
   ;
 
@@ -443,7 +445,7 @@ name_opt
   : ;; empty
   | name
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   ;
 
 object_declaration
@@ -454,10 +456,10 @@ object_declaration
 package_body
   : PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON
     ()
-    (return Match_Names (Tree, Lexer, Tokens, 3, 10, True);)
+    (return Match_Names (Lexer, Tokens, 3, 10, End_Name_Optional);)
   | PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON
     ()
-    (return Match_Names (Tree, Lexer, Tokens, 3, 8, True);)
+    (return Match_Names (Lexer, Tokens, 3, 8, End_Name_Optional);)
   ;
 
 parameter_and_result_profile
@@ -499,7 +501,7 @@ procedure_call_statement
 procedure_specification
   : PROCEDURE name parameter_profile_opt
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 2);)
+    (return Propagate_Name (Nonterm, Tokens, 2);)
   ;
 
 proper_body
@@ -543,7 +545,7 @@ relational_operator
 selected_component
   : name DOT IDENTIFIER
     ()
-    (return Merge_Names (Tree, Nonterm, Tokens, 1, 3);)
+    (return Merge_Names (Nonterm, Tokens, 1, 3);)
   ;
 
 sequence_of_statements
@@ -582,7 +584,7 @@ subprogram_body
   : subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN
     handled_sequence_of_statements END name_opt SEMICOLON
     (Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)
-    (return Match_Names (Tree, Lexer, Tokens, 1, 8, True);)
+    (return Match_Names (Lexer, Tokens, 1, 8, End_Name_Optional);)
   ;
 
 subprogram_body_stub
@@ -596,10 +598,10 @@ subprogram_declaration
 subprogram_specification
   : procedure_specification
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   | function_specification
     ()
-    (return Propagate_Name (Tree, Nonterm, Tokens, 1);)
+    (return Propagate_Name (Nonterm, Tokens, 1);)
   ;
 
 subtype_indication

@@ -40,7 +40,7 @@ package WisiToken.Semantic_Checks is
       when Error =>
          Code : Error_Label;
 
-         Tokens : Syntax_Trees.Valid_Node_Index_Arrays.Vector;
+         Tokens : Recover_Token_Arrays.Vector;
          --  The tokens involved in the error; for example, for
          --  Match_Names_Error, the two name tokens.
       end case;
@@ -50,10 +50,9 @@ package WisiToken.Semantic_Checks is
    function Image (Item : in Check_Status) return String;
 
    type Semantic_Check is access function
-     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-      Lexer       : in     WisiToken.Lexer.Handle;
-      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+     (Lexer   : in     WisiToken.Lexer.Handle;
+      Nonterm : in out Recover_Token;
+      Tokens  : in     Recover_Token_Array)
      return Check_Status;
    --  Called during parsing and error recovery to implement higher level
    --  checks, such as block name matching in Ada.
@@ -61,9 +60,8 @@ package WisiToken.Semantic_Checks is
    Null_Check : constant Semantic_Check := null;
 
    function Match_Names
-     (Syntax_Tree  : in WisiToken.Syntax_Trees.Abstract_Tree'Class;
-      Lexer        : in WisiToken.Lexer.Handle;
-      Tokens       : in WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+     (Lexer        : in WisiToken.Lexer.Handle;
+      Tokens       : in Recover_Token_Array;
       Start_Index  : in Positive_Index_Type;
       End_Index    : in Positive_Index_Type;
       End_Optional : in Boolean)
@@ -72,18 +70,16 @@ package WisiToken.Semantic_Checks is
    --  text at Tokens (End_Index).Name.
 
    function Propagate_Name
-     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
-      Name_Index  : in     Positive_Index_Type)
+     (Nonterm    : in out Recover_Token;
+      Tokens     : in     Recover_Token_Array;
+      Name_Index : in     Positive_Index_Type)
      return Check_Status;
-   --  Set Syntax_Tree.Name (Nonterm) to Syntax_Tree.Name (Tokens
-   --  (Name_Index)), return Ok.
+   --  Set Nonterm.Name to Tokens (Name_Index).Name, or .Byte_Region, if
+   --  .Name is Null_Buffer_Region. Return Ok.
 
    function Merge_Names
-     (Syntax_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-      Nonterm     : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-      Tokens      : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+     (Nonterm     : in out Recover_Token;
+      Tokens      : in     Recover_Token_Array;
       First_Index : in     Positive_Index_Type;
       Last_Index  : in     Positive_Index_Type)
      return Check_Status;

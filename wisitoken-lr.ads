@@ -40,29 +40,22 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
-with SAL.Gen_Bounded_Definite_Vectors;
+with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
-with SAL.Gen_Unbounded_Definite_Stacks;
+with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
 with WisiToken.Semantic_State;
 with WisiToken.Syntax_Trees.Branched;
 package WisiToken.LR is
 
-   type Unknown_State_Index is new Integer range -1 .. Integer'Last;
-   subtype State_Index is Unknown_State_Index range 0 .. Unknown_State_Index'Last;
-   Unknown_State : constant Unknown_State_Index := -1;
-
-   --  Parser stack type. Visible here for error recovery.
+   --  Parser stack type. FIXME: move to parser?
    type Parser_Stack_Item is record
       State : Unknown_State_Index     := Unknown_State;
       Token : Syntax_Trees.Node_Index := Syntax_Trees.No_Node_Index;
    end record;
 
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
-
-   function Image (Item : in Unknown_State_Index) return String;
-   --  no leading space; " " for Unknown_State
 
    function Image
      (Stack      : in Parser_Stacks.Stack;
@@ -178,7 +171,7 @@ package WisiToken.LR is
    procedure Add_Action
      (State       : in out Parse_State;
       Symbol      : in     Token_ID;
-      State_Index : in     LR.State_Index);
+      State_Index : in     WisiToken.State_Index);
    --  Add a Shift action to tail of State action list.
 
    procedure Add_Action
@@ -196,7 +189,7 @@ package WisiToken.LR is
    procedure Add_Action
      (State           : in out Parse_State;
       Symbol          : in     Token_ID;
-      State_Index     : in     LR.State_Index;
+      State_Index     : in     WisiToken.State_Index;
       Production      : in     Positive;
       LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
@@ -314,7 +307,7 @@ package WisiToken.LR is
       Check_Limit       => Natural'Last,
       Patterns          => LR.Patterns.Empty_List);
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
+   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class);
    --  Put Item to Ada.Text_IO.Current_Output
 
    package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID_Arrays.Vector);
@@ -377,8 +370,6 @@ package WisiToken.LR is
 
    package Fast_Token_ID_Vectors is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Token_ID, Capacity => 20);
-   package Fast_Tree_Index_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Syntax_Trees.Node_Index, Capacity => 20);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover.
    --
@@ -392,32 +383,20 @@ package WisiToken.LR is
    --  tokens. These are limited by the cost_limit McKenzie parameter; in
    --  practice, a cost of 20 is too high.
 
-   function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
-
-   function Image
-     (Item       : in Fast_Tree_Index_Vectors.Vector;
-      Tree       : in Syntax_Trees.Branched.Tree;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return String;
+   function Image is new Fast_Token_ID_Vectors.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    type Recover_Stack_Item is record
-      State : Unknown_State_Index;
-      ID    : Token_ID;
-
-      Byte_Region : Buffer_Region;
-      --  Byte_Region is used to detect empty tokens, for cost and other issues.
-
+      State      : Unknown_State_Index;
       Tree_Index : Syntax_Trees.Node_Index;
-      --  Tree_Index is used to push_back.
+      Token      : Recover_Token;
    end record;
 
    package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
 
-   function Image
-     (Stack      : in Recover_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor'Class;
-      Depth      : in SAL.Base_Peek_Type := 0)
-     return String;
+   function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor'Class) return String
+     is (Image (Item.State) & " : " & Image (Item.Token.ID, Descriptor));
+
+   function Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    type Configuration is record
       --  We don't maintain a syntax tree during recover; it's too slow, and
@@ -427,20 +406,20 @@ package WisiToken.LR is
       --  for 0 cost deletion.
 
       Stack : Recover_Stacks.Stack;
-      --  Initially built from the parser stack, with ID replacing the tree
-      --  index in each item. During recover, the stack after Inserted thru
-      --  Current_Inserted and then Shared_Parser.Terminals
-      --  (Last_Shared_Token + 1 .. Current_Shared_Token) have been parsed.
+      --  Initially built from the parser stack, then the stack after the
+      --  operations below have been performed.
 
       Current_Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 
-      Pushed_Back : Fast_Tree_Index_Vectors.Vector;
-      Popped      : Fast_Token_ID_Vectors.Vector;
-      Inserted    : Fast_Token_ID_Vectors.Vector;
-      Deleted     : Fast_Token_ID_Vectors.Vector;
-      Cost        : Natural := 0;
+      Redo_Reduce   : Boolean := False;
+      Undone_Reduce : Fast_Token_ID_Vectors.Vector;
+      Pushed_Back   : Fast_Token_ID_Vectors.Vector;
+      Popped        : Fast_Token_ID_Vectors.Vector;
+      Inserted      : Fast_Token_ID_Vectors.Vector;
+      Deleted       : Fast_Token_ID_Vectors.Vector;
+      Cost          : Natural := 0;
    end record;
 
    function Key (A : in Configuration) return Integer is (A.Cost);
@@ -479,7 +458,7 @@ package WisiToken.LR is
 
       when Check =>
          Code   : Semantic_Checks.Error_Label;
-         Tokens : Syntax_Trees.Valid_Node_Index_Arrays.Vector;
+         Tokens : Recover_Token_Arrays.Vector;
       end case;
    end record;
 
@@ -488,7 +467,7 @@ package WisiToken.LR is
    procedure Put
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
-      Syntax_Tree      : in Syntax_Trees.Abstract_Tree'Class;
+      Tree             : in Syntax_Trees.Abstract_Tree'Class;
       Descriptor       : in WisiToken.Descriptor'Class);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
@@ -519,7 +498,7 @@ private
    end record;
 
    function Next_Grammar_Token
-     (Terminals      : in out          Protected_Base_Token_Arrays.Vector;
+     (Terminals      : in out          Base_Token_Arrays.Vector;
       Lexer          : not null access WisiToken.Lexer.Instance'Class;
       Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
       Descriptor     : in              WisiToken.Descriptor'Class)
@@ -530,7 +509,7 @@ private
 
    function Reduce_Stack
      (Stack        : in out Parser_Stacks.Stack;
-      Syntax_Tree  : in out Syntax_Trees.Branched.Tree;
+      Tree         : in out Syntax_Trees.Branched.Tree;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Syntax_Trees.Valid_Node_Index;
       Lexer        : in     WisiToken.Lexer.Handle;

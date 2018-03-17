@@ -77,7 +77,7 @@ is
          Parser := WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             Generate_Utils.LALR_Descriptor,
-            WisiToken.LR.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
                Reduce_Reduce_Conflict_Count),
@@ -88,7 +88,7 @@ is
          Parser := WisiToken.LR.LR1_Generator.Generate
            (Grammar,
             Generate_Utils.LR1_Descriptor,
-            WisiToken.LR.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
                Reduce_Reduce_Conflict_Count),
@@ -124,7 +124,7 @@ is
       Set_Output (Standard_Output);
    end Create_Elisp;
 
-   use all type WisiToken.LR.Unknown_State_Index;
+   use all type WisiToken.Unknown_State_Index;
 begin
    case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
    when LALR | LR1 =>
@@ -139,7 +139,7 @@ begin
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           WisiToken.LR.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
+           WisiToken.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
       Put_Line
         (Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
            Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &

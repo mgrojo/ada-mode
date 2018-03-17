@@ -37,18 +37,13 @@ package body WisiToken.Semantic_State is
    overriding
    function Image
      (Item       : in Augmented_Token;
-      Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean := False)
+      Descriptor : in WisiToken.Descriptor'Class)
      return String
    is
       use all type Ada.Text_IO.Count;
       ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
    begin
-      if ID_Only then
-         --  No parens for consistency with previous unit test results.
-         return ID_Image;
-
-      elsif Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
+      if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
          return "(" & ID_Image &
            Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
 

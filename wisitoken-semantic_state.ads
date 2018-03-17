@@ -99,8 +99,7 @@ package WisiToken.Semantic_State is
    overriding
    function Image
      (Item       : in Augmented_Token;
-      Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean := False)
+      Descriptor : in WisiToken.Descriptor'Class)
      return String;
    --  Return a string for debug/test messages
 

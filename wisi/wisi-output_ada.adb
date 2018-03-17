@@ -57,7 +57,7 @@ is
 
    procedure Create_Ada_Body
    is
-      use all type WisiToken.LR.Unknown_State_Index;
+      use all type WisiToken.Unknown_State_Index;
       use Generate_Utils;
       use GNAT.Regexp;
       use Wisi.Utils;
@@ -78,7 +78,7 @@ is
          Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
-            WisiToken.LR.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -93,7 +93,7 @@ is
          Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
            (Data.Grammar,
             LR1_Descriptor,
-            WisiToken.LR.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -103,7 +103,7 @@ is
             Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
             Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
-         Data.Parser_State_Count := WisiToken.LR.Unknown_State_Index'Max
+         Data.Parser_State_Count := WisiToken.Unknown_State_Index'Max
            (Data.Parser_State_Count,
             Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
       end if;
@@ -271,15 +271,11 @@ is
 
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
-                     Unref_Tree    : Boolean := True;
                      Unref_Lexer   : Boolean := True;
                      Unref_Nonterm : Boolean := True;
                      Unref_Tokens  : Boolean := True;
                   begin
                      for Line of RHS.Check loop
-                        if 0 < Index (Line, "Tree") then
-                           Unref_Tree := False;
-                        end if;
                         if 0 < Index (Line, "Lexer") then
                            Unref_Lexer := False;
                         end if;
@@ -295,16 +291,12 @@ is
 
                      Check_Names (Prod_Index) := new String'(Name & "_check'Access");
                      Indent_Line ("function " & Name & "_check");
-                     Indent_Line (" (Tree    : in  out WisiToken.Syntax_Trees.Abstract_Tree'Class;");
-                     Indent_Line ("  Lexer   : in      WisiToken.Lexer.Handle;");
-                     Indent_Line ("  Nonterm : in      WisiToken.Syntax_Trees.Valid_Node_Index;");
-                     Indent_Line ("  Tokens  : in      WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
+                     Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
+                     Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
+                     Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
                      Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
                      Indent_Line ("is");
 
-                     if Unref_Tree then
-                        Indent_Line ("   pragma Unreferenced (Tree);");
-                     end if;
                      if Unref_Lexer then
                         Indent_Line ("   pragma Unreferenced (Lexer);");
                      end if;
@@ -350,7 +342,7 @@ is
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
            Integer'Image (Check_Count) & " checks," &
-           WisiToken.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+           WisiToken.State_Index'Image (Data.Parser_State_Count) & " states," &
            Integer'Image (Data.Table_Entry_Count) & " table entries");
       Put_Line
         (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
