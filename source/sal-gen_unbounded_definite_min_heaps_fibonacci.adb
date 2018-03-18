@@ -325,11 +325,11 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
       null;
    end Add;
 
-   function Add (Heap : in out Heap_Type; Item : in Element_Type) return Variable_Reference_Type
+   function Add (Heap : in out Heap_Type; Item : in Element_Type) return Element_Access
    is
       X : constant Node_Access := Add (Heap, Item);
    begin
-      return (Element => X.all.Element'Access);
+      return X.all.Element'Access;
    end Add;
 
    function Peek (Heap : in Heap_Type) return Constant_Reference_Type
