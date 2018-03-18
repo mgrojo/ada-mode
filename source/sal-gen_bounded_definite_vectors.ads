@@ -48,6 +48,9 @@ package SAL.Gen_Bounded_Definite_Vectors is
    function Last_Index (Container : in Vector) return Extended_Index;
    --  No_Index when Container is empty.
 
+   procedure Set_Last (Container : in out Vector; Last : in Index_Type);
+   --  Elements with indices < Last that have not been set are undefined.
+
    function Element (Container : Vector; Index : Index_Type) return Element_Type;
    --  Index of first element in vector is Index_Type'First.
 
@@ -56,8 +59,11 @@ package SAL.Gen_Bounded_Definite_Vectors is
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type);
    --  Insert New_Item at beginning of Container; current elements slide right.
 
-   procedure Set_Last (Container : in out Vector; Last : in Index_Type);
-   --  Elements with indices < Last that have not been set are undefined.
+   function "+" (Item : in Element_Type) return Vector;
+   function "&" (Left : in Vector; Right : in Element_Type) return Vector;
+
+   procedure Delete_First (Container : in out Vector);
+   --  Remaining elements slide down.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
@@ -118,5 +124,11 @@ private
       Position : Cursor) return Cursor;
 
    Empty_Vector : constant Vector := (others => <>);
+
+   ----------
+   --  For child units
+
+   function To_Peek_Index (Index : in Extended_Index) return Base_Peek_Type
+   with Inline;
 
 end SAL.Gen_Bounded_Definite_Vectors;

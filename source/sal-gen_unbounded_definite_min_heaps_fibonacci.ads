@@ -7,7 +7,7 @@
 --  [1] Introduction to Algorithms, Third Edition. Thomas H. Cormen,
 --  Charles E. Leiserson, Ronald L. Rivest, Clifford Stein. Chapter 19.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -66,6 +66,13 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
    --  Add Item to Heap.
 
    procedure Insert (Heap : in out Heap_Type; Item : in Element_Type) renames Add;
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is null record
+   with Implicit_Dereference => Element;
+
+   function Add (Heap : in out Heap_Type; Item : in Element_Type) return Variable_Reference_Type;
+   --  Add Item to Heap, return a variable reference to it. This avoids
+   --  extra copying of Item.
 
    --  Despite being called a "mergeable heap" in [1], there is no
    --  algorithm for merging two Fibonacci heaps. And the naive method of
