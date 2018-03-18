@@ -19,13 +19,8 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-run all tests
-
-wisitoken-mckenzie_recover.adb:       --  FIXME: invert order, use elsif => reduce re-eval None
-
-
 move Try_Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to check patterns.
-    use gnatprep for 'with ada_lite' vs 'with ada'
+    use gnatprep for 'with ada_lite' vs 'with ada'?
 
 improve missing_two_ends
     insert 'end case ;' based on current state; minimal token string to complete production?

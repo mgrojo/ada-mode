@@ -426,16 +426,19 @@ package WisiToken.LR is
       Ops         : Config_Op_Arrays.Vector;
       Cost        : Natural := 0;
    end record;
+   type Configuration_Access is access all Configuration;
+   for Configuration_Access'Storage_Size use 0;
 
    function Key (A : in Configuration) return Integer is (A.Cost);
 
    procedure Set_Key (Item : in out Configuration; Key : in Integer);
 
    package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci
-     (Element_Type => Configuration,
-      Key_Type     => Integer,
-      Key          => Key,
-      Set_Key      => Set_Key);
+     (Element_Type   => Configuration,
+      Element_Access => Configuration_Access,
+      Key_Type       => Integer,
+      Key            => Key,
+      Set_Key        => Set_Key);
 
    type McKenzie_Data is tagged record
       Config_Heap   : Config_Heaps.Heap_Type;
