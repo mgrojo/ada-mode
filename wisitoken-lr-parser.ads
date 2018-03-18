@@ -57,14 +57,13 @@ package WisiToken.LR.Parser is
 
       Parsers : aliased Parser_Lists.List;
 
+      Resume_Active : Boolean := False;
+
       Max_Parallel            : SAL.Base_Peek_Type;
       First_Parser_Label      : Integer;
       Terminate_Same_State    : Boolean;
       Enable_McKenzie_Recover : Boolean;
    end record;
-
-   overriding procedure Initialize (Object : in out LR.Parser.Parser);
-   --  Set Shared_Tree.Terminals.
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);
    --  Deep free Object.Table.

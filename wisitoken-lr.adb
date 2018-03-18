@@ -629,12 +629,12 @@ package body WisiToken.LR is
          when Check =>
             Put_Line
               (Source_File_Name & ": " &
-                 "semantic check error: " & Semantic_Checks.Error_Label'Image (Item.Code) &
+                 "semantic check error: " & Semantic_Checks.Error_Code'Image (Item.Code) &
                  ", tokens " & Image (Item.Tokens, Descriptor));
          end case;
 
          if Item.Recover.Stack.Depth /= 0 then
-            Put_Line ("   recovered");
+            Put_Line ("   recovered: " & Image (Item.Recover.Ops, Descriptor));
          end if;
       end loop;
       New_Line;

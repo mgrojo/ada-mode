@@ -42,8 +42,6 @@ package WisiToken.Syntax_Trees is
    --  WORKAROUND: GNAT GPL 2017 is confused by this:
    --  with Variable_Indexing => Augmented_Token_Ref;
 
-   --  FIXME: move all operations to Branched, unless used by that.
-
    type Node_Index is range 0 .. Integer'Last;
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
 
@@ -195,11 +193,6 @@ package WisiToken.Syntax_Trees is
 
    type Tree_Access is access all Syntax_Trees.Tree;
 
-   procedure Initialize
-     (Tree      : in out Syntax_Trees.Tree;
-      Terminals : in     Base_Token_Arrays.Vector_Access_Constant);
-   --  Set the Terminals array for Tree.
-
    overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
    --  Free any allocated storage.
 
@@ -207,33 +200,6 @@ package WisiToken.Syntax_Trees is
 
    overriding procedure Adjust (Tree : in out Syntax_Trees.Tree);
    --  Copy any allocated storage.
-
-   function Add_Nonterm
-     (Tree       : in out Syntax_Trees.Tree;
-      Nonterm    : in     WisiToken.Token_ID;
-      Action     : in     Semantic_Action;
-      Production : in     Positive;
-      Name_Index : in     Natural)
-   return Valid_Node_Index
-   with Pre => not Tree.Traversing;
-   --  Add a new Nonterm node with no parent. Result points to the added
-   --  node.
-
-   function Add_Terminal
-     (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Token_Index)
-     return Valid_Node_Index
-   with Pre => not Tree.Traversing;
-   --  Add a new Terminal node with no parent. Terminal must be an index
-   --  into Tree.Terminals. Result points to the added node.
-
-   function Add_Terminal
-     (Tree     : in out Syntax_Trees.Tree;
-      Terminal : in     Token_ID)
-     return Valid_Node_Index
-   with Pre => not Tree.Traversing;
-   --  Add a new virtual terminal node with no parent. Result points to
-   --  the added node.
 
    overriding function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label;
 
@@ -270,12 +236,6 @@ package WisiToken.Syntax_Trees is
       Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector;
       Node                : in Valid_Node_Index)
      return Constant_Augmented_Ref;
-
-   procedure Set_Augmented
-     (Tree      : in out Syntax_Trees.Tree;
-      Node      : in     Valid_Node_Index;
-      Augmented : in     Semantic_State.Augmented_Token)
-   with Pre => Tree.Label (Node) in Virtual_Terminal .. Nonterm;
 
    overriding
    function Augmented_Token_Array
@@ -327,14 +287,6 @@ package WisiToken.Syntax_Trees is
      return Node_Index
    with Pre => Tree.Is_Nonterm (Node);
 
-   procedure Process_Tree
-     (Tree         : in out Syntax_Trees.Tree;
-      Process_Node : access procedure
-        (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index));
-   --  Traverse Tree in depth-first order, calling Process_Node on each
-   --  node.
-
    overriding
    function Image
      (Tree       : in Syntax_Trees.Tree;
@@ -348,6 +300,12 @@ private
    --  Label has a default to allow use with Ada.Containers.Vectors; all
    --  entries are the same size.
    record
+      ID : WisiToken.Token_ID := Invalid_Token_ID;
+
+      Byte_Region : Buffer_Region := Null_Buffer_Region;
+      --  Computed by Set_Children, used in Semantic_Check actions and debug
+      --  messages.
+
       Parent : Node_Index := No_Node_Index;
 
       State : Unknown_State_Index := Unknown_State;
@@ -359,13 +317,9 @@ private
          Terminal : Token_Index;
 
       when Virtual_Terminal =>
-         Terminal_ID : WisiToken.Token_ID;
-
          Virtual_Augmented : Semantic_State.Augmented_Token_Access := null;
 
       when Nonterm =>
-         Nonterm_ID  : WisiToken.Token_ID := Invalid_Token_ID;
-
          Virtual : Boolean := False;
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
          --  set. Used by Semantic_Check actions.
@@ -379,25 +333,12 @@ private
 
          Action : Semantic_Action := null;
 
-         Byte_Region : Buffer_Region := Null_Buffer_Region;
-         --  Computed by Set_Children, used in debug messages.
-         --
-         --  FIXME: duplicates Augmented.Byte_Region; time with and without
-         --  this. Maybe make Augmented not derived from Base_Token, change to
-         --  Annotations.
-         --
-         --  Very useful for debugging, not needed until action execute, some
-         --  actions don't need it.
-         --
-         --  Expensive to compute individually after parse time (traverse
-         --  entire subtree); ok if traversing entire tree anyway.
-
          Name : Buffer_Region := Null_Buffer_Region;
          --  Name is set and checked by Semantic_Check actions.
 
          Children : Valid_Node_Index_Arrays.Vector;
 
-         Min_Terminal_Index : Base_Token_Index;
+         Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
          --  Cached for push_back of nonterminals during recovery
          --  FIXME: tree is available; can compute when needed.
 
@@ -414,7 +355,15 @@ private
    package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
 
    type Tree is new Abstract_Tree with record
-      Terminals : Base_Token_Arrays.Vector_Access_Constant;
+      --  It is tempting to store an access to Shared_Parser.Terminals here,
+      --  and use that to represent some data. However, during
+      --  McKenzie_Recover, the tree is read from parallel tasks (to
+      --  implement the Undo_Reduce operation, which is done on many
+      --  configurations), and Shared_Parser.Terminals is written (when
+      --  reading new terminals from the Lexer). So we would need a
+      --  protected object to control access to Terminals, and that would
+      --  largely eliminate the advantage of parallel tasks. So we copy data
+      --  from Terminals into Tree nodes.
 
       Nodes : Node_Arrays.Vector;
       --  During normal parsing, tokens are added to Nodes by "parallel"
@@ -437,18 +386,13 @@ private
 
    function Children (N : in Syntax_Trees.Node) return Valid_Node_Index_Array;
 
-   function Get_ID (N : in Node; Terminals : in Base_Token_Arrays.Vector) return Token_ID
-   with Inline;
-
    function Image
      (N          : in Syntax_Trees.Node;
-      Terminals  : in Base_Token_Arrays.Vector_Access_Constant;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
 
    procedure Set_Children
      (Nodes     : in out Node_Arrays.Vector;
-      Terminals : in     Base_Token_Arrays.Vector_Access_Constant;
       Parent    : in     Valid_Node_Index;
       Children  : in     Valid_Node_Index_Array);
 

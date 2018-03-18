@@ -278,6 +278,8 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR;
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Parse_Error_Lists;
+         use WisiToken.LR.Config_Op_Arrays;
+
          Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
          Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
@@ -292,8 +294,8 @@ package body Test_McKenzie_Recover is
             (26, 34));
 
          Check
-           ("1.recover.popped", Element (Cursor).Recover.Popped, To_Fast_Token_ID_Vector
-            ((+BEGIN_ID, +declarative_part_opt_ID)));
+           ("1.recover.ops", Element (Cursor).Recover.Ops,
+            +(Pop, +BEGIN_ID) & (Pop, +declarative_part_opt_ID));
 
          --  Confirm that both subprogram_bodys were parsed:
          Check ("action_count", Action_Count (+subprogram_body_ID), 2);
@@ -657,7 +659,11 @@ package body Test_McKenzie_Recover is
       --  (push_back loop)()(insert end) cost 3
 
       declare
+         use WisiToken.LR.AUnit;
          use WisiToken.LR.Parse_Error_Lists;
+         use WisiToken.LR.Config_Op_Arrays;
+         use all type WisiToken.LR.Config_Op_Label;
+
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
          Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
@@ -666,10 +672,7 @@ package body Test_McKenzie_Recover is
       begin
          Check ("error count", Error_List.Length, 1);
          Check ("error_token.id", Tree.ID (Error.Error_Token), +SEMICOLON_ID);
-         Check ("recover.push_back.length", Error.Recover.Pushed_Back.Length, 1);
-         Check ("recover.push_back.data", Error.Recover.Pushed_Back (Error.Recover.Pushed_Back.First_Index), +LOOP_ID);
-         Check ("recover.inserted.length", Error.Recover.Inserted.Length, 1);
-         Check ("recover.inserted.data", Error.Recover.Inserted (Error.Recover.Inserted.First_Index), +END_ID);
+         Check ("recover.ops", Error.Recover.Ops, +(Push_Back, +LOOP_ID) & (Insert, +END_ID));
       end;
    end Push_Back_1;
 
@@ -712,34 +715,39 @@ package body Test_McKenzie_Recover is
 
       Parse_Text
         ("package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;");
-         --        |10       |20       |30       |40       |50       |60       |70       |80
+         --        |10       |20       |30       |40       |50       |60       |70       |80       |90
 
       --  Excess 'end' 53 from editing.
       --
       --  Error recovery entered at 'A' 58, with Missing_Name_Error from
       --  previous subprogram_body.
       --
-      --  Desired solution is (undo_reduce 'subprogram_body', 'delete end ;').
+      --  Desired solution is (undo_reduce 'subprogram_body', 'pop end ;').
       --
-      --  Recover finds (undo_reduce 'subprogram_body', 'insert begin');
-      --  just as good, cheaper.
+      --  Semantic fix for Missing_Name_Error queues desired solution, parsing succeeds.
 
-      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 3);
       declare
          use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.LR.AUnit;
+         use WisiToken.LR.Config_Op_Arrays;
+         use WisiToken.Semantic_Checks.AUnit;
+         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.LR.Config_Op_Label;
+         use all type WisiToken.LR.Parse_Error_Label;
+
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Element (Cursor).Error_Token);
+         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
-         Check ("error_token.id", Token.ID, +END_ID);
-         Check ("error_token.byte_region", Token.Byte_Region, (78, 80));
+         Check ("errors.length", Error_List.Length, 1);
+         Check ("error.label", Error.Label, Check);
+         Check ("error.code", Error.Code, Missing_Name_Error);
          Check
-           ("errors 3.recover.deleted",
-            Element (Cursor).Recover.Deleted,
-            To_Fast_Token_ID_Vector ((+END_ID, +IDENTIFIER_ID, +SEMICOLON_ID)));
+           ("errors 1.recover.ops", Error.Recover.Ops,
+            +(Undo_Reduce, +subprogram_body_ID) & (Pop, +SEMICOLON_ID) & (Pop, +name_opt_ID) & (Pop, +END_ID) &
+              (Undo_Reduce, +handled_sequence_of_statements_ID) & (Undo_Reduce, +sequence_of_statements_opt_ID) &
+              (Undo_Reduce, +sequence_of_statements_ID));
       end;
 
       Ada_Lite.End_Name_Optional := Orig_End_Name_Optional;
@@ -749,7 +757,7 @@ package body Test_McKenzie_Recover is
       raise;
    end Missing_Name_1;
 
-   procedure Pattern_Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use AUnit.Assertions;
@@ -767,45 +775,41 @@ package body Test_McKenzie_Recover is
       --
       --  Error recovery entered at 'procedure' 102, expecting statement.
       --  The semantic check that would fail at Find_First 90 (begin 53 "" =
-      --  "Find_First") is not done, because the block_statement is not
-      --  reduced.
+      --  "Find_First") is not done by the main parser, because the
+      --  block_statement is not reduced.
       --
-      --  Without pattern_block_mismatched_names, recover fails to find a
-      --  solution.
+      --  That check does fail in recover, and without any special help,
+      --  recover finds 2 solutions after enqueing 381:
       --
-      --  In recover_init, pattern_block_mismatched_names doesn't match,
-      --  because the error is not a semantic check error. The pattern does
-      --  match while checking the root config; it pops 'Find_First ;',
-      --  inserts '; end ;'. Then the parse completes.
+      --  6, (Push_Back 'Find_First ;') (Insert '; end;))
+      --  6, (Insert 'begin declare')
+      --
+      --  The first lets parse succeed.
 
-      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
          use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.LR.AUnit;
+         use WisiToken.LR.Config_Op_Arrays;
+         use all type WisiToken.LR.Config_Op_Label;
+
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
          Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Element (Cursor).Error_Token);
+         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
+         Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Error.Error_Token);
       begin
+         Check ("errors.length", Error_List.Length, 1);
          Check ("errors 1.error_token.id", Token.ID, +PROCEDURE_ID);
          Check ("errors 1.error_token.byte_region", Token.Byte_Region, (102, 110));
          Check
-           ("errors 1.recover.popped",
-            Element (Cursor).Recover.Popped,
-            To_Fast_Token_ID_Vector ((+SEMICOLON_ID, +identifier_opt_ID)));
-         Check
-           ("errors 1.recover.inserted",
-            Element (Cursor).Recover.Inserted,
-            To_Fast_Token_ID_Vector ((+SEMICOLON_ID, +END_ID, +SEMICOLON_ID)));
+           ("errors 1.recover.ops", Error.Recover.Ops,
+            +(Push_Back, +SEMICOLON_ID) & (Push_Back, +identifier_opt_ID) &
+              (Insert, +SEMICOLON_ID) & (Insert, +END_ID));
       end;
+   end Block_Match_Names_1;
 
-      --  FIXME: "procedure Name_A is begin end Name_B;" edit one? see pattern_end_eof
-      --  FIXME: required name missing
-
-   end Pattern_Block_Match_Names_1;
-
-   procedure Pattern_Block_Match_Names_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Two_Parsers_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use AUnit.Assertions;
@@ -819,21 +823,27 @@ package body Test_McKenzie_Recover is
       Parse_Text ("package body Debug is procedure A is end Debug;");
       --           |1       |10       |20       |30       |40
 
-      --  Missing 'begin end A' 35.
+      --  Missing 'begin end A;' 35.
       --
       --  Error recovery entered at 'end' 38 with two parsers, expecting
-      --  either 'separate' or 'begin | declaration'.
+      --  'separate' and 'begin | declaration'.
       --
       --  One recovery config is 'insert begin', which fails the match_names
-      --  check on "A"/"Debug". But the match_names pattern does not match,
-      --  because we've already done an insertion.
+      --  check on "A"/"Debug".
       --
-      --  Recovery finds one solution for each parser, and both continue to
-      --  EOF, resulting in an ambiguous parse; one parser is chosen to
-      --  succeed.
+      --  Recovery finds two solutions for each parser:
+      --
+      --  1: 5, ((INSERT, BEGIN), (INSERT, END), (INSERT, SEMICOLON))
+      --  1: 5, ((POP, IS), (POP, aspect_specification_opt), (INSERT, SEMICOLON))
+      --  0: 5, ((INSERT, SEPARATE), (INSERT, SEMICOLON))
+      --  0: 5, (15 : SEMICOLON)| 8|((POP, IS), (INSERT, SEMICOLON))
+      --
+      --  All four continue to EOF, resulting in an ambiguous parse; one
+      --  parser is chosen to succeed. Since it's a race condition which is
+      --  chosen, we can't test the solution.
 
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
-   end Pattern_Block_Match_Names_2;
+   end Two_Parsers_1;
 
    procedure Extra_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -852,36 +862,35 @@ package body Test_McKenzie_Recover is
       --  Missing 'end To_Month;' at 86.
       --
       --  Error recovery entered at 'begin' 115, with Extra_Name_Error from the preceding block
-      --  ("" /= "Process_CSV_File").
+      --  ("" /= "Process_CSV_File"). Desired solution is (push_back block_statement), (insert 'end ;')
       --
-      --  Solution is 'push_back sequence_of_statements 87 .. 113', insert 'end; begin end;'.
+      --  Semantic_Check Extra_Name_Error enqueues (push_back
+      --  block_statement), and recover goes on to find two solutions:
       --
-      --  Need syntax tree to avoid throwing away a whole block.
+      --  0: 2, (128 : BEGIN)    | 13|((PUSH_BACK, block_statement), (DELETE, BEGIN), (DELETE, END))
+      --  3: 2, (253 : SEMICOLON)| 11|((PUSH_BACK, block_statement), (INSERT, END), (INSERT, SEMICOLON))
+      --
+      --  The second succeeds.
 
-      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
          use WisiToken.Semantic_State;
          use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.Semantic_Checks.AUnit;
          use WisiToken.LR.AUnit;
-         use all type WisiToken.Semantic_Checks.Error_Label;
+         use WisiToken.LR.Config_Op_Arrays;
+         use all type WisiToken.LR.Config_Op_Label;
+         use all type WisiToken.Semantic_Checks.Error_Code;
+
          Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
-         Cursor : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
+         Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
+         Error      : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
-         Check ("errors 1.code", Element (Cursor).Code, Extra_Name_Error);
+         Check ("errors.length", Error_List.Length, 1);
+         Check ("error 1.code", Error.Code, Extra_Name_Error);
          Check
-           ("errors 1.recover.popped",
-            Element (Cursor).Recover.Popped,
-            To_Fast_Token_ID_Vector ((1 => +block_statement_ID)));
-         Check
-           ("errors 1.recover.inserted",
-            Element (Cursor).Recover.Inserted,
-            To_Fast_Token_ID_Vector ((+END_ID, +SEMICOLON_ID, +BEGIN_ID, +END_ID, +SEMICOLON_ID)));
+           ("error 1.recover.ops", Error.Recover.Ops,
+            +(Push_Back, +block_statement_ID) & (Insert, +END_ID) & (Insert, +SEMICOLON_ID));
       end;
-
-      --  FIXME: "procedure Name_A is begin end Name_B;" edit one? see pattern_end_eof
-      --  FIXME: required name missing
-
    end Extra_Name_1;
 
    procedure Two_Missing_Ends (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -908,11 +917,24 @@ package body Test_McKenzie_Recover is
       --
       --  The desired solution is push_back block_statement, insert 'end
       --  case ; end Proc_A ;'.
-      --
-      --  McKenzie currently ignores semantic checks, so it finds a
-      --  solution, but not a good one, and it takes a long time.
 
-      --  FIXME: tests
+      declare
+         use WisiToken.Semantic_Checks.AUnit;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.Config_Op_Arrays;
+         use all type WisiToken.LR.Config_Op_Label;
+         use all type WisiToken.Semantic_Checks.Error_Code;
+
+         Error_List : WisiToken.LR.Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
+         Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
+         Error      : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
+      begin
+         Check ("errors 1.code", Error.Code, Extra_Name_Error);
+         Check
+           ("errors 1.recover.ops", Error.Recover.Ops,
+            +(Push_Back, +block_statement_ID) & (Insert, +END_ID) & (Insert, +CASE_ID) & (Insert, +SEMICOLON_ID) &
+              (Insert, +END_ID) & (Insert, +SEMICOLON_ID));
+      end;
    end Two_Missing_Ends;
 
    ----------
@@ -948,8 +970,8 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Push_Back_1'Access, "Push_Back_1");
       Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
-      Register_Routine (T, Pattern_Block_Match_Names_1'Access, "Pattern_Block_Match_Names_1");
-      Register_Routine (T, Pattern_Block_Match_Names_2'Access, "Pattern_Block_Match_Names_2");
+      Register_Routine (T, Block_Match_Names_1'Access, "Block_Match_Names_1");
+      Register_Routine (T, Two_Parsers_1'Access, "Two_Parsers_1");
       Register_Routine (T, Extra_Name_1'Access, "Extra_Name_1");
       Register_Routine (T, Two_Missing_Ends'Access, "Two_Missing_Ends");
    end Register_Tests;

@@ -58,16 +58,20 @@ package WisiToken.Syntax_Trees.Branched is
       Name_Index : in     Natural;
       Children   : in     Valid_Node_Index_Array)
      return Valid_Node_Index
-   with Pre => not Tree.Traversing;
+   with
+     Pre  => not Tree.Traversing,
+     Post => Tree.Is_Empty (Add_Nonterm'Result) or
+             Tree.Min_Terminal_Index (Add_Nonterm'Result) /= Invalid_Token_Index;
    --  Add a new Nonterm node. Result points to the added node.
 
    function Add_Terminal
      (Tree     : in out Branched.Tree;
-      Terminal : in     Token_Index)
+      Terminal : in     Token_Index;
+      Terminals : in     Base_Token_Arrays.Vector)
      return Valid_Node_Index
    with Pre => not Tree.Traversing;
-   --  Add a new Terminal node with no parent. Terminal must be an index
-   --  into Tree.Terminals. Result points to the added node.
+   --  Add a new Terminal node. Terminal must be an index into Terminals.
+   --  Result points to the added node.
 
    function Add_Terminal
      (Tree     : in out Branched.Tree;
@@ -94,8 +98,10 @@ package WisiToken.Syntax_Trees.Branched is
    function Has_Children (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Branched.Tree; Child : in Valid_Node_Index) return Boolean;
    function Has_Parent (Tree : in Branched.Tree; Children : in Valid_Node_Index_Array) return Boolean;
+   function Is_Empty (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Nonterm (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Virtual (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Min_Terminal_Index (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
    function Traversing (Tree : in Branched.Tree) return Boolean;
 
    overriding function Parent (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Node_Index;

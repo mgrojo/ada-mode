@@ -23,14 +23,10 @@ package WisiToken.Semantic_Checks is
 
    type Check_Status_Label is (Ok, Error);
 
-   type Error_Label is
+   type Error_Code is
      (Missing_Name_Error, -- block start has name, required block end name missing
       Extra_Name_Error,   -- block start has no name, end has one
       Match_Names_Error); -- both names present, but don't match
-
-   type Error_Label_Set is array (Error_Label) of Boolean;
-
-   function Image (Item : in Error_Label_Set) return String;
 
    type Check_Status (Label : Check_Status_Label := Check_Status_Label'First) is record
       case Label is
@@ -38,7 +34,7 @@ package WisiToken.Semantic_Checks is
          null;
 
       when Error =>
-         Code : Error_Label;
+         Code : Error_Code;
 
          Tokens : Recover_Token_Arrays.Vector;
          --  The tokens involved in the error; for example, for

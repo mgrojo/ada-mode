@@ -19,24 +19,6 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Semantic_Checks is
 
-   function Image (Item : in Error_Label_Set) return String
-   is
-      use Ada.Strings.Unbounded;
-      Result     : Unbounded_String := +"(";
-      Need_Comma : Boolean          := False;
-   begin
-      for I in Item'Range loop
-         if Item (I) then
-            Result := Result &
-              (if Need_Comma then ", " else "") &
-              Error_Label'Image (I);
-            Need_Comma := True;
-         end if;
-      end loop;
-      Result := Result & ")";
-      return -Result;
-   end Image;
-
    function Image (Item : in Check_Status) return String
    is begin
       case Item.Label is
@@ -44,7 +26,7 @@ package body WisiToken.Semantic_Checks is
          return Check_Status_Label'Image (Item.Label);
       when Error =>
          return '(' & Check_Status_Label'Image (Item.Label) & ", " &
-           Semantic_Checks.Error_Label'Image (Item.Code) & ')';
+           Semantic_Checks.Error_Code'Image (Item.Code) & ')';
       end case;
    end Image;
 

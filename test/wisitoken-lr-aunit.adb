@@ -190,22 +190,21 @@ package body WisiToken.LR.AUnit is
       end return;
    end To_State_Stack;
 
-   function To_Fast_Token_ID_Vector
-     (Item : in WisiToken.AUnit.Plain_Token_ID_Array)
-     return Fast_Token_ID_Vectors.Vector
-   is begin
-      return Result : Fast_Token_ID_Vectors.Vector do
-         Result.Set_Last (Item'Last);
-         for I in Item'Range loop
-            Result (I) := Item (I);
-         end loop;
-      end return;
-   end To_Fast_Token_ID_Vector;
+   procedure Check
+     (Label    : in String;
+      Computed : in Config_Op;
+      Expected : in Config_Op)
+   is
+      use WisiToken.AUnit;
+   begin
+      Check (Label & ".op", Computed.Op, Expected.Op);
+      Check (Label & ".id", Computed.ID, Expected.ID);
+   end Check;
 
    procedure Check
-     (Label              : in String;
-      Computed           : in Parse_Error;
-      Expected           : in Parse_Error)
+     (Label    : in String;
+      Computed : in Parse_Error;
+      Expected : in Parse_Error)
    is
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;

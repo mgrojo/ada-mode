@@ -19,20 +19,17 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-add intelligence to Mckenzie_Recover to fix remaining test_mckenzie_recover
-    Missing_Name_1 failing
+run all tests
 
-    verify don't use Protected for Terminals; syntax_tree not read in parallel tasks in McKenzie_Recover
-        othewise need protected for Terminals, since it is appended in parallel tasks
 
-    Pattern_*
-        need match_names pattern?
-            or more generalized state/production matching?
+wisitoken-mckenzie_recover.adb:       --  FIXME: invert order, use elsif => reduce re-eval None
 
-    missing_two_ends very slow
-        to speed up, need try_semantic_check_fixes or  to take advantage of mismatched name info in first mckenzie
 
-        record edits with more detail, so can do semantic_check_fixes after insert/delete/pop?
+move Try_Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to check patterns.
+    use gnatprep for 'with ada_lite' vs 'with ada'
+
+improve missing_two_ends
+    insert 'end case ;' based on current state; minimal token string to complete production?
 
 sal unbounded vectors:
     shrink elements to exact size on copy?

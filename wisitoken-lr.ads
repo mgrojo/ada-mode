@@ -281,8 +281,8 @@ package WisiToken.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      Delete : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Insert    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Delete    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       --  Cost of inserting, deleting, or pushing back tokens. Insert
       --  includes nonterms pushed onto the parse stack; delete includes
@@ -365,25 +365,40 @@ package WisiToken.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Table : in Parse_Table);
 
    ----------
-   --  For McKenzie_Recover: Parser_Lists needs these, Mckenzie_Recover
-   --  needs Parser_Lists.
+   --  For McKenzie_Recover. Declared here because Parser_Lists needs
+   --  these, Mckenzie_Recover needs Parser_Lists.
+   --
+   --  We don't maintain a syntax tree during recover; it's too slow, and
+   --  not needed for any operations. The parser syntax tree is used for
+   --  Undo_Reduce, which is only done on nonterms reduced by the main
+   --  parser, not virtual nonterms produced by recover.
 
-   package Fast_Token_ID_Vectors is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Token_ID, Capacity => 20);
+   type Config_Op_Label is (Undo_Reduce, Push_Back, Pop, Insert, Delete);
+
+   type Config_Op is record
+      Op : Config_Op_Label;
+      ID : Token_ID;
+   end record;
+
+   package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Config_Op, Capacity => 20);
    --  Using a fixed size vector significantly speeds up
-   --  McKenzie_Recover.
-   --
-   --  This contains just Token_ID, not Base_Vector,
-   --  because during recover we only know the ID of inserted tokens.
-   --  Recover can create thousands of copies of Configuration, so saving
-   --  space is important.
-   --
-   --  Pushed_Back, Popped, inserted, and deleted capacity is determined
-   --  by the maximum number of pushed back, popped, inserted, or deleted
-   --  tokens. These are limited by the cost_limit McKenzie parameter; in
-   --  practice, a cost of 20 is too high.
+   --  McKenzie_Recover. The capacity is determined by the maximum number
+   --  of operations, which is limited by the cost_limit McKenzie
+   --  parameter; in practice, a cost of 20 is too high.
 
-   function Image is new Fast_Token_ID_Vectors.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor'Class) return String
+     is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) & ")");
+
+   function Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+
+   function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   is (for all O of Ops => O.Op /= Op);
+   --  True if Ops contains no Op.
+
+   function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   is (for some O of Ops => O.Op = Op);
+   --  True if Ops contains at least one Op.
 
    type Recover_Stack_Item is record
       State      : Unknown_State_Index;
@@ -399,12 +414,6 @@ package WisiToken.LR is
    function Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    type Configuration is record
-      --  We don't maintain a syntax tree during recover; it's too slow, and
-      --  only needed temporarily for a couple of repair strategies.
-      --
-      --  We keep Byte_Region on the stack to allow detecting empty items,
-      --  for 0 cost deletion.
-
       Stack : Recover_Stacks.Stack;
       --  Initially built from the parser stack, then the stack after the
       --  operations below have been performed.
@@ -413,13 +422,9 @@ package WisiToken.LR is
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 
-      Redo_Reduce   : Boolean := False;
-      Undone_Reduce : Fast_Token_ID_Vectors.Vector;
-      Pushed_Back   : Fast_Token_ID_Vectors.Vector;
-      Popped        : Fast_Token_ID_Vectors.Vector;
-      Inserted      : Fast_Token_ID_Vectors.Vector;
-      Deleted       : Fast_Token_ID_Vectors.Vector;
-      Cost          : Natural := 0;
+      Redo_Reduce : Boolean := False;
+      Ops         : Config_Op_Arrays.Vector;
+      Cost        : Natural := 0;
    end record;
 
    function Key (A : in Configuration) return Integer is (A.Cost);
@@ -457,7 +462,7 @@ package WisiToken.LR is
          Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
 
       when Check =>
-         Code   : Semantic_Checks.Error_Label;
+         Code   : Semantic_Checks.Error_Code;
          Tokens : Recover_Token_Arrays.Vector;
       end case;
    end record;

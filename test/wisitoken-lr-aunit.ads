@@ -32,7 +32,7 @@ package WisiToken.LR.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
 
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.LR.All_Parse_Action_Verbs);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (All_Parse_Action_Verbs);
 
    procedure Check
      (Label    : in String;
@@ -55,12 +55,14 @@ package WisiToken.LR.AUnit is
 
    procedure Check is new Parser_Stacks.Gen_AUnit (Check);
 
-   function To_Fast_Token_ID_Vector
-     (Item : in WisiToken.AUnit.Plain_Token_ID_Array)
-     return Fast_Token_ID_Vectors.Vector;
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Config_Op_Label);
 
-   procedure Check is new Fast_Token_ID_Vectors.Gen_AUnit
-     (SAL.AUnit.Check, WisiToken.AUnit.Check);
+   procedure Check
+     (Label    : in String;
+      Computed : in Config_Op;
+      Expected : in Config_Op);
+
+   procedure Check is new Config_Op_Arrays.Gen_AUnit (SAL.AUnit.Check, Check);
 
    procedure Check is new Token_Sequence_Arrays.Gen_AUnit
      (Check_Index   => WisiToken.AUnit.Check,
