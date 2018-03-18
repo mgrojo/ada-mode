@@ -13,25 +13,12 @@ Tokens:
  11 => constant_opt
 
 LALR Parse Table:
-Follow:
-( object_declaration_list =>
-  (IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- object_declaration =>
-  (IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- aliased_opt =>
-  (CONSTANT |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- constant_opt =>
-  (COLON_EQUAL |
-   SEMICOLON => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (IDENTIFIER, SEMICOLON, Wisi_EOI)
+object_declaration_list => (IDENTIFIER, SEMICOLON)
+object_declaration => (IDENTIFIER, SEMICOLON)
+aliased_opt => ()
+constant_opt => ()
 
 State 1:
   wisitoken_accept <= ^ object_declaration_list Wisi_EOI, 

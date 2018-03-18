@@ -96,7 +96,7 @@ package body Compare_Goto_Transitions is
            ((Set      => WisiToken_AUnit.Get_Item_Node
                (Grammar, Prod, 1, WisiToken.To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
              Goto_List => null,
-             State     => WisiToken.LR.Unknown_State,
+             State     => WisiToken.Unknown_State,
              Next      => null),
            Has_Empty_Production, First, Grammar, Token_Enum.LALR_Descriptor,
            Trace      => False);

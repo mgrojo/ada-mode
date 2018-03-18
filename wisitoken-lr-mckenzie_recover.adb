@@ -29,6 +29,7 @@ package body WisiToken.LR.McKenzie_Recover is
      (Message         : in     String;
       Trace           : in out WisiToken.Trace'Class;
       Parser_Label    : in     Natural;
+      Terminals       : in     Base_Token_Arrays.Vector;
       Config          : in     Configuration;
       Include_Task_ID : in     Boolean := True)
    is
@@ -46,7 +47,7 @@ package body WisiToken.LR.McKenzie_Recover is
    begin
       Result := Result & Natural'Image (Config.Cost) & ", ";
       Result := Result & Image (Config.Stack, Trace.Descriptor.all, Depth => 1);
-      Result := Result & "|" & Base_Token_Index'Image (Config.Current_Shared_Token) & "|";
+      Result := Result & "|" & Image (Config.Current_Shared_Token, Terminals, Trace.Descriptor.all) & "|";
       Result := Result & Image (Config.Ops, Trace.Descriptor.all);
       Trace.Put_Line (-Result);
    end Put;
@@ -119,6 +120,7 @@ package body WisiToken.LR.McKenzie_Recover is
    protected type Supervisor
      (Trace        : not null access WisiToken.Trace'Class;
       Parsers      : not null access Parser_Lists.List;
+      Terminals    : not null access Base_Token_Arrays.Vector;
       Cost_Limit   : Natural;
       Parser_Count : SAL.Peek_Type)
    is
@@ -388,7 +390,7 @@ package body WisiToken.LR.McKenzie_Recover is
          if Trace_McKenzie > Detail then
             Put
               ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
-               Trace.all, Parser_Labels (Parser_Index), Config);
+               Trace.all, Parser_Labels (Parser_Index), Terminals.all, Config);
          end if;
 
          Data.Success := True;
@@ -517,11 +519,13 @@ package body WisiToken.LR.McKenzie_Recover is
    procedure Put
      (Message         : in              String;
       Super           : not null access Supervisor;
+      Shared          : not null access Shared_Lookahead;
       Parser_Index    : in              SAL.Peek_Type;
       Config          : in              Configuration;
       Include_Task_ID : in              Boolean := True)
    is begin
-      Put (Message, Super.Trace.all, Super.Parser_State (Parser_Index).Label, Config, Include_Task_ID);
+      Put (Message, Super.Trace.all, Super.Parser_State (Parser_Index).Label,
+           Shared.Shared_Parser.Terminals, Config, Include_Task_ID);
    end Put;
 
    ----------
@@ -631,7 +635,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    begin
       if Trace_McKenzie > Detail then
-         Put (Trace_Prefix & ": " & Image (Current_Token.ID, Descriptor), Super, Parser_Index, Config);
+         Put (Trace_Prefix & ": " & Image (Current_Token.ID, Descriptor), Super, Shared, Parser_Index, Config);
       end if;
 
       loop
@@ -797,19 +801,65 @@ package body WisiToken.LR.McKenzie_Recover is
    begin
       case Status.Code is
       when Semantic_Checks.Match_Names_Error =>
-         --  There are several cases:
+         --  The input looks like:
+         --
+         --  "<named_token> ... name_opt ;"
+         --
+         --  where the names do not match.
          --
          --  0. User name error; return True.
          --
-         --  1. The mismatch indicates an extra or missing 'end'. The fix is to
-         --  search the stack to find the error, and fix it.
+         --  1. The mismatch indicates a missing 'end'. The fix is to search
+         --  the stack to find the error, and fix it. propagate_names.ada_lite
+         --  Proc_3.
+         --
+         --  2. The mismatch indicates an extra or missing 'end'. The fix is to
+         --  search the stack to find the error, and fix it. propagate_names.ada_lite
          --
          --  FIXME: need test case, solution
          if None (Config.Ops, Pop) and
            None (Config.Ops, Delete) and
            None (Config.Ops, Insert)
          then
-            raise Programmer_Error with "found test case for Semantic_Check Match_Names_Error";
+            --  Case 1 hardcoded.
+            declare
+               New_Config : Configuration renames Local_Config_Heap.Add (Config);
+               Tree       : Syntax_Trees.Branched.Tree renames Super.Parser_State (Parser_Index).Tree;
+               Item       : Recover_Stack_Item;
+            begin
+               --  This is a guess, so it has a non-zero cost.
+               New_Config.Cost := New_Config.Cost + McKenzie_Param.Push_Back (Nonterm.ID);
+
+               --  FIXME: move to language-specific package, check these ids! Stop
+               --  undoing when next token is in expecting.
+
+               New_Config.Ops.Append ((Undo_Reduce, Nonterm.ID)); -- the failed reduce
+
+               New_Config.Ops.Append ((Push_Back, New_Config.Stack.Pop.Token.ID)); -- ';'
+               New_Config.Ops.Append ((Push_Back, New_Config.Stack.Pop.Token.ID)); -- 'name_opt'
+
+               Item := New_Config.Stack.Pop;
+               New_Config.Ops.Append ((Push_Back, Item.Token.ID)); -- 'end'
+               New_Config.Current_Shared_Token := Item.Token.Min_Terminal_Index;
+
+               New_Config.Ops.Append ((Undo_Reduce, Undo_Reduce (New_Config.Stack, Tree)));
+               --  handled_sequence_of_statements
+
+               New_Config.Ops.Append ((Undo_Reduce, Undo_Reduce (New_Config.Stack, Tree)));
+               --  169 : sequence_of_statements_opt
+
+               --  Let Process_One insert 'end ;' FIXME: it doesn't get it right.
+               --  Need to insert 'end' here; need to move to language-specific
+               --  package first.
+
+               if Trace_McKenzie > Detail then
+                  Put ("Semantic_Check Match_Names_Error 1 " & Image
+                         (Nonterm.ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config);
+                  if Trace_McKenzie > Extra then
+                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
+                  end if;
+               end if;
+            end;
          else
             return True;
          end if;
@@ -860,7 +910,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                if Trace_McKenzie > Detail then
                   Put ("Semantic_Check Missing_Name_Error 1 " & Image
-                         (Nonterm.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
+                         (Nonterm.ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -897,7 +947,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                if Trace_McKenzie > Detail then
                   Put ("Semantic_Check Extra_Name_Error push_back " & Image
-                         (Nonterm.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
+                         (Nonterm.ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config);
                end if;
             end;
          end if;
@@ -912,6 +962,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    procedure Do_Shift
      (Super             : not null access Supervisor;
+      Shared            : not null access Shared_Lookahead;
       Parser_Index      : in              SAL.Peek_Type;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in out          Configuration;
@@ -921,7 +972,7 @@ package body WisiToken.LR.McKenzie_Recover is
       use all type SAL.Base_Peek_Type;
    begin
       if Trace_McKenzie > Detail then
-         Put ("insert " & Image (ID, Super.Trace.Descriptor.all), Super, Parser_Index, Config);
+         Put ("insert " & Image (ID, Super.Trace.Descriptor.all), Super, Shared, Parser_Index, Config);
       end if;
 
       Config.Stack.Push ((State, Syntax_Trees.No_Node_Index, (ID, Virtual => True, others => <>)));
@@ -998,7 +1049,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Next_Action := Action_For (Table, New_State, Inserted_ID);
       case Next_Action.Item.Verb is
       when Shift =>
-         Do_Shift (Super, Parser_Index, Local_Config_Heap, Config, Next_Action.Item.State, Inserted_ID);
+         Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item.State, Inserted_ID);
 
       when Reduce =>
          Do_Reduce
@@ -1020,7 +1071,8 @@ package body WisiToken.LR.McKenzie_Recover is
          begin
             case Next_Action.Item.Verb is
             when Shift =>
-               Do_Shift (Super, Parser_Index, Local_Config_Heap, New_Config, Next_Action.Item.State, Inserted_ID);
+               Do_Shift
+                 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Next_Action.Item.State, Inserted_ID);
 
             when Reduce =>
                Do_Reduce
@@ -1132,7 +1184,7 @@ package body WisiToken.LR.McKenzie_Recover is
       end if;
 
       if Trace_McKenzie > Detail then
-         Put ("continuing", Super, Parser_Index, Config);
+         Put ("continuing", Super, Shared, Parser_Index, Config);
          if Trace_McKenzie > Extra then
             Put_Line (Trace, Super.Label (Parser_Index), Image (Config.Stack, Trace.Descriptor.all));
          end if;
@@ -1178,7 +1230,7 @@ package body WisiToken.LR.McKenzie_Recover is
                New_Config.Ops.Append ((Push_Back, Token.ID));
                New_Config.Current_Shared_Token := Token.Min_Terminal_Index;
                if Trace_McKenzie > Detail then
-                  Put ("push_back " & Image (Token.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
+                  Put ("push_back " & Image (Token.ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config);
                end if;
 
                Local_Config_Heap.Add (New_Config);
@@ -1205,7 +1257,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
             New_Config.Ops.Append ((Pop, Item.Token.ID));
             if Trace_McKenzie > Detail then
-               Put ("pop " & Image (Item.Token.ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
+               Put ("pop " & Image (Item.Token.ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config);
             end if;
 
             Local_Config_Heap.Add (New_Config);
@@ -1244,7 +1296,7 @@ package body WisiToken.LR.McKenzie_Recover is
                         New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
 
                         if Action.Verb = Shift then
-                           Do_Shift (Super, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID);
+                           Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID);
                         else
                            Do_Reduce
                              (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action, ID,
@@ -1278,7 +1330,7 @@ package body WisiToken.LR.McKenzie_Recover is
                      New_Config.Ops.Append ((Insert, ID));
                      New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
 
-                     Do_Shift (Super, Parser_Index, Local_Config_Heap, New_Config, I.State, ID);
+                     Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, I.State, ID);
                   end if;
                end;
                I.Next;
@@ -1299,7 +1351,7 @@ package body WisiToken.LR.McKenzie_Recover is
             New_Config.Current_Shared_Token := Shared.Get_Token (New_Config.Current_Shared_Token + 1);
 
             if Trace_McKenzie > Detail then
-               Put ("delete " & Image (ID, Trace.Descriptor.all), Super, Parser_Index, New_Config);
+               Put ("delete " & Image (ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config);
             end if;
             Local_Config_Heap.Add (New_Config);
          end if;
@@ -1401,14 +1453,15 @@ package body WisiToken.LR.McKenzie_Recover is
 
          if Trace_McKenzie > Detail then
             Put ("undo_reduce " & Image
-                   (Config.Stack (1).Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label, Config,
-                 Include_Task_ID => False);
+                   (Config.Stack (1).Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
+                 Shared_Parser.Terminals, Config, Include_Task_ID => False);
          end if;
          Config.Ops.Append ((Undo_Reduce, Undo_Reduce (Config.Stack, Parser_State.Tree)));
          Config.Redo_Reduce := True;
       else
          if Trace_McKenzie > Detail then
-            Put ("enqueue", Trace, Parser_State.Label, Config, Include_Task_ID => False);
+            Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config,
+                 Include_Task_ID => False);
          end if;
       end if;
 
@@ -1427,6 +1480,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Super : aliased Supervisor
         (Trace'Access,
          Parsers'Access,
+         Shared_Parser.Terminals'Access,
          Cost_Limit   => Shared_Parser.Table.McKenzie_Param.Cost_Limit,
          Parser_Count => Parsers.Count);
 
@@ -1535,7 +1589,8 @@ package body WisiToken.LR.McKenzie_Recover is
                                 "spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
                                 Int_Image (Cur.Label) & " (" & Int_Image (Integer (Parsers.Count)) & " active)";
                            begin
-                              Put (Msg, Trace, 0, Data.Results.Peek, Include_Task_ID => False);
+                              Put (Msg, Trace, 0, Shared_Parser.Terminals, Data.Results.Peek,
+                                   Include_Task_ID => False);
                            end;
                         end if;
 
@@ -1545,7 +1600,8 @@ package body WisiToken.LR.McKenzie_Recover is
                   end if;
 
                   if Trace_McKenzie > Outline then
-                     Put ("  ", Trace, Cur.State_Ref.Label, Data.Results.Peek, Include_Task_ID => False);
+                     Put ("  ", Trace, Cur.State_Ref.Label, Shared_Parser.Terminals, Data.Results.Peek,
+                          Include_Task_ID => False);
                   end if;
                else
                   if Trace_McKenzie > Outline then

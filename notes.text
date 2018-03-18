@@ -21,7 +21,6 @@ org.wisitoken.stephe-1 - available
  current work
 run all tests
 
-
 wisitoken-mckenzie_recover.adb:       --  FIXME: invert order, use elsif => reduce re-eval None
 
 
@@ -30,6 +29,12 @@ move Try_Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to
 
 improve missing_two_ends
     insert 'end case ;' based on current state; minimal token string to complete production?
+
+improve propagate_names.ada_lite
+    recover finds two identical ok solutions; parse fails on ambiguous parse
+        one based on "ignore error"
+    improve semantic fix to get a single better solution
+    move to language package first
 
 sal unbounded vectors:
     shrink elements to exact size on copy?
@@ -43,9 +48,8 @@ tokens are no longer copied in recovery; only indices into shared_Parser.Termina
     keep line, col: doesn't cost much, very nice for error messages outside Emacs
         only in error messages, not Image (Base_Token)
 
-syntax tree still useful in main parse?
-    can reuse syntax tree for different action compute
-    maybe not worth it
+review *_run tests
+    too tedious to maintain
 
 review FIXME:
 

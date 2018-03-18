@@ -13,33 +13,13 @@ Tokens:
  11 => qualified_expression
 
 LALR Parse Table:
-Follow:
-( aggregate =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- attribute_reference =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- attribute_designator =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- name =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- qualified_expression =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (IDENTIFIER, Wisi_EOI)
+aggregate => (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
+attribute_reference => (IDENTIFIER, TICK, IDENTIFIER)
+attribute_designator => (IDENTIFIER)
+name => (IDENTIFIER)
+qualified_expression => (IDENTIFIER, TICK, LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
 
 State 1:
   wisitoken_accept <= ^ name Wisi_EOI, 
@@ -162,33 +142,13 @@ State 12:
 
 
 LR1 Parse Table:
-Follow:
-( aggregate =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- attribute_reference =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- attribute_designator =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- name =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- qualified_expression =>
-  (RIGHT_PAREN |
-   TICK |
-   Wisi_EOI => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (IDENTIFIER, Wisi_EOI)
+aggregate => (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
+attribute_reference => (IDENTIFIER, TICK, IDENTIFIER)
+attribute_designator => (IDENTIFIER)
+name => (IDENTIFIER)
+qualified_expression => (IDENTIFIER, TICK, LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
 
 State 1:
   wisitoken_accept <= ^ name Wisi_EOI, Wisi_EOI

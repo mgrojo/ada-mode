@@ -78,7 +78,7 @@ package body Dragon_4_43_LR1_Test is
      Upper_C_ID <= Lower_D_ID + Null_Action -- 4
      ;
 
-   Map : constant array (WisiToken.LR.State_Index range 0 .. 9) of WisiToken.LR.Unknown_State_Index :=
+   Map : constant array (WisiToken.State_Index range 0 .. 9) of WisiToken.Unknown_State_Index :=
      --  Map (dragon index) = our index; see comment in Test_LR1_Items
      (0 => 0,
       1 => 3,

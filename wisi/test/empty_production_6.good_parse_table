@@ -14,22 +14,12 @@ Tokens:
  12 => label_opt
 
 LALR Parse Table:
-Follow:
-( compilation_unit =>
-  (Wisi_EOI => True,
-   others => False)
- statement =>
-  (END |
-   IDENTIFIER => True,
-   others => False)
- sequence_of_statements =>
-  (END |
-   IDENTIFIER => True,
-   others => False)
- label_opt =>
-  (IDENTIFIER => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (BEGIN, IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON, END, SEMICOLON, Wisi_EOI)
+compilation_unit => (BEGIN, IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON, END, SEMICOLON)
+statement => (IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)
+sequence_of_statements => (IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)
+label_opt => ()
 
 State 1:
   wisitoken_accept <= ^ compilation_unit Wisi_EOI, 

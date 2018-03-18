@@ -19,50 +19,16 @@ Tokens:
  17 => selector_name
 
 LALR Parse Table:
-Follow:
-( association =>
-  (RIGHT_PAREN |
-   COMMA => True,
-   others => False)
- association_list =>
-  (RIGHT_PAREN |
-   COMMA => True,
-   others => False)
- compilation =>
-  (Wisi_EOI => True,
-   others => False)
- compilation_unit =>
-  (LEFT_PAREN |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- identifier_list =>
-  (LEFT_PAREN |
-   COMMA |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- name =>
-  (LEFT_PAREN |
-   RIGHT_PAREN |
-   COMMA |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- name_list =>
-  (LEFT_PAREN |
-   COMMA |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- selector_name =>
-  (EQUAL_GREATER => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (STRING_LITERAL, STRING_LITERAL, STRING_LITERAL, Wisi_EOI)
+association => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)
+association_list => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)
+compilation => (STRING_LITERAL, STRING_LITERAL, STRING_LITERAL)
+compilation_unit => (STRING_LITERAL)
+identifier_list => (IDENTIFIER)
+name => (STRING_LITERAL)
+name_list => (STRING_LITERAL)
+selector_name => (STRING_LITERAL)
 
 State 0:
   wisitoken_accept <= ^ compilation Wisi_EOI, 
@@ -327,50 +293,16 @@ State 25:
 
 
 LR1 Parse Table:
-Follow:
-( association =>
-  (RIGHT_PAREN |
-   COMMA => True,
-   others => False)
- association_list =>
-  (RIGHT_PAREN |
-   COMMA => True,
-   others => False)
- compilation =>
-  (Wisi_EOI => True,
-   others => False)
- compilation_unit =>
-  (LEFT_PAREN |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- identifier_list =>
-  (LEFT_PAREN |
-   COMMA |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- name =>
-  (LEFT_PAREN |
-   RIGHT_PAREN |
-   COMMA |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- name_list =>
-  (LEFT_PAREN |
-   COMMA |
-   STRING_LITERAL |
-   IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- selector_name =>
-  (EQUAL_GREATER => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (STRING_LITERAL, STRING_LITERAL, STRING_LITERAL, Wisi_EOI)
+association => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)
+association_list => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)
+compilation => (STRING_LITERAL, STRING_LITERAL, STRING_LITERAL)
+compilation_unit => (STRING_LITERAL)
+identifier_list => (IDENTIFIER)
+name => (STRING_LITERAL)
+name_list => (STRING_LITERAL)
+selector_name => (STRING_LITERAL)
 
 State 0:
   wisitoken_accept <= ^ compilation Wisi_EOI, Wisi_EOI

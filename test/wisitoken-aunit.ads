@@ -35,6 +35,9 @@ package WisiToken.AUnit is
 
    procedure Check (Label : in String; Computed, Expected : in Base_Token);
 
+   procedure Check (Label : in String; Computed, Expected : in Recover_Token);
+   --  Not all components checked.
+
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_Index);
 
    procedure Check is new Base_Token_Arrays.Gen_AUnit

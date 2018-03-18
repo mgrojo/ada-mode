@@ -616,7 +616,7 @@ package body WisiToken.LR.Parser is
                         end loop;
 
                         if Trace_Parse > Outline then
-                           Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": ambiguous with error");
+                           Trace.Put_Line ("ambiguous with error");
                         end if;
 
                         return;

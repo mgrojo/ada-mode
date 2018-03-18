@@ -191,7 +191,7 @@ package body WisiToken_AUnit is
       Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
-      State      : in WisiToken.LR.Unknown_State_Index := WisiToken.LR.Unknown_State)
+      State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
      return WisiToken.LR.LR1_Items.Item_Ptr
    is
       Grammar_I : WisiToken.Production.List.List_Iterator := Grammar.First;
@@ -226,7 +226,7 @@ package body WisiToken_AUnit is
    end "+";
 
    function "+"
-     (State : in WisiToken.LR.Unknown_State_Index;
+     (State : in WisiToken.Unknown_State_Index;
       Item  : in WisiToken.LR.LR1_Items.Item_Ptr)
      return WisiToken.LR.LR1_Items.Item_Set_List
    is begin
@@ -241,7 +241,7 @@ package body WisiToken_AUnit is
      return WisiToken.LR.LR1_Items.Item_Set_List
    is
       use WisiToken.LR.LR1_Items;
-      use all type WisiToken.LR.Unknown_State_Index;
+      use all type WisiToken.Unknown_State_Index;
 
       I : Item_Set_Ptr;
    begin
@@ -258,12 +258,12 @@ package body WisiToken_AUnit is
    end "&";
 
    function Get_Set
-     (To_State : in WisiToken.LR.Unknown_State_Index;
+     (To_State : in WisiToken.Unknown_State_Index;
       Set_List : in WisiToken.LR.LR1_Items.Item_Set_List)
      return WisiToken.LR.LR1_Items.Item_Set_Ptr
    is
       use WisiToken.LR.LR1_Items;
-      use all type WisiToken.LR.Unknown_State_Index;
+      use all type WisiToken.Unknown_State_Index;
 
       I : Item_Set_Ptr := Set_List.Head;
    begin
@@ -292,11 +292,11 @@ package body WisiToken_AUnit is
 
    procedure Add_Gotos
      (List  : in WisiToken.LR.LR1_Items.Item_Set_List;
-      State : in WisiToken.LR.Unknown_State_Index;
+      State : in WisiToken.Unknown_State_Index;
       Gotos : in WisiToken.LR.LR1_Items.Goto_Item_Ptr)
    is
       use WisiToken.LR.LR1_Items;
-      use all type WisiToken.LR.Unknown_State_Index;
+      use all type WisiToken.Unknown_State_Index;
       I : Item_Set_Ptr := List.Head;
    begin
       loop
@@ -320,7 +320,7 @@ package body WisiToken_AUnit is
             Dot        => Dot,
             Lookaheads => Lookahead),
          Goto_List       => null,
-         State           => WisiToken.LR.Unknown_State,
+         State           => WisiToken.Unknown_State,
          Next            => null);
    end Get_Item_Set;
 

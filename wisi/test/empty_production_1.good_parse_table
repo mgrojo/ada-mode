@@ -11,22 +11,11 @@ Tokens:
  9 => body
 
 LALR Parse Table:
-Follow:
-( declarations =>
-  (BEGIN |
-   IS |
-   Wisi_EOI => True,
-   others => False)
- declarative_part =>
-  (BEGIN |
-   Wisi_EOI => True,
-   others => False)
- body =>
-  (BEGIN |
-   IS |
-   Wisi_EOI => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (Wisi_EOI)
+declarations => (IS, BEGIN, SEMICOLON)
+declarative_part => ()
+body => (IS, BEGIN, SEMICOLON)
 
 State 1:
   wisitoken_accept <= ^ declarative_part Wisi_EOI, 
@@ -110,22 +99,11 @@ State 9:
 
 
 LR1 Parse Table:
-Follow:
-( declarations =>
-  (BEGIN |
-   IS |
-   Wisi_EOI => True,
-   others => False)
- declarative_part =>
-  (BEGIN |
-   Wisi_EOI => True,
-   others => False)
- body =>
-  (BEGIN |
-   IS |
-   Wisi_EOI => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (Wisi_EOI)
+declarations => (IS, BEGIN, SEMICOLON)
+declarative_part => ()
+body => (IS, BEGIN, SEMICOLON)
 
 State 1:
   wisitoken_accept <= ^ declarative_part Wisi_EOI, Wisi_EOI

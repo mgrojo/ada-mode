@@ -13,26 +13,12 @@ Tokens:
  11 => other_indicator
 
 LALR Parse Table:
-Follow:
-( compilation_unit =>
-  (Wisi_EOI => True,
-   others => False)
- subprogram_declaration =>
-  (OVERRIDING |
-   OTHER |
-   PROCEDURE |
-   Wisi_EOI => True,
-   others => False)
- overriding_indicator =>
-  (OVERRIDING |
-   OTHER |
-   PROCEDURE |
-   Wisi_EOI => True,
-   others => False)
- other_indicator =>
-  (PROCEDURE => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON, Wisi_EOI)
+compilation_unit => (PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON)
+subprogram_declaration => (PROCEDURE, IDENTIFIER, SEMICOLON)
+overriding_indicator => ()
+other_indicator => ()
 
 State 1:
   wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -138,26 +124,12 @@ State 12:
 
 
 LR1 Parse Table:
-Follow:
-( compilation_unit =>
-  (Wisi_EOI => True,
-   others => False)
- subprogram_declaration =>
-  (OVERRIDING |
-   OTHER |
-   PROCEDURE |
-   Wisi_EOI => True,
-   others => False)
- overriding_indicator =>
-  (OVERRIDING |
-   OTHER |
-   PROCEDURE |
-   Wisi_EOI => True,
-   others => False)
- other_indicator =>
-  (PROCEDURE => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON, Wisi_EOI)
+compilation_unit => (PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON, PROCEDURE, IDENTIFIER, SEMICOLON)
+subprogram_declaration => (PROCEDURE, IDENTIFIER, SEMICOLON)
+overriding_indicator => ()
+other_indicator => ()
 
 State 1:
   wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI

@@ -329,6 +329,25 @@ package body WisiToken is
    end Image;
 
    function Image
+     (Token      : in Base_Token_Index;
+      Terminals  : in Base_Token_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is begin
+      if Token = Invalid_Token_Index then
+         return "<invalid_token_index>";
+      else
+         declare
+            T : Base_Token renames Terminals (Token);
+         begin
+            return Token_Index'Image (Token) & ":" &
+              "(" & Image (T.ID, Descriptor) &
+              (if T.Byte_Region = Null_Buffer_Region then "" else ", " & Image (T.Byte_Region)) & ")";
+         end;
+      end if;
+   end Image;
+
+   function Image
      (Item       : in Recover_Token;
       Descriptor : in WisiToken.Descriptor'Class)
      return String

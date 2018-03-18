@@ -1,114 +1,114 @@
 LALR_Parser parse:
 spawn parser from 1 (2 active)
- 2: 1: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 2: 1:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 3
- 1: 1: (IS, (49 . 50)) : shift and goto state 2
- 2: 3: (IS, (49 . 50)) : reduce 1 tokens to declarations
+ 1: 1:  1:(IS, (49 . 50)) : shift and goto state 2
+ 2: 3:  1:(IS, (49 . 50)) : reduce 1 tokens to declarations
 declarations_0: (declarations) <= ((declaration))
  ... goto state 4
 spawn parser from 2 (3 active)
- 3: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 3: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 2: 4: (IS, (49 . 50)) : shift and goto state 2
- 3: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 2: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 3: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 3 (4 active)
- 4: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 4: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 3: 4: (IS, (49 . 50)) : shift and goto state 2
- 4: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 3: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 4: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 4 (5 active)
- 5: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 5: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 4: 4: (IS, (49 . 50)) : shift and goto state 2
- 5: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 4: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 5: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 5 (6 active)
- 6: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 6: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 5: 4: (IS, (49 . 50)) : shift and goto state 2
- 6: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 5: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 6: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 6 (7 active)
- 7: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 7: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 6: 4: (IS, (49 . 50)) : shift and goto state 2
- 7: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 6: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 7: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 7 (8 active)
- 8: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 8: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 7: 4: (IS, (49 . 50)) : shift and goto state 2
- 8: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 7: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 8: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 8 (9 active)
- 9: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 9: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 8: 4: (IS, (49 . 50)) : shift and goto state 2
- 9: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 8: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 9: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 9 (10 active)
- 10: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 10: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 9: 4: (IS, (49 . 50)) : shift and goto state 2
- 10: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 9: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 10: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 10 (11 active)
- 11: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 11: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 10: 4: (IS, (49 . 50)) : shift and goto state 2
- 11: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 10: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 11: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 11 (12 active)
- 12: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 12: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 11: 4: (IS, (49 . 50)) : shift and goto state 2
- 12: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 11: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 12: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 12 (13 active)
- 13: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 13: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 12: 4: (IS, (49 . 50)) : shift and goto state 2
- 13: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 12: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 13: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 13 (14 active)
- 14: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 14: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 13: 4: (IS, (49 . 50)) : shift and goto state 2
- 14: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 13: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 14: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 spawn parser from 14 (15 active)
- 15: 4: (IS, (49 . 50)) : reduce 0 tokens to declaration
+ 15: 4:  1:(IS, (49 . 50)) : reduce 0 tokens to declaration
 declaration_0: (declaration) <= ()
  ... goto state 6
- 14: 4: (IS, (49 . 50)) : shift and goto state 2
- 15: 6: (IS, (49 . 50)) : reduce 2 tokens to declarations
+ 14: 4:  1:(IS, (49 . 50)) : shift and goto state 2
+ 15: 6:  1:(IS, (49 . 50)) : reduce 2 tokens to declarations
 declarations_1: (declarations) <= ((declarations), (declaration))
  ... goto state 4
 empty_production_2.input::2:48: : too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)

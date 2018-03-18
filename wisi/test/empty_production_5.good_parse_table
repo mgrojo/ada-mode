@@ -13,23 +13,12 @@ Tokens:
  11 => parameter_profile
 
 LALR Parse Table:
-Follow:
-( compilation_unit =>
-  (Wisi_EOI => True,
-   others => False)
- accept_statement =>
-  (ACCEPT |
-   Wisi_EOI => True,
-   others => False)
- name =>
-  (ACCEPT |
-   LEFT_PAREN |
-   Wisi_EOI => True,
-   others => False)
- parameter_profile =>
-  (SEMICOLON => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON, Wisi_EOI)
+compilation_unit => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON)
+accept_statement => (ACCEPT, IDENTIFIER, SEMICOLON)
+name => (IDENTIFIER)
+parameter_profile => ()
 
 State 1:
   wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -124,23 +113,12 @@ State 12:
 
 
 LR1 Parse Table:
-Follow:
-( compilation_unit =>
-  (Wisi_EOI => True,
-   others => False)
- accept_statement =>
-  (ACCEPT |
-   Wisi_EOI => True,
-   others => False)
- name =>
-  (ACCEPT |
-   LEFT_PAREN |
-   Wisi_EOI => True,
-   others => False)
- parameter_profile =>
-  (SEMICOLON => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON, Wisi_EOI)
+compilation_unit => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON)
+accept_statement => (ACCEPT, IDENTIFIER, SEMICOLON)
+name => (IDENTIFIER)
+parameter_profile => ()
 
 State 1:
   wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI

@@ -220,6 +220,12 @@ package body WisiToken.LR.LR1_Generator is
          New_Line;
       end if;
 
+      Put_Line ("Terminal_Sequences:");
+      for I in Table.Terminal_Sequences.First_Index .. Table.Terminal_Sequences.Last_Index loop
+         Put_Line (Image (I, Descriptor) & " => " & Image (Table.Terminal_Sequences (I), Descriptor));
+      end loop;
+      New_Line;
+
       for State in Table.States'Range loop
          LR1_Items.Put
            (Descriptor, LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);

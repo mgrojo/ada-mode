@@ -19,32 +19,15 @@ Tokens:
  17 => range_nt
 
 LALR Parse Table:
-Follow:
-( case_expression =>
-  (Wisi_EOI => True,
-   others => False)
- choice_expression =>
-  (EQUAL_GREATER => True,
-   others => False)
- choice_relation =>
-  (EQUAL_GREATER => True,
-   others => False)
- discrete_choice =>
-  (EQUAL_GREATER => True,
-   others => False)
- factor =>
-  (DOT_DOT |
-   EQUAL_GREATER |
-   Wisi_EOI => True,
-   others => False)
- factor_list =>
-  (DOT_DOT |
-   EQUAL_GREATER => True,
-   others => False)
- range_nt =>
-  (EQUAL_GREATER => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL, Wisi_EOI)
+case_expression => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL)
+choice_expression => (NUMBER_LITERAL)
+choice_relation => (NUMBER_LITERAL)
+discrete_choice => (NUMBER_LITERAL)
+factor => (NUMBER_LITERAL)
+factor_list => (NUMBER_LITERAL)
+range_nt => (NUMBER_LITERAL, DOT_DOT, NUMBER_LITERAL)
 
 State 0:
   wisitoken_accept <= ^ case_expression Wisi_EOI, 
@@ -195,32 +178,15 @@ State 17:
 
 
 LR1 Parse Table:
-Follow:
-( case_expression =>
-  (Wisi_EOI => True,
-   others => False)
- choice_expression =>
-  (EQUAL_GREATER => True,
-   others => False)
- choice_relation =>
-  (EQUAL_GREATER => True,
-   others => False)
- discrete_choice =>
-  (EQUAL_GREATER => True,
-   others => False)
- factor =>
-  (DOT_DOT |
-   EQUAL_GREATER |
-   Wisi_EOI => True,
-   others => False)
- factor_list =>
-  (DOT_DOT |
-   EQUAL_GREATER => True,
-   others => False)
- range_nt =>
-  (EQUAL_GREATER => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL, Wisi_EOI)
+case_expression => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL)
+choice_expression => (NUMBER_LITERAL)
+choice_relation => (NUMBER_LITERAL)
+discrete_choice => (NUMBER_LITERAL)
+factor => (NUMBER_LITERAL)
+factor_list => (NUMBER_LITERAL)
+range_nt => (NUMBER_LITERAL, DOT_DOT, NUMBER_LITERAL)
 
 State 0:
   wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI

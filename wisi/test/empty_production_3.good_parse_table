@@ -10,22 +10,12 @@ Tokens:
  8 => parameter_specification
 
 LALR Parse Table:
-Follow:
-( compilation_unit =>
-  (Wisi_EOI => True,
-   others => False)
- mode =>
-  (IDENTIFIER => True,
-   others => False)
- name =>
-  (IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- parameter_specification =>
-  (IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, Wisi_EOI)
+compilation_unit => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER)
+mode => ()
+name => (IDENTIFIER)
+parameter_specification => (IDENTIFIER, IDENTIFIER)
 
 State 1:
   wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -99,22 +89,12 @@ State 9:
 
 
 LR1 Parse Table:
-Follow:
-( compilation_unit =>
-  (Wisi_EOI => True,
-   others => False)
- mode =>
-  (IDENTIFIER => True,
-   others => False)
- name =>
-  (IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- parameter_specification =>
-  (IDENTIFIER |
-   Wisi_EOI => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, Wisi_EOI)
+compilation_unit => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER)
+mode => ()
+name => (IDENTIFIER)
+parameter_specification => (IDENTIFIER, IDENTIFIER)
 
 State 1:
   wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI

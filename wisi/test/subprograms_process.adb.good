@@ -18,8 +18,9 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Lexer.re2c;
-with WisiToken.LR.Parser;
 with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;
+with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees.Branched;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Subprograms; use WisiToken.Wisi_Runtime.Subprograms;
 with subprograms_re2c_c;
@@ -34,90 +35,122 @@ package body Subprograms_Process is
       subprograms_re2c_c.Next_Token);
 
    procedure block_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, ((3, Motion), (4, Motion)));
+         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((3, Motion), (4, Motion)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end block_1;
 
    procedure loop_statement_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
       when Face =>
-         Face_Remove_Action (Parse_Data, Nonterm, Tokens, (1 => 4));
+         Face_Remove_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => 4));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, -Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent - Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, -Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent - Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end loop_statement_0;
 
    procedure name_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
       when Face =>
-         Face_Mark_Action (Parse_Data, Nonterm, Tokens, (1 => (1, Suffix)));
+         Face_Mark_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => (1, Suffix)));
       when Indent =>
          null;
       end case;
    end name_0;
 
    function name_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
-     Nonterm : in out WisiToken.Base_Token;
-     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Lexer        : in     WisiToken.Lexer.Handle;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
-      return Propagate_Name (Nonterm, Tokens, 1);
+      return Propagate_Name (Tree, Tree_Nonterm, Tree_Tokens, 1);
    end name_0_check;
 
    procedure name_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
       when Face =>
-         Face_Mark_Action (Parse_Data, Nonterm, Tokens, ((1, Prefix), (3, Suffix)));
+         Face_Mark_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Prefix), (3, Suffix)));
       when Indent =>
          null;
       end case;
    end name_1;
 
    function name_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
-     Nonterm : in out WisiToken.Base_Token;
-     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Lexer        : in     WisiToken.Lexer.Handle;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
-      return Merge_Names (Nonterm, Tokens, 1, 3);
+      return Merge_Names (Tree, Tree_Nonterm, Tree_Tokens, 1, 3);
    end name_1_check;
 
    procedure parameter_list_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Misc), (2, Misc)));
+         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Misc), (2, Misc)));
       when Face =>
          null;
       when Indent =>
@@ -126,87 +159,118 @@ package body Subprograms_Process is
    end parameter_list_0;
 
    procedure parameter_list_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, (1 => (2, Misc)));
+         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => (2, Misc)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end parameter_list_2;
 
    procedure subprogram_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (3, Misc), (4, Motion), (5, Statement_End)));
-         Containing_Action (Parse_Data, Nonterm, Tokens, 1, 2);
-         Containing_Action (Parse_Data, Nonterm, Tokens, 1, 4);
-         Motion_Action (Parse_Data, Nonterm, Tokens, ((1, Empty_IDs) & (4, 5 & 11) & (5, Empty_IDs)));
+         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (2, Name), (3, Misc), (4, Motion), (5, Statement_End)));
+         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 2);
+         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 4);
+         Motion_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Empty_IDs) & (4, 5 & 11) & (5, Empty_IDs)));
       when Face =>
-         Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (2, 1, 2)));
+         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, 3, 0), (2, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, Subp_Indent_Broken)), (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Language, Function_1'Access, +2 * Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, Subp_Indent_Broken)), (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Language, Function_1'Access, +2 * Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end subprogram_0;
 
    procedure subprogram_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (6, Statement_End)));
-         Containing_Action (Parse_Data, Nonterm, Tokens, 1, 2);
+         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (2, Name), (6, Statement_End)));
+         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 2);
       when Face =>
-         Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (2, 1, 2)));
+         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, 3, 0), (2, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end subprogram_1;
 
    function subprogram_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
-     Nonterm : in out WisiToken.Base_Token;
-     Tokens  : in     WisiToken.Base_Token_Arrays.Vector)
+    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Lexer        : in     WisiToken.Lexer.Handle;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Tree_Nonterm);
    begin
-      return Match_Names (Lexer, Tokens, 2, 5, True);
+      return Match_Names (Tree, Lexer, Tree_Tokens, 2, 5, True);
    end subprogram_1_check;
 
    procedure subtype_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
       when Face =>
-         Face_Apply_Action (Parse_Data, Nonterm, Tokens, (1 => (1, 1, 2)));
+         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => (1, 1, 2)));
       when Indent =>
          null;
       end case;
    end subtype_0;
 
    procedure use_clause_0
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Arrays.Vector)
-   is begin
+    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State         : in out WisiToken.Semantic_State.Semantic_State;
+     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
+     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Tree : WisiToken.Syntax_Trees.Branched.Tree renames WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);
+   begin
       case Parse_Data.Parse_Action is
       when Navigate =>
          null;
       when Face =>
-         Face_Apply_List_Action (Parse_Data, Nonterm, Tokens, (1 => (2, 1, 2)));
+         Face_Apply_List_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => (2, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end use_clause_0;
 
@@ -231,10 +295,16 @@ package body Subprograms_Process is
          Last_Terminal     => 19,
          First_Nonterminal => 20,
          Last_Nonterminal  => 31,
+         Push_Back =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0),
          Insert =>
            (0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
-            0),
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0),
          Delete =>
            (0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
@@ -244,64 +314,43 @@ package body Subprograms_Process is
          Check_Limit => 2147483647,
          Patterns    => WisiToken.LR.Patterns.Empty_List);
 
-      Table.Follow :=
-        (21 =>
-           (17 => True,
-             others => False),
-         22 =>
-           (19 => True,
-             others => False),
-         23 =>
-           (7 |
-             10 |
-             12 |
-             19 => True,
-             others => False),
-         24 =>
-           (7 |
-             10 |
-             12 |
-             19 => True,
-             others => False),
-         25 =>
-           (5 => True,
-             others => False),
-         26 =>
-           (4 |
-             7 |
-             9 |
-             10 |
-             12 |
-             13 |
-             15 |
-             16 |
-             17 |
-             19 => True,
-             others => False),
-         27 =>
-           (15 |
-             17 => True,
-             others => False),
-         28 =>
-           (3 |
-             4 => True,
-             others => False),
-         29 =>
-           (7 |
-             10 |
-             12 |
-             19 => True,
-             others => False),
-         30 =>
-           (9 => True,
-             others => False),
-         31 =>
-           (7 |
-             10 |
-             12 |
-             19 => True,
-             others => False),
-         others => (others => False));
+
+      Table.Productions.Set_Length (20);
+      Set_Token_Sequence (Table.Productions (1), (22, 19));
+      Set_Token_Sequence (Table.Productions (2), (3, 4));
+      Set_Token_Sequence (Table.Productions (3), (3, 25, 5, 11, 26, 4));
+      Set_Token_Sequence (Table.Productions (4), (1 => 23));
+      Set_Token_Sequence (Table.Productions (5), (1 => 24));
+      Set_Token_Sequence (Table.Productions (6), (23, 24));
+      Set_Token_Sequence (Table.Productions (7), (1 => 29));
+      Set_Token_Sequence (Table.Productions (8), (1 => 31));
+      Set_Token_Sequence (Table.Productions (9), (6, 18, 8, 30, 9, 17));
+      Set_Token_Sequence (Table.Productions (10), (1 => 18));
+      Set_Token_Sequence (Table.Productions (11), (26, 16, 18));
+      Set_Token_Sequence (Table.Productions (12), (1 => 26));
+      Set_Token_Sequence (Table.Productions (13), (27, 15, 26));
+      Set_Token_Sequence (Table.Productions (14), (13, 14));
+      Set_Token_Sequence (Table.Productions (15), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (16), (13, 18, 14));
+      Set_Token_Sequence (Table.Productions (17), (7, 26, 28, 21, 17));
+      Set_Token_Sequence (Table.Productions (18), (10, 26, 28, 4, 26, 17));
+      Set_Token_Sequence (Table.Productions (19), (1 => 26));
+      Set_Token_Sequence (Table.Productions (20), (12, 27, 17));
+
+      Table.Terminal_Sequences.Set_First (20);
+      Table.Terminal_Sequences.Set_Last (31);
+      Set_Token_Sequence (Table.Terminal_Sequences (20), (12, 18, 17, 19));
+      Set_Token_Sequence (Table.Terminal_Sequences (21), (3, 4));
+      Set_Token_Sequence (Table.Terminal_Sequences (22), (12, 18, 17));
+      Set_Token_Sequence (Table.Terminal_Sequences (23), (12, 18, 17));
+      Set_Token_Sequence (Table.Terminal_Sequences (24), (12, 18, 17));
+      Set_Token_Sequence (Table.Terminal_Sequences (25), (6, 18, 8, 18, 9, 17));
+      Set_Token_Sequence (Table.Terminal_Sequences (26), (1 => 18));
+      Set_Token_Sequence (Table.Terminal_Sequences (27), (1 => 18));
+      Set_Token_Sequence (Table.Terminal_Sequences (28), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (29), (10, 18, 4, 18, 17));
+      Set_Token_Sequence (Table.Terminal_Sequences (30), (1 => 18));
+      Set_Token_Sequence (Table.Terminal_Sequences (31), (12, 18, 17));
 
       Add_Action (Table.States (0), 7, 1);
       Add_Action (Table.States (0), 10, 2);
@@ -322,57 +371,57 @@ package body Subprograms_Process is
       Add_Error (Table.States (3));
       Add_Goto (Table.States (3), 26, 11);
       Add_Goto (Table.States (3), 27, 12);
-      Add_Action (Table.States (4), 19, Accept_It, 20, 0,  1, null, null);
+      Add_Action (Table.States (4), 19, Accept_It, 1, 20, 1, 0, null, null);
       Add_Error (Table.States (4));
       Add_Action (Table.States (5), 7, 1);
       Add_Action (Table.States (5), 10, 2);
       Add_Action (Table.States (5), 12, 3);
-      Add_Action (Table.States (5), 19, Reduce, 22, 0,  1, null, null);
+      Add_Action (Table.States (5), 19, Reduce, 4, 22, 1, 0, null, null);
       Add_Error (Table.States (5));
       Add_Goto (Table.States (5), 24, 9);
       Add_Goto (Table.States (5), 29, 7);
       Add_Goto (Table.States (5), 31, 8);
-      Add_Action (Table.States (6), 7, Reduce, 23, 0,  1, null, null);
-      Add_Action (Table.States (6), 10, Reduce, 23, 0,  1, null, null);
-      Add_Action (Table.States (6), 12, Reduce, 23, 0,  1, null, null);
-      Add_Action (Table.States (6), 19, Reduce, 23, 0,  1, null, null);
+      Add_Action (Table.States (6), 7, Reduce, 5, 23, 1, 0, null, null);
+      Add_Action (Table.States (6), 10, Reduce, 5, 23, 1, 0, null, null);
+      Add_Action (Table.States (6), 12, Reduce, 5, 23, 1, 0, null, null);
+      Add_Action (Table.States (6), 19, Reduce, 5, 23, 1, 0, null, null);
       Add_Error (Table.States (6));
-      Add_Action (Table.States (7), 7, Reduce, 24, 0,  1, null, null);
-      Add_Action (Table.States (7), 10, Reduce, 24, 0,  1, null, null);
-      Add_Action (Table.States (7), 12, Reduce, 24, 0,  1, null, null);
-      Add_Action (Table.States (7), 19, Reduce, 24, 0,  1, null, null);
+      Add_Action (Table.States (7), 7, Reduce, 7, 24, 1, 0, null, null);
+      Add_Action (Table.States (7), 10, Reduce, 7, 24, 1, 0, null, null);
+      Add_Action (Table.States (7), 12, Reduce, 7, 24, 1, 0, null, null);
+      Add_Action (Table.States (7), 19, Reduce, 7, 24, 1, 0, null, null);
       Add_Error (Table.States (7));
-      Add_Action (Table.States (8), 7, Reduce, 24, 1,  1, null, null);
-      Add_Action (Table.States (8), 10, Reduce, 24, 1,  1, null, null);
-      Add_Action (Table.States (8), 12, Reduce, 24, 1,  1, null, null);
-      Add_Action (Table.States (8), 19, Reduce, 24, 1,  1, null, null);
+      Add_Action (Table.States (8), 7, Reduce, 8, 24, 1, 1, null, null);
+      Add_Action (Table.States (8), 10, Reduce, 8, 24, 1, 1, null, null);
+      Add_Action (Table.States (8), 12, Reduce, 8, 24, 1, 1, null, null);
+      Add_Action (Table.States (8), 19, Reduce, 8, 24, 1, 1, null, null);
       Add_Error (Table.States (8));
-      Add_Action (Table.States (9), 7, Reduce, 23, 1,  2, null, null);
-      Add_Action (Table.States (9), 10, Reduce, 23, 1,  2, null, null);
-      Add_Action (Table.States (9), 12, Reduce, 23, 1,  2, null, null);
-      Add_Action (Table.States (9), 19, Reduce, 23, 1,  2, null, null);
+      Add_Action (Table.States (9), 7, Reduce, 6, 23, 2, 1, null, null);
+      Add_Action (Table.States (9), 10, Reduce, 6, 23, 2, 1, null, null);
+      Add_Action (Table.States (9), 12, Reduce, 6, 23, 2, 1, null, null);
+      Add_Action (Table.States (9), 19, Reduce, 6, 23, 2, 1, null, null);
       Add_Error (Table.States (9));
-      Add_Action (Table.States (10), 3, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
-      Add_Action (Table.States (10), 4, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
-      Add_Action (Table.States (10), 9, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
-      Add_Action (Table.States (10), 13, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
-      Add_Action (Table.States (10), 15, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
-      Add_Action (Table.States (10), 16, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
-      Add_Action (Table.States (10), 17, Reduce, 26, 0,  1, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 3, Reduce, 10, 26, 1, 0, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 4, Reduce, 10, 26, 1, 0, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 9, Reduce, 10, 26, 1, 0, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 13, Reduce, 10, 26, 1, 0, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 15, Reduce, 10, 26, 1, 0, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 16, Reduce, 10, 26, 1, 0, name_0'Access, name_0_check'Access);
+      Add_Action (Table.States (10), 17, Reduce, 10, 26, 1, 0, name_0'Access, name_0_check'Access);
       Add_Error (Table.States (10));
-      Add_Action (Table.States (11), 15, Reduce, 27, 0,  1, null, null);
+      Add_Action (Table.States (11), 15, Reduce, 12, 27, 1, 0, null, null);
       Add_Action (Table.States (11), 16, 16);
-      Add_Action (Table.States (11), 17, Reduce, 27, 0,  1, null, null);
+      Add_Action (Table.States (11), 17, Reduce, 12, 27, 1, 0, null, null);
       Add_Error (Table.States (11));
       Add_Action (Table.States (12), 15, 19);
       Add_Action (Table.States (12), 17, 20);
       Add_Error (Table.States (12));
-      Add_Action (Table.States (13), 4, Reduce, 28, 1,  0, null, null);
+      Add_Action (Table.States (13), 4, Reduce, 15, 28, 0, 1, null, null);
       Add_Action (Table.States (13), 13, 15);
       Add_Action (Table.States (13), 16, 16);
       Add_Error (Table.States (13));
       Add_Goto (Table.States (13), 28, 18);
-      Add_Action (Table.States (14), 3, Reduce, 28, 1,  0, null, null);
+      Add_Action (Table.States (14), 3, Reduce, 15, 28, 0, 1, null, null);
       Add_Action (Table.States (14), 13, 15);
       Add_Action (Table.States (14), 16, 16);
       Add_Error (Table.States (14));
@@ -390,14 +439,14 @@ package body Subprograms_Process is
       Add_Action (Table.States (19), 18, 10);
       Add_Error (Table.States (19));
       Add_Goto (Table.States (19), 26, 21);
-      Add_Action (Table.States (20), 7, Reduce, 31, 0,  3, use_clause_0'Access, null);
-      Add_Action (Table.States (20), 10, Reduce, 31, 0,  3, use_clause_0'Access, null);
-      Add_Action (Table.States (20), 12, Reduce, 31, 0,  3, use_clause_0'Access, null);
-      Add_Action (Table.States (20), 19, Reduce, 31, 0,  3, use_clause_0'Access, null);
+      Add_Action (Table.States (20), 7, Reduce, 20, 31, 3, 0, use_clause_0'Access, null);
+      Add_Action (Table.States (20), 10, Reduce, 20, 31, 3, 0, use_clause_0'Access, null);
+      Add_Action (Table.States (20), 12, Reduce, 20, 31, 3, 0, use_clause_0'Access, null);
+      Add_Action (Table.States (20), 19, Reduce, 20, 31, 3, 0, use_clause_0'Access, null);
       Add_Error (Table.States (20));
-      Add_Action (Table.States (21), 15, Reduce, 27, 1,  3, null, null);
+      Add_Action (Table.States (21), 15, Reduce, 13, 27, 3, 1, null, null);
       Add_Action (Table.States (21), 16, 16);
-      Add_Action (Table.States (21), 17, Reduce, 27, 1,  3, null, null);
+      Add_Action (Table.States (21), 17, Reduce, 13, 27, 3, 1, null, null);
       Add_Error (Table.States (21));
       Add_Action (Table.States (22), 18, 10);
       Add_Error (Table.States (22));
@@ -408,28 +457,28 @@ package body Subprograms_Process is
       Add_Goto (Table.States (23), 25, 32);
       Add_Action (Table.States (24), 17, 29);
       Add_Error (Table.States (24));
-      Add_Action (Table.States (25), 3, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
-      Add_Action (Table.States (25), 4, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
-      Add_Action (Table.States (25), 9, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
-      Add_Action (Table.States (25), 13, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
-      Add_Action (Table.States (25), 15, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
-      Add_Action (Table.States (25), 16, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
-      Add_Action (Table.States (25), 17, Reduce, 26, 1,  3, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 3, Reduce, 11, 26, 3, 1, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 4, Reduce, 11, 26, 3, 1, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 9, Reduce, 11, 26, 3, 1, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 13, Reduce, 11, 26, 3, 1, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 15, Reduce, 11, 26, 3, 1, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 16, Reduce, 11, 26, 3, 1, name_1'Access, name_1_check'Access);
+      Add_Action (Table.States (25), 17, Reduce, 11, 26, 3, 1, name_1'Access, name_1_check'Access);
       Add_Error (Table.States (25));
-      Add_Action (Table.States (26), 3, Reduce, 28, 0,  2, parameter_list_0'Access, null);
-      Add_Action (Table.States (26), 4, Reduce, 28, 0,  2, parameter_list_0'Access, null);
+      Add_Action (Table.States (26), 3, Reduce, 14, 28, 2, 0, parameter_list_0'Access, null);
+      Add_Action (Table.States (26), 4, Reduce, 14, 28, 2, 0, parameter_list_0'Access, null);
       Add_Error (Table.States (26));
       Add_Action (Table.States (27), 14, 28);
       Add_Error (Table.States (27));
-      Add_Action (Table.States (28), 3, Reduce, 28, 2,  3, parameter_list_2'Access, null);
-      Add_Action (Table.States (28), 4, Reduce, 28, 2,  3, parameter_list_2'Access, null);
+      Add_Action (Table.States (28), 3, Reduce, 16, 28, 3, 2, parameter_list_2'Access, null);
+      Add_Action (Table.States (28), 4, Reduce, 16, 28, 3, 2, parameter_list_2'Access, null);
       Add_Error (Table.States (28));
-      Add_Action (Table.States (29), 7, Reduce, 29, 0,  5, subprogram_0'Access, null);
-      Add_Action (Table.States (29), 10, Reduce, 29, 0,  5, subprogram_0'Access, null);
-      Add_Action (Table.States (29), 12, Reduce, 29, 0,  5, subprogram_0'Access, null);
-      Add_Action (Table.States (29), 19, Reduce, 29, 0,  5, subprogram_0'Access, null);
+      Add_Action (Table.States (29), 7, Reduce, 17, 29, 5, 0, subprogram_0'Access, null);
+      Add_Action (Table.States (29), 10, Reduce, 17, 29, 5, 0, subprogram_0'Access, null);
+      Add_Action (Table.States (29), 12, Reduce, 17, 29, 5, 0, subprogram_0'Access, null);
+      Add_Action (Table.States (29), 19, Reduce, 17, 29, 5, 0, subprogram_0'Access, null);
       Add_Error (Table.States (29));
-      Add_Action (Table.States (30), 17, Reduce, 21, 0,  2, null, null);
+      Add_Action (Table.States (30), 17, Reduce, 2, 21, 2, 0, null, null);
       Add_Error (Table.States (30));
       Add_Action (Table.States (31), 18, 36);
       Add_Error (Table.States (31));
@@ -438,10 +487,10 @@ package body Subprograms_Process is
       Add_Action (Table.States (33), 16, 16);
       Add_Action (Table.States (33), 17, 34);
       Add_Error (Table.States (33));
-      Add_Action (Table.States (34), 7, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
-      Add_Action (Table.States (34), 10, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
-      Add_Action (Table.States (34), 12, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
-      Add_Action (Table.States (34), 19, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
+      Add_Action (Table.States (34), 7, Reduce, 18, 29, 6, 1, subprogram_1'Access, subprogram_1_check'Access);
+      Add_Action (Table.States (34), 10, Reduce, 18, 29, 6, 1, subprogram_1'Access, subprogram_1_check'Access);
+      Add_Action (Table.States (34), 12, Reduce, 18, 29, 6, 1, subprogram_1'Access, subprogram_1_check'Access);
+      Add_Action (Table.States (34), 19, Reduce, 18, 29, 6, 1, subprogram_1'Access, subprogram_1_check'Access);
       Add_Error (Table.States (34));
       Add_Action (Table.States (35), 11, 38);
       Add_Error (Table.States (35));
@@ -457,16 +506,16 @@ package body Subprograms_Process is
       Add_Action (Table.States (39), 4, 43);
       Add_Action (Table.States (39), 16, 16);
       Add_Error (Table.States (39));
-      Add_Action (Table.States (40), 9, Reduce, 30, 0,  1, subtype_0'Access, null);
+      Add_Action (Table.States (40), 9, Reduce, 19, 30, 1, 0, subtype_0'Access, null);
       Add_Action (Table.States (40), 16, 16);
       Add_Error (Table.States (40));
       Add_Action (Table.States (41), 9, 42);
       Add_Error (Table.States (41));
       Add_Action (Table.States (42), 17, 44);
       Add_Error (Table.States (42));
-      Add_Action (Table.States (43), 17, Reduce, 21, 1,  6, block_1'Access, null);
+      Add_Action (Table.States (43), 17, Reduce, 3, 21, 6, 1, block_1'Access, null);
       Add_Error (Table.States (43));
-      Add_Action (Table.States (44), 5, Reduce, 25, 0,  6, loop_statement_0'Access, null);
+      Add_Action (Table.States (44), 5, Reduce, 9, 25, 6, 0, loop_statement_0'Access, null);
       Add_Error (Table.States (44));
 
       WisiToken.LR.Parser.New_Parser

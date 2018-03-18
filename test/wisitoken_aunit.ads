@@ -2,7 +2,7 @@
 --
 --  AUnit routines useful in WisiToken tests
 --
---  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -70,7 +70,7 @@ package WisiToken_AUnit is
       Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
-      State      : in WisiToken.LR.Unknown_State_Index := WisiToken.LR.Unknown_State)
+      State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
      return WisiToken.LR.LR1_Items.Item_Ptr;
    --  Construct an LR1_Items item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).
@@ -80,7 +80,7 @@ package WisiToken_AUnit is
       Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
-      State      : in WisiToken.LR.Unknown_State_Index := WisiToken.LR.Unknown_State)
+      State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
      return WisiToken.LR.LR1_Items.Item_Ptr
      renames Get_Item_Node;
 
@@ -88,7 +88,7 @@ package WisiToken_AUnit is
    function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set_Ptr;
 
    function "+"
-     (State : in WisiToken.LR.Unknown_State_Index;
+     (State : in WisiToken.Unknown_State_Index;
       Item  : in WisiToken.LR.LR1_Items.Item_Ptr)
      return WisiToken.LR.LR1_Items.Item_Set_List;
    function "&"
@@ -97,7 +97,7 @@ package WisiToken_AUnit is
      return WisiToken.LR.LR1_Items.Item_Set_List;
 
    function Get_Set
-     (To_State : in WisiToken.LR.Unknown_State_Index;
+     (To_State : in WisiToken.Unknown_State_Index;
       Set_List : in WisiToken.LR.LR1_Items.Item_Set_List)
      return WisiToken.LR.LR1_Items.Item_Set_Ptr;
 
@@ -114,7 +114,7 @@ package WisiToken_AUnit is
 
    procedure Add_Gotos
      (List  : in WisiToken.LR.LR1_Items.Item_Set_List;
-      State : in WisiToken.LR.Unknown_State_Index;
+      State : in WisiToken.Unknown_State_Index;
       Gotos : in WisiToken.LR.LR1_Items.Goto_Item_Ptr);
 
    function Get_Item_Set

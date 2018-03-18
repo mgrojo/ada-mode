@@ -48,6 +48,12 @@ package body WisiToken.AUnit is
       Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
    end Check;
 
+   procedure Check (Label : in String; Computed, Expected : in Recover_Token)
+   is begin
+      Check (Label & ".ID", Computed.ID, Expected.ID);
+      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
+   end Check;
+
    procedure Check
      (Label    : in String;
       Computed : in WisiToken.Buffer_Region;

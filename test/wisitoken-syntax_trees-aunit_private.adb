@@ -31,15 +31,14 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    begin
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".parent", Computed.Parent, Expected.Parent);
+      Check (Label & ".id", Computed.ID, Expected.ID);
+
       case Computed.Label is
-      when Empty =>
-         null;
       when Shared_Terminal =>
          Check (Label & ".terminal", Computed.Terminal, Expected.Terminal);
       when Virtual_Terminal =>
-         Check (Label & ".terminal_id", Computed.Terminal_ID, Expected.Terminal_ID);
+         null;
       when Nonterm =>
-         Check (Label & ".nonterm_id", Computed.Nonterm_ID, Expected.Nonterm_ID);
          Check (Label & ".children", Computed.Children, Expected.Children);
          Check (Label & ".action", Computed.Action, Expected.Action);
       end case;

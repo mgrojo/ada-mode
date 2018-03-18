@@ -20,8 +20,6 @@
 
 pragma License (GPL);
 
-with WisiToken.AUnit;
-with WisiToken.Syntax_Trees.AUnit_Private;
 with WisiToken.Syntax_Trees.AUnit_Public;
 with WisiToken.Syntax_Trees.Branched.AUnit_Private;
 package body WisiToken.Syntax_Trees.Branched.Test is
@@ -46,13 +44,12 @@ package body WisiToken.Syntax_Trees.Branched.Test is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.Branched.AUnit_Private;
       use WisiToken.Syntax_Trees.AUnit_Public;
       use all type Node_Arrays.Vector;
       use all type Valid_Node_Index_Arrays.Vector;
 
-      Terminals     : aliased Protected_Base_Token_Arrays.Vector;
+      Terminals     : aliased Base_Token_Arrays.Vector;
       Shared_Tree   : aliased WisiToken.Syntax_Trees.Tree;
       Branched_Tree : WisiToken.Syntax_Trees.Branched.Tree;
       Junk          : Node_Index;
@@ -66,52 +63,60 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       --  Create a branched tree, set a child of a new node to a shared
       --  node, thus invoking Move_Branch_Point.
 
-      Shared_Tree.Initialize (Terminals'Unchecked_Access);
+      Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
 
       Terminals.Append ((+PROCEDURE_ID, (1, 9)));
-      Junk := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 1
+      Junk := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 1
 
       Terminals.Append ((+IDENTIFIER_ID, (11, 16)));
-      Node_Ident_1 := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 2
+      Node_Ident_1 := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 2
 
       Terminals.Append ((+IDENTIFIER_ID, (18, 19)));
-      Junk := Shared_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 3
+      Junk := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 3
 
-      Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => False);
+      Branched_Tree.Set_Flush_False;
 
-      Node_Name := Branched_Tree.Add_Nonterm (+name_ID, null, 1, 0); -- 4
-      Branched_Tree.Set_Children (Parent => Node_Name, Children => (1 => Node_Ident_1));
+      Node_Name := Branched_Tree.Add_Nonterm (+name_ID, null, 1, 0, Children => (1 => Node_Ident_1)); -- 4
       --  moves branch point; Branched_Tree.Last_Shared_Node is now 1.
 
       Check ("node 4", Node_Name, 4);
 
       Terminals.Append ((+IDENTIFIER_ID, (21, 22)));
-      Node_Ident_2 := Branched_Tree.Add_Terminal (Terminal => Terminals.Last_Index); -- 5
+      Node_Ident_2 := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 5
 
       Check ("node 5", Node_Ident_2, 5);
 
       Expected_Branched_Nodes.Set_First (2);
       Expected_Branched_Nodes.Append
         ((Shared_Terminal,
-          Parent       => 4,
-          Terminal     => 2));  -- 2
+          Parent      => 4,
+          Terminal    => 2,
+          ID          => +IDENTIFIER_ID,
+          Byte_Region => (11, 16),
+          others      => <>)); -- 2
 
       Expected_Branched_Nodes.Append
         ((Shared_Terminal,
-          Parent     => 0,
-          Terminal   => 3));  -- 3
+          Parent      => 0,
+          Terminal    => 3,
+          ID          => +IDENTIFIER_ID,
+          Byte_Region =>  (18, 19),
+          others      => <>)); -- 3
 
       Expected_Branched_Nodes.Append
         ((Nonterm,
-          Parent     => 0,
-          Nonterm_ID => +name_ID,
-          Children   => +2,
-          others     => <>)); -- 4
+          Parent   => 0,
+          ID       => +name_ID,
+          Children => +2,
+          others   => <>)); -- 4
 
       Expected_Branched_Nodes.Append
         ((Shared_Terminal,
-          Parent     => 0,
-          Terminal   => 4));    -- 5
+          Parent      => 0,
+          ID          => +IDENTIFIER_ID,
+          Byte_Region =>  (21, 22),
+          Terminal    => 4,
+          others      => <>)); -- 5
 
       Check
         ("branched tree",
@@ -122,8 +127,6 @@ package body WisiToken.Syntax_Trees.Branched.Test is
            Branched_Nodes   => Expected_Branched_Nodes,
            Flush            => False)));
 
-      Check ("nodes 2", Branched_Tree.Base_Token (2), Shared_Tree.Base_Token (2));
-      Check ("nodes 3", Branched_Tree.Base_Token (3), Shared_Tree.Base_Token (3));
    end Test_Move_Branch_Point;
 
    ----------

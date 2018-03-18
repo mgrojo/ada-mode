@@ -11,23 +11,11 @@ Tokens:
  9 => body
 
 LALR Parse Table:
-Follow:
-( declaration =>
-  (BEGIN |
-   IS |
-   Wisi_EOI => True,
-   others => False)
- declarations =>
-  (BEGIN |
-   IS |
-   Wisi_EOI => True,
-   others => False)
- body =>
-  (BEGIN |
-   IS |
-   Wisi_EOI => True,
-   others => False)
- others => (others => False))
+Terminal_Sequences:
+wisitoken_accept => (Wisi_EOI)
+declaration => ()
+declarations => ()
+body => (IS, BEGIN, SEMICOLON)
 
 State 1:
   wisitoken_accept <= ^ declarations Wisi_EOI, 

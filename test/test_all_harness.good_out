@@ -23,11 +23,12 @@ OK grune_9_30.adb : Test_Item_Sets
 OK grune_9_30.adb : Test_Parse
 OK name_grammar_test.adb : Nominal
 OK test_accept_state.adb : Nominal
-OK test_ada_lite.adb : Propagate_Names
+OK test_ada_lite_terminal_sequence.adb : Test_Terminal_Sequence
 OK test_character_literal.adb : Nominal
 OK test_character_literal.adb : Character_Position
 OK test_follow.adb : Subprograms.One
-OK test_lr_expecting.adb : Nominal
+OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
+OK test_lr_expecting_terminal_sequence.adb : Test_Terminal_Sequence
 OK test_mckenzie_recover.adb : No_Error
 OK test_mckenzie_recover.adb : Error_1
 OK test_mckenzie_recover.adb : Error_2
@@ -44,20 +45,25 @@ OK test_mckenzie_recover.adb : Revive_Zombie_Parser
 OK test_mckenzie_recover.adb : Error_Token_When_Parallel
 OK test_mckenzie_recover.adb : If_In_Handler
 OK test_mckenzie_recover.adb : Zombie_In_Resume
-OK test_mckenzie_recover.adb : Match_Name
+OK test_mckenzie_recover.adb : Push_Back_1
 OK test_mckenzie_recover.adb : Missing_Quote
-OK test_mckenzie_recover.adb : Pattern_End_EOF
-OK test_mckenzie_recover.adb : Pattern_Block_Match_Names_1
-OK test_mckenzie_recover.adb : Pattern_Block_Match_Names_2
-OK test_mckenzie_recover.adb : Pattern_Block_Extra_Name_1
-OK test_mckenzie_recover.adb : Abandon_Pattern
+OK test_mckenzie_recover.adb : Missing_Name_1
+OK test_mckenzie_recover.adb : Block_Match_Names_1
+OK test_mckenzie_recover.adb : Two_Parsers_1
+OK test_mckenzie_recover.adb : Extra_Name_1
+OK test_mckenzie_recover.adb : Two_Missing_Ends
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
-OK wisitoken-syntax_trees-test.adb : Nominal
 OK wisitoken-syntax_trees-branched-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   57
+FAIL test_ada_lite.adb : Propagate_Names
+    propagate_names.parse:2
+got       ' 0: 0:  1:(PACKAGE, (72 . 78)) : shift and goto state 2'
+expecting ' 0: 0: (PACKAGE, (72 . 78)) : shift and goto state 2'
+    at aunit-checks.adb:229
+
+Total Tests Run:   58
 Successful Tests:  57
 Failed Assertions: 1
 Unexpected Errors: 0

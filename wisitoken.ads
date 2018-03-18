@@ -233,6 +233,12 @@ package WisiToken is
 
    function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
+   function Image
+     (Token      : in Base_Token_Index;
+      Terminals  : in Base_Token_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
+
    type Recover_Token is record
       --  Maintaining a syntax tree during recover is too slow, so we store
       --  enough information in the recover stack to perform
