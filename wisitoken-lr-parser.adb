@@ -370,6 +370,7 @@ package body WisiToken.LR.Parser is
       Trace                : not null access WisiToken.Trace'Class;
       Lexer                : in              WisiToken.Lexer.Handle;
       Table                : in              Parse_Table_Ptr;
+      Semantic_Check_Fixes : in Semantic_Check_Fixes_Access;
       Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True)
@@ -377,6 +378,7 @@ package body WisiToken.LR.Parser is
       Parser.Lexer                   := Lexer;
       Parser.Trace                   := Trace;
       Parser.Table                   := Table;
+      Parser.Semantic_Check_Fixes    := Semantic_Check_Fixes;
       Parser.Enable_McKenzie_Recover :=
         Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
       Parser.Max_Parallel            := Max_Parallel;

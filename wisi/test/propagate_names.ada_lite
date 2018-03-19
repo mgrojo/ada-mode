@@ -1,4 +1,4 @@
---  Test name propagation in Check actions, by examining parse trace.
+--  Test name Check actions. Run by test_ada_lite.adb.
 
 package body Parent.Child is
 
@@ -7,13 +7,18 @@ procedure Proc (A : Integer)
 is begin
 end Proc;
 
---  These names do not match. Parse succeeds due to error recovery
-procedure Proc_2
+--  User-caused Match_Names_Error. Error recovery ignores this error.
+procedure Proc_1
 is begin
 end Proc;
 
---  Missing 'end Proc_3', but appears to be Match_Names_Error.
-procedure Proc_3
-is begin
+--  Missing 'end Proc_2' and 'end Proc_3', appears to be Match_Names_Error.
+procedure Proc_2
+is
+   procedure Proc_3
+   is begin
+begin
    A;
-end Parent.Child;
+   
+--  name matching is case-insenstive
+end parent.child;

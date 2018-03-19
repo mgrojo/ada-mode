@@ -42,6 +42,7 @@ package WisiToken.Semantic_Checks is
       end case;
 
    end record;
+   subtype Error_Check_Status is Check_Status (Error);
 
    function Image (Item : in Check_Status) return String;
 

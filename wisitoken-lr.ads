@@ -327,7 +327,7 @@ package WisiToken.LR is
    record
       States             : Parse_State_Array (State_First .. State_Last);
       McKenzie_Param     : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Productions        : Production_Arrays.Vector; -- Indexed by Production.Index
+      Productions        : Production_Arrays.Vector;     -- Indexed by Production.Index
       Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
    end record;
 
@@ -372,6 +372,17 @@ package WisiToken.LR is
    --  not needed for any operations. The parser syntax tree is used for
    --  Undo_Reduce, which is only done on nonterms reduced by the main
    --  parser, not virtual nonterms produced by recover.
+
+   package Fast_Token_ID_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (SAL.Peek_Type, Token_ID, Capacity => 20);
+
+   function Image
+     (Index      : in SAL.Peek_Type;
+      Tokens     : in Fast_Token_ID_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+     is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Tokens.Last_Index) & ":" &
+           Image (Tokens (Index), Descriptor));
 
    type Config_Op_Label is (Undo_Reduce, Push_Back, Pop, Insert, Delete);
 
@@ -422,12 +433,19 @@ package WisiToken.LR is
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 
+      Inserted         : Fast_Token_ID_Arrays.Vector;
+      Current_Inserted : SAL.Base_Peek_Type := Fast_Token_ID_Arrays.No_Index;
+      --  Index of current input token in Inserted. If No_Index, use
+      --  Current_Shared_Token.
+
       Redo_Reduce : Boolean := False;
       Ops         : Config_Op_Arrays.Vector;
       Cost        : Natural := 0;
    end record;
    type Configuration_Access is access all Configuration;
    for Configuration_Access'Storage_Size use 0;
+
+   No_Inserted : constant SAL.Base_Peek_Type := 0;
 
    function Key (A : in Configuration) return Integer is (A.Cost);
 
@@ -439,6 +457,25 @@ package WisiToken.LR is
       Key_Type       => Integer,
       Key            => Key,
       Set_Key        => Set_Key);
+
+   type Semantic_Check_Fixes_Access is access function
+     (Trace             : in out WisiToken.Trace'Class;
+      Lexer             : in     WisiToken.Lexer.Handle;
+      Parser_Label      : in     Natural;
+      McKenzie_Param    : in     McKenzie_Param_Type;
+      Terminals         : in     Base_Token_Arrays.Vector;
+      Tree              : in     Syntax_Trees.Branched.Tree;
+      Local_Config_Heap : in out Config_Heaps.Heap_Type;
+      Config            : in     Configuration;
+      Action            : in     Reduce_Action_Rec;
+      Nonterm           : in     Recover_Token;
+      Status            : in     Semantic_Checks.Error_Check_Status)
+     return Boolean;
+   --  A reduce to Nonterm by Action on Config failed a semantic check
+   --  returning Status. Config.Stack is in the pre-reduce state. Add to
+   --  Local_Config_Heap language-specific fixes for the failure. Return
+   --  True if ignoring the error is a viable solution, False otherwise.
+   --  Called from McKenzie_Recover.
 
    type McKenzie_Data is tagged record
       Config_Heap   : Config_Heaps.Heap_Type;

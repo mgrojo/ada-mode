@@ -216,6 +216,8 @@ package WisiToken.Syntax_Trees.Branched is
    --  Returns lowest index of shared terminal in subtree under Node. If
    --  result is Invalid_Token_Index, all terminals are virtual.
 
+   function Get_Terminal_IDs (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
+
    overriding
    function Image
      (Tree       : in Branched.Tree;

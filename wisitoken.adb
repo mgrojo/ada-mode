@@ -82,6 +82,19 @@ package body WisiToken is
       return To_String (Result);
    end Image;
 
+   function To_Token_ID_Set
+     (Item       : in Token_ID_Array;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return Token_ID_Set
+   is begin
+      return Result : Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal) := (others => False)
+      do
+         for ID of Item loop
+            Result (ID) := True;
+         end loop;
+      end return;
+   end To_Token_ID_Set;
+
    function Any (Item : in Token_ID_Set) return Boolean
    is begin
       for I in Item'Range loop

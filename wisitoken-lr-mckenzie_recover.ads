@@ -38,4 +38,44 @@ package WisiToken.LR.McKenzie_Recover is
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to
    --  allow recovering from an error state.
 
+private
+
+   ----------
+   --  Visible for language-specific child packages. Alphabetical.
+
+   procedure Find_Matching_Name
+     (Config              : in     Configuration;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Name                : in     String;
+      Matching_Name_Index : in out SAL.Peek_Type;
+      Other_ID            : in     Token_ID;
+      Other_Count         :    out Integer;
+      Case_Insensitive    : in     Boolean);
+   --  Search Config.Stack for a token matching Name, starting at
+   --  Matching_Name_Index. If found, Matching_Name_Index points to it.
+   --  If not found, Matching_Name_Index = Config.Stack.Depth.
+   --
+   --  Also count tokens with ID = Other_ID.
+
+   procedure Put
+     (Message         : in     String;
+      Trace           : in out WisiToken.Trace'Class;
+      Parser_Label    : in     Natural;
+      Terminals       : in     Base_Token_Arrays.Vector;
+      Config          : in     Configuration;
+      Include_Task_ID : in     Boolean := True);
+   --  Put Message and an image of Config to Trace.
+
+   procedure Put_Line
+     (Trace           : in out WisiToken.Trace'Class;
+      Parser_Label    : in     Natural;
+      Message         : in     String;
+      Include_Task_ID : in     Boolean := True);
+   --  Put message to Trace, with parser and task info.
+
+   function Undo_Reduce
+     (Stack : in out Recover_Stacks.Stack;
+      Tree  : in     Syntax_Trees.Branched.Tree)
+     return Token_ID;
+
 end WisiToken.LR.McKenzie_Recover;

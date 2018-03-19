@@ -22,6 +22,62 @@ package body WisiToken.Syntax_Trees.Branched is
 
    --  body subprograms, alphabetical
 
+   function Count_Terminals
+     (Tree   : in     Branched.Tree;
+      Node   : in     Valid_Node_Index)
+     return Natural
+   is
+      use all type SAL.Base_Peek_Type;
+
+      function Compute (N : in Syntax_Trees.Node) return Natural
+      is begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal =>
+            return 1;
+
+         when Nonterm =>
+            return Result : Natural := 0 do
+               for I of N.Children loop
+                  Result := Result + Count_Terminals (Tree, I);
+               end loop;
+            end return;
+         end case;
+      end Compute;
+   begin
+      return Compute
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node)
+          else Tree.Branched_Nodes (Node)));
+   end Count_Terminals;
+
+   procedure Get_Terminal_IDs
+     (Tree   : in     Branched.Tree;
+      Node   : in     Valid_Node_Index;
+      Result : in out Token_ID_Array;
+      Last   : in out Natural)
+   is
+      use all type SAL.Base_Peek_Type;
+
+      procedure Compute (N : in Syntax_Trees.Node)
+      is begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal =>
+            Last := Last + 1;
+            Result (Last) := N.ID;
+
+         when Nonterm =>
+            for I of N.Children loop
+               Get_Terminal_IDs (Tree, I, Result, Last);
+            end loop;
+         end case;
+      end Compute;
+   begin
+      Compute
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node)
+          else Tree.Branched_Nodes (Node)));
+   end Get_Terminal_IDs;
+
    function Min (Item : in Valid_Node_Index_Array) return Valid_Node_Index
    is
       Result : Node_Index := Item (Item'First);
@@ -803,6 +859,16 @@ package body WisiToken.Syntax_Trees.Branched is
           then Tree.Shared_Tree.Nodes (Node)
           else Tree.Branched_Nodes (Node)));
    end Min_Shared_Terminal_Index;
+
+   function Get_Terminal_IDs (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Token_ID_Array
+   is
+      Last : Natural := 0;
+   begin
+      Tree.Shared_Tree.Traversing := True;
+      return Result : Token_ID_Array (1 .. Count_Terminals (Tree, Node))  do
+         Get_Terminal_IDs (Tree, Node, Result, Last);
+      end return;
+   end Get_Terminal_IDs;
 
    overriding
    function Image

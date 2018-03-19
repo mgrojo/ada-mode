@@ -195,9 +195,10 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser    :    out WisiToken.LR.Parser.Parser;");
-         Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Trace     : not null access WisiToken.Trace'Class);");
+         Indent_Line ("  (Parser               :    out WisiToken.LR.Parser.Parser;");
+         Indent_Line ("   Algorithm            : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Trace                : not null access WisiToken.Trace'Class;");
+         Indent_Line ("   Semantic_Check_Fixes : in     WisiToken.LR.Semantic_Check_Fixes_Access);");
          New_Line;
 
       when Ada_Emacs =>
@@ -211,9 +212,10 @@ package body Wisi.Gen_Output_Ada_Common is
             New_Line;
 
             Indent_Line ("procedure Create_Parser");
-            Indent_Line ("  (Parser    :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Trace     : not null access WisiToken.Trace'Class);");
+            Indent_Line ("  (Parser               :    out WisiToken.LR.Parser.Parser;");
+            Indent_Line ("   Algorithm            : in     WisiToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Trace                : not null access WisiToken.Trace'Class;");
+            Indent_Line ("   Semantic_Check_Fixes : in     WisiToken.LR.Semantic_Check_Fixes_Access);");
             New_Line;
 
          when Module =>
@@ -636,12 +638,14 @@ package body Wisi.Gen_Output_Ada_Common is
       use all type WisiToken.Unknown_State_Index;
    begin
       Indent_Line ("procedure Create_Parser");
-      Indent_Line ("  (Parser         :    out WisiToken.LR.Parser.Parser;");
       case Interface_Kind is
       when None | Process =>
-         Indent_Line ("   Algorithm : in WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Trace     : not null access WisiToken.Trace'Class)");
+         Indent_Line ("  (Parser               :    out WisiToken.LR.Parser.Parser;");
+         Indent_Line ("   Algorithm            : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Trace                : not null access WisiToken.Trace'Class;");
+         Indent_Line ("   Semantic_Check_Fixes : in     WisiToken.LR.Semantic_Check_Fixes_Access)");
       when Module =>
+         Indent_Line ("  (Parser              :    out WisiToken.LR.Parser.Parser;");
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
          Indent_Line ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value)");
       end case;
@@ -713,6 +717,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("   Trace,");
          Indent_Line ("   Lexer.New_Lexer (Trace),");
          Indent_Line ("   Table,");
+         Indent_Line ("   Semantic_Check_Fixes,");
          Indent_Line ("   Max_Parallel         => 15,");
          Indent_Line ("   First_Parser_Label   => " & WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");

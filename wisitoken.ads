@@ -131,6 +131,12 @@ package WisiToken is
 
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
 
+   function To_Token_ID_Set
+     (Item       : in Token_ID_Array;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return Token_ID_Set;
+   --  terminals and nonterminals
+
    function Any (Item : in Token_ID_Set) return Boolean;
 
    function Count (Item : in Token_ID_Set) return Integer;

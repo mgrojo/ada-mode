@@ -19,17 +19,24 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-move Try_Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to check patterns.
-    use gnatprep for 'with ada_lite' vs 'with ada'?
+move Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to check patterns.
+    extra_name_2
+        if check fails on semantic_check, process_one should redo reduce.
+            get config from parse_items!
+
+    verify checks
 
 improve missing_two_ends
     insert 'end case ;' based on current state; minimal token string to complete production?
+    add another language-specific hook for this, called from Process_One after 'continue'.
 
 improve propagate_names.ada_lite
     recover finds two identical ok solutions; parse fails on ambiguous parse
         one based on "ignore error"
     improve semantic fix to get a single better solution
     move to language package first
+
+delete patterns
 
 sal unbounded vectors:
     shrink elements to exact size on copy?
@@ -48,11 +55,8 @@ review *_run tests
 
 review FIXME:
 
+    use gnatprep for 'with ada_lite' vs 'with ada'?
 use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
-
-user option end_name_require (ie not optional) makes ada_mode-recover_block_name_mismatch.adb fail?
-    need to preserve end name when editing stack
-    => lookahead must be array of base token
 
 update NEWS.text
 
