@@ -41,6 +41,8 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
    function Length (Container : in Vector) return Ada.Containers.Count_Type;
 
+   function Is_Full (Container : in Vector) return Boolean;
+
    procedure Clear (Container : in out Vector);
 
    function First_Index (Container : in Vector) return Index_Type is (Index_Type'First);
@@ -54,7 +56,8 @@ package SAL.Gen_Bounded_Definite_Vectors is
    function Element (Container : Vector; Index : Index_Type) return Element_Type;
    --  Index of first element in vector is Index_Type'First.
 
-   procedure Append (Container : in out Vector; New_Item : in Element_Type);
+   procedure Append (Container : in out Vector; New_Item : in Element_Type)
+   with Pre => not Is_Full (Container);
 
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type);
    --  Insert New_Item at beginning of Container; current elements slide right.
@@ -87,6 +90,11 @@ package SAL.Gen_Bounded_Definite_Vectors is
    function Iterate (Container : Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class;
 
    function Constant_Reference (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type;
+
+   function Variable_Reference
+     (Container : aliased in out Vector;
+      Position  :         in     Cursor)
+     return Variable_Reference_Type;
 
 private
 

@@ -26,6 +26,11 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       return Ada.Containers.Count_Type (Container.Last - Index_Type'First + 1);
    end Length;
 
+   function Is_Full (Container : in Vector) return Boolean
+   is begin
+      return To_Peek_Index (Container.Last) = Peek_Type (Capacity);
+   end Is_Full;
+
    procedure Clear (Container : in out Vector)
    is begin
       Container.Last := No_Index;
@@ -170,6 +175,16 @@ package body SAL.Gen_Bounded_Definite_Vectors is
    begin
       return (Element => Container.Elements (J)'Access);
    end Constant_Reference;
+
+   function Variable_Reference
+     (Container : aliased in out Vector;
+      Position  :         in     Cursor)
+     return Variable_Reference_Type
+   is
+      J : constant Peek_Type := Peek_Type (Position.Index - Index_Type'First + 1);
+   begin
+      return (Element => Container.Elements (J)'Access);
+   end Variable_Reference;
 
    ----------
    --  Spec private functions
