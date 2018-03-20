@@ -28,9 +28,7 @@ package WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Tree              : in     Syntax_Trees.Branched.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration;
-      Action            : in     Reduce_Action_Rec;
-      Nonterm           : in     Recover_Token;
-      Status            : in     Semantic_Checks.Error_Check_Status)
+      Nonterm           : in     Recover_Token)
      return Boolean;
 
 end WisiToken.LR.McKenzie_Recover.Ada_Lite;

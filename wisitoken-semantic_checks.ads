@@ -21,30 +21,29 @@ with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Semantic_Checks is
 
-   type Check_Status_Label is (Ok, Error);
-
-   type Error_Code is
-     (Missing_Name_Error, -- block start has name, required block end name missing
+   type Check_Status_Label is
+     (Ok,
+      Missing_Name_Error, -- block start has name, required block end name missing
       Extra_Name_Error,   -- block start has no name, end has one
       Match_Names_Error); -- both names present, but don't match
 
-   type Check_Status (Label : Check_Status_Label := Check_Status_Label'First) is record
+   subtype Error is Check_Status_Label range Check_Status_Label'Succ (Ok) .. Check_Status_Label'Last;
+
+   type Check_Status (Label : Check_Status_Label := Ok) is record
       case Label is
       when Ok =>
          null;
 
       when Error =>
-         Code : Error_Code;
-
-         Tokens : Recover_Token_Arrays.Vector;
-         --  The tokens involved in the error; for example, for
-         --  Match_Names_Error, the two name tokens.
+         Begin_Name : Recover_Token;
+         End_Name   : Recover_Token;
       end case;
-
    end record;
-   subtype Error_Check_Status is Check_Status (Error);
 
-   function Image (Item : in Check_Status) return String;
+   subtype Error_Check_Status is Check_Status
+   with Dynamic_Predicate => Error_Check_Status.Label /= Ok;
+
+   function Image (Item : in Check_Status; Descriptor : WisiToken.Descriptor) return String;
 
    type Semantic_Check is access function
      (Lexer   : in     WisiToken.Lexer.Handle;

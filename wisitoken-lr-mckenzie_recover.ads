@@ -76,6 +76,6 @@ private
    function Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Branched.Tree)
-     return Token_ID;
+     return Reduce_Action_Rec;
 
 end WisiToken.LR.McKenzie_Recover;

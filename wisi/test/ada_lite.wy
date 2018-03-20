@@ -106,8 +106,8 @@ with WisiToken.Text_IO_Trace;
 %mckenzie_cost_limit 10
 %mckenzie_check_limit 3
 
-;; Default insert terminal, delete terminal, delete nonterminal, push back cost.
-%mckenzie_cost_default 4 4 8 2
+;; Default insert terminal, delete terminal, delete nonterminal, push back, undo_reduce cost.
+%mckenzie_cost_default 4 4 8 2 2
 
 ;; Prefer inserting keywords over identifiers and operators to take
 ;; advantage of empty expressions.

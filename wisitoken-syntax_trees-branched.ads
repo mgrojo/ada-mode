@@ -216,6 +216,8 @@ package WisiToken.Syntax_Trees.Branched is
    --  Returns lowest index of shared terminal in subtree under Node. If
    --  result is Invalid_Token_Index, all terminals are virtual.
 
+   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array;
+
    function Get_Terminal_IDs (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
 
    overriding
@@ -237,7 +239,7 @@ private
       --  If we need to set anything (ie parent) in Shared_Tree, we move the
       --  branch point instead, unless Flush = True.
 
-      Last_Shared_Node : Node_Index := No_Node_Index;
+      Last_Shared_Node : Node_Index := Invalid_Node_Index;
       Branched_Nodes   : Node_Arrays.Vector;
       Flush            : Boolean    := False;
       --  We maintain Last_Shared_Node when Flush is True, so subprograms

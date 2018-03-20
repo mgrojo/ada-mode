@@ -19,14 +19,15 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Semantic_Checks is
 
-   function Image (Item : in Check_Status) return String
+   function Image (Item : in Check_Status; Descriptor : in WisiToken.Descriptor) return String
    is begin
       case Item.Label is
       when Ok =>
          return Check_Status_Label'Image (Item.Label);
       when Error =>
          return '(' & Check_Status_Label'Image (Item.Label) & ", " &
-           Semantic_Checks.Error_Code'Image (Item.Code) & ')';
+           Image (Item.Begin_Name, Descriptor) & ',' &
+           Image (Item.End_Name, Descriptor) & ')';
       end case;
    end Image;
 
@@ -47,14 +48,14 @@ package body WisiToken.Semantic_Checks is
          if Tokens (End_Index).Name = Null_Buffer_Region then
             return (Label => Ok);
          elsif Tokens (Start_Index).Name = Null_Buffer_Region then
-            return (Error, Extra_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
+            return (Extra_Name_Error, Tokens (Start_Index), Tokens (End_Index));
          else
             if Lexer.Buffer_Text (Tokens (Start_Index).Name) =
               Lexer.Buffer_Text (Tokens (End_Index).Name)
             then
                return (Label => Ok);
             else
-               return (Error, Match_Names_Error, Tokens (Start_Index) & Tokens (End_Index));
+               return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
             end if;
          end if;
 
@@ -63,11 +64,11 @@ package body WisiToken.Semantic_Checks is
             if Tokens (End_Index).Name = Null_Buffer_Region then
                return (Label => Ok);
             else
-               return (Error, Extra_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
+               return (Extra_Name_Error, Tokens (Start_Index), Tokens (End_Index));
             end if;
 
          elsif Tokens (End_Index).Name = Null_Buffer_Region then
-            return (Error, Missing_Name_Error, Tokens (Start_Index) & Tokens (End_Index));
+            return (Missing_Name_Error, Tokens (Start_Index), Tokens (End_Index));
 
          else
             if Lexer.Buffer_Text (Tokens (Start_Index).Name) =
@@ -75,7 +76,7 @@ package body WisiToken.Semantic_Checks is
             then
                return (Label => Ok);
             else
-               return (Error, Match_Names_Error, Tokens (Start_Index) & Tokens (End_Index));
+               return (Match_Names_Error, Tokens (Start_Index), Tokens (End_Index));
             end if;
          end if;
       end if;

@@ -35,7 +35,7 @@ package WisiToken.LR.Parser_Lists is
       Local_Lookahead : Syntax_Trees.Valid_Node_Index_Queues.Queue_Type;
       --  Tokens in Tree that were inserted during error recovery.
 
-      Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.No_Node_Index;
+      Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  Current terminal, in Tree
 
       Current_Token_Is_Virtual : Boolean := False;

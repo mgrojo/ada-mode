@@ -185,6 +185,8 @@ package WisiToken is
         EOF_ID            => EOF_ID,
         Accept_ID         => Accept_ID)
      with null record;
+   --  LALR_Descriptor is only required at grammar generate time; parse
+   --  time can always use Descriptor.
 
    overriding
    function To_Lookahead (Item : in Token_ID; Descriptor : in LALR_Descriptor) return Token_ID_Set;
@@ -247,8 +249,8 @@ package WisiToken is
 
    type Recover_Token is record
       --  Maintaining a syntax tree during recover is too slow, so we store
-      --  enough information in the recover stack to perform
-      --  semantic_checks.
+      --  enough information in the recover stack to perform semantic_checks
+      --  and to apply the solution to the main parser state.
       ID : Token_ID := Invalid_Token_ID;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
@@ -307,8 +309,9 @@ package WisiToken is
    Trace_Generate : Integer := 0;
    --  Output during grammar generation.
 
-   type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
-   --  Output for tests/debugging.
+   type Trace (Descriptor : not null access constant WisiToken.Descriptor) is abstract tagged limited null record;
+   --  Output for tests/debugging. Not used during grammar generation;
+   --  that just outputs to Text_IO.Standard_Output.
 
    procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace display.

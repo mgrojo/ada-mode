@@ -50,6 +50,34 @@ package body WisiToken.Syntax_Trees.Branched is
           else Tree.Branched_Nodes (Node)));
    end Count_Terminals;
 
+   procedure Get_Terminals
+     (Tree   : in     Branched.Tree;
+      Node   : in     Valid_Node_Index;
+      Result : in out Valid_Node_Index_Array;
+      Last   : in out SAL.Base_Peek_Type)
+   is
+      use all type SAL.Base_Peek_Type;
+
+      procedure Compute (N : in Syntax_Trees.Node)
+      is begin
+         case N.Label is
+         when Shared_Terminal | Virtual_Terminal =>
+            Last := Last + 1;
+            Result (Last) := Node;
+
+         when Nonterm =>
+            for I of N.Children loop
+               Get_Terminals (Tree, I, Result, Last);
+            end loop;
+         end case;
+      end Compute;
+   begin
+      Compute
+        ((if Node <= Tree.Last_Shared_Node
+          then Tree.Shared_Tree.Nodes (Node)
+          else Tree.Branched_Nodes (Node)));
+   end Get_Terminals;
+
    procedure Get_Terminal_IDs
      (Tree   : in     Branched.Tree;
       Node   : in     Valid_Node_Index;
@@ -143,7 +171,7 @@ package body WisiToken.Syntax_Trees.Branched is
    overriding procedure Clear (Tree : in out Branched.Tree)
    is begin
       Tree.Shared_Tree.Clear;
-      Tree.Last_Shared_Node := No_Node_Index;
+      Tree.Last_Shared_Node := Invalid_Node_Index;
       Tree.Branched_Nodes.Clear;
    end Clear;
 
@@ -331,8 +359,8 @@ package body WisiToken.Syntax_Trees.Branched is
    is begin
       return
         (if Child <= Tree.Last_Shared_Node
-         then Tree.Shared_Tree.Nodes (Child).Parent /= No_Node_Index
-         else Tree.Branched_Nodes (Child).Parent /= No_Node_Index);
+         then Tree.Shared_Tree.Nodes (Child).Parent /= Invalid_Node_Index
+         else Tree.Branched_Nodes (Child).Parent /= Invalid_Node_Index);
    end Has_Parent;
 
    function Has_Parent (Tree : in Branched.Tree; Children : in Valid_Node_Index_Array) return Boolean
@@ -340,8 +368,8 @@ package body WisiToken.Syntax_Trees.Branched is
       return
         (for some Child of Children =>
            (if Child <= Tree.Last_Shared_Node
-            then Tree.Shared_Tree.Nodes (Child).Parent /= No_Node_Index
-            else Tree.Branched_Nodes (Child).Parent /= No_Node_Index));
+            then Tree.Shared_Tree.Nodes (Child).Parent /= Invalid_Node_Index
+            else Tree.Branched_Nodes (Child).Parent /= Invalid_Node_Index));
    end Has_Parent;
 
    function Is_Empty (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Boolean
@@ -719,7 +747,7 @@ package body WisiToken.Syntax_Trees.Branched is
             then Tree.Shared_Tree.Nodes (N).Parent
             else Tree.Branched_Nodes (N).Parent);
 
-         exit when N = No_Node_Index;
+         exit when N = Invalid_Node_Index;
          exit when ID =
            (if N <= Tree.Last_Shared_Node
             then Tree.Shared_Tree.Nodes (N).ID
@@ -739,7 +767,7 @@ package body WisiToken.Syntax_Trees.Branched is
       is begin
          case N.Label is
          when Shared_Terminal | Virtual_Terminal =>
-            return No_Node_Index;
+            return Invalid_Node_Index;
 
          when Nonterm =>
             for C of N.Children loop
@@ -751,14 +779,14 @@ package body WisiToken.Syntax_Trees.Branched is
                   return C;
                end if;
             end loop;
-            return No_Node_Index;
+            return Invalid_Node_Index;
          end case;
       end Compute_2;
 
       function Compute_1 (Parent : in Node_Index) return Node_Index
       is begin
-         if Parent = No_Node_Index then
-            return No_Node_Index;
+         if Parent = Invalid_Node_Index then
+            return Invalid_Node_Index;
 
          else
             return Compute_2
@@ -785,7 +813,7 @@ package body WisiToken.Syntax_Trees.Branched is
       is begin
          case N.Label is
          when Shared_Terminal | Virtual_Terminal =>
-            return No_Node_Index;
+            return Invalid_Node_Index;
          when Nonterm =>
             for C of N.Children loop
                if ID =
@@ -796,7 +824,7 @@ package body WisiToken.Syntax_Trees.Branched is
                   return C;
                end if;
             end loop;
-            return No_Node_Index;
+            return Invalid_Node_Index;
          end case;
       end Compute;
    begin
@@ -860,6 +888,17 @@ package body WisiToken.Syntax_Trees.Branched is
           else Tree.Branched_Nodes (Node)));
    end Min_Shared_Terminal_Index;
 
+   function Get_Terminals (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
+   is
+      Last : SAL.Base_Peek_Type := 0;
+   begin
+      Tree.Shared_Tree.Traversing := True;
+      return Result : Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Count_Terminals (Tree, Node)))  do
+         Get_Terminals (Tree, Node, Result, Last);
+         Tree.Shared_Tree.Traversing := False;
+      end return;
+   end Get_Terminals;
+
    function Get_Terminal_IDs (Tree : in Branched.Tree; Node : in Valid_Node_Index) return Token_ID_Array
    is
       Last : Natural := 0;
@@ -867,6 +906,7 @@ package body WisiToken.Syntax_Trees.Branched is
       Tree.Shared_Tree.Traversing := True;
       return Result : Token_ID_Array (1 .. Count_Terminals (Tree, Node))  do
          Get_Terminal_IDs (Tree, Node, Result, Last);
+         Tree.Shared_Tree.Traversing := False;
       end return;
    end Get_Terminal_IDs;
 

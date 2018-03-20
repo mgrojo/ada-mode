@@ -298,7 +298,8 @@ package body Test_McKenzie_Recover is
 
          Check
            ("1.recover.ops", Element (Cursor).Recover.Ops,
-            +(Pop, +BEGIN_ID) & (Pop, +declarative_part_opt_ID));
+            +(Push_Back, +BEGIN_ID, 1) & (Delete, +BEGIN_ID, 1) &
+              (Push_Back, +declarative_part_opt_ID, 1));
 
          --  Confirm that both subprogram_bodys were parsed:
          Check ("action_count", Action_Count (+subprogram_body_ID), 2);
@@ -675,7 +676,7 @@ package body Test_McKenzie_Recover is
       begin
          Check ("error count", Error_List.Length, 1);
          Check ("error_token.id", Tree.ID (Error.Error_Token), +SEMICOLON_ID);
-         Check ("recover.ops", Error.Recover.Ops, +(Push_Back, +LOOP_ID) & (Insert, +END_ID));
+         Check ("recover.ops", Error.Recover.Ops, +(Push_Back, +LOOP_ID, 1) & (Insert, +END_ID, 1));
       end;
    end Push_Back_1;
 
@@ -744,7 +745,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
          use all type WisiToken.LR.Config_Op_Label;
          use all type WisiToken.LR.Parse_Error_Label;
 
@@ -755,12 +756,13 @@ package body Test_McKenzie_Recover is
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check ("error.label", Error.Label, Check);
-         Check ("error.code", Error.Code, Missing_Name_Error);
+         Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID) & (Pop, +SEMICOLON_ID) & (Pop, +name_opt_ID) & (Pop, +END_ID) &
-              (Undo_Reduce, +handled_sequence_of_statements_ID) & (Undo_Reduce, +sequence_of_statements_opt_ID) &
-              (Undo_Reduce, +sequence_of_statements_ID));
+            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 1) & (Delete, +SEMICOLON_ID, 1) &
+              (Push_Back, +name_opt_ID, 1) & (Push_Back, +END_ID, 1) & (Delete, +END_ID, 1) &
+              (Undo_Reduce, +handled_sequence_of_statements_ID, 3) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
+              (Undo_Reduce, +sequence_of_statements_ID, 2));
       end;
    end Missing_Name_0;
 
@@ -791,7 +793,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
          use all type WisiToken.LR.Config_Op_Label;
          use all type WisiToken.LR.Parse_Error_Label;
 
@@ -802,12 +804,14 @@ package body Test_McKenzie_Recover is
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check ("error.label", Error.Label, Check);
-         Check ("error.code", Error.Code, Missing_Name_Error);
+         Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID) & (Pop, +SEMICOLON_ID) & (Pop, +name_opt_ID) & (Pop, +END_ID) &
-              (Undo_Reduce, +handled_sequence_of_statements_ID) & (Undo_Reduce, +sequence_of_statements_opt_ID) &
-              (Undo_Reduce, +sequence_of_statements_ID));
+            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 1) & (Delete, +SEMICOLON_ID, 1) &
+              (Push_Back, +name_opt_ID, 1) & (Delete, +IDENTIFIER_ID, 1) & (Push_Back, +END_ID, 1) &
+              (Delete, +END_ID, 1) &
+              (Undo_Reduce, +handled_sequence_of_statements_ID, 3) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
+              (Undo_Reduce, +sequence_of_statements_ID, 2));
       end;
    end Missing_Name_1;
 
@@ -838,7 +842,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
          use all type WisiToken.LR.Config_Op_Label;
          use all type WisiToken.LR.Parse_Error_Label;
 
@@ -849,12 +853,14 @@ package body Test_McKenzie_Recover is
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check ("error.label", Error.Label, Check);
-         Check ("error.code", Error.Code, Missing_Name_Error);
+         Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID) & (Pop, +SEMICOLON_ID) & (Pop, +name_opt_ID) & (Pop, +END_ID) &
-              (Undo_Reduce, +handled_sequence_of_statements_ID) & (Undo_Reduce, +sequence_of_statements_opt_ID) &
-              (Undo_Reduce, +sequence_of_statements_ID));
+            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 1) & (Delete, +SEMICOLON_ID, 1) &
+              (Push_Back, +name_opt_ID, 1) & (Delete, +IDENTIFIER_ID, 1) & (Push_Back, +END_ID, 1) &
+              (Delete, +END_ID, 1) &
+              (Undo_Reduce, +handled_sequence_of_statements_ID, 3) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
+              (Undo_Reduce, +sequence_of_statements_ID, 1));
       end;
    end Missing_Name_2;
 
@@ -885,7 +891,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
          use all type WisiToken.LR.Config_Op_Label;
          use all type WisiToken.LR.Parse_Error_Label;
 
@@ -895,13 +901,10 @@ package body Test_McKenzie_Recover is
          Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
          Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Label, Check);
-         Check ("error.code", Error.Code, Missing_Name_Error);
+         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID) & (Pop, +SEMICOLON_ID) & (Pop, +name_opt_ID) & (Pop, +END_ID) &
-              (Undo_Reduce, +handled_sequence_of_statements_ID) & (Undo_Reduce, +sequence_of_statements_opt_ID) &
-              (Undo_Reduce, +sequence_of_statements_ID));
+            +(Undo_Reduce, +subprogram_body_ID, 1));
       end;
    end Missing_Name_3;
 
@@ -952,8 +955,8 @@ package body Test_McKenzie_Recover is
          Check ("errors 1.error_token.byte_region", Token.Byte_Region, (102, 110));
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +SEMICOLON_ID) & (Push_Back, +identifier_opt_ID) &
-              (Insert, +SEMICOLON_ID) & (Insert, +END_ID));
+            +(Push_Back, +SEMICOLON_ID, 1) & (Push_Back, +identifier_opt_ID, 1) &
+              (Insert, +SEMICOLON_ID, 1) & (Insert, +END_ID, 1));
       end;
    end Block_Match_Names_1;
 
@@ -1022,17 +1025,17 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
          Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
          Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
          Error      : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
          Check ("errors.length", Error_List.Length, 1);
-         Check ("error 1.code", Error.Code, Extra_Name_Error);
+         Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
          Check
            ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID) & (Insert, +END_ID) & (Insert, +SEMICOLON_ID));
+            +(Push_Back, +block_statement_ID, 6) & (Insert, +END_ID, 1) & (Insert, +SEMICOLON_ID, 1));
       end;
    end Extra_Name_1;
 
@@ -1047,8 +1050,10 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_CSV_File is procedure To_Month is" &
            --      |10       |20       |30       |40       |50       |60       |70       |80
+           --   1   2              3  4         5                6  7         8        9
            " procedure A is begin begin end Process_CSV_File; begin end Journal_To_TSV;");
       --    |80       |90       |100      |110      |120      |130      |140
+      --     10        11 12 13   14    15  16              17 18   19  20            21
 
       --  Similar to Extra_Name_1; here we are missing 'end A; begin end To_Month;' at 86.
       --
@@ -1066,17 +1071,17 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
          Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
          Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
          Error      : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
          Check ("errors.length", Error_List.Length, 1);
-         Check ("error 1.code", Error.Code, Extra_Name_Error);
+         Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
          Check
            ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID) & (Insert, +END_ID) & (Insert, +SEMICOLON_ID));
+            +(Push_Back, +block_statement_ID, 6) & (Insert, +END_ID, 1) & (Insert, +SEMICOLON_ID, 1));
       end;
    end Extra_Name_2;
 
@@ -1111,17 +1116,17 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
          Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
          Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
          Error      : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
          Check ("errors.length", Error_List.Length, 1);
-         Check ("error 1.code", Error.Code, Extra_Name_Error);
+         Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
          Check
            ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID) & (Insert, +END_ID) & (Insert, +SEMICOLON_ID));
+            +(Push_Back, +block_statement_ID, 6) & (Insert, +END_ID, 1) & (Insert, +SEMICOLON_ID, 1));
       end;
    end Extra_Name_3;
 
@@ -1155,17 +1160,16 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.AUnit;
          use WisiToken.LR.Config_Op_Arrays;
          use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Error_Code;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
          Error_List : WisiToken.LR.Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
          Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
          Error      : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
       begin
-         Check ("errors 1.code", Error.Code, Extra_Name_Error);
+         Check ("errors 1.code", Error.Check_Status.Label, Extra_Name_Error);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID) & (Insert, +END_ID) & (Insert, +CASE_ID) & (Insert, +SEMICOLON_ID) &
-              (Insert, +END_ID) & (Insert, +SEMICOLON_ID));
+            +(Push_Back, +block_statement_ID, 1));
       end;
    end Two_Missing_Ends;
 

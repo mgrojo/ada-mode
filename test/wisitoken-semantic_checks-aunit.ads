@@ -22,7 +22,6 @@ with AUnit.Checks;
 package WisiToken.Semantic_Checks.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Check_Status_Label);
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Error_Code);
 
    procedure Check
      (Label    : in String;

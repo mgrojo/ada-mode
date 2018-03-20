@@ -168,12 +168,13 @@ package Wisi is
       Default_Delete_Terminal    : Natural := 0;
       Default_Delete_Nonterminal : Natural := 0;
       Default_Push_Back          : Natural := 0;
+      Default_Undo_Reduce        : Natural := 0;
       Delete                     : String_Pair_Lists.List;
       Insert                     : String_Pair_Lists.List;
       Cost_Limit                 : Natural := Integer'Last;
       Check_Limit                : Natural := Integer'Last;
 
-      --  For special rules
+      --  FIXME: Delete?
       Patterns : Wisi.Patterns.List;
    end record;
 

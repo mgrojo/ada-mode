@@ -52,7 +52,7 @@ package WisiToken.LR is
    --  Parser stack type. FIXME: move to parser?
    type Parser_Stack_Item is record
       State : Unknown_State_Index     := Unknown_State;
-      Token : Syntax_Trees.Node_Index := Syntax_Trees.No_Node_Index;
+      Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
    end record;
 
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
@@ -87,15 +87,15 @@ package WisiToken.LR is
       when Shift =>
          State : State_Index;
       when Reduce | Accept_It =>
-         LHS         : Token_ID;
-         Action      : WisiToken.Syntax_Trees.Semantic_Action;
-         Check       : WisiToken.Semantic_Checks.Semantic_Check;
-         Token_Count : Ada.Containers.Count_Type;
+         LHS         : Token_ID                                 := Invalid_Token_ID;
+         Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
+         Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
+         Token_Count : Ada.Containers.Count_Type                := 0;
 
          Production : Natural := 0;
          --  Index into Parse_Table.Productions, for McKenzie_Recover.
 
-         Name_Index : Natural;
+         Name_Index : Natural := 0;
          --  Index of production among productions for a nonterminal,
          --  for generating action names
 
@@ -281,12 +281,11 @@ package WisiToken.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      Delete    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      --  Cost of inserting, deleting, or pushing back tokens. Insert
-      --  includes nonterms pushed onto the parse stack; delete includes
-      --  nonterms popped off the parse stack
+      Insert      : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Delete      : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Push_Back   : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Undo_Reduce : Token_ID_Array_Natural (First_Nonterminal .. Last_Nonterminal);
+      --  Cost of operations on config stack, input.
 
       Cost_Limit  : Natural; -- max cost of configurations to look at
       Check_Limit : Natural; -- max tokens to parse ahead when checking a configuration.
@@ -300,9 +299,10 @@ package WisiToken.LR is
       Last_Terminal     => Token_ID'First,
       First_Nonterminal => Token_ID'Last,
       Last_Nonterminal  => Token_ID'First,
-      Push_Back         => (others => 0),
       Insert            => (others => 0),
       Delete            => (others => 0),
+      Push_Back         => (others => 0),
+      Undo_Reduce       => (others => 0),
       Cost_Limit        => Natural'Last,
       Check_Limit       => Natural'Last,
       Patterns          => LR.Patterns.Empty_List);
@@ -384,28 +384,86 @@ package WisiToken.LR is
      is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Tokens.Last_Index) & ":" &
            Image (Tokens (Index), Descriptor));
 
-   type Config_Op_Label is (Undo_Reduce, Push_Back, Pop, Insert, Delete);
+   type Config_Op_Label is (Shift, Reduce, Undo_Reduce, Push_Back, Insert, Delete);
+   --  Shift and Reduce are the normal stack operations; they appear in
+   --  Config.Ops when a semantic check fix is fast-forwarded to the next
+   --  error.
+   --
+   --  Undo_Reduce is the inverse of Reduce.
+   --
+   --  Push_Back pops the top stack item, and moves the input stream
+   --  pointer back to the first shared_terminal contained by that item.
+   --
+   --  Insert inserts a new token in the token input stream, before the
+   --  given point. If ID is a nonterm, the minimal terminal token
+   --  sequence (from Table.Terminal_Sequences) for that nonterm is
+   --  inserted.
+   --
+   --  Delete deletes one item from the token input stream, at the given
+   --  point.
 
-   type Config_Op is record
-      Op : Config_Op_Label;
+   type Config_Op (Op : Config_Op_Label := Shift) is record
+      --  We store enough information to perform the operation on the main
+      --  parser stack and input stream point when the config is the result
+      --  of a successful recover.
+      --
+      --  After a recover, the main parser must reparse any inserted tokens,
+      --  and skip any deleted tokens. Therefore, when all the recover ops
+      --  are applied, the main parser stack will be the same or shorter
+      --  than it was, so we only need to store token counts for stack
+      --  operations (Unknown_State is pushed when a state is needed; none
+      --  will be left on the main stack). We also store IDs, so we can
+      --  check that everything is in sync, and for debugging.
+
       ID : Token_ID;
+      --  For Shift | Reduce, ID is the new ID pushed on the stack.
+      --  For Undo_Reduce | Push_Back, ID is the nonterm ID popped off the stack.
+      --  For Insert | Delete, ID is the token inserted or deleted.
+
+      case Op is
+      when Shift =>
+         null;
+
+      when Reduce | Undo_Reduce =>
+         Token_Count : Ada.Containers.Count_Type;
+         --  For Reduce, the number of tokens popped off the stack.
+         --  For Undo_Reduce, the number of tokens pushed on the stack.
+         --  ID is the nonterminal.
+
+      when Push_Back | Insert | Delete =>
+         Token_Index : WisiToken.Token_Index;
+         --  The position in the input stream after the operation is done.
+         --  Multiple tokens may be pushed/inserted/deleted in one operation;
+         --  ID is the first of those, all must be terminals.
+
+      end case;
    end record;
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Config_Op, Capacity => 20);
+     (Positive_Index_Type, Config_Op, Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
-   --  of operations, which is limited by the cost_limit McKenzie
-   --  parameter; in practice, a cost of 20 is too high.
+   --  of repair operations, which is limited by the cost_limit McKenzie
+   --  parameter plus an arbitrary number from the language-specific
+   --  repairs; in practice, a capacity of 80 is enough so far.
 
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor'Class) return String
-     is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) & ")");
+     is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) &
+           (case Item.Op is
+            when Shift => "",
+            when Reduce | Undo_Reduce => "," & Ada.Containers.Count_Type'Image (Item.Token_Count),
+            when Push_Back | Insert | Delete => "," & WisiToken.Token_Index'Image (Item.Token_Index))
+           & ")");
 
    function Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is (for all O of Ops => O.Op /= Op);
    --  True if Ops contains no Op.
+
+   function None_Since_Shift (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
+   --  True if Ops contains no Op after the last Shift (or ops.first, if
+   --  no Shift).
 
    function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is (for some O of Ops => O.Op = Op);
@@ -420,16 +478,16 @@ package WisiToken.LR is
    package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
 
    function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor'Class) return String
-     is (Image (Item.State) & " : " & Image (Item.Token.ID, Descriptor));
+     is (Image (Item.State) & " : " & Image (Item.Token, Descriptor));
 
    function Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    type Configuration is record
       Stack : Recover_Stacks.Stack;
       --  Initially built from the parser stack, then the stack after the
-      --  operations below have been performed.
+      --  Ops below have been performed.
 
-      Current_Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
+      Current_Shared_Token : Base_Token_Index := Invalid_Token_Index;
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 
@@ -438,9 +496,13 @@ package WisiToken.LR is
       --  Index of current input token in Inserted. If No_Index, use
       --  Current_Shared_Token.
 
-      Redo_Reduce : Boolean := False;
-      Ops         : Config_Op_Arrays.Vector;
-      Cost        : Natural := 0;
+      Check_Action : Reduce_Action_Rec;
+      Check_Status : Semantic_Checks.Check_Status;
+      --  If parsing this config ended on a semantic check fail,
+      --  Check_Action caused the fail, and Check_Status is the error.
+
+      Ops  : Config_Op_Arrays.Vector;
+      Cost : Natural := 0;
    end record;
    type Configuration_Access is access all Configuration;
    for Configuration_Access'Storage_Size use 0;
@@ -467,9 +529,7 @@ package WisiToken.LR is
       Tree              : in     Syntax_Trees.Branched.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration;
-      Action            : in     Reduce_Action_Rec;
-      Nonterm           : in     Recover_Token;
-      Status            : in     Semantic_Checks.Error_Check_Status)
+      Nonterm           : in     Recover_Token)
      return Boolean;
    --  A reduce to Nonterm by Action on Config failed a semantic check
    --  returning Status. Config.Stack is in the pre-reduce state. Add to
@@ -502,8 +562,7 @@ package WisiToken.LR is
          Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
 
       when Check =>
-         Code   : Semantic_Checks.Error_Code;
-         Tokens : Recover_Token_Arrays.Vector;
+         Check_Status : Semantic_Checks.Check_Status;
       end case;
    end record;
 
@@ -513,7 +572,7 @@ package WisiToken.LR is
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
       Tree             : in Syntax_Trees.Abstract_Tree'Class;
-      Descriptor       : in WisiToken.Descriptor'Class);
+      Descriptor       : in WisiToken.Descriptor);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
 private

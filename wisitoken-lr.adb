@@ -112,6 +112,7 @@ package body WisiToken.LR is
       Depth      : in SAL.Base_Peek_Type := 0)
      return String
    is
+      use all type Syntax_Trees.Node_Index;
       use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
 
@@ -127,7 +128,10 @@ package body WisiToken.LR is
            (Image (Stack.Peek (I).State) & " : " &
               (if I = Stack.Depth
                then ""
-               else Tree.Image (Stack.Peek (I).Token, Descriptor) & ", "));
+               else
+                 (if Stack.Peek (I).Token = Syntax_Trees.Invalid_Node_Index -- From recover fast-forward
+                  then ""
+                  else Tree.Image (Stack.Peek (I).Token, Descriptor) & ", ")));
       end loop;
       return To_String (Result & ")");
    end Image;
@@ -599,6 +603,17 @@ package body WisiToken.LR is
       end loop;
    end Put;
 
+   function None_Since_Shift (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   is begin
+      for O of reverse Ops loop
+         exit when O.Op = Shift;
+         if O.Op = Op then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end None_Since_Shift;
+
    procedure Set_Key (Item : in out Configuration; Key : in Integer)
    is begin
       Item.Cost := Key;
@@ -608,7 +623,7 @@ package body WisiToken.LR is
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
       Tree             : in Syntax_Trees.Abstract_Tree'Class;
-      Descriptor       : in WisiToken.Descriptor'Class)
+      Descriptor       : in WisiToken.Descriptor)
    is
       use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
@@ -628,9 +643,7 @@ package body WisiToken.LR is
 
          when Check =>
             Put_Line
-              (Source_File_Name & ": " &
-                 "semantic check error: " & Semantic_Checks.Error_Code'Image (Item.Code) &
-                 ", tokens " & Image (Item.Tokens, Descriptor));
+              (Source_File_Name & ": semantic check error: " & Semantic_Checks.Image (Item.Check_Status, Descriptor));
          end case;
 
          if Item.Recover.Stack.Depth /= 0 then
@@ -713,14 +726,8 @@ package body WisiToken.LR is
                Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
 
                if Trace_Level > Detail then
-                  if Status.Label = Ok then
-                     Trace.Put_Line (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status));
-                  else
-                     Trace.Put_Line
-                       (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status) & " " &
-                          Tree.Image (Nonterm, Trace.Descriptor.all) &
-                          Image (Status.Tokens, Trace.Descriptor.all));
-                  end if;
+                  Trace.Put_Line
+                    (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status, Trace.Descriptor.all));
                end if;
             end return;
          end;

@@ -619,9 +619,10 @@ package body Wisi.Gen_Generate_Utils is
          LR1_Descriptor.Last_Terminal,
          LR1_Descriptor.First_Nonterminal,
          LR1_Descriptor.Last_Nonterminal,
-         Push_Back   => (others => Item.Default_Push_Back),
          Insert      => (others => Item.Default_Insert),
          Delete      => (others => Item.Default_Delete_Terminal),
+         Push_Back   => (others => Item.Default_Push_Back),
+         Undo_Reduce   => (others => Item.Default_Undo_Reduce),
          Cost_Limit  => Item.Cost_Limit,
          Check_Limit => Item.Check_Limit,
          Patterns    => WisiToken.LR.Patterns.Empty_List);

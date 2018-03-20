@@ -57,7 +57,7 @@ package body WisiToken.LR.Parser is
       when Ok =>
          return Ok;
 
-      when Error =>
+      when Semantic_Checks.Error =>
 
          if Resume_Active then
             --  Ignore this error; that's how McKenzie_Recover decided to fix it
@@ -68,10 +68,9 @@ package body WisiToken.LR.Parser is
               ((Label          => Check,
                 First_Terminal => Trace.Descriptor.First_Terminal,
                 Last_Terminal  => Trace.Descriptor.Last_Terminal,
-                Tokens         => Status.Tokens,
-                Code           => Status.Code,
+                Check_Status   => Status,
                 Recover        => (others => <>)));
-            return Error;
+            return Status.Label;
          end if;
       end case;
    end Reduce_Stack_1;
@@ -132,7 +131,7 @@ package body WisiToken.LR.Parser is
                Trace.Put_Line (" ... goto state " & Image (Parser_State.Stack.Peek.State));
             end if;
 
-         when Error =>
+         when Semantic_Checks.Error =>
             Current_Parser.Save_Verb; -- For error recovery
             Current_Parser.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;
@@ -147,7 +146,7 @@ package body WisiToken.LR.Parser is
          when Ok =>
             Current_Parser.Set_Verb (Action.Verb);
 
-         when Error =>
+         when Semantic_Checks.Error =>
             Current_Parser.Save_Verb; -- For error recovery
             Current_Parser.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;
@@ -840,7 +839,7 @@ package body WisiToken.LR.Parser is
       User_Data      : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Compute_Indent : in     Boolean)
    is
-      Descriptor : WisiToken.Descriptor'Class renames Parser.Trace.Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
       procedure Process_Node
         (Tree : in out Syntax_Trees.Branched.Tree;

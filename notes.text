@@ -21,10 +21,27 @@ org.wisitoken.stephe-1 - available
  current work
 move Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to check patterns.
     extra_name_2
-        if check fails on semantic_check, process_one should redo reduce.
-            get config from parse_items!
+        need to apply insert/delete to input stream, push_back stack to first of those edits
 
-    verify checks
+
+        don't apply shift/reduce Config.ops to parser_state!
+            that's what the main parser should do
+
+        rename parser.local_lookahead to recover_insert
+
+        first edit ops to delete items that cancel out
+            (reduce .. reduce) canceled by undo_reduce
+            (shift .. shift reduce .. reduce) canceled by push_back
+            in each case back to reduce/shift min_terminal_index
+
+        need delayed ops
+            apply ops to the first shift/reduce, then let main parser take over
+            while parsing, as long as recover_active, compare current action to error.recover op
+            apply non shift/reduce ops as they occur
+                including the checks
+                should be only insert, delete
+
+    verify checks in test_mckenzie_recover
 
 improve missing_two_ends
     insert 'end case ;' based on current state; minimal token string to complete production?
@@ -55,7 +72,10 @@ review *_run tests
 
 review FIXME:
 
-    use gnatprep for 'with ada_lite' vs 'with ada'?
+in process_one; push_back nonterm could be unreduce then push_back 1 terminal
+
+use gnatprep for 'with ada_lite' vs 'with ada'?
+
 use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
 
 update NEWS.text

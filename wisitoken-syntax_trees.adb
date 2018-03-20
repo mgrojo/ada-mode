@@ -196,12 +196,12 @@ package body WisiToken.Syntax_Trees is
 
    function Has_Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is begin
-      return Tree.Nodes (Node).Parent /= No_Node_Index;
+      return Tree.Nodes (Node).Parent /= Invalid_Node_Index;
    end Has_Parent;
 
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean
    is begin
-      return (for some Child of Children => Tree.Nodes (Child).Parent /= No_Node_Index);
+      return (for some Child of Children => Tree.Nodes (Child).Parent /= Invalid_Node_Index);
    end Has_Parent;
 
    function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
@@ -370,7 +370,7 @@ package body WisiToken.Syntax_Trees is
       N : Node_Index := Tree.Nodes (Node).Parent;
    begin
       loop
-         exit when N = No_Node_Index;
+         exit when N = Invalid_Node_Index;
          exit when Tree.Nodes (N).ID = ID;
          N := Tree.Nodes (N).Parent;
       end loop;
@@ -388,7 +388,7 @@ package body WisiToken.Syntax_Trees is
    begin
       case Parent.Label is
       when Shared_Terminal | Virtual_Terminal =>
-         return No_Node_Index;
+         return Invalid_Node_Index;
 
       when Nonterm =>
          for N of Parent.Children loop
@@ -396,7 +396,7 @@ package body WisiToken.Syntax_Trees is
                return N;
             end if;
          end loop;
-         return No_Node_Index;
+         return Invalid_Node_Index;
       end case;
    end Find_Sibling;
 
@@ -411,14 +411,14 @@ package body WisiToken.Syntax_Trees is
    begin
       case N.Label is
       when Shared_Terminal | Virtual_Terminal =>
-         return No_Node_Index;
+         return Invalid_Node_Index;
       when Nonterm =>
          for C of N.Children loop
             if Tree.Nodes (C).ID = ID then
                return C;
             end if;
          end loop;
-         return No_Node_Index;
+         return Invalid_Node_Index;
       end case;
    end Find_Child;
 
@@ -488,13 +488,14 @@ package body WisiToken.Syntax_Trees is
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
    is
+      use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
+
       N : Nonterm_Node renames Nodes (Parent);
       J : Positive_Index_Type := Positive_Index_Type'First;
 
       Min_Terminal_Index_Set : Boolean := False;
    begin
-      N.Children.Clear;
       N.Children.Set_Length (Children'Length);
       for I in Children'Range loop
          N.Children (J) := Children (I);

@@ -45,7 +45,7 @@ package WisiToken.Syntax_Trees is
    type Node_Index is range 0 .. Integer'Last;
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
 
-   No_Node_Index : constant Node_Index := Node_Index'First;
+   Invalid_Node_Index : constant Node_Index := Node_Index'First;
 
    type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
    --  Index matches Base_Token_Array, Augmented_Token_Array
@@ -144,7 +144,7 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index is abstract;
-   --  Return the ancestor of Node that contains ID, or No_Node_Index if
+   --  Return the ancestor of Node that contains ID, or Invalid_Node_Index if
    --  none match.
 
    function Find_Sibling
@@ -152,7 +152,7 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index is abstract;
-   --  Return the sibling of Node that contains ID, or No_Node_Index if
+   --  Return the sibling of Node that contains ID, or Invalid_Node_Index if
    --  none match.
 
    function Find_Child
@@ -160,7 +160,7 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index is abstract;
-   --  Return the child of Node that contains ID, or No_Node_Index if
+   --  Return the child of Node that contains ID, or Invalid_Node_Index if
    --  none match.
 
    function Image
@@ -306,7 +306,7 @@ private
       --  Computed by Set_Children, used in Semantic_Check actions and debug
       --  messages.
 
-      Parent : Node_Index := No_Node_Index;
+      Parent : Node_Index := Invalid_Node_Index;
 
       State : Unknown_State_Index := Unknown_State;
       --  Parse state that was on stack with this token, to allow undoing a
@@ -340,7 +340,6 @@ private
 
          Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
          --  Cached for push_back of nonterminals during recovery
-         --  FIXME: tree is available; can compute when needed.
 
          Nonterm_Augmented : Semantic_State.Augmented_Token_Access := null;
          --  We store Augmented_Token_Access rather than Augmented_Token, to
