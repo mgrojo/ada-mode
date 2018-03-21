@@ -490,7 +490,7 @@ package WisiToken.LR is
       --  Initially built from the parser stack, then the stack after the
       --  Ops below have been performed.
 
-      Current_Shared_Token : Base_Token_Index := Invalid_Token_Index;
+      Current_Shared_Token : Token_Index := Token_Index'Last;
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 

@@ -99,6 +99,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Nonterm           : in     Recover_Token)
      return Boolean
    is
+      pragma Unreferenced (Tree); --  FIXME: delete? use is never reliable?
+
       --  A reduce on Config failed a semantic check; Config.Stack is in the
       --  pre-reduce state, Nonterm is the result of the reduce. Enqueue
       --  fixes for the failure indicated by Code. Return True if Config
@@ -115,33 +117,19 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          Put (Message, Trace, Parser_Label, Terminals, Config);
       end Put;
 
-      procedure Append_Check
-        (Ops            : in out Config_Op_Arrays.Vector;
-         Op             : in     Config_Op_Label;
-         ID             : in     Token_ID;
-         Expected_ID    : in     Token_ID;
-         Token_Count    : in     Ada.Containers.Count_Type  := 0;
-         Token_Index    : in     WisiToken.Base_Token_Index := Invalid_Token_Index)
-      with Pre => ID = Expected_ID and (not (Op in Shift | Reduce)); -- can't do these here
-
-      procedure Append_Check
-        (Ops            : in out Config_Op_Arrays.Vector;
-         Op             : in     Config_Op_Label;
-         ID             : in     Token_ID;
-         Expected_ID    : in     Token_ID;
-         Token_Count    : in     Ada.Containers.Count_Type  := 0;
-         Token_Index    : in     WisiToken.Base_Token_Index := Invalid_Token_Index)
+      procedure Push_Back_Check
+        (Config      : in Configuration_Access;
+         Expected_ID : in Token_ID)
       is
-         pragma Unreferenced (Expected_ID); -- only used in the precondition
+         Item        : constant Recover_Stack_Item         := Config.Stack.Pop;
+         Token_Index : constant WisiToken.Base_Token_Index := Item.Token.Min_Terminal_Index;
       begin
-         Ops.Append
-           ((case Op is
-             when Shift | Reduce => raise Programmer_Error, -- can't do these here
-             when Undo_Reduce    => (Undo_Reduce, ID, Token_Count),
-             when Push_Back      => (Push_Back, ID, Token_Index),
-             when Insert         => (Insert, ID, Token_Index),
-             when Delete         => (Delete, ID, Token_Index)));
-      end Append_Check;
+         pragma Assert (Item.Token.ID = Expected_ID);
+
+         Config.Ops.Append
+           ((Push_Back, Item.Token.ID,
+             (if Token_Index = Invalid_Token_Index then Config.Current_Shared_Token else Token_Index)));
+      end Push_Back_Check;
 
       Action           : Reduce_Action_Rec renames Config.Check_Action;
       Begin_Name_Token : Recover_Token renames Config.Check_Status.Begin_Name;
@@ -218,8 +206,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                declare
                   New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                   Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
-                  Stack      : Recover_Stacks.Stack renames New_Config.Stack;
-                  Item       : Recover_Stack_Item;
                begin
                   --  This is a not a guess, so it has zero cost.
                   --
@@ -229,20 +215,17 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                   Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
 
-                  Append_Check (Ops, Push_Back, Stack.Pop.Token.ID, +SEMICOLON_ID, Token_Index => 1);
+                  Push_Back_Check (New_Config, +SEMICOLON_ID);
 
-                  Item := Stack.Pop;
-                  Append_Check
-                    (Ops, Push_Back, Item.Token.ID,
+                  Push_Back_Check
+                    (New_Config,
                      (if Nonterm.ID = +block_statement_ID
                       then +identifier_opt_ID
-                      else +name_opt_ID),
-                     Token_Index => Item.Token.Min_Terminal_Index);
+                      else +name_opt_ID));
 
-                  Item := Stack.Pop;
-                  Append_Check (Ops, Push_Back, Item.Token.ID, +END_ID, Token_Index => Item.Token.Min_Terminal_Index);
+                  New_Config.Current_Shared_Token := New_Config.Stack (1).Token.Min_Terminal_Index;
 
-                  New_Config.Current_Shared_Token := Item.Token.Min_Terminal_Index;
+                  Push_Back_Check (New_Config, +END_ID);
 
                   Ops.Append ((Insert, +END_ID, Token_Index => New_Config.Current_Shared_Token));
                   Ops.Append ((Insert, +SEMICOLON_ID, Token_Index => New_Config.Current_Shared_Token));
@@ -319,24 +302,20 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                   Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
 
-                  Append_Check (Ops, Push_Back, Stack.Pop.Token.ID, +SEMICOLON_ID, Token_Index => 1);
+                  Push_Back_Check (New_Config, +SEMICOLON_ID);
 
-                  Item := Stack.Pop;
-                  Append_Check
-                    (Ops, Push_Back, Item.Token.ID,
+                  Push_Back_Check
+                    (New_Config,
                      (if Nonterm.ID = +block_statement_ID
                       then +identifier_opt_ID
-                      else +name_opt_ID),
-                    Token_Index => Item.Token.Min_Terminal_Index);
+                      else +name_opt_ID));
 
-                  for Index of reverse Tree.Get_Terminals (Item.Tree_Index) loop
-                     --  FIXME: if config.ops is too small, add Token_Count to Delete,
-                     --  replace this loop with a single Delete.
-                     Ops.Append ((Delete, Tree.ID (Index), Tree.Min_Terminal_Index (Index)));
-                  end loop;
+                  --  We know the <end_name_token> is empty, so we don't need to delete
+                  --  it.
 
-                  Item := Stack.Pop;
-                  Append_Check (Ops, Push_Back, Item.Token.ID, +END_ID, Token_Index => 1);
+                  Item := Stack.Peek;
+                  Push_Back_Check (New_Config, +END_ID);
+
                   Ops.Append ((Delete, +END_ID, Token_Index => Item.Token.Min_Terminal_Index));
 
                   --  Don't change New_Config.Current_Shared_Token
@@ -363,18 +342,16 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                   Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
 
-                  Append_Check (Ops, Push_Back, Stack.Pop.Token.ID, +SEMICOLON_ID, Token_Index => 1);
+                  Push_Back_Check (New_Config, +SEMICOLON_ID);
 
-                  Item := Stack.Pop;
-                  Append_Check
-                    (Ops, Push_Back, Item.Token.ID,
+                  Push_Back_Check
+                    (New_Config,
                      (if Nonterm.ID = +block_statement_ID
                       then +identifier_opt_ID
-                      else +name_opt_ID),
-                    Token_Index => Item.Token.Min_Terminal_Index);
+                      else +name_opt_ID));
 
-                  Item := Stack.Pop;
-                  Append_Check (Ops, Push_Back, Item.Token.ID, +END_ID, Token_Index => Item.Token.Min_Terminal_Index);
+                  Item := Stack.Peek;
+                  Push_Back_Check (New_Config, +END_ID);
 
                   New_Config.Current_Shared_Token := Item.Token.Min_Terminal_Index;
 
@@ -490,20 +467,15 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                   Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
 
-                  Item := Stack.Pop;
-                  Append_Check
-                    (Ops, Push_Back, Item.Token.ID, +SEMICOLON_ID, Token_Index => Item.Token.Min_Terminal_Index);
-
-                  Item := Stack.Pop;
-                  Append_Check
-                    (Ops, Push_Back, Item.Token.ID,
+                  Push_Back_Check (New_Config, +SEMICOLON_ID);
+                  Push_Back_Check
+                    (New_Config,
                      (if Nonterm.ID = +block_statement_ID
                       then +identifier_opt_ID
-                      else +name_opt_ID),
-                    Token_Index => Item.Token.Min_Terminal_Index);
+                      else +name_opt_ID));
 
-                  Item := Stack.Pop;
-                  Append_Check (Ops, Push_Back, Item.Token.ID, +END_ID, Token_Index => Item.Token.Min_Terminal_Index);
+                  Item := Stack.Peek;
+                  Push_Back_Check (New_Config, +END_ID);
 
                   New_Config.Current_Shared_Token := Item.Token.Min_Terminal_Index;
 

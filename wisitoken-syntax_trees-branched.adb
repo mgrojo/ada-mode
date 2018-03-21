@@ -520,7 +520,7 @@ package body WisiToken.Syntax_Trees.Branched is
                Byte_Region        => N.Byte_Region,
                Min_Terminal_Index => N.Min_Terminal_Index,
                Name               => N.Name,
-               Virtual            => False);
+               Virtual            => N.Virtual);
          end case;
       end Compute;
    begin

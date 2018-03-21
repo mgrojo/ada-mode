@@ -19,10 +19,11 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-move Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to check patterns.
-    extra_name_2 passing
+don't need shift, reduce in ops
+    just a fast-forward mark to reset what ops are allowed
 
-    verify checks in test_mckenzie_recover
+updating checks in test_mckenzie_recover
+
 
 improve missing_two_ends
     insert 'end case ;' based on current state; minimal token string to complete production?

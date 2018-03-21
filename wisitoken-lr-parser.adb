@@ -194,7 +194,7 @@ package body WisiToken.LR.Parser is
    --
    --  Error : all Parsers.Verb return Error.
    procedure Parse_Verb
-     (Parser           : in out LR.Parser.Parser;
+     (Shared_Parser    : in out LR.Parser.Parser;
       Verb             :    out All_Parse_Action_Verbs;
       Max_Shared_Token :    out Base_Token_Index;
       Zombie_Count     :    out SAL.Base_Peek_Type)
@@ -205,15 +205,20 @@ package body WisiToken.LR.Parser is
       Shift_Recover_Count : SAL.Base_Peek_Type := 0;
       Accept_Count        : SAL.Base_Peek_Type := 0;
       Error_Count         : SAL.Base_Peek_Type := 0;
+      Resume_Active_Count : SAL.Base_Peek_Type := 0;
    begin
       Max_Shared_Token := Base_Token_Index'First;
       Zombie_Count     := 0;
 
-      for Parser_State of Parser.Parsers loop
+      for Parser_State of Shared_Parser.Parsers loop
          Max_Shared_Token := Token_Index'Max (Max_Shared_Token, Parser_State.Shared_Token);
+
+         if Parser_State.Recover_Insert_Delete.Length > 0 then
+            Resume_Active_Count := Resume_Active_Count + 1;
+         end if;
       end loop;
 
-      for Parser_State of Parser.Parsers loop
+      for Parser_State of Shared_Parser.Parsers loop
          case Parser_State.Verb is
          when Shift | Shift_Recover =>
             if Parser_State.Current_Token_Is_Virtual or else
@@ -240,7 +245,7 @@ package body WisiToken.LR.Parser is
             Accept_Count := Accept_Count + 1;
 
          when Error =>
-            if Parser.Enable_McKenzie_Recover then
+            if Shared_Parser.Enable_McKenzie_Recover then
                --  This parser is waiting for others to error; they can continue
                --  parsing.
                Zombie_Count := Zombie_Count + 1;
@@ -250,10 +255,10 @@ package body WisiToken.LR.Parser is
          end case;
       end loop;
 
-      if Accept_Count > 0 and Parser.Parsers.Count = Accept_Count + Zombie_Count then
+      if Accept_Count > 0 and Shared_Parser.Parsers.Count = Accept_Count + Zombie_Count then
          Verb := Accept_It;
 
-      elsif Parser.Parsers.Count = Error_Count + Zombie_Count then
+      elsif Shared_Parser.Parsers.Count = Error_Count + Zombie_Count then
          Verb := Error;
 
       elsif Shift_Recover_Count > 0 then
@@ -261,6 +266,8 @@ package body WisiToken.LR.Parser is
 
       elsif Shift_Count > 0 then
          Verb := Shift;
+
+         Shared_Parser.Resume_Active := Resume_Active_Count > 0;
 
       else
          raise Programmer_Error;
@@ -486,8 +493,6 @@ package body WisiToken.LR.Parser is
          case Current_Verb is
          when Shift =>
             --  We just shifted a token; get the next token
-
-            Shared_Parser.Resume_Active := False;
 
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Verb = Error then

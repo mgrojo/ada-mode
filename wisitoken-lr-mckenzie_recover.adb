@@ -473,9 +473,10 @@ package body WisiToken.LR.McKenzie_Recover is
       procedure Fatal (E : in Ada.Exceptions.Exception_Occurrence)
       is
          use Ada.Exceptions;
+         Task_ID : constant String := Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task);
       begin
          if Trace_McKenzie > Outline then
-            Trace.Put_Line ("Supervisor: Error");
+            Trace.Put_Line (Task_ID & " Supervisor: Error");
          end if;
          Fatal_Called   := True;
          Error_ID       := Exception_Identity (E);
@@ -943,12 +944,6 @@ package body WisiToken.LR.McKenzie_Recover is
 
          New_State := Goto_For (Table, Config.Stack (1).State, Action.LHS);
 
-         if New_State = Unknown_State then
-            --  FIXME: we need to record how it happens.
-            raise Programmer_Error with "do_reduce found test case for new_state = Unkown";
-            return;
-         end if;
-
          Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
       end;
 
@@ -960,6 +955,30 @@ package body WisiToken.LR.McKenzie_Recover is
       end if;
 
       Next_Action := Action_For (Table, New_State, Inserted_ID);
+
+      if Next_Action.Next /= null then
+         --  There is a conflict; create a new config to shift or reduce.
+         declare
+            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config.all);
+            Action : constant Parse_Action_Rec := Next_Action.Next.Item;
+         begin
+            case Action.Verb is
+            when Shift =>
+               Do_Shift (Super, Shared, Parser_Index, New_Config, Action.State, Inserted_ID);
+
+            when Reduce =>
+               Do_Reduce
+                 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action, Inserted_ID,
+                  Semantic_Check_Fail);
+
+            when Accept_It | Error =>
+               null;
+            end case;
+         end;
+
+         --  There can be only one conflict.
+      end if;
+
       case Next_Action.Item.Verb is
       when Shift =>
          Do_Shift (Super, Shared, Parser_Index, Config, Next_Action.Item.State, Inserted_ID);
@@ -976,28 +995,6 @@ package body WisiToken.LR.McKenzie_Recover is
          return;
       end case;
 
-      Next_Action := Next_Action.Next;
-      if Next_Action /= null then
-         --  There is a conflict; create a new config to shift or reduce.
-         declare
-            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config.all);
-         begin
-            case Next_Action.Item.Verb is
-            when Shift =>
-               Do_Shift (Super, Shared, Parser_Index, Config, Next_Action.Item.State, Inserted_ID);
-
-            when Reduce =>
-               Do_Reduce
-                 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Next_Action.Item, Inserted_ID,
-                  Semantic_Check_Fail);
-
-            when Accept_It | Error =>
-               null;
-            end case;
-         end;
-
-         --  There can be only one conflict.
-      end if;
    end Do_Reduce;
 
    procedure Process_One
@@ -1058,9 +1055,14 @@ package body WisiToken.LR.McKenzie_Recover is
             use all type Semantic_Checks.Check_Status;
             Action    : Reduce_Action_Rec renames Config.Check_Action;
             Nonterm   : constant Recover_Token := Compute_Nonterm (Config.Stack, Action);
+            --  FIXME: store nonterm in config
             New_State : Unknown_State_Index;
          begin
             --  If Action.Next /= null, the conflict was already handled elsewhere.
+
+            if Nonterm.Virtual then
+               raise Programmer_Error with "don't enqueue config with virtual nonterm for semantic_check_fix";
+            end if;
 
             if Shared.Shared_Parser.Semantic_Check_Fixes = null or else
               Shared.Shared_Parser.Semantic_Check_Fixes
@@ -1108,16 +1110,32 @@ package body WisiToken.LR.McKenzie_Recover is
          return;
       end if;
 
+      --  If a Parse_Item failed due to a semantic check, enqueue it so
+      --  Semantic_Check_Fixes can try to fix it.
       declare
+         use all type Syntax_Trees.Node_Index;
+
          Continue : Boolean := False;
       begin
          for Item of Parse_Items loop
             if Item.Parsed then
                if Item.Config.Check_Status.Label /= Ok then
-                  Local_Config_Heap.Add (Item.Config);
-                  if Trace_McKenzie > Detail then
-                     Put ("semantic_check_fix ", Super, Shared, Parser_Index, Item.Config);
-                  end if;
+                  declare
+                     --  FIXME: store nonterm in config
+                     Nonterm : constant Recover_Token := Compute_Nonterm (Item.Config.Stack, Item.Config.Check_Action);
+                  begin
+                     if Nonterm.Virtual then
+                        --  Semantic_Check_Fixes must operate on real tokens copied from the
+                        --  main parser stack.
+                        null;
+                     else
+                        Local_Config_Heap.Add (Item.Config);
+                        if Trace_McKenzie > Detail then
+                           Put ("semantic_check_fix ", Super, Shared, Parser_Index, Item.Config);
+                        end if;
+                     end if;
+                  end;
+
                elsif Item.Action.Item.Verb = Error then
                   Continue := True;
                end if;
@@ -1165,11 +1183,18 @@ package body WisiToken.LR.McKenzie_Recover is
                declare
                   New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                begin
-                  --  FIXME: If it is a nonterm, it must be unreduced first.
                   New_Config.Stack.Pop;
-                  New_Config.Cost := New_Config.Cost + McKenzie_Param.Push_Back (Token.ID);
-                  New_Config.Ops.Append ((Push_Back, Token.ID, Token.Min_Terminal_Index));
-                  New_Config.Current_Shared_Token := Token.Min_Terminal_Index;
+
+                  if Token.Min_Terminal_Index = Invalid_Token_Index then
+                     --  Token is empty; Config.current_shared_token does not change, no
+                     --  cost increase.
+                     New_Config.(Ops.Append ((Push_Back, Token.ID, New_Config.Current_Shared_Token)));
+                  else
+                     New_Config.Cost := New_Config.Cost + McKenzie_Param.Push_Back (Token.ID);
+                     New_Config.Ops.Append ((Push_Back, Token.ID, Token.Min_Terminal_Index));
+                     New_Config.Current_Shared_Token := Token.Min_Terminal_Index;
+                  end if;
+
                   if Trace_McKenzie > Detail then
                      Put ("push_back " & Image (Token.ID, Trace.Descriptor.all), Super, Shared,
                           Parser_Index, New_Config.all);
@@ -1202,13 +1227,16 @@ package body WisiToken.LR.McKenzie_Recover is
                   ID     : constant Token_ID := I.Symbol;
                   Action : Parse_Action_Rec renames I.Action;
                begin
-                  if ID /= EOF_ID then
+                  if ID /= EOF_ID and --  can't insert eof
+                    (Config.Ops.Length > 0 and then -- don't insert an id we just pushed back.
+                       Config.Ops (Config.Ops.Last_Index) /= (Push_Back, ID, Config.Current_Shared_Token))
+                  then
                      case Action.Verb is
                      when Shift | Reduce =>
                         declare
                            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                         begin
-                           New_Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
+                           New_Config.Ops.Append ((Insert, ID, New_Config.Current_Shared_Token));
                            New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
 
                            if Action.Verb = Shift then
@@ -1268,6 +1296,14 @@ package body WisiToken.LR.McKenzie_Recover is
                   New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                begin
                   New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (ID);
+
+                  if Config.Ops.Length > 0 and then
+                    Config.Ops (Config.Ops.Last_Index) = (Push_Back, ID, Config.Current_Shared_Token)
+                  then
+                     --  We are deleting a push_back; cancel the push_back cost, to make
+                     --  the same as plain deleting.
+                     New_Config.Cost := New_Config.Cost - McKenzie_Param.Push_Back (ID);
+                  end if;
 
                   New_Config.Ops.Append ((Delete, ID, Config.Current_Shared_Token));
                   New_Config.Current_Shared_Token := Shared.Get_Token (New_Config.Current_Shared_Token + 1);
@@ -1342,6 +1378,8 @@ package body WisiToken.LR.McKenzie_Recover is
      (Shared_Parser : in out LR.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
+      use all type SAL.Base_Peek_Type;
+
       Trace  : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Config : constant Configuration_Access := Parser_State.Recover.Config_Heap.Add (Configuration'(others => <>));
       Error  : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
@@ -1368,7 +1406,9 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Config.Current_Shared_Token := Parser_State.Shared_Token;
 
-      if Error.Label = Check then
+      if Error.Label = Check and
+        not (Config.Stack.Depth > 1 and then Parser_State.Tree.Is_Virtual (Config.Stack (1).Tree_Index))
+      then
          --  Undo the reduction that encountered the error, let
          --  Process_One enqueue possible solutions. One of those solutions
          --  will be to ignore the error, so we don't enqueue that config here.
