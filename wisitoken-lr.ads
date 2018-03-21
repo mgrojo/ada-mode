@@ -42,6 +42,7 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
+with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
@@ -78,9 +79,9 @@ package WisiToken.LR is
    --  Gotos are indexed by the nonterminal they match and designate
    --  the state the parser need to change to.
 
-   type All_Parse_Action_Verbs is (Shift_Local_Lookahead, Shift, Reduce, Accept_It, Error);
+   type All_Parse_Action_Verbs is (Shift_Recover, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
-   --  Shift_Local_Lookahead is only used for error recovery.
+   --  Shift_Recover is only used for error recovery.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
@@ -362,7 +363,6 @@ package WisiToken.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; State : in Parse_State);
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Table : in Parse_Table);
 
    ----------
    --  For McKenzie_Recover. Declared here because Parser_Lists needs
@@ -434,10 +434,12 @@ package WisiToken.LR is
          Token_Index : WisiToken.Token_Index;
          --  The position in the input stream after the operation is done.
          --  Multiple tokens may be pushed/inserted/deleted in one operation;
-         --  ID is the first of those, all must be terminals.
+         --  ID is the first of those.
 
       end case;
    end record;
+
+   package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Config_Op, Capacity => 80);
@@ -447,7 +449,7 @@ package WisiToken.LR is
    --  parameter plus an arbitrary number from the language-specific
    --  repairs; in practice, a capacity of 80 is enough so far.
 
-   function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor'Class) return String
+   function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) &
            (case Item.Op is
             when Shift => "",
@@ -455,7 +457,8 @@ package WisiToken.LR is
             when Push_Back | Insert | Delete => "," & WisiToken.Token_Index'Image (Item.Token_Index))
            & ")");
 
-   function Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   function Image is new Config_Op_Queues.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
    function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is (for all O of Ops => O.Op /= Op);

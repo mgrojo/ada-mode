@@ -33,7 +33,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Finalization;
-with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Semantic_State;
 package WisiToken.Syntax_Trees is
@@ -52,8 +51,6 @@ package WisiToken.Syntax_Trees is
 
    package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive_Index_Type, Valid_Node_Index);
    --  Index matches Valid_Node_Index_Array.
-
-   package Valid_Node_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (Valid_Node_Index);
 
    type Node_Label is (Shared_Terminal, Virtual_Terminal, Nonterm);
 
@@ -176,11 +173,6 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree       : in Abstract_Tree;
       Nodes      : in Valid_Node_Index_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return String;
-   function Image
-     (Tree       : in Abstract_Tree;
-      Item       : in Valid_Node_Index_Queues.Queue_Type;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
    --  For debug and error messages.

@@ -1060,9 +1060,11 @@ package body Test_McKenzie_Recover is
       --  Error recovery entered at 'begin' 132, with Extra_Name_Error from
       --  the preceding block ("" begin 109 .. "Process_CSV_File;" 119).
       --
-      --  Desired solution is (push_back 'end name_opt ;'), (insert 'end ; end ;')
+      --  Desired solution is (push_back 'end name_opt ;'), (insert 'end ; end ; begin ;')
       --
-      --  Semantic_Check Extra_Name_Error enqueues (push_back 'end name_opt ;'), (insert 'end ;'); recover
+      --  First call to Semantic_Check_Fixes enqueues (push_back 'end
+      --  name_opt ;'), (insert 'end ;'); recover fast-forwards that, calls
+      --  Semantic_Check_Fixes twice more to get desired solution.
 
       declare
          use WisiToken.Semantic_State;
@@ -1079,9 +1081,13 @@ package body Test_McKenzie_Recover is
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
-         Check
-           ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID, 6) & (Insert, +END_ID, 1) & (Insert, +SEMICOLON_ID, 1));
+         Check ("error 1.recover.ops.length", Error.Recover.Ops.Length, 33);
+         Check ("error 1.recover.ops.1", Error.Recover.Ops (1), (Push_Back, +block_statement_ID, 6));
+         Check ("error 1.recover.ops.2", Error.Recover.Ops (2), (Insert, +END_ID, 14));
+         Check ("error 1.recover.ops.3", Error.Recover.Ops (3), (Insert, +SEMICOLON_ID, 14));
+         Check ("error 1.recover.ops.28", Error.Recover.Ops (28), (Insert, +END_ID, 15));
+         Check ("error 1.recover.ops.29", Error.Recover.Ops (29), (Insert, +SEMICOLON_ID, 15));
+         Check ("error 1.recover.ops.33", Error.Recover.Ops (33), (Insert, +BEGIN_ID, 15));
       end;
    end Extra_Name_2;
 

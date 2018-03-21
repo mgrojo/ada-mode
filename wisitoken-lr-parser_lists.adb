@@ -146,10 +146,10 @@ package body WisiToken.LR.Parser_Lists is
          New_Item :=
            (Shared_Tree              => Item.Shared_Tree,
             Shared_Token             => Item.Shared_Token,
-            Local_Lookahead          => Item.Local_Lookahead,
+            Recover_Insert_Delete    => Item.Recover_Insert_Delete,
             Current_Token            => Item.Current_Token,
             Current_Token_Is_Virtual => Item.Current_Token_Is_Virtual,
-            Last_Shift_Was_Virtual   => Item.Last_Shift_Was_Virtual,
+            Inc_Shared_Token         => Item.Inc_Shared_Token,
             Stack                    => Item.Stack,
             Tree                     => Item.Tree,
             Recover                  => (others => <>),

@@ -586,23 +586,6 @@ package body WisiToken.LR is
       end loop;
    end Put;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Table : in Parse_Table)
-   is
-      use Ada.Text_IO;
-   begin
-      if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
-         Put_Line ("McKenzie_Param:");
-         Put (Table.McKenzie_Param, Descriptor);
-         New_Line;
-      end if;
-
-      for State in Table.States'Range loop
-         Put_Line ("State" & State_Index'Image (State) & ":");
-         Put (Descriptor, Table.States (State));
-         New_Line;
-      end loop;
-   end Put;
-
    function None_Since_Shift (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is begin
       for O of reverse Ops loop

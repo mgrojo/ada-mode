@@ -54,7 +54,7 @@ package WisiToken.Syntax_Trees.Branched is
      (Tree       : in out Branched.Tree;
       Nonterm    : in     WisiToken.Token_ID;
       Action     : in     Semantic_Action;
-      Production : in     Positive;
+      Production : in     Natural;
       Name_Index : in     Natural;
       Children   : in     Valid_Node_Index_Array)
      return Valid_Node_Index
@@ -65,8 +65,8 @@ package WisiToken.Syntax_Trees.Branched is
    --  Add a new Nonterm node. Result points to the added node.
 
    function Add_Terminal
-     (Tree     : in out Branched.Tree;
-      Terminal : in     Token_Index;
+     (Tree      : in out Branched.Tree;
+      Terminal  : in     Token_Index;
       Terminals : in     Base_Token_Arrays.Vector)
      return Valid_Node_Index
    with Pre => not Tree.Traversing;

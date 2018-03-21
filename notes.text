@@ -20,26 +20,7 @@ org.wisitoken.stephe-1 - available
 
  current work
 move Semantic_Check_Fixes to ada_lite language-specific body, use Enum_ID to check patterns.
-    extra_name_2
-        need to apply insert/delete to input stream, push_back stack to first of those edits
-
-
-        don't apply shift/reduce Config.ops to parser_state!
-            that's what the main parser should do
-
-        rename parser.local_lookahead to recover_insert
-
-        first edit ops to delete items that cancel out
-            (reduce .. reduce) canceled by undo_reduce
-            (shift .. shift reduce .. reduce) canceled by push_back
-            in each case back to reduce/shift min_terminal_index
-
-        need delayed ops
-            apply ops to the first shift/reduce, then let main parser take over
-            while parsing, as long as recover_active, compare current action to error.recover op
-            apply non shift/reduce ops as they occur
-                including the checks
-                should be only insert, delete
+    extra_name_2 passing
 
     verify checks in test_mckenzie_recover
 
@@ -54,6 +35,10 @@ improve propagate_names.ada_lite
     move to language package first
 
 delete patterns
+
+update ada-mode
+    repair error only needs insert, delete ops
+
 
 sal unbounded vectors:
     shrink elements to exact size on copy?

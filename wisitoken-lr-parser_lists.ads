@@ -32,14 +32,16 @@ package WisiToken.LR.Parser_Lists is
       Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
       --  Last token read from Shared_Parser.Terminals.
 
-      Local_Lookahead : Syntax_Trees.Valid_Node_Index_Queues.Queue_Type;
-      --  Tokens in Tree that were inserted during error recovery.
+      Recover_Insert_Delete : Config_Op_Queues.Queue_Type;
+      --  Tokens in that were inserted during error recovery, or should be
+      --  deleted/skipped when read. Contains only Insert and Delete ops.
 
       Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  Current terminal, in Tree
 
       Current_Token_Is_Virtual : Boolean := False;
-      Last_Shift_Was_Virtual   : Boolean := False;
+
+      Inc_Shared_Token : Boolean := True;
 
       Stack : Parser_Stacks.Stack;
       --  There is no need to use a branched stack; max stack length is

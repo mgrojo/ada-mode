@@ -60,24 +60,6 @@ package body WisiToken.Syntax_Trees is
       return -Result;
    end Image;
 
-   function Image
-     (Tree       : in Abstract_Tree;
-      Item       : in Valid_Node_Index_Queues.Queue_Type;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return String
-   is
-      use Ada.Strings.Unbounded;
-      Result     : Unbounded_String;
-      Need_Comma : Boolean := False;
-   begin
-      for I in 1 .. Item.Count loop
-         Result := Result & (if Need_Comma then ", " else "") &
-           Abstract_Tree'Class (Tree).Image (Item.Peek (I), Descriptor);
-         Need_Comma := True;
-      end loop;
-      return -Result;
-   end Image;
-
    ----------
    --  Syntax_Tree.Tree body operations, alphabetical
 

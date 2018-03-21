@@ -193,7 +193,7 @@ package body WisiToken.Syntax_Trees.Branched is
      (Tree       : in out Branched.Tree;
       Nonterm    : in     WisiToken.Token_ID;
       Action     : in     Semantic_Action;
-      Production : in     Positive;
+      Production : in     Natural;
       Name_Index : in     Natural;
       Children   : in     Valid_Node_Index_Array)
      return Valid_Node_Index
