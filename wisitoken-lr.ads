@@ -376,6 +376,8 @@ package WisiToken.LR is
    package Fast_Token_ID_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (SAL.Peek_Type, Token_ID, Capacity => 20);
 
+   No_Inserted : constant SAL.Base_Peek_Type := 0;
+
    function Image
      (Index      : in SAL.Peek_Type;
       Tokens     : in Fast_Token_ID_Arrays.Vector;
@@ -384,10 +386,9 @@ package WisiToken.LR is
      is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Tokens.Last_Index) & ":" &
            Image (Tokens (Index), Descriptor));
 
-   type Config_Op_Label is (Shift, Reduce, Undo_Reduce, Push_Back, Insert, Delete);
-   --  Shift and Reduce are the normal stack operations; they appear in
-   --  Config.Ops when a semantic check fix is fast-forwarded to the next
-   --  error.
+   type Config_Op_Label is (Fast_Forward, Undo_Reduce, Push_Back, Insert, Delete);
+   --  Fast_Forward is a placeholder to mark a fast_forward parse; that
+   --  resets what operations are allowed to be done on a config.
    --
    --  Undo_Reduce is the inverse of Reduce.
    --
@@ -395,14 +396,14 @@ package WisiToken.LR is
    --  pointer back to the first shared_terminal contained by that item.
    --
    --  Insert inserts a new token in the token input stream, before the
-   --  given point. If ID is a nonterm, the minimal terminal token
+   --  given point in Terminals. If ID is a nonterm, the minimal terminal token
    --  sequence (from Table.Terminal_Sequences) for that nonterm is
    --  inserted.
    --
    --  Delete deletes one item from the token input stream, at the given
    --  point.
 
-   type Config_Op (Op : Config_Op_Label := Shift) is record
+   type Config_Op (Op : Config_Op_Label := Fast_Forward) is record
       --  We store enough information to perform the operation on the main
       --  parser stack and input stream point when the config is the result
       --  of a successful recover.
@@ -416,18 +417,17 @@ package WisiToken.LR is
       --  check that everything is in sync, and for debugging.
 
       ID : Token_ID;
-      --  For Shift | Reduce, ID is the new ID pushed on the stack.
+      --  For Fast_Forward, ID is EOF.
       --  For Undo_Reduce | Push_Back, ID is the nonterm ID popped off the stack.
       --  For Insert | Delete, ID is the token inserted or deleted.
 
       case Op is
-      when Shift =>
+      when Fast_Forward =>
          null;
 
-      when Reduce | Undo_Reduce =>
+      when Undo_Reduce =>
          Token_Count : Ada.Containers.Count_Type;
-         --  For Reduce, the number of tokens popped off the stack.
-         --  For Undo_Reduce, the number of tokens pushed on the stack.
+         --  The number of tokens pushed on the stack.
          --  ID is the nonterminal.
 
       when Push_Back | Insert | Delete =>
@@ -452,8 +452,8 @@ package WisiToken.LR is
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) &
            (case Item.Op is
-            when Shift => "",
-            when Reduce | Undo_Reduce => "," & Ada.Containers.Count_Type'Image (Item.Token_Count),
+            when Fast_Forward => "",
+            when Undo_Reduce => "," & Ada.Containers.Count_Type'Image (Item.Token_Count),
             when Push_Back | Insert | Delete => "," & WisiToken.Token_Index'Image (Item.Token_Index))
            & ")");
 
@@ -464,9 +464,9 @@ package WisiToken.LR is
    is (for all O of Ops => O.Op /= Op);
    --  True if Ops contains no Op.
 
-   function None_Since_Shift (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains no Op after the last Shift (or ops.first, if
-   --  no Shift).
+   function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
+   --  True if Ops contains no Op after the last Fast_Forard (or ops.first, if
+   --  no Fast_Forward).
 
    function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is (for some O of Ops => O.Op = Op);
@@ -495,7 +495,7 @@ package WisiToken.LR is
       --  all of Inserted is input. Initially the error token.
 
       Inserted         : Fast_Token_ID_Arrays.Vector;
-      Current_Inserted : SAL.Base_Peek_Type := Fast_Token_ID_Arrays.No_Index;
+      Current_Inserted : SAL.Base_Peek_Type := No_Inserted;
       --  Index of current input token in Inserted. If No_Index, use
       --  Current_Shared_Token.
 
@@ -504,13 +504,15 @@ package WisiToken.LR is
       --  If parsing this config ended on a semantic check fail,
       --  Check_Action caused the fail, and Check_Status is the error.
 
-      Ops  : Config_Op_Arrays.Vector;
+      Ops              : Config_Op_Arrays.Vector;
+      Ops_Insert_Point : SAL.Base_Peek_Type := Config_Op_Arrays.No_Index;
+      --  If Ops_Insert_Point is not No_Index, fast_forward failed partway
+      --  thru Ops, and we are trying to find a fix at that point.
+
       Cost : Natural := 0;
    end record;
    type Configuration_Access is access all Configuration;
    for Configuration_Access'Storage_Size use 0;
-
-   No_Inserted : constant SAL.Base_Peek_Type := 0;
 
    function Key (A : in Configuration) return Integer is (A.Cost);
 

@@ -586,16 +586,16 @@ package body WisiToken.LR is
       end loop;
    end Put;
 
-   function None_Since_Shift (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
+   function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is begin
       for O of reverse Ops loop
-         exit when O.Op = Shift;
+         exit when O.Op = Fast_Forward;
          if O.Op = Op then
             return False;
          end if;
       end loop;
       return True;
-   end None_Since_Shift;
+   end None_Since_FF;
 
    procedure Set_Key (Item : in out Configuration; Key : in Integer)
    is begin

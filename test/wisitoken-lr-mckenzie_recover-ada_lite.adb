@@ -388,8 +388,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  'begin'.
          --
          --  2. There is at least one missing 'end' after 'begin'. See
-         --  test_mckenzie_recover.adb Extra_Name_3. The solution is to insert
-         --  'end ;' before the 'end'.
+         --  test_mckenzie_recover.adb Extra_Name_3, Block_Match_Names_1. The
+         --  solution is to insert 'end ;' before the 'end'.
          --
          --  We can distinguish between 1 and 2 by counting the number of
          --  Begin_Name_IDs and Begin_IDs.
@@ -404,8 +404,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
             Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Action.Token_Count);
 
-            Matching_Name_Index : SAL.Peek_Type := Token_Count + 1;
-            --  start search before 'block_label_opt'
+            Matching_Name_Index : SAL.Peek_Type := Token_Count;
+            --  'block_label_opt' is empty; start on token before 'begin'.
 
             Other_Tokens : constant Token_ID_Set_Array := (1 => Begin_Name_IDs, 2 => Begin_IDs);
             Other_Counts : Natural_Array (1 .. 2);

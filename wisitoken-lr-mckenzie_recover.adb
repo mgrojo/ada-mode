@@ -155,6 +155,10 @@ package body WisiToken.LR.McKenzie_Recover is
       procedure Success (Parser_Index : in SAL.Peek_Type; Config : in Configuration);
       --  Report that Configuration succeeds for Parser_Label.
 
+      procedure Abandon (Parser_Index : in SAL.Peek_Type);
+      --  Report that a config was abandoned without enqueuing any new
+      --  configs.
+
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type);
       --  Add Configs to the McKenzie_Data Config_Heap for Parser_Label
 
@@ -407,8 +411,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
          Data.Success := True;
 
-         --  Active_Workers can be zero when this is called from a pattern.
-         Active_Workers (Parser_Index) := Natural'Max (0, Active_Workers (Parser_Index) - 1);
+         Active_Workers (Parser_Index) := Active_Workers (Parser_Index) - 1;
 
          if Data.Results.Count = 0 then
             Data.Results.Add (Config);
@@ -432,6 +435,17 @@ package body WisiToken.LR.McKenzie_Recover is
             null;
          end if;
       end Success;
+
+      procedure Abandon (Parser_Index : in SAL.Peek_Type)
+      is begin
+         Active_Workers (Parser_Index) := Active_Workers (Parser_Index) - 1;
+
+         if Trace_McKenzie > Detail then
+            Put_Line
+              (Trace.all, Parser_Labels (Parser_Index),
+               "abandon, workers:" & Integer'Image (Active_Workers (Parser_Index)));
+         end if;
+      end Abandon;
 
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type)
       is
@@ -718,8 +732,6 @@ package body WisiToken.LR.McKenzie_Recover is
 
          case Action.Item.Verb is
          when Shift =>
-            Config.Ops.Append ((Shift, Current_Token.ID));
-
             Config.Stack.Push
               ((Action.Item.State,
                 Syntax_Trees.Invalid_Node_Index,
@@ -756,7 +768,6 @@ package body WisiToken.LR.McKenzie_Recover is
                Nonterm : Recover_Token;
             begin
                Config.Check_Status := Reduce_Stack (Shared, Config.Stack, Action.Item, Nonterm);
-               Config.Ops.Append ((Reduce, Nonterm.ID, Action.Item.Token_Count));
 
                case Config.Check_Status.Label is
                when Ok =>
@@ -1022,7 +1033,8 @@ package body WisiToken.LR.McKenzie_Recover is
       --  We collect all the variants to enqueue, then deliver them all at
       --  once to Super, to minimizes task interactions.
 
-      Shared_Token_Goal : Token_Index;
+      Shared_Token_Goal      : Token_Index;
+      Post_Fast_Forward_Fail : Boolean := False;
    begin
       Super.Get (Parser_Index, Config, Config_Status);
 
@@ -1036,17 +1048,90 @@ package body WisiToken.LR.McKenzie_Recover is
             Shared_Token_Goal => Invalid_Token_Index,
             Trace_Prefix      => "fast_forward")
          then
+            --  This indicates that Semantic_Check_Fixes fixed the
+            --  immediate problem, so continue with the parsed config.
             if Parse_Items.Length = 1 then
                Config := Parse_Items (1).Config;
+               Config.Ops.Append ((Fast_Forward, EOF_ID));
+
+               Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
+
                Parse_Items.Clear;
             else
                --  FIXME: figure out how to deal with this; need a test case
                raise Programmer_Error with "fast_forward returned multiple configs";
             end if;
+
          else
-            --  This indicates that Semantic_Check_Fixes enqueued a bad Config.
-            raise Programmer_Error with "fast_forward failed";
+            --  This indicates that Semantic_Check_Fixes did not fix all the
+            --  problems; see test_mckenzie_recover Two_Missing_Ends. We hope it
+            --  made progress, so we try to keep going.
+            declare
+               Good_Item_Index : Natural := 0;
+               Good_Item_Count : Natural := 0;
+            begin
+               for I in Parse_Items.First_Index .. Parse_Items.Last_Index loop
+                  declare
+                     Parsed_Config    : Configuration renames Parse_Items (I).Config;
+                     Insert_Ops_Count : SAL.Base_Peek_Type := 0;
+                  begin
+                     if Parsed_Config.Current_Inserted = No_Inserted then
+                        --  Any tokens inserted by Semantic_Check_Fixes were consumed, so we
+                        --  can continue with the parsed config.
+                        Parsed_Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
+
+                        Good_Item_Index := I;
+                        Good_Item_Count := Good_Item_Count + 1;
+
+                     elsif Config.Check_Status.Label /= Ok then
+                        --  We assume Semantic_Check_Fixes can't deal with this.
+                        null;
+
+                     else
+                        --  We need new insertions to be made at the current input point in
+                        --  Config.Inserted, not at Config.Current_Shared_Token. Similarly,
+                        --  insert new Ops at the correct point in Config.Ops. We don't try
+                        --  this more than once. FIXME: why not?
+                        if Parsed_Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
+
+                           Good_Item_Index := I;
+                           Good_Item_Count := Good_Item_Count + 1;
+
+                           Post_Fast_Forward_Fail := True;
+                           Insert_Ops_Count := SAL.Base_Peek_Type (Parsed_Config.Inserted.Length);
+                           for I in reverse Parsed_Config.Ops.First_Index .. Parsed_Config.Ops.Last_Index loop
+                              if Parsed_Config.Ops (I).Op = Insert then
+                                 if Insert_Ops_Count = Parsed_Config.Current_Inserted then
+                                    Parsed_Config.Current_Shared_Token := Parsed_Config.Ops (I).Token_Index;
+                                    Parsed_Config.Ops_Insert_Point := I;
+                                    exit;
+                                 end if;
+                                 Insert_Ops_Count := Insert_Ops_Count - 1;
+                              end if;
+                           end loop;
+                           if Parsed_Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
+                              raise Programmer_Error;
+                           end if;
+                        end if;
+                     end if;
+                  end;
+               end loop;
+
+               if Good_Item_Count = 0 then
+                  --  Nothing more to do.
+                  Super.Abandon (Parser_Index);
+                  return;
+
+               elsif Good_Item_Count = 1 then
+                  Config := Parse_Items (Good_Item_Index).Config;
+                  Parse_Items.Clear;
+               else
+                  --  FIXME: figure out how to deal with this; need a test case
+                  raise Programmer_Error with "fast_forward returned multiple configs";
+               end if;
+            end;
          end if;
+
       end if;
 
       if Config.Check_Status.Label /= Ok then
@@ -1088,66 +1173,67 @@ package body WisiToken.LR.McKenzie_Recover is
                --  Local_Config_Heap.
 
                if Local_Config_Heap.Count = 0 then
-                  --  This could cause deadlock at startup, and in general indicates a
-                  --  bug in Semantic_Check_Fixes.
-                  raise Programmer_Error with "Semantic_Check_Fixes returned no solution";
+                  Super.Abandon (Parser_Index);
+               else
+                  Super.Put (Parser_Index, Local_Config_Heap);
                end if;
-
-               Super.Put (Parser_Index, Local_Config_Heap);
                return;
             end if;
          end;
       end if;
 
-      --  If there are push_backs, config.current_shared_token reflects
-      --  them, and we must parse all of the push back tokens, and then
-      --  Check_Limit more.
-      Shared_Token_Goal := Super.Parser_State (Parser_Index).Shared_Token + Token_Index
-        (Table.McKenzie_Param.Check_Limit);
+      if not Post_Fast_Forward_Fail then
+         --  If there are push_backs, config.current_shared_token reflects
+         --  them, and we must parse all of the push back tokens, and then
+         --  Check_Limit more.
+         Shared_Token_Goal := Super.Parser_State (Parser_Index).Shared_Token + Token_Index
+           (Table.McKenzie_Param.Check_Limit);
 
-      if Parse (Super, Shared, Parser_Index, Parse_Items, Config, Shared_Token_Goal, "check") then
-         Super.Success (Parser_Index, Config);
-         return;
-      end if;
-
-      --  If a Parse_Item failed due to a semantic check, enqueue it so
-      --  Semantic_Check_Fixes can try to fix it.
-      declare
-         use all type Syntax_Trees.Node_Index;
-
-         Continue : Boolean := False;
-      begin
-         for Item of Parse_Items loop
-            if Item.Parsed then
-               if Item.Config.Check_Status.Label /= Ok then
-                  declare
-                     --  FIXME: store nonterm in config
-                     Nonterm : constant Recover_Token := Compute_Nonterm (Item.Config.Stack, Item.Config.Check_Action);
-                  begin
-                     if Nonterm.Virtual then
-                        --  Semantic_Check_Fixes must operate on real tokens copied from the
-                        --  main parser stack.
-                        null;
-                     else
-                        Local_Config_Heap.Add (Item.Config);
-                        if Trace_McKenzie > Detail then
-                           Put ("semantic_check_fix ", Super, Shared, Parser_Index, Item.Config);
-                        end if;
-                     end if;
-                  end;
-
-               elsif Item.Action.Item.Verb = Error then
-                  Continue := True;
-               end if;
-            end if;
-         end loop;
-
-         if not Continue then
-            --  The only failure was a semantic_check; nothing else to do.
-            Super.Put (Parser_Index, Local_Config_Heap);
+         if Parse (Super, Shared, Parser_Index, Parse_Items, Config, Shared_Token_Goal, "check") then
+            Super.Success (Parser_Index, Config);
             return;
          end if;
-      end;
+
+         --  If a Parse_Item failed due to a semantic check, enqueue it so
+         --  Semantic_Check_Fixes can try to fix it.
+         declare
+            use all type Syntax_Trees.Node_Index;
+
+            Continue : Boolean := False;
+         begin
+            for Item of Parse_Items loop
+               if Item.Parsed then
+                  if Item.Config.Check_Status.Label /= Ok then
+                     declare
+                        --  FIXME: store nonterm in config
+                        Nonterm : constant Recover_Token := Compute_Nonterm
+                          (Item.Config.Stack, Item.Config.Check_Action);
+                     begin
+                        if Nonterm.Virtual then
+                           --  Semantic_Check_Fixes must operate on real tokens copied from the
+                           --  main parser stack.
+                           null;
+                        else
+                           Local_Config_Heap.Add (Item.Config);
+                           if Trace_McKenzie > Detail then
+                              Put ("semantic_check_fix ", Super, Shared, Parser_Index, Item.Config);
+                           end if;
+                        end if;
+                     end;
+
+                  elsif Item.Action.Item.Verb = Error then
+                     Continue := True;
+                  end if;
+               end if;
+            end loop;
+
+            if not Continue then
+               --  The only failure was a semantic_check; nothing else to do.
+               Super.Put (Parser_Index, Local_Config_Heap);
+               return;
+            end if;
+         end;
+      end if;
 
       if Trace_McKenzie > Detail then
          Put ("continuing", Super, Shared, Parser_Index, Config);
@@ -1157,13 +1243,13 @@ package body WisiToken.LR.McKenzie_Recover is
       end if;
 
       --  Grouping these operations ensures that there are no duplicate
-      --  solutions found. We reset the grouping after each fast_forward,
-      --  which end in Shift.
+      --  solutions found. We reset the grouping after each fast_forward.
       --
       --  All possible permutations will be explored.
 
-      if None_Since_Shift (Config.Ops, Delete) and
-        None_Since_Shift (Config.Ops, Insert) and
+      if (not Post_Fast_Forward_Fail) and
+        None_Since_FF (Config.Ops, Delete) and
+        None_Since_FF (Config.Ops, Insert) and
         Config.Stack.Depth > 1 -- can't delete the first state
       then
          declare
@@ -1188,7 +1274,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   if Token.Min_Terminal_Index = Invalid_Token_Index then
                      --  Token is empty; Config.current_shared_token does not change, no
                      --  cost increase.
-                     New_Config.(Ops.Append ((Push_Back, Token.ID, New_Config.Current_Shared_Token)));
+                     New_Config.Ops.Append ((Push_Back, Token.ID, New_Config.Current_Shared_Token));
                   else
                      New_Config.Cost := New_Config.Cost + McKenzie_Param.Push_Back (Token.ID);
                      New_Config.Ops.Append ((Push_Back, Token.ID, Token.Min_Terminal_Index));
@@ -1204,7 +1290,7 @@ package body WisiToken.LR.McKenzie_Recover is
          end;
       end if;
 
-      if None_Since_Shift (Config.Ops, Delete) then
+      if None_Since_FF (Config.Ops, Delete) then
          --  Find terminal insertions to try; loop over input actions for the
          --  current state.
          --
@@ -1235,8 +1321,16 @@ package body WisiToken.LR.McKenzie_Recover is
                      when Shift | Reduce =>
                         declare
                            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+                           Op : constant Config_Op := (Insert, ID, New_Config.Current_Shared_Token);
                         begin
-                           New_Config.Ops.Append ((Insert, ID, New_Config.Current_Shared_Token));
+                           if Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
+                              New_Config.Ops.Append (Op);
+                           else
+                              New_Config.Ops.Insert (Op, Before => Config.Ops_Insert_Point);
+                              New_Config.Inserted.Insert (ID, Before => New_Config.Current_Inserted);
+                              New_Config.Current_Inserted := New_Config.Current_Inserted + 1;
+                           end if;
+
                            New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
 
                            if Action.Verb = Shift then
@@ -1257,32 +1351,35 @@ package body WisiToken.LR.McKenzie_Recover is
             end loop;
          end;
 
-         --  Find nonterm insertions to try; loop over goto actions for the
-         --  current state
+         if not Post_Fast_Forward_Fail then
+            --  Find nonterm insertions to try; loop over goto actions for the
+            --  current state.
+            --
+            --  FIXME: if keep nonterm insert, allow it for Post_Fast_Forward_Fail?
 
-         declare
-            I : Goto_List_Iterator := First (Table.States (Config.Stack.Peek.State));
-         begin
-            loop
-               exit when I.Is_Done;
+            declare
+               I : Goto_List_Iterator := First (Table.States (Config.Stack.Peek.State));
+            begin
+               loop
+                  exit when I.Is_Done;
 
-               declare
-                  ID : constant Token_ID := I.Symbol;
-               begin
-                  if ID /= EOF_ID then
-                     declare
-                        New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                     begin
-                        New_Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
-                        New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
-
-                        Do_Shift (Super, Shared, Parser_Index, New_Config, I.State, ID);
-                     end;
-                  end if;
-               end;
-               I.Next;
-            end loop;
-         end;
+                  declare
+                     ID : constant Token_ID := I.Symbol;
+                  begin
+                     if ID /= EOF_ID then
+                        declare
+                           New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+                        begin
+                           New_Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
+                           New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
+                           Do_Shift (Super, Shared, Parser_Index, New_Config, I.State, ID);
+                        end;
+                     end if;
+                  end;
+                  I.Next;
+               end loop;
+            end;
+         end if;
       end if;
 
       if Config.Current_Inserted = No_Inserted then
@@ -1618,7 +1715,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                for Op of Result.Ops loop
                   case Op.Op is
-                  when Shift | Reduce | Undo_Reduce | Push_Back =>
+                  when Fast_Forward | Undo_Reduce | Push_Back =>
                      null;
 
                   when Insert =>

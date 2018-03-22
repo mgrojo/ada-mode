@@ -19,15 +19,10 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-don't need shift, reduce in ops
-    just a fast-forward mark to reset what ops are allowed
-
 updating checks in test_mckenzie_recover
 
 
-improve missing_two_ends
-    insert 'end case ;' based on current state; minimal token string to complete production?
-    add another language-specific hook for this, called from Process_One after 'continue'.
+refactor Process_one  with subprograms
 
 improve propagate_names.ada_lite
     recover finds two identical ok solutions; parse fails on ambiguous parse

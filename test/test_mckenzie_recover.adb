@@ -591,9 +591,6 @@ package body Test_McKenzie_Recover is
 
       --  Mistakenly pasted 'if then end if' in exception handler 66 .. 91.
       --
-      --  This used to cause a token ID mismatch in
-      --  Semantic_State.Push_Current for 'begin' 121.
-      --
       --  Enters error recovery at 'if' 76, with two parsers active; one for
       --  subprogram_body, the other for subprogram_body_stub.
       --
@@ -1144,22 +1141,22 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use WisiToken.AUnit;
    begin
-      --  FIXME: debugging; really slow, need 12 to pass
-      Parser.Table.McKenzie_Param.Cost_Limit := 12;
-
       Parse_Text
         ("package body Pack_1 is procedure Proc_1 is procedure Proc_A is begin case B is when 1 => a;" &
            --      |10       |20       |30       |40       |50       |60       |70       |80       |90
+           -- 1   2    3      4  5         6      7  8         9      10 11    12   13 14 15  16 17 18 19
            " begin end Proc_1; end Pack_1;");
       --    |92     |100      |110
+      --     20    21  22    23 24 25    26
       --
       --  Missing 'end case; end Proc_A;' 91; a typical editing situation.
       --
-      --  Error recovery 1 entered at 'end' 111, with extra_name_error from
+      --  Error recovery 1 entered at 'end' 111, with Extra_Name_Error from
       --  the preceding block (no label on preceding 'begin').
       --
-      --  The desired solution is push_back block_statement, insert 'end
-      --  case ; end Proc_A ;'.
+      --  The desired solution is (push_back block_statement, insert 'end
+      --  case ; end ;'). With help from Semantic_Check_Fixes, that solution
+      --  is found with cost 3 after checking 5 configs.
 
       declare
          use WisiToken.Semantic_Checks.AUnit;
@@ -1168,14 +1165,19 @@ package body Test_McKenzie_Recover is
          use all type WisiToken.LR.Config_Op_Label;
          use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
+         EOF_ID : WisiToken.Token_ID renames Ada_Lite.Descriptor.EOF_ID;
+
          Error_List : WisiToken.LR.Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
          Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
          Error      : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
       begin
          Check ("errors 1.code", Error.Check_Status.Label, Extra_Name_Error);
+         Check ("errors 1.recover.cost", Error.Recover.Cost, 3);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID, 1));
+            +(Push_Back, +block_statement_ID, 20) & (Insert, +END_ID, 20) & (Insert, +CASE_ID, 20) &
+              (Insert, +SEMICOLON_ID, 20) & (Fast_Forward, EOF_ID) & (Push_Back, +block_statement_ID, 20) &
+              (Insert, +END_ID, 20) & (Insert, +SEMICOLON_ID, 20) & (Fast_Forward, EOF_ID));
       end;
    end Two_Missing_Ends;
 
