@@ -24,6 +24,9 @@ updating checks in test_mckenzie_recover
 
 refactor Process_one  with subprograms
 
+reduce 0 tokens is same as insert nonterm
+    don't insert 0 length nonterms; let token insert do it
+
 improve propagate_names.ada_lite
     recover finds two identical ok solutions; parse fails on ambiguous parse
         one based on "ignore error"

@@ -155,10 +155,6 @@ package body WisiToken.LR.McKenzie_Recover is
       procedure Success (Parser_Index : in SAL.Peek_Type; Config : in Configuration);
       --  Report that Configuration succeeds for Parser_Label.
 
-      procedure Abandon (Parser_Index : in SAL.Peek_Type);
-      --  Report that a config was abandoned without enqueuing any new
-      --  configs.
-
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type);
       --  Add Configs to the McKenzie_Data Config_Heap for Parser_Label
 
@@ -435,17 +431,6 @@ package body WisiToken.LR.McKenzie_Recover is
             null;
          end if;
       end Success;
-
-      procedure Abandon (Parser_Index : in SAL.Peek_Type)
-      is begin
-         Active_Workers (Parser_Index) := Active_Workers (Parser_Index) - 1;
-
-         if Trace_McKenzie > Detail then
-            Put_Line
-              (Trace.all, Parser_Labels (Parser_Index),
-               "abandon, workers:" & Integer'Image (Active_Workers (Parser_Index)));
-         end if;
-      end Abandon;
 
       procedure Put (Parser_Index : in SAL.Peek_Type; Configs : in out Config_Heaps.Heap_Type)
       is
@@ -884,105 +869,123 @@ package body WisiToken.LR.McKenzie_Recover is
    end Undo_Reduce;
 
    procedure Do_Shift
-     (Super        : not null access Supervisor;
-      Shared       : not null access Shared_Lookahead;
-      Parser_Index : in              SAL.Peek_Type;
-      Config       : in              Configuration_Access;
-      State        : in              State_Index;
-      ID           : in              Token_ID)
+     (Super             : not null access Supervisor;
+      Shared            : not null access Shared_Lookahead;
+      Parser_Index      : in              SAL.Peek_Type;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in out          Configuration;
+      State             : in              State_Index;
+      ID                : in              Token_ID)
    is
       use all type SAL.Base_Peek_Type;
+      McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
+
+      Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token);
    begin
-      if Trace_McKenzie > Detail then
-         Put ("insert " & Image (ID, Super.Trace.Descriptor.all), Super, Shared, Parser_Index, Config.all);
+      if Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
+         Config.Ops.Append (Op);
+      else
+         Config.Ops.Insert (Op, Before => Config.Ops_Insert_Point);
+         Config.Inserted.Insert (ID, Before => Config.Current_Inserted);
+         Config.Current_Inserted := Config.Current_Inserted + 1;
       end if;
 
+      Config.Cost := Config.Cost + McKenzie_Param.Insert (ID);
+
       Config.Stack.Push ((State, Syntax_Trees.Invalid_Node_Index, (ID, Virtual => True, others => <>)));
+      if Trace_McKenzie > Detail then
+         Put ("insert " & Image (ID, Super.Trace.Descriptor.all), Super, Shared, Parser_Index, Config);
+      end if;
+
+      Local_Config_Heap.Add (Config);
    end Do_Shift;
 
-   procedure Do_Reduce
+   function Do_Reduce_1
+     (Super             : not null access Supervisor;
+      Shared            : not null access Shared_Lookahead;
+      Parser_Index      : in              SAL.Peek_Type;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in out          Configuration;
+      Action            : in              Reduce_Action_Rec)
+     return Boolean
+   is
+      --  Perform Action on Config, setting Config.Check_Status. If that is
+      --  not Ok, call Semantic_Check_Fixes (which may enqueue configs),
+      --  return False if config should be abandoned. Otherwise return True.
+
+      Table     : Parse_Table renames Shared.Shared_Parser.Table.all;
+      Nonterm   : Recover_Token;
+      New_State : State_Index;
+   begin
+      Config.Check_Status := Reduce_Stack (Shared, Config.Stack, Action, Nonterm);
+      case Config.Check_Status.Label is
+      when Semantic_Checks.Ok =>
+         null;
+
+      when Semantic_Checks.Error =>
+         Config.Check_Action := Action;
+
+         if Shared.Shared_Parser.Semantic_Check_Fixes /= null and then
+           Shared.Shared_Parser.Semantic_Check_Fixes
+             (Super.Trace.all, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
+              Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
+              Config, Nonterm)
+         then
+            --  "ignore error" is viable; continue with Config.
+            --  Finish the reduce.
+            Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
+         else
+            --  "ignore error" is not viable; abandon Config.
+            return False;
+         end if;
+      end case;
+
+      New_State := Goto_For (Table, Config.Stack (1).State, Action.LHS);
+
+      Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
+      return True;
+   end Do_Reduce_1;
+
+   procedure Do_Reduce_2
      (Super               : not null access Supervisor;
       Shared              : not null access Shared_Lookahead;
       Parser_Index        : in              SAL.Peek_Type;
       Local_Config_Heap   : in out          Config_Heaps.Heap_Type;
-      Config              : in              Configuration_Access;
-      Action              : in              Reduce_Action_Rec;
-      Inserted_ID         : in              Token_ID;
-      Semantic_Check_Fail : in out          Boolean)
+      Config              : in out          Configuration;
+      Inserted_ID         : in              Token_ID)
    is
-      --  Perform reduce actions until get to a shift of Inserted_Token; if
-      --  all succeed, add the final configuration to the heap. If a
-      --  conflict is encountered, process the other action the same way. If
-      --  a semantic check fails, enqueue possible solutions. For other
-      --  failures, just return.
+      --  Perform reduce actions until shift Inserted_Token; if all succeed,
+      --  add the final configuration to the heap. If a conflict is
+      --  encountered, process the other action the same way. If a semantic
+      --  check fails, enqueue possible solutions. For parse table error
+      --  actions, just return.
+
+      use all type Semantic_Checks.Check_Status_Label;
 
       Table       : Parse_Table renames Shared.Shared_Parser.Table.all;
-      New_State   : Unknown_State_Index := Unknown_State;
       Next_Action : Parse_Action_Node_Ptr;
    begin
-      declare
-         Nonterm : Recover_Token;
-      begin
-         Config.Check_Status := Reduce_Stack (Shared, Config.Stack, Action, Nonterm);
-         case Config.Check_Status.Label is
-         when Semantic_Checks.Ok =>
-            null;
-
-         when Semantic_Checks.Error =>
-            if Semantic_Check_Fail then
-               return;
-               --  This config previously encountered a semantic check error and
-               --  applied any appropriate fixes, so don't do that again.
-            else
-               Semantic_Check_Fail := True;
-               Config.Check_Action := Action;
-
-               if Shared.Shared_Parser.Semantic_Check_Fixes /= null and then
-                 Shared.Shared_Parser.Semantic_Check_Fixes
-                   (Super.Trace.all, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
-                    Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
-                    Config.all, Nonterm)
-               then
-                  --  "ignore error" is viable; continue with Config.
-                  --  Finish the reduce.
-                  Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
-               else
-                  --  "ignore error" is not viable; abandon Config.
-                  return;
-               end if;
-            end if;
-         end case;
-
-         New_State := Goto_For (Table, Config.Stack (1).State, Action.LHS);
-
-         Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
-      end;
-
-      if Trace_McKenzie > Extra then
-         Put_Line
-           (Super.Trace.all, Super.Label (Parser_Index),
-            Image (Inserted_ID, Super.Trace.Descriptor.all) & ": " &
-              Image (Action, Super.Trace.Descriptor.all) & " => " & Image (New_State));
-      end if;
-
-      Next_Action := Action_For (Table, New_State, Inserted_ID);
+      Next_Action := Action_For (Table, Config.Stack (1).State, Inserted_ID);
 
       if Next_Action.Next /= null then
          --  There is a conflict; create a new config to shift or reduce.
          declare
-            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config.all);
-            Action : constant Parse_Action_Rec := Next_Action.Next.Item;
+            New_Config : Configuration             := Config;
+            Action     : constant Parse_Action_Rec := Next_Action.Next.Item;
          begin
             case Action.Verb is
             when Shift =>
-               Do_Shift (Super, Shared, Parser_Index, New_Config, Action.State, Inserted_ID);
+               Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, Inserted_ID);
 
             when Reduce =>
-               Do_Reduce
-                 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action, Inserted_ID,
-                  Semantic_Check_Fail);
+               if Do_Reduce_1 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action) then
+                  Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Inserted_ID);
+               end if;
 
-            when Accept_It | Error =>
+            when Accept_It =>
+               raise Programmer_Error with "found test case for Do_Reduce Accept_It conflict";
+
+            when Error =>
                null;
             end case;
          end;
@@ -992,21 +995,21 @@ package body WisiToken.LR.McKenzie_Recover is
 
       case Next_Action.Item.Verb is
       when Shift =>
-         Do_Shift (Super, Shared, Parser_Index, Config, Next_Action.Item.State, Inserted_ID);
+         Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item.State, Inserted_ID);
 
       when Reduce =>
-         Do_Reduce
-           (Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item, Inserted_ID,
-            Semantic_Check_Fail);
+         if Do_Reduce_1 (Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item) then
+            Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, Config, Inserted_ID);
+         end if;
 
       when Accept_It =>
          raise Programmer_Error with "found test case for Do_Reduce Accept_It";
 
       when Error =>
-         return;
+         null;
       end case;
 
-   end Do_Reduce;
+   end Do_Reduce_2;
 
    procedure Process_One
      (Super         : not null access Supervisor;
@@ -1118,8 +1121,9 @@ package body WisiToken.LR.McKenzie_Recover is
                end loop;
 
                if Good_Item_Count = 0 then
-                  --  Nothing more to do.
-                  Super.Abandon (Parser_Index);
+                  --  Nothing more to do. We know Local_Config_Heap is empty; just tell
+                  --  Super we are done working.
+                  Super.Put (Parser_Index, Local_Config_Heap);
                   return;
 
                elsif Good_Item_Count = 1 then
@@ -1172,11 +1176,7 @@ package body WisiToken.LR.McKenzie_Recover is
                --  "ignore error" is not viable, so abandon Config, but enqueue
                --  Local_Config_Heap.
 
-               if Local_Config_Heap.Count = 0 then
-                  Super.Abandon (Parser_Index);
-               else
-                  Super.Put (Parser_Index, Local_Config_Heap);
-               end if;
+               Super.Put (Parser_Index, Local_Config_Heap);
                return;
             end if;
          end;
@@ -1300,11 +1300,15 @@ package body WisiToken.LR.McKenzie_Recover is
          --  state, and enqueue the result. If there are any conflicts or
          --  semantic check fails encountered, they create other configs to
          --  enqueue.
-
          declare
             I : Action_List_Iterator := First (Table.States (Config.Stack.Peek.State));
 
-            Semantic_Check_Fail : Boolean := False;
+            Cached_Config   : Configuration;
+            Cached_Action   : Reduce_Action_Rec;
+            Cached_Continue : Boolean;
+            --  Most of the time, all the reductions in a state are the same. So
+            --  we cache the first result. This includes one reduction; if an
+            --  associated semantic check failed, this does not include the fixes.
          begin
             loop
                exit when I.Is_Done;
@@ -1314,35 +1318,46 @@ package body WisiToken.LR.McKenzie_Recover is
                   Action : Parse_Action_Rec renames I.Action;
                begin
                   if ID /= EOF_ID and --  can't insert eof
-                    (Config.Ops.Length > 0 and then -- don't insert an id we just pushed back.
+                    (Config.Ops.Length = 0 or else -- don't insert an id we just pushed back.
                        Config.Ops (Config.Ops.Last_Index) /= (Push_Back, ID, Config.Current_Shared_Token))
                   then
                      case Action.Verb is
-                     when Shift | Reduce =>
+                     when Shift =>
                         declare
-                           New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                           Op : constant Config_Op := (Insert, ID, New_Config.Current_Shared_Token);
+                           New_Config : Configuration := Config;
                         begin
-                           if Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
-                              New_Config.Ops.Append (Op);
-                           else
-                              New_Config.Ops.Insert (Op, Before => Config.Ops_Insert_Point);
-                              New_Config.Inserted.Insert (ID, Before => New_Config.Current_Inserted);
-                              New_Config.Current_Inserted := New_Config.Current_Inserted + 1;
-                           end if;
-
-                           New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
-
-                           if Action.Verb = Shift then
-                              Do_Shift (Super, Shared, Parser_Index, New_Config, Action.State, ID);
-                           else
-                              Do_Reduce
-                                (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action, ID,
-                                 Semantic_Check_Fail);
-                           end if;
+                           Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID);
                         end;
 
-                     when Accept_It | Error =>
+                     when Reduce =>
+                        if Action /= Cached_Action then
+                           declare
+                              New_Config : Configuration := Config;
+                           begin
+                              Cached_Continue := Do_Reduce_1
+                                (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action);
+                              Cached_Config := New_Config;
+                              Cached_Action := Action;
+
+                              if Cached_Continue then
+                                 Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID);
+                              end if;
+                           end;
+
+                        else
+                           if Cached_Continue then
+                              declare
+                                 New_Config : Configuration := Cached_Config;
+                              begin
+                                 Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID);
+                              end;
+                           end if;
+                        end if;
+
+                     when Accept_It =>
+                        raise Programmer_Error with "found test case for Process_One Accept_It";
+
+                     when Error =>
                         null;
                      end case;
                   end if;
@@ -1372,7 +1387,13 @@ package body WisiToken.LR.McKenzie_Recover is
                         begin
                            New_Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
                            New_Config.Cost := New_Config.Cost + McKenzie_Param.Insert (ID);
-                           Do_Shift (Super, Shared, Parser_Index, New_Config, I.State, ID);
+                           New_Config.Stack.Push
+                             ((I.State, Syntax_Trees.Invalid_Node_Index, (ID, Virtual => True, others => <>)));
+
+                           if Trace_McKenzie > Detail then
+                              Put ("insert " & Image (ID, Super.Trace.Descriptor.all), Super, Shared,
+                                   Parser_Index, Config);
+                           end if;
                         end;
                      end if;
                   end;

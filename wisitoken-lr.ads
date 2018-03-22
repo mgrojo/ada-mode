@@ -86,7 +86,8 @@ package WisiToken.LR is
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
       when Shift =>
-         State : State_Index;
+         State : State_Index := State_Index'Last;
+
       when Reduce | Accept_It =>
          LHS         : Token_ID                                 := Invalid_Token_ID;
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;

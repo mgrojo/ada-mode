@@ -133,7 +133,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
       Action           : Reduce_Action_Rec renames Config.Check_Action;
       Begin_Name_Token : Recover_Token renames Config.Check_Status.Begin_Name;
-      End_Token        : Recover_Token renames Config.Check_Status.End_Name;
+      End_Name_Token   : Recover_Token renames Config.Check_Status.End_Name;
    begin
       if Trace_McKenzie > Detail then
          Put ("Ada_Lite Semantic_Check_Fixes", Config);
@@ -143,10 +143,14 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       end if;
 
       if not (Begin_Name_IDs (Begin_Name_Token.ID) and
-                End_Name_IDs (End_Token.ID) and
+                End_Name_IDs (End_Name_Token.ID) and
                 Nonterm_IDs (Nonterm.ID))
       then
-         raise Programmer_Error with "unregognized begin/end/nonterm token id";
+         raise Programmer_Error with "unrecognized begin/end/nonterm token id";
+      end if;
+
+      if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
+         raise Programmer_Error with "found test case for Ada_Lite semantic_check_fixes Ops_Insert_Point.";
       end if;
 
       case Config.Check_Status.Label is
@@ -188,7 +192,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  here on a second semantic check error.
 
          declare
-            End_Name : constant String := Lexer.Buffer_Text (End_Token.Name);
+            End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
 
             Matching_Name_Index : SAL.Peek_Type   := 2; -- start search before <end_name_token>
             Begin_Count         : Integer         := 0;
@@ -278,7 +282,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  begin' or 'delete end;'.
 
          declare
-            End_Name : constant String := Lexer.Buffer_Text (End_Token.Name);
+            End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
 
             Matching_Name_Index : SAL.Peek_Type := 2; -- start search before <end_name_token>
             Exception_Count     : Integer       := 0;
@@ -400,7 +404,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          declare
             use Ada.Characters.Handling;
 
-            End_Name : constant String := To_Lower (Lexer.Buffer_Text (End_Token.Name));
+            End_Name : constant String := To_Lower (Lexer.Buffer_Text (End_Name_Token.Name));
 
             Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Action.Token_Count);
 
