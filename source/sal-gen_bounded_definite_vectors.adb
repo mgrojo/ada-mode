@@ -68,6 +68,19 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       Container.Last := Container.Last + 1;
    end Prepend;
 
+   procedure Insert
+     (Container : in out Vector;
+      New_Item  : in     Element_Type;
+      Before    : in     Extended_Index)
+   is
+      J : constant Peek_Type := To_Peek_Index (Before);
+      K : constant Peek_Type := To_Peek_Index (Container.Last);
+   begin
+      Container.Elements (J + 1 .. K + 1) := Container.Elements (J .. K);
+      Container.Elements (J) := New_Item;
+      Container.Last := Container.Last + 1;
+   end Insert;
+
    function "+" (Item : in Element_Type) return Vector
    is begin
       return Result : Vector do

@@ -62,6 +62,14 @@ package SAL.Gen_Bounded_Definite_Vectors is
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type);
    --  Insert New_Item at beginning of Container; current elements slide right.
 
+   procedure Insert
+     (Container : in out Vector;
+      New_Item  : in     Element_Type;
+      Before    : in     Extended_Index);
+   --  Insert New_Item before Before, or after Last_Index if Before is
+   --  No_Index. Current elements after at Before and after slide right.
+   --  New_Item then has index Before.
+
    function "+" (Item : in Element_Type) return Vector;
    function "&" (Left : in Vector; Right : in Element_Type) return Vector;
 
