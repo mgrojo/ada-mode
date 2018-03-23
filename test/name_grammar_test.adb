@@ -96,7 +96,7 @@ package body Name_Grammar_Test is
      Component_ID      <= Dot_ID & Identifier_ID + Null_Action and
      Component_ID      <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
    procedure Parse_Command
      (Label   : in     String;
@@ -161,7 +161,8 @@ package body Name_Grammar_Test is
                LALR_Descriptor,
                First_State_Index,
                Ignore_Unused_Tokens => False),
-            First_Parser_Label);
+            Semantic_Check_Fixes => null,
+         First_Parser_Label => First_Parser_Label);
          Parse_Command ("Full Parser", Parser, "Module.Symbol");
          Parse_Command ("Full Parser", Parser, "Module.Symbol (Index)");
          Parse_Command ("Full Parser", Parser, "Module.Symbol.Component");

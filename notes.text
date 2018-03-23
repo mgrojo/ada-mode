@@ -19,9 +19,7 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-add test_mckenzie_recover test for Missing_Name_Error case 1b
-
-run all tests
+delete patterns
 
 refactor Process_one  with subprograms
 
@@ -32,9 +30,6 @@ improve propagate_names.ada_lite
     recover finds two identical ok solutions; parse fails on ambiguous parse
         one based on "ignore error"
     improve semantic fix to get a single better solution
-    move to language package first
-
-delete patterns
 
 update ada-mode
     run-time end-name-optional param

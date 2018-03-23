@@ -304,7 +304,7 @@ package body WisiToken.LR.Parser is
                   if Item_1.State /= Item_2.State then
                      return False;
                   else
-                     if Syntax_Trees.Branched.Same_Token (Tree_1, Item_1.Token, Tree_2, Item_2.Token) then
+                     if not Syntax_Trees.Branched.Same_Token (Tree_1, Item_1.Token, Tree_2, Item_2.Token) then
                         return False;
                      end if;
                   end if;
@@ -792,7 +792,7 @@ package body WisiToken.LR.Parser is
                end if;
 
             elsif Shared_Parser.Terminate_Same_State and then
-              (Current_Verb in Shift | Shift_Recover and
+              (Current_Verb in Shift | Shift_Recover and then
                  Duplicate_State (Shared_Parser.Parsers, Current_Parser))
             then
                if Trace_Parse > Outline then

@@ -894,7 +894,7 @@ package body Test_McKenzie_Recover is
 
       --  Missing 'Remove' 56. Enters error recovery on 'end' 58 with
       --  Missing_Name_Error. See Missing_Name_0 for general discussion. See
-      --  Missing_Name_3; there is no way to distinguish this case from
+      --  Missing_Name_2; there is no way to distinguish this case from
       --  that, other than parsing to EOF. So Semantic_Check_Fixes returns
       --  two solutions; 'ignore error' and 'push_back, delete end;'.
       --
@@ -922,6 +922,47 @@ package body Test_McKenzie_Recover is
          Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
       end;
    end Missing_Name_3;
+
+   procedure Missing_Name_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+   begin
+      Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
+
+      Parse_Text
+        ("package body P is package body Remove is A : Integer; end; end P; procedure Q;");
+      --           |10       |20       |30       |40       |50       |60       |70
+
+      --  Missing 'Remove' 68. Enters error recovery on 'end' 60 with
+      --  Missing_Name_Error.
+      --
+      --  In this case, 'ignore error' is the only solution returned by
+      --  Semantic_Error_Fixes. The check immediately succeeds, and that is
+      --  the result from recover.
+
+      declare
+         use WisiToken.LR.Parse_Error_Lists;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.Config_Op_Arrays;
+         use WisiToken.Semantic_Checks.AUnit;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
+         use all type WisiToken.LR.Config_Op_Label;
+         use all type WisiToken.LR.Parse_Error_Label;
+
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
+         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
+      begin
+         Check ("errors.length", Error_List.Length, 1);
+         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
+         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
+      end;
+   end Missing_Name_4;
 
    procedure Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1235,6 +1276,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Missing_Name_2'Access, "Missing_Name_2");
       Register_Routine (T, Missing_Name_3'Access, "Missing_Name_3");
+      Register_Routine (T, Missing_Name_4'Access, "Missing_Name_4");
       Register_Routine (T, Block_Match_Names_1'Access, "Block_Match_Names_1");
       Register_Routine (T, Two_Parsers_1'Access, "Two_Parsers_1");
       Register_Routine (T, Extra_Name_1'Access, "Extra_Name_1");

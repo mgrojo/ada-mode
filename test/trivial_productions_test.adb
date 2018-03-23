@@ -58,7 +58,7 @@ package body Trivial_Productions_Test is
          Accept_ID         => E_ID);
       use Token_Enum;
 
-      Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+      Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
       procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -94,7 +94,8 @@ package body Trivial_Productions_Test is
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
-            First_Parser_Label);
+            Semantic_Check_Fixes => null,
+            First_Parser_Label => First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);
 
@@ -139,7 +140,7 @@ package body Trivial_Productions_Test is
          Accept_ID         => WisiToken_Accept_ID);
       use Token_Enum;
 
-      Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+      Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
       procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -187,7 +188,8 @@ package body Trivial_Productions_Test is
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
-            First_Parser_Label);
+            Semantic_Check_Fixes => null,
+            First_Parser_Label => First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);
          Parser.Parse;

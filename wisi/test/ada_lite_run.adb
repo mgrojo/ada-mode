@@ -30,6 +30,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Lite;
 with GNAT.Traceback.Symbolic;
+with WisiToken.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.LR.Parser;
 with WisiToken.Semantic_State;
 with WisiToken.Syntax_Trees;
@@ -56,7 +57,9 @@ is
    is
       Parser : WisiToken.LR.Parser.Parser;
    begin
-      Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.Trace'Unchecked_Access);
+      Ada_Lite.Create_Parser
+        (Parser, WisiToken.LALR, Ada_Lite.Trace'Unchecked_Access,
+         WisiToken.LR.McKenzie_Recover.Ada_Lite.Semantic_Check_Fixes'Access);
       Parser.Lexer.Reset_With_File (-File_Name);
 
       for I in 1 .. Repeat_Count loop

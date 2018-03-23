@@ -103,7 +103,7 @@ package body Dragon_4_45_LALR_Test is
    First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
    ----------
    --  Test procedures
@@ -238,13 +238,6 @@ package body Dragon_4_45_LALR_Test is
       Add_Action (Expected.States (S89), +EOF_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
       Add_Error (Expected.States (S89));
 
-      if WisiToken.Trace_Generate > WisiToken.Detail then
-         --  computed output above
-         Ada.Text_IO.New_Line (2);
-         Ada.Text_IO.Put_Line ("expected:");
-         Put (LALR_Descriptor, Expected);
-      end if;
-
       Check ("", Computed.all, Expected);
    end Parser_Table;
 
@@ -272,7 +265,8 @@ package body Dragon_4_45_LALR_Test is
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index),
-         First_Parser_Label);
+         Semantic_Check_Fixes => null,
+         First_Parser_Label => First_Parser_Label);
 
       Execute_Command ("cdcd");
    end Test_Parse;

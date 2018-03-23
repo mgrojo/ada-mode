@@ -84,7 +84,7 @@ package body Test_Accept_State is
 
    Parser : WisiToken.LR.Parser.Parser;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
    ----------
    --  Test procedures
@@ -100,7 +100,8 @@ package body Test_Accept_State is
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
-         First_Parser_Label);
+         Semantic_Check_Fixes => null,
+         First_Parser_Label => First_Parser_Label);
 
       Parser.Lexer.Reset_With_String ("set A = 2");
 

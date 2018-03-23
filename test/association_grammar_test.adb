@@ -99,7 +99,7 @@ package body Association_Grammar_Test is
 
    Parser : WisiToken.LR.Parser.Parser;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
    procedure Parse_Command (Command : in String)
    is begin
@@ -152,7 +152,8 @@ package body Association_Grammar_Test is
            (Full_Grammar,
             LALR_Descriptor,
             First_State_Index => 1),
-         First_Parser_Label);
+         Semantic_Check_Fixes => null,
+         First_Parser_Label => First_Parser_Label);
 
       WisiToken.Trace_Parse := WisiToken.Detail + 1;
 

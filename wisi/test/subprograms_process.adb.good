@@ -275,9 +275,10 @@ package body Subprograms_Process is
    end use_clause_0;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.LR.Parser.Parser;
-      Algorithm : in WisiToken.Parser_Algorithm_Type;
-      Trace     : not null access WisiToken.Trace'Class)
+     (Parser               :    out WisiToken.LR.Parser.Parser;
+      Algorithm            : in     WisiToken.Parser_Algorithm_Type;
+      Trace                : not null access WisiToken.Trace'Class;
+      Semantic_Check_Fixes : in     WisiToken.LR.Semantic_Check_Fixes_Access)
    is
       use WisiToken.LR;
       use all type WisiToken.Parser_Algorithm_Type;
@@ -295,11 +296,6 @@ package body Subprograms_Process is
          Last_Terminal     => 19,
          First_Nonterminal => 20,
          Last_Nonterminal  => 31,
-         Push_Back =>
-           (0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0),
          Insert =>
            (0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
@@ -310,6 +306,14 @@ package body Subprograms_Process is
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0),
+         Push_Back =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0),
+         Undo_Reduce =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0),
          Cost_Limit  => 2147483647,
          Check_Limit => 2147483647,
          Patterns    => WisiToken.LR.Patterns.Empty_List);
@@ -523,6 +527,7 @@ package body Subprograms_Process is
          Trace,
          Lexer.New_Lexer (Trace),
          Table,
+         Semantic_Check_Fixes,
          Max_Parallel         => 15,
          First_Parser_Label   => 0,
          Terminate_Same_State => True);

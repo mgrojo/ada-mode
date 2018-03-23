@@ -47,23 +47,23 @@ OK test_mckenzie_recover.adb : If_In_Handler
 OK test_mckenzie_recover.adb : Zombie_In_Resume
 OK test_mckenzie_recover.adb : Push_Back_1
 OK test_mckenzie_recover.adb : Missing_Quote
+OK test_mckenzie_recover.adb : Missing_Name_0
 OK test_mckenzie_recover.adb : Missing_Name_1
+OK test_mckenzie_recover.adb : Missing_Name_2
+OK test_mckenzie_recover.adb : Missing_Name_3
+OK test_mckenzie_recover.adb : Missing_Name_4
 OK test_mckenzie_recover.adb : Block_Match_Names_1
 OK test_mckenzie_recover.adb : Two_Parsers_1
 OK test_mckenzie_recover.adb : Extra_Name_1
+OK test_mckenzie_recover.adb : Extra_Name_2
+OK test_mckenzie_recover.adb : Extra_Name_3
 OK test_mckenzie_recover.adb : Two_Missing_Ends
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-branched-test.adb : Test_Move_Branch_Point
 
-FAIL test_ada_lite.adb : Propagate_Names
-    propagate_names.parse:2
-got       ' 0: 0:  1:(PACKAGE, (72 . 78)) : shift and goto state 2'
-expecting ' 0: 0: (PACKAGE, (72 . 78)) : shift and goto state 2'
-    at aunit-checks.adb:229
-
-Total Tests Run:   58
-Successful Tests:  57
-Failed Assertions: 1
+Total Tests Run:   63
+Successful Tests:  63
+Failed Assertions: 0
 Unexpected Errors: 0

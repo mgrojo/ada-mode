@@ -106,7 +106,7 @@ package body Dragon_4_43_LR1_Test is
    First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
    ----------
    --  Test procedures
@@ -286,13 +286,6 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected.States (Map (9)), +EOF_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
       Add_Error (Expected.States (Map (9)));
 
-      if Test.Debug > 0 then
-         --  computed output above during generate
-         Ada.Text_IO.New_Line (2);
-         Ada.Text_IO.Put_Line ("expected:");
-         Put (LR1_Descriptor, Expected);
-      end if;
-
       Check ("", Computed.all, Expected);
    end Parser_Table;
 
@@ -316,9 +309,9 @@ package body Dragon_4_43_LR1_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LR1_Generator.Generate
-           (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
-         First_Parser_Label);
+         WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
+         Semantic_Check_Fixes => null,
+         First_Parser_Label => First_Parser_Label);
 
       Execute_Command ("cdcd");
    end Test_Parse;

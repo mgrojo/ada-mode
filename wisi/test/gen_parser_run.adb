@@ -55,11 +55,11 @@ is
    begin
       case Algorithm is
       when WisiToken.LALR =>
-         Create_Parser (Parser, WisiToken.LALR, Trace'Unchecked_Access);
+         Create_Parser (Parser, WisiToken.LALR, Trace'Unchecked_Access, null);
          Put_Line ("LALR_Parser parse:");
 
       when WisiToken.LR1 =>
-         Create_Parser (Parser, WisiToken.LR1, Trace'Unchecked_Access);
+         Create_Parser (Parser, WisiToken.LR1, Trace'Unchecked_Access, null);
          Put_Line ("LR1_Parser parse:");
       end case;
 

@@ -279,38 +279,40 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       when Missing_Name_Error =>
          --  0. User name error. The input looks like:
          --
-         --  "<begin_name_token> ... <end_name_token> ;"
+         --  0a. "<begin_name_token> ... <end_name_token> ;"
+         --
+         --  0b. "<begin_named_token> is declarative_part_opt end <end_name_token> ;"
          --
          --  where <end_name_token> is empty, because the user is changing it.
+         --  0a looks like a subprogram or named block; 1b looks like a package
+         --  body.
          --
          --  The fix is to ignore the error; return True. See
          --  test_mckenzie_recover Missing_Name_*.
          --
          --  1. missing 'begin' or extra 'end'. The stack looks like:
          --
-         --  1a. "<begin_named_token> ... begin handled_sequence_of_statements end <end_name_token> ;"
-         --  or
-         --  1b. "<begin_named_token> ... is declarative_part_opt end <end_name_token> ;"
+         --   "<begin_named_token> ... begin handled_sequence_of_statements end <end_name_token> ;"
          --
          --  where the <end_name_token> is empty. See test_mckenzie_recover.adb
          --  Missing_Name_*.
          --
          --  There are two subcases:
          --
-         --  1c. The 'end <end_name_token> ;' is left over from editing, and
+         --  1a. The 'end <end_name_token> ;' is left over from editing, and
          --  should be deleted
          --
-         --  1d. There is a missing 'begin'.
+         --  1b. There is a missing 'begin'.
          --
-         --  We can distinguish between 1c and 1d by looking for 'exception';
+         --  We can distinguish between 1a and 1b by looking for 'exception';
          --  if it is present, it is more likely there is a missing 'begin'.
          --  However, 'exception' is contained by
          --  'handled_sequence_of_statements' on the stack, so we have to look
          --  inside that using the syntax tree.
          --
          --  We cannot distinguish between cases 0 and 1, other than by parsing
-         --  ahead. So we return two solutions; 'ignore error' and either
-         --  'insert begin' or 'delete end;'.
+         --  ahead, except in case 0b. So we return two solutions; 'ignore
+         --  error' and either 'insert begin' or 'delete end;'.
 
          if Nonterm.Virtual or
            (not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.Check_Action.Token_Count)))
@@ -323,8 +325,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             return False; -- ignore error is not valid in this case.
          end if;
 
+         if Nonterm.ID = +package_body_ID then
+            --  case 0b.
+            return True;
+         end if;
+
          if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack (4).Tree_Index, +EXCEPTION_ID) then
-            --  'exception' not found; case 1d - assume extra 'end ;'; delete it.
+            --  'exception' not found; case 1b - assume extra 'end ;'; delete it.
             declare
                New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
@@ -369,7 +376,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                --  Don't change New_Config.Current_Shared_Token
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1d " & Image (Nonterm.ID, Descriptor), New_Config.all);
+                  Put ("Semantic_Check Missing_Name_Error 1b " & Image (Nonterm.ID, Descriptor), New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -377,7 +384,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             end;
 
          else
-            --  'exception' found; case 1c - assume missing 'begin'; insert it
+            --  'exception' found; case 1a - assume missing 'begin'; insert it
             --  before 'handled_sequence_of_statements'
             declare
                New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
@@ -411,7 +418,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                New_Config.Current_Inserted := 1;
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1c " & Image (Nonterm.ID, Descriptor), New_Config.all);
+                  Put ("Semantic_Check Missing_Name_Error 1a " & Image (Nonterm.ID, Descriptor), New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;

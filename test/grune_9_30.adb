@@ -91,7 +91,7 @@ package body Grune_9_30 is
    First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
    ----------
    --  Test procedures
@@ -165,7 +165,8 @@ package body Grune_9_30 is
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => WisiToken.Trace_Generate > WisiToken.Outline),
-         First_Parser_Label);
+         Semantic_Check_Fixes => null,
+         First_Parser_Label => First_Parser_Label);
 
       Execute_Command ("abc");
       Execute_Command ("ac");
