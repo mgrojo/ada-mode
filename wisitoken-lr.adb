@@ -597,6 +597,29 @@ package body WisiToken.LR is
       return True;
    end None_Since_FF;
 
+   function Match_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op) return Boolean
+   is begin
+      for O of reverse Ops loop
+         exit when O.Op = Fast_Forward;
+         if O = Op then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Match_Since_FF;
+
+   function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean
+   is
+      use all type Syntax_Trees.Node_Index;
+   begin
+      for I in 1 .. Depth loop
+         if Stack (I).Tree_Index = Syntax_Trees.Invalid_Node_Index then
+            return False;
+         end if;
+      end loop;
+      return True;
+   end Valid_Tree_Indices;
+
    procedure Set_Key (Item : in out Configuration; Key : in Integer)
    is begin
       Item.Cost := Key;

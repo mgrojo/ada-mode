@@ -466,8 +466,12 @@ package WisiToken.LR is
    --  True if Ops contains no Op.
 
    function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean;
-   --  True if Ops contains no Op after the last Fast_Forard (or ops.first, if
+   --  True if Ops contains no Op after the last Fast_Forward (or ops.first, if
    --  no Fast_Forward).
+
+   function Match_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op) return Boolean;
+   --  True if Ops contains an Op after the last Fast_Forward (or ops.first, if
+   --  no Fast_Forward) that equals Op.
 
    function Any (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is (for some O of Ops => O.Op = Op);
@@ -485,6 +489,11 @@ package WisiToken.LR is
      is (Image (Item.State) & " : " & Image (Item.Token, Descriptor));
 
    function Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+
+   function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean;
+   --  Return True if Stack top Depth items have valid Tree_Indices,
+   --  which is true if they were copied from the parser stack, and not
+   --  pushed by recover.
 
    type Configuration is record
       Stack : Recover_Stacks.Stack;
@@ -542,6 +551,9 @@ package WisiToken.LR is
    --  Local_Config_Heap language-specific fixes for the failure. Return
    --  True if ignoring the error is a viable solution, False otherwise.
    --  Called from McKenzie_Recover.
+   --
+   --  May be called with Nonterm.Virtual = True and Tree.Valid_Indices
+   --  false.
 
    type McKenzie_Data is tagged record
       Config_Heap   : Config_Heaps.Heap_Type;

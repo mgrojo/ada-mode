@@ -120,13 +120,6 @@ package body WisiToken.LR.Parser_Lists is
       Trace.Put_Line (Image (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree, Depth => 10));
    end Put_Top_10;
 
-   procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor)
-   is
-      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Ptr);
-   begin
-      Item.Pre_Reduce_Item := Item.Stack.Peek;
-   end Pre_Reduce_Stack_Save;
-
    procedure Prepend_Copy
      (List   : in out Parser_Lists.List;
       Cursor : in     Parser_Lists.Cursor'Class)
@@ -144,21 +137,19 @@ package body WisiToken.LR.Parser_Lists is
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
          New_Item :=
-           (Shared_Tree              => Item.Shared_Tree,
-            Shared_Token             => Item.Shared_Token,
-            Recover_Insert_Delete    => Item.Recover_Insert_Delete,
-            Current_Token            => Item.Current_Token,
-            Current_Token_Is_Virtual => Item.Current_Token_Is_Virtual,
-            Inc_Shared_Token         => Item.Inc_Shared_Token,
-            Stack                    => Item.Stack,
-            Tree                     => Item.Tree,
-            Recover                  => (others => <>),
-            Zombie_Token_Count       => 0,
-            Errors                   => Item.Errors,
-            Label                    => List.Parser_Label,
-            Verb                     => Item.Verb,
-            Prev_Verb                => Item.Prev_Verb,
-            Pre_Reduce_Item          => Item.Pre_Reduce_Item);
+           (Shared_Tree           => Item.Shared_Tree,
+            Shared_Token          => Item.Shared_Token,
+            Recover_Insert_Delete => Item.Recover_Insert_Delete,
+            Current_Token         => Item.Current_Token,
+            Inc_Shared_Token      => Item.Inc_Shared_Token,
+            Stack                 => Item.Stack,
+            Tree                  => Item.Tree,
+            Recover               => (others => <>),
+            Zombie_Token_Count    => 0,
+            Errors                => Item.Errors,
+            Label                 => List.Parser_Label,
+            Verb                  => Item.Verb,
+            Prev_Verb             => Item.Prev_Verb);
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
@@ -251,14 +242,14 @@ package body WisiToken.LR.Parser_Lists is
       return Iterator.Verb;
    end Verb;
 
+   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs
+   is begin
+      return Iterator.Prev_Verb;
+   end Prev_Verb;
+
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs)
    is begin
       Iterator.Verb := Verb;
    end Set_Verb;
-
-   function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item
-   is begin
-      return Iterator.Pre_Reduce_Item;
-   end Pre_Reduce_Stack_Item;
 
 end WisiToken.LR.Parser_Lists;

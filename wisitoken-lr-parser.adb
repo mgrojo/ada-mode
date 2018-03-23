@@ -100,13 +100,11 @@ package body WisiToken.LR.Parser is
 
       case Action.Verb is
       when Shift =>
-         Current_Parser.Set_Verb (Action.Verb);
+         Current_Parser.Set_Verb (Shift);
          Parser_State.Stack.Push ((Action.State, Parser_State.Current_Token));
          Parser_State.Tree.Set_State (Parser_State.Current_Token, Action.State);
 
       when Reduce =>
-         Current_Parser.Pre_Reduce_Stack_Save;
-
          Status := Reduce_Stack_1
            (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Shared_Parser.Resume_Active, Trace);
 
@@ -123,7 +121,7 @@ package body WisiToken.LR.Parser is
 
          case Status is
          when Ok =>
-            Current_Parser.Set_Verb (Action.Verb);
+            Current_Parser.Set_Verb (Reduce);
 
             if Trace_Parse > Detail then
                Trace.Put_Line (" ... goto state " & Image (Parser_State.Stack.Peek.State));
@@ -221,10 +219,12 @@ package body WisiToken.LR.Parser is
       for Parser_State of Shared_Parser.Parsers loop
          case Parser_State.Verb is
          when Shift | Shift_Recover =>
-            if Parser_State.Current_Token_Is_Virtual or else
-              (Parser_State.Recover_Insert_Delete.Length > 0 and then
-                 Parser_State.Recover_Insert_Delete.Peek.Op = Insert and then
-                 Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token + 1)
+            if Parser_State.Recover_Insert_Delete.Length > 0 and then
+              Parser_State.Recover_Insert_Delete.Peek.Op = Insert and then
+              Parser_State.Recover_Insert_Delete.Peek.Token_Index =
+              (if Parser_State.Inc_Shared_Token
+               then Parser_State.Shared_Token + 1
+               else Parser_State.Shared_Token)
             then
                Shift_Recover_Count := Shift_Recover_Count + 1;
                Parser_State.Set_Verb (Shift_Recover);
@@ -507,7 +507,13 @@ package body WisiToken.LR.Parser is
                      end if;
                   end if;
                else
-                  Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                  if Parser_State.Inc_Shared_Token then
+                     --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
+                     --  for when/why.
+                     Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                  else
+                     Parser_State.Inc_Shared_Token := True;
+                  end if;
 
                   if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
@@ -519,8 +525,6 @@ package body WisiToken.LR.Parser is
                            Shared_Parser.Trace.Descriptor.all),
                         Shared_Parser.Terminals);
                   end if;
-
-                  Parser_State.Current_Token_Is_Virtual := False;
                end if;
             end loop;
 
@@ -545,8 +549,6 @@ package body WisiToken.LR.Parser is
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Recover_Insert_Delete.Get.ID);
 
-                     Parser_State.Current_Token_Is_Virtual := True; -- for when we transition to normal parsing.
-
                      --  Handle deletes here, so Parse_Verb can see next insert.
                      loop
                         if Parser_State.Recover_Insert_Delete.Length > 0 and then
@@ -560,9 +562,9 @@ package body WisiToken.LR.Parser is
                         end if;
                      end loop;
 
-                  elsif Parser_State.Shared_Token < Shared_Parser.Terminals.Last_Index or
-                    (Parser_State.Current_Token_Is_Virtual and
-                       Parser_State.Shared_Token = Shared_Parser.Terminals.Last_Index)
+                  elsif (if Parser_State.Inc_Shared_Token
+                         then Parser_State.Shared_Token + 1
+                         else Parser_State.Shared_Token) <= Shared_Parser.Terminals.Last_Index
                   then
                      --  Input a token that was read from Lexer during error recovery.
 
@@ -577,9 +579,6 @@ package body WisiToken.LR.Parser is
 
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Shared_Token, Shared_Parser.Terminals);
-
-                     Parser_State.Current_Token_Is_Virtual := False; -- for when we transition to normal parsing.
-
                   else
                      --  Done with all recover insertions; waiting for other parsers to
                      --  finish with them, so do nothing this cycle.
@@ -708,7 +707,7 @@ package body WisiToken.LR.Parser is
                              (Integer'Image (Parser_State.Label) & ": Current_Token " &
                                 Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
                                 " Shared_Token " & Image
-                                  (Shared_Parser.Terminals.Element (Parser_State.Shared_Token), Trace.Descriptor.all));
+                                  (Parser_State.Shared_Token, Shared_Parser.Terminals, Trace.Descriptor.all));
                            Trace.New_Line;
                         end if;
 
@@ -737,7 +736,7 @@ package body WisiToken.LR.Parser is
                               Current_Verb := Shift;
                            end if;
 
-                        when  Accept_It =>
+                        when Accept_It =>
                            raise Programmer_Error;
                         end case;
                      end loop;

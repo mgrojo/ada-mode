@@ -39,8 +39,6 @@ package WisiToken.LR.Parser_Lists is
       Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  Current terminal, in Tree
 
-      Current_Token_Is_Virtual : Boolean := False;
-
       Inc_Shared_Token : Boolean := True;
 
       Stack : Parser_Stacks.Stack;
@@ -119,12 +117,6 @@ package WisiToken.LR.Parser_Lists is
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Trace.
 
-   procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor);
-   --  Save a copy of top Cursor.Stack item.
-   --
-   --  McKenzie error recover algorithm needs the parse state before
-   --  last reduce action.
-
    procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class);
    --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).
@@ -193,7 +185,7 @@ package WisiToken.LR.Parser_Lists is
    function Label (Iterator : in Parser_State) return Natural;
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
-   function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item;
+   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
 
 private
 
@@ -202,8 +194,7 @@ private
 
       Verb : All_Parse_Action_Verbs := Shift; -- current action to perform
 
-      Prev_Verb       : All_Parse_Action_Verbs := Parse_Action_Verbs'First; -- previous action performed
-      Pre_Reduce_Item : Parser_Stack_Item      := (others => <>);
+      Prev_Verb : All_Parse_Action_Verbs := Parse_Action_Verbs'First; -- previous action performed
    end record;
 
    package Parser_State_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Parser_State);

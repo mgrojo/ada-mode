@@ -99,8 +99,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Nonterm           : in     Recover_Token)
      return Boolean
    is
-      pragma Unreferenced (Tree); --  FIXME: delete? use is never reliable?
-
       --  A reduce on Config failed a semantic check; Config.Stack is in the
       --  pre-reduce state, Nonterm is the result of the reduce. Enqueue
       --  fixes for the failure indicated by Code. Return True if Config
@@ -111,15 +109,23 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
       use all type Semantic_Checks.Check_Status_Label;
+      use all type Syntax_Trees.Node_Index;
 
       procedure Put (Message : in String; Config  : in Configuration)
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
       end Put;
 
-      procedure Push_Back_Check
-        (Config      : in Configuration_Access;
+      procedure Check
+        (ID          :    Token_ID;
          Expected_ID : in Token_ID)
+      is begin
+         pragma Assert (ID = Expected_ID);
+      end Check;
+
+      procedure Push_Back_Check
+        (Config      : in out Configuration;
+         Expected_ID : in     Token_ID)
       is
          Item        : constant Recover_Stack_Item         := Config.Stack.Pop;
          Token_Index : constant WisiToken.Base_Token_Index := Item.Token.Min_Terminal_Index;
@@ -129,6 +135,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          Config.Ops.Append
            ((Push_Back, Item.Token.ID,
              (if Token_Index = Invalid_Token_Index then Config.Current_Shared_Token else Token_Index)));
+      end Push_Back_Check;
+
+      procedure Push_Back_Check
+        (Config      : in Configuration_Access;
+         Expected_ID : in Token_ID)
+      is begin
+         Push_Back_Check (Config.all, Expected_ID);
       end Push_Back_Check;
 
       Action           : Reduce_Action_Rec renames Config.Check_Action;
@@ -177,7 +190,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  matched <bad_begin_name_token> with <end_name_token>.
          --
          --  The fix is to insert one or more 'end ;' before <end_name_token>.
-         --  See propagate_names.ada_lite Proc_2, Proc_3.
+         --  See test_mckenzie_recover.adb Block_Match_Names_1, Extra_Name_2.
          --
          --
          --  It is not possible for the mismatch to indicate an extra 'end';
@@ -188,8 +201,10 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  <correct_begin_name_token>. If found, it's case 1, otherwise case 0.
          --
          --  If there is more than one missing 'end', a later recover operation
-         --  will fix the others. In test_mckenzie_recover Extra_Name_2, we get
-         --  here on a second semantic check error.
+         --  will fix the others. For example, in test_mckenzie_recover
+         --  Extra_Name_2, we get here on a second semantic check error.
+
+         --  This case doesn't use Tree, and it can handle some virtual tokens.
 
          declare
             End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
@@ -208,8 +223,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             else
                --  Case 1.
                declare
-                  New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                  Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
+                  New_Config : Configuration := Config;
+                  --  We don't use Configuration_Access here because we might abandon
+                  --  this config.
+
+                  Ops : Config_Op_Arrays.Vector renames New_Config.Ops;
                begin
                   --  This is a not a guess, so it has zero cost.
                   --
@@ -227,6 +245,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                       then +identifier_opt_ID
                       else +name_opt_ID));
 
+                  if New_Config.Stack (1).Token.Min_Terminal_Index = Invalid_Token_Index then
+                     --  We don't check earlier for Nonterm.Virtual, because we can handle
+                     --  other tokens being virtual.
+
+                     return False; -- ignore error is not valid
+                  end if;
+
                   New_Config.Current_Shared_Token := New_Config.Stack (1).Token.Min_Terminal_Index;
 
                   Push_Back_Check (New_Config, +END_ID);
@@ -238,8 +263,10 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   New_Config.Inserted.Append (+SEMICOLON_ID);
                   New_Config.Current_Inserted := 1;
 
+                  Local_Config_Heap.Add (New_Config);
+
                   if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Match_Names_Error 1 " & Image (Nonterm.ID, Descriptor), New_Config.all);
+                     Put ("Semantic_Check Match_Names_Error 1 " & Image (Nonterm.ID, Descriptor), New_Config);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                      end if;
@@ -259,7 +286,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  The fix is to ignore the error; return True. See
          --  test_mckenzie_recover Missing_Name_*.
          --
-         --  1. missing 'begin' or extra 'end'. The input looks like:
+         --  1. missing 'begin' or extra 'end'. The stack looks like:
          --
          --  1a. "<begin_named_token> ... begin handled_sequence_of_statements end <end_name_token> ;"
          --  or
@@ -276,103 +303,122 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  1d. There is a missing 'begin'.
          --
          --  We can distinguish between 1c and 1d by looking for 'exception';
-         --  if it is present, it is more likely there is a missing 'begin'. We
-         --  cannot distinguish between 0 and 1, other than by parsing ahead.
-         --  So we return two solutions; 'ignore error' and either 'insert
-         --  begin' or 'delete end;'.
+         --  if it is present, it is more likely there is a missing 'begin'.
+         --  However, 'exception' is contained by
+         --  'handled_sequence_of_statements' on the stack, so we have to look
+         --  inside that using the syntax tree.
+         --
+         --  We cannot distinguish between cases 0 and 1, other than by parsing
+         --  ahead. So we return two solutions; 'ignore error' and either
+         --  'insert begin' or 'delete end;'.
 
-         declare
-            End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
+         if Nonterm.Virtual or
+           (not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.Check_Action.Token_Count)))
+         then
+            --  Nonterm.Virtual happens when a previous fix inserts tokens.
+            --
+            --  Invalid tree indices happens when recover enqueues a config that
+            --  contains tokens pushed during recover.
 
-            Matching_Name_Index : SAL.Peek_Type := 2; -- start search before <end_name_token>
-            Exception_Count     : Integer       := 0;
-         begin
-            Find_Matching_Name
-              (Config, Lexer, End_Name, Matching_Name_Index, +EXCEPTION_ID, Exception_Count,
-               Case_Insensitive => True);
+            return False; -- ignore error is not valid in this case.
+         end if;
 
-            if Exception_Count = 0 then
-               --  assume extra 'end ;'; delete it.
-               declare
-                  New_Config    : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                  Ops           : Config_Op_Arrays.Vector renames New_Config.Ops;
-                  Stack         : Recover_Stacks.Stack renames New_Config.Stack;
-                  Item : Recover_Stack_Item;
-               begin
-                  --  This is a guess, but it is equally as likely as 'ignore error', so
-                  --  it has the same cost.
+         if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack (4).Tree_Index, +EXCEPTION_ID) then
+            --  'exception' not found; case 1d - assume extra 'end ;'; delete it.
+            declare
+               New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
+               Stack      : Recover_Stacks.Stack renames New_Config.Stack;
+               End_Item   : Recover_Stack_Item;
+            begin
+               --  This is a guess, but it is equally as likely as 'ignore error', so
+               --  it has the same cost.
 
-                  New_Config.Check_Status := (Label => Ok);
+               New_Config.Check_Status := (Label => Ok);
 
-                  Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
+               Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
 
-                  Push_Back_Check (New_Config, +SEMICOLON_ID);
+               Push_Back_Check (New_Config, +SEMICOLON_ID);
 
-                  Push_Back_Check
-                    (New_Config,
-                     (if Nonterm.ID = +block_statement_ID
-                      then +identifier_opt_ID
-                      else +name_opt_ID));
+               Push_Back_Check
+                 (New_Config,
+                  (if Nonterm.ID = +block_statement_ID
+                   then +identifier_opt_ID
+                   else +name_opt_ID));
 
-                  --  We know the <end_name_token> is empty, so we don't need to delete
-                  --  it.
+               --  We know the <end_name_token> is empty, so we don't need to delete
+               --  it.
 
-                  Item := Stack.Peek;
-                  Push_Back_Check (New_Config, +END_ID);
+               End_Item := Stack.Peek;
+               Push_Back_Check (New_Config, +END_ID);
 
-                  Ops.Append ((Delete, +END_ID, Token_Index => Item.Token.Min_Terminal_Index));
+               Check (New_Config.Stack (1).Token.ID, +handled_sequence_of_statements_ID);
+               Ops.Append ((Undo_Reduce, +handled_sequence_of_statements_ID,
+                            Undo_Reduce (New_Config.Stack, Tree).Token_Count));
 
-                  --  Don't change New_Config.Current_Shared_Token
+               Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_opt_ID);
+               Ops.Append ((Undo_Reduce, +sequence_of_statements_opt_ID,
+                            Undo_Reduce (New_Config.Stack, Tree).Token_Count));
 
-                  if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Missing_Name_Error 1 " & Image (Nonterm.ID, Descriptor), New_Config.all);
-                     if Trace_McKenzie > Extra then
-                        Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
-                     end if;
+               Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_ID);
+
+               Ops.Append ((Delete, +END_ID, Token_Index => End_Item.Token.Min_Terminal_Index));
+
+               Ops.Append ((Delete, +SEMICOLON_ID, Token_Index => End_Item.Token.Min_Terminal_Index + 1));
+
+               --  Don't change New_Config.Current_Shared_Token
+
+               if Trace_McKenzie > Detail then
+                  Put ("Semantic_Check Missing_Name_Error 1d " & Image (Nonterm.ID, Descriptor), New_Config.all);
+                  if Trace_McKenzie > Extra then
+                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
-               end;
+               end if;
+            end;
 
-            else
-               --  assume missing 'begin'; insert it before 'end'
-               declare
-                  New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                  Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
-                  Stack      : Recover_Stacks.Stack renames New_Config.Stack;
-                  Item       : Recover_Stack_Item;
-               begin
-                  --  This is a guess, but it is equally as likely as 'ignore error', so
-                  --  it has the same cost.
-                  New_Config.Check_Status := (Label => Ok);
+         else
+            --  'exception' found; case 1c - assume missing 'begin'; insert it
+            --  before 'handled_sequence_of_statements'
+            declare
+               New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
+               Stack      : Recover_Stacks.Stack renames New_Config.Stack;
+               Item       : Recover_Stack_Item;
+            begin
+               --  This is a guess, but it is equally as likely as 'ignore error', so
+               --  it has the same cost.
+               New_Config.Check_Status := (Label => Ok);
 
-                  Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
+               Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
 
-                  Push_Back_Check (New_Config, +SEMICOLON_ID);
+               Push_Back_Check (New_Config, +SEMICOLON_ID);
 
-                  Push_Back_Check
-                    (New_Config,
-                     (if Nonterm.ID = +block_statement_ID
-                      then +identifier_opt_ID
-                      else +name_opt_ID));
+               Push_Back_Check
+                 (New_Config,
+                  (if Nonterm.ID = +block_statement_ID
+                   then +identifier_opt_ID
+                   else +name_opt_ID));
 
-                  Item := Stack.Peek;
-                  Push_Back_Check (New_Config, +END_ID);
+               Push_Back_Check (New_Config, +END_ID);
 
-                  New_Config.Current_Shared_Token := Item.Token.Min_Terminal_Index;
+               Item := Stack.Peek;
+               Push_Back_Check (New_Config, +handled_sequence_of_statements_ID);
 
-                  Ops.Append ((Insert, +BEGIN_ID, New_Config.Current_Shared_Token));
-                  New_Config.Inserted.Append (+BEGIN_ID);
-                  New_Config.Current_Inserted := 1;
+               New_Config.Current_Shared_Token := Item.Token.Min_Terminal_Index;
 
-                  if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Missing_Name_Error 1 " & Image (Nonterm.ID, Descriptor), New_Config.all);
-                     if Trace_McKenzie > Extra then
-                        Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
-                     end if;
+               Ops.Append ((Insert, +BEGIN_ID, New_Config.Current_Shared_Token));
+               New_Config.Inserted.Append (+BEGIN_ID);
+               New_Config.Current_Inserted := 1;
+
+               if Trace_McKenzie > Detail then
+                  Put ("Semantic_Check Missing_Name_Error 1c " & Image (Nonterm.ID, Descriptor), New_Config.all);
+                  if Trace_McKenzie > Extra then
+                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
-               end;
-            end if;
-            return True; -- 'ignore error'.
-         end;
+               end if;
+            end;
+         end if;
+         return True; -- 'ignore error'.
 
       when Extra_Name_Error =>
          --  The input looks like
@@ -401,6 +447,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  If there is more than one missing 'end', a later recover operation
          --  will fix the others.
 
+         --  This case can handle Nonterm.Virtual = True, and it doesn't use
+         --  Tree.
          declare
             use Ada.Characters.Handling;
 
@@ -426,7 +474,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                raise Programmer_Error with "unrecognized Extra_Name_Error case";
             end if;
 
-            if Other_Counts (1) >= Other_Counts (2) then
+            if Other_Counts (1) > Other_Counts (2) then
                --  Case 1
                declare
                   New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);

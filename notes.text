@@ -19,8 +19,9 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-updating checks in test_mckenzie_recover
+add test_mckenzie_recover test for Missing_Name_Error case 1b
 
+run all tests
 
 refactor Process_one  with subprograms
 
@@ -36,6 +37,9 @@ improve propagate_names.ada_lite
 delete patterns
 
 update ada-mode
+    run-time end-name-optional param
+        make it a grammar declaration in ada_lite.wy?
+
     repair error only needs insert, delete ops
 
 

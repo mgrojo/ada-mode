@@ -36,6 +36,8 @@ package body Test_McKenzie_Recover is
    Parser    : WisiToken.LR.Parser.Parser;
    User_Data : WisiToken.Syntax_Trees.User_Data_Type;
 
+   EOF_ID : WisiToken.Token_ID renames Ada_Lite.Descriptor.EOF_ID;
+
    Orig_Params : WisiToken.LR.McKenzie_Param_Type
      (First_Terminal    => Ada_Lite.Descriptor.First_Terminal,
       Last_Terminal     => Ada_Lite.Descriptor.Last_Terminal,
@@ -139,11 +141,18 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc; ");
       --  |1       |10       |20       |30       |40       |50       |60       |70       |80       |90
-      --  Missing "begin" for Block_2, but McKenzie won't find that.
+      --  Missing "begin" for Block_2.
       --
-      --  error 1 at 'Block_2' 63, expecting 'if'. Pops 'end' 59, inserts
-      --  'else', leaving "Block_2;" as a procedure call in the else branch;
+      --  Error 1 at 'Block_2' 63, expecting 'if'. It finds (push_back 'end'
+      --  59, push_back sequence_of_statements_opt, delete 'end' 59) cost 1,
+      --  leaving "Block_2;" as a procedure call in the else branch;
       --  succeeds.
+      --
+      --  The desired solution (push_back 'end' 59, push_back
+      --  sequence_of_statements_opt, insert 'begin') is cost 5
+      --
+      --  IMPROVEME: try to recognize 'end Block_2;' as a possible named
+      --  block; insert begin before end.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
@@ -227,6 +236,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Checks;
    begin
       Parse_Text ("procedure Debug is begin A; ");
+      --           1         2     3  4     5 6 = SEMICOLON, 7 = Wisi_EOI
       --  Missing "end;"
       --
       --  Inserts 'end ;', continues to EOF, succeeds
@@ -247,8 +257,6 @@ package body Test_McKenzie_Recover is
 
       --  Added 'begin' 72, intending to delete 'begin' 20
       --
-      --  There are no special rules to help with this.
-      --
       --  Error recovery is entered and exited with parallel parsers active;
       --  one parsing a subprogram_body, the other a generic_instantiation
       --  (which will fail eventually). The syntax trees are not flushed.
@@ -256,17 +264,21 @@ package body Test_McKenzie_Recover is
       --  While checking the prefered solution, there are conflicts that
       --  must be handled.
       --
-      --  The desired solution is pop 'begin' 20 and the empty
-      --  declarative_part_opt, leaving 'is' 17 on the parse stack, with
-      --  cost 1. That allows the subprogram_body parser to continue to EOF.
+      --  The desired solution is (push_back 'begin' 20, push_back
+      --  declarative_part_opt, delete 'begin'), leaving 'is' 17 on the
+      --  parse stack, with cost 1. That allows the subprogram_body parser
+      --  to continue to EOF.
       --
-      --  Error recovery finds the desired solution for the subprogram_body
-      --  parser. For the generic_instantiation parser, it pops 'is' 17,
-      --  inserts ';', deletes 'begin' 20 (cost 6), turning this into a
+      --  For the subprogram_body parser (1), error recovery is entered at
+      --  'procedure' 26, and finds the desired solution.
+      --
+      --  For the generic_instantiation parser (0), error recovery is
+      --  entered at 'begin 20'. It finds (push_back 'is' 17, insert ';',
+      --  delete 'is' 17, delete 'begin' 20), cost 8, turning this into a
       --  sequence of declarations. That fails eventually (after spawning
       --  yet more parsers).
 
-      if WisiToken.Trace_Parse > 0 then
+      if WisiToken.Trace_Parse > WisiToken.Outline then
          for Error of Parser.Parsers.First.State_Ref.Errors loop
             WisiToken.LR.Put
               (Source_File_Name => "<string>",
@@ -298,8 +310,9 @@ package body Test_McKenzie_Recover is
 
          Check
            ("1.recover.ops", Element (Cursor).Recover.Ops,
-            +(Push_Back, +BEGIN_ID, 1) & (Delete, +BEGIN_ID, 1) &
-              (Push_Back, +declarative_part_opt_ID, 1));
+            +(Push_Back, +BEGIN_ID, 1) &
+              (Push_Back, +declarative_part_opt_ID, 1) &
+              (Delete, +BEGIN_ID, 1));
 
          --  Confirm that both subprogram_bodys were parsed:
          Check ("action_count", Action_Count (+subprogram_body_ID), 2);
@@ -719,6 +732,7 @@ package body Test_McKenzie_Recover is
 
       --  Missing 'Remove' at 66, from editing.
       --
+      --  Enters error recovery at 'end' 68, with a Missing_Name_Error.
       --  There are three possible fixes here; 'ignore error', 'insert begin
       --  53', 'delete end; 63'. The choice depends on the user intent, but
       --  we cannot fully discern that.
@@ -731,11 +745,14 @@ package body Test_McKenzie_Recover is
       --  'exception', so we choose 'insert begin' for this, and 'delete
       --  end' for those.
       --
-      --  For all four Missing_Name_* tests, we return two solutions, and
-      --  pick one at EOF based on error count.
+      --  For all four Missing_Name_* tests, Semantic_Check_Fixes returns
+      --  two solutions.
       --
-      --  In this case, only 'ignore error' continues to EOF without other
-      --  errors, so we chose that solution when the parse is ambiguous.
+      --  In this case, the desired fix is 'insert "Remove" 68', which
+      --  recover can't do; it's equivalent to 'ignore error'.
+      --
+      --  Only 'ignore error' survives checks in recover, so recover returns
+      --  one solution, which continues to EOF.
 
       declare
          use WisiToken.LR.Parse_Error_Lists;
@@ -754,12 +771,7 @@ package body Test_McKenzie_Recover is
          Check ("errors.length", Error_List.Length, 1);
          Check ("error.label", Error.Label, Check);
          Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 1) & (Delete, +SEMICOLON_ID, 1) &
-              (Push_Back, +name_opt_ID, 1) & (Push_Back, +END_ID, 1) & (Delete, +END_ID, 1) &
-              (Undo_Reduce, +handled_sequence_of_statements_ID, 3) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
-              (Undo_Reduce, +sequence_of_statements_ID, 2));
+         Check ("errors 1.recover.ops.length", Error.Recover.Ops.Length, 0);
       end;
    end Missing_Name_0;
 
@@ -776,14 +788,20 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("package body P is procedure Remove is begin A := B; exception end; A := B; end Remove; end P; procedure Q;");
       --           |10       |20       |30       |40       |50       |60       |70       |80       |90
+      --  1       2    3 4  5         6      7  8     9 10 11 13        14 15  17 18 20  21    22    24 26        27
+      --                                                    12               16    19            23   25           28
 
-      --  Missing 'begin' 45. See Missing_Name_0 for general discussion. See
+      --  Missing 'begin' 45. Enters error recovery at A 68 with
+      --  Missing_Name_Error. See Missing_Name_0 for general discussion. See
       --  Missing_Name_0; there is no way to distinguish the two, other than
-      --  parsing to EOF. So we return two solutions; 'ignore error', and
-      --  'insert begin'.
+      --  parsing to EOF. So Semantic_Check_Fixes returns two solutions;
+      --  'ignore error', and 'push_back, insert begin'.
       --
-      --  In this case, only 'insert begin' continues to EOF without other
-      --  errors, so we chose that solution when the parse is ambiguous.
+      --  'ignore error' fails the first check, since "A := B;" is not a
+      --  legal declaration.
+      --
+      --  'push_back, insert' is the result of recovery, and parsing
+      --  succeeds to EOF.
 
       declare
          use WisiToken.LR.Parse_Error_Lists;
@@ -804,11 +822,9 @@ package body Test_McKenzie_Recover is
          Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 1) & (Delete, +SEMICOLON_ID, 1) &
-              (Push_Back, +name_opt_ID, 1) & (Delete, +IDENTIFIER_ID, 1) & (Push_Back, +END_ID, 1) &
-              (Delete, +END_ID, 1) &
-              (Undo_Reduce, +handled_sequence_of_statements_ID, 3) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
-              (Undo_Reduce, +sequence_of_statements_ID, 2));
+            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 15) & (Push_Back, +name_opt_ID, 16) &
+              (Push_Back, +END_ID, 14) & (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) &
+              (Fast_Forward, EOF_ID));
       end;
    end Missing_Name_1;
 
@@ -826,13 +842,15 @@ package body Test_McKenzie_Recover is
         ("package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;");
       --           |10       |20       |30       |40       |50       |60       |70       |80       |90
 
-      --  Excess 'end' 53, from editing. See Missing_Name_0 for general
+      --  Excess 'end' 53, from editing. Error recovery entered at A 56,
+      --  with Missing_Name_Error. See Missing_Name_0 for general
       --  discussion. See Missing_Name_3; there is no way to distinguish
-      --  this case from that, other than parsing to EOF. So we return two
-      --  solutions, 'ignore error' and 'delete end;'.
+      --  this case from that, other than parsing to EOF. So
+      --  Semantic_Check_Fixes returns two solutions, 'ignore error' and
+      --  'push_back, delete end;'.
       --
-      --  In this case, only 'delete end;' parses to EOF without more
-      --  errors.
+      --  In this case, only 'push_back, delete end;' is returned from
+      --  Recover; it then parses to EOF.
 
       declare
          use WisiToken.LR.Parse_Error_Lists;
@@ -853,11 +871,10 @@ package body Test_McKenzie_Recover is
          Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 1) & (Delete, +SEMICOLON_ID, 1) &
-              (Push_Back, +name_opt_ID, 1) & (Delete, +IDENTIFIER_ID, 1) & (Push_Back, +END_ID, 1) &
-              (Delete, +END_ID, 1) &
+            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 14) &
+              (Push_Back, +name_opt_ID, 15) & (Push_Back, +END_ID, 13) &
               (Undo_Reduce, +handled_sequence_of_statements_ID, 3) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
-              (Undo_Reduce, +sequence_of_statements_ID, 1));
+              (Delete, +END_ID, 1) & (Delete, +SEMICOLON_ID, 14));
       end;
    end Missing_Name_2;
 
@@ -875,13 +892,16 @@ package body Test_McKenzie_Recover is
         ("package body P is procedure Remove is begin A := B; end; end P; procedure Q;");
       --           |10       |20       |30       |40       |50       |60       |70
 
-      --  Missing 'Remove' 56. See Missing_Name_0 for general discussion.
-      --  See Missing_Name_3; there is no way to distinguish this case from
-      --  that, other than parsing to EOF. So we return two solutions;
-      --  'ignore error' and 'delete end;'.
+      --  Missing 'Remove' 56. Enters error recovery on 'end' 58 with
+      --  Missing_Name_Error. See Missing_Name_0 for general discussion. See
+      --  Missing_Name_3; there is no way to distinguish this case from
+      --  that, other than parsing to EOF. So Semantic_Check_Fixes returns
+      --  two solutions; 'ignore error' and 'push_back, delete end;'.
       --
-      --  In this case, 'ignore error' parses to EOF with no other errors,
-      --  so we pick it.
+      --  In this case, 'ignore error' passes recover check, so recover
+      --  returns it. 'push_back, delete end; ' fails recover check with a
+      --  Match_Name_Error at 'procedure' 65, so only 'ignore error' is
+      --  returned from recover.
 
       declare
          use WisiToken.LR.Parse_Error_Lists;
@@ -899,9 +919,7 @@ package body Test_McKenzie_Recover is
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID, 1));
+         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
       end;
    end Missing_Name_3;
 
@@ -922,17 +940,13 @@ package body Test_McKenzie_Recover is
       --  Missing 'end' 87.
       --
       --  Error recovery entered at 'procedure' 102, expecting statement.
-      --  The semantic check that would fail at Find_First 90 (begin 53 "" =
-      --  "Find_First") is not done by the main parser, because the
+      --  The semantic check that would fail at Find_First 90 (begin 53 "",
+      --  "Find_First" 91) is not done by the main parser, because the
       --  block_statement is not reduced.
       --
-      --  That check does fail in recover, and without any special help,
-      --  recover finds 2 solutions after enqueing 381:
-      --
-      --  6, (Push_Back 'Find_First ;') (Insert '; end;))
-      --  6, (Insert 'begin declare')
-      --
-      --  The first lets parse succeed.
+      --  That check does fail with Extra_Name_Error in recover. The desired
+      --  fix is (Push_Back 'Find_First ;', Insert '; end ;'). The
+      --  found solution is close to that.
 
       declare
          use WisiToken.LR.Parse_Error_Lists;
@@ -952,8 +966,9 @@ package body Test_McKenzie_Recover is
          Check ("errors 1.error_token.byte_region", Token.Byte_Region, (102, 110));
          Check
            ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +SEMICOLON_ID, 1) & (Push_Back, +identifier_opt_ID, 1) &
-              (Insert, +SEMICOLON_ID, 1) & (Insert, +END_ID, 1));
+            +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 1) &
+              (Push_Back, +identifier_opt_ID, 1) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 1) &
+              (Insert, +SEMICOLON_ID, 1) & (Fast_Forward, EOF_ID));
       end;
    end Block_Match_Names_1;
 
@@ -1032,7 +1047,8 @@ package body Test_McKenzie_Recover is
          Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
          Check
            ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID, 6) & (Insert, +END_ID, 1) & (Insert, +SEMICOLON_ID, 1));
+            +(Push_Back, +block_statement_ID, 11) & (Insert, +END_ID, 11) & (Insert, +SEMICOLON_ID, 11) &
+              (Fast_Forward, EOF_ID));
       end;
    end Extra_Name_1;
 
@@ -1052,16 +1068,25 @@ package body Test_McKenzie_Recover is
       --    |80       |90       |100      |110      |120      |130      |140
       --     10        11 12 13   14    15  16              17 18   19  20            21
 
-      --  Similar to Extra_Name_1; here we are missing 'end A; begin end To_Month;' at 86.
+      --  Similar to Extra_Name_1; here we are missing 'end A; begin end
+      --  To_Month;' at 86.
       --
-      --  Error recovery entered at 'begin' 132, with Extra_Name_Error from
-      --  the preceding block ("" begin 109 .. "Process_CSV_File;" 119).
+      --  Error recovery entered at 'begin' 130, with Extra_Name_Error from
+      --  the preceding block ("" begin 102 .. "Process_CSV_File;" 112).
       --
-      --  Desired solution is (push_back 'end name_opt ;'), (insert 'end ; end ; begin ;')
+      --  Desired solution is (push_back 'end name_opt ;'), (insert
+      --  'end ; end ; begin ;'). The found solution is close to this.
       --
       --  First call to Semantic_Check_Fixes enqueues (push_back 'end
-      --  name_opt ;'), (insert 'end ;'); recover fast-forwards that, calls
-      --  Semantic_Check_Fixes twice more to get desired solution.
+      --  name_opt ;'), (insert 'end ;'); recover fast-forwards that.
+      --
+      --  Checking that fails with Match_Names_Error on 'To_Month' 69,
+      --  'Process_CSV_File' 112. Semantic_Check_Fixes adds the fix
+      --  (Undo_Reduce subprogram_body, Push_Back 'end "Process_CSV_File"
+      --  ;', Insert 'end ;').
+      --
+      --  Checking that fails at 'end' 108, expecting 'begin'. Recover
+      --  inserts that, succeeds.
 
       declare
          use WisiToken.Semantic_State;
@@ -1078,13 +1103,13 @@ package body Test_McKenzie_Recover is
       begin
          Check ("errors.length", Error_List.Length, 1);
          Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
-         Check ("error 1.recover.ops.length", Error.Recover.Ops.Length, 33);
-         Check ("error 1.recover.ops.1", Error.Recover.Ops (1), (Push_Back, +block_statement_ID, 6));
-         Check ("error 1.recover.ops.2", Error.Recover.Ops (2), (Insert, +END_ID, 14));
-         Check ("error 1.recover.ops.3", Error.Recover.Ops (3), (Insert, +SEMICOLON_ID, 14));
-         Check ("error 1.recover.ops.28", Error.Recover.Ops (28), (Insert, +END_ID, 15));
-         Check ("error 1.recover.ops.29", Error.Recover.Ops (29), (Insert, +SEMICOLON_ID, 15));
-         Check ("error 1.recover.ops.33", Error.Recover.Ops (33), (Insert, +BEGIN_ID, 15));
+         Check ("error 1.recover.ops.length", Error.Recover.Ops.Length, 12);
+         Check
+           ("error 1.recover.ops", Error.Recover.Ops,
+            +(Push_Back, +block_statement_ID, 14) & (Insert, +END_ID, 14) & (Insert, +SEMICOLON_ID, 14) &
+               (Fast_Forward, EOF_ID) & (Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 17) &
+               (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
+               (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, EOF_ID) & (Insert, +BEGIN_ID, 15));
       end;
    end Extra_Name_2;
 
@@ -1100,15 +1125,15 @@ package body Test_McKenzie_Recover is
         ("procedure Journal_To_TSV is procedure Process_CSV_File is begin begin" &
            --      |10       |20       |30       |40       |50       |60       |70
            " end Process_CSV_File; begin end Journal_To_TSV;");
-      --    |70       |80       |100      |110      |120      |130      |140
+      --    |70       |80       |100      |110      |120
 
       --  Similar to Extra_Name_1; here we are missing 'end;' at 65.
       --  Solution is to insert 'end ;' at 70.
       --
-      --  Error recovery entered at 'begin' 132, with Extra_Name_Error from
-      --  the preceding block ("" begin 109 .. "Process_CSV_File;" 119).
+      --  Error recovery entered at 'begin' 93, with Extra_Name_Error from
+      --  the preceding block ("" begin 65 .. "Process_CSV_File;" 75).
       --
-      --  Desired solution is (push_back 'end name_opt ;'), (insert 'end ; end ;')
+      --  Desired solution is (push_back 'end name_opt ;'), (insert 'end ;')
       --
       --  Semantic_Check Extra_Name_Error enqueues the desired solution.
 
@@ -1129,7 +1154,9 @@ package body Test_McKenzie_Recover is
          Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
          Check
            ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID, 6) & (Insert, +END_ID, 1) & (Insert, +SEMICOLON_ID, 1));
+            +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 11) &
+              (Push_Back, +identifier_opt_ID, 10) & (Push_Back, +END_ID, 9) & (Insert, +END_ID, 1) &
+              (Insert, +SEMICOLON_ID, 1) & (Fast_Forward, EOF_ID));
       end;
    end Extra_Name_3;
 
@@ -1164,8 +1191,6 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Config_Op_Arrays;
          use all type WisiToken.LR.Config_Op_Label;
          use all type WisiToken.Semantic_Checks.Check_Status_Label;
-
-         EOF_ID : WisiToken.Token_ID renames Ada_Lite.Descriptor.EOF_ID;
 
          Error_List : WisiToken.LR.Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
          Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;

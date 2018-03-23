@@ -436,7 +436,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("if (lexer->cursor > lexer->buffer_last)");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("*id       = " & WisiToken.Token_ID'Image (LR1_Descriptor.EOF_ID) & ";");
+      Indent_Line ("*id            =" & WisiToken.Token_ID'Image (LR1_Descriptor.EOF_ID) & ";");
       Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = 0;");
       Indent_Line ("*char_position = lexer->char_token_start;");

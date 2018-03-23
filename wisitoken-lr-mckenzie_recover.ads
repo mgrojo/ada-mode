@@ -76,6 +76,9 @@ private
    function Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Branched.Tree)
-     return Reduce_Action_Rec;
+     return Reduce_Action_Rec
+   with Pre => Tree.Is_Nonterm (Stack (1).Tree_Index);
+   --  Undo the reduction that produced the top stack item, return the
+   --  reduce action for that reduction.
 
 end WisiToken.LR.McKenzie_Recover;

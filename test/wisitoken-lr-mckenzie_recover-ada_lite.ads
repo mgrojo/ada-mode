@@ -29,7 +29,6 @@ package WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration;
       Nonterm           : in     Recover_Token)
-     return Boolean
-   with Pre => not Nonterm.Virtual;
+     return Boolean;
 
 end WisiToken.LR.McKenzie_Recover.Ada_Lite;
