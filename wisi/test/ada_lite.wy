@@ -157,31 +157,6 @@ with WisiToken.Text_IO_Trace;
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
-;; We are not likely to type 'end;' when meaning 'end if;'; more
-;; likely to not be done entering 'if then else'. So if just pushed
-;; 'end' on the stack, and enter error recovery on ';' expecting 'if',
-;; best to insert 'if; end'.
-
-;; args: stack ID, error ID, expecting ID
-;; result: insert expecting ID, error ID, stack ID.
-%recover_pattern_1 END SEMICOLON CASE
-%recover_pattern_1 END SEMICOLON IF
-%recover_pattern_1 END SEMICOLON LOOP
-
-;; Similarly; expecting 'end if ;', find 'end <identifier>'
-;; insert 'if; end'
-;; => 'end if; end <identifier> ;'
-%recover_pattern_2 END IDENTIFIER CASE SEMICOLON
-%recover_pattern_2 END IDENTIFIER IF SEMICOLON
-%recover_pattern_2 END IDENTIFIER LOOP SEMICOLON
-
-;; args: error ID, delete_thru ID
-;; matches if expecting contains EOF
-;; result: delete thru delete_thru or EOF
-%recover_pattern_end_eof END SEMICOLON
-
-%recover_pattern_block_mismatched_names BEGIN END identifier_opt SEMICOLON
-
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN

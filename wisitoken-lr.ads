@@ -227,56 +227,6 @@ package WisiToken.LR is
       To_State : in     State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
 
-   --  FIXME: delete Pattern, or put back in McKenzie_Recover
-
-   type Pattern is abstract tagged null record;
-   --  We don't declare a dispatching operation to implement Pattern
-   --  here, because the required types are not visible. See
-   --  wisitoken-lr-mckenzie_recover.adb
-
-   function Image (Item : in Pattern) return String is abstract;
-   --  Return image of Item, using Token_ID'Image for any Token_IDs,
-   --  in Ada aggregate syntax. Used in generated Ada code.
-
-   package Patterns is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
-
-   type Recover_Pattern_1 is new Pattern with record
-      --  See [info] node Error Recovery item recover_pattern_1
-      Stack     : Token_ID;
-      Error     : Token_ID;
-      Expecting : Token_ID;
-   end record;
-
-   overriding function Image (Item : in Recover_Pattern_1) return String;
-
-   type Recover_Pattern_2 is new Pattern with record
-      --  See [info] node Error Recovery item recover_pattern_2
-      Stack     : Token_ID;
-      Error     : Token_ID;
-      Expecting : Token_ID;
-      Insert    : Token_ID;
-   end record;
-
-   overriding function Image (Item : in Recover_Pattern_2) return String;
-
-   type Recover_End_EOF is new Pattern with record
-      --  See [info] node Error Recovery
-      Error       : Token_ID;
-      Delete_Thru : Token_ID;
-   end record;
-
-   overriding function Image (Item : in Recover_End_EOF) return String;
-
-   type Recover_Block_Mismatched_Names is new Pattern with record
-      --  See [info] node Error Recovery
-      Begin_ID     : Token_ID;
-      End_ID       : Token_ID;
-      Name_ID      : Token_ID;
-      Semicolon_ID : Token_ID;
-   end record;
-
-   overriding function Image (Item : in Recover_Block_Mismatched_Names) return String;
-
    type McKenzie_Param_Type
      (First_Terminal    : Token_ID;
       Last_Terminal     : Token_ID;
@@ -291,9 +241,6 @@ package WisiToken.LR is
 
       Cost_Limit  : Natural; -- max cost of configurations to look at
       Check_Limit : Natural; -- max tokens to parse ahead when checking a configuration.
-
-      --  For special rules
-      Patterns : LR.Patterns.List;
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
@@ -306,8 +253,7 @@ package WisiToken.LR is
       Push_Back         => (others => 0),
       Undo_Reduce       => (others => 0),
       Cost_Limit        => Natural'Last,
-      Check_Limit       => Natural'Last,
-      Patterns          => LR.Patterns.Empty_List);
+      Check_Limit       => Natural'Last);
 
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class);
    --  Put Item to Ada.Text_IO.Current_Output

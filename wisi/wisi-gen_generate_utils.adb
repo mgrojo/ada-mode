@@ -622,10 +622,9 @@ package body Wisi.Gen_Generate_Utils is
          Insert      => (others => Item.Default_Insert),
          Delete      => (others => Item.Default_Delete_Terminal),
          Push_Back   => (others => Item.Default_Push_Back),
-         Undo_Reduce   => (others => Item.Default_Undo_Reduce),
+         Undo_Reduce => (others => Item.Default_Undo_Reduce),
          Cost_Limit  => Item.Cost_Limit,
-         Check_Limit => Item.Check_Limit,
-         Patterns    => WisiToken.LR.Patterns.Empty_List);
+         Check_Limit => Item.Check_Limit);
    begin
       Result.Delete (Result.First_Nonterminal .. Result.Last_Nonterminal) :=
         (others => Item.Default_Delete_Nonterminal);
@@ -637,52 +636,6 @@ package body Wisi.Gen_Generate_Utils is
          Result.Insert (Find_Token_ID (-Pair.Name)) := Natural'Value (-Pair.Value);
       end loop;
 
-      for Pattern of Item.Patterns loop
-         if Pattern in Wisi.Recover_Pattern_1'Class then
-            declare
-               Pat : Wisi.Recover_Pattern_1 renames Wisi.Recover_Pattern_1 (Pattern);
-            begin
-               Result.Patterns.Append
-                 (WisiToken.LR.Recover_Pattern_1'
-                    (Stack     => Find_Token_ID (-Pat.Stack),
-                     Error     => Find_Token_ID (-Pat.Error),
-                     Expecting => Find_Token_ID (-Pat.Expecting)));
-            end;
-         elsif Pattern in Wisi.Recover_Pattern_2'Class then
-            declare
-               Pat : Wisi.Recover_Pattern_2 renames Wisi.Recover_Pattern_2 (Pattern);
-            begin
-               Result.Patterns.Append
-                 (WisiToken.LR.Recover_Pattern_2'
-                    (Stack     => Find_Token_ID (-Pat.Stack),
-                     Error     => Find_Token_ID (-Pat.Error),
-                     Expecting => Find_Token_ID (-Pat.Expecting),
-                     Insert    => Find_Token_ID (-Pat.Insert)));
-            end;
-         elsif Pattern in Wisi.Recover_End_EOF'Class then
-            declare
-               Pat : Wisi.Recover_End_EOF renames Wisi.Recover_End_EOF (Pattern);
-            begin
-               Result.Patterns.Append
-                 (WisiToken.LR.Recover_End_EOF'
-                    (Error       => Find_Token_ID (-Pat.Error),
-                     Delete_Thru => Find_Token_ID (-Pat.Delete_Thru)));
-            end;
-         elsif Pattern in Wisi.Recover_Block_Mismatched_Names'Class then
-            declare
-               Pat : Wisi.Recover_Block_Mismatched_Names renames Wisi.Recover_Block_Mismatched_Names (Pattern);
-            begin
-               Result.Patterns.Append
-                 (WisiToken.LR.Recover_Block_Mismatched_Names'
-                    (Begin_ID     => Find_Token_ID (-Pat.Begin_ID),
-                     End_ID       => Find_Token_ID (-Pat.End_ID),
-                     Name_ID      => Find_Token_ID (-Pat.Name_ID),
-                     Semicolon_ID => Find_Token_ID (-Pat.Semicolon_ID)));
-            end;
-         else
-            raise Programmer_Error;
-         end if;
-      end loop;
       return Result;
    end To_McKenzie_Param;
 

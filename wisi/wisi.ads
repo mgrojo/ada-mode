@@ -134,35 +134,6 @@ package Wisi is
    function Is_Present (List : in String_Pair_Lists.List; Name : in String) return Boolean;
    function Value (List : in String_Pair_Lists.List; Name : in String) return String;
 
-   type Pattern is abstract tagged null record;
-
-   package Patterns is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
-
-   type Recover_Pattern_1 is new Pattern with record
-      Stack     : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Error     : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Expecting : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   end record;
-
-   type Recover_Pattern_2 is new Pattern with record
-      Stack     : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Error     : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Expecting : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Insert    : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   end record;
-
-   type Recover_End_EOF is new Pattern with record
-      Error       : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Delete_Thru : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   end record;
-
-   type Recover_Block_Mismatched_Names is new Pattern with record
-      Begin_ID     : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      End_ID       : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Name_ID      : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Semicolon_ID : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   end record;
-
    type McKenzie_Recover_Param_Type is record
       Default_Insert             : Natural := 0;
       Default_Delete_Terminal    : Natural := 0;
@@ -173,9 +144,6 @@ package Wisi is
       Insert                     : String_Pair_Lists.List;
       Cost_Limit                 : Natural := Integer'Last;
       Check_Limit                : Natural := Integer'Last;
-
-      --  FIXME: Delete?
-      Patterns : Wisi.Patterns.List;
    end record;
 
    type Token_Kind_Type is record

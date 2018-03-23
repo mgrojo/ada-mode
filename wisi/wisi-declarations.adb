@@ -34,34 +34,30 @@ is
 
    use Standard.Ada.Strings.Fixed;
 
-   Action_Declaration_Str                     : constant String := "%action_declaration";
-   Conflict_Str                               : constant String := "%conflict";
-   End_If_Str                                 : constant String := "%end if";
-   Elisp_Face_Str                             : constant String := "%elisp_face";
-   Elisp_Indent_Str                           : constant String := "%elisp_indent";
-   Elisp_Regexp_Str                           : constant String := "%elisp_regexp";
-   First_Parser_Label_Str                     : constant String := "%first_parser_label";
-   First_State_Index_Str                      : constant String := "%first_state_index";
-   If_Str                                     : constant String := "%if lexer =";
-   Interface_Str                              : constant String := "%interface";
-   Keyword_Str                                : constant String := "%keyword";
-   Keywords_Case_Insensitive_Str              : constant String := "%keywords_case_insensitive";
-   Lexer_Str                                  : constant String := "%lexer";
-   McKenzie_Check_Limit_Str                   : constant String := "%mckenzie_check_limit";
-   McKenzie_Cost_Default_Str                  : constant String := "%mckenzie_cost_default";
-   McKenzie_Cost_Delete_Str                   : constant String := "%mckenzie_cost_delete";
-   McKenzie_Cost_Insert_Str                   : constant String := "%mckenzie_cost_insert";
-   McKenzie_Cost_Limit_Str                    : constant String := "%mckenzie_cost_limit";
-   Non_Grammar_Str                            : constant String := "%non_grammar";
-   Output_Language_Str                        : constant String := "%output_language";
-   Parser_Algorithm_Str                       : constant String := "%parser_algorithm";
-   Recover_Pattern_1_Str                      : constant String := "%recover_pattern_1";
-   Recover_Pattern_2_Str                      : constant String := "%recover_pattern_2";
-   Recover_Pattern_End_EOF_Str                : constant String := "%recover_pattern_end_eof";
-   Recover_Pattern_Block_Mismatched_Names_Str : constant String := "%recover_pattern_block_mismatched_names";
-   re2c_Regexp_Str                            : constant String := "%re2c_regexp";
-   Start_Str                                  : constant String := "%start";
-   Token_Str                                  : constant String := "%token";
+   Action_Declaration_Str        : constant String := "%action_declaration";
+   Conflict_Str                  : constant String := "%conflict";
+   End_If_Str                    : constant String := "%end if";
+   Elisp_Face_Str                : constant String := "%elisp_face";
+   Elisp_Indent_Str              : constant String := "%elisp_indent";
+   Elisp_Regexp_Str              : constant String := "%elisp_regexp";
+   First_Parser_Label_Str        : constant String := "%first_parser_label";
+   First_State_Index_Str         : constant String := "%first_state_index";
+   If_Str                        : constant String := "%if lexer =";
+   Interface_Str                 : constant String := "%interface";
+   Keyword_Str                   : constant String := "%keyword";
+   Keywords_Case_Insensitive_Str : constant String := "%keywords_case_insensitive";
+   Lexer_Str                     : constant String := "%lexer";
+   McKenzie_Check_Limit_Str      : constant String := "%mckenzie_check_limit";
+   McKenzie_Cost_Default_Str     : constant String := "%mckenzie_cost_default";
+   McKenzie_Cost_Delete_Str      : constant String := "%mckenzie_cost_delete";
+   McKenzie_Cost_Insert_Str      : constant String := "%mckenzie_cost_insert";
+   McKenzie_Cost_Limit_Str       : constant String := "%mckenzie_cost_limit";
+   Non_Grammar_Str               : constant String := "%non_grammar";
+   Output_Language_Str           : constant String := "%output_language";
+   Parser_Algorithm_Str          : constant String := "%parser_algorithm";
+   re2c_Regexp_Str               : constant String := "%re2c_regexp";
+   Start_Str                     : constant String := "%start";
+   Token_Str                     : constant String := "%token";
 
    If_Active : Boolean := False;
    --  If true, ignore all declarations except End_If_Str.
@@ -308,69 +304,6 @@ begin
                   Generate_Params.Parser_Algorithm := Valid_Parser_Algorithm'Value (Line (Value_First .. Line'Last));
                end;
             end if;
-
-         elsif Match (Recover_Pattern_1_Str) then
-            declare
-               Stack_First     : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
-               Stack_Last      : constant Integer := -1 + Index_Blank (Line, Stack_First);
-               Error_First     : constant Integer := Index_Non_Blank (Line, Stack_Last + 1);
-               Error_Last      : constant Integer := -1 + Index_Blank (Line, Error_First);
-               Expecting_First : constant Integer := Index_Non_Blank (Line, Error_Last + 1);
-            begin
-               McKenzie_Recover.Patterns.Append
-                 (Recover_Pattern_1'
-                    (Stack     => +Line (Stack_First .. Stack_Last),
-                     Error     => +Line (Error_First .. Error_Last),
-                     Expecting => +Line (Expecting_First .. Line'Last)));
-            end;
-
-         elsif Match (Recover_Pattern_2_Str) then
-            declare
-               Stack_First     : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
-               Stack_Last      : constant Integer := -1 + Index_Blank (Line, Stack_First);
-               Error_First     : constant Integer := Index_Non_Blank (Line, Stack_Last + 1);
-               Error_Last      : constant Integer := -1 + Index_Blank (Line, Error_First);
-               Expecting_First : constant Integer := Index_Non_Blank (Line, Error_Last + 1);
-               Expecting_Last  : constant Integer := -1 + Index_Blank (Line, Expecting_First);
-               Insert_First    : constant Integer := Index_Non_Blank (Line, Expecting_Last + 1);
-            begin
-               McKenzie_Recover.Patterns.Append
-                 (Recover_Pattern_2'
-                    (Stack     => +Line (Stack_First .. Stack_Last),
-                     Error     => +Line (Error_First .. Error_Last),
-                     Expecting => +Line (Expecting_First .. Expecting_Last),
-                     Insert    => +Line (Insert_First .. Line'Last)));
-            end;
-
-         elsif Match (Recover_Pattern_End_EOF_Str) then
-            declare
-               Error_First       : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
-               Error_Last        : constant Integer := -1 + Index_Blank (Line, Error_First);
-               Delete_Thru_First : constant Integer := Index_Non_Blank (Line, Error_Last + 1);
-            begin
-               McKenzie_Recover.Patterns.Append
-                 (Recover_End_EOF'
-                    (Error       => +Line (Error_First .. Error_Last),
-                     Delete_Thru => +Line (Delete_Thru_First .. Line'Last)));
-            end;
-
-         elsif Match (Recover_Pattern_Block_Mismatched_Names_Str) then
-            declare
-               Begin_First     : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
-               Begin_Last      : constant Integer := -1 + Index_Blank (Line, Begin_First);
-               End_First       : constant Integer := Index_Non_Blank (Line, Begin_Last + 1);
-               End_Last        : constant Integer := -1 + Index_Blank (Line, End_First);
-               Name_First      : constant Integer := Index_Non_Blank (Line, End_Last + 1);
-               Name_Last       : constant Integer := -1 + Index_Blank (Line, Name_First);
-               Semicolon_First : constant Integer := Index_Non_Blank (Line, Name_Last + 1);
-            begin
-               McKenzie_Recover.Patterns.Append
-                 (Recover_Block_Mismatched_Names'
-                    (Begin_ID     => +Line (Begin_First .. Begin_Last),
-                     End_ID       => +Line (End_First .. End_Last),
-                     Name_ID      => +Line (Name_First .. Name_Last),
-                     Semicolon_ID => +Line (Semicolon_First .. Line'Last)));
-            end;
 
          elsif Match (re2c_Regexp_Str) then
             declare

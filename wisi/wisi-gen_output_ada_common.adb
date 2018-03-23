@@ -734,7 +734,6 @@ package body Wisi.Gen_Output_Ada_Common is
    procedure Create_Parser_Core (Table : in WisiToken.LR.Parse_Table_Ptr)
    is
       use all type Standard.Ada.Containers.Count_Type;
-      use all type WisiToken.LR.Patterns.List;
       use all type WisiToken.Token_ID;
       use all type WisiToken.LR.McKenzie_Param_Type;
       use Generate_Utils;
@@ -791,25 +790,10 @@ package body Wisi.Gen_Output_Ada_Common is
          Put ("Push_Back", Table.McKenzie_Param.Push_Back);
          Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
          Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");
-         Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Limit) & ",");
-         Indent_Line ("Patterns    => WisiToken.LR.Patterns.Empty_List);");
+         Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Limit) & ");");
          Indent := Indent - 3;
          New_Line;
 
-         --  WORKAROUND: GNAT GPL 2016 compiler hangs on this:
-         --  for Pattern of Table.McKenzie_Param.Patterns loop
-         --     Indent_Line ("Table.Mckenzie.patterns.Append (" & Pattern.Image & ");");
-         --  end loop;
-         declare
-            use WisiToken.LR.Patterns;
-            I : Cursor := Table.McKenzie_Param.Patterns.First;
-         begin
-            loop
-               exit when I = No_Element;
-               Indent_Line ("Table.McKenzie_Param.Patterns.Append (" & Element (I).Image & ");");
-               Next (I);
-            end loop;
-         end;
       end if;
       New_Line;
 

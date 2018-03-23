@@ -33,51 +33,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package body WisiToken.LR is
 
-   overriding
-   function Image (Item : in Recover_Pattern_1) return String
-   is begin
-      return
-        "WisiToken.LR.Recover_Pattern_1'(" &
-        Int_Image (Integer (Item.Stack)) & "," &
-        Token_ID'Image (Item.Error) & "," &
-        Token_ID'Image (Item.Expecting) &
-        ")";
-   end Image;
-
-   overriding
-   function Image (Item : in Recover_Pattern_2) return String
-   is begin
-      return
-        "WisiToken.LR.Recover_Pattern_2'(" &
-        Int_Image (Integer (Item.Stack)) & "," &
-        Token_ID'Image (Item.Error) & "," &
-        Token_ID'Image (Item.Expecting) & "," &
-        Token_ID'Image (Item.Insert) &
-        ")";
-   end Image;
-
-   overriding
-   function Image (Item : in Recover_End_EOF) return String
-   is begin
-      return
-        "WisiToken.LR.Recover_End_EOF'(" &
-        Int_Image (Item.Error) & "," &
-        Token_ID'Image (Item.Delete_Thru) &
-        ")";
-   end Image;
-
-   overriding
-   function Image (Item : in Recover_Block_Mismatched_Names) return String
-   is begin
-      return
-        "WisiToken.LR.Recover_Block_Mismatched_Names'(" &
-        Int_Image (Item.Begin_ID) & "," &
-        Token_ID'Image (Item.End_ID) & "," &
-        Token_ID'Image (Item.Name_ID)  & "," &
-        Token_ID'Image (Item.Semicolon_ID) &
-        ")";
-   end Image;
-
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class)
    is
       use Ada.Text_IO;

@@ -735,8 +735,7 @@ package body WisiToken.LR.LALR_Generator is
             Push_Back         => (others => 0),
             Undo_Reduce       => (others => 0),
             Cost_Limit        => Default_McKenzie_Param.Cost_Limit,
-            Check_Limit       => Default_McKenzie_Param.Check_Limit,
-            Patterns          => LR.Patterns.Empty_List);
+            Check_Limit       => Default_McKenzie_Param.Check_Limit);
       else
          Table.McKenzie_Param := McKenzie_Param;
       end if;
