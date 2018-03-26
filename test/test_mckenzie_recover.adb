@@ -123,9 +123,6 @@ package body Test_McKenzie_Recover is
       --           1        |10       |20       |30       |40
       --  Missing "if" in "end if;"
       --
-      --  This not a likely error, so the pattern rule for the likely error
-      --  (missing 'end if;') matches, but then immediately fails.
-      --
       --  error 1 at ';' 39, expecting 'if'. Inserts 'if', succeeds.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
