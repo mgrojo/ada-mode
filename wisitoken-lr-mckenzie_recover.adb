@@ -80,7 +80,7 @@ package body WisiToken.LR.McKenzie_Recover is
    function Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
       Tree  : in     Syntax_Trees.Tree)
-     return Reduce_Action_Rec
+     return Ada.Containers.Count_Type
    is
       Nonterm_Item : constant Recover_Stack_Item                  := Stack.Pop;
       Children     : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Nonterm_Item.Tree_Index);
@@ -88,11 +88,7 @@ package body WisiToken.LR.McKenzie_Recover is
       for C of Children loop
          Stack.Push ((Tree.State (C), C, Tree.Recover_Token (C)));
       end loop;
-      return
-        (Verb        => Reduce,
-         LHS         => Nonterm_Item.Token.ID,
-         Token_Count => Children'Length,
-         others      => <>);
+      return Children'Length;
    end Undo_Reduce;
 
    procedure Undo_Reduce
@@ -200,15 +196,16 @@ package body WisiToken.LR.McKenzie_Recover is
          --  will be to ignore the error, so we don't enqueue that config here.
          --  We leave the cost at 0, because this is the root config.
 
-         Config.Check_Status := Error.Check_Status;
-         Config.Check_Action := Undo_Reduce (Config.Stack, Parser_State.Tree);
+         Config.Check_Status      := Error.Check_Status;
+         Config.Error_Token       := Config.Stack (1).Token;
+         Config.Check_Token_Count := Undo_Reduce (Config.Stack, Parser_State.Tree);
 
          --  We don't append Undo_Reduce to Config.Ops, because Process_One
          --  will redo the reduce, or record a Push_Back or Undo_Reduce for it.
 
          if Trace_McKenzie > Detail then
             Put ("undo_reduce " & Image
-                   (Config.Check_Action.LHS, Trace.Descriptor.all), Trace, Parser_State.Label,
+                   (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
                  Shared_Parser.Terminals, Config.all, Task_ID => False);
          end if;
       else

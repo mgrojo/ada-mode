@@ -165,7 +165,7 @@ package body Grune_9_30 is
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => WisiToken.Trace_Generate > WisiToken.Outline),
-         Semantic_Check_Fixes => null,
+         Language_Fixes => null,
          First_Parser_Label => First_Parser_Label);
 
       Execute_Command ("abc");

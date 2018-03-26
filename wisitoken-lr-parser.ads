@@ -37,7 +37,7 @@ package WisiToken.LR.Parser is
       Table          : Parse_Table_Ptr;
       Semantic_State : WisiToken.Semantic_State.Semantic_State;
 
-      Semantic_Check_Fixes : Semantic_Check_Fixes_Access;
+      Language_Fixes : Language_Fixes_Access;
 
       Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Does not contain
@@ -78,7 +78,7 @@ package WisiToken.LR.Parser is
       Trace                : not null access WisiToken.Trace'Class;
       Lexer                : in              WisiToken.Lexer.Handle;
       Table                : in              Parse_Table_Ptr;
-      Semantic_Check_Fixes : in Semantic_Check_Fixes_Access;
+      Language_Fixes       : in              Language_Fixes_Access;
       Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True);

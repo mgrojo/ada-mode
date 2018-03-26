@@ -20,9 +20,6 @@ pragma License (Modified_GPL);
 with WisiToken.LR.McKenzie_Recover.Parse;
 package body WisiToken.LR.McKenzie_Recover.Explore is
 
-   type Check_Status is (Success, Abandon, Continue);
-   subtype Non_Success_Status is Check_Status range Abandon .. Continue;
-
    procedure Do_Shift
      (Super             : not null access Base.Supervisor;
       Shared            : not null access Base.Shared_Lookahead;
@@ -78,20 +75,25 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          null;
 
       when Semantic_Checks.Error =>
-         Config.Check_Action := Action;
+         Config.Error_Token       := Nonterm;
+         Config.Check_Token_Count := Action.Token_Count;
 
-         if Shared.Shared_Parser.Semantic_Check_Fixes /= null and then
-           Shared.Shared_Parser.Semantic_Check_Fixes
-             (Super.Trace.all, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
-              Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
-              Config, Nonterm)
-         then
-            --  "ignore error" is viable; continue with Config.
-            --  Finish the reduce.
-            Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
-         else
-            --  "ignore error" is not viable; abandon Config.
+         if Shared.Shared_Parser.Language_Fixes = null then
+            --  No fixes available; abandon Config.
             return Abandon;
+         else
+            case Shared.Shared_Parser.Language_Fixes
+              (Super.Trace.all, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
+               Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
+               Config)
+            is
+            when Continue =>
+               --  "ignore error" is viable; continue with Config.
+               --  Finish the reduce.
+               Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+            when Abandon =>
+               return Abandon;
+            end case;
          end if;
       end case;
 
@@ -195,7 +197,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Shared_Token_Goal => Invalid_Token_Index,
          Trace_Prefix      => "fast_forward")
       then
-         --  This indicates that Semantic_Check_Fixes fixed the
+         --  This indicates that Language_Fixes fixed the
          --  immediate problem, so continue with the parsed config.
          if Parse_Items.Length = 1 then
             Config := Parse_Items (1).Config;
@@ -208,7 +210,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
 
       else
-         --  This indicates that Semantic_Check_Fixes did not fix all the
+         --  This indicates that Language_Fixes did not fix all the
          --  problems; see test_mckenzie_recover Two_Missing_Ends. We hope it
          --  made progress, so we try to keep going.
          declare
@@ -221,7 +223,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                   Insert_Ops_Count : SAL.Base_Peek_Type := 0;
                begin
                   if Parsed_Config.Current_Inserted = No_Inserted then
-                     --  Any tokens inserted by Semantic_Check_Fixes were consumed, so we
+                     --  Any tokens inserted by Language_Fixes were consumed, so we
                      --  can continue with the parsed config.
                      Parsed_Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
 
@@ -229,7 +231,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      Good_Item_Count := Good_Item_Count + 1;
 
                   elsif Config.Check_Status.Label /= Ok then
-                     --  We assume Semantic_Check_Fixes can't deal with this.
+                     --  We assume Language_Fixes can't deal with this.
                      null;
 
                   else
@@ -303,7 +305,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       end if;
 
       --  If a Parse_Item failed due to a semantic check, enqueue it so
-      --  Semantic_Check_Fixes can try to fix it.
+      --  Language_Fixes can try to fix it.
       declare
          use all type Syntax_Trees.Node_Index;
 
@@ -556,43 +558,45 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end case;
       end if;
 
+      --  FIXME: handle error_token.id /= invalid_token_id, check_status.label = Ok
+
       if Config.Check_Status.Label /= Ok then
          declare
             use all type Semantic_Checks.Semantic_Check;
             use all type Semantic_Checks.Check_Status;
-            Action    : Reduce_Action_Rec renames Config.Check_Action;
-            Nonterm   : constant Recover_Token := Parse.Compute_Nonterm (Config.Stack, Action);
-            --  FIXME: store nonterm in config
             New_State : Unknown_State_Index;
          begin
-            --  If Action.Next /= null, the conflict was already handled elsewhere.
-
-            --  FIXME: semantic_check_fixes return non_success_status
-            if Shared.Shared_Parser.Semantic_Check_Fixes = null or else
-              Shared.Shared_Parser.Semantic_Check_Fixes
-                (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
-                 Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
-                 Config, Nonterm)
-            then
-               --  "ignore error" is a viable solution, so continue with Config;
-               --  finish reduce.
-               Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
-
-               New_State := Goto_For (Table, Config.Stack (1).State, Action.LHS);
-               if New_State = Unknown_State then
-                  raise Programmer_Error with "process_one found test case for new_state = Unkown; old state " &
-                    Image (Config.Stack (1).State) & " nonterm " & Image (Action.LHS, Trace.Descriptor.all);
-               end if;
-
-               Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
-
-               Config.Check_Status := (Label => Ok);
-            else
-               --  "ignore error" is not viable, so abandon Config, but enqueue
+            if Shared.Shared_Parser.Language_Fixes = null then
+               --  No fixes available, so abandon Config, but enqueue
                --  Local_Config_Heap.
-
                Super.Put (Parser_Index, Local_Config_Heap);
                return;
+            else
+               case Shared.Shared_Parser.Language_Fixes
+                 (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
+                  Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
+                  Config)
+               is
+               when Continue =>
+                  --  "ignore error" is a viable solution, so continue with Config;
+                  --  finish reduce.
+                  Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+
+                  New_State := Goto_For (Table, Config.Stack (1).State, Config.Error_Token.ID);
+                  if New_State = Unknown_State then
+                     raise Programmer_Error with "process_one found test case for new_state = Unkown; old state " &
+                       Image (Config.Stack (1).State) & " nonterm " & Image
+                         (Config.Error_Token.ID, Trace.Descriptor.all);
+                  end if;
+
+                  Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Config.Error_Token));
+
+                  Config.Check_Status := (Label => Ok);
+
+               when Abandon =>
+                  Super.Put (Parser_Index, Local_Config_Heap);
+                  return;
+               end case;
             end if;
          end;
       end if;

@@ -1291,6 +1291,52 @@ package body Test_McKenzie_Recover is
       end;
    end Two_Missing_Ends;
 
+   procedure Match_Selected_Component_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+   begin
+      Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
+
+      Parse_Text
+        ("procedure Ada_Mode.Interactive_2 is procedure Proc_2 is begin null; begin null; end" &
+           --      |10       |20       |30       |40       |50       |60       |70       |80
+           " Ada_Mode.Interactive_2;");
+      --    |84   |90       |100      |110
+
+      --  Missing 'end Proc_2;' 68. Enters error recovery on '.' 93
+      --  expecting ';'.
+      --
+      --  This is similar to an Extra_Name_Error from a semantic check, and
+      --  the fix is the same. It provided the first rationale for expanding
+      --  Semantic_Check_Fixes into Language_Fixes.
+      --
+      --  Language_Fixes returns (push_back 'end IDENTIFIER', insert 'end ; ').
+      --
+
+      declare
+         use WisiToken.LR.Parse_Error_Lists;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.Config_Op_Arrays;
+         use WisiToken.Semantic_Checks.AUnit;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
+         use all type WisiToken.LR.Config_Op_Label;
+         use all type WisiToken.LR.Parse_Error_Label;
+
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
+         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
+      begin
+         Check ("errors.length", Error_List.Length, 1);
+         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
+         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
+      end;
+   end Match_Selected_Component_1;
+
    ----------
    --  Public subprograms
 
@@ -1328,6 +1374,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Extra_Name_2'Access, "Extra_Name_2");
       Register_Routine (T, Extra_Name_3'Access, "Extra_Name_3");
       Register_Routine (T, Two_Missing_Ends'Access, "Two_Missing_Ends");
+      Register_Routine (T, Match_Selected_Component_1'Access, "Match_Selected_Component_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -1344,7 +1391,7 @@ package body Test_McKenzie_Recover is
       --  Run before all tests in register
       Ada_Lite.Create_Parser
         (Parser, WisiToken.LALR, Ada_Lite.Trace'Access,
-         WisiToken.LR.McKenzie_Recover.Ada_Lite.Semantic_Check_Fixes'Access);
+         WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access);
 
       Orig_Params := Parser.Table.McKenzie_Param;
 

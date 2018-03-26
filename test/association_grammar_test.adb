@@ -152,8 +152,8 @@ package body Association_Grammar_Test is
            (Full_Grammar,
             LALR_Descriptor,
             First_State_Index => 1),
-         Semantic_Check_Fixes => null,
-         First_Parser_Label => First_Parser_Label);
+         Language_Fixes       => null,
+         First_Parser_Label   => First_Parser_Label);
 
       WisiToken.Trace_Parse := WisiToken.Detail + 1;
 

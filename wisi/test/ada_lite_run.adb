@@ -61,14 +61,17 @@ is
          WisiToken.LR.McKenzie_Recover.Ada_Lite.Semantic_Check_Fixes'Access);
       Parser.Lexer.Reset_With_File (-File_Name);
 
-         Parser.Semantic_State.Initialize (Line_Count => 100); -- big enough
+      Parser.Semantic_State.Initialize (Line_Count => 100); -- big enough
 
-         Parser.Lexer.Reset;
-         Parser.Parse;
-         Parser.Execute_Actions (User_Data, Compute_Indent => True);
+      Parser.Lexer.Reset;
+      Parser.Parse;
+      for Parser_State of Parser.Parsers loop
+         WisiToken.LR.Put (-File_Name, Parser_State.Errors, Parser_State.Tree, Ada_Lite.Descriptor);
+      end loop;
+      Parser.Execute_Actions (User_Data, Compute_Indent => True);
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
-      Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
+      Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Name (E));
 
    when Name_Error =>
       Put_Line (-File_Name & " cannot be opened");
@@ -111,7 +114,6 @@ begin
    end;
 
    Parse;
-
 
 exception
 when E : others =>

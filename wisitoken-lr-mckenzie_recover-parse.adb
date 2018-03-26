@@ -113,10 +113,14 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Trace_Prefix      : in              String)
      return Boolean
    is
-      --  Perform parse actions on Parse_Items (Parse_Item_Index), until
-      --  one fails (return False) or Shared_Token_Goal is shifted (return True).
+      --  Perform parse actions on Parse_Items (Parse_Item_Index), until one
+      --  fails (return False) or Shared_Token_Goal is shifted (return
+      --  True).
       --
-      --  If any actions are a conflict, append the conflict action to
+      --  We return Boolean, not Check_Status, because Abandon and Continue
+      --  are up to the caller.
+      --
+      --  If any actions have a conflict, append the conflict config and action to
       --  Parse_Items.
 
       use all type Ada.Containers.Count_Type;
@@ -223,8 +227,9 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                   end if;
 
                when Semantic_Checks.Error =>
-                  Config.Check_Action := Action.Item;
-                  Success             := False;
+                  Config.Error_Token       := Nonterm;
+                  Config.Check_Token_Count := Action.Item.Token_Count;
+                  Success                  := False;
                end case;
             end;
 

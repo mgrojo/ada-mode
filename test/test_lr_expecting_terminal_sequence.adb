@@ -152,7 +152,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
-         Semantic_Check_Fixes => null,
+         Language_Fixes => null,
          First_Parser_Label => First_Parser_Label);
 
       Execute

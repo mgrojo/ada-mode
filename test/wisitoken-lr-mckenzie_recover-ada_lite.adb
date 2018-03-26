@@ -87,7 +87,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
    ----------
    --  Public subprograms
 
-   function Semantic_Check_Fixes
+   function Language_Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : in     WisiToken.Lexer.Handle;
       Parser_Label      : in     Natural;
@@ -95,15 +95,9 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration;
-      Nonterm           : in     Recover_Token)
-     return Boolean
+      Config            : in     Configuration)
+     return Non_Success_Status
    is
-      --  A reduce on Config failed a semantic check; Config.Stack is in the
-      --  pre-reduce state, Nonterm is the result of the reduce. Enqueue
-      --  fixes for the failure indicated by Code. Return True if Config
-      --  (which ignores the error) is a viable solution, False otherwise.
-
       pragma Unreferenced (McKenzie_Param); --  we may add costs at some point
 
       use all type Ada.Containers.Count_Type;
@@ -144,12 +138,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          Push_Back_Check (Config.all, Expected_ID);
       end Push_Back_Check;
 
-      Action           : Reduce_Action_Rec renames Config.Check_Action;
       Begin_Name_Token : Recover_Token renames Config.Check_Status.Begin_Name;
       End_Name_Token   : Recover_Token renames Config.Check_Status.End_Name;
    begin
       if Trace_McKenzie > Detail then
-         Put ("Ada_Lite Semantic_Check_Fixes", Config);
+         Put ("Ada_Lite Language_Fixes", Config);
          if Trace_McKenzie > Extra then
             Trace.Put_Line ("config stack: " & Image (Config.Stack, Descriptor));
          end if;
@@ -157,7 +150,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
       if not (Begin_Name_IDs (Begin_Name_Token.ID) and
                 End_Name_IDs (End_Name_Token.ID) and
-                Nonterm_IDs (Nonterm.ID))
+                Nonterm_IDs (Config.Error_Token.ID))
       then
          raise Programmer_Error with "unrecognized begin/end/nonterm token id";
       end if;
@@ -177,7 +170,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --
          --  where the names do not match, because the user is changing them.
          --
-         --  The fix is to ignore the error; return True. See
+         --  The fix is to ignore the error; return Continue. See
          --  propagate_names.ada_lite Proc_1.
          --
          --  1. The mismatch indicates one or more missing 'end's. The input
@@ -218,7 +211,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
             if Matching_Name_Index = Config.Stack.Depth then
                --  case 0.
-               return True;
+               return Continue;
 
             else
                --  Case 1.
@@ -235,21 +228,21 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                   New_Config.Check_Status := (Label => Ok);
 
-                  Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
+                  Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
                   Push_Back_Check (New_Config, +SEMICOLON_ID);
 
                   Push_Back_Check
                     (New_Config,
-                     (if Nonterm.ID = +block_statement_ID
+                     (if Config.Error_Token.ID = +block_statement_ID
                       then +identifier_opt_ID
                       else +name_opt_ID));
 
                   if New_Config.Stack (1).Token.Min_Terminal_Index = Invalid_Token_Index then
-                     --  We don't check earlier for Nonterm.Virtual, because we can handle
-                     --  other tokens being virtual.
+                     --  We don't check earlier for Invalid_Indices, because we can handle
+                     --  other tokens having invalid indices.
 
-                     return False; -- ignore error is not valid
+                     return Abandon; -- ignore error is not valid
                   end if;
 
                   New_Config.Current_Shared_Token := New_Config.Stack (1).Token.Min_Terminal_Index;
@@ -266,13 +259,14 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Local_Config_Heap.Add (New_Config);
 
                   if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Match_Names_Error 1 " & Image (Nonterm.ID, Descriptor), New_Config);
+                     Put ("Semantic_Check Match_Names_Error 1 " & Image (Config.Error_Token.ID, Descriptor),
+                          New_Config);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                      end if;
                   end if;
                end;
-               return False;
+               return Abandon;
             end if;
          end;
 
@@ -287,7 +281,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  0a looks like a subprogram or named block; 1b looks like a package
          --  body.
          --
-         --  The fix is to ignore the error; return True. See
+         --  The fix is to ignore the error; return Continue. See
          --  test_mckenzie_recover Missing_Name_*.
          --
          --  1. missing 'begin' or extra 'end'. The stack looks like:
@@ -314,20 +308,20 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  ahead, except in case 0b. So we return two solutions; 'ignore
          --  error' and either 'insert begin' or 'delete end;'.
 
-         if Nonterm.Virtual or
-           (not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.Check_Action.Token_Count)))
+         if Config.Error_Token.Virtual or
+           (not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.Check_Token_Count)))
          then
-            --  Nonterm.Virtual happens when a previous fix inserts tokens.
+            --  Config.Error_Token.Virtual happens when a previous fix inserts tokens.
             --
             --  Invalid tree indices happens when recover enqueues a config that
             --  contains tokens pushed during recover.
 
-            return False; -- ignore error is not valid in this case.
+            return Abandon; -- ignore error is not valid in this case.
          end if;
 
-         if Nonterm.ID = +package_body_ID then
+         if Config.Error_Token.ID = +package_body_ID then
             --  case 0b.
-            return True;
+            return Continue;
          end if;
 
          if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack (4).Tree_Index, +EXCEPTION_ID) then
@@ -343,13 +337,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                New_Config.Check_Status := (Label => Ok);
 
-               Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
+               Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
                Push_Back_Check (New_Config, +SEMICOLON_ID);
 
                Push_Back_Check
                  (New_Config,
-                  (if Nonterm.ID = +block_statement_ID
+                  (if Config.Error_Token.ID = +block_statement_ID
                    then +identifier_opt_ID
                    else +name_opt_ID));
 
@@ -361,11 +355,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                Check (New_Config.Stack (1).Token.ID, +handled_sequence_of_statements_ID);
                Ops.Append ((Undo_Reduce, +handled_sequence_of_statements_ID,
-                            Undo_Reduce (New_Config.Stack, Tree).Token_Count));
+                            Undo_Reduce (New_Config.Stack, Tree)));
 
                Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_opt_ID);
                Ops.Append ((Undo_Reduce, +sequence_of_statements_opt_ID,
-                            Undo_Reduce (New_Config.Stack, Tree).Token_Count));
+                            Undo_Reduce (New_Config.Stack, Tree)));
 
                Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_ID);
 
@@ -376,7 +370,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                --  Don't change New_Config.Current_Shared_Token
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1b " & Image (Nonterm.ID, Descriptor), New_Config.all);
+                  Put ("Semantic_Check Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor),
+                       New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -396,13 +391,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                --  it has the same cost.
                New_Config.Check_Status := (Label => Ok);
 
-               Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
+               Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
                Push_Back_Check (New_Config, +SEMICOLON_ID);
 
                Push_Back_Check
                  (New_Config,
-                  (if Nonterm.ID = +block_statement_ID
+                  (if Config.Error_Token.ID = +block_statement_ID
                    then +identifier_opt_ID
                    else +name_opt_ID));
 
@@ -418,14 +413,15 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                New_Config.Current_Inserted := 1;
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1a " & Image (Nonterm.ID, Descriptor), New_Config.all);
+                  Put ("Semantic_Check Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor),
+                       New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
                end if;
             end;
          end if;
-         return True; -- 'ignore error'.
+         return Continue; -- 'ignore error'.
 
       when Extra_Name_Error =>
          --  The input looks like
@@ -436,8 +432,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  with '<end_name_Token>'.
          --
          --  0. If a matching <begin_name_token> is found, this is not a
-         --  plausible user name error; return False. If it is not found, the
-         --  user could be adding/deleting names; return True.
+         --  plausible user name error; return Abandon. If it is not found, the
+         --  user could be adding/deleting names; return Continue.
          --
          --  1. There is at least one missing 'end' before 'begin'. See
          --  test_mckenzie_recover.adb Extra_Name_1, Extra_Name_2,
@@ -454,14 +450,14 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  If there is more than one missing 'end', a later recover operation
          --  will fix the others.
 
-         --  This case can handle Nonterm.Virtual = True, and it doesn't use
+         --  This case can handle Config.Error_Token.Virtual = True, and it doesn't use
          --  Tree.
          declare
             use Ada.Characters.Handling;
 
             End_Name : constant String := To_Lower (Lexer.Buffer_Text (End_Name_Token.Name));
 
-            Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Action.Token_Count);
+            Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Config.Check_Token_Count);
 
             Matching_Name_Index : SAL.Peek_Type := Token_Count;
             --  'block_label_opt' is empty; start on token before 'begin'.
@@ -474,7 +470,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
             if Matching_Name_Index > Config.Stack.Depth then
                --  case 0
-               return True;
+               return Continue;
             end if;
 
             if Other_Counts (1) = 0 or Other_Counts (2) = 0 then
@@ -492,8 +488,9 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   New_Config.Check_Status := (Label => Ok);
 
                   Stack.Pop (Token_Count);
-                  New_Config.Current_Shared_Token := Nonterm.Min_Terminal_Index;
-                  Ops.Append ((Push_Back, Nonterm.ID, Nonterm.Min_Terminal_Index)); -- The failed reduce.
+                  New_Config.Current_Shared_Token := Config.Error_Token.Min_Terminal_Index;
+                  Ops.Append ((Push_Back, Config.Error_Token.ID, Config.Error_Token.Min_Terminal_Index));
+                  --  The failed reduce.
 
                   Ops.Append ((Insert, +END_ID, New_Config.Current_Shared_Token));
                   Ops.Append ((Insert, +SEMICOLON_ID, New_Config.Current_Shared_Token));
@@ -504,7 +501,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                   if Trace_McKenzie > Detail then
                      Put ("Semantic_Check Extra_Name_Error 1 " & Image
-                            (Nonterm.ID, Trace.Descriptor.all), New_Config.all);
+                            (Config.Error_Token.ID, Trace.Descriptor.all), New_Config.all);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                      end if;
@@ -524,12 +521,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   --  Push back thru 'end':
                   New_Config.Check_Status := (Label => Ok);
 
-                  Ops.Append ((Undo_Reduce, Nonterm.ID, Action.Token_Count)); -- the failed reduce
+                  Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
                   Push_Back_Check (New_Config, +SEMICOLON_ID);
                   Push_Back_Check
                     (New_Config,
-                     (if Nonterm.ID = +block_statement_ID
+                     (if Config.Error_Token.ID = +block_statement_ID
                       then +identifier_opt_ID
                       else +name_opt_ID));
 
@@ -547,17 +544,17 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                   if Trace_McKenzie > Detail then
                      Put ("Semantic_Check Extra_Name_Error 2 " & Image
-                            (Nonterm.ID, Trace.Descriptor.all), New_Config.all);
+                            (Config.Error_Token.ID, Trace.Descriptor.all), New_Config.all);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                      end if;
                   end if;
                end;
             end if;
-            return False;
+            return Abandon;
          end;
 
       end case;
-   end Semantic_Check_Fixes;
+   end Language_Fixes;
 
 end WisiToken.LR.McKenzie_Recover.Ada_Lite;

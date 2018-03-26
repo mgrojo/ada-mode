@@ -21,8 +21,9 @@ org.wisitoken.stephe-1 - available
  current work
 mckenzie problem
     debug.ada_lite
-        simplify, add to test_mckenzie_recover
-        parser 3 skips BEGIN
+        selected_component when expecting IDENTIFIER
+        solution is same as Extra_Name_Error
+        broaden semantic_check_fixes to be called on every error, handle this
 
 
 update ada-mode

@@ -265,7 +265,7 @@ package body Dragon_4_45_LALR_Test is
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index),
-         Semantic_Check_Fixes => null,
+         Language_Fixes => null,
          First_Parser_Label => First_Parser_Label);
 
       Execute_Command ("cdcd");
