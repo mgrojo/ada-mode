@@ -21,8 +21,8 @@
 pragma License (GPL);
 
 with WisiToken.Syntax_Trees.AUnit_Public;
-with WisiToken.Syntax_Trees.Branched.AUnit_Private;
-package body WisiToken.Syntax_Trees.Branched.Test is
+with WisiToken.Syntax_Trees.AUnit_Private;
+package body WisiToken.Syntax_Trees.Test is
 
    --  Example tokens taken from ada_lite.wy. We don't use Ada_Lite
    --  directly, to reduce dependencies for this test.
@@ -44,14 +44,14 @@ package body WisiToken.Syntax_Trees.Branched.Test is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Syntax_Trees.Branched.AUnit_Private;
+      use WisiToken.Syntax_Trees.AUnit_Private;
       use WisiToken.Syntax_Trees.AUnit_Public;
       use all type Node_Arrays.Vector;
       use all type Valid_Node_Index_Arrays.Vector;
 
       Terminals     : aliased Base_Token_Arrays.Vector;
-      Shared_Tree   : aliased WisiToken.Syntax_Trees.Tree;
-      Branched_Tree : WisiToken.Syntax_Trees.Branched.Tree;
+      Shared_Tree   : aliased WisiToken.Syntax_Trees.Base_Tree;
+      Branched_Tree : WisiToken.Syntax_Trees.Tree;
       Junk          : Node_Index;
       pragma Unreferenced (Junk);
       Node_Ident_1  : Node_Index;
@@ -121,8 +121,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
       Check
         ("branched tree",
          Branched_Tree,
-         ((Ada.Finalization.Controlled with
-           Shared_Tree      => Shared_Tree'Unchecked_Access,
+         ((Shared_Tree      => Shared_Tree'Unchecked_Access,
            Last_Shared_Node => 1,
            Branched_Nodes   => Expected_Branched_Nodes,
            Flush            => False)));
@@ -143,7 +142,7 @@ package body WisiToken.Syntax_Trees.Branched.Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("wisitoken-syntax_trees-branched-test.adb");
+      return new String'("wisitoken-syntax_trees-test.adb");
    end Name;
 
-end WisiToken.Syntax_Trees.Branched.Test;
+end WisiToken.Syntax_Trees.Test;

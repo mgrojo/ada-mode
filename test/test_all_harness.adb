@@ -41,7 +41,7 @@ with Test_McKenzie_Recover;
 with Test_Skip_To;
 with Test_Wisi_Suite;
 with Trivial_Productions_Test;
-with WisiToken.Syntax_Trees.Branched.Test;
+with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
    --  command line arguments: [<verbose> [test_name [routine_name [trace_parse [trace_mckenzie [cost_limit]]]]]
@@ -112,7 +112,7 @@ begin
    Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Cost_Limit));
    Add_Test (Suite, new Test_Skip_To.Test_Case);
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case);
-   Add_Test (Suite, new WisiToken.Syntax_Trees.Branched.Test.Test_Case);
+   Add_Test (Suite, new WisiToken.Syntax_Trees.Test.Test_Case);
 
    --  end test cases
 

@@ -229,19 +229,6 @@ package body WisiToken.Semantic_State is
 
    end Lexer_To_Augmented;
 
-   function First_Comment_Line
-     (Tokens     : in Non_Grammar_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return Line_Number_Type
-   is begin
-      for Token of Tokens loop
-         if Token.First and Token.ID = Descriptor.Comment_ID then
-            return Token.Line;
-         end if;
-      end loop;
-      return Invalid_Line_Number;
-   end First_Comment_Line;
-
    function Last_Comment_Line
      (Tokens     : in Non_Grammar_Token_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
@@ -278,7 +265,7 @@ package body WisiToken.Semantic_State is
 
                if Compute_Indent then
                   if Aug_Token.Non_Grammar.Length > 0 then
-                     Aug_Token.First_Trailing_Comment_Line := First_Comment_Line (Aug_Token.Non_Grammar, Descriptor);
+                     Aug_Token.First_Trailing_Comment_Line := Aug_Token.Line + 1; -- May be a blank line.
                      Aug_Token.Last_Trailing_Comment_Line  := Last_Comment_Line (Aug_Token.Non_Grammar, Descriptor);
                   end if;
 

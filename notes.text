@@ -19,17 +19,11 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-delete patterns
+mckenzie problem
+    debug.ada_lite
+        simplify, add to test_mckenzie_recover
+        parser 3 skips BEGIN
 
-refactor Process_one  with subprograms
-
-reduce 0 tokens is same as insert nonterm
-    don't insert 0 length nonterms; let token insert do it
-
-improve propagate_names.ada_lite
-    recover finds two identical ok solutions; parse fails on ambiguous parse
-        one based on "ignore error"
-    improve semantic fix to get a single better solution
 
 update ada-mode
     run-time end-name-optional param
@@ -37,11 +31,15 @@ update ada-mode
 
     repair error only needs insert, delete ops
 
+    propagate to .s-2?
+
+change configure_access to persistent_ref record with container, node components;
+    allow ref.delete to abort config
+
+refactor Process_one with subprograms?
 
 sal unbounded vectors:
     shrink elements to exact size on copy?
-
-move base_token_Array Terminals into Syntax_Trees.Tree, avoid access type
 
 tokens are no longer copied in recovery; only indices into shared_Parser.Terminals
     => merge augmented_token into base_token?

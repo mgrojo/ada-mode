@@ -22,10 +22,10 @@ package body WisiToken.LR.Parser_Lists is
 
    function New_List
      (First_Parser_Label : in Natural;
-      Shared_Tree        : in Syntax_Trees.Tree_Access)
+      Shared_Tree        : in Syntax_Trees.Base_Tree_Access)
      return List
    is
-      Parser : Parser_State := (Shared_Tree, Label => First_Parser_Label, others => <>);
+      Parser : Parser_State := (Label => First_Parser_Label, others => <>);
    begin
       Parser.Tree.Initialize (Shared_Tree, Flush => True);
 
@@ -124,7 +124,7 @@ package body WisiToken.LR.Parser_Lists is
      (List   : in out Parser_Lists.List;
       Cursor : in     Parser_Lists.Cursor'Class)
    is
-      New_Item : Parser_State (Parser_State_Lists.Constant_Reference (Cursor.Ptr).Shared_Tree);
+      New_Item : Parser_State;
    begin
       List.Parser_Label := List.Parser_Label + 1;
       declare
@@ -137,8 +137,7 @@ package body WisiToken.LR.Parser_Lists is
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
          New_Item :=
-           (Shared_Tree           => Item.Shared_Tree,
-            Shared_Token          => Item.Shared_Token,
+           (Shared_Token          => Item.Shared_Token,
             Recover_Insert_Delete => Item.Recover_Insert_Delete,
             Current_Token         => Item.Current_Token,
             Inc_Shared_Token      => Item.Inc_Shared_Token,

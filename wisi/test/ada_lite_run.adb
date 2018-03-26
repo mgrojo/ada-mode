@@ -43,13 +43,12 @@ is
 
    procedure Put_Usage
    is begin
-      Put_Line ("usage: *_run [-v <trace_parse> <trace_mckenzie] <repeat count> filename");
+      Put_Line ("usage: *_run [-v trace_parse trace_mckenzie end_name_opt] filename");
       Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
    end Put_Usage;
 
-   File_Name    : Ada.Strings.Unbounded.Unbounded_String;
-   Repeat_Count : Integer;
+   File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
    User_Data : WisiToken.Syntax_Trees.User_Data_Type;
 
@@ -62,13 +61,11 @@ is
          WisiToken.LR.McKenzie_Recover.Ada_Lite.Semantic_Check_Fixes'Access);
       Parser.Lexer.Reset_With_File (-File_Name);
 
-      for I in 1 .. Repeat_Count loop
          Parser.Semantic_State.Initialize (Line_Count => 100); -- big enough
 
          Parser.Lexer.Reset;
          Parser.Parse;
          Parser.Execute_Actions (User_Data, Compute_Indent => True);
-      end loop;
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
@@ -83,14 +80,15 @@ begin
       use Ada.Command_Line;
    begin
       case Argument_Count is
-      when 2 =>
-         Repeat_Count := Integer'Value (Argument (1));
-         File_Name := +Argument (2);
+      when 1 =>
+         File_Name := +Argument (1);
 
       when 5 =>
          if Argument (1) = "-v" then
             WisiToken.Trace_Parse    := Integer'Value (Argument (2));
             WisiToken.Trace_McKenzie := Integer'Value (Argument (3));
+
+            Ada_Lite.End_Name_Optional := Argument (4) = "1";
 
          else
             Set_Exit_Status (Failure);
@@ -98,7 +96,6 @@ begin
             return;
          end if;
 
-         Repeat_Count := Integer'Value (Argument (4));
          File_Name := +Argument (5);
 
       when others =>

@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package WisiToken.Syntax_Trees.Branched.Test is
+package WisiToken.Syntax_Trees.Test is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -29,4 +29,4 @@ package WisiToken.Syntax_Trees.Branched.Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end WisiToken.Syntax_Trees.Branched.Test;
+end WisiToken.Syntax_Trees.Test;

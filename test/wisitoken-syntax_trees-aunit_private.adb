@@ -48,8 +48,12 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
      (Label    : in String;
       Computed : in Tree;
       Expected : in Tree)
-   is begin
-      Check (Label & ".nodes", Computed.Nodes, Expected.Nodes);
+   is
+      use WisiToken.Syntax_Trees.AUnit_Public;
+   begin
+      --  Ignoring shared_tree
+      Check (Label & ".last_shared_node", Computed.Last_Shared_Node, Expected.Last_Shared_Node);
+      Check (Label & ".branched_nodes", Computed.Branched_Nodes, Expected.Branched_Nodes);
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Private;

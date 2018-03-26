@@ -284,9 +284,9 @@ package body WisiToken.LR.Parser is
 
       function Compare
         (Stack_1 : in Parser_Stacks.Stack;
-         Tree_1  : in Syntax_Trees.Branched.Tree;
+         Tree_1  : in Syntax_Trees.Tree;
          Stack_2 : in Parser_Stacks.Stack;
-         Tree_2  : in Syntax_Trees.Branched.Tree)
+         Tree_2  : in Syntax_Trees.Tree)
         return Boolean
       is
       begin
@@ -304,7 +304,7 @@ package body WisiToken.LR.Parser is
                   if Item_1.State /= Item_2.State then
                      return False;
                   else
-                     if not Syntax_Trees.Branched.Same_Token (Tree_1, Item_1.Token, Tree_2, Item_2.Token) then
+                     if not Syntax_Trees.Same_Token (Tree_1, Item_1.Token, Tree_2, Item_2.Token) then
                         return False;
                      end if;
                   end if;
@@ -866,7 +866,7 @@ package body WisiToken.LR.Parser is
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
       procedure Process_Node
-        (Tree : in out Syntax_Trees.Branched.Tree;
+        (Tree : in out Syntax_Trees.Tree;
          Node : in     Syntax_Trees.Valid_Node_Index)
       is
          use all type Syntax_Trees.Node_Label;

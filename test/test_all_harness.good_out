@@ -52,6 +52,7 @@ OK test_mckenzie_recover.adb : Missing_Name_1
 OK test_mckenzie_recover.adb : Missing_Name_2
 OK test_mckenzie_recover.adb : Missing_Name_3
 OK test_mckenzie_recover.adb : Missing_Name_4
+OK test_mckenzie_recover.adb : Missing_Name_5
 OK test_mckenzie_recover.adb : Block_Match_Names_1
 OK test_mckenzie_recover.adb : Two_Parsers_1
 OK test_mckenzie_recover.adb : Extra_Name_1
@@ -61,9 +62,9 @@ OK test_mckenzie_recover.adb : Two_Missing_Ends
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
-OK wisitoken-syntax_trees-branched-test.adb : Test_Move_Branch_Point
+OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   63
-Successful Tests:  63
+Total Tests Run:   64
+Successful Tests:  64
 Failed Assertions: 0
 Unexpected Errors: 0

@@ -58,24 +58,24 @@ private
    --  Also count tokens with ID = Other_ID.
 
    procedure Put
-     (Message         : in     String;
-      Trace           : in out WisiToken.Trace'Class;
-      Parser_Label    : in     Natural;
-      Terminals       : in     Base_Token_Arrays.Vector;
-      Config          : in     Configuration;
-      Include_Task_ID : in     Boolean := True);
+     (Message      : in     String;
+      Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Terminals    : in     Base_Token_Arrays.Vector;
+      Config       : in     Configuration;
+      Task_ID      : in     Boolean := True);
    --  Put Message and an image of Config to Trace.
 
    procedure Put_Line
-     (Trace           : in out WisiToken.Trace'Class;
-      Parser_Label    : in     Natural;
-      Message         : in     String;
-      Include_Task_ID : in     Boolean := True);
+     (Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Message      : in     String;
+      Task_ID      : in     Boolean := True);
    --  Put message to Trace, with parser and task info.
 
    function Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
-      Tree  : in     Syntax_Trees.Branched.Tree)
+      Tree  : in     Syntax_Trees.Tree)
      return Reduce_Action_Rec
    with Pre => Tree.Is_Nonterm (Stack (1).Tree_Index);
    --  Undo the reduction that produced the top stack item, return the

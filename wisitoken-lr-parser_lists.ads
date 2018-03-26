@@ -25,7 +25,7 @@ with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR.Parser_Lists is
 
-   type Base_Parser_State (Shared_Tree : not null access Syntax_Trees.Tree) is tagged
+   type Base_Parser_State is tagged
    record
       --  Visible components for direct access
 
@@ -45,7 +45,7 @@ package WisiToken.LR.Parser_Lists is
       --  There is no need to use a branched stack; max stack length is
       --  proportional to source text nesting depth, not source text length.
 
-      Tree : Syntax_Trees.Branched.Tree;
+      Tree : Syntax_Trees.Tree;
       --  We use a branched tree to avoid copying large trees for each
       --  spawned parser; tree size is proportional to source text size. In
       --  normal parsing, parallel parsers are short-lived; they each process
@@ -79,7 +79,7 @@ package WisiToken.LR.Parser_Lists is
 
    function New_List
      (First_Parser_Label : in Natural;
-      Shared_Tree        : in Syntax_Trees.Tree_Access)
+      Shared_Tree        : in Syntax_Trees.Base_Tree_Access)
      return List;
 
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;

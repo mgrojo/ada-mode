@@ -63,7 +63,7 @@ package body WisiToken.LR is
    function Image
      (Stack      : in Parser_Stacks.Stack;
       Descriptor : in WisiToken.Descriptor'Class;
-      Tree       : in Syntax_Trees.Abstract_Tree'Class;
+      Tree       : in Syntax_Trees.Tree;
       Depth      : in SAL.Base_Peek_Type := 0)
      return String
    is
@@ -580,10 +580,26 @@ package body WisiToken.LR is
       Item.Cost := Key;
    end Set_Key;
 
+   function Image
+     (Item       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree;
+      Descriptor : in WisiToken.Descriptor)
+     return String
+   is begin
+      case Item.Label is
+      when Action =>
+         return "Action, expecting: " & Image (Item.Expecting, Descriptor) &
+           ", found '" & Tree.Image (Item.Error_Token, Descriptor);
+
+      when Check =>
+         return "Check: " & Semantic_Checks.Image (Item.Check_Status, Descriptor);
+      end case;
+   end Image;
+
    procedure Put
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
-      Tree             : in Syntax_Trees.Abstract_Tree'Class;
+      Tree             : in Syntax_Trees.Tree;
       Descriptor       : in WisiToken.Descriptor)
    is
       use all type SAL.Base_Peek_Type;
@@ -637,7 +653,7 @@ package body WisiToken.LR is
 
    function Reduce_Stack
      (Stack        : in out Parser_Stacks.Stack;
-      Tree         : in out Syntax_Trees.Branched.Tree;
+      Tree         : in out Syntax_Trees.Tree;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Syntax_Trees.Valid_Node_Index;
       Lexer        : in     WisiToken.Lexer.Handle;

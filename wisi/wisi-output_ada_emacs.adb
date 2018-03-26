@@ -41,7 +41,7 @@ procedure Wisi.Output_Ada_Emacs
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
    Language_Name         : in String;
-   Params                : in Generate_Param_Type;
+   Generate_Params                : in Generate_Param_Type;
    Prologues             : in Wisi.Prologues;
    Tokens                : in Wisi.Tokens;
    Conflicts             : in Conflict_Lists.List;
@@ -56,7 +56,7 @@ is
 
    Language_Runtime_Package : constant String := "WisiToken.Wisi_Runtime." & Language_Name;
 
-   package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Params);
+   package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Generate_Params);
    use Common;
 
    procedure Create_Ada_Action
@@ -612,23 +612,22 @@ is
          First  : constant Integer := Params'First;
          Second : constant Integer := Index (Params, " ", First);
       begin
-         return " (Tree, Tree_Nonterm, Tree_Tokens, " & Params (First .. Second - 1) & ',' &
+         return " (Nonterm, Tokens, " & Params (First .. Second - 1) & ',' &
            Params (Second .. Params'Last);
       end Merge_Names_Params;
 
       function Match_Names_Params (Params : in String) return String
       is
-         --  Input looks like: 1 2 nil)
+         --  Input looks like: 1 2)
          First  : constant Integer := Params'First;
          Second : constant Integer := Index (Params, " ", First);
-         Third  : constant Integer := Index (Params, " ", Second + 1);
       begin
-         return " (Tree, Lexer, Tree_Tokens, " &
+         return " (Lexer, Tokens, " &
            Params (First .. Second - 1) & ',' &
-           Params (Second .. Third - 1) &
-           (if Params (Second + 1 .. Params'Last - 1) = "nil"
-            then ", False)"
-            else ", True)");
+           Params (Second .. Params'Last - 1) & ", " &
+           (if Length (Generate_Params.Match_Tokens_End_Optional_Option) > 0
+            then -Generate_Params.Match_Tokens_End_Optional_Option
+            else "False") & ")";
       end Match_Names_Params;
 
       procedure Translate_Line (Line : in String)
@@ -712,7 +711,7 @@ is
             end if;
             Check_Lines.Append
               ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 " (Tree, Tree_Nonterm, Tree_Tokens, " & Line (Last + 1 .. Line'Last) & ";");
+                 " (Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";");
 
          elsif Elisp_Name = "wisi-merge-names" then
             if not Check then
@@ -786,13 +785,12 @@ is
       if Check then
          --  in a check
          Indent_Line ("function " & Name);
-         Indent_Line (" (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;");
-         Indent_Line ("  Lexer        : in     WisiToken.Lexer.Handle;");
-         Indent_Line ("  Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
-         Indent_Line ("  Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
+         Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
+         Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
+         Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
          Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
          declare
-            --  The others are always referenced.
+            --  Tokens is always referenced.
             Unref_Lexer   : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Lexer"));
             Unref_Nonterm : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Nonterm"));
          begin
@@ -802,7 +800,7 @@ is
                   Indent_Line ("   pragma Unreferenced (Lexer);");
                end if;
                if Unref_Nonterm then
-                  Indent_Line ("   pragma Unreferenced (Tree_Nonterm);");
+                  Indent_Line ("   pragma Unreferenced (Nonterm);");
                end if;
                Indent_Line ("begin");
             else
@@ -816,16 +814,14 @@ is
       else
          --  In an action
          Indent_Line ("procedure " & Name);
-         Indent_Line (" (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
-         Indent_Line ("  State         : in out WisiToken.Semantic_State.Semantic_State;");
-         Indent_Line ("  Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;");
-         Indent_Line ("  Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
-         Indent_Line ("  Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
+         Indent_Line (" (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
+         Indent_Line ("  State        : in out WisiToken.Semantic_State.Semantic_State;");
+         Indent_Line ("  Tree         : in out WisiToken.Syntax_Trees.Tree;");
+         Indent_Line ("  Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
+         Indent_Line ("  Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
          Indent_Line ("is");
          Indent_Start ("   Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames");
          Put_Line (" WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);");
-         Indent_Start ("   Tree : WisiToken.Syntax_Trees.Branched.Tree renames");
-         Put_Line (" WisiToken.Syntax_Trees.Branched.Tree (Abstract_Tree);");
          Indent_Line ("begin");
          Indent := Indent + 3;
 
@@ -891,7 +887,7 @@ is
          Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
-            WisiToken.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Generate_Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -906,7 +902,7 @@ is
          Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
            (Data.Grammar,
             LR1_Descriptor,
-            WisiToken.State_Index (Params.First_State_Index),
+            WisiToken.State_Index (Generate_Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -940,7 +936,7 @@ is
       end if;
       Put_Line ("with WisiToken.Semantic_State;");
       if Action_Count > 0 or Check_Count > 0 then
-         Put_Line ("with WisiToken.Syntax_Trees.Branched;");
+         Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
       Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
@@ -1018,7 +1014,8 @@ is
       end loop;
 
       Create_Create_Parser
-        (Data.Parser_Algorithm, Data.Interface_Kind, Params.First_State_Index, Params.First_Parser_Label);
+        (Data.Parser_Algorithm, Data.Interface_Kind, Generate_Params.First_State_Index,
+         Generate_Params.First_Parser_Label);
 
       case Data.Interface_Kind is
       when Process =>
@@ -1380,7 +1377,7 @@ begin
       Language_Name   => Language_Name,
       Output_Language => Ada_Emacs,
       Descriptor      => Generate_Utils.LALR_Descriptor,
-      Interface_Kind  => Params.Interface_Kind,
+      Interface_Kind  => Generate_Params.Interface_Kind,
       Declare_Enum    => Declare_Enum);
 
    Create_Ada_Body;
@@ -1405,6 +1402,3 @@ when others =>
    Set_Output (Standard_Output);
    raise;
 end Wisi.Output_Ada_Emacs;
---  Local Variables:
---  jit-lock-defer-time: 0.25
---  End:

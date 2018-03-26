@@ -30,7 +30,7 @@ with WisiToken.LR.Parser;
 with WisiToken.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Semantic_State;
-with WisiToken.Syntax_Trees.Branched;
+with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
 
    Parser    : WisiToken.LR.Parser.Parser;
@@ -189,7 +189,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("errors.length", Error_List.Length, 1);
@@ -297,7 +297,7 @@ package body Test_McKenzie_Recover is
 
          Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("errors.length", Error_List.Length, 1);
@@ -523,7 +523,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
       begin
          Check ("parser label", Parser_State.Label, 0);
@@ -576,7 +576,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
          Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Element (Cursor).Error_Token);
       begin
@@ -616,7 +616,7 @@ package body Test_McKenzie_Recover is
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
          Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Element (Cursor).Error_Token);
       begin
@@ -680,7 +680,7 @@ package body Test_McKenzie_Recover is
 
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
          Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
@@ -964,6 +964,53 @@ package body Test_McKenzie_Recover is
       end;
    end Missing_Name_4;
 
+   procedure Missing_Name_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+   begin
+      Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
+
+      Parse_Text
+        ("procedure Proc_1 is procedure Proc_2 is begin null; end; begin null; end Proc_1; ");
+      --           |10       |20       |30       |40       |50       |60       |70
+
+      --  Missing 'Proc_2' 68. Enters error recovery on 'begin' 58 with
+      --  Missing_Name_Error.
+      --
+      --  Semantic_Error_Fixes returns both 'ignore error' and (push_back,
+      --  delete 'end ; '). Both pass checks, and there are two results from
+      --  recover.
+      --
+      --  This tests setting Inc_Shared_Token properly when there are
+      --  multiple parsers.
+      --
+      --  Parser 2 gets the 'push_back' solution, which fails at EOF.
+      --  Parser 3 gets the 'ignore error' solution, which succeeds.
+
+      declare
+         use WisiToken.LR.Parse_Error_Lists;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.Config_Op_Arrays;
+         use WisiToken.Semantic_Checks.AUnit;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
+         use all type WisiToken.LR.Config_Op_Label;
+         use all type WisiToken.LR.Parse_Error_Label;
+
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
+         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
+      begin
+         Check ("errors.length", Error_List.Length, 1);
+         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
+         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
+      end;
+   end Missing_Name_5;
+
    procedure Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -997,7 +1044,7 @@ package body Test_McKenzie_Recover is
 
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
          Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
          Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
          Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Error.Error_Token);
@@ -1277,6 +1324,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Missing_Name_2'Access, "Missing_Name_2");
       Register_Routine (T, Missing_Name_3'Access, "Missing_Name_3");
       Register_Routine (T, Missing_Name_4'Access, "Missing_Name_4");
+      Register_Routine (T, Missing_Name_5'Access, "Missing_Name_5");
       Register_Routine (T, Block_Match_Names_1'Access, "Block_Match_Names_1");
       Register_Routine (T, Two_Parsers_1'Access, "Two_Parsers_1");
       Register_Routine (T, Extra_Name_1'Access, "Extra_Name_1");

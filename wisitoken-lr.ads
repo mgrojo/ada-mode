@@ -47,7 +47,7 @@ with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
 with WisiToken.Semantic_State;
-with WisiToken.Syntax_Trees.Branched;
+with WisiToken.Syntax_Trees;
 package WisiToken.LR is
 
    --  Parser stack type. FIXME: move to parser?
@@ -61,7 +61,7 @@ package WisiToken.LR is
    function Image
      (Stack      : in Parser_Stacks.Stack;
       Descriptor : in WisiToken.Descriptor'Class;
-      Tree       : in Syntax_Trees.Abstract_Tree'Class;
+      Tree       : in Syntax_Trees.Tree;
       Depth      : in SAL.Base_Peek_Type := 0)
      return String;
    --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
@@ -389,12 +389,12 @@ package WisiToken.LR is
    package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Config_Op, Capacity => 80);
+     (Positive_Index_Type, Config_Op, Capacity => 40);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
    --  parameter plus an arbitrary number from the language-specific
-   --  repairs; in practice, a capacity of 80 is enough so far.
+   --  repairs; in practice, a capacity of 40 is enough so far.
 
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) &
@@ -487,7 +487,7 @@ package WisiToken.LR is
       Parser_Label      : in     Natural;
       McKenzie_Param    : in     McKenzie_Param_Type;
       Terminals         : in     Base_Token_Arrays.Vector;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration;
       Nonterm           : in     Recover_Token)
@@ -532,10 +532,16 @@ package WisiToken.LR is
 
    package Parse_Error_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Parse_Error);
 
+   function Image
+     (Item       : in Parse_Error;
+      Tree       : in Syntax_Trees.Tree;
+      Descriptor : in WisiToken.Descriptor)
+     return String;
+
    procedure Put
      (Source_File_Name : in String;
       Errors           : in Parse_Error_Lists.List;
-      Tree             : in Syntax_Trees.Abstract_Tree'Class;
+      Tree             : in Syntax_Trees.Tree;
       Descriptor       : in WisiToken.Descriptor);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
@@ -577,7 +583,7 @@ private
 
    function Reduce_Stack
      (Stack        : in out Parser_Stacks.Stack;
-      Tree         : in out Syntax_Trees.Branched.Tree;
+      Tree         : in out Syntax_Trees.Tree;
       Action       : in     Reduce_Action_Rec;
       Nonterm      :    out Syntax_Trees.Valid_Node_Index;
       Lexer        : in     WisiToken.Lexer.Handle;

@@ -26,12 +26,12 @@ with WisiToken.LR.Parser_Lists;
 package body WisiToken.LR.McKenzie_Recover is
 
    procedure Put
-     (Message         : in     String;
-      Trace           : in out WisiToken.Trace'Class;
-      Parser_Label    : in     Natural;
-      Terminals       : in     Base_Token_Arrays.Vector;
-      Config          : in     Configuration;
-      Include_Task_ID : in     Boolean := True)
+     (Message      : in     String;
+      Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Terminals    : in     Base_Token_Arrays.Vector;
+      Config       : in     Configuration;
+      Task_ID      : in     Boolean := True)
    is
       --  For debugging output
 
@@ -43,7 +43,7 @@ package body WisiToken.LR.McKenzie_Recover is
       use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        (if Include_Task_ID then +Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else +"") &
+        (if Task_ID then +Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else +"") &
         Integer'Image (Parser_Label) & ": " &
         (if Message'Length > 0 then Message & ":" else "");
    begin
@@ -64,15 +64,15 @@ package body WisiToken.LR.McKenzie_Recover is
    end Put;
 
    procedure Put_Line
-     (Trace           : in out WisiToken.Trace'Class;
-      Parser_Label    : in     Natural;
-      Message         : in     String;
-      Include_Task_ID : in     Boolean := True)
+     (Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Message      : in     String;
+      Task_ID      : in     Boolean := True)
    is
       use all type Ada.Strings.Unbounded.Unbounded_String;
    begin
       Trace.Put_Line
-        ((if Include_Task_ID then Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else "") &
+        ((if Task_ID then Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else "") &
            Integer'Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
@@ -542,15 +542,15 @@ package body WisiToken.LR.McKenzie_Recover is
    end Shared_Lookahead;
 
    procedure Put
-     (Message         : in              String;
-      Super           : not null access Supervisor;
-      Shared          : not null access Shared_Lookahead;
-      Parser_Index    : in              SAL.Peek_Type;
-      Config          : in              Configuration;
-      Include_Task_ID : in              Boolean := True)
+     (Message      : in              String;
+      Super        : not null access Supervisor;
+      Shared       : not null access Shared_Lookahead;
+      Parser_Index : in              SAL.Peek_Type;
+      Config       : in              Configuration;
+      Task_ID      : in              Boolean := True)
    is begin
       Put (Message, Super.Trace.all, Super.Parser_State (Parser_Index).Label,
-           Shared.Shared_Parser.Terminals, Config, Include_Task_ID);
+           Shared.Shared_Parser.Terminals, Config, Task_ID);
    end Put;
 
    ----------
@@ -854,7 +854,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    function Undo_Reduce
      (Stack : in out Recover_Stacks.Stack;
-      Tree  : in     Syntax_Trees.Branched.Tree)
+      Tree  : in     Syntax_Trees.Tree)
      return Reduce_Action_Rec
    is
       Nonterm_Item : constant Recover_Stack_Item                  := Stack.Pop;
@@ -872,7 +872,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    procedure Undo_Reduce
      (Stack : in out Parser_Stacks.Stack;
-      Tree  : in     Syntax_Trees.Branched.Tree)
+      Tree  : in     Syntax_Trees.Tree)
    is
       Item : constant Parser_Stack_Item := Stack.Pop;
    begin
@@ -1366,30 +1366,9 @@ package body WisiToken.LR.McKenzie_Recover is
             end loop;
          end;
 
-         --  Find nonterm insertions to try; loop over goto actions for the
-         --  current state.
-         declare
-            I : Goto_List_Iterator := First (Table.States (Config.Stack.Peek.State));
-         begin
-            loop
-               exit when I.Is_Done;
-
-               declare
-                  ID : constant Token_ID := I.Symbol;
-               begin
-                  if Config.Ops.Length = 0 or else -- don't insert an id we just pushed back.
-                    Config.Ops (Config.Ops.Last_Index) /= (Push_Back, ID, Config.Current_Shared_Token)
-                  then
-                     declare
-                        New_Config : Configuration := Config;
-                     begin
-                        Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, I.State, ID);
-                     end;
-                  end if;
-               end;
-               I.Next;
-            end loop;
-         end;
+         --  It is tempting to use the Goto_List to find nonterms to insert.
+         --  But that can easily lead to error states, and it turns out to be
+         --  not useful.
       end if;
 
       if Config.Current_Inserted = No_Inserted then
@@ -1461,7 +1440,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    function To_Recover
      (Parser_Stack : in Parser_Stacks.Stack;
-      Tree         : in Syntax_Trees.Branched.Tree)
+      Tree         : in Syntax_Trees.Tree)
      return Recover_Stacks.Stack
    is
       use all type SAL.Base_Peek_Type;
@@ -1496,6 +1475,7 @@ package body WisiToken.LR.McKenzie_Recover is
            ("parser" & Integer'Image (Parser_State.Label) &
               ": State" & State_Index'Image (Parser_State.Stack (1).State) &
               " Current_Token" & Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all));
+         Trace.Put_Line (Image (Error, Parser_State.Tree, Trace.Descriptor.all));
          if Trace_McKenzie > Extra then
             Put_Line (Trace, Parser_State.Label, Image (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree));
          end if;
@@ -1529,12 +1509,12 @@ package body WisiToken.LR.McKenzie_Recover is
          if Trace_McKenzie > Detail then
             Put ("undo_reduce " & Image
                    (Config.Check_Action.LHS, Trace.Descriptor.all), Trace, Parser_State.Label,
-                 Shared_Parser.Terminals, Config.all, Include_Task_ID => False);
+                 Shared_Parser.Terminals, Config.all, Task_ID => False);
          end if;
       else
          if Trace_McKenzie > Detail then
             Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config.all,
-                 Include_Task_ID => False);
+                 Task_ID => False);
          end if;
       end if;
 
@@ -1562,6 +1542,27 @@ package body WisiToken.LR.McKenzie_Recover is
         (Super'Access, Shared'Access);
       --  Keep one CPU free for this main task, and the user.
       --  FIXME: see if more tasks go faster or slower.
+
+      Shared_Verb : All_Parse_Action_Verbs := Shift;
+      --  When there are multiple parsers, this is the 'worst case' verb.
+      --  Verbs are worse in the order Shift, Shift_Reduce, Reduce.
+
+      procedure Update_Shared_Verb (Parser_Verb : in All_Parse_Action_Verbs)
+      is begin
+         case Parser_Verb is
+         when Shift =>
+            return;
+         when Shift_Recover =>
+            if Shared_Verb = Shift then
+               Shared_Verb := Shift_Recover;
+            end if;
+         when Reduce =>
+            Shared_Verb := Reduce;
+         when others =>
+            raise Programmer_Error;
+         end case;
+      end Update_Shared_Verb;
+
 
       procedure Cleanup
       is begin
@@ -1642,6 +1643,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   --  Restore pre-error parser verb before spawning, just for
                   --  simplicity.
                   Cur.Set_Verb (Cur.Prev_Verb);
+                  Update_Shared_Verb (Cur.Prev_Verb);
 
                   if Data.Results.Count > 1 then
                      if Parsers.Count + Data.Results.Count > Shared_Parser.Max_Parallel then
@@ -1660,7 +1662,7 @@ package body WisiToken.LR.McKenzie_Recover is
                              ("spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
                                 Int_Image (Cur.Label) & " (" & Int_Image (Integer (Parsers.Count)) & " active)");
                            Put ("", Trace, Parsers.First.Label, Shared_Parser.Terminals,
-                                Data.Results.Peek, Include_Task_ID => False);
+                                Data.Results.Peek, Task_ID => False);
                         end if;
 
                         State_Ref (Parsers.First).Recover.Results.Add (Data.Results.Remove);
@@ -1670,7 +1672,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                   if Trace_McKenzie > Outline then
                      Put ("", Trace, Cur.State_Ref.Label, Shared_Parser.Terminals, Data.Results.Peek,
-                          Include_Task_ID => False);
+                          Task_ID => False);
                   end if;
                else
                   if Trace_McKenzie > Outline then
@@ -1697,7 +1699,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                Descriptor : WisiToken.Descriptor renames Shared_Parser.Trace.Descriptor.all;
                Table      : Parse_Table renames Shared_Parser.Table.all;
-               Tree       : Syntax_Trees.Branched.Tree renames Parser_State.Tree;
+               Tree       : Syntax_Trees.Tree renames Parser_State.Tree;
                Data       : McKenzie_Data renames Parser_State.Recover;
                Result     : Configuration renames Data.Results.Peek;
 
@@ -1714,12 +1716,18 @@ package body WisiToken.LR.McKenzie_Recover is
                --  non-flushed branched tree, which saves time and space.
 
                if Trace_McKenzie > Extra then
-                  Trace.Put_Line ("before Ops applied:");
-                  Trace.Put_Line ("parser stack " & Image (Parser_State.Stack, Descriptor, Tree));
-                  Trace.Put_Line
-                    ("parser Shared_Token  " & Image (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor));
-                  Trace.Put_Line
-                    ("parser Current_Token " & Parser_State.Tree.Image (Parser_State.Current_Token, Descriptor));
+                  Put_Line (Trace, Parser_State.Label, "before Ops applied:", Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser stack " & Image (Parser_State.Stack, Descriptor, Tree),
+                     Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser Shared_Token  " & Image
+                       (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor),
+                     Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser Current_Token " & Parser_State.Tree.Image
+                       (Parser_State.Current_Token, Descriptor),
+                     Task_ID => False);
                end if;
 
                for Op of Result.Ops loop
@@ -1831,44 +1839,60 @@ package body WisiToken.LR.McKenzie_Recover is
 
                      if Stack_Changed or Shared_Token_Changed or Virtuals_Inserted then
                         Parser_State.Set_Verb (Shift_Recover);
+                        Update_Shared_Verb (Shift_Recover);
                      end if;
 
-                     if Virtuals_Inserted or (Shared_Token_Changed and Parser_State.Prev_Verb = Reduce) then
+                     if Virtuals_Inserted or (Shared_Token_Changed and Parser_State.Verb = Reduce) then
+                        --  On exit from McKenzie_Recover, Verb gives the action that will be
+                        --  performed immediately, if it is the same as Shared_Verb.
+                        --  Shared_Verb is checked in a separate loop below.
                         --
-                        --  On exit from McKenzie_Recover, Prev_Verb gives the action that
-                        --  will be performed immediatly. If Prev_Verb is Reduce, the main
-                        --  parser will do reduce until it gets to Shift. At that point, it
-                        --  would normally increment Parser_State.Shared_Terminal to get to
-                        --  the next token. However, we have set Shared_Terminal to the next
-                        --  token, so we don't want it to increment. We could set
-                        --  Shared_Terminal to 1 less, but this way the debug messages all
-                        --  show the expected shared_terminal.
+                        --  If Verb is Reduce, the main parser will do reduce until it gets to
+                        --  Shift. At that point, it would normally increment
+                        --  Parser_State.Shared_Terminal to get to the next token. However, we
+                        --  have set Shared_Terminal to the next token, so we don't want it to
+                        --  increment. We could set Shared_Terminal to 1 less, but this way
+                        --  the debug messages all show the expected shared_terminal.
                         --
-                        --  On the other hand, if Prev_Verb is Shift, then Shared_Token will
-                        --  be shifted immediately, and we want it to increment on the next
+                        --  If Verb is Shift or Shift_Recover, then Shared_Token will be
+                        --  shifted immediately, and we want it to increment on the next
                         --  shift.
                         Parser_State.Inc_Shared_Token := False;
+                     else
+                        Parser_State.Inc_Shared_Token := True;
                      end if;
-
                   end;
                end if;
 
                Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
 
                if Trace_McKenzie > Extra then
-                  Trace.Put_Line ("after Ops applied:");
-                  Trace.Put_Line ("parser stack " & Image (Parser_State.Stack, Descriptor, Tree));
-                  Trace.Put_Line
-                    ("parser Shared_Token  " & Image (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor));
-                  Trace.Put_Line
-                    ("parser Current_Token " & Parser_State.Tree.Image (Parser_State.Current_Token, Descriptor));
-                  Trace.Put_Line
-                    ("parser recover_insert_delete " & Image (Parser_State.Recover_Insert_Delete, Descriptor));
-                  Trace.Put_Line
-                    ("parser inc_shared_token " & Boolean'Image (Parser_State.Inc_Shared_Token) &
-                       " parser verb " & All_Parse_Action_Verbs'Image (Parser_State.Verb));
+                  Put_Line (Trace, Parser_State.Label, "after Ops applied:", Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser stack " & Image (Parser_State.Stack, Descriptor, Tree),
+                     Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser Shared_Token  " & Image
+                       (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor), Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser Current_Token " & Parser_State.Tree.Image
+                       (Parser_State.Current_Token, Descriptor), Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser recover_insert_delete " & Image
+                       (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
+                  Put_Line
+                    (Trace, Parser_State.Label, "parser inc_shared_token " & Boolean'Image
+                       (Parser_State.Inc_Shared_Token) & " parser verb " & All_Parse_Action_Verbs'Image
+                         (Parser_State.Verb), Task_ID => False);
                end if;
             end;
+         end if;
+      end loop;
+
+      for Parser_State of Parsers loop
+         if Parser_State.Verb /= Shared_Verb then
+            --  Shared_Token will not be shifted immediately.
+            Parser_State.Inc_Shared_Token := False;
          end if;
       end loop;
 

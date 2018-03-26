@@ -45,7 +45,7 @@ package WisiToken.LR.Parser is
       --
       --  We use Protected, for safe multi-task access in McKenzie_Recover.
 
-      Shared_Tree : aliased Syntax_Trees.Tree;
+      Shared_Tree : aliased Syntax_Trees.Base_Tree;
       --  Each parser (normal and recover) has its own branched syntax tree,
       --  all branched from this tree. Terminals are added to the tree when
       --  they become the current token.
