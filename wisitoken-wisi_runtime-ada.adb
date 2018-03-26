@@ -91,7 +91,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Descriptor       : access constant WisiToken.Descriptor;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -158,7 +158,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       State             : in     WisiToken.Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -204,7 +204,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       use Ada_Process;
    begin
       if Tree.ID (Tree.Parent (Tree_Indenting)) = +association_opt_ID and then
-        Syntax_Trees.No_Node_Index /= Tree.Find_Ancestor (Tree_Indenting, +aspect_specification_opt_ID)
+        Syntax_Trees.Invalid_Node_Index /= Tree.Find_Ancestor (Tree_Indenting, +aspect_specification_opt_ID)
       then
          --  In aspect_specification_opt
          --  See ada.wy association_opt for test cases
@@ -296,7 +296,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Aggregate
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -322,7 +322,7 @@ package body WisiToken.Wisi_Runtime.Ada is
 
       Expression : constant Syntax_Trees.Node_Index := Tree.Find_Ancestor (Tree_Indenting, +expression_opt_ID);
    begin
-      if Expression = Syntax_Trees.No_Node_Index then
+      if Expression = Syntax_Trees.Invalid_Node_Index then
          return Null_Delta;
       elsif Tree.ID (Tree.Parent (Expression)) = +if_expression_ID or
         Tree.ID (Tree.Parent (Expression)) = +case_expression_alternative_ID
@@ -336,7 +336,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Renames_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -390,7 +390,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Return_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -448,7 +448,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Record_0
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -470,7 +470,7 @@ package body WisiToken.Wisi_Runtime.Ada is
    function Ada_Indent_Record_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;

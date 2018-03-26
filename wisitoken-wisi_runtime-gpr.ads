@@ -27,12 +27,15 @@ package WisiToken.Wisi_Runtime.Gpr is
    Gpr_Indent_Broken : Integer := 2;
    Gpr_Indent_When   : Integer := 3;
 
+   --  Other parameters
+   Match_Tokens_End_Optional : Boolean := False;
+
    type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
 
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Descriptor       : access constant WisiToken.Descriptor;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;

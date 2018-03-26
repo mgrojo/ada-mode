@@ -353,41 +353,76 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Put
      (Item       : in LR.Configuration;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Terminals  : in Semantic_State.Augmented_Token_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
    is
       use all type SAL.Base_Peek_Type;
       use Ada.Containers;
-      subtype Bounded_Token_ID is WisiToken.Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
-      package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
-        (Max => 10 + Bounded_Token_ID'Width * Integer
-           (Item.Popped.Length + Item.Inserted.Length + Item.Deleted.Length));
-      use Bounded;
+      use Ada.Strings.Unbounded;
+      use WisiToken.LR;
 
-      Line : Bounded_String := To_Bounded_String ("[");
-
-      procedure To_Codes (Tokens : in WisiToken.LR.Fast_Token_ID_Vectors.Vector)
-      is
-         First : Boolean := True;
-      begin
-         for ID of Tokens loop
-            Append
-              (Line,
-               (if First
-                then Int_Image (ID)
-                else WisiToken.Token_ID'Image (ID)));
-            First := False;
-         end loop;
-      end To_Codes;
+      Line    : Unbounded_String  := To_Unbounded_String ("[");
+      Last_Op : Config_Op_Label := Fast_Forward;
 
    begin
+      if Trace_Action > Detail then
+         Ada.Text_IO.Put_Line (LR.Image (Item.Ops, Descriptor));
+      end if;
+
       Append (Line, Recover_Code);
-      Append (Line, '[');
-      To_Codes (Item.Popped);
-      Append (Line, "][");
-      To_Codes (Item.Inserted);
-      Append (Line, "][");
-      To_Codes (Item.Deleted);
-      Append (Line, "]]");
+      if Item.Ops.Length = 0 then
+         Append (Line, "]");
+
+      else
+         for I in Item.Ops.First_Index .. Item.Ops.Last_Index loop
+            declare
+               Op : Config_Op renames Item.Ops (I);
+            begin
+               case Op.Op is
+               when Fast_Forward =>
+                  if Last_Op in Insert | Delete then
+                     Append (Line, "]]");
+                  end if;
+                  if I /= Item.Ops.Last_Index then
+                     Append (Line, "[");
+                  end if;
+
+                  Last_Op := Op.Op;
+
+               when Undo_Reduce | Push_Back =>
+                  null;
+
+               when Insert =>
+                  if Last_Op /= Insert then
+                     Append (Line, "[");
+                     Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
+                     Append (Line, "[");
+                  end if;
+                  Append (Line, Token_ID'Image (Op.ID));
+
+                  Last_Op := Op.Op;
+
+               when Delete =>
+                  if Last_Op = Fast_Forward then
+                     Append (Line, "[");
+                     Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
+                     Append (Line, "[][");
+                  elsif Last_Op = Insert then
+                     Append (Line, "][");
+                  end if;
+                  Append (Line, Token_ID'Image (Op.ID));
+
+                  Last_Op := Op.Op;
+
+               end case;
+            end;
+         end loop;
+         if Last_Op = Fast_Forward then
+            Append (Line, "]]");
+         else
+            Append (Line, "]]]");
+         end if;
+      end if;
       Ada.Text_IO.Put_Line (To_String (Line));
    end Put;
 
@@ -475,7 +510,7 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Descriptor       : access constant WisiToken.Descriptor;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -530,7 +565,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array)
@@ -601,7 +636,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
       State      : in     Semantic_State.Semantic_State;
-      Tree       : in     Syntax_Trees.Branched.Tree;
+      Tree       : in     Syntax_Trees.Tree;
       Nonterm    : in     Syntax_Trees.Valid_Node_Index;
       Tokens     : in     Syntax_Trees.Valid_Node_Index_Array;
       Containing : in     Positive_Index_Type;
@@ -629,7 +664,7 @@ package body WisiToken.Wisi_Runtime is
                Line      => Containing_Tok.Line,
                Col       => Containing_Tok.Col,
                Message   => "wisi-containing-action: containing-region " &
-                 Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
+                 Image (Containing_Tok.ID, Data.Descriptor.all) &
                  " is empty. grammar error; bad action.");
          end if;
       end if;
@@ -640,7 +675,7 @@ package body WisiToken.Wisi_Runtime is
             Line      => Containing_Tok.Line,
             Col       => Containing_Tok.Col,
             Message   => "wisi-containing-action: containing token " &
-              Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
+              Image (Containing_Tok.ID, Data.Descriptor.all) &
               " has no cache. grammar error; missing action.");
       end if;
 
@@ -696,7 +731,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Motion_Param_Array)
@@ -753,7 +788,7 @@ package body WisiToken.Wisi_Runtime is
                         Line      => Token.Line,
                         Col       => Token.Col,
                         Message   => "wisi-motion-action: token " &
-                          Token.Image (Data.Descriptor.all, ID_Only => False) &
+                          Token.Image (Data.Descriptor.all) &
                           " has no cache; add to statement-action.");
                   end if;
                end if;
@@ -801,7 +836,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array)
@@ -860,7 +895,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array)
@@ -904,7 +939,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Mark_Param_Array)
@@ -953,7 +988,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Face_Remove_Action
      (Data    : in out Parse_Data_Type;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Remove_Param_Array)
@@ -1011,7 +1046,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Indent_Param_Array)
@@ -1068,7 +1103,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Indent_Action_1
      (Data    : in out Parse_Data_Type'Class;
       State   : in     Semantic_State.Semantic_State;
-      Tree    : in     Syntax_Trees.Branched.Tree;
+      Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       N       : in     Positive_Index_Type;
@@ -1086,7 +1121,7 @@ package body WisiToken.Wisi_Runtime is
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
@@ -1150,13 +1185,12 @@ package body WisiToken.Wisi_Runtime is
    procedure Put
      (Errors     : in LR.Parse_Error_Lists.List;
       State      : in Semantic_State.Semantic_State;
-      Tree       : in Syntax_Trees.Abstract_Tree'Class;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Tree       : in Syntax_Trees.Tree;
+      Descriptor : in WisiToken.Descriptor)
    is
       use all type SAL.Base_Peek_Type;
-      use all type LR.Configuration;
-      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
+      use Semantic_Checks;
 
       function Safe_Pos (Node : in Syntax_Trees.Valid_Node_Index) return Buffer_Pos
       is
@@ -1190,10 +1224,15 @@ package body WisiToken.Wisi_Runtime is
                end if;
 
                N := Tree.Parent (N);
-               exit when N = No_Node_Index;
+               exit when N = Invalid_Node_Index;
             end;
          end loop;
          return Buffer_Pos'First;
+      end Safe_Pos;
+
+      function Safe_Pos (Pos : in Buffer_Pos) return Buffer_Pos
+      is begin
+         return (if Pos = Buffer_Pos'Last then Buffer_Pos'First else Pos);
       end Safe_Pos;
 
    begin
@@ -1205,15 +1244,21 @@ package body WisiToken.Wisi_Runtime is
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Safe_Pos (Item.Error_Token)) &
                  " ""syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                  ", found '" & Image (Tree.ID (Item.Error_Token), Descriptor) & "'""]");
+
          when LR.Check =>
             Put_Line
-              ('[' & Check_Error_Code & Integer'Image (Semantic_Checks.Error_Label'Pos (Item.Code)) &
-                 Buffer_Pos'Image (Safe_Pos (Item.Tokens (Item.Tokens.First_Index))) &
-                 " ""check error""]");
+              ('[' & Check_Error_Code & Integer'Image
+                 (Semantic_Checks.Check_Status_Label'Pos (Item.Check_Status.Label)) &
+                 (case Item.Check_Status.Label is
+                  when Ok => "",
+                  when Error =>
+                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name.Byte_Region.First)) & " " &
+                       Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name.Byte_Region.First)) &
+                       " ""check error""]"));
          end case;
 
          if Item.Recover.Stack.Depth > 0 then
-            Put (Item.Recover, Descriptor);
+            Put (Item.Recover, State.Terminals, Descriptor);
          end if;
       end loop;
    end Put;
@@ -1307,7 +1352,7 @@ package body WisiToken.Wisi_Runtime is
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
       State             : in     Semantic_State.Semantic_State;
-      Tree              : in     Syntax_Trees.Branched.Tree;
+      Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Param             : in     Indent_Param;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;

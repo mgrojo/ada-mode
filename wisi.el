@@ -495,8 +495,7 @@ Used to ignore whitespace changes in before/after change hooks.")
    ((wisi-parser-errors wisi--parser)
     (if (and (= 1 (length (wisi-parser-errors wisi--parser)))
 	     (not
-	      (or (wisi--error-popped (car (wisi-parser-errors wisi--parser)))
-		  (wisi--error-inserted (car (wisi-parser-errors wisi--parser)))
+	      (or (wisi--error-inserted (car (wisi-parser-errors wisi--parser)))
 		  (wisi--error-deleted (car (wisi-parser-errors wisi--parser))))))
 	;; If there is error correction information, use a
 	;; ’compilation’ buffer, so *-fix-compiler-error will call
@@ -1131,12 +1130,6 @@ Called with BEGIN END.")
   (let ((wisi--parse-action 'navigate) ;; tell wisi-forward-token not to compute indent stuff.
 	tok-2)
       (goto-char (wisi--error-pos data))
-      (dolist (tok-1 (wisi--error-popped data))
-	(setq tok-2 (wisi-backward-token))
-	(if (eq (wisi-tok-token tok-1) (wisi-tok-token tok-2))
-	    (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
-	  (error "mismatched tokens: parser %s, buffer %s" (wisi-tok-token tok-1) (wisi-tok-token tok-2))))
-
       (dolist (tok-1 (wisi--error-deleted data))
 	(setq tok-2 (wisi-forward-token))
 	(if (eq tok-1 (wisi-tok-token tok-2))

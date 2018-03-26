@@ -2,7 +2,7 @@
 --
 --  External process parser for gpr mode
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,7 +22,8 @@ with Gen_Emacs_Wisi_Parse;
 with Gpr_Process;
 with WisiToken.Wisi_Runtime;
 procedure Gpr_Mode_Wisi_Parse is new Gen_Emacs_Wisi_Parse
-  (Name          => "gpr_mode",
-   Descriptor    => Gpr_Process.Descriptor,
-   Parse_Data    => WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Gpr_Process.Parse_Data),
-   Create_Parser => Gpr_Process.Create_Parser);
+  (Name                 => "gpr_mode",
+   Descriptor           => Gpr_Process.Descriptor,
+   Parse_Data           => WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Gpr_Process.Parse_Data),
+   Semantic_Check_Fixes => null,
+   Create_Parser        => Gpr_Process.Create_Parser);

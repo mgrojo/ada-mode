@@ -50,8 +50,20 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+is undo_reduce cost used?
+
 wisitoken changes
-    mckenzie _really_ slow, and not finding same solutions as o.e.a.s-2
+test/ada_mode-interactive_2.adb
+    parse fails during insert Function_Access_1 body, makes indent wrong.
+        fails on "Ada_Mode.Interactive_wisi"; expecting IDENTIFIER
+        should apply Extra_Name_Error solution.
+        => broaden semantic_check_fixes to be called on every error, handle this
+            mark "language_fixes applied" somehow
+                semantic_check status label handles those
+                store error_token
+
+            stack is IDENTIFIER, END, got DOT => extra name error.
+
 
     test/ada_mode-interactive_recover.adb   ok, fast
     test/ada_mode-recover_align_1.adb       ok, fast
@@ -60,13 +72,6 @@ wisitoken changes
         o.e.a.s-4: branched tree in mckenzie 2.757418621 seconds/iteration
         o.e.a.s-4: branched tree in main parser 2.045493021
 
-        mckenzie can not do syntax tree until actually needed.
-            that requires stack hold base_token, not tree index. sigh.
-                actually branched from parser stack, to access name_region already there
-
-            maybe only need syntax tree temporarily, while computing fix
-
-add syntax-tree edit, see how much of patterns that replaces
 
 test/ada_mode-recover_match_names.adb
     parse fails with (parse_error), error during resume

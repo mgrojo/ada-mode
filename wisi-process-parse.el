@@ -287,17 +287,19 @@ complete."
     ))
 
 (defun wisi-process-parse--Recover (parser sexp)
-  ;; sexp is [Recover [popped] [inserted] [deleted]]
+  ;; sexp is [Recover [pos [inserted] [deleted]]...]
   ;; see ‘wisi-process-parse--execute’
-  (let* ((token-table (wisi-process--parser-token-table parser))
-	 (popped-ids (mapcar (lambda (id) (aref token-table id)) (aref sexp 1)))
-	 (inserted-ids (mapcar (lambda (id) (aref token-table id)) (aref sexp 2)))
-	 (deleted-ids (mapcar (lambda (id) (aref token-table id)) (aref sexp 3)))
-	 (data (car (wisi-process--parser-errors parser))))
-    (setf (wisi--error-popped data) popped-ids)
-    (setf (wisi--error-inserted data) inserted-ids)
-    (setf (wisi--error-deleted data) deleted-ids)
-    ))
+  ;; convert to list of wisi--error
+  (let* ((token-table (wisi-process--parser-token-table parser)))
+    (unless (= 1 (length sexp))
+      (cl-do ((i 1 1)) ((= i (1- (length sexp))))
+	(push
+	 (make-wisi--error
+	  :pos (aref (aref sexp i) 0)
+	  :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 1))
+	  :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2)))
+	 (wisi-process--parser-errors parser)))
+    )))
 
 (defun wisi-process-parse--execute (parser sexp)
   "Execute encoded SEXP sent from external process."
@@ -333,14 +335,14 @@ complete."
   ;;    If error recovery is successful, there can be more than one
   ;;    error reported during a parse.
   ;;
-  ;; [Recover [popped] [pushed] [inserted] [deleted]]
+  ;; [Recover [pos [inserted] [deleted]]...]
   ;;    The parser finished a successful error recovery.
   ;;
-  ;;    popped: Tokens popped off the parse stack (ie tokens deleted before error point)
+  ;;    pos: Buffer position
   ;;
-  ;;    inserted: Virtual tokens (terminal or non-terminal) inserted before error point.
+  ;;    inserted: Virtual tokens (terminal or non-terminal) inserted before pos.
   ;;
-  ;;    deleted: Tokens deleted after error point.
+  ;;    deleted: Tokens deleted after pos.
   ;;
   ;;    Args are token ids; index into parser-token-table. Save the information
   ;;    for later use by ’wisi-repair-error’.

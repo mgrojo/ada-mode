@@ -2,7 +2,7 @@
 --
 --  External process parser for subprograms wisi test
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,4 +25,5 @@ procedure Subprograms_Wisi_Parse is new Gen_Emacs_Wisi_Parse
   ("Subprograms",
    Subprograms_Process.Descriptor,
    WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Subprograms_Process.Parse_Data),
+   null,
    Subprograms_Process.Create_Parser);
