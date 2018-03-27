@@ -25,14 +25,14 @@ with WisiToken.Wisi_Runtime;
 generic
    Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
 
-   Descriptor           : in WisiToken.Descriptor;
-   Parse_Data           : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
-   Semantic_Check_Fixes : in WisiToken.LR.Semantic_Check_Fixes_Access;
+   Descriptor     : in WisiToken.Descriptor;
+   Parse_Data     : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
+   Language_Fixes : in WisiToken.LR.Language_Fixes_Access;
 
    with procedure Create_Parser
-     (Parser               :    out          WisiToken.LR.Parser.Parser;
-      Algorithm            : in              WisiToken.Parser_Algorithm_Type;
-      Trace                : not null access WisiToken.Trace'Class;
-      Semantic_Check_Fixes : in              WisiToken.LR.Semantic_Check_Fixes_Access);
+     (Parser         :    out          WisiToken.LR.Parser.Parser;
+      Algorithm      : in              WisiToken.Parser_Algorithm_Type;
+      Trace          : not null access WisiToken.Trace'Class;
+      Language_Fixes : in              WisiToken.LR.Language_Fixes_Access);
 
 procedure Gen_Run_Wisi_Parse;

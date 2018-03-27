@@ -162,7 +162,7 @@ is
    end Get_Integer;
 
 begin
-   Create_Parser (Parser, LALR, Trace'Unrestricted_Access, Semantic_Check_Fixes);
+   Create_Parser (Parser, LALR, Trace'Unrestricted_Access, Language_Fixes);
 
    declare
       use Ada.Command_Line;

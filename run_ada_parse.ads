@@ -25,5 +25,5 @@ with WisiToken.Wisi_Runtime;
 procedure Run_Ada_Parse is new Gen_Run_Wisi_Parse
   ("Ada", Ada_Process.Descriptor,
    WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Ada_Process.Parse_Data),
-   WisiToken.LR.McKenzie_Recover.Ada.Semantic_Check_Fixes'Access,
+   WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
    Ada_Process.Create_Parser);

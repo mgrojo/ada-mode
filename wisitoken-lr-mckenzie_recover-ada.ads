@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 package WisiToken.LR.McKenzie_Recover.Ada is
 
-   function Semantic_Check_Fixes
+   function Language_Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : in     WisiToken.Lexer.Handle;
       Parser_Label      : in     Natural;
@@ -27,8 +27,7 @@ package WisiToken.LR.McKenzie_Recover.Ada is
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration;
-      Nonterm           : in     Recover_Token)
-     return Boolean;
+      Config            : in     Configuration)
+     return Non_Success_Status;
 
 end WisiToken.LR.McKenzie_Recover.Ada;
