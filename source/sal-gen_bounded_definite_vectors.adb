@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,12 +19,17 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Bounded_Definite_Vectors is
 
-   function Length (Container : in Vector) return SAL.Base_Peek_Type
+   function Length (Container : in Vector) return Ada.Containers.Count_Type
    is begin
       --  We assume the type ranges are sensible, so no exceptions occur
       --  here.
-      return SAL.Base_Peek_Type (Container.Last - Index_Type'First + 1);
+      return Ada.Containers.Count_Type (Container.Last - Index_Type'First + 1);
    end Length;
+
+   function Is_Full (Container : in Vector) return Boolean
+   is begin
+      return To_Peek_Index (Container.Last) = Peek_Type (Capacity);
+   end Is_Full;
 
    procedure Clear (Container : in out Vector)
    is begin
@@ -33,7 +38,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    function Element (Container : Vector; Index : Index_Type) return Element_Type
    is begin
-      return Container.Elements (SAL.Peek_Type (Index - Index_Type'First + 1));
+      return Container.Elements (Peek_Type (Index - Index_Type'First + 1));
    end Element;
 
    function Last_Index (Container : Vector) return Extended_Index
@@ -41,9 +46,14 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       return Container.Last;
    end Last_Index;
 
+   procedure Set_Last (Container : in out Vector; Last : in Index_Type)
+   is begin
+      Container.Last := Last;
+   end Set_Last;
+
    procedure Append (Container : in out Vector; New_Item : in Element_Type)
    is
-      J : constant SAL.Peek_Type := SAL.Peek_Type (Container.Last + 1 - Index_Type'First + 1);
+      J : constant Peek_Type := Peek_Type (Container.Last + 1 - Index_Type'First + 1);
    begin
       Container.Elements (J) := New_Item;
       Container.Last := Container.Last + 1;
@@ -51,21 +61,51 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type)
    is
-      J : constant SAL.Peek_Type := SAL.Peek_Type (Container.Last + 1 - Index_Type'First + 1);
+      J : constant Peek_Type := Peek_Type (Container.Last + 1 - Index_Type'First + 1);
    begin
       Container.Elements (2 .. J) := Container.Elements (1 .. J - 1);
       Container.Elements (1) := New_Item;
       Container.Last := Container.Last + 1;
    end Prepend;
 
-   procedure Set_Last (Container : in out Vector; Last : in Index_Type)
+   procedure Insert
+     (Container : in out Vector;
+      New_Item  : in     Element_Type;
+      Before    : in     Extended_Index)
+   is
+      J : constant Peek_Type := To_Peek_Index (Before);
+      K : constant Peek_Type := To_Peek_Index (Container.Last);
+   begin
+      Container.Elements (J + 1 .. K + 1) := Container.Elements (J .. K);
+      Container.Elements (J) := New_Item;
+      Container.Last := Container.Last + 1;
+   end Insert;
+
+   function "+" (Item : in Element_Type) return Vector
    is begin
-      Container.Last := Last;
-   end Set_Last;
+      return Result : Vector do
+         Result.Append (Item);
+      end return;
+   end "+";
+
+   function "&" (Left : in Vector; Right : in Element_Type) return Vector
+   is begin
+      return Result : Vector := Left do
+         Result.Append (Right);
+      end return;
+   end "&";
+
+   procedure Delete_First (Container : in out Vector)
+   is
+      J : constant Peek_Type := Peek_Type (Container.Last - Index_Type'First + 1);
+   begin
+      Container.Elements (1 .. J - 1) := Container.Elements (2 .. J);
+      Container.Last := Container.Last - 1;
+   end Delete_First;
 
    function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
    is
-      J : constant SAL.Peek_Type := SAL.Peek_Type (Index - Index_Type'First + 1);
+      J : constant Peek_Type := Peek_Type (Index - Index_Type'First + 1);
    begin
       if Index > Container.Last then
          raise Constraint_Error;
@@ -78,7 +118,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       Index     :         in     Index_Type)
      return Variable_Reference_Type
    is
-      J : constant SAL.Peek_Type := SAL.Peek_Type (Index - Index_Type'First + 1);
+      J : constant Peek_Type := Peek_Type (Index - Index_Type'First + 1);
    begin
       if Index > Container.Last then
          raise Constraint_Error;
@@ -144,9 +184,27 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    function Constant_Reference (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
    is
-      J : constant SAL.Peek_Type := SAL.Peek_Type (Position.Index - Index_Type'First + 1);
+      J : constant Peek_Type := Peek_Type (Position.Index - Index_Type'First + 1);
    begin
       return (Element => Container.Elements (J)'Access);
    end Constant_Reference;
+
+   function Variable_Reference
+     (Container : aliased in out Vector;
+      Position  :         in     Cursor)
+     return Variable_Reference_Type
+   is
+      J : constant Peek_Type := Peek_Type (Position.Index - Index_Type'First + 1);
+   begin
+      return (Element => Container.Elements (J)'Access);
+   end Variable_Reference;
+
+   ----------
+   --  Spec private functions
+
+   function To_Peek_Index (Index : in Extended_Index) return Base_Peek_Type
+   is begin
+      return Base_Peek_Type (Index - Index_Type'First + 1);
+   end To_Peek_Index;
 
 end SAL.Gen_Bounded_Definite_Vectors;

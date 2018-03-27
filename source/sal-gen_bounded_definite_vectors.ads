@@ -3,7 +3,7 @@
 --  A simple bounded vector of definite items, intended to be faster
 --  than Ada.Containers.Bounded_Definite_Vectors.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -22,7 +22,7 @@ with Ada.Iterator_Interfaces;
 generic
    type Index_Type is range <>;
    type Element_Type is private;
-   Capacity : in SAL.Peek_Type;
+   Capacity : in Ada.Containers.Count_Type;
 package SAL.Gen_Bounded_Definite_Vectors is
 
    subtype Extended_Index is Index_Type'Base
@@ -39,25 +39,42 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
    Empty_Vector : constant Vector;
 
-   function Length (Container : in Vector) return SAL.Base_Peek_Type;
+   function Length (Container : in Vector) return Ada.Containers.Count_Type;
+
+   function Is_Full (Container : in Vector) return Boolean;
 
    procedure Clear (Container : in out Vector);
 
-   function First_Index (Container : Vector) return Index_Type is (Index_Type'First);
+   function First_Index (Container : in Vector) return Index_Type is (Index_Type'First);
 
-   function Last_Index (Container : Vector) return Extended_Index;
+   function Last_Index (Container : in Vector) return Extended_Index;
    --  No_Index when Container is empty.
+
+   procedure Set_Last (Container : in out Vector; Last : in Index_Type);
+   --  Elements with indices < Last that have not been set are undefined.
 
    function Element (Container : Vector; Index : Index_Type) return Element_Type;
    --  Index of first element in vector is Index_Type'First.
 
-   procedure Append (Container : in out Vector; New_Item : in Element_Type);
+   procedure Append (Container : in out Vector; New_Item : in Element_Type)
+   with Pre => not Is_Full (Container);
 
    procedure Prepend (Container : in out Vector; New_Item : in Element_Type);
    --  Insert New_Item at beginning of Container; current elements slide right.
 
-   procedure Set_Last (Container : in out Vector; Last : in Index_Type);
-   --  Elements with indices < Last that have not been set are undefined.
+   procedure Insert
+     (Container : in out Vector;
+      New_Item  : in     Element_Type;
+      Before    : in     Extended_Index);
+   --  Insert New_Item before Before, or after Last_Index if Before is
+   --  No_Index. Current elements after at Before and after slide right.
+   --  New_Item then has index Before.
+
+   function "+" (Item : in Element_Type) return Vector;
+   function "&" (Left : in Vector; Right : in Element_Type) return Vector;
+
+   procedure Delete_First (Container : in out Vector);
+   --  Remaining elements slide down.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
@@ -82,9 +99,14 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
    function Constant_Reference (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type;
 
+   function Variable_Reference
+     (Container : aliased in out Vector;
+      Position  :         in     Cursor)
+     return Variable_Reference_Type;
+
 private
 
-   type Array_Type is array (SAL.Peek_Type range 1 .. Capacity) of aliased Element_Type;
+   type Array_Type is array (Peek_Type range 1 .. Peek_Type (Capacity)) of aliased Element_Type;
 
    type Vector is tagged
    record
@@ -118,5 +140,11 @@ private
       Position : Cursor) return Cursor;
 
    Empty_Vector : constant Vector := (others => <>);
+
+   ----------
+   --  For child units
+
+   function To_Peek_Index (Index : in Extended_Index) return Base_Peek_Type
+   with Inline;
 
 end SAL.Gen_Bounded_Definite_Vectors;

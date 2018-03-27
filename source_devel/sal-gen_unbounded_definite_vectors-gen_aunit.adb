@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -22,14 +22,21 @@
 
 pragma License (Modified_GPL);
 
-with SAL.AUnit;
-procedure SAL.Gen_Unbounded_Definite_Stacks.Gen_AUnit
+with AUnit.Checks;
+procedure SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit
   (Label    : in String;
-   Computed : in Stack;
-   Expected : in Stack)
-is begin
-   SAL.AUnit.Check (Label & ".Depth", Computed.Depth, Expected.Depth);
-   for I in 1 .. Computed.Depth loop
-      Check_Element (Label & "." & SAL.Base_Peek_Type'Image (I), Computed.Peek (I), Expected.Peek (I));
-   end loop;
-end SAL.Gen_Unbounded_Definite_Stacks.Gen_AUnit;
+   Computed : in Vector;
+   Expected : in Vector)
+is
+   use AUnit.Checks;
+begin
+   if Computed = Empty_Vector then
+      Check (Label & ".empty", Expected = Empty_Vector, True);
+   else
+      Check_Index (Label & ".First_Index", Computed.First_Index, Expected.First_Index);
+      Check_Index (Label & ".Last_Index", Computed.Last_Index, Expected.Last_Index);
+      for I in Computed.First_Index .. Computed.Last_Index loop
+         Check_Element (Label & "." & Index_Type'Image (I), Computed (I), Expected (I));
+      end loop;
+   end if;
+end SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;

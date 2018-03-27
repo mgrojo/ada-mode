@@ -1,13 +1,15 @@
 # gnu make file for SAL
 
-all : t_all
+all : test_all_harness.diff
 
 #../test/test_all_harness.adb
 #../test/test_one_harness.adb
 t_one : export Standard_Common_Build := Debug
+#t_one : export GPRBUILD_ARGS := -gnatG -gnatL
 t_one : test_one_harness.run
 
-t_all : test_all_harness.diff
+t_all : export Standard_Common_Build := Debug
+t_all : test_all_harness.run
 
 trace :
 	addr2line -e test_all_harness.exe 0x4ec038 0x7c9037bd 0x7c903789 0x7c90eaf8 0x4cedff 0x41a94e 0x41e79a 0x407b5c 0x40aa8e 0x4af793 0x401b66 0x401235 0x401286 0x7c816fd5

@@ -6,7 +6,7 @@
 --
 --  see sal-gen_graphs.ads
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,7 +21,7 @@
 --  MA 02111-1307, USA.
 
 pragma License (GPL);
-with AUnit.Checks;
+with AUnit.Checks.Containers;
 with SAL.Gen_Graphs.Gen_Aunit;
 package body Test_Graphs is
 
@@ -38,7 +38,6 @@ package body Test_Graphs is
    use Graphs;
 
    package Graphs_Aunit is new Graphs.Gen_Aunit (AUnit.Checks.Check);
-   use Graphs_Aunit;
 
    ----------
    --  Test procedures
@@ -46,8 +45,11 @@ package body Test_Graphs is
    procedure Nominal (Tst : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (Tst);
+      use AUnit.Checks.Containers;
+      use Graphs_Aunit;
 
-      Graph : Graphs.Graph;
+      Graph    : Graphs.Graph;
+      Computed : Graphs.Path_Lists.List;
    begin
       --  Fill graph.
 
@@ -62,11 +64,13 @@ package body Test_Graphs is
       Graph.Add_Edge (X, U, 9);
       Graph.Add_Edge (X, Y, 10);
 
-      Check ("v - r", Graph.Find_Path (V, (Vertex, R)), ((V, 1), (R, 0)));
-      Check ("v - 2", Graph.Find_Path (V, (Edge, 2)), ((V, 1), (R, 2)));
-      Check ("v - 10",
-             Graph.Find_Path (V, (Edge, 10)),
-             ((V, 1), (R, 2), (S, 3), (W, 5), (X, 10)));
+      Computed := Graph.Find_Paths (V, 2);
+      Check ("v - 2.length", Computed.Length, 1);
+      Check ("v - 2.first", Computed (Computed.First), ((V, 1), (R, 2)));
+
+      Computed := Graph.Find_Paths (V, 10);
+      Check ("v - 10.length", Computed.Length, 1);
+      Check ("v - 10.first", Computed (Computed.First), ((V, 1), (R, 2), (S, 3), (W, 5), (X, 10)));
 
    end Nominal;
 
@@ -84,7 +88,7 @@ package body Test_Graphs is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("test_stacks.adb");
+      return new String'("test_graphs.adb");
    end Name;
 
 end Test_Graphs;

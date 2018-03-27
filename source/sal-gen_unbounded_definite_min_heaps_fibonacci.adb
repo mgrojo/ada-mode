@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -34,6 +34,27 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
 
    ----------
    --  local subprogram bodies, alphabetical order
+
+   function Add (Heap : in out Heap_Type; Item : in Element_Type) return Node_Access
+   is
+      X : constant Node_Access := new Node'(Item, null, null, null, null, 0, False);
+   begin
+      --  [1] 19.2 FIB-HEAP-INSERT
+      if Heap.Min = null then
+         Heap.Min       := X;
+         Heap.Min.Left  := Heap.Min;
+         Heap.Min.Right := Heap.Min;
+      else
+         Insert_Into_Root_List (Heap, X);
+
+         if Key (Item) < Key (Heap.Min.Element) then
+            Heap.Min := X;
+         end if;
+      end if;
+      Heap.Count := Heap.Count + 1;
+
+      return X;
+   end Add;
 
    procedure Consolidate (Heap : in out Heap_Type)
    is
@@ -298,21 +319,17 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
 
    procedure Add (Heap : in out Heap_Type; Item : in Element_Type)
    is
-      X : constant Node_Access := new Node'(Item, null, null, null, null, 0, False);
+      X : constant Node_Access := Add (Heap, Item);
+      pragma Unreferenced (X);
    begin
-      --  [1] 19.2 FIB-HEAP-INSERT
-      if Heap.Min = null then
-         Heap.Min       := X;
-         Heap.Min.Left  := Heap.Min;
-         Heap.Min.Right := Heap.Min;
-      else
-         Insert_Into_Root_List (Heap, X);
+      null;
+   end Add;
 
-         if Key (Item) < Key (Heap.Min.Element) then
-            Heap.Min := X;
-         end if;
-      end if;
-      Heap.Count := Heap.Count + 1;
+   function Add (Heap : in out Heap_Type; Item : in Element_Type) return Element_Access
+   is
+      X : constant Node_Access := Add (Heap, Item);
+   begin
+      return X.all.Element'Access;
    end Add;
 
    function Peek (Heap : in Heap_Type) return Constant_Reference_Type

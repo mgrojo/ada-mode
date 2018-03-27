@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  See spec.
+--  Image with auxiliary data for instantiations of parent.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,14 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit is
-
-   procedure Check (Label : in String; Computed, Expected : in Vector)
-   is begin
-      Check_Index (Label & "'Last", Computed.Last, Expected.Last);
-      for I in Computed.Elements'First .. Base_Peek_Type (Computed.Last - Index_Type'First + 1) loop
-         Check_Element (Label & "." & Base_Peek_Type'Image (I), Computed.Elements (I), Expected.Elements (I));
-      end loop;
-   end Check;
-
-end SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
+generic
+   type Aux_Data (<>) is private;
+   with function Element_Image (Item : in Element_Type; Aux : in Aux_Data) return String;
+function SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux (Item : in Vector; Aux : in Aux_Data) return String;

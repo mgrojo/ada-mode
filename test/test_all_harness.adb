@@ -2,7 +2,7 @@
 --
 --  Run all AUnit tests for SAL.
 --
---  Copyright (C) 2003 - 2009, 2012, 2015, 2016, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2003 - 2009, 2012, 2015, 2016, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -19,8 +19,12 @@ pragma License (GPL);
 
 with AUnit.Options;
 with AUnit.Reporter.Text;
+with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
+with Ada.Command_Line;
+with Ada.Text_IO;
+with GNAT.Traceback.Symbolic;
 with SAL.CSV.Test;
 with SAL.File_Names.Test;
 with SAL.Time_Conversions.Test;
@@ -28,6 +32,7 @@ with Test.Config_Files.All_Suite;
 with Test_Bounded_Definite_Queues;
 with Test_Definite_Doubly_Linked_Lists;
 with Test_Gen_Images;
+with Test_Graphs;
 with Test_Min_Heap_Binary;
 with Test_Min_Heap_Fibonacci;
 with Test_Network_Order;
@@ -35,14 +40,55 @@ with Test_Randomize_Lists;
 with Test_Red_Black_Trees;
 with Test_Stacks;
 with Test_Stats;
+with Test_Unbounded_Definite_Vectors;
+with Test_Unbounded_Definite_Vectors_Protected;
 procedure Test_All_Harness
 is
+   --  command line arguments: [<verbose> [test_name [routine_name]]]
+   --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
+
+   Filter : aliased AUnit.Test_Filters.Verbose.Filter;
+
+   Options : constant AUnit.Options.AUnit_Options :=
+     (Global_Timer     => False,
+      Test_Case_Timer  => False,
+      Report_Successes => True,
+      Filter           => Filter'Unchecked_Access);
+
    Suite    : constant Access_Test_Suite := new Test_Suite;
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 
 begin
+   declare
+      use Ada.Command_Line;
+   begin
+      Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
+
+      case Argument_Count is
+      when 0 | 1 =>
+         null;
+
+      when 2 =>
+         Filter.Set_Name (Argument (2));
+
+      when others =>
+         declare
+            Test_Name    : String renames Argument (2);
+            Routine_Name : String renames Argument (3);
+         begin
+            if Test_Name = "" then
+               Filter.Set_Name (Routine_Name);
+            elsif Routine_Name = "" then
+               Filter.Set_Name (Test_Name);
+            else
+               Filter.Set_Name (Test_Name & " : " & Routine_Name);
+            end if;
+         end;
+      end case;
+   end;
+
    --  This is first because it's a suite.
    Add_Test (Suite, Test.Config_Files.All_Suite);
 
@@ -51,6 +97,7 @@ begin
    Add_Test (Suite, new SAL.File_Names.Test.Test_Case);
    Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
    Add_Test (Suite, new Test_Gen_Images.Test_Case);
+   Add_Test (Suite, new Test_Graphs.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Queues.Test_Case);
    Add_Test (Suite, new Test_Definite_Doubly_Linked_Lists.Test_Case);
    Add_Test (Suite, new Test_Min_Heap_Binary.Test_Case);
@@ -60,10 +107,15 @@ begin
    Add_Test (Suite, new Test_Red_Black_Trees.Test_Case);
    Add_Test (Suite, new Test_Stacks.Test_Case);
    Add_Test (Suite, new Test_Stats.Test_Case);
+   Add_Test (Suite, new Test_Unbounded_Definite_Vectors_Protected.Test_Case);
+   Add_Test (Suite, new Test_Unbounded_Definite_Vectors.Test_Case);
 
-   Run (Suite, AUnit.Options.Default_Options, Result, Status);
+   Run (Suite, Options, Result, Status);
 
-   --  Provide command line option -v to set verbose mode
    AUnit.Reporter.Text.Report (Reporter, Result);
 
+exception
+when E : others =>
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Test_All_Harness;
