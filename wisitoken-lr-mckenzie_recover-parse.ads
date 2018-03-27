@@ -20,17 +20,15 @@ pragma License (Modified_GPL);
 with WisiToken.LR.McKenzie_Recover.Base;
 private package WisiToken.LR.McKenzie_Recover.Parse is
 
-   function Compute_Nonterm
-     (Stack  : in Recover_Stacks.Stack;
-      Action : in Reduce_Action_Rec)
-     return Recover_Token;
-
    function Reduce_Stack
-     (Shared  : not null access Base.Shared_Lookahead;
-      Stack   : in out          Recover_Stacks.Stack;
-      Action  : in              Reduce_Action_Rec;
-      Nonterm :    out          Recover_Token)
+     (Shared          : not null access Base.Shared_Lookahead;
+      Stack           : in out          Recover_Stacks.Stack;
+      Action          : in              Reduce_Action_Rec;
+      Nonterm         :    out          Recover_Token;
+      Default_Virtual : in              Boolean)
      return Semantic_Checks.Check_Status;
+   --  Reduce Stack according to Action, setting Nonterm. If
+   --  Action.Token_Count = 0, set Nonterm.Virtual := Default_Virtual.
 
    type Parse_Item is record
       Config : Configuration;

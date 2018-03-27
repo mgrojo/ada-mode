@@ -46,12 +46,13 @@ package body WisiToken.Syntax_Trees is
    end Action;
 
    function Add_Nonterm
-     (Tree       : in out Syntax_Trees.Tree;
-      Nonterm    : in     WisiToken.Token_ID;
-      Action     : in     Semantic_Action;
-      Production : in     Natural;
-      Name_Index : in     Natural;
-      Children   : in     Valid_Node_Index_Array)
+     (Tree            : in out Syntax_Trees.Tree;
+      Nonterm         : in     WisiToken.Token_ID;
+      Action          : in     Semantic_Action;
+      Production      : in     Natural;
+      Name_Index      : in     Natural;
+      Children        : in     Valid_Node_Index_Array;
+      Default_Virtual : in     Boolean)
      return Valid_Node_Index
    is
       Nonterm_Node : Valid_Node_Index;
@@ -63,6 +64,7 @@ package body WisiToken.Syntax_Trees is
              Action     => Action,
              Production => Production,
              Name_Index => Name_Index,
+             Virtual    => (if Children'Length = 0 then Default_Virtual else False),
              others     => <>));
          Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
          Nonterm_Node          := Tree.Last_Shared_Node;
@@ -73,6 +75,7 @@ package body WisiToken.Syntax_Trees is
              Action     => Action,
              Production => Production,
              Name_Index => Name_Index,
+             Virtual    => (if Children'Length = 0 then Default_Virtual else False),
              others     => <>));
          Nonterm_Node := Tree.Branched_Nodes.Last_Index;
       end if;

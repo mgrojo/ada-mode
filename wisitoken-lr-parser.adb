@@ -47,7 +47,8 @@ package body WisiToken.LR.Parser is
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Status       : constant Semantic_Checks.Check_Status := Reduce_Stack
-          (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse);
+        (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse,
+         Default_Virtual => Parser_State.Tree.Virtual (Parser_State.Current_Token));
    begin
       --  We treat semantic check errors as parse errors here, to allow
       --  error recovery to take better advantage of them. One recovery
@@ -274,13 +275,37 @@ package body WisiToken.LR.Parser is
       end if;
    end Parse_Verb;
 
-   function Duplicate_State
-     (Parsers        : in out Parser_Lists.List;
-      Current_Parser : in     Parser_Lists.Cursor)
-     return Boolean
+   procedure Terminate_Parser
+     (Shared_Parser : in out LR.Parser.Parser;
+      Message       : in     String;
+      Cur           : in out Parser_Lists.Cursor)
    is
-      --  WORKAROUND: Parsers could be 'in', but GNAT GPL 2016, 2017 requires 'in out'
       use all type SAL.Base_Peek_Type;
+      Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
+   begin
+      if Trace_Parse > Outline then
+         Trace.Put_Line
+           (Integer'Image (Cur.Label) & ": terminate (" &
+              Int_Image (Integer (Shared_Parser.Parsers.Count) - 1) & " active)" &
+              (if Message'Length > 0 then ": " & Message else ""));
+      end if;
+
+      Cur.Free;
+
+      if Shared_Parser.Parsers.Count = 1 then
+         Shared_Parser.Parsers.First.State_Ref.Tree.Flush;
+      end if;
+   end Terminate_Parser;
+
+   procedure Duplicate_State
+     (Shared_Parser  : in out LR.Parser.Parser;
+      Current_Parser : in out Parser_Lists.Cursor)
+   is
+      --  If any other parser in Parsers has a stack equivalent to
+      --  Current_Parser, Terminate one of them.
+
+      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
 
       function Compare
         (Stack_1 : in Parser_Stacks.Stack;
@@ -314,16 +339,30 @@ package body WisiToken.LR.Parser is
          end if;
       end Compare;
 
+      Other : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
    begin
-      for Parser_State of Parsers loop
-         if Parser_State.Label /= Current_Parser.Label and then
-           Compare
-             (Parser_State.Stack, Parser_State.Tree, Current_Parser.State_Ref.Stack, Current_Parser.State_Ref.Tree)
-         then
-            return True;
-         end if;
+      loop
+         exit when Other.Is_Done;
+         declare
+            Other_Parser : Parser_Lists.Parser_State renames Other.State_Ref;
+         begin
+            if Other.Label /= Current_Parser.Label and then
+              Compare
+                (Other_Parser.Stack, Other_Parser.Tree, Current_Parser.State_Ref.Stack, Current_Parser.State_Ref.Tree)
+            then
+               exit;
+            end if;
+         end;
+         Other.Next;
       end loop;
-      return False;
+
+      if not Other.Is_Done then
+         if Other.Max_Error_Ops_Length > Current_Parser.Max_Error_Ops_Length then
+            Terminate_Parser (Shared_Parser, "duplicate state", Other);
+         else
+            Terminate_Parser (Shared_Parser, "duplicate state", Current_Parser);
+         end if;
+      end if;
    end Duplicate_State;
 
    ----------
@@ -407,21 +446,6 @@ package body WisiToken.LR.Parser is
       Max_Shared_Token : Base_Token_Index;
       Zombie_Count     : SAL.Base_Peek_Type;
 
-      procedure Terminate_Parser (Cur : in out Parser_Lists.Cursor)
-      is begin
-         if Trace_Parse > Outline then
-            Trace.Put_Line
-              (Integer'Image (Cur.Label) & ": terminate (" &
-                 Int_Image (Integer (Shared_Parser.Parsers.Count) - 1) & " active)");
-         end if;
-
-         Cur.Free;
-
-         if Shared_Parser.Parsers.Count = 1 then
-            Shared_Parser.Parsers.First.State_Ref.Tree.Flush;
-         end if;
-      end Terminate_Parser;
-
       procedure Check_Error (Check_Parser : in out Parser_Lists.Cursor)
       is begin
          if Check_Parser.Verb = Error then
@@ -447,7 +471,7 @@ package body WisiToken.LR.Parser is
                   end if;
                   raise Syntax_Error;
                else
-                  Terminate_Parser (Check_Parser);
+                  Terminate_Parser (Shared_Parser, "error during resume", Check_Parser);
                end if;
             end if;
          else
@@ -609,7 +633,7 @@ package body WisiToken.LR.Parser is
                         end if;
                         Current_Parser.Next;
                      else
-                        Terminate_Parser (Current_Parser);
+                        Terminate_Parser (Shared_Parser, "zombie", Current_Parser);
                      end if;
                      exit when Current_Parser.Is_Done;
                   end loop;
@@ -628,14 +652,18 @@ package body WisiToken.LR.Parser is
                      end loop;
 
                      if Error_Parser_Count > 0 then
-                        --  There was an error previously. We assume that caused the ambiguous
+                        --  There was at least one error. We assume that caused the ambiguous
                         --  parse, and we pick the first parser arbitrarily to allow the parse
                         --  to succeed. We terminate the other parsers so the first parser
                         --  executes actions.
+                        --
+                        --  Note all surviving parsers must have the same error count, or only
+                        --  the one with the lowest would get here. FIXME: return one with
+                        --  shortest Recover.Ops?
                         Current_Parser := Shared_Parser.Parsers.First;
                         Current_Parser.Next;
                         loop
-                           Terminate_Parser (Current_Parser);
+                           Terminate_Parser (Shared_Parser, "errors", Current_Parser);
                            exit when Current_Parser.Is_Done;
                         end loop;
 
@@ -765,6 +793,16 @@ package body WisiToken.LR.Parser is
          loop
             exit when Current_Parser.Is_Done;
 
+            if Shared_Parser.Terminate_Same_State and
+              Current_Verb in Shift | Shift_Recover
+            then
+               Duplicate_State (Shared_Parser, Current_Parser);
+               --  If Duplicate_State terminated Current_Parser, Current_Parser now
+               --  points to the next parser. Otherwise it is unchanged.
+            end if;
+
+            exit when Current_Parser.Is_Done;
+
             if Trace_Parse > Extra then
                Trace.Put_Line
                  ("current_verb: " & Parse_Action_Verbs'Image (Current_Verb) &
@@ -788,18 +826,8 @@ package body WisiToken.LR.Parser is
 
                   Current_Parser.Next;
                else
-                  Terminate_Parser (Current_Parser);
+                  Terminate_Parser (Shared_Parser, "zombie", Current_Parser);
                end if;
-
-            elsif Shared_Parser.Terminate_Same_State and then
-              (Current_Verb in Shift | Shift_Recover and then
-                 Duplicate_State (Shared_Parser.Parsers, Current_Parser))
-            then
-               if Trace_Parse > Outline then
-                  Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": duplicate state");
-               end if;
-
-               Terminate_Parser (Current_Parser);
 
             elsif Current_Parser.Verb = Current_Verb then
                if Trace_Parse > Extra then

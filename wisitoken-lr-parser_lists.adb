@@ -69,6 +69,20 @@ package body WisiToken.LR.Parser_Lists is
       return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Label;
    end Label;
 
+   function Max_Error_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type
+   is
+      use Ada.Containers;
+      Result : Count_Type := 0;
+      Errors : Parse_Error_Lists.List renames Parser_State_Lists.Constant_Reference (Cursor.Ptr).Errors;
+   begin
+      for Error of Errors loop
+         if Error.Recover.Ops.Length > Result then
+            Result := Error.Recover.Ops.Length;
+         end if;
+      end loop;
+      return Result;
+   end Max_Error_Ops_Length;
+
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs)
    is begin
       Parser_State_Lists.Reference (Cursor.Ptr).Verb := Verb;
@@ -95,21 +109,6 @@ package body WisiToken.LR.Parser_Lists is
    is begin
       return (Element => Parser_State_Lists.Constant_Reference (Position.Ptr).Element);
    end State_Ref;
-
-   function State_Ref_2
-     (Container : not null access List'Class;
-      Label     : in              Natural)
-     return State_Reference
-   is
-      use Parser_State_Lists;
-      Ptr : Parser_State_Lists.Cursor := Container.Elements.First;
-   begin
-      loop
-         exit when Constant_Reference (Ptr).Label = Label;
-         Next (Ptr);
-      end loop;
-      return (Element => Reference (Ptr).Element);
-   end State_Ref_2;
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is

@@ -652,14 +652,15 @@ package body WisiToken.LR is
    end Next_Grammar_Token;
 
    function Reduce_Stack
-     (Stack        : in out Parser_Stacks.Stack;
-      Tree         : in out Syntax_Trees.Tree;
-      Action       : in     Reduce_Action_Rec;
-      Nonterm      :    out Syntax_Trees.Valid_Node_Index;
-      Lexer        : in     WisiToken.Lexer.Handle;
-      Trace        : in out WisiToken.Trace'Class;
-      Trace_Level  : in     Integer;
-      Trace_Prefix : in     String := "")
+     (Stack           : in out Parser_Stacks.Stack;
+      Tree            : in out Syntax_Trees.Tree;
+      Action          : in     Reduce_Action_Rec;
+      Nonterm         :    out Syntax_Trees.Valid_Node_Index;
+      Lexer           : in     WisiToken.Lexer.Handle;
+      Trace           : in out WisiToken.Trace'Class;
+      Trace_Level     : in     Integer;
+      Trace_Prefix    : in     String := "";
+      Default_Virtual : in     Boolean)
      return Semantic_Checks.Check_Status
    is
       use all type Semantic_Checks.Semantic_Check;
@@ -674,7 +675,8 @@ package body WisiToken.LR is
          Children_Tree (I) := Stack.Pop.Token;
       end loop;
 
-      Nonterm := Tree.Add_Nonterm (Action.LHS, Action.Action, Action.Production, Action.Name_Index, Children_Tree);
+      Nonterm := Tree.Add_Nonterm
+        (Action.LHS, Action.Action, Action.Production, Action.Name_Index, Children_Tree, Default_Virtual);
       --  Computes Nonterm.Byte_Region, Virtual
 
       if Trace_Level > Detail then

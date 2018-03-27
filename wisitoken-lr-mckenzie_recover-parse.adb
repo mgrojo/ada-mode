@@ -20,10 +20,11 @@ pragma License (Modified_GPL);
 package body WisiToken.LR.McKenzie_Recover.Parse is
 
    procedure Compute_Nonterm
-     (ID      : in     Token_ID;
-      Stack   : in     Recover_Stacks.Stack;
-      Tokens  : in out Recover_Token_Array;
-      Nonterm :    out Recover_Token)
+     (ID              : in     Token_ID;
+      Stack           : in     Recover_Stacks.Stack;
+      Tokens          : in out Recover_Token_Array;
+      Nonterm         :    out Recover_Token;
+      Default_Virtual : in     Boolean)
    is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
@@ -32,7 +33,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
    begin
       Nonterm :=
         (ID      => ID,
-         Virtual => False,
+         Virtual => (if Tokens'Length = 0 then Default_Virtual else False),
          others  => <>);
 
       for I in Tokens'Range loop
@@ -59,24 +60,12 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       end loop;
    end Compute_Nonterm;
 
-   function Compute_Nonterm
-     (Stack  : in Recover_Stacks.Stack;
-      Action : in Reduce_Action_Rec)
-     return Recover_Token
-   is
-      Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
-      Tokens : Recover_Token_Array (1 .. Last);
-   begin
-      return Result : Recover_Token do
-         Compute_Nonterm (Action.LHS, Stack, Tokens, Result);
-      end return;
-   end Compute_Nonterm;
-
    function Reduce_Stack
-     (Shared  : not null access Base.Shared_Lookahead;
-      Stack   : in out          Recover_Stacks.Stack;
-      Action  : in              Reduce_Action_Rec;
-      Nonterm :    out          Recover_Token)
+     (Shared          : not null access Base.Shared_Lookahead;
+      Stack           : in out          Recover_Stacks.Stack;
+      Action          : in              Reduce_Action_Rec;
+      Nonterm         :    out          Recover_Token;
+      Default_Virtual : in              Boolean)
      return Semantic_Checks.Check_Status
    is
       use all type SAL.Base_Peek_Type;
@@ -86,7 +75,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
       Tokens : Recover_Token_Array (1 .. Last);
    begin
-      Compute_Nonterm (Action.LHS, Stack, Tokens, Nonterm);
+      Compute_Nonterm (Action.LHS, Stack, Tokens, Nonterm, Default_Virtual);
 
       if Action.Check = null then
          --  Now we can pop the stack.
@@ -211,7 +200,9 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
             declare
                Nonterm : Recover_Token;
             begin
-               Config.Check_Status := Reduce_Stack (Shared, Config.Stack, Action.Item, Nonterm);
+               Config.Check_Status := Reduce_Stack
+                 (Shared, Config.Stack, Action.Item, Nonterm,
+                  Default_Virtual => Config.Current_Inserted /= No_Inserted);
 
                case Config.Check_Status.Label is
                when Ok =>

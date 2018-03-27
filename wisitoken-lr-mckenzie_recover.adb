@@ -43,6 +43,8 @@ package body WisiToken.LR.McKenzie_Recover is
       use all type SAL.Base_Peek_Type;
       use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
+      Descriptor : WisiToken.Descriptor renames Trace.Descriptor.all;
+
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         (if Task_ID then +Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else +"") &
         Integer'Image (Parser_Label) & ": " &
@@ -51,16 +53,18 @@ package body WisiToken.LR.McKenzie_Recover is
       Result := Result & Natural'Image (Config.Cost) & ", ";
       if Config.Check_Status.Label /= Ok then
          Result := Result & Semantic_Checks.Check_Status_Label'Image (Config.Check_Status.Label) & " ";
+      elsif Config.Error_Token.ID /= Invalid_Token_ID then
+         Result := Result & "Error " & Image (Config.Error_Token, Descriptor) & " ";
       end if;
-      Result := Result & Image (Config.Stack, Trace.Descriptor.all, Depth => 1);
+      Result := Result & Image (Config.Stack, Descriptor, Depth => 1);
 
       if Config.Current_Inserted = No_Inserted then
-         Result := Result & "|" & Image (Config.Current_Shared_Token, Terminals, Trace.Descriptor.all) & "|";
+         Result := Result & "|" & Image (Config.Current_Shared_Token, Terminals, Descriptor) & "|";
       else
-         Result := Result & "/" & Image (Config.Current_Inserted, Config.Inserted, Trace.Descriptor.all) & "/";
+         Result := Result & "/" & Image (Config.Current_Inserted, Config.Inserted, Descriptor) & "/";
       end if;
 
-      Result := Result & Image (Config.Ops, Trace.Descriptor.all);
+      Result := Result & Image (Config.Ops, Descriptor);
       Trace.Put_Line (-Result);
    end Put;
 
@@ -188,13 +192,18 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Config.Current_Shared_Token := Parser_State.Shared_Token;
 
-      if Error.Label = Check and
-        not (Config.Stack.Depth > 1 and then Parser_State.Tree.Is_Virtual (Config.Stack (1).Tree_Index))
-      then
-         --  Undo the reduction that encountered the error, let
-         --  Process_One enqueue possible solutions. One of those solutions
-         --  will be to ignore the error, so we don't enqueue that config here.
-         --  We leave the cost at 0, because this is the root config.
+      case Error.Label is
+      when Action =>
+         Config.Error_Token := Parser_State.Tree.Recover_Token (Error.Error_Token);
+         if Trace_McKenzie > Detail then
+            Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config.all,
+                 Task_ID => False);
+         end if;
+
+      when Check =>
+         --  Undo the reduction that encountered the error, let Process_One
+         --  enqueue possible solutions. We leave the cost at 0, because this
+         --  is the root config.
 
          Config.Check_Status      := Error.Check_Status;
          Config.Error_Token       := Config.Stack (1).Token;
@@ -208,12 +217,7 @@ package body WisiToken.LR.McKenzie_Recover is
                    (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
                  Shared_Parser.Terminals, Config.all, Task_ID => False);
          end if;
-      else
-         if Trace_McKenzie > Detail then
-            Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config.all,
-                 Task_ID => False);
-         end if;
-      end if;
+      end case;
 
       Parser_State.Recover.Enqueue_Count := Parser_State.Recover.Enqueue_Count + 1;
    end Recover_Init;

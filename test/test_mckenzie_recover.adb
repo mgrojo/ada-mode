@@ -839,7 +839,7 @@ package body Test_McKenzie_Recover is
         ("package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;");
       --           |10       |20       |30       |40       |50       |60       |70       |80       |90
 
-      --  Excess 'end' 53, from editing. Error recovery entered at A 56,
+      --  Excess 'end' 53, from editing. Error recovery entered at A 58,
       --  with Missing_Name_Error. See Missing_Name_0 for general
       --  discussion. See Missing_Name_3; there is no way to distinguish
       --  this case from that, other than parsing to EOF. So
@@ -897,8 +897,11 @@ package body Test_McKenzie_Recover is
       --
       --  In this case, 'ignore error' passes recover check, so recover
       --  returns it. 'push_back, delete end; ' fails recover check with a
-      --  Match_Name_Error at 'procedure' 65, so only 'ignore error' is
-      --  returned from recover.
+      --  Match_Name_Error at 'procedure' 65, which is fixed in a second
+      --  call to Language_Fixes; both solutions are returned from recover.
+      --
+      --  One is eliminated due to duplicate state; we eliminate the one
+      --  with the longer Recover.Ops list.
 
       declare
          use WisiToken.LR.Parse_Error_Lists;
@@ -1315,7 +1318,6 @@ package body Test_McKenzie_Recover is
       --  Semantic_Check_Fixes into Language_Fixes.
       --
       --  Language_Fixes returns (push_back 'end IDENTIFIER', insert 'end ; ').
-      --
 
       declare
          use WisiToken.LR.Parse_Error_Lists;
@@ -1332,8 +1334,13 @@ package body Test_McKenzie_Recover is
          Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
       begin
          Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
-         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
+         Check ("error.label", Error.Label, Action);
+         Check
+           ("errors 1.recover.ops", Error.Recover.Ops,
+            +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) &
+              (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
+              (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
+              (Fast_Forward, EOF_ID));
       end;
    end Match_Selected_Component_1;
 

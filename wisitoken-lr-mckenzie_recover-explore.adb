@@ -69,7 +69,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Nonterm   : Recover_Token;
       New_State : State_Index;
    begin
-      Config.Check_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm);
+      Config.Check_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm, Default_Virtual => True);
       case Config.Check_Status.Label is
       when Semantic_Checks.Ok =>
          null;
@@ -558,47 +558,51 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end case;
       end if;
 
-      --  FIXME: handle error_token.id /= invalid_token_id, check_status.label = Ok
+      if Config.Error_Token.ID /= Invalid_Token_ID then
+         if Shared.Shared_Parser.Language_Fixes = null then
+            --  No fixes available, so abandon Config, but enqueue
+            --  Local_Config_Heap.
+            Super.Put (Parser_Index, Local_Config_Heap);
+            return;
+         else
+            case Shared.Shared_Parser.Language_Fixes
+              (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
+               Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
+               Config)
+            is
+            when Continue =>
+               if Config.Check_Status.Label = Ok then
+                  --  Parse table Error action; try other Config changes.
+                  null;
 
-      if Config.Check_Status.Label /= Ok then
-         declare
-            use all type Semantic_Checks.Semantic_Check;
-            use all type Semantic_Checks.Check_Status;
-            New_State : Unknown_State_Index;
-         begin
-            if Shared.Shared_Parser.Language_Fixes = null then
-               --  No fixes available, so abandon Config, but enqueue
-               --  Local_Config_Heap.
+               else
+               --  "ignore error" is a viable solution, so continue with Config;
+                  declare
+                     use all type Semantic_Checks.Semantic_Check;
+                     use all type Semantic_Checks.Check_Status;
+                     New_State : Unknown_State_Index;
+                  begin
+                     --  finish reduce.
+                     Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+
+                     New_State := Goto_For (Table, Config.Stack (1).State, Config.Error_Token.ID);
+                     if New_State = Unknown_State then
+                        raise Programmer_Error with "process_one found test case for new_state = Unkown; old state " &
+                          Image (Config.Stack (1).State) & " nonterm " & Image
+                            (Config.Error_Token.ID, Trace.Descriptor.all);
+                     end if;
+
+                     Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Config.Error_Token));
+
+                     Config.Check_Status := (Label => Ok);
+                  end;
+               end if;
+
+            when Abandon =>
                Super.Put (Parser_Index, Local_Config_Heap);
                return;
-            else
-               case Shared.Shared_Parser.Language_Fixes
-                 (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
-                  Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
-                  Config)
-               is
-               when Continue =>
-                  --  "ignore error" is a viable solution, so continue with Config;
-                  --  finish reduce.
-                  Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
-
-                  New_State := Goto_For (Table, Config.Stack (1).State, Config.Error_Token.ID);
-                  if New_State = Unknown_State then
-                     raise Programmer_Error with "process_one found test case for new_state = Unkown; old state " &
-                       Image (Config.Stack (1).State) & " nonterm " & Image
-                         (Config.Error_Token.ID, Trace.Descriptor.all);
-                  end if;
-
-                  Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Config.Error_Token));
-
-                  Config.Check_Status := (Label => Ok);
-
-               when Abandon =>
-                  Super.Put (Parser_Index, Local_Config_Heap);
-                  return;
-               end case;
-            end if;
-         end;
+            end case;
+         end if;
       end if;
 
       if not Post_Fast_Forward_Fail then

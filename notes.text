@@ -19,19 +19,10 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-mckenzie problem
-    debug.ada_lite
-        selected_component when expecting IDENTIFIER
-        solution is same as Extra_Name_Error
-        broaden semantic_check_fixes to be called on every error, handle this
-
+review FIXME:s
 
 update ada-mode
-    run-time end-name-optional param
-        make it a grammar declaration in ada_lite.wy?
-
-    repair error only needs insert, delete ops
-
+    run all tests
     propagate to .s-2?
 
 change configure_access to persistent_ref record with container, node components;

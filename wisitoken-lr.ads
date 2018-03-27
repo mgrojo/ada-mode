@@ -500,15 +500,15 @@ package WisiToken.LR is
    --  enqueuing new configs on Local_Config_Heap.
    --
    --  For a failed semantic check, Config.Stack is in the pre-reduce
-   --  state, Config.Error_Token gives the nonterm token, Config.Check_Token_Count
-   --  the token count for the reduce. May be called with Nonterm.Virtual
-   --  = True or Tree.Valid_Indices (stack top token_count items) false.
+   --  state, Config.Error_Token gives the nonterm token,
+   --  Config.Check_Token_Count the token count for the reduce. May be
+   --  called with Nonterm.Virtual = True or Tree.Valid_Indices (stack
+   --  top token_count items) false. Return Continue if ignoring the
+   --  error is a viable solution, Abandon otherwise.
    --
    --  For an Error action, Config.Error_Token gives the terminal that
-   --  caused the error.
-   --
-   --  Return Continue if ignoring the error is a viable solution,
-   --  Abandon otherwise.
+   --  caused the error. Return Abandon if a known good solution is
+   --  enqueued, Continue otherwise.
 
    type McKenzie_Data is tagged record
       Config_Heap   : Config_Heaps.Heap_Type;
@@ -591,16 +591,18 @@ private
    --  Otherwise, repeat.
 
    function Reduce_Stack
-     (Stack        : in out Parser_Stacks.Stack;
-      Tree         : in out Syntax_Trees.Tree;
-      Action       : in     Reduce_Action_Rec;
-      Nonterm      :    out Syntax_Trees.Valid_Node_Index;
-      Lexer        : in     WisiToken.Lexer.Handle;
-      Trace        : in out WisiToken.Trace'Class;
-      Trace_Level  : in     Integer;
-      Trace_Prefix : in     String := "")
+     (Stack           : in out Parser_Stacks.Stack;
+      Tree            : in out Syntax_Trees.Tree;
+      Action          : in     Reduce_Action_Rec;
+      Nonterm         :    out Syntax_Trees.Valid_Node_Index;
+      Lexer           : in     WisiToken.Lexer.Handle;
+      Trace           : in out WisiToken.Trace'Class;
+      Trace_Level     : in     Integer;
+      Trace_Prefix    : in     String := "";
+      Default_Virtual : in     Boolean)
      return WisiToken.Semantic_Checks.Check_Status;
-   --  Reduce Stack according to Action, calling Action.Check and
-   --  returning result, or Ok if null.
+   --  Reduce Stack according to Action, setting Nonterm, calling
+   --  Action.Check and returning result, or Ok if null. If
+   --  Action.Token_Count = 0, set Nonterm.Virtual := Default_Virtual.
 
 end WisiToken.LR;

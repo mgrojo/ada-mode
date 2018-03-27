@@ -94,6 +94,7 @@ package WisiToken.LR.Parser_Lists is
    function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type;
 
    function Label (Cursor : in Parser_Lists.Cursor) return Natural;
+   function Max_Error_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;
@@ -107,12 +108,6 @@ package WisiToken.LR.Parser_Lists is
 
    function State_Ref (Position : in Cursor) return State_Reference;
    --  Direct access to visible components of Parser_State
-
-   function State_Ref_2
-     (Container : not null access List'Class;
-      Label     : in              Natural)
-     return State_Reference;
-   --  WORKAROUND: GNAT GPL 2017 does not like overloading this as "State_Ref".
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Trace.
