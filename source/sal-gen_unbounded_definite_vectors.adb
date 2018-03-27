@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Unbounded_Definite_Vectors is
 
-   function To_Peek_Type (Item : in Index_Type) return Peek_Type'Base
+   function To_Peek_Type (Item : in Extended_Index) return Peek_Type'Base
    is begin
       return Peek_Type'Base (Item - Index_Type'First) + Peek_Type'First;
    end To_Peek_Type;

@@ -195,6 +195,6 @@ private
    ----------
    --  Visible for child package
 
-   function To_Peek_Type (Item : in Index_Type) return Peek_Type'Base with Inline;
+   function To_Peek_Type (Item : in Extended_Index) return Peek_Type'Base with Inline;
 
 end SAL.Gen_Unbounded_Definite_Vectors;
