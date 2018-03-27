@@ -15,7 +15,7 @@
 --EMACSCMD:(progn (wisi-parse-buffer 'face) (marker-position (wisi-cache-max 'face)))
 --EMACSRESULT:(point-max)
 
-procedure Ada_Mode.Interactive_Wisi
+procedure Ada_Mode.Interactive_2
 is
    -- Newline before a blank line
    --EMACSCMD:(progn (end-of-line 2)(newline-and-indent)(current-column))
@@ -88,4 +88,4 @@ begin
    end; -- target extending
    Stuff_3;
 
-end Ada_Mode.Interactive_Wisi;
+end Ada_Mode.Interactive_2;

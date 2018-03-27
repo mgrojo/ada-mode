@@ -2,7 +2,7 @@
 --
 --  Ada implementation of language-specific action parameters used in subprograms.wy
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -29,7 +29,7 @@ package WisiToken.Wisi_Runtime.Subprograms is
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
+      Descriptor       : access constant WisiToken.Descriptor;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -39,8 +39,10 @@ package WisiToken.Wisi_Runtime.Subprograms is
 
    function Function_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Indenting         : in     Semantic_State.Augmented_Token;
+      State             : in     Semantic_State.Semantic_State;
+      Tree              : in     Syntax_Trees.Tree;
+      Tree_Tokens       : in     Syntax_Trees.Valid_Node_Index_Array;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
       Args              : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;

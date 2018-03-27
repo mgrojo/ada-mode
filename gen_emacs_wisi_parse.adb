@@ -70,8 +70,7 @@ is
    end Usage;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State  : WisiToken.Semantic_State.Semantic_State (Trace'Access);
-   Parser : WisiToken.LR.Instance;
+   Parser : aliased WisiToken.LR.Parser.Parser;
 
    procedure Read_Input (A : System.Address; N : Integer)
    is
@@ -163,7 +162,7 @@ is
    end Get_Integer;
 
 begin
-   Create_Parser (Parser, LALR, State'Unrestricted_Access);
+   Create_Parser (Parser, LALR, Trace'Unrestricted_Access, Language_Fixes);
 
    declare
       use Ada.Command_Line;
@@ -219,6 +218,19 @@ begin
                Check_Limit      : constant Integer := Get_Integer (Command_Line, Last);
                Byte_Count       : constant Integer := Get_Integer (Command_Line, Last);
                Buffer           : Ada.Strings.Unbounded.String_Access;
+
+               procedure Clean_Up
+               is begin
+                  Parser.Lexer.Discard_Rest_Of_Input;
+                  Put
+                    (Parser.Parsers.First.State_Ref.Errors,
+                     Parser.Semantic_State,
+                     Parser.Parsers.First.State_Ref.Tree,
+                     Trace.Descriptor.all);
+                  Put (Parser.Lexer.Errors);
+                  Ada.Strings.Unbounded.Free (Buffer);
+               end Clean_Up;
+
             begin
                --  Computing Line_Count in elisp allows parsing in parallel with
                --  sending source text.
@@ -232,9 +244,10 @@ begin
                   then Parser.Enable_McKenzie_Recover
                   else False);
 
+               Parser.Semantic_State.Initialize (Line_Count);
                Parse_Data.Initialize
-                 (Semantic_State   => Parser.Semantic_State,
-                  Parse_Action     => Parse_Action,
+                 (Parse_Action     => Parse_Action,
+                  Descriptor       => Descriptor'Access,
                   Source_File_Name => -Source_File_Name,
                   Line_Count       => Line_Count,
                   Params           => Command_Line (Last + 2 .. Command_Line'Last));
@@ -250,32 +263,22 @@ begin
                Read_Input (Buffer (1)'Address, Byte_Count);
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
-               WisiToken.LR.Parser.Parse (Parser);
+               Parser.Parse;
+               Parser.Execute_Actions (Parse_Data, Compute_Indent => Parse_Action = Indent);
                Put (Parse_Data);
-               Put (State.Parser_Errors, Trace.Descriptor.all);
-               Put (State.Lexer_Errors);
+               Clean_Up;
 
-               Ada.Strings.Unbounded.Free (Buffer);
             exception
             when Syntax_Error =>
-               Parser.Lexer.Discard_Rest_Of_Input;
-               Put (State.Parser_Errors, Trace.Descriptor.all);
-               Put (State.Lexer_Errors);
-               Ada.Strings.Unbounded.Free (Buffer);
+               Clean_Up;
                Put_Line ("(parse_error)");
 
             when E : Parse_Error =>
-               Parser.Lexer.Discard_Rest_Of_Input;
-               Put (State.Parser_Errors, Trace.Descriptor.all);
-               Put (State.Lexer_Errors);
-               Ada.Strings.Unbounded.Free (Buffer);
+               Clean_Up;
                Put_Line ("(parse_error """ & Ada.Exceptions.Exception_Message (E) & """)");
 
             when E : Fatal_Error =>
-               Parser.Lexer.Discard_Rest_Of_Input;
-               Put (State.Parser_Errors, Trace.Descriptor.all);
-               Put (State.Lexer_Errors);
-               Ada.Strings.Unbounded.Free (Buffer);
+               Clean_Up;
                Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
             end;
 
@@ -292,7 +295,7 @@ begin
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                loop
-                  exit when ID = Parser.Semantic_State.Trace.Descriptor.EOF_ID;
+                  exit when ID = Parser.Trace.Descriptor.EOF_ID;
                   ID := Parser.Lexer.Find_Next;
                end loop;
             exception

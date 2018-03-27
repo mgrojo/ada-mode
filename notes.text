@@ -27,18 +27,64 @@ run test from emacs -Q using source:
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal")
-  (xmtn . "c:/Projects/org.wisitoken")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
 (dvc-propagate-multiple
- '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")
-   ("."                       . "../org.emacs.ada-mode.stephe-4")))
+ '(("../org.stephe_leake.sal"        . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"               . "../org.wisitoken.stephe-1")
+   ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-4")))
+
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.stephe_leake.makerules")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
+
+(dvc-propagate-multiple
+ '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
+   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+is undo_reduce cost used?
+
+need longer timeout on "not getting more text"
+    propagate from o.e.a.s-2
+
+wisitoken changes
+
+
+test/ada_mode-interactive_2.adb
+    parse fails during insert Function_Access_1 body, makes indent wrong.
+        but only sometimes? race condition?
+
+
+    test/ada_mode-interactive_recover.adb   ok, fast
+    test/ada_mode-recover_align_1.adb       ok, fast
+    test/ada_mode-recover_bad_char.adb      ok, slow
+        o.e.a.s-2: 0.145636766
+        o.e.a.s-4: branched tree in mckenzie 2.757418621 seconds/iteration
+        o.e.a.s-4: branched tree in main parser 2.045493021
+
+
+test/ada_mode-recover_match_names.adb
+    parse fails with (parse_error), error during resume
+        and only two mckenzies, both in Accept_Statement_0
+        ignore for now; will change again
+
+test/ada_mode.adb auto-case test fails
+    works when done manually; some race condition!?
+    also changes ada_mode.ads; it should not!?
+
+merge wisitoken.semantic_state into wisi_runtime
+    provide hook for lexer_to_augmented
+
+emacs track parse-max, don't reparse just for different action; just execute action.
+
 wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
     include package name in error message fix
 
@@ -682,12 +728,23 @@ Add Ada parser to gnu global?
  debug hints, relevant files
 gdb run_ada_parse
     in wisitoken-wisi_runtime.adb Indent_Action_0:
-        break on 'if token.first_indent_line then' line 981
-        p data.semantic_state.trace.descriptor.image (nonterm.id)
-        p data.semantic_state.trace.descriptor.image (token.id)
-        p token.char_region
+        break on 'if token.first_indent_line then' line 1050
+        call wisitoken.syntax_trees.id (tree, nonterm)
+        p data.descriptor.image ($)
+        p i
+        p data.descriptor.image (token.id)
+        p token.line
+        p token.col
+        p pair
+        p data.indents.elements.ea(token.line)
 
-        p data.indents.elements.ea
+    in wisitoken-semantic_state.adb Reduce
+        break on 'nonterm.paren_state := ' line 334
+        p descriptor.image (nonterm.id)
+        p i
+        p descriptor.image (aug_token.id)
+        p aug_token
+        p nonterm
 
 to change process executable for all current and future buffers:
 

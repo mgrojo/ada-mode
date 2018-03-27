@@ -2,7 +2,7 @@
 --
 --  Run the Ada parser standalone. Useful for debugging grammar issues.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,8 +20,10 @@ pragma License (GPL);
 
 with Ada_Process;
 with Gen_Run_Wisi_Parse;
+with WisiToken.LR.McKenzie_Recover.Ada;
 with WisiToken.Wisi_Runtime;
 procedure Run_Ada_Parse is new Gen_Run_Wisi_Parse
   ("Ada", Ada_Process.Descriptor,
    WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Ada_Process.Parse_Data),
+   WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
    Ada_Process.Create_Parser);

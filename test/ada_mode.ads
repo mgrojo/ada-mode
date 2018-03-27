@@ -1,3 +1,5 @@
+--EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
+--EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 package Ada_Mode is
    Global_Exception_1 : exception;
 
@@ -10,7 +12,7 @@ package Ada_Mode is
       function F return Boolean;
    end;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(ada-goto-declaration)(looking-at "procedure Separate_Procedure;"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(ada-goto-declaration)(looking-at "Separate_Procedure is separate"))
    --EMACSRESULT:t
    procedure Separate_Procedure;
    -- WORKAROUND: GNAT GPL 2016/2017 puts a reference to the full body

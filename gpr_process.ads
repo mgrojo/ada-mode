@@ -17,26 +17,23 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Wisi_Runtime.Gpr;
-with WisiToken.Semantic_State;
-with WisiToken.LR;
+with WisiToken.LR.Parser;
 package Gpr_Process is
 
    Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal      => 3,
-      Last_Terminal       => 37,
-      First_Nonterminal   => 38,
-      Last_Nonterminal    => 71,
-      EOF_ID              => 37,
-      Accept_ID           => 38,
-      New_Line_ID         => 1,
-      Comment_ID          => 2,
-      Left_Paren_ID       => 2147483647,
-      Right_Paren_ID      => 2147483647,
-      Terminal_Name_ID    => 35,
-      Nonterminal_Name_ID => 2147483647,
-      String_1_ID         => 2147483647,
-      String_2_ID         => 36,
-      Image               =>
+     (First_Terminal    => 3,
+      Last_Terminal     => 37,
+      First_Nonterminal => 38,
+      Last_Nonterminal  => 71,
+      EOF_ID            => 37,
+      Accept_ID         => 38,
+      New_Line_ID       => 1,
+      Comment_ID        => 2,
+      Left_Paren_ID     => 2147483647,
+      Right_Paren_ID    => 2147483647,
+      String_1_ID       => 2147483647,
+      String_2_ID       => 36,
+      Image             =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
@@ -195,8 +192,8 @@ package Gpr_Process is
    Parse_Data : WisiToken.Wisi_Runtime.Gpr.Parse_Data_Type;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.LR.Instance;
-      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);
+     (Parser    :    out WisiToken.LR.Parser.Parser;
+      Algorithm : in     WisiToken.Parser_Algorithm_Type;
+      Trace     : not null access WisiToken.Trace'Class);
 
 end Gpr_Process;

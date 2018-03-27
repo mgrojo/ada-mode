@@ -124,9 +124,10 @@ package body Format_Paramlist is
    --EMACSCMD:(progn (end-of-line 5)(delete-char -1)(insert ";")(ada-align)(newline-and-indent))
    procedure Check_One
      (Label    : in String;
-      Param    : in Field_Values;
-      Expected : in ID_Array)
+      Param    : in Integer;
+      Expected : in Integer)
    is begin
+      null;
    end Check_One;
 
 end Format_Paramlist;

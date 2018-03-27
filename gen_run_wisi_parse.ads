@@ -4,7 +4,7 @@
 --
 --  See gen_emacs_wisi_parse.ads for the Emacs background process.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,18 +20,19 @@
 
 pragma License (GPL);
 
-with WisiToken.LR;
-with WisiToken.Semantic_State;
+with WisiToken.LR.Parser;
 with WisiToken.Wisi_Runtime;
 generic
    Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
 
-   Descriptor : in WisiToken.Descriptor'Class;
-   Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
+   Descriptor     : in WisiToken.Descriptor;
+   Parse_Data     : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
+   Language_Fixes : in WisiToken.LR.Language_Fixes_Access;
 
    with procedure Create_Parser
-     (Parser         :    out WisiToken.LR.Instance;
-      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);
+     (Parser         :    out          WisiToken.LR.Parser.Parser;
+      Algorithm      : in              WisiToken.Parser_Algorithm_Type;
+      Trace          : not null access WisiToken.Trace'Class;
+      Language_Fixes : in              WisiToken.LR.Language_Fixes_Access);
 
 procedure Gen_Run_Wisi_Parse;

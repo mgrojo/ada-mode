@@ -10,7 +10,10 @@ package body Ada_Mode is
 
    task body Separate_Task_Body is separate;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(ada-goto-declaration)(looking-at "procedure Separate_Procedure is"))
+   -- WORKAROUND: prior to GNAT 2016, this went to
+   -- ada_mode-separate_procedure.adb. Now it goes to ada_mode.ads.
+   --
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(ada-goto-declaration)(looking-at "Separate_Procedure;"))
    --EMACSRESULT:t
    procedure Separate_Procedure is separate;
 

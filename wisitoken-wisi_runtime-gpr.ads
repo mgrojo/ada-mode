@@ -5,7 +5,7 @@
 --  [1] gpr-wisi.el
 --  [2] gpr-indent-user-options.el
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -27,12 +27,15 @@ package WisiToken.Wisi_Runtime.Gpr is
    Gpr_Indent_Broken : Integer := 2;
    Gpr_Indent_When   : Integer := 3;
 
+   --  Other parameters
+   Match_Tokens_End_Optional : Boolean := False;
+
    type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
 
    overriding
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
+      Descriptor       : access constant WisiToken.Descriptor;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;

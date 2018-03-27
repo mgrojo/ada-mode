@@ -1,6 +1,6 @@
 ;;; Wisi grammar for GNAT project files
 ;;
-;; Copyright (C) 2013 - 2015, 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2015, 2017, 2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -110,9 +110,11 @@
 %elisp_face font-lock-function-name-face
 %elisp_face nil
 
-%mckenzie_cost_default 4 4 8
+%mckenzie_cost_default 4 4 8 2 2
 %mckenzie_cost_limit 12
 %mckenzie_check_limit 3
+
+%match_tokens_end_optional_option Match_Tokens_End_Optional
 
 %conflict SHIFT/REDUCE in state term, term  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state case_statement, case_statement  on token WHEN
@@ -258,7 +260,7 @@ package_spec
       (wisi-containing-action 1 4)
       (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
       (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))
-    (wisi-match-names 2 6 t)
+    (wisi-match-names 2 6)
   ;
 
 package_extension
@@ -268,7 +270,7 @@ package_extension
       (wisi-containing-action 1 6)
       (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
       (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))
-    (wisi-match-names 2 8 t)
+    (wisi-match-names 2 8)
   ;
 
 package_renaming
@@ -291,7 +293,7 @@ project_extension
       (wisi-containing-action 1 6)
       (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
       (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))
-    (wisi-match-names 2 8 t)
+    (wisi-match-names 2 8)
   ;
 
 ;; (info "(gprbuild_ug)Qualified Projects")
@@ -328,7 +330,7 @@ simple_project_declaration
       (wisi-containing-action 1 4)
       (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
       (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))
-    (wisi-match-names 2 6 t)
+    (wisi-match-names 2 6)
   ;
 
 ;; (info "(gprbuild_ug)Expressions")

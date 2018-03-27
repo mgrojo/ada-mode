@@ -25,20 +25,23 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
+with WisiToken.LR;
 with WisiToken.Lexer;
 with WisiToken.Semantic_State;
+with WisiToken.Syntax_Trees;
 package WisiToken.Wisi_Runtime is
 
    type Parse_Action_Type is (Navigate, Face, Indent);
 
-   type Parse_Data_Type is tagged limited private;
+   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
 
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Semantic_State   : in     WisiToken.Semantic_State.Semantic_State_Access;
+      Descriptor       : access constant WisiToken.Descriptor;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -46,7 +49,7 @@ package WisiToken.Wisi_Runtime is
    --  Line_Count only used for Indent. Params contains language-specific
    --  indent parameter values.
 
-   procedure Reset (Data : in out Parse_Data_Type; Init_Done : in Boolean := False);
+   procedure Reset (Data : in out Parse_Data_Type);
    --  Reset for a new parse, with data from previous Initialize.
 
    function Source_File_Name (Data : in Parse_Data_Type) return String;
@@ -64,14 +67,18 @@ package WisiToken.Wisi_Runtime is
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array);
 
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
-      Nonterm    : in     Semantic_State.Augmented_Token;
-      Tokens     : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State      : in     WisiToken.Semantic_State.Semantic_State;
+      Tree       : in     Syntax_Trees.Tree;
+      Nonterm    : in     Syntax_Trees.Valid_Node_Index;
+      Tokens     : in     Syntax_Trees.Valid_Node_Index_Array;
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type);
 
@@ -94,8 +101,10 @@ package WisiToken.Wisi_Runtime is
 
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Motion_Param_Array);
    --  Implements [2] wisi-motion-action.
 
@@ -109,15 +118,19 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-action.
 
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-list-action.
 
@@ -133,8 +146,10 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Mark_Param_Array);
    --  Implements [2] wisi-face-mark-action.
 
@@ -142,8 +157,10 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Remove_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Face_Remove_Param_Array);
    --  Implements [2] wisi-face-remove-action.
 
@@ -181,8 +198,10 @@ package WisiToken.Wisi_Runtime is
 
    type Language_Indent_Function is access function
      (Data              : in out Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Indenting         : in     Semantic_State.Augmented_Token;
+      State             : in     Semantic_State.Semantic_State;
+      Tree              : in     Syntax_Trees.Tree;
+      Tree_Tokens       : in     Syntax_Trees.Valid_Node_Index_Array;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
       Args              : in     Indent_Arg_Arrays.Vector)
      return Delta_Type;
@@ -241,23 +260,29 @@ package WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action.
 
    procedure Indent_Action_1
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Semantic_State.Augmented_Token;
-      Tokens  : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State   : in     WisiToken.Semantic_State.Semantic_State;
+      Tree    : in     Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       N       : in     Positive_Index_Type;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action*.
 
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
-      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Indenting_Token   : in     Semantic_State.Augmented_Token;
+      State             : in     WisiToken.Semantic_State.Semantic_State;
+      Tree              : in     Syntax_Trees.Tree;
+      Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean;
       Delta_1           : in     Simple_Indent_Param;
       Delta_2           : in     Simple_Indent_Param;
@@ -275,8 +300,10 @@ package WisiToken.Wisi_Runtime is
    --  wisi-process-parse--execute.
 
    procedure Put
-     (Errors     : in WisiToken.Semantic_State.Parser_Error_List_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class);
+     (Errors     : in WisiToken.LR.Parse_Error_Lists.List;
+      State      : in Semantic_State.Semantic_State;
+      Tree       : in Syntax_Trees.Tree;
+      Descriptor : in WisiToken.Descriptor);
    --  Put Errors to Ada.Text_IO.Current_Output, as encoded error
    --  responses as defined in [3] wisi-process-parse--execute.
 
@@ -369,9 +396,9 @@ private
    package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
-   type Parse_Data_Type is tagged limited
+   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
-      Semantic_State   : WisiToken.Semantic_State.Semantic_State_Access;
+      Descriptor       : access constant WisiToken.Descriptor;
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
       Parse_Action     : Parse_Action_Type;
       Navigate_Caches  : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
@@ -427,12 +454,10 @@ private
    --  Utilities for language-specific child packages
 
    function Current_Indent_Offset
-     (Data         : in Parse_Data_Type;
+     (State        : in WisiToken.Semantic_State.Semantic_State;
       Anchor_Token : in Semantic_State.Augmented_Token;
       Offset       : in Integer)
      return Integer;
-
-   function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Semantic_State.Augmented_Token;
 
    function Indent_Anchored_2
      (Data        : in out Parse_Data_Type;
@@ -445,14 +470,17 @@ private
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
-      Tokens            : in     Semantic_State.Augmented_Token_Arrays.Vector;
+      State             : in     Semantic_State.Semantic_State;
+      Tree              : in     Syntax_Trees.Tree;
+      Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Param             : in     Indent_Param;
-      Indenting_Token   : in     Semantic_State.Augmented_Token;
+      Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
       Indenting_Comment : in     Boolean)
      return Delta_Type;
 
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
+      State             : in     Semantic_State.Semantic_State;
       Indenting_Token   : in     Semantic_State.Augmented_Token;
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean);
