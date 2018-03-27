@@ -496,6 +496,15 @@ Prompt user if more than one."
 	     )
 	   t)
 
+	  ((looking-at (concat "warning: variable " ada-gnat-quoted-name-regexp " is not referenced"))
+	   (let ((param (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (forward-sexp);; end of declaration
+	     (forward-char);; skip semicolon
+	     (newline-and-indent)
+	     (insert "pragma Unreferenced (" param ");"))
+	   t)
+
 	  ((or
 	    (looking-at (concat "warning: no entities of " ada-gnat-quoted-name-regexp " are referenced"))
 	    (looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is never instantiated"))

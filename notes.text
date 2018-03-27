@@ -42,6 +42,8 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
 wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
     include package name in error message fix
 
+align_paramlist only repair errors in list
+
 test cases for Match_Names_Error:
    overriding
    procedure Set_Children
@@ -85,6 +87,12 @@ AdaCore 18.1
 user option to make end block names not optional
 
 cache syntax tree for subsequent actions
+
+compute align in grammar actions
+    align-list action on ':', '=>' etc
+
+support variable pitch fonts
+    (put-text-property 118 120 'display '(space :width (10))))
 
 Mark syntax error lines in margin.
     What does fly-check do?
@@ -158,10 +166,201 @@ Ada 2020 features:
  speed issues
 
 benchmarks:
+    update only in o.e.a.s-2
+
+    ada-mode/build/Makefile
+        make recursive-clean build_ada_executables
 
 /Projects/org.wisitoken/Test/gnatcoll-xref.adb
     copied to c:/tmp/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
+
+wisi-generate
+    time $WISI_WISITOKEN/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum ada.wy > ada.ada_parse_table
+
+    04 mar 2018
+        o.e.a.s-2 12.919s
+        o.e.a.s-4 24.398s, 24.625s
+
+mckenzie recover
+    ./run_ada_parse.exe test/slow_recover_1.adb Indent --repeat_count 5
+        or, if that's really slow, 'time ./run_ada_parse.exe test/slow_recover_1.adb Indent --verbosity 1 1 0'
+
+    use binary min heap: ~2.7
+    use fibonacci min heap: ~2.57
+    sal.bounded_vector in Configuration: 1.700269668, 1.675688670
+    faster sal stack: 1.599979082, 1.555800480, 1.569708386 -> slightly faster, keep it.
+    default_init stack => 50 : 1.602228258, 1.629959644 -> slower!
+    7 parallel tasks, one protected object, one solution: 0.556900752, 0.564946255, 0.580240866
+    7 tasks, many protected objects, several equal cost solutions, keep last one: 0.588807432, 0.555614030, 0.591806258
+    "", keep several: 0.611813538, 0.724677583, 0.659352765
+    change to Base_Token, prep for block name matching: 0.829402871, 0.822722491, 0.834653581
+
+    27 Dec 2017
+        add match_names, block_label, loop_label; set check_limit 4; requires --max_parallel 17: 4.822095917 4.955374324
+
+    04 Mar 2018
+        misc improvements 1.502121666, 1.833030047 seconds
+         5: fail, enqueue 68402, check  4683, cost_limit:  12
+         1: succeed 1, enqueue 13, check  5, cost:  0
+
+    07 Mar 2018
+        convert to syntax trees 1m12.017s
+         6: fail, enqueue 7266, check  508, cost_limit:  12
+         5: succeed 1, enqueue 1427, check  98, cost:  10
+         1: succeed 2, enqueue 2901, check  255, cost:  10
+
+         5: fail, enqueue 68402, check  4683, cost_limit:  12
+         1: succeed 1, enqueue 64947, check  5682, cost:  12
+
+    11 Mar 2018
+        no syntax trees in recover 0.450195152
+         6: succeed 1, enqueue 187, check  13, cost:  7
+         5: succeed 1, enqueue 1426, check  97, cost:  10
+         1: succeed 2, enqueue 1011, check  87, cost:  9
+
+    14 Mar 2018 final no syntax trees in recover
+        2.981941108 !?
+         6: succeed 1, enqueue 403, check  18, cost:  5
+         5: succeed 1, enqueue 5113, check  267, cost:  8
+         1: succeed 2, enqueue 33455, check  1653, cost:  10
+        recover: succeed, parser count 4
+
+         6: succeed 1, enqueue 11364, check  678, cost:  9
+         5: succeed 1, enqueue 32049, check  1742, cost:  10
+         1: succeed 1, enqueue 252, check  28, cost:  6
+        recover: succeed, parser count 3
+
+         5: succeed 1, enqueue 18052, check  1038, cost:  8
+        recover: succeed
+
+parse navigate
+    (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats
+        repeat count > 2 gives EXCEPTION_ACCESS_VIOLATION; some race condition?
+
+    27 Nov 2017 - compute actions in Ada
+        1.377199 seconds 3 gcs 6560 responses 0.509915 wait
+        1.523548 seconds 2 gcs 6560 responses 0.518090 wait
+
+    wisi-motion-action
+        in [] token-numbers, skip statements with wisi-goto-end
+
+    wisi-process-parse--Cache
+        faster to check for & modify existing?
+
+parse face
+    compare to o.e.a
+
+    noticeable delay when typing code
+        jit-lock-defer-time 1.5 helps
+
+    wisitoken-parser-lr-lalr_generator.adb
+    (wisi-time (lambda () (wisi-parse-buffer 'face)) 5 t); t for process stats
+
+    15 Sep 2017
+        o.e.a.s-4 elisp parser: per iteration 0.284380 seconds, 1 gcs
+
+        process parser, elisp lexer 1.021952 seconds, 2 gcs
+
+    28 Nov 2017 compute actions in Ada
+        gnatcoll-xref.adb
+            per iteration 1.405831 seconds 2 gcs 2145 responses 0.493506 wait
+
+        wisitoken-parser-lr-lalr_generator.adb
+            per iteration 0.175466 seconds 0 gcs 276 responses 0.082255 wait
+
+    marking _every_ identifer as possible face prefix
+        count face actions before/after delete that
+        to avoid marking contents of allocator aggregate
+        handle that case individually; find others
+
+parse indent
+    (wisi-time-indent-middle-line-cold-cache 1 t); t for process stats
+    /Projects/smm.main/source/smm-server.adb
+
+    gnatcoll-xref.adb: 29461 tokens 149921 actions 1257 parsers
+
+    28 Nov 2017 compute actions in Ada
+        gnatcoll-xref.adb
+            per iteration 1.497652 seconds 1 gcs 7251 responses 0.507303 wait
+
+        wisitoken-parser-lr-lalr_generator.adb
+            per iteration 0.179418 seconds 0 gcs 775 responses 0.083123 wait
+
+    20 Feb 2018:
+        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
+            0.311213888, 0.317810000
+
+    15 Sept 2017:
+        elisp parser, full buffer:
+            gnatcoll-xref.adb: 2.875186 seconds, 11 gcs => action time (- 2.875186 1.515792) = 1.359394
+            smm-server.adb:    0.134355 seconds, 0 gcs
+
+        elisp parser, middle line
+            gnatcoll-xref.adb: 2.671991 seconds 11 gcs
+            smm-server.adb:    0.140611 seconds 0 gcs
+
+        process parser, whole buffer:
+            gnatcoll-xref.adb:
+
+            smm-server.adb:     0.303155 seconds, 1 gcs
+
+        process parser, middle line
+            gnatcoll-xref.adb: 16.166306 seconds 19 gcs 29461 tokens 149921 actions 0.015640 wait
+            => scan parse action time = total - wisi-lex-send-tokens - action-time - wait-time
+               = (+ 16.166306 -1.559691 -1.359394 -0.015640) = 13.231581
+               action                count
+                1 Lexer_To_Lookahead 29463
+                2 Error              (- 30598 29463) 1135 ; from conflict resolution
+                3 Spawn              (- 31803 30598) 1205 ; some terminated with identical stacks
+                4 Terminate_Parser   (- 33008 31803) 1205
+                5 Virtual_To_Lookahead 0 - no actual errors
+                6 Push_Current       (- 62469 33008) 29461 = token count
+                7 Reduce_Stack       (- 149928 62469) 87459
+
+            smm-server.adb:     0.303128 seconds 1 gcs
+
+            don't send right-hand-side tokens for reduce
+                gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
+
+    16 Dec 2017:
+        process parser: name in base_token, block_label_opt in block, loop
+        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
+            0.346936964, 0.341999256
+
+        (wisi-time-indent-middle-line-cold-cache 1 t)
+        gnatcoll-xref.adb: 1.482145 seconds 0 gcs 7251 responses 0.387635 wait
+
+    08 Mar 2018:
+        o.e.a.s-2: misc changes 0.331148598
+        o.e.a.s-4: syntax_tree: 36.680009379, 36.850242615
+
+    10 Mar 2018:
+        o.e.a.s-4: branched syntax_tree in main parse: 0.523269951, 0.508891395
+
+    future improvments:
+        send more than one indent per output line, to reduce communication overhead
+
+        use module instead of process
+            can pass actions from module to elisp in binary?, to avoid scan-sexps
+            try mingw64 gnat on Windows
+                use 32 bit gprbuild to run 64 bit tools
+
+        take more of multicore:
+            Put parallel parse in separate tasks.
+
+            at least one thread in module
+
+        wisi-anchored-2, wisi--indent-token-1
+            don't apply anchor if all lines already anchored
+            don't loop thru lines more than once?
+
+        indent compute only lines needed
+            skip nonterms that don't overlap indent region
+            significantly complicates cache valid, wisi-cache-try algorithm
+
+        delete 'end' processing, use next-statement-keyword to look for 'end'?
+
 
 plain parse, no actions:
     14 Sept 2017:
@@ -206,158 +405,6 @@ plain parse, no actions:
             0.346936964, 0.341999256
 
         add byte_region in base_token: 0.339586284, 0.341083772, 0.340257321
-
-    20 Feb 2018:
-        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
-            0.311213888, 0.317810000
-
-mckenzie recover
-    ada-mode/build/Makefile
-        ensure sal, wisitoken, ada-mode built with non-debug
-            gpr file 'echo' command to output debug/normal?
-            make echo debug/normal
-            gpr_query check compiler options
-
-    run_ada_parse.exe ../test/slow_recover_1.adb Indent --repeat_count 5
-
-    use binary min heap: ~2.7
-    use fibonacci min heap: ~2.57
-    sal.bounded_vector in Configuration: 1.700269668, 1.675688670
-    faster sal stack: 1.599979082, 1.555800480, 1.569708386 -> slightly faster, keep it.
-    default_init stack => 50 : 1.602228258, 1.629959644 -> slower!
-    7 parallel tasks, one protected object, one solution: 0.556900752, 0.564946255, 0.580240866
-    7 tasks, many protected objects, several equal cost solutions, keep last one: 0.588807432, 0.555614030, 0.591806258
-    "", keep several: 0.611813538, 0.724677583, 0.659352765
-    change to Base_Token, prep for block name matching: 0.829402871, 0.822722491, 0.834653581
-
-    27 Dec 2017
-        add match_names, block_label, loop_label; set check_limit 4; requires --max_parallel 17: 4.822095917 4.955374324
-
-    04 Mar 2018
-        misc improvements 1.502121666, 1.833030047
-
-parse navigate
-    (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats
-        repeat count > 2 gives EXCEPTION_ACCESS_VIOLATION; some race condition?
-
-    27 Nov 2017 - compute actions in Ada
-        1.377199 seconds 3 gcs 6560 responses 0.509915 wait
-        1.523548 seconds 2 gcs 6560 responses 0.518090 wait
-
-    wisi-motion-action
-        in [] token-numbers, skip statements with wisi-goto-end
-
-    wisi-process-parse--Cache
-        faster to check for & modify existing?
-
-parse face
-    compare to o.e.a
-
-    noticeable delay when typing code
-        jit-lock-defer-time 1.5 helps
-
-    wisitoken-parser-lr-lalr_generator.adb
-    (wisi-time (lambda () (wisi-parse-buffer 'face)) 5 t); t for process stats
-
-    15 Sep 2017
-        o.e.a.s-4 elisp parser: per iteration 0.284380 seconds, 1 gcs
-
-        process parser, elisp lexer 1.021952 seconds, 2 gcs
-
-    28 Nov 2017 compute actions in Ada
-        gnatcoll-xref.adb
-            per iteration 1.405831 seconds 2 gcs 2145 responses 0.493506 wait
-
-        wisitoken-parser-lr-lalr_generator.adb
-            per iteration 0.175466 seconds 0 gcs 276 responses 0.082255 wait
-
-    marking _every_ identifer as possible face prefix
-        count face actions before/after delete that
-        to avoid marking contents of allocator aggregate
-        handle that case individually; find others
-
-parse indent
-    28 Nov 2017 compute actions in Ada
-        gnatcoll-xref.adb
-            per iteration 1.497652 seconds 1 gcs 7251 responses 0.507303 wait
-
-        wisitoken-parser-lr-lalr_generator.adb
-            per iteration 0.179418 seconds 0 gcs 775 responses 0.083123 wait
-
-    use module instead of process
-        can pass actions from module to elisp in binary?, to avoid scan-sexps
-        try mingw64 gnat on Windows
-            use 32 bit gprbuild to run 64 bit tools
-
-    compute indent in Ada
-        also lex
-        compatible with AdaCore libadalang indent
-
-        send more than one indent per output line, to reduce communication overhead
-
-    take advantage of multicore:
-        Process ext feedback while waiting to send more
-            Need ewouldblock in lisp
-
-        Put parallel parse in separate tasks.
-
-        parallel mckenzie in separate tasks
-
-        at least one thread in module
-
-    wisi-anchored-2, wisi--indent-token-1
-        don't apply anchor if all lines already anchored
-        don't loop thru lines more than once?
-
-    indent compute only lines needed
-        skip nonterms that don't overlap indent region
-        significantly complicates cache valid, wisi-cache-try algorithm
-
-    delete 'end' processing, use next-statement-keyword to look for 'end'?
-
-
-    (wisi-time-indent-middle-line-cold-cache 1 t); t for process stats
-    /Projects/smm.main/source/smm-server.adb
-
-    15 Sept 2017:
-        elisp parser, full buffer:
-            gnatcoll-xref.adb: 2.875186 seconds, 11 gcs => action time (- 2.875186 1.515792) = 1.359394
-            smm-server.adb:    0.134355 seconds, 0 gcs
-
-        elisp parser, middle line
-            gnatcoll-xref.adb: 2.671991 seconds 11 gcs
-            smm-server.adb:    0.140611 seconds 0 gcs
-
-        process parser, whole buffer:
-            gnatcoll-xref.adb:
-
-            smm-server.adb:     0.303155 seconds, 1 gcs
-
-        process parser, middle line
-            gnatcoll-xref.adb: 16.166306 seconds 19 gcs 29461 tokens 149921 actions 0.015640 wait
-            => scan parse action time = total - wisi-lex-send-tokens - action-time - wait-time
-               = (+ 16.166306 -1.559691 -1.359394 -0.015640) = 13.231581
-               action                count
-                1 Lexer_To_Lookahead 29463
-                2 Error              (- 30598 29463) 1135 ; from conflict resolution
-                3 Spawn              (- 31803 30598) 1205 ; some terminated with identical stacks
-                4 Terminate_Parser   (- 33008 31803) 1205
-                5 Virtual_To_Lookahead 0 - no actual errors
-                6 Push_Current       (- 62469 33008) 29461 = token count
-                7 Reduce_Stack       (- 149928 62469) 87459
-
-            smm-server.adb:     0.303128 seconds 1 gcs
-
-            don't send right-hand-side tokens for reduce
-                gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
-
-    16 Dec 2017:
-        process parser: name in base_token, block_label_opt in block, loop
-        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
-            0.346936964, 0.341999256
-
-        (wisi-time-indent-middle-line-cold-cache 1 t)
-        gnatcoll-xref.adb: 1.482145 seconds 0 gcs 7251 responses 0.387635 wait
 
 compile ada_process.adb is slow
     27,000 lines total, 4000 follow, 4000 action

@@ -540,7 +540,6 @@ complete."
 
 	      (when (and (= (point-max) need-more)
 		       (> wait-count 5))
-		(wisi-process-parse-show-buffer parser)
 		(error "wisi-process-parse not getting more text"))
 
 	      (setq need-more nil))

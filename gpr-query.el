@@ -3,7 +3,7 @@
 ;; gpr-query supports Ada and any gcc language that supports the
 ;; AdaCore -fdump-xref switch (which includes C, C++).
 ;;
-;; Copyright (C) 2013 - 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2018  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -324,7 +324,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
       (set-buffer next-error-last-buffer)
       (goto-char (point-min))
       (if (looking-at "^warning: ")
-	  (next-error)
+	  (next-error 1 t)
 	(next-error 0 t))
       )
     ))

@@ -126,7 +126,7 @@
 ;;)
 
 (defcustom wisi-size-threshold 100000
-  "Max size (in characters) for using wisi parser results for syntax highlighting and file navigation."
+  "Max size (in characters) for using wisi parser results for anything."
   :type 'integer
   :group 'wisi
   :safe 'integerp)
@@ -638,33 +638,33 @@ Used to ignore whitespace changes in before/after change hooks.")
 
 (defun wisi-validate-cache (pos error-on-fail parse-action)
   "Ensure cached data for PARSE-ACTION is valid at least up to POS in current buffer."
-  (let ((wisi--parse-action parse-action))
-    (wisi--check-change)
+  (if (< (point-max) wisi-size-threshold)
+      (let ((wisi--parse-action parse-action))
+	(wisi--check-change)
 
-    ;; Now we can rely on wisi-cache-max.
+	;; Now we can rely on wisi-cache-max.
 
-    ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
-    (when (and (not wisi-inhibit-parse)
-	       (wisi-parse-try)
-	       (<= (wisi-cache-max) pos))
+	;; If wisi-cache-max = pos, then there is no cache at pos; need parse
+	(when (and (not wisi-inhibit-parse)
+		   (wisi-parse-try)
+		   (<= (wisi-cache-max) pos))
 
-      ;; Don't keep retrying failed parse until text changes again.
-      (wisi-set-parse-try nil)
+	  ;; Don't keep retrying failed parse until text changes again.
+	  (wisi-set-parse-try nil)
 
-      (wisi--run-parse))
+	  (wisi--run-parse))
 
-    ;; We want this error even if we did not try to parse; it means
-    ;; the parse results are not valid.
-    (when (and error-on-fail wisi-parse-failed)
-      (error "parse %s failed" parse-action))
-    ))
+	;; We want this error even if we did not try to parse; it means
+	;; the parse results are not valid.
+	(when (and error-on-fail wisi-parse-failed)
+	  (error "parse %s failed" parse-action))
+	)
+    (when (> wisi-debug 0)
+      (message "parse skipped due to ‘wisi-size-threshold’"))))
 
 (defun wisi-fontify-region (_begin end)
   "For `jit-lock-functions'."
-  (if (< (point-max) wisi-size-threshold)
-      (wisi-validate-cache end nil 'face)
-    (when (> wisi-debug 0)
-      (message "fontify skipped due to ‘wisi-size-threshold’"))))
+  (wisi-validate-cache end nil 'face))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."

@@ -2162,6 +2162,7 @@ record_definition
                          [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record* 'TYPE 1 ada-indent)]
                          (ada-indent-record* 'TYPE 1 0)
                          0])
+ ;; ' terminate quote
   | NULL RECORD
   ;
 
