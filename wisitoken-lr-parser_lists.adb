@@ -20,6 +20,37 @@ pragma License (Modified_GPL);
 
 package body WisiToken.LR.Parser_Lists is
 
+   function Image
+     (Stack      : in Parser_Stacks.Stack;
+      Descriptor : in WisiToken.Descriptor'Class;
+      Tree       : in Syntax_Trees.Tree;
+      Depth      : in SAL.Base_Peek_Type := 0)
+     return String
+   is
+      use all type Syntax_Trees.Node_Index;
+      use all type SAL.Base_Peek_Type;
+      use Ada.Strings.Unbounded;
+
+      Last : constant SAL.Base_Peek_Type :=
+        (if Depth = 0
+         then Stack.Depth
+         else SAL.Base_Peek_Type'Min (Depth, Stack.Depth));
+
+      Result : Unbounded_String := +"(";
+   begin
+      for I in 1 .. Last loop
+         Result := Result &
+           (Image (Stack.Peek (I).State) & " : " &
+              (if I = Stack.Depth
+               then ""
+               else
+                 (if Stack.Peek (I).Token = Syntax_Trees.Invalid_Node_Index -- From recover fast-forward
+                  then ""
+                  else Tree.Image (Stack.Peek (I).Token, Descriptor) & ", ")));
+      end loop;
+      return To_String (Result & ")");
+   end Image;
+
    function New_List
      (First_Parser_Label : in Natural;
       Shared_Tree        : in Syntax_Trees.Base_Tree_Access)

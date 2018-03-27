@@ -107,10 +107,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
    end Push_Back_Check;
 
    procedure Push_Back_Check
-     (Config      : in Configuration_Access;
-      Expected_ID : in Token_ID)
+     (Config   : in out Configuration;
+      Expected : in     Token_ID_Array)
    is begin
-      Push_Back_Check (Config.all, Expected_ID);
+      for ID of Expected loop
+         Push_Back_Check (Config, ID);
+      end loop;
    end Push_Back_Check;
 
    procedure Push_Back_Check
@@ -122,13 +124,48 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       end loop;
    end Push_Back_Check;
 
+   procedure Undo_Reduce_Check
+     (Config   : in Configuration_Access;
+      Tree     : in Syntax_Trees.Tree;
+      Expected : in Token_ID)
+   is begin
+      Check (Config.Stack (1).Token.ID, Expected);
+      Config.Ops.Append ((Undo_Reduce, Expected, Undo_Reduce (Config.Stack, Tree)));
+   end Undo_Reduce_Check;
+
+   procedure Undo_Reduce_Check
+     (Config   : in Configuration_Access;
+      Tree     : in Syntax_Trees.Tree;
+      Expected : in Token_ID_Array)
+   is begin
+      for ID of Expected loop
+         Undo_Reduce_Check (Config, Tree, ID);
+      end loop;
+   end Undo_Reduce_Check;
+
    procedure Insert
-     (Config : in Configuration_Access;
-      ID     : in Token_ID)
+     (Config : in out Configuration;
+      ID     : in     Token_ID)
    is begin
       Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
       Config.Inserted.Append (ID);
       Config.Current_Inserted := 1;
+   end Insert;
+
+   procedure Insert
+     (Config : in out Configuration;
+      IDs    : in     Token_ID_Array)
+   is begin
+      for ID of IDs loop
+         Insert (Config, ID);
+      end loop;
+   end Insert;
+
+   procedure Insert
+     (Config : in Configuration_Access;
+      ID     : in Token_ID)
+   is begin
+      Insert (Config.all, ID);
    end Insert;
 
    procedure Insert
@@ -174,8 +211,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          raise Programmer_Error with "found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
       end if;
 
-      --  FIXME: use Push_Back_Check (array), Insert (array).
-
       case Config.Check_Status.Label is
       when Ok =>
          raise Programmer_Error;
@@ -219,12 +254,9 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          declare
             End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
 
-            Matching_Name_Index : SAL.Peek_Type   := 2; -- start search before <end_name_token>
-            Begin_Count         : Integer         := 0;
-            pragma Unreferenced (Begin_Count); --  FIXME: need version of Find_Matching_Name without this.
+            Matching_Name_Index : SAL.Peek_Type := 2; -- start search before <end_name_token>
          begin
-            Find_Matching_Name
-              (Config, Lexer, End_Name, Matching_Name_Index, +BEGIN_ID, Begin_Count, Case_Insensitive => True);
+            Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
             if Matching_Name_Index = Config.Stack.Depth then
                --  case 0.
@@ -240,23 +272,24 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Ops : Config_Op_Arrays.Vector renames New_Config.Ops;
                begin
                   --  This is a not a guess, so it has zero cost.
-                  --
-                  --  First push back thru 'end'.
 
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
                   Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
-                  Push_Back_Check (New_Config, +SEMICOLON_ID);
-
                   Push_Back_Check
                     (New_Config,
+                     (+SEMICOLON_ID,
                      (if Config.Error_Token.ID = +block_statement_ID
                       then +identifier_opt_ID
-                      else +name_opt_ID));
+                       else +name_opt_ID)));
 
                   if New_Config.Stack (1).Token.Min_Terminal_Index = Invalid_Token_Index then
+                     --  'end' is on top of stack. We want to set Current_Shared_Token to
+                     --  'end'; we can't if it has an invalid index (which it has if it was
+                     --  pushed after a previous fix).
+                     --
                      --  We don't check earlier for Invalid_Indices, because we can handle
                      --  other tokens having invalid indices.
 
@@ -264,13 +297,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   end if;
 
                   Push_Back_Check (New_Config, +END_ID);
-
-                  Ops.Append ((Insert, +END_ID, Token_Index => New_Config.Current_Shared_Token));
-                  Ops.Append ((Insert, +SEMICOLON_ID, Token_Index => New_Config.Current_Shared_Token));
-
-                  New_Config.Inserted.Append (+END_ID);
-                  New_Config.Inserted.Append (+SEMICOLON_ID);
-                  New_Config.Current_Inserted := 1;
+                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
                   Local_Config_Heap.Add (New_Config);
 
@@ -346,7 +373,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
                Stack      : Recover_Stacks.Stack renames New_Config.Stack;
-               End_Item   : Recover_Stack_Item;
+               End_Item   : constant Recover_Stack_Item := Stack.Peek (3);
             begin
                --  This is a guess, but it is equally as likely as 'ignore error', so
                --  it has the same cost.
@@ -356,35 +383,25 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
-               Push_Back_Check (New_Config, +SEMICOLON_ID);
-
                Push_Back_Check
                  (New_Config,
-                  (if Config.Error_Token.ID = +block_statement_ID
-                   then +identifier_opt_ID
-                   else +name_opt_ID));
+                  (+SEMICOLON_ID,
+                   (if Config.Error_Token.ID = +block_statement_ID
+                    then +identifier_opt_ID
+                    else +name_opt_ID),
+                   +END_ID));
 
-               --  We know the <end_name_token> is empty, so we don't need to delete
-               --  it.
-
-               End_Item := Stack.Peek;
-               Push_Back_Check (New_Config, +END_ID);
-
-               Check (New_Config.Stack (1).Token.ID, +handled_sequence_of_statements_ID);
-               Ops.Append ((Undo_Reduce, +handled_sequence_of_statements_ID,
-                            Undo_Reduce (New_Config.Stack, Tree)));
-
-               Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_opt_ID);
-               Ops.Append ((Undo_Reduce, +sequence_of_statements_opt_ID,
-                            Undo_Reduce (New_Config.Stack, Tree)));
+               Undo_Reduce_Check
+                 (New_Config, Tree,
+                  (+handled_sequence_of_statements_ID,
+                   +sequence_of_statements_opt_ID));
 
                Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_ID);
 
                Ops.Append ((Delete, +END_ID, Token_Index => End_Item.Token.Min_Terminal_Index));
-
                Ops.Append ((Delete, +SEMICOLON_ID, Token_Index => End_Item.Token.Min_Terminal_Index + 1));
 
-               New_Config.Current_Shared_Token := Config.Current_Shared_Token;
+               New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
                if Trace_McKenzie > Detail then
                   Put ("Semantic_Check Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor),
@@ -409,21 +426,15 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
-               Push_Back_Check (New_Config, +SEMICOLON_ID);
-
                Push_Back_Check
                  (New_Config,
-                  (if Config.Error_Token.ID = +block_statement_ID
-                   then +identifier_opt_ID
-                   else +name_opt_ID));
+                  (+SEMICOLON_ID,
+                   (if Config.Error_Token.ID = +block_statement_ID
+                    then +identifier_opt_ID
+                    else +name_opt_ID),
+                   +END_ID, +handled_sequence_of_statements_ID));
 
-               Push_Back_Check (New_Config, +END_ID);
-
-               Push_Back_Check (New_Config, +handled_sequence_of_statements_ID);
-
-               Ops.Append ((Insert, +BEGIN_ID, New_Config.Current_Shared_Token));
-               New_Config.Inserted.Append (+BEGIN_ID);
-               New_Config.Current_Inserted := 1;
+               Insert (New_Config, +BEGIN_ID);
 
                if Trace_McKenzie > Detail then
                   Put ("Semantic_Check Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor),
@@ -501,17 +512,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
+                  --  Change the failed reduce into a Push_Back.
                   Stack.Pop (Token_Count);
                   New_Config.Current_Shared_Token := Config.Error_Token.Min_Terminal_Index;
                   Ops.Append ((Push_Back, Config.Error_Token.ID, Config.Error_Token.Min_Terminal_Index));
-                  --  The failed reduce.
 
-                  Ops.Append ((Insert, +END_ID, New_Config.Current_Shared_Token));
-                  Ops.Append ((Insert, +SEMICOLON_ID, New_Config.Current_Shared_Token));
-
-                  New_Config.Inserted.Append (+END_ID);
-                  New_Config.Inserted.Append (+SEMICOLON_ID);
-                  New_Config.Current_Inserted := 1;
+                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
                   if Trace_McKenzie > Detail then
                      Put ("Semantic_Check Extra_Name_Error 1 " & Image
@@ -529,28 +535,21 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
                begin
                   --  We don't increase the cost, because this is not a guess.
-                  --
-                  --  Push back thru 'end':
+
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
                   Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
-                  Push_Back_Check (New_Config, +SEMICOLON_ID);
                   Push_Back_Check
                     (New_Config,
+                     (+SEMICOLON_ID,
                      (if Config.Error_Token.ID = +block_statement_ID
                       then +identifier_opt_ID
-                      else +name_opt_ID));
+                      else +name_opt_ID),
+                      +END_ID));
 
-                  Push_Back_Check (New_Config, +END_ID);
-
-                  Ops.Append ((Insert, +END_ID, New_Config.Current_Shared_Token));
-                  Ops.Append ((Insert, +SEMICOLON_ID, New_Config.Current_Shared_Token));
-
-                  New_Config.Inserted.Append (+END_ID);
-                  New_Config.Inserted.Append (+SEMICOLON_ID);
-                  New_Config.Current_Inserted := 1;
+                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
                   if Trace_McKenzie > Detail then
                      Put ("Semantic_Check Extra_Name_Error 2 " & Image
@@ -569,17 +568,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
    function Handle_Parse_Error
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : in     WisiToken.Lexer.Handle;
       Parser_Label      : in     Natural;
       Terminals         : in     Base_Token_Arrays.Vector;
-      Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
      return Non_Success_Status
    with Pre => Config.Check_Status.Label = Ok
    is
-      pragma Unreferenced (Tree); --  FIXME: delete if not used.
-      pragma Unreferenced (Lexer);
       use all type SAL.Base_Peek_Type;
       procedure Put (Message : in String; Config : in Configuration)
       is begin
@@ -606,9 +601,10 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             --
             --  The solution is to insert 'end ;' before the second 'begin'.
             --
-            --  FIXME: it's possible the user is just editing names; write a test
-            --  case, search for <begin_name_token_1>. Read at least the next
-            --  token from Lexer?
+            --  Note that it's _not_ possible the user is just editing names; that
+            --  would generate a semantic check fail, not a parse table error,
+            --  since a "." would be permitted.
+
             if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
                raise Programmer_Error with "found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
             end if;
@@ -661,7 +657,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
       case Config.Check_Status.Label is
       when Ok =>
-         return Handle_Parse_Error (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);
+         return Handle_Parse_Error (Trace, Parser_Label, Terminals, Local_Config_Heap, Config);
 
       when others =>
          return Handle_Check_Fail (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);

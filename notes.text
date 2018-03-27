@@ -19,8 +19,6 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-review FIXME:s
-
 update ada-mode
     run all tests
     propagate to .s-2?
@@ -107,8 +105,6 @@ still losing memory?
 
 improve mckenzie
     focus on real use cases that are slow; document in ada-mode/test
-
-    ./Test/test_mckenzie_recover.adb:442:      --  FIXME: recover finds "insert 'case; end'"; need another pattern
 
     exec_pro/ada_lite_run.exe 10 c:/Projects/org.emacs.ada-mode.stephe-2/test/slow_recover_1.adb
          1: mckenzie enqueue 540, check  69; succeed : 8, (18 : IDENTIFIER, )|OR|/THEN, IF, IDENTIFIER/

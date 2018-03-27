@@ -27,9 +27,7 @@
 
 pragma License (GPL);
 
-with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package body WisiToken.LR is
 
@@ -59,37 +57,6 @@ package body WisiToken.LR is
       Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
       New_Line;
    end Put;
-
-   function Image
-     (Stack      : in Parser_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor'Class;
-      Tree       : in Syntax_Trees.Tree;
-      Depth      : in SAL.Base_Peek_Type := 0)
-     return String
-   is
-      use all type Syntax_Trees.Node_Index;
-      use all type SAL.Base_Peek_Type;
-      use Ada.Strings.Unbounded;
-
-      Last : constant SAL.Base_Peek_Type :=
-        (if Depth = 0
-         then Stack.Depth
-         else SAL.Base_Peek_Type'Min (Depth, Stack.Depth));
-
-      Result : Unbounded_String := +"(";
-   begin
-      for I in 1 .. Last loop
-         Result := Result &
-           (Image (Stack.Peek (I).State) & " : " &
-              (if I = Stack.Depth
-               then ""
-               else
-                 (if Stack.Peek (I).Token = Syntax_Trees.Invalid_Node_Index -- From recover fast-forward
-                  then ""
-                  else Tree.Image (Stack.Peek (I).Token, Descriptor) & ", ")));
-      end loop;
-      return To_String (Result & ")");
-   end Image;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID
    is begin
@@ -650,67 +617,5 @@ package body WisiToken.LR is
       Terminals.Append (Token);
       return Terminals.Last_Index;
    end Next_Grammar_Token;
-
-   function Reduce_Stack
-     (Stack           : in out Parser_Stacks.Stack;
-      Tree            : in out Syntax_Trees.Tree;
-      Action          : in     Reduce_Action_Rec;
-      Nonterm         :    out Syntax_Trees.Valid_Node_Index;
-      Lexer           : in     WisiToken.Lexer.Handle;
-      Trace           : in out WisiToken.Trace'Class;
-      Trace_Level     : in     Integer;
-      Trace_Prefix    : in     String := "";
-      Default_Virtual : in     Boolean)
-     return Semantic_Checks.Check_Status
-   is
-      use all type Semantic_Checks.Semantic_Check;
-      use all type Semantic_Checks.Check_Status_Label;
-
-      Children_Tree : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
-      --  for Set_Children.
-
-      --  FIXME: move back to -lr-parser.adb
-   begin
-      for I in reverse Children_Tree'Range loop
-         Children_Tree (I) := Stack.Pop.Token;
-      end loop;
-
-      Nonterm := Tree.Add_Nonterm
-        (Action.LHS, Action.Action, Action.Production, Action.Name_Index, Children_Tree, Default_Virtual);
-      --  Computes Nonterm.Byte_Region, Virtual
-
-      if Trace_Level > Detail then
-         declare
-            Action_Name : constant String := Ada.Characters.Handling.To_Lower
-              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Int_Image (Action.Name_Index);
-         begin
-            Trace.Put_Line
-              (Trace_Prefix & Action_Name & ": " &
-                 Tree.Image (Nonterm, Trace.Descriptor.all) & " <= " &
-                 Tree.Image (Children_Tree, Trace.Descriptor.all));
-         end;
-      end if;
-
-      if Action.Check = null then
-         return (Label => Ok);
-
-      else
-         declare
-            Nonterm_Token  : Recover_Token := Tree.Recover_Token (Nonterm);
-            Children_Token : constant Recover_Token_Array := Tree.Recover_Token_Array (Children_Tree);
-         begin
-            return Status : constant Semantic_Checks.Check_Status := Action.Check
-              (Lexer, Nonterm_Token, Children_Token)
-            do
-               Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
-
-               if Trace_Level > Detail then
-                  Trace.Put_Line
-                    (Trace_Prefix & "semantic check " & Semantic_Checks.Image (Status, Trace.Descriptor.all));
-               end if;
-            end return;
-         end;
-      end if;
-   end Reduce_Stack;
 
 end WisiToken.LR;

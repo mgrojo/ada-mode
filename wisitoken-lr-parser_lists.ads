@@ -25,6 +25,22 @@ with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR.Parser_Lists is
 
+   type Parser_Stack_Item is record
+      State : Unknown_State_Index     := Unknown_State;
+      Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
+   end record;
+
+   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
+
+   function Image
+     (Stack      : in Parser_Stacks.Stack;
+      Descriptor : in WisiToken.Descriptor'Class;
+      Tree       : in Syntax_Trees.Tree;
+      Depth      : in SAL.Base_Peek_Type := 0)
+     return String;
+   --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
+   --  Stack.Depth) items.
+
    type Base_Parser_State is tagged
    record
       --  Visible components for direct access

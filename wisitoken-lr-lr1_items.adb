@@ -387,7 +387,7 @@ package body WisiToken.LR.LR1_Items is
       Lookaheads : in Lookahead)
      return Item_Ptr
    is begin
-      --  FIXME: Dot points to original production in grammar, but this returns a copy of the production!?
+      --  This returns a shallow copy of the production; just the list head.
       return new Item_Node'(Prod, Dot, State, new Lookahead'(Lookaheads), null);
    end New_Item_Node;
 

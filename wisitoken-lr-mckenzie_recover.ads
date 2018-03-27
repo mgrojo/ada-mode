@@ -48,6 +48,16 @@ private
       Lexer               : in     WisiToken.Lexer.Handle;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
+      Case_Insensitive    : in     Boolean);
+   --  Search Config.Stack for a token matching Name, starting at
+   --  Matching_Name_Index. If found, Matching_Name_Index points to it.
+   --  If not found, Matching_Name_Index = Config.Stack.Depth.
+
+   procedure Find_Matching_Name
+     (Config              : in     Configuration;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Name                : in     String;
+      Matching_Name_Index : in out SAL.Peek_Type;
       Other_ID            : in     Token_ID;
       Other_Count         :    out Integer;
       Case_Insensitive    : in     Boolean);

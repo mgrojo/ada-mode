@@ -109,6 +109,20 @@ package WisiToken is
       Image_Width          : Integer; --  max width of Image
    end record;
 
+   type Token_ID_Set is array (Token_ID range <>) of Boolean;
+
+   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Token_ID_Set;
+   --  Base implementation returns (Descriptor.First_Terminal ..
+   --  Descriptor.Last_Terminal), with Item = True, others False. LALR
+   --  child type adds Propagate_ID.
+
+   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in WisiToken.Descriptor) return String;
+   --  Base implementation just returns aggregate syntax for Item.
+   --  LALR child includes '#' for Propagate_ID.
+
+   --  The following subprograms are intended to _not_ be primitive
+   --  operations of Descriptor; hence 'Class.
+
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor'Class) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
    --  is a terminal) or to Image_Width.
@@ -126,10 +140,7 @@ package WisiToken is
 
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
 
-   function Image (Item : in Token_ID_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
-   --  FIXME: use .Gen_Image; similarly for other container images.
-
-   type Token_ID_Set is array (Token_ID range <>) of Boolean;
+   function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    function To_Token_ID_Set
      (Item       : in Token_ID_Array;
@@ -156,18 +167,12 @@ package WisiToken is
    function Any (Item : in Token_Array_Token_Set) return Boolean;
    procedure Or_Slice (Item : in out Token_Array_Token_Set; I : in Token_ID; Value : in Token_ID_Set);
 
-   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set);
-   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set);
-   --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
-
-   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Token_ID_Set;
-   --  Base implementation returns (Descriptor.First_Terminal ..
-   --  Descriptor.Last_Terminal), with Item = True, others False. LALR
-   --  child type adds Propagate_ID.
-
-   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in WisiToken.Descriptor) return String;
-   --  Base implementation just returns aggregate syntax for Item.
-   --  LALR child includes '#' for Propagate_ID.
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_ID_Set);
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array_Token_Set);
+   --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate
+   --  syntax.
+   --
+   --  Descriptor'Class to avoid 'primitive operation declared too late'
 
    type LALR_Descriptor
      (First_Terminal    : Token_ID;
@@ -217,8 +222,6 @@ package WisiToken is
       --  Base_Token is used in the core parser.
       ID          : Token_ID      := Invalid_Token_ID;
       Byte_Region : Buffer_Region := Null_Buffer_Region;
-
-      --  FIXME: delete byte_region; it's in the syntax tree
    end record;
 
    function Image

@@ -42,38 +42,76 @@ package body WisiToken.LR.Parser is
       Trace          : in out WisiToken.Trace'Class)
      return WisiToken.Semantic_Checks.Check_Status_Label
    is
-      use all type SAL.Base_Peek_Type;
-      use all type Semantic_Checks.Check_Status_Label;
-
-      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Status       : constant Semantic_Checks.Check_Status := Reduce_Stack
-        (Parser_State.Stack, Parser_State.Tree, Action, Nonterm, Lexer, Trace, Trace_Parse,
-         Default_Virtual => Parser_State.Tree.Virtual (Parser_State.Current_Token));
-   begin
       --  We treat semantic check errors as parse errors here, to allow
       --  error recovery to take better advantage of them. One recovery
       --  strategy is to fix things so the semantic check passes.
 
-      case Status.Label is
-      when Ok =>
+      use all type SAL.Base_Peek_Type;
+      use all type Semantic_Checks.Check_Status_Label;
+      use all type Semantic_Checks.Semantic_Check;
+
+      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+      Children_Tree : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
+      --  for Set_Children.
+   begin
+      for I in reverse Children_Tree'Range loop
+         Children_Tree (I) := Parser_State.Stack.Pop.Token;
+      end loop;
+
+      Nonterm := Parser_State.Tree.Add_Nonterm
+        (Action.LHS, Action.Action, Action.Production, Action.Name_Index, Children_Tree,
+         Default_Virtual => Parser_State.Tree.Virtual (Parser_State.Current_Token));
+      --  Computes Nonterm.Byte_Region, Virtual
+
+      if Trace_Parse > Detail then
+         declare
+            Action_Name : constant String := Ada.Characters.Handling.To_Lower
+              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Int_Image (Action.Name_Index);
+         begin
+            Trace.Put_Line
+              (Action_Name & ": " &
+                 Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all) & " <= " &
+                 Parser_State.Tree.Image (Children_Tree, Trace.Descriptor.all));
+         end;
+      end if;
+
+      if Action.Check = null then
          return Ok;
 
-      when Semantic_Checks.Error =>
+      else
+         declare
+            Nonterm_Token  : Recover_Token := Parser_State.Tree.Recover_Token (Nonterm);
+            Children_Token : constant Recover_Token_Array := Parser_State.Tree.Recover_Token_Array (Children_Tree);
+            Status : constant Semantic_Checks.Check_Status := Action.Check
+              (Lexer, Nonterm_Token, Children_Token);
+         begin
+            Parser_State.Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
 
-         if Resume_Active then
-            --  Ignore this error; that's how McKenzie_Recover decided to fix it
-            return Ok;
+            if Trace_Parse > Detail then
+               Trace.Put_Line ("semantic check " & Semantic_Checks.Image (Status, Trace.Descriptor.all));
+            end if;
 
-         else
-            Parser_State.Errors.Append
-              ((Label          => Check,
-                First_Terminal => Trace.Descriptor.First_Terminal,
-                Last_Terminal  => Trace.Descriptor.Last_Terminal,
-                Check_Status   => Status,
-                Recover        => (others => <>)));
-            return Status.Label;
-         end if;
-      end case;
+            case Status.Label is
+            when Ok =>
+               return Ok;
+
+            when Semantic_Checks.Error =>
+               if Resume_Active then
+                  --  Ignore this error; that's how McKenzie_Recover decided to fix it
+                  return Ok;
+
+               else
+                  Parser_State.Errors.Append
+                    ((Label          => Check,
+                      First_Terminal => Trace.Descriptor.First_Terminal,
+                      Last_Terminal  => Trace.Descriptor.Last_Terminal,
+                      Check_Status   => Status,
+                      Recover        => (others => <>)));
+                  return Status.Label;
+               end if;
+            end case;
+         end;
+      end if;
    end Reduce_Stack_1;
 
    procedure Do_Action
@@ -308,9 +346,9 @@ package body WisiToken.LR.Parser is
       use all type Ada.Containers.Count_Type;
 
       function Compare
-        (Stack_1 : in Parser_Stacks.Stack;
+        (Stack_1 : in Parser_Lists.Parser_Stacks.Stack;
          Tree_1  : in Syntax_Trees.Tree;
-         Stack_2 : in Parser_Stacks.Stack;
+         Stack_2 : in Parser_Lists.Parser_Stacks.Stack;
          Tree_2  : in Syntax_Trees.Tree)
         return Boolean
       is
@@ -323,8 +361,8 @@ package body WisiToken.LR.Parser is
                --  item. The syntax trees will differ even if the tokens on the stack
                --  are the same, so compare the tokens.
                declare
-                  Item_1 : Parser_Stack_Item renames Stack_1 (I);
-                  Item_2 : Parser_Stack_Item renames Stack_2 (I);
+                  Item_1 : Parser_Lists.Parser_Stack_Item renames Stack_1 (I);
+                  Item_2 : Parser_Lists.Parser_Stack_Item renames Stack_2 (I);
                begin
                   if Item_1.State /= Item_2.State then
                      return False;

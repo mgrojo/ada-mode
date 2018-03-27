@@ -50,23 +50,6 @@ with WisiToken.Semantic_State;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR is
 
-   --  Parser stack type. FIXME: move to parser?
-   type Parser_Stack_Item is record
-      State : Unknown_State_Index     := Unknown_State;
-      Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
-   end record;
-
-   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
-
-   function Image
-     (Stack      : in Parser_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor'Class;
-      Tree       : in Syntax_Trees.Tree;
-      Depth      : in SAL.Base_Peek_Type := 0)
-     return String;
-   --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
-   --  Stack.Depth) items.
-
    ----------
    --  Following are the types used in the parse table. The parse
    --  table is an array indexed by parse state that where each state
@@ -277,6 +260,7 @@ package WisiToken.LR is
       McKenzie_Param     : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       Productions        : Production_Arrays.Vector;     -- Indexed by Production.Index
       Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
+      --  FIXME: Productions, Terminal_Sequences not used?
    end record;
 
    type Parse_Table_Ptr is access Parse_Table;
@@ -328,7 +312,7 @@ package WisiToken.LR is
    function Image
      (Index      : in SAL.Peek_Type;
       Tokens     : in Fast_Token_ID_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String
      is (SAL.Peek_Type'Image (Index) & ":" & SAL.Peek_Type'Image (Tokens.Last_Index) & ":" &
            Image (Tokens (Index), Descriptor));
@@ -589,20 +573,5 @@ private
    --  Get next token from Lexer, call Semantic_State.Lexer_To_Augmented.
    --  If it is a grammar token, store in Terminals and return its ID.
    --  Otherwise, repeat.
-
-   function Reduce_Stack
-     (Stack           : in out Parser_Stacks.Stack;
-      Tree            : in out Syntax_Trees.Tree;
-      Action          : in     Reduce_Action_Rec;
-      Nonterm         :    out Syntax_Trees.Valid_Node_Index;
-      Lexer           : in     WisiToken.Lexer.Handle;
-      Trace           : in out WisiToken.Trace'Class;
-      Trace_Level     : in     Integer;
-      Trace_Prefix    : in     String := "";
-      Default_Virtual : in     Boolean)
-     return WisiToken.Semantic_Checks.Check_Status;
-   --  Reduce Stack according to Action, setting Nonterm, calling
-   --  Action.Check and returning result, or Ok if null. If
-   --  Action.Token_Count = 0, set Nonterm.Virtual := Default_Virtual.
 
 end WisiToken.LR;

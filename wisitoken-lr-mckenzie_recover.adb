@@ -96,10 +96,10 @@ package body WisiToken.LR.McKenzie_Recover is
    end Undo_Reduce;
 
    procedure Undo_Reduce
-     (Stack : in out Parser_Stacks.Stack;
+     (Stack : in out Parser_Lists.Parser_Stacks.Stack;
       Tree  : in     Syntax_Trees.Tree)
    is
-      Item : constant Parser_Stack_Item := Stack.Pop;
+      Item : constant Parser_Lists.Parser_Stack_Item := Stack.Pop;
    begin
       for C of Tree.Children (Item.Token) loop
          Stack.Push ((Tree.State (C), C));
@@ -139,7 +139,7 @@ package body WisiToken.LR.McKenzie_Recover is
    end Worker_Task;
 
    function To_Recover
-     (Parser_Stack : in Parser_Stacks.Stack;
+     (Parser_Stack : in Parser_Lists.Parser_Stacks.Stack;
       Tree         : in Syntax_Trees.Tree)
      return Recover_Stacks.Stack
    is
@@ -150,7 +150,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Result.Set_Depth (Depth);
       for I in 1 .. Depth loop
          declare
-            Item  : Parser_Stack_Item renames Parser_Stack (I);
+            Item  : Parser_Lists.Parser_Stack_Item renames Parser_Stack (I);
             Token : constant Recover_Token := (if I = Depth then (others => <>) else Tree.Recover_Token (Item.Token));
          begin
             Result.Set (I, Depth, (Item.State, Item.Token, Token));
@@ -177,7 +177,9 @@ package body WisiToken.LR.McKenzie_Recover is
               " Current_Token" & Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all));
          Trace.Put_Line (Image (Error, Parser_State.Tree, Trace.Descriptor.all));
          if Trace_McKenzie > Extra then
-            Put_Line (Trace, Parser_State.Label, Image (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree));
+            Put_Line
+              (Trace, Parser_State.Label, Parser_Lists.Image
+                 (Parser_State.Stack, Trace.Descriptor.all, Parser_State.Tree));
          end if;
       end if;
 
@@ -399,7 +401,6 @@ package body WisiToken.LR.McKenzie_Recover is
                use Parser_Lists;
 
                Descriptor : WisiToken.Descriptor renames Shared_Parser.Trace.Descriptor.all;
-               Table      : Parse_Table renames Shared_Parser.Table.all;
                Tree       : Syntax_Trees.Tree renames Parser_State.Tree;
                Data       : McKenzie_Data renames Parser_State.Recover;
                Result     : Configuration renames Data.Results.Peek;
@@ -440,19 +441,7 @@ package body WisiToken.LR.McKenzie_Recover is
                      if Op.Token_Index < Min_Terminal_Index then
                         Min_Terminal_Index := Op.Token_Index;
                      end if;
-
-                     if Op.ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
-                        Parser_State.Recover_Insert_Delete.Put (Op);
-                     else
-                        --  This nonterm was pushed pre-reduced on the config stack; change
-                        --  that to a sequence of terminals
-                        for T of Table.Terminal_Sequences (Op.ID) loop
-                           Parser_State.Recover_Insert_Delete.Put ((Insert, Op.ID, Op.Token_Index));
-                        end loop;
-                        --  FIXME: if this is not actually useful, delete it to cut down on
-                        --  wasted configs in Process_One
-                        raise Programmer_Error with "found test case for insert nonterm";
-                     end if;
+                     Parser_State.Recover_Insert_Delete.Put (Op);
 
                   when Delete =>
                      if Op.Token_Index < Min_Terminal_Index then
@@ -616,14 +605,40 @@ package body WisiToken.LR.McKenzie_Recover is
       Lexer               : in     WisiToken.Lexer.Handle;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
+      Case_Insensitive    : in     Boolean)
+   is
+      use Ada.Characters.Handling;
+      use all type SAL.Peek_Type;
+      Match_Name : constant String := (if Case_Insensitive then To_Lower (Name) else Name);
+   begin
+      loop
+         exit when Matching_Name_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         declare
+            Token : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+         begin
+            exit when Token.Name /= Null_Buffer_Region and then
+              Match_Name =
+              (if Case_Insensitive
+               then To_Lower (Lexer.Buffer_Text (Token.Name))
+               else Lexer.Buffer_Text (Token.Name));
+
+            Matching_Name_Index := Matching_Name_Index + 1;
+         end;
+      end loop;
+   end Find_Matching_Name;
+
+   procedure Find_Matching_Name
+     (Config              : in     Configuration;
+      Lexer               : in     WisiToken.Lexer.Handle;
+      Name                : in     String;
+      Matching_Name_Index : in out SAL.Peek_Type;
       Other_ID            : in     Token_ID;
       Other_Count         :    out Integer;
       Case_Insensitive    : in     Boolean)
    is
       use Ada.Characters.Handling;
       use all type SAL.Peek_Type;
-      Match_Name : constant String :=
-        (if Case_Insensitive then To_Lower (Name) else Name);
+      Match_Name : constant String := (if Case_Insensitive then To_Lower (Name) else Name);
    begin
       Other_Count := 0;
 

@@ -25,7 +25,6 @@ pragma License (Modified_GPL);
 with AUnit.Checks;
 with SAL.AUnit;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
-with SAL.Gen_Unbounded_Definite_Stacks.Gen_AUnit;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 with WisiToken.AUnit;
 package WisiToken.LR.AUnit is
@@ -43,17 +42,6 @@ package WisiToken.LR.AUnit is
      (Label    : in String;
       Computed : in Parse_Table;
       Expected : in Parse_Table);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Parser_Stack_Item;
-      Expected : in Parser_Stack_Item);
-
-   type Parser_Stack_Item_Array is array (SAL.Peek_Type range <>) of Parser_Stack_Item;
-
-   function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack;
-
-   procedure Check is new Parser_Stacks.Gen_AUnit (Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Config_Op_Label);
 
