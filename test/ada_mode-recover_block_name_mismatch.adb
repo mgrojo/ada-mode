@@ -6,7 +6,7 @@ package body Ada_Mode.Recover_Block_Name_Mismatch is
       begin
          Match (Middle_Initial_Pat);
 
-      end Find_First;
+   end Find_First;
    procedure Swap_Names
    is
    begin

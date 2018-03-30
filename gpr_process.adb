@@ -34,16 +34,13 @@ package body Gpr_Process is
       gpr_re2c_c.Next_Token);
 
    procedure aggregate_g_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -56,16 +53,13 @@ package body Gpr_Process is
    end aggregate_g_0;
 
    procedure attribute_declaration_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -78,16 +72,13 @@ package body Gpr_Process is
    end attribute_declaration_0;
 
    procedure attribute_declaration_1
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -100,16 +91,13 @@ package body Gpr_Process is
    end attribute_declaration_1;
 
    procedure attribute_declaration_2
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -122,16 +110,13 @@ package body Gpr_Process is
    end attribute_declaration_2;
 
    procedure case_statement_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -145,16 +130,13 @@ package body Gpr_Process is
    end case_statement_0;
 
    procedure case_item_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -167,28 +149,24 @@ package body Gpr_Process is
    end case_item_0;
 
    function identifier_opt_1_check
-    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Lexer        : in     WisiToken.Lexer.Handle;
-     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Recover_Token;
+     Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
    begin
-      return Propagate_Name (Tree, Tree_Nonterm, Tree_Tokens, 1);
+      return Propagate_Name (Nonterm, Tokens, 1);
    end identifier_opt_1_check;
 
    procedure package_spec_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -202,28 +180,24 @@ package body Gpr_Process is
    end package_spec_0;
 
    function package_spec_0_check
-    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Lexer        : in     WisiToken.Lexer.Handle;
-     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Recover_Token;
+     Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Tree_Nonterm);
+      pragma Unreferenced (Nonterm);
    begin
-      return Match_Names (Tree, Lexer, Tree_Tokens, 2, 6, True);
+      return Match_Names (Lexer, Descriptor, Tokens, 2, 6, End_Names_Optional);
    end package_spec_0_check;
 
    procedure package_extension_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -237,28 +211,24 @@ package body Gpr_Process is
    end package_extension_0;
 
    function package_extension_0_check
-    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Lexer        : in     WisiToken.Lexer.Handle;
-     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Recover_Token;
+     Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Tree_Nonterm);
+      pragma Unreferenced (Nonterm);
    begin
-      return Match_Names (Tree, Lexer, Tree_Tokens, 2, 8, True);
+      return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end package_extension_0_check;
 
    procedure package_renaming_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -271,16 +241,13 @@ package body Gpr_Process is
    end package_renaming_0;
 
    procedure project_extension_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -294,28 +261,24 @@ package body Gpr_Process is
    end project_extension_0;
 
    function project_extension_0_check
-    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Lexer        : in     WisiToken.Lexer.Handle;
-     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Recover_Token;
+     Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Tree_Nonterm);
+      pragma Unreferenced (Nonterm);
    begin
-      return Match_Names (Tree, Lexer, Tree_Tokens, 2, 8, True);
+      return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end project_extension_0_check;
 
    procedure simple_declarative_item_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -328,16 +291,13 @@ package body Gpr_Process is
    end simple_declarative_item_0;
 
    procedure simple_declarative_item_1
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -350,16 +310,13 @@ package body Gpr_Process is
    end simple_declarative_item_1;
 
    procedure simple_declarative_item_4
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -372,16 +329,13 @@ package body Gpr_Process is
    end simple_declarative_item_4;
 
    procedure simple_project_declaration_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -395,28 +349,24 @@ package body Gpr_Process is
    end simple_project_declaration_0;
 
    function simple_project_declaration_0_check
-    (Tree         : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Lexer        : in     WisiToken.Lexer.Handle;
-     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (Lexer   : in     WisiToken.Lexer.Handle;
+     Nonterm : in out WisiToken.Recover_Token;
+     Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Tree_Nonterm);
+      pragma Unreferenced (Nonterm);
    begin
-      return Match_Names (Tree, Lexer, Tree_Tokens, 2, 6, True);
+      return Match_Names (Lexer, Descriptor, Tokens, 2, 6, End_Names_Optional);
    end simple_project_declaration_0_check;
 
    procedure typed_string_declaration_0
-    (User_Data     : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State         : in out WisiToken.Semantic_State.Semantic_State;
-     Abstract_Tree : in out WisiToken.Syntax_Trees.Abstract_Tree'Class;
-     Tree_Nonterm  : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tree_Tokens   : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+    (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     State        : in out WisiToken.Semantic_State.Semantic_State;
+     Tree         : in out WisiToken.Syntax_Trees.Tree;
+     Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames
-        WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
-      Tree : WisiToken.Syntax_Trees.Tree renames
-        WisiToken.Syntax_Trees.Tree (Abstract_Tree);
+      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
@@ -430,8 +380,9 @@ package body Gpr_Process is
 
    procedure Create_Parser
      (Parser         :    out WisiToken.LR.Parser.Parser;
-      Algorithm : in WisiToken.Parser_Algorithm_Type;
-      Trace     : not null access WisiToken.Trace'Class)
+      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
+      Trace          : not null access WisiToken.Trace'Class;
+      Language_Fixes : in     WisiToken.LR.Language_Fixes_Access)
    is
       use WisiToken.LR;
       use all type WisiToken.Parser_Algorithm_Type;
@@ -454,7 +405,11 @@ package body Gpr_Process is
             4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4,
-            4, 4, 4),
+            4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 4, 4, 4),
          Delete =>
            (4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4,
@@ -465,248 +420,146 @@ package body Gpr_Process is
             8, 8, 8, 8, 8, 8, 8, 8,
             8, 8, 8, 8, 8, 8, 8, 8,
             8, 8, 8, 8, 8),
+         Push_Back =>
+           (2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2),
+         Undo_Reduce =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0),
          Cost_Limit  => 12,
-         Check_Limit => 3,
-         Patterns    => WisiToken.LR.Patterns.Empty_List);
+         Check_Limit => 3);
 
-      Table.Follow :=
-        (39 =>
-           (20 |
-             26 |
-             29 |
-             33 => True,
-             others => False),
-         40 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         41 =>
-           (32 => True,
-             others => False),
-         42 =>
-           (20 |
-             26 |
-             29 |
-             33 => True,
-             others => False),
-         43 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         44 =>
-           (7 |
-             24 => True,
-             others => False),
-         45 =>
-           (7 |
-             24 => True,
-             others => False),
-         46 =>
-           (37 => True,
-             others => False),
-         47 =>
-           (3 |
-             4 |
-             6 |
-             14 |
-             21 |
-             25 |
-             37 => True,
-             others => False),
-         48 =>
-           (3 |
-             4 |
-             6 |
-             14 |
-             21 |
-             37 => True,
-             others => False),
-         49 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         50 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         51 =>
-           (7 |
-             24 => True,
-             others => False),
-         52 =>
-           (20 |
-             31 |
-             34 => True,
-             others => False),
-         53 =>
-           (31 |
-             34 => True,
-             others => False),
-         54 =>
-           (20 |
-             26 |
-             29 |
-             33 => True,
-             others => False),
-         55 =>
-           (20 |
-             26 |
-             29 |
-             33 => True,
-             others => False),
-         56 =>
-           (8 |
-             12 |
-             19 |
-             20 |
-             26 |
-             29 |
-             30 |
-             32 |
-             33 => True,
-             others => False),
-         57 =>
-           (12 |
-             20 |
-             26 |
-             29 |
-             30 |
-             32 |
-             33 => True,
-             others => False),
-         58 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         59 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         60 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         61 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         62 =>
-           (37 => True,
-             others => False),
-         63 =>
-           (37 => True,
-             others => False),
-         64 =>
-           (18 |
-             37 => True,
-             others => False),
-         65 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         66 =>
-           (37 => True,
-             others => False),
-         67 =>
-           (20 |
-             26 |
-             29 |
-             33 => True,
-             others => False),
-         68 =>
-           (20 |
-             29 |
-             33 => True,
-             others => False),
-         69 =>
-           (20 |
-             26 |
-             29 |
-             33 => True,
-             others => False),
-         70 =>
-           (5 |
-             7 |
-             11 |
-             15 |
-             17 |
-             22 |
-             24 |
-             35 => True,
-             others => False),
-         71 =>
-           (3 |
-             4 |
-             6 |
-             14 |
-             21 |
-             25 |
-             37 => True,
-             others => False),
-         others => (others => False));
 
-      Add_Action (Table.States (0), 3, Reduce, 48, 0,  0, null, null);
-      Add_Action (Table.States (0), 4, Reduce, 48, 0,  0, null, null);
-      Add_Action (Table.States (0), 6, Reduce, 48, 0,  0, null, null);
-      Add_Action (Table.States (0), 14, Reduce, 48, 0,  0, null, null);
-      Add_Action (Table.States (0), 18, Reduce, 48, 0,  0, null, null);
-      Add_Action (Table.States (0), 21, Reduce, 48, 0,  0, null, null);
+      Table.Productions.Set_Length (73);
+      Set_Token_Sequence (Table.Productions (1), (46, 37));
+      Set_Token_Sequence (Table.Productions (2), (13, 68, 20));
+      Set_Token_Sequence (Table.Productions (3), (11, 35, 23, 54, 33));
+      Set_Token_Sequence (Table.Productions (4), (11, 35, 13, 52, 20, 23, 54, 33));
+      Set_Token_Sequence (Table.Productions (5), (11, 9, 13, 36, 20, 23, 54, 33));
+      Set_Token_Sequence (Table.Productions (6), (1 => 18));
+      Set_Token_Sequence (Table.Productions (7), (1 => 57));
+      Set_Token_Sequence (Table.Productions (8), (41, 32, 35));
+      Set_Token_Sequence (Table.Productions (9), (41, 32, 35, 13, 36, 20));
+      Set_Token_Sequence (Table.Productions (10), (5, 57, 12, 45, 7, 5, 33));
+      Set_Token_Sequence (Table.Productions (11), (24, 53, 31, 51));
+      Set_Token_Sequence (Table.Productions (12), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (13), (1 => 44));
+      Set_Token_Sequence (Table.Productions (14), (45, 44));
+      Set_Token_Sequence (Table.Productions (15), (48, 64, 62));
+      Set_Token_Sequence (Table.Productions (16), (1 => 71));
+      Set_Token_Sequence (Table.Productions (17), (47, 71));
+      Set_Token_Sequence (Table.Productions (18), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (19), (1 => 47));
+      Set_Token_Sequence (Table.Productions (20), (1 => 65));
+      Set_Token_Sequence (Table.Productions (21), (1 => 70));
+      Set_Token_Sequence (Table.Productions (22), (1 => 58));
+      Set_Token_Sequence (Table.Productions (23), (1 => 49));
+      Set_Token_Sequence (Table.Productions (24), (50, 49));
+      Set_Token_Sequence (Table.Productions (25), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (26), (1 => 50));
+      Set_Token_Sequence (Table.Productions (27), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (28), (1 => 36));
+      Set_Token_Sequence (Table.Productions (29), (1 => 16));
+      Set_Token_Sequence (Table.Productions (30), (1 => 52));
+      Set_Token_Sequence (Table.Productions (31), (53, 34, 52));
+      Set_Token_Sequence (Table.Productions (32), (1 => 69));
+      Set_Token_Sequence (Table.Productions (33), (54, 26, 69));
+      Set_Token_Sequence (Table.Productions (34), (9, 39));
+      Set_Token_Sequence (Table.Productions (35), (10, 39));
+      Set_Token_Sequence (Table.Productions (36), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (37), (1 => 35));
+      Set_Token_Sequence (Table.Productions (38), (1 => 56));
+      Set_Token_Sequence (Table.Productions (39), (57, 30, 35));
+      Set_Token_Sequence (Table.Productions (40), (1 => 59));
+      Set_Token_Sequence (Table.Productions (41), (1 => 60));
+      Set_Token_Sequence (Table.Productions (42), (1 => 61));
+      Set_Token_Sequence (Table.Productions (43), (17, 56, 12, 51, 7, 56, 33));
+      Set_Token_Sequence (Table.Productions (44), (17, 56, 8, 57, 12, 51, 7, 56, 33));
+      Set_Token_Sequence (Table.Productions (45), (17, 56, 19, 57, 33));
+      Set_Token_Sequence (Table.Productions (46), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (47), (1 => 66));
+      Set_Token_Sequence (Table.Productions (48), (1 => 63));
+      Set_Token_Sequence (Table.Productions (49), (18, 56, 8, 36, 12, 51, 7, 56, 33));
+      Set_Token_Sequence (Table.Productions (50), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Productions (51), (1 => 3));
+      Set_Token_Sequence (Table.Productions (52), (1 => 21));
+      Set_Token_Sequence (Table.Productions (53), (1 => 4));
+      Set_Token_Sequence (Table.Productions (54), (4, 14));
+      Set_Token_Sequence (Table.Productions (55), (1 => 14));
+      Set_Token_Sequence (Table.Productions (56), (1 => 6));
+      Set_Token_Sequence (Table.Productions (57), (35, 28, 54, 33));
+      Set_Token_Sequence (Table.Productions (58), (35, 27, 35, 28, 54, 33));
+      Set_Token_Sequence (Table.Productions (59), (1 => 40));
+      Set_Token_Sequence (Table.Productions (60), (1 => 43));
+      Set_Token_Sequence (Table.Productions (61), (15, 33));
+      Set_Token_Sequence (Table.Productions (62), (18, 56, 12, 51, 7, 56, 33));
+      Set_Token_Sequence (Table.Productions (63), (1 => 36));
+      Set_Token_Sequence (Table.Productions (64), (1 => 57));
+      Set_Token_Sequence (Table.Productions (65), (1 => 55));
+      Set_Token_Sequence (Table.Productions (66), (1 => 42));
+      Set_Token_Sequence (Table.Productions (67), (1 => 54));
+      Set_Token_Sequence (Table.Productions (68), (68, 29, 54));
+      Set_Token_Sequence (Table.Productions (69), (1 => 67));
+      Set_Token_Sequence (Table.Productions (70), (13, 20));
+      Set_Token_Sequence (Table.Productions (71), (1 => 39));
+      Set_Token_Sequence (Table.Productions (72), (22, 35, 12, 39, 33));
+      Set_Token_Sequence (Table.Productions (73), (25, 68, 33));
+
+      Table.Terminal_Sequences.Set_First (38);
+      Table.Terminal_Sequences.Set_Last (71);
+      Set_Token_Sequence (Table.Terminal_Sequences (38), (1 => 37));
+      Set_Token_Sequence (Table.Terminal_Sequences (39), (13, 20));
+      Set_Token_Sequence (Table.Terminal_Sequences (40), (11, 35, 23, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (41), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (42), (32, 35));
+      Set_Token_Sequence (Table.Terminal_Sequences (43), (5, 12, 7, 5, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (44), (24, 31));
+      Set_Token_Sequence (Table.Terminal_Sequences (45), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (46), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (47), (25, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (48), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (49), (15, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (50), (15, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (51), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (52), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (53), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (54), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (55), (10, 13, 20));
+      Set_Token_Sequence (Table.Terminal_Sequences (56), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (57), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (58), (17, 19, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (59), (17, 12, 7, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (60), (17, 8, 12, 7, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (61), (17, 19, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (62), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (63), (18, 8, 36, 12, 7, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (64), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (65), (15, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (66), (18, 12, 7, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (67), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (68), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (69), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Terminal_Sequences (70), (22, 35, 12, 13, 20, 33));
+      Set_Token_Sequence (Table.Terminal_Sequences (71), (25, 33));
+
+      Add_Action (Table.States (0), 3, Reduce, 18, 48, 0, 0, null, null);
+      Add_Action (Table.States (0), 4, Reduce, 18, 48, 0, 0, null, null);
+      Add_Action (Table.States (0), 6, Reduce, 18, 48, 0, 0, null, null);
+      Add_Action (Table.States (0), 14, Reduce, 18, 48, 0, 0, null, null);
+      Add_Action (Table.States (0), 18, Reduce, 18, 48, 0, 0, null, null);
+      Add_Action (Table.States (0), 21, Reduce, 18, 48, 0, 0, null, null);
       Add_Action (Table.States (0), 25, 7);
-      Add_Action (Table.States (0), 37, Reduce, 48, 0,  0, null, null);
+      Add_Action (Table.States (0), 37, Reduce, 18, 48, 0, 0, null, null);
       Add_Error (Table.States (0));
       Add_Goto (Table.States (0), 46, 8);
       Add_Goto (Table.States (0), 47, 9);
@@ -714,36 +567,36 @@ package body Gpr_Process is
       Add_Goto (Table.States (0), 63, 11);
       Add_Goto (Table.States (0), 66, 12);
       Add_Goto (Table.States (0), 71, 13);
-      Add_Action (Table.States (1), 18, Reduce, 64, 1,  1, null, null);
-      Add_Action (Table.States (1), 37, Reduce, 64, 1,  1, null, null);
+      Add_Action (Table.States (1), 18, Reduce, 51, 64, 1, 1, null, null);
+      Add_Action (Table.States (1), 37, Reduce, 51, 64, 1, 1, null, null);
       Add_Error (Table.States (1));
       Add_Action (Table.States (2), 14, 33);
-      Add_Action (Table.States (2), 18, Reduce, 64, 3,  1, null, null);
-      Add_Action (Table.States (2), 37, Reduce, 64, 3,  1, null, null);
+      Add_Action (Table.States (2), 18, Reduce, 53, 64, 1, 3, null, null);
+      Add_Action (Table.States (2), 37, Reduce, 53, 64, 1, 3, null, null);
       Add_Error (Table.States (2));
-      Add_Action (Table.States (3), 18, Reduce, 64, 6,  1, null, null);
-      Add_Action (Table.States (3), 37, Reduce, 64, 6,  1, null, null);
+      Add_Action (Table.States (3), 18, Reduce, 56, 64, 1, 6, null, null);
+      Add_Action (Table.States (3), 37, Reduce, 56, 64, 1, 6, null, null);
       Add_Error (Table.States (3));
-      Add_Action (Table.States (4), 18, Reduce, 64, 5,  1, null, null);
-      Add_Action (Table.States (4), 37, Reduce, 64, 5,  1, null, null);
+      Add_Action (Table.States (4), 18, Reduce, 55, 64, 1, 5, null, null);
+      Add_Action (Table.States (4), 37, Reduce, 55, 64, 1, 5, null, null);
       Add_Error (Table.States (4));
-      Add_Action (Table.States (5), 8, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (5), 12, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (5), 8, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (5), 12, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (5), 35, 20);
       Add_Error (Table.States (5));
       Add_Goto (Table.States (5), 56, 32);
-      Add_Action (Table.States (6), 18, Reduce, 64, 2,  1, null, null);
-      Add_Action (Table.States (6), 37, Reduce, 64, 2,  1, null, null);
+      Add_Action (Table.States (6), 18, Reduce, 52, 64, 1, 2, null, null);
+      Add_Action (Table.States (6), 37, Reduce, 52, 64, 1, 2, null, null);
       Add_Error (Table.States (6));
       Add_Action (Table.States (7), 9, 16);
       Add_Action (Table.States (7), 10, 17);
       Add_Action (Table.States (7), 13, 18);
       Add_Action (Table.States (7), 18, 19);
-      Add_Action (Table.States (7), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (7), 29, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (7), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (7), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (7), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (7), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (7), 29, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (7), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (7), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (7), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (7), 35, 20);
       Add_Action (Table.States (7), 36, 21);
       Add_Error (Table.States (7));
@@ -757,54 +610,54 @@ package body Gpr_Process is
       Add_Goto (Table.States (7), 67, 29);
       Add_Goto (Table.States (7), 68, 30);
       Add_Goto (Table.States (7), 69, 31);
-      Add_Action (Table.States (8), 37, Accept_It, 38, 0,  1, null, null);
+      Add_Action (Table.States (8), 37, Accept_It, 1, 38, 1, 0, null, null);
       Add_Error (Table.States (8));
-      Add_Action (Table.States (9), 3, Reduce, 48, 1,  1, null, null);
-      Add_Action (Table.States (9), 4, Reduce, 48, 1,  1, null, null);
-      Add_Action (Table.States (9), 6, Reduce, 48, 1,  1, null, null);
-      Add_Action (Table.States (9), 14, Reduce, 48, 1,  1, null, null);
-      Add_Action (Table.States (9), 18, Reduce, 48, 1,  1, null, null);
-      Add_Action (Table.States (9), 21, Reduce, 48, 1,  1, null, null);
+      Add_Action (Table.States (9), 3, Reduce, 19, 48, 1, 1, null, null);
+      Add_Action (Table.States (9), 4, Reduce, 19, 48, 1, 1, null, null);
+      Add_Action (Table.States (9), 6, Reduce, 19, 48, 1, 1, null, null);
+      Add_Action (Table.States (9), 14, Reduce, 19, 48, 1, 1, null, null);
+      Add_Action (Table.States (9), 18, Reduce, 19, 48, 1, 1, null, null);
+      Add_Action (Table.States (9), 21, Reduce, 19, 48, 1, 1, null, null);
       Add_Action (Table.States (9), 25, 7);
-      Add_Action (Table.States (9), 37, Reduce, 48, 1,  1, null, null);
+      Add_Action (Table.States (9), 37, Reduce, 19, 48, 1, 1, null, null);
       Add_Error (Table.States (9));
       Add_Goto (Table.States (9), 71, 15);
       Add_Action (Table.States (10), 3, 1);
       Add_Action (Table.States (10), 4, 2);
       Add_Action (Table.States (10), 6, 3);
       Add_Action (Table.States (10), 14, 4);
-      Add_Action (Table.States (10), 18, Reduce, 64, 0,  0, null, null);
+      Add_Action (Table.States (10), 18, Reduce, 50, 64, 0, 0, null, null);
       Add_Action (Table.States (10), 21, 6);
-      Add_Action (Table.States (10), 37, Reduce, 64, 0,  0, null, null);
+      Add_Action (Table.States (10), 37, Reduce, 50, 64, 0, 0, null, null);
       Add_Error (Table.States (10));
       Add_Goto (Table.States (10), 64, 14);
-      Add_Action (Table.States (11), 37, Reduce, 62, 2,  1, null, null);
+      Add_Action (Table.States (11), 37, Reduce, 48, 62, 1, 2, null, null);
       Add_Error (Table.States (11));
-      Add_Action (Table.States (12), 37, Reduce, 62, 1,  1, null, null);
+      Add_Action (Table.States (12), 37, Reduce, 47, 62, 1, 1, null, null);
       Add_Error (Table.States (12));
-      Add_Action (Table.States (13), 3, Reduce, 47, 0,  1, null, null);
-      Add_Action (Table.States (13), 4, Reduce, 47, 0,  1, null, null);
-      Add_Action (Table.States (13), 6, Reduce, 47, 0,  1, null, null);
-      Add_Action (Table.States (13), 14, Reduce, 47, 0,  1, null, null);
-      Add_Action (Table.States (13), 18, Reduce, 47, 0,  1, null, null);
-      Add_Action (Table.States (13), 21, Reduce, 47, 0,  1, null, null);
-      Add_Action (Table.States (13), 25, Reduce, 47, 0,  1, null, null);
-      Add_Action (Table.States (13), 37, Reduce, 47, 0,  1, null, null);
+      Add_Action (Table.States (13), 3, Reduce, 16, 47, 1, 0, null, null);
+      Add_Action (Table.States (13), 4, Reduce, 16, 47, 1, 0, null, null);
+      Add_Action (Table.States (13), 6, Reduce, 16, 47, 1, 0, null, null);
+      Add_Action (Table.States (13), 14, Reduce, 16, 47, 1, 0, null, null);
+      Add_Action (Table.States (13), 18, Reduce, 16, 47, 1, 0, null, null);
+      Add_Action (Table.States (13), 21, Reduce, 16, 47, 1, 0, null, null);
+      Add_Action (Table.States (13), 25, Reduce, 16, 47, 1, 0, null, null);
+      Add_Action (Table.States (13), 37, Reduce, 16, 47, 1, 0, null, null);
       Add_Error (Table.States (13));
       Add_Action (Table.States (14), 18, 5);
-      Add_Action (Table.States (14), 37, Reduce, 62, 0,  0, null, null);
+      Add_Action (Table.States (14), 37, Reduce, 46, 62, 0, 0, null, null);
       Add_Error (Table.States (14));
       Add_Goto (Table.States (14), 62, 46);
       Add_Goto (Table.States (14), 63, 11);
       Add_Goto (Table.States (14), 66, 12);
-      Add_Action (Table.States (15), 3, Reduce, 47, 1,  2, null, null);
-      Add_Action (Table.States (15), 4, Reduce, 47, 1,  2, null, null);
-      Add_Action (Table.States (15), 6, Reduce, 47, 1,  2, null, null);
-      Add_Action (Table.States (15), 14, Reduce, 47, 1,  2, null, null);
-      Add_Action (Table.States (15), 18, Reduce, 47, 1,  2, null, null);
-      Add_Action (Table.States (15), 21, Reduce, 47, 1,  2, null, null);
-      Add_Action (Table.States (15), 25, Reduce, 47, 1,  2, null, null);
-      Add_Action (Table.States (15), 37, Reduce, 47, 1,  2, null, null);
+      Add_Action (Table.States (15), 3, Reduce, 17, 47, 2, 1, null, null);
+      Add_Action (Table.States (15), 4, Reduce, 17, 47, 2, 1, null, null);
+      Add_Action (Table.States (15), 6, Reduce, 17, 47, 2, 1, null, null);
+      Add_Action (Table.States (15), 14, Reduce, 17, 47, 2, 1, null, null);
+      Add_Action (Table.States (15), 18, Reduce, 17, 47, 2, 1, null, null);
+      Add_Action (Table.States (15), 21, Reduce, 17, 47, 2, 1, null, null);
+      Add_Action (Table.States (15), 25, Reduce, 17, 47, 2, 1, null, null);
+      Add_Action (Table.States (15), 37, Reduce, 17, 47, 2, 1, null, null);
       Add_Error (Table.States (15));
       Add_Action (Table.States (16), 13, 43);
       Add_Error (Table.States (16));
@@ -816,11 +669,11 @@ package body Gpr_Process is
       Add_Action (Table.States (18), 10, 17);
       Add_Action (Table.States (18), 13, 18);
       Add_Action (Table.States (18), 18, 19);
-      Add_Action (Table.States (18), 20, 41, 56, 0,  0, null, null);
-      Add_Action (Table.States (18), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (18), 29, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (18), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (18), 32, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (18), 20, 41, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (18), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (18), 29, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (18), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (18), 32, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (18), 35, 20);
       Add_Action (Table.States (18), 36, 21);
       Add_Error (Table.States (18));
@@ -834,83 +687,83 @@ package body Gpr_Process is
       Add_Goto (Table.States (18), 67, 29);
       Add_Goto (Table.States (18), 68, 42);
       Add_Goto (Table.States (18), 69, 31);
-      Add_Action (Table.States (19), 32, Reduce, 41, 0,  1, null, null);
+      Add_Action (Table.States (19), 32, Reduce, 6, 41, 1, 0, null, null);
       Add_Error (Table.States (19));
-      Add_Action (Table.States (20), 8, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 12, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 19, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 20, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 26, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 29, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 30, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 32, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
-      Add_Action (Table.States (20), 33, Reduce, 56, 1,  1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 8, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 12, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 19, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 20, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 26, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 29, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 30, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 32, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
+      Add_Action (Table.States (20), 33, Reduce, 37, 56, 1, 1, null, identifier_opt_1_check'Access);
       Add_Error (Table.States (20));
-      Add_Action (Table.States (21), 20, Reduce, 67, 0,  1, null, null);
-      Add_Action (Table.States (21), 26, Reduce, 67, 0,  1, null, null);
-      Add_Action (Table.States (21), 29, Reduce, 67, 0,  1, null, null);
-      Add_Action (Table.States (21), 33, Reduce, 67, 0,  1, null, null);
+      Add_Action (Table.States (21), 20, Reduce, 63, 67, 1, 0, null, null);
+      Add_Action (Table.States (21), 26, Reduce, 63, 67, 1, 0, null, null);
+      Add_Action (Table.States (21), 29, Reduce, 63, 67, 1, 0, null, null);
+      Add_Action (Table.States (21), 33, Reduce, 63, 67, 1, 0, null, null);
       Add_Error (Table.States (21));
-      Add_Action (Table.States (22), 20, Reduce, 69, 2,  1, null, null);
-      Add_Action (Table.States (22), 26, Reduce, 69, 2,  1, null, null);
-      Add_Action (Table.States (22), 29, Reduce, 69, 2,  1, null, null);
-      Add_Action (Table.States (22), 33, Reduce, 69, 2,  1, null, null);
+      Add_Action (Table.States (22), 20, Reduce, 71, 69, 1, 2, null, null);
+      Add_Action (Table.States (22), 26, Reduce, 71, 69, 1, 2, null, null);
+      Add_Action (Table.States (22), 29, Reduce, 71, 69, 1, 2, null, null);
+      Add_Action (Table.States (22), 33, Reduce, 71, 69, 1, 2, null, null);
       Add_Error (Table.States (22));
       Add_Action (Table.States (23), 32, 40);
       Add_Error (Table.States (23));
-      Add_Action (Table.States (24), 20, Reduce, 67, 3,  1, null, null);
-      Add_Action (Table.States (24), 26, Reduce, 67, 3,  1, null, null);
-      Add_Action (Table.States (24), 29, Reduce, 67, 3,  1, null, null);
-      Add_Action (Table.States (24), 33, Reduce, 67, 3,  1, null, null);
+      Add_Action (Table.States (24), 20, Reduce, 66, 67, 1, 3, null, null);
+      Add_Action (Table.States (24), 26, Reduce, 66, 67, 1, 3, null, null);
+      Add_Action (Table.States (24), 29, Reduce, 66, 67, 1, 3, null, null);
+      Add_Action (Table.States (24), 33, Reduce, 66, 67, 1, 3, null, null);
       Add_Error (Table.States (24));
-      Add_Action (Table.States (25), 20, Reduce, 68, 0,  1, null, null);
+      Add_Action (Table.States (25), 20, Reduce, 67, 68, 1, 0, null, null);
       Add_Action (Table.States (25), 26, 39);
-      Add_Action (Table.States (25), 29, Reduce, 68, 0,  1, null, null);
-      Add_Action (Table.States (25), 33, Reduce, 68, 0,  1, null, null);
+      Add_Action (Table.States (25), 29, Reduce, 67, 68, 1, 0, null, null);
+      Add_Action (Table.States (25), 33, Reduce, 67, 68, 1, 0, null, null);
       Add_Error (Table.States (25));
-      Add_Action (Table.States (26), 20, Reduce, 67, 2,  1, null, null);
-      Add_Action (Table.States (26), 26, Reduce, 67, 2,  1, null, null);
-      Add_Action (Table.States (26), 29, Reduce, 67, 2,  1, null, null);
-      Add_Action (Table.States (26), 33, Reduce, 67, 2,  1, null, null);
+      Add_Action (Table.States (26), 20, Reduce, 65, 67, 1, 2, null, null);
+      Add_Action (Table.States (26), 26, Reduce, 65, 67, 1, 2, null, null);
+      Add_Action (Table.States (26), 29, Reduce, 65, 67, 1, 2, null, null);
+      Add_Action (Table.States (26), 33, Reduce, 65, 67, 1, 2, null, null);
       Add_Error (Table.States (26));
-      Add_Action (Table.States (27), 12, Reduce, 57, 0,  1, null, null);
-      Add_Action (Table.States (27), 20, Reduce, 57, 0,  1, null, null);
-      Add_Action (Table.States (27), 26, Reduce, 57, 0,  1, null, null);
-      Add_Action (Table.States (27), 29, Reduce, 57, 0,  1, null, null);
-      Add_Action (Table.States (27), 30, Reduce, 57, 0,  1, null, null);
-      Add_Action (Table.States (27), 32, Reduce, 57, 0,  1, null, null);
-      Add_Action (Table.States (27), 33, Reduce, 57, 0,  1, null, null);
+      Add_Action (Table.States (27), 12, Reduce, 38, 57, 1, 0, null, null);
+      Add_Action (Table.States (27), 20, Reduce, 38, 57, 1, 0, null, null);
+      Add_Action (Table.States (27), 26, Reduce, 38, 57, 1, 0, null, null);
+      Add_Action (Table.States (27), 29, Reduce, 38, 57, 1, 0, null, null);
+      Add_Action (Table.States (27), 30, Reduce, 38, 57, 1, 0, null, null);
+      Add_Action (Table.States (27), 32, Reduce, 38, 57, 1, 0, null, null);
+      Add_Action (Table.States (27), 33, Reduce, 38, 57, 1, 0, null, null);
       Add_Error (Table.States (27));
-      Add_Action (Table.States (28), 20, Reduce, 67, 1,  1, null, null);
-      Add_Action (Table.States (28), 26, Reduce, 67, 1,  1, null, null);
-      Add_Action (Table.States (28), 29, Reduce, 67, 1,  1, null, null);
+      Add_Action (Table.States (28), 20, Reduce, 64, 67, 1, 1, null, null);
+      Add_Action (Table.States (28), 26, Reduce, 64, 67, 1, 1, null, null);
+      Add_Action (Table.States (28), 29, Reduce, 64, 67, 1, 1, null, null);
       Add_Action (Table.States (28), 30, 38);
-      Add_Action (Table.States (28), 32, Reduce, 41, 1,  1, null, null);
-      Add_Action (Table.States (28), 33, Reduce, 67, 1,  1, null, null);
+      Add_Action (Table.States (28), 32, Reduce, 7, 41, 1, 1, null, null);
+      Add_Action (Table.States (28), 33, Reduce, 64, 67, 1, 1, null, null);
       Add_Error (Table.States (28));
-      Add_Action (Table.States (29), 20, Reduce, 69, 0,  1, null, null);
-      Add_Action (Table.States (29), 26, Reduce, 69, 0,  1, null, null);
-      Add_Action (Table.States (29), 29, Reduce, 69, 0,  1, null, null);
-      Add_Action (Table.States (29), 33, Reduce, 69, 0,  1, null, null);
+      Add_Action (Table.States (29), 20, Reduce, 69, 69, 1, 0, null, null);
+      Add_Action (Table.States (29), 26, Reduce, 69, 69, 1, 0, null, null);
+      Add_Action (Table.States (29), 29, Reduce, 69, 69, 1, 0, null, null);
+      Add_Action (Table.States (29), 33, Reduce, 69, 69, 1, 0, null, null);
       Add_Error (Table.States (29));
       Add_Action (Table.States (30), 29, 36);
       Add_Action (Table.States (30), 33, 37);
       Add_Error (Table.States (30));
-      Add_Action (Table.States (31), 20, Reduce, 54, 0,  1, null, null);
-      Add_Action (Table.States (31), 26, Reduce, 54, 0,  1, null, null);
-      Add_Action (Table.States (31), 29, Reduce, 54, 0,  1, null, null);
-      Add_Action (Table.States (31), 33, Reduce, 54, 0,  1, null, null);
+      Add_Action (Table.States (31), 20, Reduce, 32, 54, 1, 0, null, null);
+      Add_Action (Table.States (31), 26, Reduce, 32, 54, 1, 0, null, null);
+      Add_Action (Table.States (31), 29, Reduce, 32, 54, 1, 0, null, null);
+      Add_Action (Table.States (31), 33, Reduce, 32, 54, 1, 0, null, null);
       Add_Error (Table.States (31));
       Add_Action (Table.States (32), 8, 34);
       Add_Action (Table.States (32), 12, 35);
       Add_Error (Table.States (32));
-      Add_Action (Table.States (33), 18, Reduce, 64, 4,  2, null, null);
-      Add_Action (Table.States (33), 37, Reduce, 64, 4,  2, null, null);
+      Add_Action (Table.States (33), 18, Reduce, 54, 64, 2, 4, null, null);
+      Add_Action (Table.States (33), 37, Reduce, 54, 64, 2, 4, null, null);
       Add_Error (Table.States (33));
       Add_Action (Table.States (34), 36, 69);
       Add_Error (Table.States (34));
       Add_Action (Table.States (35), 5, 52);
-      Add_Action (Table.States (35), 7, Reduce, 51, 0,  0, null, null);
+      Add_Action (Table.States (35), 7, Reduce, 25, 51, 0, 0, null, null);
       Add_Action (Table.States (35), 11, 53);
       Add_Action (Table.States (35), 15, 54);
       Add_Action (Table.States (35), 17, 55);
@@ -932,12 +785,12 @@ package body Gpr_Process is
       Add_Action (Table.States (36), 10, 17);
       Add_Action (Table.States (36), 13, 18);
       Add_Action (Table.States (36), 18, 19);
-      Add_Action (Table.States (36), 20, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (36), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (36), 29, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (36), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (36), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (36), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (36), 20, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (36), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (36), 29, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (36), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (36), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (36), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (36), 35, 20);
       Add_Action (Table.States (36), 36, 21);
       Add_Error (Table.States (36));
@@ -950,14 +803,14 @@ package body Gpr_Process is
       Add_Goto (Table.States (36), 57, 28);
       Add_Goto (Table.States (36), 67, 29);
       Add_Goto (Table.States (36), 69, 31);
-      Add_Action (Table.States (37), 3, Reduce, 71, 0,  3, null, null);
-      Add_Action (Table.States (37), 4, Reduce, 71, 0,  3, null, null);
-      Add_Action (Table.States (37), 6, Reduce, 71, 0,  3, null, null);
-      Add_Action (Table.States (37), 14, Reduce, 71, 0,  3, null, null);
-      Add_Action (Table.States (37), 18, Reduce, 71, 0,  3, null, null);
-      Add_Action (Table.States (37), 21, Reduce, 71, 0,  3, null, null);
-      Add_Action (Table.States (37), 25, Reduce, 71, 0,  3, null, null);
-      Add_Action (Table.States (37), 37, Reduce, 71, 0,  3, null, null);
+      Add_Action (Table.States (37), 3, Reduce, 73, 71, 3, 0, null, null);
+      Add_Action (Table.States (37), 4, Reduce, 73, 71, 3, 0, null, null);
+      Add_Action (Table.States (37), 6, Reduce, 73, 71, 3, 0, null, null);
+      Add_Action (Table.States (37), 14, Reduce, 73, 71, 3, 0, null, null);
+      Add_Action (Table.States (37), 18, Reduce, 73, 71, 3, 0, null, null);
+      Add_Action (Table.States (37), 21, Reduce, 73, 71, 3, 0, null, null);
+      Add_Action (Table.States (37), 25, Reduce, 73, 71, 3, 0, null, null);
+      Add_Action (Table.States (37), 37, Reduce, 73, 71, 3, 0, null, null);
       Add_Error (Table.States (37));
       Add_Action (Table.States (38), 35, 50);
       Add_Error (Table.States (38));
@@ -965,12 +818,12 @@ package body Gpr_Process is
       Add_Action (Table.States (39), 10, 17);
       Add_Action (Table.States (39), 13, 18);
       Add_Action (Table.States (39), 18, 19);
-      Add_Action (Table.States (39), 20, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (39), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (39), 29, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (39), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (39), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (39), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (39), 20, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (39), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (39), 29, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (39), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (39), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (39), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (39), 35, 20);
       Add_Action (Table.States (39), 36, 21);
       Add_Error (Table.States (39));
@@ -984,10 +837,10 @@ package body Gpr_Process is
       Add_Goto (Table.States (39), 69, 49);
       Add_Action (Table.States (40), 35, 48);
       Add_Error (Table.States (40));
-      Add_Action (Table.States (41), 20, Reduce, 69, 1,  2, null, null);
-      Add_Action (Table.States (41), 26, Reduce, 69, 1,  2, null, null);
-      Add_Action (Table.States (41), 29, Reduce, 69, 1,  2, null, null);
-      Add_Action (Table.States (41), 33, Reduce, 69, 1,  2, null, null);
+      Add_Action (Table.States (41), 20, Reduce, 70, 69, 2, 1, null, null);
+      Add_Action (Table.States (41), 26, Reduce, 70, 69, 2, 1, null, null);
+      Add_Action (Table.States (41), 29, Reduce, 70, 69, 2, 1, null, null);
+      Add_Action (Table.States (41), 33, Reduce, 70, 69, 2, 1, null, null);
       Add_Error (Table.States (41));
       Add_Action (Table.States (42), 20, 47);
       Add_Action (Table.States (42), 29, 36);
@@ -996,11 +849,11 @@ package body Gpr_Process is
       Add_Action (Table.States (43), 10, 17);
       Add_Action (Table.States (43), 13, 18);
       Add_Action (Table.States (43), 18, 19);
-      Add_Action (Table.States (43), 20, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (43), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (43), 29, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (43), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (43), 32, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (43), 20, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (43), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (43), 29, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (43), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (43), 32, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (43), 35, 20);
       Add_Action (Table.States (43), 36, 21);
       Add_Error (Table.States (43));
@@ -1014,49 +867,49 @@ package body Gpr_Process is
       Add_Goto (Table.States (43), 67, 29);
       Add_Goto (Table.States (43), 68, 42);
       Add_Goto (Table.States (43), 69, 31);
-      Add_Action (Table.States (44), 20, Reduce, 55, 1,  2, null, null);
-      Add_Action (Table.States (44), 26, Reduce, 55, 1,  2, null, null);
-      Add_Action (Table.States (44), 29, Reduce, 55, 1,  2, null, null);
-      Add_Action (Table.States (44), 33, Reduce, 55, 1,  2, null, null);
+      Add_Action (Table.States (44), 20, Reduce, 35, 55, 2, 1, null, null);
+      Add_Action (Table.States (44), 26, Reduce, 35, 55, 2, 1, null, null);
+      Add_Action (Table.States (44), 29, Reduce, 35, 55, 2, 1, null, null);
+      Add_Action (Table.States (44), 33, Reduce, 35, 55, 2, 1, null, null);
       Add_Error (Table.States (44));
-      Add_Action (Table.States (45), 20, Reduce, 55, 0,  2, null, null);
-      Add_Action (Table.States (45), 26, Reduce, 55, 0,  2, null, null);
-      Add_Action (Table.States (45), 29, Reduce, 55, 0,  2, null, null);
-      Add_Action (Table.States (45), 33, Reduce, 55, 0,  2, null, null);
+      Add_Action (Table.States (45), 20, Reduce, 34, 55, 2, 0, null, null);
+      Add_Action (Table.States (45), 26, Reduce, 34, 55, 2, 0, null, null);
+      Add_Action (Table.States (45), 29, Reduce, 34, 55, 2, 0, null, null);
+      Add_Action (Table.States (45), 33, Reduce, 34, 55, 2, 0, null, null);
       Add_Error (Table.States (45));
-      Add_Action (Table.States (46), 37, Reduce, 46, 0,  3, null, null);
+      Add_Action (Table.States (46), 37, Reduce, 15, 46, 3, 0, null, null);
       Add_Error (Table.States (46));
-      Add_Action (Table.States (47), 20, Reduce, 39, 0,  3, aggregate_g_0'Access, null);
-      Add_Action (Table.States (47), 26, Reduce, 39, 0,  3, aggregate_g_0'Access, null);
-      Add_Action (Table.States (47), 29, Reduce, 39, 0,  3, aggregate_g_0'Access, null);
-      Add_Action (Table.States (47), 33, Reduce, 39, 0,  3, aggregate_g_0'Access, null);
+      Add_Action (Table.States (47), 20, Reduce, 2, 39, 3, 0, aggregate_g_0'Access, null);
+      Add_Action (Table.States (47), 26, Reduce, 2, 39, 3, 0, aggregate_g_0'Access, null);
+      Add_Action (Table.States (47), 29, Reduce, 2, 39, 3, 0, aggregate_g_0'Access, null);
+      Add_Action (Table.States (47), 33, Reduce, 2, 39, 3, 0, aggregate_g_0'Access, null);
       Add_Error (Table.States (47));
       Add_Action (Table.States (48), 13, 81);
-      Add_Action (Table.States (48), 20, Reduce, 42, 0,  3, null, null);
-      Add_Action (Table.States (48), 26, Reduce, 42, 0,  3, null, null);
-      Add_Action (Table.States (48), 29, Reduce, 42, 0,  3, null, null);
-      Add_Action (Table.States (48), 33, Reduce, 42, 0,  3, null, null);
+      Add_Action (Table.States (48), 20, Reduce, 8, 42, 3, 0, null, null);
+      Add_Action (Table.States (48), 26, Reduce, 8, 42, 3, 0, null, null);
+      Add_Action (Table.States (48), 29, Reduce, 8, 42, 3, 0, null, null);
+      Add_Action (Table.States (48), 33, Reduce, 8, 42, 3, 0, null, null);
       Add_Error (Table.States (48));
-      Add_Action (Table.States (49), 20, Reduce, 54, 1,  3, null, null);
-      Add_Action (Table.States (49), 26, Reduce, 54, 1,  3, null, null);
-      Add_Action (Table.States (49), 29, Reduce, 54, 1,  3, null, null);
-      Add_Action (Table.States (49), 33, Reduce, 54, 1,  3, null, null);
+      Add_Action (Table.States (49), 20, Reduce, 33, 54, 3, 1, null, null);
+      Add_Action (Table.States (49), 26, Reduce, 33, 54, 3, 1, null, null);
+      Add_Action (Table.States (49), 29, Reduce, 33, 54, 3, 1, null, null);
+      Add_Action (Table.States (49), 33, Reduce, 33, 54, 3, 1, null, null);
       Add_Error (Table.States (49));
-      Add_Action (Table.States (50), 12, Reduce, 57, 1,  3, null, null);
-      Add_Action (Table.States (50), 20, Reduce, 57, 1,  3, null, null);
-      Add_Action (Table.States (50), 26, Reduce, 57, 1,  3, null, null);
-      Add_Action (Table.States (50), 29, Reduce, 57, 1,  3, null, null);
-      Add_Action (Table.States (50), 30, Reduce, 57, 1,  3, null, null);
-      Add_Action (Table.States (50), 32, Reduce, 57, 1,  3, null, null);
-      Add_Action (Table.States (50), 33, Reduce, 57, 1,  3, null, null);
+      Add_Action (Table.States (50), 12, Reduce, 39, 57, 3, 1, null, null);
+      Add_Action (Table.States (50), 20, Reduce, 39, 57, 3, 1, null, null);
+      Add_Action (Table.States (50), 26, Reduce, 39, 57, 3, 1, null, null);
+      Add_Action (Table.States (50), 29, Reduce, 39, 57, 3, 1, null, null);
+      Add_Action (Table.States (50), 30, Reduce, 39, 57, 3, 1, null, null);
+      Add_Action (Table.States (50), 32, Reduce, 39, 57, 3, 1, null, null);
+      Add_Action (Table.States (50), 33, Reduce, 39, 57, 3, 1, null, null);
       Add_Error (Table.States (50));
-      Add_Action (Table.States (51), 20, Reduce, 68, 1,  3, null, null);
+      Add_Action (Table.States (51), 20, Reduce, 68, 68, 3, 1, null, null);
       Add_Action (Table.States (51), 26, 39);
-      Add_Action (Table.States (51), 29, Reduce, 68, 1,  3, null, null);
-      Add_Action (Table.States (51), 33, Reduce, 68, 1,  3, null, null);
+      Add_Action (Table.States (51), 29, Reduce, 68, 68, 3, 1, null, null);
+      Add_Action (Table.States (51), 33, Reduce, 68, 68, 3, 1, null, null);
       Add_Error (Table.States (51));
-      Add_Action (Table.States (52), 12, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (52), 30, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (52), 12, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (52), 30, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (52), 35, 20);
       Add_Error (Table.States (52));
       Add_Goto (Table.States (52), 56, 27);
@@ -1066,9 +919,9 @@ package body Gpr_Process is
       Add_Error (Table.States (53));
       Add_Action (Table.States (54), 33, 77);
       Add_Error (Table.States (54));
-      Add_Action (Table.States (55), 8, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (55), 12, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (55), 19, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (55), 8, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (55), 12, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (55), 19, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (55), 35, 20);
       Add_Error (Table.States (55));
       Add_Goto (Table.States (55), 56, 76);
@@ -1077,40 +930,40 @@ package body Gpr_Process is
       Add_Action (Table.States (57), 27, 73);
       Add_Action (Table.States (57), 28, 74);
       Add_Error (Table.States (57));
-      Add_Action (Table.States (58), 5, Reduce, 65, 2,  1, null, null);
-      Add_Action (Table.States (58), 7, Reduce, 65, 2,  1, null, null);
-      Add_Action (Table.States (58), 11, Reduce, 65, 2,  1, null, null);
-      Add_Action (Table.States (58), 15, Reduce, 65, 2,  1, null, null);
-      Add_Action (Table.States (58), 17, Reduce, 65, 2,  1, null, null);
-      Add_Action (Table.States (58), 22, Reduce, 65, 2,  1, null, null);
-      Add_Action (Table.States (58), 24, Reduce, 65, 2,  1, null, null);
-      Add_Action (Table.States (58), 35, Reduce, 65, 2,  1, null, null);
+      Add_Action (Table.States (58), 5, Reduce, 59, 65, 1, 2, null, null);
+      Add_Action (Table.States (58), 7, Reduce, 59, 65, 1, 2, null, null);
+      Add_Action (Table.States (58), 11, Reduce, 59, 65, 1, 2, null, null);
+      Add_Action (Table.States (58), 15, Reduce, 59, 65, 1, 2, null, null);
+      Add_Action (Table.States (58), 17, Reduce, 59, 65, 1, 2, null, null);
+      Add_Action (Table.States (58), 22, Reduce, 59, 65, 1, 2, null, null);
+      Add_Action (Table.States (58), 24, Reduce, 59, 65, 1, 2, null, null);
+      Add_Action (Table.States (58), 35, Reduce, 59, 65, 1, 2, null, null);
       Add_Error (Table.States (58));
-      Add_Action (Table.States (59), 5, Reduce, 65, 3,  1, null, null);
-      Add_Action (Table.States (59), 7, Reduce, 65, 3,  1, null, null);
-      Add_Action (Table.States (59), 11, Reduce, 65, 3,  1, null, null);
-      Add_Action (Table.States (59), 15, Reduce, 65, 3,  1, null, null);
-      Add_Action (Table.States (59), 17, Reduce, 65, 3,  1, null, null);
-      Add_Action (Table.States (59), 22, Reduce, 65, 3,  1, null, null);
-      Add_Action (Table.States (59), 24, Reduce, 65, 3,  1, null, null);
-      Add_Action (Table.States (59), 35, Reduce, 65, 3,  1, null, null);
+      Add_Action (Table.States (59), 5, Reduce, 60, 65, 1, 3, null, null);
+      Add_Action (Table.States (59), 7, Reduce, 60, 65, 1, 3, null, null);
+      Add_Action (Table.States (59), 11, Reduce, 60, 65, 1, 3, null, null);
+      Add_Action (Table.States (59), 15, Reduce, 60, 65, 1, 3, null, null);
+      Add_Action (Table.States (59), 17, Reduce, 60, 65, 1, 3, null, null);
+      Add_Action (Table.States (59), 22, Reduce, 60, 65, 1, 3, null, null);
+      Add_Action (Table.States (59), 24, Reduce, 60, 65, 1, 3, null, null);
+      Add_Action (Table.States (59), 35, Reduce, 60, 65, 1, 3, null, null);
       Add_Error (Table.States (59));
-      Add_Action (Table.States (60), 5, Reduce, 50, 0,  1, null, null);
-      Add_Action (Table.States (60), 7, Reduce, 50, 0,  1, null, null);
-      Add_Action (Table.States (60), 11, Reduce, 50, 0,  1, null, null);
-      Add_Action (Table.States (60), 15, Reduce, 50, 0,  1, null, null);
-      Add_Action (Table.States (60), 17, Reduce, 50, 0,  1, null, null);
-      Add_Action (Table.States (60), 22, Reduce, 50, 0,  1, null, null);
-      Add_Action (Table.States (60), 24, Reduce, 50, 0,  1, null, null);
-      Add_Action (Table.States (60), 35, Reduce, 50, 0,  1, null, null);
+      Add_Action (Table.States (60), 5, Reduce, 23, 50, 1, 0, null, null);
+      Add_Action (Table.States (60), 7, Reduce, 23, 50, 1, 0, null, null);
+      Add_Action (Table.States (60), 11, Reduce, 23, 50, 1, 0, null, null);
+      Add_Action (Table.States (60), 15, Reduce, 23, 50, 1, 0, null, null);
+      Add_Action (Table.States (60), 17, Reduce, 23, 50, 1, 0, null, null);
+      Add_Action (Table.States (60), 22, Reduce, 23, 50, 1, 0, null, null);
+      Add_Action (Table.States (60), 24, Reduce, 23, 50, 1, 0, null, null);
+      Add_Action (Table.States (60), 35, Reduce, 23, 50, 1, 0, null, null);
       Add_Error (Table.States (60));
       Add_Action (Table.States (61), 5, 52);
-      Add_Action (Table.States (61), 7, Reduce, 51, 1,  1, null, null);
+      Add_Action (Table.States (61), 7, Reduce, 26, 51, 1, 1, null, null);
       Add_Action (Table.States (61), 11, 53);
       Add_Action (Table.States (61), 15, 54);
       Add_Action (Table.States (61), 17, 55);
       Add_Action (Table.States (61), 22, 56);
-      Add_Action (Table.States (61), 24, Reduce, 51, 1,  1, null, null);
+      Add_Action (Table.States (61), 24, Reduce, 26, 51, 1, 1, null, null);
       Add_Action (Table.States (61), 35, 57);
       Add_Error (Table.States (61));
       Add_Goto (Table.States (61), 40, 58);
@@ -1124,64 +977,64 @@ package body Gpr_Process is
       Add_Goto (Table.States (61), 70, 68);
       Add_Action (Table.States (62), 7, 71);
       Add_Error (Table.States (62));
-      Add_Action (Table.States (63), 5, Reduce, 49, 2,  1, null, null);
-      Add_Action (Table.States (63), 7, Reduce, 49, 2,  1, null, null);
-      Add_Action (Table.States (63), 11, Reduce, 49, 2,  1, null, null);
-      Add_Action (Table.States (63), 15, Reduce, 49, 2,  1, null, null);
-      Add_Action (Table.States (63), 17, Reduce, 49, 2,  1, null, null);
-      Add_Action (Table.States (63), 22, Reduce, 49, 2,  1, null, null);
-      Add_Action (Table.States (63), 24, Reduce, 49, 2,  1, null, null);
-      Add_Action (Table.States (63), 35, Reduce, 49, 2,  1, null, null);
+      Add_Action (Table.States (63), 5, Reduce, 22, 49, 1, 2, null, null);
+      Add_Action (Table.States (63), 7, Reduce, 22, 49, 1, 2, null, null);
+      Add_Action (Table.States (63), 11, Reduce, 22, 49, 1, 2, null, null);
+      Add_Action (Table.States (63), 15, Reduce, 22, 49, 1, 2, null, null);
+      Add_Action (Table.States (63), 17, Reduce, 22, 49, 1, 2, null, null);
+      Add_Action (Table.States (63), 22, Reduce, 22, 49, 1, 2, null, null);
+      Add_Action (Table.States (63), 24, Reduce, 22, 49, 1, 2, null, null);
+      Add_Action (Table.States (63), 35, Reduce, 22, 49, 1, 2, null, null);
       Add_Error (Table.States (63));
-      Add_Action (Table.States (64), 5, Reduce, 58, 0,  1, null, null);
-      Add_Action (Table.States (64), 7, Reduce, 58, 0,  1, null, null);
-      Add_Action (Table.States (64), 11, Reduce, 58, 0,  1, null, null);
-      Add_Action (Table.States (64), 15, Reduce, 58, 0,  1, null, null);
-      Add_Action (Table.States (64), 17, Reduce, 58, 0,  1, null, null);
-      Add_Action (Table.States (64), 22, Reduce, 58, 0,  1, null, null);
-      Add_Action (Table.States (64), 24, Reduce, 58, 0,  1, null, null);
-      Add_Action (Table.States (64), 35, Reduce, 58, 0,  1, null, null);
+      Add_Action (Table.States (64), 5, Reduce, 40, 58, 1, 0, null, null);
+      Add_Action (Table.States (64), 7, Reduce, 40, 58, 1, 0, null, null);
+      Add_Action (Table.States (64), 11, Reduce, 40, 58, 1, 0, null, null);
+      Add_Action (Table.States (64), 15, Reduce, 40, 58, 1, 0, null, null);
+      Add_Action (Table.States (64), 17, Reduce, 40, 58, 1, 0, null, null);
+      Add_Action (Table.States (64), 22, Reduce, 40, 58, 1, 0, null, null);
+      Add_Action (Table.States (64), 24, Reduce, 40, 58, 1, 0, null, null);
+      Add_Action (Table.States (64), 35, Reduce, 40, 58, 1, 0, null, null);
       Add_Error (Table.States (64));
-      Add_Action (Table.States (65), 5, Reduce, 58, 1,  1, null, null);
-      Add_Action (Table.States (65), 7, Reduce, 58, 1,  1, null, null);
-      Add_Action (Table.States (65), 11, Reduce, 58, 1,  1, null, null);
-      Add_Action (Table.States (65), 15, Reduce, 58, 1,  1, null, null);
-      Add_Action (Table.States (65), 17, Reduce, 58, 1,  1, null, null);
-      Add_Action (Table.States (65), 22, Reduce, 58, 1,  1, null, null);
-      Add_Action (Table.States (65), 24, Reduce, 58, 1,  1, null, null);
-      Add_Action (Table.States (65), 35, Reduce, 58, 1,  1, null, null);
+      Add_Action (Table.States (65), 5, Reduce, 41, 58, 1, 1, null, null);
+      Add_Action (Table.States (65), 7, Reduce, 41, 58, 1, 1, null, null);
+      Add_Action (Table.States (65), 11, Reduce, 41, 58, 1, 1, null, null);
+      Add_Action (Table.States (65), 15, Reduce, 41, 58, 1, 1, null, null);
+      Add_Action (Table.States (65), 17, Reduce, 41, 58, 1, 1, null, null);
+      Add_Action (Table.States (65), 22, Reduce, 41, 58, 1, 1, null, null);
+      Add_Action (Table.States (65), 24, Reduce, 41, 58, 1, 1, null, null);
+      Add_Action (Table.States (65), 35, Reduce, 41, 58, 1, 1, null, null);
       Add_Error (Table.States (65));
-      Add_Action (Table.States (66), 5, Reduce, 58, 2,  1, null, null);
-      Add_Action (Table.States (66), 7, Reduce, 58, 2,  1, null, null);
-      Add_Action (Table.States (66), 11, Reduce, 58, 2,  1, null, null);
-      Add_Action (Table.States (66), 15, Reduce, 58, 2,  1, null, null);
-      Add_Action (Table.States (66), 17, Reduce, 58, 2,  1, null, null);
-      Add_Action (Table.States (66), 22, Reduce, 58, 2,  1, null, null);
-      Add_Action (Table.States (66), 24, Reduce, 58, 2,  1, null, null);
-      Add_Action (Table.States (66), 35, Reduce, 58, 2,  1, null, null);
+      Add_Action (Table.States (66), 5, Reduce, 42, 58, 1, 2, null, null);
+      Add_Action (Table.States (66), 7, Reduce, 42, 58, 1, 2, null, null);
+      Add_Action (Table.States (66), 11, Reduce, 42, 58, 1, 2, null, null);
+      Add_Action (Table.States (66), 15, Reduce, 42, 58, 1, 2, null, null);
+      Add_Action (Table.States (66), 17, Reduce, 42, 58, 1, 2, null, null);
+      Add_Action (Table.States (66), 22, Reduce, 42, 58, 1, 2, null, null);
+      Add_Action (Table.States (66), 24, Reduce, 42, 58, 1, 2, null, null);
+      Add_Action (Table.States (66), 35, Reduce, 42, 58, 1, 2, null, null);
       Add_Error (Table.States (66));
-      Add_Action (Table.States (67), 5, Reduce, 49, 0,  1, null, null);
-      Add_Action (Table.States (67), 7, Reduce, 49, 0,  1, null, null);
-      Add_Action (Table.States (67), 11, Reduce, 49, 0,  1, null, null);
-      Add_Action (Table.States (67), 15, Reduce, 49, 0,  1, null, null);
-      Add_Action (Table.States (67), 17, Reduce, 49, 0,  1, null, null);
-      Add_Action (Table.States (67), 22, Reduce, 49, 0,  1, null, null);
-      Add_Action (Table.States (67), 24, Reduce, 49, 0,  1, null, null);
-      Add_Action (Table.States (67), 35, Reduce, 49, 0,  1, null, null);
+      Add_Action (Table.States (67), 5, Reduce, 20, 49, 1, 0, null, null);
+      Add_Action (Table.States (67), 7, Reduce, 20, 49, 1, 0, null, null);
+      Add_Action (Table.States (67), 11, Reduce, 20, 49, 1, 0, null, null);
+      Add_Action (Table.States (67), 15, Reduce, 20, 49, 1, 0, null, null);
+      Add_Action (Table.States (67), 17, Reduce, 20, 49, 1, 0, null, null);
+      Add_Action (Table.States (67), 22, Reduce, 20, 49, 1, 0, null, null);
+      Add_Action (Table.States (67), 24, Reduce, 20, 49, 1, 0, null, null);
+      Add_Action (Table.States (67), 35, Reduce, 20, 49, 1, 0, null, null);
       Add_Error (Table.States (67));
-      Add_Action (Table.States (68), 5, Reduce, 49, 1,  1, null, null);
-      Add_Action (Table.States (68), 7, Reduce, 49, 1,  1, null, null);
-      Add_Action (Table.States (68), 11, Reduce, 49, 1,  1, null, null);
-      Add_Action (Table.States (68), 15, Reduce, 49, 1,  1, null, null);
-      Add_Action (Table.States (68), 17, Reduce, 49, 1,  1, null, null);
-      Add_Action (Table.States (68), 22, Reduce, 49, 1,  1, null, null);
-      Add_Action (Table.States (68), 24, Reduce, 49, 1,  1, null, null);
-      Add_Action (Table.States (68), 35, Reduce, 49, 1,  1, null, null);
+      Add_Action (Table.States (68), 5, Reduce, 21, 49, 1, 1, null, null);
+      Add_Action (Table.States (68), 7, Reduce, 21, 49, 1, 1, null, null);
+      Add_Action (Table.States (68), 11, Reduce, 21, 49, 1, 1, null, null);
+      Add_Action (Table.States (68), 15, Reduce, 21, 49, 1, 1, null, null);
+      Add_Action (Table.States (68), 17, Reduce, 21, 49, 1, 1, null, null);
+      Add_Action (Table.States (68), 22, Reduce, 21, 49, 1, 1, null, null);
+      Add_Action (Table.States (68), 24, Reduce, 21, 49, 1, 1, null, null);
+      Add_Action (Table.States (68), 35, Reduce, 21, 49, 1, 1, null, null);
       Add_Error (Table.States (68));
       Add_Action (Table.States (69), 12, 70);
       Add_Error (Table.States (69));
       Add_Action (Table.States (70), 5, 52);
-      Add_Action (Table.States (70), 7, Reduce, 51, 0,  0, null, null);
+      Add_Action (Table.States (70), 7, Reduce, 25, 51, 0, 0, null, null);
       Add_Action (Table.States (70), 11, 53);
       Add_Action (Table.States (70), 15, 54);
       Add_Action (Table.States (70), 17, 55);
@@ -1199,18 +1052,18 @@ package body Gpr_Process is
       Add_Goto (Table.States (70), 61, 66);
       Add_Goto (Table.States (70), 65, 67);
       Add_Goto (Table.States (70), 70, 68);
-      Add_Action (Table.States (71), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (71), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (71), 35, 20);
       Add_Error (Table.States (71));
       Add_Goto (Table.States (71), 56, 93);
-      Add_Action (Table.States (72), 5, Reduce, 50, 1,  2, null, null);
-      Add_Action (Table.States (72), 7, Reduce, 50, 1,  2, null, null);
-      Add_Action (Table.States (72), 11, Reduce, 50, 1,  2, null, null);
-      Add_Action (Table.States (72), 15, Reduce, 50, 1,  2, null, null);
-      Add_Action (Table.States (72), 17, Reduce, 50, 1,  2, null, null);
-      Add_Action (Table.States (72), 22, Reduce, 50, 1,  2, null, null);
-      Add_Action (Table.States (72), 24, Reduce, 50, 1,  2, null, null);
-      Add_Action (Table.States (72), 35, Reduce, 50, 1,  2, null, null);
+      Add_Action (Table.States (72), 5, Reduce, 24, 50, 2, 1, null, null);
+      Add_Action (Table.States (72), 7, Reduce, 24, 50, 2, 1, null, null);
+      Add_Action (Table.States (72), 11, Reduce, 24, 50, 2, 1, null, null);
+      Add_Action (Table.States (72), 15, Reduce, 24, 50, 2, 1, null, null);
+      Add_Action (Table.States (72), 17, Reduce, 24, 50, 2, 1, null, null);
+      Add_Action (Table.States (72), 22, Reduce, 24, 50, 2, 1, null, null);
+      Add_Action (Table.States (72), 24, Reduce, 24, 50, 2, 1, null, null);
+      Add_Action (Table.States (72), 35, Reduce, 24, 50, 2, 1, null, null);
       Add_Error (Table.States (72));
       Add_Action (Table.States (73), 35, 92);
       Add_Error (Table.States (73));
@@ -1218,10 +1071,10 @@ package body Gpr_Process is
       Add_Action (Table.States (74), 10, 17);
       Add_Action (Table.States (74), 13, 18);
       Add_Action (Table.States (74), 18, 19);
-      Add_Action (Table.States (74), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (74), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (74), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (74), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (74), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (74), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (74), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (74), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (74), 35, 20);
       Add_Action (Table.States (74), 36, 21);
       Add_Error (Table.States (74));
@@ -1240,14 +1093,14 @@ package body Gpr_Process is
       Add_Action (Table.States (76), 12, 88);
       Add_Action (Table.States (76), 19, 89);
       Add_Error (Table.States (76));
-      Add_Action (Table.States (77), 5, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
-      Add_Action (Table.States (77), 7, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
-      Add_Action (Table.States (77), 11, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
-      Add_Action (Table.States (77), 15, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
-      Add_Action (Table.States (77), 17, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
-      Add_Action (Table.States (77), 22, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
-      Add_Action (Table.States (77), 24, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
-      Add_Action (Table.States (77), 35, Reduce, 65, 4,  2, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 5, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 7, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 11, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 15, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 17, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 22, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 24, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
+      Add_Action (Table.States (77), 35, Reduce, 61, 65, 2, 4, simple_declarative_item_4'Access, null);
       Add_Error (Table.States (77));
       Add_Action (Table.States (78), 13, 86);
       Add_Error (Table.States (78));
@@ -1261,13 +1114,13 @@ package body Gpr_Process is
       Add_Error (Table.States (81));
       Add_Action (Table.States (82), 20, 111);
       Add_Error (Table.States (82));
-      Add_Action (Table.States (83), 7, Reduce, 45, 0,  0, null, null);
-      Add_Action (Table.States (83), 24, 108, 45, 0,  0, null, null);
+      Add_Action (Table.States (83), 7, Reduce, 12, 45, 0, 0, null, null);
+      Add_Action (Table.States (83), 24, 108, 12, 45, 0, 0, null, null);
       Add_Error (Table.States (83));
       Add_Goto (Table.States (83), 44, 109);
       Add_Goto (Table.States (83), 45, 110);
       Add_Action (Table.States (84), 16, 105);
-      Add_Action (Table.States (84), 20, Reduce, 52, 0,  0, null, null);
+      Add_Action (Table.States (84), 20, Reduce, 27, 52, 0, 0, null, null);
       Add_Action (Table.States (84), 36, 106);
       Add_Error (Table.States (84));
       Add_Goto (Table.States (84), 52, 107);
@@ -1275,10 +1128,10 @@ package body Gpr_Process is
       Add_Action (Table.States (85), 10, 17);
       Add_Action (Table.States (85), 13, 18);
       Add_Action (Table.States (85), 18, 19);
-      Add_Action (Table.States (85), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (85), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (85), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (85), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (85), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (85), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (85), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (85), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (85), 35, 20);
       Add_Action (Table.States (85), 36, 21);
       Add_Error (Table.States (85));
@@ -1293,14 +1146,14 @@ package body Gpr_Process is
       Add_Goto (Table.States (85), 69, 31);
       Add_Action (Table.States (86), 36, 103);
       Add_Error (Table.States (86));
-      Add_Action (Table.States (87), 12, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (87), 30, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (87), 12, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (87), 30, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (87), 35, 20);
       Add_Error (Table.States (87));
       Add_Goto (Table.States (87), 56, 27);
       Add_Goto (Table.States (87), 57, 102);
       Add_Action (Table.States (88), 5, 52);
-      Add_Action (Table.States (88), 7, Reduce, 51, 0,  0, null, null);
+      Add_Action (Table.States (88), 7, Reduce, 25, 51, 0, 0, null, null);
       Add_Action (Table.States (88), 11, 53);
       Add_Action (Table.States (88), 15, 54);
       Add_Action (Table.States (88), 17, 55);
@@ -1318,8 +1171,8 @@ package body Gpr_Process is
       Add_Goto (Table.States (88), 61, 66);
       Add_Goto (Table.States (88), 65, 67);
       Add_Goto (Table.States (88), 70, 68);
-      Add_Action (Table.States (89), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (89), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (89), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (89), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (89), 35, 20);
       Add_Error (Table.States (89));
       Add_Goto (Table.States (89), 56, 27);
@@ -1336,21 +1189,21 @@ package body Gpr_Process is
       Add_Error (Table.States (93));
       Add_Action (Table.States (94), 7, 95);
       Add_Error (Table.States (94));
-      Add_Action (Table.States (95), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (95), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (95), 35, 20);
       Add_Error (Table.States (95));
       Add_Goto (Table.States (95), 56, 124);
-      Add_Action (Table.States (96), 37, Reduce, 66, 0,  7, simple_project_declaration_0'Access,
+      Add_Action (Table.States (96), 37, Reduce, 62, 66, 7, 0, simple_project_declaration_0'Access,
         simple_project_declaration_0_check'Access);
       Add_Error (Table.States (96));
       Add_Action (Table.States (97), 9, 16);
       Add_Action (Table.States (97), 10, 17);
       Add_Action (Table.States (97), 13, 18);
       Add_Action (Table.States (97), 18, 19);
-      Add_Action (Table.States (97), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (97), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (97), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (97), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (97), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (97), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (97), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (97), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (97), 35, 20);
       Add_Action (Table.States (97), 36, 21);
       Add_Error (Table.States (97));
@@ -1363,14 +1216,14 @@ package body Gpr_Process is
       Add_Goto (Table.States (97), 57, 28);
       Add_Goto (Table.States (97), 67, 29);
       Add_Goto (Table.States (97), 69, 31);
-      Add_Action (Table.States (98), 5, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
-      Add_Action (Table.States (98), 7, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
-      Add_Action (Table.States (98), 11, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
-      Add_Action (Table.States (98), 15, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
-      Add_Action (Table.States (98), 17, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
-      Add_Action (Table.States (98), 22, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
-      Add_Action (Table.States (98), 24, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
-      Add_Action (Table.States (98), 35, Reduce, 65, 0,  4, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 5, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 7, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 11, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 15, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 17, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 22, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 24, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
+      Add_Action (Table.States (98), 35, Reduce, 57, 65, 4, 0, simple_declarative_item_0'Access, null);
       Add_Error (Table.States (98));
       Add_Action (Table.States (99), 33, 122);
       Add_Error (Table.States (99));
@@ -1387,61 +1240,61 @@ package body Gpr_Process is
       Add_Action (Table.States (104), 26, 39);
       Add_Action (Table.States (104), 33, 117);
       Add_Error (Table.States (104));
-      Add_Action (Table.States (105), 20, Reduce, 52, 2,  1, null, null);
-      Add_Action (Table.States (105), 31, Reduce, 52, 2,  1, null, null);
-      Add_Action (Table.States (105), 34, Reduce, 52, 2,  1, null, null);
+      Add_Action (Table.States (105), 20, Reduce, 29, 52, 1, 2, null, null);
+      Add_Action (Table.States (105), 31, Reduce, 29, 52, 1, 2, null, null);
+      Add_Action (Table.States (105), 34, Reduce, 29, 52, 1, 2, null, null);
       Add_Error (Table.States (105));
-      Add_Action (Table.States (106), 20, Reduce, 52, 1,  1, null, null);
-      Add_Action (Table.States (106), 31, Reduce, 52, 1,  1, null, null);
-      Add_Action (Table.States (106), 34, Reduce, 52, 1,  1, null, null);
+      Add_Action (Table.States (106), 20, Reduce, 28, 52, 1, 1, null, null);
+      Add_Action (Table.States (106), 31, Reduce, 28, 52, 1, 1, null, null);
+      Add_Action (Table.States (106), 34, Reduce, 28, 52, 1, 1, null, null);
       Add_Error (Table.States (106));
       Add_Action (Table.States (107), 20, 116);
       Add_Error (Table.States (107));
       Add_Action (Table.States (108), 16, 105);
-      Add_Action (Table.States (108), 31, Reduce, 52, 0,  0, null, null);
-      Add_Action (Table.States (108), 34, Reduce, 52, 0,  0, null, null);
+      Add_Action (Table.States (108), 31, Reduce, 27, 52, 0, 0, null, null);
+      Add_Action (Table.States (108), 34, Reduce, 27, 52, 0, 0, null, null);
       Add_Action (Table.States (108), 36, 106);
       Add_Error (Table.States (108));
       Add_Goto (Table.States (108), 52, 114);
       Add_Goto (Table.States (108), 53, 115);
-      Add_Action (Table.States (109), 7, Reduce, 45, 1,  1, null, null);
-      Add_Action (Table.States (109), 24, Reduce, 45, 1,  1, null, null);
+      Add_Action (Table.States (109), 7, Reduce, 13, 45, 1, 1, null, null);
+      Add_Action (Table.States (109), 24, Reduce, 13, 45, 1, 1, null, null);
       Add_Error (Table.States (109));
       Add_Action (Table.States (110), 7, 112);
       Add_Action (Table.States (110), 24, 108);
       Add_Error (Table.States (110));
       Add_Goto (Table.States (110), 44, 113);
-      Add_Action (Table.States (111), 20, Reduce, 42, 1,  6, null, null);
-      Add_Action (Table.States (111), 26, Reduce, 42, 1,  6, null, null);
-      Add_Action (Table.States (111), 29, Reduce, 42, 1,  6, null, null);
-      Add_Action (Table.States (111), 33, Reduce, 42, 1,  6, null, null);
+      Add_Action (Table.States (111), 20, Reduce, 9, 42, 6, 1, null, null);
+      Add_Action (Table.States (111), 26, Reduce, 9, 42, 6, 1, null, null);
+      Add_Action (Table.States (111), 29, Reduce, 9, 42, 6, 1, null, null);
+      Add_Action (Table.States (111), 33, Reduce, 9, 42, 6, 1, null, null);
       Add_Error (Table.States (111));
       Add_Action (Table.States (112), 5, 133);
       Add_Error (Table.States (112));
-      Add_Action (Table.States (113), 7, Reduce, 45, 2,  2, null, null);
-      Add_Action (Table.States (113), 24, Reduce, 45, 2,  2, null, null);
+      Add_Action (Table.States (113), 7, Reduce, 14, 45, 2, 2, null, null);
+      Add_Action (Table.States (113), 24, Reduce, 14, 45, 2, 2, null, null);
       Add_Error (Table.States (113));
-      Add_Action (Table.States (114), 31, Reduce, 53, 0,  1, null, null);
-      Add_Action (Table.States (114), 34, Reduce, 53, 0,  1, null, null);
+      Add_Action (Table.States (114), 31, Reduce, 30, 53, 1, 0, null, null);
+      Add_Action (Table.States (114), 34, Reduce, 30, 53, 1, 0, null, null);
       Add_Error (Table.States (114));
       Add_Action (Table.States (115), 31, 131);
       Add_Action (Table.States (115), 34, 132);
       Add_Error (Table.States (115));
       Add_Action (Table.States (116), 23, 130);
       Add_Error (Table.States (116));
-      Add_Action (Table.States (117), 5, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
-      Add_Action (Table.States (117), 7, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
-      Add_Action (Table.States (117), 11, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
-      Add_Action (Table.States (117), 15, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
-      Add_Action (Table.States (117), 17, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
-      Add_Action (Table.States (117), 22, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
-      Add_Action (Table.States (117), 24, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
-      Add_Action (Table.States (117), 35, Reduce, 40, 0,  5, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 5, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 7, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 11, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 15, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 17, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 22, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 24, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
+      Add_Action (Table.States (117), 35, Reduce, 3, 40, 5, 0, attribute_declaration_0'Access, null);
       Add_Error (Table.States (117));
       Add_Action (Table.States (118), 23, 129);
       Add_Error (Table.States (118));
       Add_Action (Table.States (119), 5, 52);
-      Add_Action (Table.States (119), 7, Reduce, 51, 0,  0, null, null);
+      Add_Action (Table.States (119), 7, Reduce, 25, 51, 0, 0, null, null);
       Add_Action (Table.States (119), 11, 53);
       Add_Action (Table.States (119), 15, 54);
       Add_Action (Table.States (119), 17, 55);
@@ -1459,44 +1312,44 @@ package body Gpr_Process is
       Add_Goto (Table.States (119), 61, 66);
       Add_Goto (Table.States (119), 65, 67);
       Add_Goto (Table.States (119), 70, 68);
-      Add_Action (Table.States (120), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (120), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (120), 35, 20);
       Add_Error (Table.States (120));
       Add_Goto (Table.States (120), 56, 127);
-      Add_Action (Table.States (121), 5, Reduce, 61, 0,  5, package_renaming_0'Access, null);
-      Add_Action (Table.States (121), 7, Reduce, 61, 0,  5, package_renaming_0'Access, null);
-      Add_Action (Table.States (121), 11, Reduce, 61, 0,  5, package_renaming_0'Access, null);
-      Add_Action (Table.States (121), 15, Reduce, 61, 0,  5, package_renaming_0'Access, null);
-      Add_Action (Table.States (121), 17, Reduce, 61, 0,  5, package_renaming_0'Access, null);
-      Add_Action (Table.States (121), 22, Reduce, 61, 0,  5, package_renaming_0'Access, null);
-      Add_Action (Table.States (121), 24, Reduce, 61, 0,  5, package_renaming_0'Access, null);
-      Add_Action (Table.States (121), 35, Reduce, 61, 0,  5, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 5, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 7, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 11, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 15, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 17, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 22, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 24, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
+      Add_Action (Table.States (121), 35, Reduce, 45, 61, 5, 0, package_renaming_0'Access, null);
       Add_Error (Table.States (121));
-      Add_Action (Table.States (122), 5, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
-      Add_Action (Table.States (122), 7, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
-      Add_Action (Table.States (122), 11, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
-      Add_Action (Table.States (122), 15, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
-      Add_Action (Table.States (122), 17, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
-      Add_Action (Table.States (122), 22, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
-      Add_Action (Table.States (122), 24, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
-      Add_Action (Table.States (122), 35, Reduce, 70, 0,  5, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 5, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 7, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 11, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 15, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 17, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 22, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 24, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
+      Add_Action (Table.States (122), 35, Reduce, 72, 70, 5, 0, typed_string_declaration_0'Access, null);
       Add_Error (Table.States (122));
       Add_Action (Table.States (123), 26, 39);
       Add_Action (Table.States (123), 33, 126);
       Add_Error (Table.States (123));
       Add_Action (Table.States (124), 33, 125);
       Add_Error (Table.States (124));
-      Add_Action (Table.States (125), 37, Reduce, 63, 0,  9, project_extension_0'Access,
+      Add_Action (Table.States (125), 37, Reduce, 49, 63, 9, 0, project_extension_0'Access,
         project_extension_0_check'Access);
       Add_Error (Table.States (125));
-      Add_Action (Table.States (126), 5, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
-      Add_Action (Table.States (126), 7, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
-      Add_Action (Table.States (126), 11, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
-      Add_Action (Table.States (126), 15, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
-      Add_Action (Table.States (126), 17, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
-      Add_Action (Table.States (126), 22, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
-      Add_Action (Table.States (126), 24, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
-      Add_Action (Table.States (126), 35, Reduce, 65, 1,  6, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 5, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 7, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 11, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 15, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 17, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 22, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 24, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
+      Add_Action (Table.States (126), 35, Reduce, 58, 65, 6, 1, simple_declarative_item_1'Access, null);
       Add_Error (Table.States (126));
       Add_Action (Table.States (127), 33, 140);
       Add_Error (Table.States (127));
@@ -1506,10 +1359,10 @@ package body Gpr_Process is
       Add_Action (Table.States (129), 10, 17);
       Add_Action (Table.States (129), 13, 18);
       Add_Action (Table.States (129), 18, 19);
-      Add_Action (Table.States (129), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (129), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (129), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (129), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (129), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (129), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (129), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (129), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (129), 35, 20);
       Add_Action (Table.States (129), 36, 21);
       Add_Error (Table.States (129));
@@ -1526,10 +1379,10 @@ package body Gpr_Process is
       Add_Action (Table.States (130), 10, 17);
       Add_Action (Table.States (130), 13, 18);
       Add_Action (Table.States (130), 18, 19);
-      Add_Action (Table.States (130), 26, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (130), 30, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (130), 32, Reduce, 56, 0,  0, null, null);
-      Add_Action (Table.States (130), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (130), 26, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (130), 30, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (130), 32, Reduce, 36, 56, 0, 0, null, null);
+      Add_Action (Table.States (130), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (130), 35, 20);
       Add_Action (Table.States (130), 36, 21);
       Add_Error (Table.States (130));
@@ -1543,12 +1396,12 @@ package body Gpr_Process is
       Add_Goto (Table.States (130), 67, 29);
       Add_Goto (Table.States (130), 69, 31);
       Add_Action (Table.States (131), 5, 52);
-      Add_Action (Table.States (131), 7, Reduce, 51, 0,  0, null, null);
+      Add_Action (Table.States (131), 7, Reduce, 25, 51, 0, 0, null, null);
       Add_Action (Table.States (131), 11, 53);
       Add_Action (Table.States (131), 15, 54);
       Add_Action (Table.States (131), 17, 55);
       Add_Action (Table.States (131), 22, 56);
-      Add_Action (Table.States (131), 24, Reduce, 51, 0,  0, null, null);
+      Add_Action (Table.States (131), 24, Reduce, 25, 51, 0, 0, null, null);
       Add_Action (Table.States (131), 35, 57);
       Add_Error (Table.States (131));
       Add_Goto (Table.States (131), 40, 58);
@@ -1563,27 +1416,27 @@ package body Gpr_Process is
       Add_Goto (Table.States (131), 65, 67);
       Add_Goto (Table.States (131), 70, 68);
       Add_Action (Table.States (132), 16, 105);
-      Add_Action (Table.States (132), 31, Reduce, 52, 0,  0, null, null);
-      Add_Action (Table.States (132), 34, Reduce, 52, 0,  0, null, null);
+      Add_Action (Table.States (132), 31, Reduce, 27, 52, 0, 0, null, null);
+      Add_Action (Table.States (132), 34, Reduce, 27, 52, 0, 0, null, null);
       Add_Action (Table.States (132), 36, 106);
       Add_Error (Table.States (132));
       Add_Goto (Table.States (132), 52, 135);
       Add_Action (Table.States (133), 33, 134);
       Add_Error (Table.States (133));
-      Add_Action (Table.States (134), 5, Reduce, 43, 0,  7, case_statement_0'Access, null);
-      Add_Action (Table.States (134), 7, Reduce, 43, 0,  7, case_statement_0'Access, null);
-      Add_Action (Table.States (134), 11, Reduce, 43, 0,  7, case_statement_0'Access, null);
-      Add_Action (Table.States (134), 15, Reduce, 43, 0,  7, case_statement_0'Access, null);
-      Add_Action (Table.States (134), 17, Reduce, 43, 0,  7, case_statement_0'Access, null);
-      Add_Action (Table.States (134), 22, Reduce, 43, 0,  7, case_statement_0'Access, null);
-      Add_Action (Table.States (134), 24, Reduce, 43, 0,  7, case_statement_0'Access, null);
-      Add_Action (Table.States (134), 35, Reduce, 43, 0,  7, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 5, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 7, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 11, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 15, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 17, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 22, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 24, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
+      Add_Action (Table.States (134), 35, Reduce, 10, 43, 7, 0, case_statement_0'Access, null);
       Add_Error (Table.States (134));
-      Add_Action (Table.States (135), 31, Reduce, 53, 1,  3, null, null);
-      Add_Action (Table.States (135), 34, Reduce, 53, 1,  3, null, null);
+      Add_Action (Table.States (135), 31, Reduce, 31, 53, 3, 1, null, null);
+      Add_Action (Table.States (135), 34, Reduce, 31, 53, 3, 1, null, null);
       Add_Error (Table.States (135));
-      Add_Action (Table.States (136), 7, Reduce, 44, 0,  4, case_item_0'Access, null);
-      Add_Action (Table.States (136), 24, Reduce, 44, 0,  4, case_item_0'Access, null);
+      Add_Action (Table.States (136), 7, Reduce, 11, 44, 4, 0, case_item_0'Access, null);
+      Add_Action (Table.States (136), 24, Reduce, 11, 44, 4, 0, case_item_0'Access, null);
       Add_Error (Table.States (136));
       Add_Action (Table.States (137), 26, 39);
       Add_Action (Table.States (137), 33, 143);
@@ -1591,54 +1444,54 @@ package body Gpr_Process is
       Add_Action (Table.States (138), 26, 39);
       Add_Action (Table.States (138), 33, 142);
       Add_Error (Table.States (138));
-      Add_Action (Table.States (139), 33, Reduce, 56, 0,  0, null, null);
+      Add_Action (Table.States (139), 33, Reduce, 36, 56, 0, 0, null, null);
       Add_Action (Table.States (139), 35, 20);
       Add_Error (Table.States (139));
       Add_Goto (Table.States (139), 56, 141);
-      Add_Action (Table.States (140), 5, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
-      Add_Action (Table.States (140), 7, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
-      Add_Action (Table.States (140), 11, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
-      Add_Action (Table.States (140), 15, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
-      Add_Action (Table.States (140), 17, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
-      Add_Action (Table.States (140), 22, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
-      Add_Action (Table.States (140), 24, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
-      Add_Action (Table.States (140), 35, Reduce, 59, 0,  7, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 5, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 7, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 11, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 15, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 17, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 22, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 24, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
+      Add_Action (Table.States (140), 35, Reduce, 43, 59, 7, 0, package_spec_0'Access, package_spec_0_check'Access);
       Add_Error (Table.States (140));
       Add_Action (Table.States (141), 33, 144);
       Add_Error (Table.States (141));
-      Add_Action (Table.States (142), 5, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
-      Add_Action (Table.States (142), 7, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
-      Add_Action (Table.States (142), 11, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
-      Add_Action (Table.States (142), 15, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
-      Add_Action (Table.States (142), 17, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
-      Add_Action (Table.States (142), 22, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
-      Add_Action (Table.States (142), 24, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
-      Add_Action (Table.States (142), 35, Reduce, 40, 2,  8, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 5, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 7, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 11, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 15, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 17, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 22, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 24, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
+      Add_Action (Table.States (142), 35, Reduce, 5, 40, 8, 2, attribute_declaration_2'Access, null);
       Add_Error (Table.States (142));
-      Add_Action (Table.States (143), 5, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
-      Add_Action (Table.States (143), 7, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
-      Add_Action (Table.States (143), 11, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
-      Add_Action (Table.States (143), 15, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
-      Add_Action (Table.States (143), 17, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
-      Add_Action (Table.States (143), 22, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
-      Add_Action (Table.States (143), 24, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
-      Add_Action (Table.States (143), 35, Reduce, 40, 1,  8, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 5, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 7, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 11, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 15, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 17, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 22, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 24, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
+      Add_Action (Table.States (143), 35, Reduce, 4, 40, 8, 1, attribute_declaration_1'Access, null);
       Add_Error (Table.States (143));
-      Add_Action (Table.States (144), 5, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 5, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
-      Add_Action (Table.States (144), 7, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 7, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
-      Add_Action (Table.States (144), 11, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 11, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
-      Add_Action (Table.States (144), 15, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 15, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
-      Add_Action (Table.States (144), 17, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 17, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
-      Add_Action (Table.States (144), 22, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 22, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
-      Add_Action (Table.States (144), 24, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 24, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
-      Add_Action (Table.States (144), 35, Reduce, 60, 0,  9, package_extension_0'Access,
+      Add_Action (Table.States (144), 35, Reduce, 44, 60, 9, 0, package_extension_0'Access,
         package_extension_0_check'Access);
       Add_Error (Table.States (144));
 
@@ -1647,6 +1500,7 @@ package body Gpr_Process is
          Trace,
          Lexer.New_Lexer (Trace),
          Table,
+         Language_Fixes,
          Max_Parallel         => 15,
          First_Parser_Label   => 0,
          Terminate_Same_State => True);

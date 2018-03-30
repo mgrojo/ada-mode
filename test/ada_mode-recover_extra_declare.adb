@@ -10,7 +10,7 @@ begin
    loop
    declare
 
-   Next_Token (Lexer, Token);
+      Next_Token (Lexer, Token);
       case Name (Token) is
          when End_Of_File =>
             return;

@@ -103,7 +103,7 @@ int ada_next_token
    *id = 0;
    if (lexer->cursor > lexer->buffer_last)
    {
-      *id       =  107;
+      *id            = 107;
       *byte_position = lexer->buffer_last - lexer->buffer + 1;
       *byte_length   = 0;
       *char_position = lexer->char_token_start;

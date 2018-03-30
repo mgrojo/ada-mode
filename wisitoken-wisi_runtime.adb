@@ -24,9 +24,10 @@ package body WisiToken.Wisi_Runtime is
    Navigate_Cache_Code : constant String := "1 ";
    Face_Property_Code  : constant String := "2 ";
    Indent_Code         : constant String := "3 ";
-   Parser_Error_Code   : constant String := "4";
-   Check_Error_Code    : constant String := "5";
-   Recover_Code        : constant String := "6 ";
+   Lexer_Error_Code    : constant String := "4";
+   Parser_Error_Code   : constant String := "5";
+   Check_Error_Code    : constant String := "6";
+   Recover_Code        : constant String := "7 ";
 
    Chars_Per_Int : constant Integer := Integer'Width;
 
@@ -380,11 +381,10 @@ package body WisiToken.Wisi_Runtime is
             begin
                case Op.Op is
                when Fast_Forward =>
-                  if Last_Op in Insert | Delete then
+                  if Last_Op in Insert then
+                     Append (Line, "][]]");
+                  elsif Last_Op in Delete then
                      Append (Line, "]]");
-                  end if;
-                  if I /= Item.Ops.Last_Index then
-                     Append (Line, "[");
                   end if;
 
                   Last_Op := Op.Op;
@@ -417,11 +417,18 @@ package body WisiToken.Wisi_Runtime is
                end case;
             end;
          end loop;
-         if Last_Op = Fast_Forward then
-            Append (Line, "]]");
-         else
+         case Last_Op is
+         when Fast_Forward =>
+            Append (Line, "]");
+
+         when Undo_Reduce | Push_Back =>
+            null;
+
+         when Insert =>
+            Append (Line, "][]]]");
+         when Delete =>
             Append (Line, "]]]");
-         end if;
+         end case;
       end if;
       Ada.Text_IO.Put_Line (To_String (Line));
    end Put;
@@ -1183,10 +1190,11 @@ package body WisiToken.Wisi_Runtime is
    end Put;
 
    procedure Put
-     (Errors     : in LR.Parse_Error_Lists.List;
-      State      : in Semantic_State.Semantic_State;
-      Tree       : in Syntax_Trees.Tree;
-      Descriptor : in WisiToken.Descriptor)
+     (Lexer_Errors : in Lexer.Error_Lists.List;
+      Parse_Errors : in LR.Parse_Error_Lists.List;
+      State        : in Semantic_State.Semantic_State;
+      Tree         : in Syntax_Trees.Tree;
+      Descriptor   : in WisiToken.Descriptor)
    is
       use all type SAL.Base_Peek_Type;
       use Ada.Text_IO;
@@ -1235,8 +1243,32 @@ package body WisiToken.Wisi_Runtime is
          return (if Pos = Buffer_Pos'Last then Buffer_Pos'First else Pos);
       end Safe_Pos;
 
+      function Trim (Item : in String) return String
+      is begin
+         for I in Item'Range loop
+            if Item (I) = ASCII.NUL then
+               return Item (Item'First .. I - 1);
+            end if;
+         end loop;
+         return Item;
+      end Trim;
    begin
-      for Item of Errors loop
+      for Item of Lexer_Errors loop
+         Put_Line
+           ('[' & Lexer_Error_Code & Buffer_Pos'Image (Item.Char_Pos) &
+             " ""lexer error" &
+             (if Item.Recover (1) = ASCII.NUL
+              then ""
+              elsif Item.Recover (1) = '"'
+              then "; inserted '\""'"
+              else "; inserted '" & Trim (Item.Recover) & "'") &
+             """ " & (if Item.Recover (1) = '"' then "?\""" else "" & Item.Recover (1)) & "]");
+         if Item.Recover (2) /= ASCII.NUL then
+            raise Programmer_Error with "lexer error with non-ascii or multiple repair char";
+         end if;
+      end loop;
+
+      for Item of Parse_Errors loop
          --  We don't include parser id here; not very useful.
          case Item.Label is
          when LR.Action =>
@@ -1252,40 +1284,13 @@ package body WisiToken.Wisi_Runtime is
                  (case Item.Check_Status.Label is
                   when Ok => "",
                   when Error =>
-                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name.Byte_Region.First)) & " " &
-                       Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name.Byte_Region.First)) &
+                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name.Byte_Region.First)) &
                        " ""check error""]"));
          end case;
 
          if Item.Recover.Stack.Depth > 0 then
             Put (Item.Recover, State.Terminals, Descriptor);
          end if;
-      end loop;
-   end Put;
-
-   procedure Put (Errors : in WisiToken.Lexer.Error_Lists.List)
-   is
-      use Ada.Text_IO;
-      function Trim (Item : in String) return String
-      is begin
-         for I in Item'Range loop
-            if Item (I) = ASCII.NUL then
-               return Item (Item'First .. I - 1);
-            end if;
-         end loop;
-         return Item;
-      end Trim;
-   begin
-      for Item of Errors loop
-         Put_Line
-           ('[' & Parser_Error_Code & Buffer_Pos'Image (Item.Error_Char_Pos) &
-              " ""lexer error" &
-              (if Item.Recover (1) = ASCII.NUL
-               then ""
-               elsif Item.Recover (1) = '"'
-               then "; inserted '\""'"
-               else "; inserted '" & Trim (Item.Recover) & "'") &
-              """]");
       end loop;
    end Put;
 

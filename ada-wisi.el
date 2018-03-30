@@ -691,7 +691,7 @@ TOKEN-TEXT; move point to just past token."
   )
 
 (cl-defmethod wisi-parse-format-language-options ((_parser ada-wisi-parser))
-  (format "%d %d %d %d %d %d %d %d %d %d %d %d"
+  (format "%d %d %d %d %d %d %d %d %d %d %d %d %d"
 	  ada-indent
 	  ada-indent-broken
 	  (if ada-indent-comment-col-0 1 0)
@@ -704,6 +704,7 @@ TOKEN-TEXT; move point to just past token."
 	  ada-indent-when
 	  ada-indent-with
 	  (if ada-indent-hanging-rel-exp 1 0)
+	  (if ada-end-name-optional 1 0)
 	  ))
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection

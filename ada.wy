@@ -57,7 +57,7 @@
 
 ;; Ada keywords (ARM 2.9) and operators (info "(aarm2012)2.9" "*info AARM*")
 
-%keywords_case_insensitive
+%case_insensitive
 
 %keyword ABS "abs"
 %keyword ACCEPT "accept"
@@ -287,7 +287,7 @@
 ;; 4 required for test/ada_mode-recover_match_names.adb.
 %mckenzie_check_limit 4
 
-%match_tokens_end_optional_option Match_Tokens_End_Optional
+%end_names_optional_option End_Names_Optional
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW

@@ -1,6 +1,6 @@
 ;; user options shared by Ada mode indentation engines  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012, 2013, 2015, 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2015, 2017, 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Contributors: Simon Wright <simon.j.wright@mac.com>
@@ -230,6 +230,14 @@ An example is:
 (defcustom ada-indent-hanging-rel-exp nil
   "If nil, indent hanging lines in an expression relative to the first line.
 Otherwise, indent by `ada-indent-broken' relative to the start of the expression."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'ada-indent-hanging-rel-exp)
+
+(defcustom ada-end-name-optional t
+  "If t, names at ends of blocks/subprograms are optional (as in
+standard Ada). If nil, they are required; this helps in error
+recovery, and matches the gnat style option -gnatye."
   :type 'boolean
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-hanging-rel-exp)

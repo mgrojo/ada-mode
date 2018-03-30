@@ -15,7 +15,7 @@
 procedure SMM.Metadata.Debug is
    use Interfaces.C.Strings;
 
-C_File_Name :
+   C_File_Name :
 begin
    if 0 /= AV_Format_Open_Input (Context, Name
 

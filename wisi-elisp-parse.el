@@ -115,7 +115,8 @@ point at which that max was spawned.")
 
       (t nil))
 
-    (setf (wisi-parser-errors parser) nil)
+    (setf (wisi-parser-lexer-errors parser) nil)
+    (setf (wisi-parser-parse-errors parser) nil)
 
     ;; We assume the lexer relies on syntax properties
     (when (< emacs-major-version 25) (syntax-propertize (point-max)))
@@ -142,7 +143,7 @@ point at which that max was spawned.")
 		       (msg (wisi-error-msg (concat "too many parallel parsers required in grammar state %d;"
 						    " simplify grammar, or increase `wisi-elisp-parse-max-parallel'")
 					    state)))
-		  (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
+		  (push (make-wisi--parse-error :pos (point) :message msg) (wisi-parser-parse-errors parser))
 		  (signal 'wisi-parse-error msg)))
 
 	      (let ((j (wisi-elisp-parse-free-parser parser-states)))
@@ -189,7 +190,7 @@ point at which that max was spawned.")
 					       state
 					       (wisi-token-text token)
 					       (mapcar 'car (aref actions state)))))
-		     (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
+		     (push (make-wisi--parse-error :pos (point) :message msg) (wisi-parser-parse-errors parser))
 		     (signal 'wisi-parse-error msg)))
 		  (t
 		   ;; Report errors from all parsers that failed on this token.
@@ -208,7 +209,7 @@ point at which that max was spawned.")
 					  (wisi-token-text token)
 					  (mapcar 'car (aref actions state)))))
 			   )))
-		     (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
+		     (push (make-wisi--parse-error :pos (point) :message msg) (wisi-parser-parse-errors parser))
 		     (signal 'wisi-parse-error msg)))
 		  ))
 
@@ -376,7 +377,7 @@ nil, `shift', or `accept'."
 
 		  (2
 		   (let ((msg "identical parser stacks"))
-		     (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
+		     (push (make-wisi--parse-error :pos (point) :message msg) (wisi-parser-parse-errors parser))
 		     (signal 'wisi-parse-error msg)))
 		  )
 		(when (= active-parser-count 1)

@@ -40,7 +40,7 @@ package body Ada_Mode.Recover_Match_Names is
    is begin
       accept Start do
          loop
-      loop;
+         loop;
       end Start;
    end Accept_Statement_0;
 
@@ -50,7 +50,7 @@ package body Ada_Mode.Recover_Match_Names is
       declare
       begin
          loop
-      loop;
+         loop;
       end Block_1;
    end Block_Statement_0;
 
@@ -59,7 +59,7 @@ package body Ada_Mode.Recover_Match_Names is
    Block_1:
       begin
          loop
-      loop;
+         loop;
       end Block_1;
    end Block_Statement_1;
 
@@ -68,7 +68,7 @@ package body Ada_Mode.Recover_Match_Names is
       entry E1 when A is
       begin
          loop
-      loop;
+         loop;
       end E1;
    end Entry_Body_0;
 
@@ -77,7 +77,7 @@ package body Ada_Mode.Recover_Match_Names is
    Loop_1 :
       for I in B'Range loop
          if then
-      if; -- meant 'end if;'
+         if; -- meant 'end if;'
       end loop Loop_1;
    end Loop_Statement_0;
 
@@ -87,26 +87,26 @@ package body Ada_Mode.Recover_Match_Names is
       loop
          exit when C;
          if then
-      if; -- meant 'end if;'
+         if; -- meant 'end if;'
       end loop Loop_1;
    end Loop_Statement_1;
 
    package body Package_Body_0 is
    begin -- for package_body_1
       loop
-   loop; -- meant 'end loop;'
+      loop; -- meant 'end loop;'
    end Package_Body_0;
 
-package body Package_Body_1 is
-   procedure A
-   is
-      B : Integer;
-   begin
-      C;
-      -- missing 'end A;'
+   package body Package_Body_1 is
+      procedure A
+      is
+            B : Integer;
+      begin
+            C;
+            -- missing 'end A;'
    end Package_Body_1;
 
-   package Package_Specification_0
+   package Package_Specification_0 is
    private
       type A is record
         record; -- meant 'end record'
@@ -119,7 +119,7 @@ package body Package_Body_1 is
 
    protected body Protected_Body_0 is
    entry E1 is
-      -- missing 'end E1'
+   -- missing 'end E1'
    end Protected_Body_0;
 
    --  protected protected_definition
@@ -135,13 +135,13 @@ package body Package_Body_1 is
    procedure Subprogram_Body_0
    is begin
       loop
-   loop; --  meant 'end loop;'
+      loop; --  meant 'end loop;'
    end Subprogram_Body_0;
 
    task body Task_Body_0
    is begin
       loop
-   loop; --  meant 'end loop;'
+      loop; --  meant 'end loop;'
    end Task_Body_0;
 
    --  task_type_declaration

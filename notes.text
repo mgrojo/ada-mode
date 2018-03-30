@@ -13,11 +13,11 @@ run test from emacs -Q using source:
   (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
   (setq debug-on-quit t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (load "autoloads.el")
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
@@ -27,9 +27,9 @@ run test from emacs -Q using source:
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
+  (xmtn . "c:/Projects/org.stephe_leake.sal")
+  (xmtn . "c:/Projects/org.wisitoken")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"        . "../org.stephe_leake.sal.stephe-1")
@@ -50,32 +50,6 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
-is undo_reduce cost used?
-
-need longer timeout on "not getting more text"
-    propagate from o.e.a.s-2
-
-wisitoken changes
-
-
-test/ada_mode-interactive_2.adb
-    parse fails during insert Function_Access_1 body, makes indent wrong.
-        but only sometimes? race condition?
-
-
-    test/ada_mode-interactive_recover.adb   ok, fast
-    test/ada_mode-recover_align_1.adb       ok, fast
-    test/ada_mode-recover_bad_char.adb      ok, slow
-        o.e.a.s-2: 0.145636766
-        o.e.a.s-4: branched tree in mckenzie 2.757418621 seconds/iteration
-        o.e.a.s-4: branched tree in main parser 2.045493021
-
-
-test/ada_mode-recover_match_names.adb
-    parse fails with (parse_error), error during resume
-        and only two mckenzies, both in Accept_Statement_0
-        ignore for now; will change again
-
 test/ada_mode.adb auto-case test fails
     works when done manually; some race condition!?
     also changes ada_mode.ads; it should not!?
@@ -88,51 +62,17 @@ emacs track parse-max, don't reparse just for different action; just execute act
 wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
     include package name in error message fix
 
-align_paramlist only repair errors in list
-
-test cases for Match_Names_Error:
-   overriding
-   procedure Set_Children
-     (Tree     : in out Branched.Tree;
-      Parent   : in     Valid_Node_Index;
-      Children : in     Valid_Node_Index_Array)
-   is begin
-
-      N : Nonterm_Node renames Tree.Nodes (Parent);
-   begin
-      N.Children.Clear;
-      N.Children.Reserve_Capacity (Children'Length);
-      for I in Children'Range loop
-         N.Children (I) := Children (I);
-         Tree.Nodes (Children (I)).Parent := Parent;
-      end loop;
-
-   end Set_Children;
-
-   task type Test_Task is
-
-
 make-subprogram-body should strip aspects.
 
 add subtypes, protected body to xref-completion
-
-apply 'end identifier' pattern to 'end string_literal' as well
-    also propagate, match names
 
 clean up gpr-mode; delete 'we reuse ada' comments
 
 clean up Makefile, common.make
     see wisi_grammar
 
-don't delete 'end' if semantic check passes
-    test/slow_recover_2.adb
-
 AdaCore 18.1
     libadalang
-
-user option to make end block names not optional
-
-cache syntax tree for subsequent actions
 
 compute align in grammar actions
     align-list action on ':', '=>' etc

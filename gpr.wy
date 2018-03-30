@@ -65,7 +65,7 @@
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> VERTICAL_BAR "|"
 
-%keywords_case_insensitive
+%case_insensitive
 
 %keyword ABSTRACT "abstract"
 %keyword AGGREGATE "aggregate"
@@ -114,7 +114,7 @@
 %mckenzie_cost_limit 12
 %mckenzie_check_limit 3
 
-%match_tokens_end_optional_option Match_Tokens_End_Optional
+%end_names_optional_option End_Names_Optional
 
 %conflict SHIFT/REDUCE in state term, term  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state case_statement, case_statement  on token WHEN

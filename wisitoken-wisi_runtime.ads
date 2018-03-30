@@ -300,16 +300,14 @@ package WisiToken.Wisi_Runtime is
    --  wisi-process-parse--execute.
 
    procedure Put
-     (Errors     : in WisiToken.LR.Parse_Error_Lists.List;
-      State      : in Semantic_State.Semantic_State;
-      Tree       : in Syntax_Trees.Tree;
-      Descriptor : in WisiToken.Descriptor);
-   --  Put Errors to Ada.Text_IO.Current_Output, as encoded error
-   --  responses as defined in [3] wisi-process-parse--execute.
-
-   procedure Put (Errors : in WisiToken.Lexer.Error_Lists.List);
-   --  Put Errors to Ada.Text_IO.Current_Output, as encoded error
-   --  responses as defined in [3] wisi-process-parse--execute.
+     (Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
+      Parse_Errors : in WisiToken.LR.Parse_Error_Lists.List;
+      State        : in Semantic_State.Semantic_State;
+      Tree         : in Syntax_Trees.Tree;
+      Descriptor   : in WisiToken.Descriptor);
+   --  Put Lexer_Errors and Parse_Errors to Ada.Text_IO.Current_Output,
+   --  as encoded error responses as defined in [3]
+   --  wisi-process-parse--execute.
 
    procedure Put_Error (Data : in Parse_Data_Type; Line_Number : in Line_Number_Type; Message : in String);
    --  Put an error elisp form to Ada.Text_IO.Standard_Output.

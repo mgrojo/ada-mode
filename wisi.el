@@ -464,16 +464,16 @@ Used to ignore whitespace changes in before/after change hooks.")
 
 (defun wisi-goto-error ()
   "Move point to position in last error message (if any)."
-  ;; IMPROVEME: next-error goto next etc
-  (when (wisi-parser-errors wisi--parser)
-    (let ((data (car (wisi-parser-errors wisi--parser))))
+  (cond
+   ((wisi-parser-parse-errors wisi--parser)
+    (let ((data (car (wisi-parser-parse-errors wisi--parser))))
       (cond
-       ((wisi--error-pos data)
+       ((wisi--parse-error-pos data)
 	(push-mark)
-	(goto-char (wisi--error-pos data)))
+	(goto-char (wisi--parse-error-pos data)))
 
-       ((string-match ":\\([0-9]+\\):\\([0-9]+\\):" (wisi--error-message data))
-	(let* ((msg (wisi--error-message data))
+       ((string-match ":\\([0-9]+\\):\\([0-9]+\\):" (wisi--parse-error-message data))
+	(let* ((msg (wisi--parse-error-message data))
 	       (line (string-to-number (match-string 1 msg)))
 	       (col (string-to-number (match-string 2 msg))))
 	  (push-mark)
@@ -486,28 +486,42 @@ Used to ignore whitespace changes in before/after change hooks.")
 	    (error
 	     ;; just stay at eob.
 	     nil))))
-       ))))
+       )))
+   ((wisi-parser-lexer-errors wisi--parser)
+    (push-mark)
+    (goto-char (wisi--lexer-error-pos (car (wisi-parser-lexer-errors wisi--parser)))))
+   ))
 
 (defun wisi-show-parse-error ()
   "Show current wisi-parse errors."
   (interactive)
   (cond
-   ((wisi-parser-errors wisi--parser)
-    (if (and (= 1 (length (wisi-parser-errors wisi--parser)))
-	     (not
-	      (or (wisi--error-inserted (car (wisi-parser-errors wisi--parser)))
-		  (wisi--error-deleted (car (wisi-parser-errors wisi--parser))))))
-	;; If there is error correction information, use a
-	;; ’compilation’ buffer, so *-fix-compiler-error will call
-	;; wisi-repair-error.
+   ((or (wisi-parser-lexer-errors wisi--parser)
+	(wisi-parser-parse-errors wisi--parser))
+    (if (and (= 1 (+ (length (wisi-parser-lexer-errors wisi--parser))
+		     (length (wisi-parser-parse-errors wisi--parser))))
+	     (or (and (wisi-parser-parse-errors wisi--parser)
+		      (not (wisi--parse-error-repair (car (wisi-parser-parse-errors wisi--parser)))))
+		 (and (wisi-parser-lexer-errors wisi--parser)
+		      (not (wisi--lexer-error-inserted (car (wisi-parser-lexer-errors wisi--parser)))))))
+	;; There is exactly one error; if there is error correction
+	;; information, use a ’compilation’ buffer, so
+	;; *-fix-compiler-error will call
+	;; wisi-repair-error. Otherwise, just position cursor at
+	;; error.
 	(progn
 	  (wisi-goto-error)
-	  (message (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
+	  (message (or (and (wisi-parser-parse-errors wisi--parser)
+			    (wisi--parse-error-message (car (wisi-parser-parse-errors wisi--parser))))
+		       (and (wisi-parser-lexer-errors wisi--parser)
+			    (wisi--lexer-error-message (car (wisi-parser-lexer-errors wisi--parser)))))
+		   ))
 
       ;; else show all errors in a ’compilation’ buffer
       (setq wisi-error-buffer (get-buffer-create wisi-error-buffer-name))
 
-      (let ((errs (nreverse (cl-copy-seq (wisi-parser-errors wisi--parser)))))
+      (let ((lexer-errs (nreverse (cl-copy-seq (wisi-parser-lexer-errors wisi--parser))))
+	    (parse-errs (nreverse (cl-copy-seq (wisi-parser-parse-errors wisi--parser)))))
 	(with-current-buffer wisi-error-buffer
 	  (compilation-mode)
 	  (setq next-error-last-buffer (current-buffer))
@@ -517,8 +531,13 @@ Used to ignore whitespace changes in before/after change hooks.")
 	  ;; error at point min, so we need a comment.
 	  (insert "wisi syntax errors")
 	  (newline)
-	  (dolist (err errs)
-	    (insert (wisi--error-message err))
+	  (dolist (err lexer-errs)
+	    (insert (wisi--lexer-error-message err))
+	    (put-text-property (line-beginning-position) (1+ (line-beginning-position)) 'wisi-error-data err)
+	    (newline)
+	    (newline))
+	  (dolist (err parse-errs)
+	    (insert (wisi--parse-error-message err))
 	    (put-text-property (line-beginning-position) (1+ (line-beginning-position)) 'wisi-error-data err)
 	    (newline)
 	    (newline))
@@ -612,12 +631,16 @@ Used to ignore whitespace changes in before/after change hooks.")
 	)
 
       (when (> wisi-debug 0)
-	(if (wisi-parser-errors wisi--parser)
-	    ;; error
+	(if (or (wisi-parser-lexer-errors wisi--parser)
+		(wisi-parser-parse-errors wisi--parser))
 	    (progn
 	      (message "%s error" msg)
 	      (wisi-goto-error)
-	      (error (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
+	      (error (or (and (wisi-parser-lexer-errors wisi--parser)
+			      (wisi--lexer-error-message (car (wisi-parser-lexer-errors wisi--parser))))
+			 (and (wisi-parser-parse-errors wisi--parser)
+			      (wisi--parse-error-message (car (wisi-parser-parse-errors wisi--parser))))
+			 )))
 
 	  ;; no error
 	  (message "%s done" msg))
@@ -1069,7 +1092,8 @@ Called with BEGIN END.")
 
       ;; If there were errors corrected, the indentation is
       ;; potentially ambiguous; see test/ada_mode-interactive_2.adb
-      (setq wisi-indent-failed (> (length (wisi-parser-errors wisi--parser)) 0))
+      (setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
+				       (length (wisi-parser-parse-errors wisi--parser)))))
       )
 
     (if wisi-parse-failed
@@ -1126,28 +1150,37 @@ Called with BEGIN END.")
     ))
 
 (defun wisi-repair-error-1 (data)
-  "Repair error reported in DATA (a ’wisi-error’)"
+  "Repair error reported in DATA (a ’wisi--parse-error’ or ’wisi--lexer-error’)"
   (let ((wisi--parse-action 'navigate) ;; tell wisi-forward-token not to compute indent stuff.
 	tok-2)
-      (goto-char (wisi--error-pos data))
-      (dolist (tok-1 (wisi--error-deleted data))
-	(setq tok-2 (wisi-forward-token))
-	(if (eq tok-1 (wisi-tok-token tok-2))
-	    (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
-	  (error "mismatched tokens: parser %s, buffer %s" (wisi-tok-token tok-1) (wisi-tok-token tok-2))))
+    (cond
+     ((wisi--lexer-error-p data)
+      (goto-char (1+ (wisi--lexer-error-pos data)))
+      (insert (wisi--lexer-error-inserted data)))
+     ((wisi--parse-error-p data)
+      (dolist (repair (wisi--parse-error-repair data))
+	(goto-char (wisi--parse-error-repair-pos repair))
+	(dolist (tok-1 (wisi--parse-error-repair-deleted repair))
+	  (setq tok-2 (wisi-forward-token))
+	  (if (eq tok-1 (wisi-tok-token tok-2))
+	      (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
+	    (error "mismatched tokens: parser %s, buffer %s" (wisi-tok-token tok-1) (wisi-tok-token tok-2))))
 
-      (dolist (id (wisi--error-inserted data))
-	(insert (cdr (assoc id (wisi-elisp-lexer-id-alist wisi--lexer))))
-	(insert " "))
-      ))
+	(dolist (id (wisi--parse-error-repair-inserted repair))
+	  (insert (cdr (assoc id (wisi-elisp-lexer-id-alist wisi--lexer))))
+	  (insert " "))
+	))
+     )))
 
 (defun wisi-repair-error ()
   "Repair the current error."
   (interactive)
-  (if (= 1 (length (wisi-parser-errors wisi--parser)))
+  (if (= 1 (+ (length (wisi-parser-lexer-errors wisi--parser))
+	      (length (wisi-parser-parse-errors wisi--parser))))
       (progn
 	(wisi-goto-error)
-	(wisi-repair-error-1 (car (wisi-parser-errors wisi--parser))))
+	(wisi-repair-error-1 (or (car (wisi-parser-lexer-errors wisi--parser))
+				 (car (wisi-parser-parse-errors wisi--parser)))))
     (if (buffer-live-p wisi-error-buffer)
 	(let ((err
 	       (with-current-buffer wisi-error-buffer
@@ -1161,11 +1194,19 @@ Called with BEGIN END.")
   "Repair errors reported by last parse.
 If non-nil, only repair errors in BEG END region."
   (interactive)
-  (dolist (data (wisi-parser-errors wisi--parser))
+  (dolist (data (wisi-parser-lexer-errors wisi--parser))
     (when (or (null beg)
-	      (and (wisi--error-pos data)
-		   (<= beg (wisi--error-pos data))
-		   (<= (wisi--error-pos data) end)))
+	      (and (not (= 0 (wisi--lexer-error-inserted data)))
+		   (wisi--lexer-error-pos data)
+		   (<= beg (wisi--lexer-error-pos data))
+		   (<= (wisi--lexer-error-pos data) end)))
+      (wisi-repair-error-1 data)))
+
+  (dolist (data (wisi-parser-parse-errors wisi--parser))
+    (when (or (null beg)
+	      (and (wisi--parse-error-pos data)
+		   (<= beg (wisi--parse-error-pos data))
+		   (<= (wisi--parse-error-pos data) end)))
       (wisi-repair-error-1 data))))
 
 ;;;; debugging

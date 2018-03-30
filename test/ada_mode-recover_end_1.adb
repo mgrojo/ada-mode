@@ -1,8 +1,11 @@
---  Demonstrate recover patterns for 'end *;'
+--  Demonstrate recovery for incorrect 'end *;'
+--
+-- Compare to ada_mode-recover_end_2.adb; that has matching end names
+-- present.
 --
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
-package body Ada_Mode.Recover_Pattern_1 is
+package body Ada_Mode.Recover_End_1 is
    procedure Case_Example
    is begin
       case  is
@@ -26,9 +29,9 @@ package body Ada_Mode.Recover_Pattern_1 is
 
    function Return_Example return Integer
    is begin
-      return A : Integer := 0 do
-         null;
-         -- end return;
-      end;
+         return A : Integer := 0 do
+               null;
+               -- end return;
+         end;
 
-end Ada_Mode.Recover_Pattern_1;
+end Ada_Mode.Recover_End_1;

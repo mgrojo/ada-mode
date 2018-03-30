@@ -5,13 +5,14 @@
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 
---EMACSCMD:(indent-region (point-min) (point-max))
---EMACSCMD:(progn (ada-show-parse-error)(looking-at "; -- error reported here"))
-
 --EMACSCMD:(progn (wisi-validate-cache (point-max) nil 'navigate)(wisi-cache-nonterm (wisi-get-cache (line-beginning-position 3))))
 --EMACSCMD:'subprogram_body
-procedure Ada_Mode.Interactive_Recover
+procedure Ada_Mode.Recover_1
 is begin
+
+   --EMACSCMD:(indent-region (point-min) (point-max))
+   --EMACSCMD:(progn (ada-show-parse-error)(looking-at "; -- error reported here"))
+
    loop
       begin
          D;
@@ -23,6 +24,8 @@ is begin
    end
    loop
    ;
-end Ada_Mode.
-  Interactive_Recover;
+   -- This used to have a newline after the '.'; that confuses the
+   -- Match_Name check. It's not a credible style, so we don't have it
+   -- here any more.
+end Ada_Mode.Recover_1;
 -- end of file

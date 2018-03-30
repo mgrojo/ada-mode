@@ -27,18 +27,35 @@
   (require 'wisi-compat-24.2)
 ;;)
 
-(cl-defstruct (wisi--error)
+(cl-defstruct (wisi--lexer-error)
+  pos ;; position (integer) in buffer where error was detected.
+  message  ;; string error message
+  inserted ;; char inserted after pos.
+  )
+
+(cl-defstruct (wisi--parse-error-repair)
+  pos ;; position (integer) in buffer where insert/delete is done.
+  inserted ;; list of token IDs that were inserted before pos
+  deleted  ;; list of token IDs that were deleted after pos
+  )
+
+(cl-defstruct (wisi--parse-error)
   ;; Includes information derived from compiler error recovery to edit
   ;; text to fix one error. Used by ’wisi-repair-error’ to edit buffer.
   pos      ;; position (integer or marker) in buffer where error was detected.
-  inserted ;; list of token IDs that were inserted before pos
-  deleted  ;; list of token IDs that were deleted after pos
   message  ;; string error message
+  repair   ;; list of wisi--parse-error-repair.
   )
 
 (cl-defstruct wisi-parser
-  errors
-  ;; List of wisi--errors from last parse. Can be more than one if
+  ;; Separate lists for lexer and parse errors, because lexer errors
+  ;; must be repaired first, before parse errors can be repaired. And
+  ;; they have different structures.
+  lexer-errors
+  ;; list of wisi--lexer-errors from last parse.  Can be more than one if
+  ;; lexer supports error recovery.
+  parse-errors
+  ;; List of wisi--parse-errors from last parse. Can be more than one if
   ;; parser supports error recovery.
 )
 

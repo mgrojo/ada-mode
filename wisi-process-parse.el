@@ -56,6 +56,18 @@
 (defvar wisi-process--alist nil
   "Alist mapping string label to ‘wisi-process--session’ struct")
 
+(defgroup wisi nil
+  "Options for Wisi package."
+  :group 'programming)
+
+(defcustom wisi-process-time-out 1.0
+  "Time out waiting for parser response. An error occurs if there
+  is no response from the parser after waiting this amount 5
+  times."
+  :type 'float
+  :safe 'floatp)
+(make-variable-buffer-local 'wisi-process-time-out)
+
 ;;;###autoload
 (defun wisi-process-parse-get (parser)
   "Return a ‘wisi-process--parser’ object matching PARSER label.
@@ -242,6 +254,29 @@ complete."
        (aref sexp 2)))
     ))
 
+(defun wisi-process-parse--Lexer_Error (parser sexp)
+  ;; sexp is [Lexer_Error char-position <message> <repair-char>]
+  ;; see ‘wisi-process-parse--execute’
+  (let ((pos (aref sexp 1))
+	err)
+
+    (goto-char pos);; for current-column
+
+    (setq err
+	  (make-wisi--lexer-error
+	   :pos (copy-marker pos)
+	   :message
+	   (format "%s:%d:%d: %s"
+		   (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		   ;; file-name can be nil during vc-resolve-conflict
+		   (line-number-at-pos pos)
+		   (current-column)
+		   (aref sexp 2))
+	   :inserted (aref sexp 3)))
+
+    (push err (wisi-parser-lexer-errors parser))
+    ))
+
 (defun wisi-process-parse--Parser_Error (parser sexp)
   ;; sexp is [Parser_Error char-position <string>]
   ;; see ‘wisi-process-parse--execute’
@@ -251,7 +286,7 @@ complete."
     (goto-char pos);; for current-column
 
     (setq err
-	  (make-wisi--error
+	  (make-wisi--parse-error
 	   :pos (copy-marker pos)
 	   :message
 	   (format "%s:%d:%d: %s"
@@ -261,7 +296,7 @@ complete."
 		   (current-column)
 		   (aref sexp 2))))
 
-    (push err (wisi-parser-errors parser))
+    (push err (wisi-parser-parse-errors parser))
     ))
 
 (defun wisi-process-parse--Check_Error (parser sexp)
@@ -273,7 +308,7 @@ complete."
     (goto-char pos);; for current-column
 
     (setq err
-	  (make-wisi--error
+	  (make-wisi--parse-error
 	   :pos (copy-marker pos)
 	   :message
 	   (format "%s:%d:%d: %s"
@@ -283,23 +318,24 @@ complete."
 		   (current-column)
 		   (aref sexp 3))))
 
-    (push err (wisi-parser-errors parser))
+    (push err (wisi-parser-parse-errors parser))
     ))
 
 (defun wisi-process-parse--Recover (parser sexp)
   ;; sexp is [Recover [pos [inserted] [deleted]]...]
   ;; see ‘wisi-process-parse--execute’
-  ;; convert to list of wisi--error
-  (let* ((token-table (wisi-process--parser-token-table parser)))
+  ;; convert to list of wisi--parse-error-repair, add to last error
+  (let* ((token-table (wisi-process--parser-token-table parser))
+	 (last-error (car (wisi-parser-parse-errors parser))))
     (unless (= 1 (length sexp))
-      (cl-do ((i 1 1)) ((= i (1- (length sexp))))
+      (cl-do ((i 1 (1+ i))) ((= i (length sexp)))
 	(push
-	 (make-wisi--error
+	 (make-wisi--parse-error-repair
 	  :pos (aref (aref sexp i) 0)
 	  :inserted (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 1))
 	  :deleted  (mapcar (lambda (id) (aref token-table id)) (aref (aref sexp i) 2)))
-	 (wisi-process--parser-errors parser)))
-    )))
+	 (wisi--parse-error-repair last-error)))
+      )))
 
 (defun wisi-process-parse--execute (parser sexp)
   "Execute encoded SEXP sent from external process."
@@ -321,7 +357,13 @@ complete."
   ;; [Indent line-number indent]
   ;;    Set an indent text property
   ;;
-  ;; [Parser_Error char-position <string>]
+  ;; [Lexer_Error char-position <message> <repair-char>]
+  ;;    The lexer detected an error at char-position.
+  ;;
+  ;;    If <repair-char> is not ASCII NUL, it was inserted immediately
+  ;;    after char-position to fix the error.
+  ;;
+  ;; [Parser_Error char-position <message>]
   ;;    The parser detected a syntax error; save information for later
   ;;    reporting.
   ;;
@@ -354,9 +396,10 @@ complete."
     (1  (wisi-process-parse--Navigate_Cache parser sexp))
     (2  (wisi-process-parse--Face_Property parser sexp))
     (3  (wisi-process-parse--Indent parser sexp))
-    (4  (wisi-process-parse--Parser_Error parser sexp))
-    (5  (wisi-process-parse--Check_Error parser sexp))
-    (6  (wisi-process-parse--Recover parser sexp))
+    (4  (wisi-process-parse--Lexer_Error parser sexp))
+    (5  (wisi-process-parse--Parser_Error parser sexp))
+    (6  (wisi-process-parse--Check_Error parser sexp))
+    (7  (wisi-process-parse--Recover parser sexp))
     ))
 
 ;;;;; main
@@ -383,9 +426,9 @@ complete."
   ;; wisi-indent-region, we signal an error here.
   (if (wisi-process--parser-busy parser)
       (progn
-	(setf (wisi-parser-errors parser)
+	(setf (wisi-parser-parse-errors parser)
 	      (list
-	       (make-wisi--error
+	       (make-wisi--parse-error
 		:pos 0
 		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
 				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
@@ -411,7 +454,8 @@ complete."
 
 	  (setf (wisi-process--parser-total-wait-time parser) 0.0)
 
-	  (setf (wisi-parser-errors parser) nil)
+	  (setf (wisi-parser-lexer-errors parser) nil)
+	  (setf (wisi-parser-parse-errors parser) nil)
 
 	  (let ((line-count (1+ (count-lines (point-min) (point-max)))))
 	    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin line-count))
@@ -462,14 +506,14 @@ complete."
 		      (cond
 		       ((equal '(parse_error) response)
 			;; Parser detected a syntax error, and recovery failed, so signal it.
-			(if (wisi-parser-errors parser)
+			(if (wisi-parser-parse-errors parser)
 			    (signal 'wisi-parse-error
-				    (wisi--error-message (car (wisi-parser-errors parser))))
+				    (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
 
 			  ;; can have no errors when testing a new parser
 			  (push
-			   (make-wisi--error :pos 0 :message "parser failed with no message")
-			   (wisi-parser-errors parser))
+			   (make-wisi--parse-error :pos 0 :message "parser failed with no message")
+			   (wisi-parser-parse-errors parser))
 			  (signal 'wisi-parse-error "parser failed with no message")))
 
 		       ((equal 'parse_error (car response))
@@ -490,7 +534,7 @@ complete."
 			(condition-case-unless-debug err
 			    (eval response)
 			  (error
-			   (push (make-wisi--error :pos (point) :message (cadr err)) (wisi-parser-errors parser))
+			   (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
 			   (signal (car err) (cdr err)))))
 		       )
 
@@ -498,8 +542,7 @@ complete."
 		    (condition-case-unless-debug err
 			(wisi-process-parse--execute parser response)
 		      (wisi-parse-error
-		       ;; From an action
-		       (push (make-wisi--error :pos (point) :message (cadr err)) (wisi-parser-errors parser))
+		       (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
 		       (signal (car err) (cdr err)))))
 
 		  (set-buffer response-buffer)
@@ -527,14 +570,11 @@ complete."
 	      ;;
 	      ;; Specifying just-this-one t prevents C-q from
 	      ;; interrupting this?
-	      ;;
-	      ;; FIXME: but now we have a race condition between
-	      ;; reading the output and waiting for it?
 	      (accept-process-output
 	       process
-	       1.0 ;; time-out
+	       wisi-process-time-out
 	       nil ;; milliseconds
-	       1)  ;; just-this-one
+	       nil)  ;; just-this-one
 
 	      (setf (wisi-process--parser-total-wait-time parser)
 		    (+ (wisi-process--parser-total-wait-time parser)
@@ -542,7 +582,7 @@ complete."
 
 	      (when (and (= (point-max) need-more)
 		       (> wait-count 5))
-		(error "wisi-process-parse not getting more text"))
+		(error "wisi-process-parse not getting more text (or bad syntax in process output)"))
 
 	      (setq need-more nil))
 	    );; while not done

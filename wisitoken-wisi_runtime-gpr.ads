@@ -28,7 +28,7 @@ package WisiToken.Wisi_Runtime.Gpr is
    Gpr_Indent_When   : Integer := 3;
 
    --  Other parameters
-   Match_Tokens_End_Optional : Boolean := False;
+   End_Names_Optional : Boolean := False;
 
    type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
 

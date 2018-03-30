@@ -37,7 +37,7 @@ package WisiToken.Wisi_Runtime.Ada is
    Ada_Indent_Hanging_Rel_Exp : Boolean := False;
 
    --  Other parameters
-   Match_Tokens_End_Optional : Boolean := False;
+   End_Names_Optional : Boolean := False;
 
    type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
 
@@ -51,8 +51,8 @@ package WisiToken.Wisi_Runtime.Ada is
       Params           : in     String);
    --  Call Wisi_Runtime.Initialize, then:
    --
-   --  If Params /= "", set all indent parameters from Params, in
-   --  declaration order; otherwise keep default values. Boolean is
+   --  If Params /= "", set all language-specific parameters from Params,
+   --  in declaration order; otherwise keep default values. Boolean is
    --  represented by 0 | 1. Parameter values are space delimited.
    --
    --  Also do any other initialization that Data needs.

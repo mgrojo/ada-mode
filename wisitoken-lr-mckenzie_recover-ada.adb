@@ -341,7 +341,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          --  0b. "<begin_named_token> is declarative_part_opt end <end_name_token> ;"
          --
          --  where <end_name_token> is empty, because the user is changing it.
-         --  0a looks like a subprogram or named block; 1b looks like a package
+         --  0a looks like a subprogram or named block; 0b looks like a package
          --  body.
          --
          --  The fix is to ignore the error; return Continue. See
@@ -403,13 +403,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
                Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
-               if Config.Error_Token.ID in +block_statement_ID | +subprogram_body_ID then
+               if Config.Error_Token.ID in +block_statement_ID | +subprogram_body_ID | +task_body_ID then
                   End_Item := Stack.Peek (3);
 
                   Push_Back_Check
                     (New_Config,
                      (+SEMICOLON_ID,
-                      (if Config.Error_Token.ID = +block_statement_ID
+                      (if Config.Error_Token.ID in +block_statement_ID | +task_body_ID
                        then +identifier_opt_ID
                        else +name_opt_ID),
                       +END_ID));
@@ -427,7 +427,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
                else
                   raise Programmer_Error with "unimplemented nonterm for Missing_Name_Error " &
-                    Image (Config.Error_Token.ID, Descriptor);
+                    Image (Config.Error_Token, Descriptor);
                end if;
 
                Ops.Append ((Delete, +END_ID, Token_Index => End_Item.Token.Min_Terminal_Index));
@@ -530,7 +530,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             end if;
 
             if Other_Counts (1) = 0 or Other_Counts (2) = 0 then
-               raise Programmer_Error with "unrecognized Extra_Name_Error case";
+               raise Programmer_Error with "unrecognized Extra_Name_Error case " & Image
+                 (Config.Error_Token, Descriptor);
             end if;
 
             if Other_Counts (1) > Other_Counts (2) then

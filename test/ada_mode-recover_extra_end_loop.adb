@@ -1,4 +1,4 @@
--- Test error recovery from an extra 'declare'.
+-- Test error recovery from an extra 'end loop'.
 -- Does not compile.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
@@ -7,10 +7,9 @@
 procedure Ada_Mode.Recover_Extra_End_Loop is
    procedure Find_Node
    is begin
-
-
-      Iter.Current := Next_Sibling (Iter.Current);
-   end loop;
+      --  Error recovery inserts 'loop' here.
+         Iter.Current := Next_Sibling (Iter.Current);
+      end loop;
    end Find_Node;
 
 begin

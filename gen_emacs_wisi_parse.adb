@@ -223,11 +223,11 @@ begin
                is begin
                   Parser.Lexer.Discard_Rest_Of_Input;
                   Put
-                    (Parser.Parsers.First.State_Ref.Errors,
+                    (Parser.Lexer.Errors,
+                     Parser.Parsers.First.State_Ref.Errors,
                      Parser.Semantic_State,
                      Parser.Parsers.First.State_Ref.Tree,
                      Trace.Descriptor.all);
-                  Put (Parser.Lexer.Errors);
                   Ada.Strings.Unbounded.Free (Buffer);
                end Clean_Up;
 

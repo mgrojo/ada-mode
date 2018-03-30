@@ -61,7 +61,7 @@ is
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
                   Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
-      Put_Line ("--indent_params <language-specific params>");
+      Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--lexer_only : only run lexer, for profiling");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       Put_Line ("--pause : when repeating, prompt for <enter> after each parse; allows seeing memory leaks");
@@ -71,13 +71,13 @@ is
    Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
    Parse_Action     : WisiToken.Wisi_Runtime.Parse_Action_Type;
 
-   Line_Count    : WisiToken.Line_Number_Type := 1;
-   Lexer_Only    : Boolean                    := False;
-   Repeat_Count  : Integer                    := 1;
-   Pause         : Boolean                    := False;
-   Arg           : Integer;
-   Indent_Params : Ada.Strings.Unbounded.Unbounded_String;
-   Start         : Ada.Real_Time.Time;
+   Line_Count   : WisiToken.Line_Number_Type := 1;
+   Lexer_Only   : Boolean                    := False;
+   Repeat_Count : Integer                    := 1;
+   Pause        : Boolean                    := False;
+   Arg          : Integer;
+   Lang_Params  : Ada.Strings.Unbounded.Unbounded_String;
+   Start        : Ada.Real_Time.Time;
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
    Create_Parser (Parser, WisiToken.LALR, Trace'Unrestricted_Access, Language_Fixes);
@@ -116,8 +116,8 @@ begin
             Parser.Enable_McKenzie_Recover := False;
             Arg := Arg + 1;
 
-         elsif Argument (Arg) = "--indent_params" then
-            Indent_Params := +Argument (Arg + 1);
+         elsif Argument (Arg) = "--lang_params" then
+            Lang_Params := +Argument (Arg + 1);
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--lexer_only" then
@@ -159,7 +159,12 @@ begin
       exception
       when WisiToken.Syntax_Error =>
          Parser.Lexer.Discard_Rest_Of_Input;
-         WisiToken.Wisi_Runtime.Put (Parser.Lexer.Errors);
+         WisiToken.Wisi_Runtime.Put
+           (Parser.Lexer.Errors,
+            Parser.Parsers.First.State_Ref.Errors,
+            Parser.Semantic_State,
+            Parser.Parsers.First.State_Ref.Tree,
+            Trace.Descriptor.all);
          Put_Line ("(lexer_error)");
       end;
    end loop;
@@ -175,7 +180,7 @@ begin
       Descriptor       => Descriptor'Access,
       Source_File_Name => -Source_File_Name,
       Line_Count       => Line_Count,
-      Params           => -Indent_Params);
+      Params           => -Lang_Params);
 
    if Repeat_Count > 1 then
       Start := Ada.Real_Time.Clock;
@@ -188,11 +193,11 @@ begin
             Parser.Lexer.Discard_Rest_Of_Input;
             if Repeat_Count = 1 then
                WisiToken.Wisi_Runtime.Put
-                 (Parser.Parsers.First.State_Ref.Errors,
+                 (Parser.Lexer.Errors,
+                  Parser.Parsers.First.State_Ref.Errors,
                   Parser.Semantic_State,
                   Parser.Parsers.First.State_Ref.Tree,
                   Trace.Descriptor.all);
-               WisiToken.Wisi_Runtime.Put (Parser.Lexer.Errors);
             end if;
          end Clean_Up;
 
@@ -219,11 +224,11 @@ begin
             if Repeat_Count = 1 then
                WisiToken.Wisi_Runtime.Put (Parse_Data);
                WisiToken.Wisi_Runtime.Put
-                 (Parser.Parsers.First.State_Ref.Errors,
+                 (Parser.Lexer.Errors,
+                  Parser.Parsers.First.State_Ref.Errors,
                   Parser.Semantic_State,
                   Parser.Parsers.First.State_Ref.Tree,
                   Trace.Descriptor.all);
-               WisiToken.Wisi_Runtime.Put (Parser.Lexer.Errors);
             end if;
          end if;
       exception

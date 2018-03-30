@@ -148,7 +148,12 @@ package body WisiToken.Wisi_Runtime.Ada is
          Ada_Indent_With := Integer'Value (Params (First .. Last - 1));
 
          First := Last + 1;
+         Last := First + 1;
          Ada_Indent_Hanging_Rel_Exp := Params (First) = '1';
+
+         First := Last + 1;
+         Last := First + 1;
+         End_Names_Optional := Params (First) = '1';
       end if;
 
       Data.Indent_Comment_Col_0 := Ada_Indent_Comment_Col_0;
@@ -322,11 +327,16 @@ package body WisiToken.Wisi_Runtime.Ada is
 
       Expression : constant Syntax_Trees.Node_Index := Tree.Find_Ancestor (Tree_Indenting, +expression_opt_ID);
    begin
-      if Expression = Syntax_Trees.Invalid_Node_Index then
-         return Null_Delta;
-      elsif Tree.ID (Tree.Parent (Expression)) = +if_expression_ID or
-        Tree.ID (Tree.Parent (Expression)) = +case_expression_alternative_ID
+      if Expression = Syntax_Trees.Invalid_Node_Index or else
+        Tree.Parent (Expression) = Syntax_Trees.Invalid_Node_Index
       then
+         return Null_Delta;
+      elsif Tree.ID (Tree.Parent (Expression)) in +if_expression_ID | +elsif_expression_item_ID |
+        +case_expression_alternative_ID
+      then
+         --  The controlling boolean expression in 'if_expression' and
+         --  'elsif_expression_item' cannot be an aggregate in legal Ada
+         --  syntax.
          return (Simple, (Int, Ada_Indent_Broken - Ada_Indent));
       else
          return Null_Delta;

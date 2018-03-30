@@ -27,6 +27,7 @@ package Gpr_Process is
       Last_Nonterminal  => 71,
       EOF_ID            => 37,
       Accept_ID         => 38,
+      Case_Insensitive  => True,
       New_Line_ID       => 1,
       Comment_ID        => 2,
       Left_Paren_ID     => 2147483647,
@@ -192,8 +193,9 @@ package Gpr_Process is
    Parse_Data : WisiToken.Wisi_Runtime.Gpr.Parse_Data_Type;
 
    procedure Create_Parser
-     (Parser    :    out WisiToken.LR.Parser.Parser;
-      Algorithm : in     WisiToken.Parser_Algorithm_Type;
-      Trace     : not null access WisiToken.Trace'Class);
+     (Parser         :    out WisiToken.LR.Parser.Parser;
+      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
+      Trace          : not null access WisiToken.Trace'Class;
+      Language_Fixes : in     WisiToken.LR.Language_Fixes_Access);
 
 end Gpr_Process;

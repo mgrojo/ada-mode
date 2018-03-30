@@ -103,7 +103,7 @@ int gpr_next_token
    *id = 0;
    if (lexer->cursor > lexer->buffer_last)
    {
-      *id       =  37;
+      *id            = 37;
       *byte_position = lexer->buffer_last - lexer->buffer + 1;
       *byte_length   = 0;
       *char_position = lexer->char_token_start;

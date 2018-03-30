@@ -707,13 +707,27 @@ Function is called with one optional argument; syntax-ppss result.")
      (user-error "Not in parameter list")))
   (funcall indent-line-function); so new list is indented properly
 
-  ;; indent-line-function may have found errors to correct. We repair
-  ;; all errors from here to end of buffer, in case one of the errors
-  ;; is a missing the param list closing paren.
+  ;; indent-line-function may have found errors to correct. Repairing
+  ;; all errors from here to end of buffer is annoying to the
+  ;; user. But we have to handle a missing param list closing
+  ;; paren. See test/format_paramlist.adb Check_One.
   ;;
   ;; FIXME: either make this indirect, or make all other wisi- indirects direct.
   (save-excursion
-    (wisi-repair-errors (point) (point-max)))
+    (let ((beg (point))
+	  end)
+      (condition-case-unless-debug nil
+	  (setq end (progn (forward-sexp) (point)))
+	(error
+	 ;; Right paren missing. ada-wisi-goto-open paren ensures parse
+	 ;; succeeded.
+	 (let* ((cache (wisi-get-cache (point)))
+		(subr-cache (wisi-goto-containing cache)))
+	   (setq end (wisi-cache-next subr-cache)))))
+
+      (wisi-repair-errors beg end)))
+
+  ;; Recompute ’end’ after repair errors; closing paren is now there.
 
   (let* ((begin (point))
 	 ;; We use markers here, in case eror correction moves ‘end’.

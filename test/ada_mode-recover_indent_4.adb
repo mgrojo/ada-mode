@@ -3,7 +3,7 @@
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
-package body WisiToken.Wisi_Runtime is
+package body Ada_Mode.Recover_Indent_4 is
 
    function Current_Indent_Offset
      (Data         : in Parse_Data_Type;
@@ -11,8 +11,6 @@ package body WisiToken.Wisi_Runtime is
       Offset       : in Integer)
      return Integer
    is
-      --  [2] compute delta in wisi-elisp-parse--anchored-1.
-
       Line_Begin_Pos : constant Buffer_Pos :=
         (if Anchor_Token.First and
            Anchor_Token.First_Indent_Line = Anchor_Token.Line
@@ -27,7 +25,7 @@ package body WisiToken.Wisi_Runtime is
    end Current_Indent_Offset;
 
 
-end WisiToken.Wisi_Runtime;
+end Ada_Mode.Recover_Indent_4;
 --  Local Variables:
 --  wisi-disable-face: t
 --  End:
