@@ -34,31 +34,31 @@ is
 
    use Standard.Ada.Strings.Fixed;
 
-   Action_Declaration_Str               : constant String := "%action_declaration";
-   Case_Insensitive_Str                 : constant String := "%case_insensitive";
-   Conflict_Str                         : constant String := "%conflict";
-   End_If_Str                           : constant String := "%end if";
-   Elisp_Face_Str                       : constant String := "%elisp_face";
-   Elisp_Indent_Str                     : constant String := "%elisp_indent";
-   Elisp_Regexp_Str                     : constant String := "%elisp_regexp";
-   First_Parser_Label_Str               : constant String := "%first_parser_label";
-   First_State_Index_Str                : constant String := "%first_state_index";
-   If_Str                               : constant String := "%if lexer =";
-   Interface_Str                        : constant String := "%interface";
-   Keyword_Str                          : constant String := "%keyword";
-   Lexer_Str                            : constant String := "%lexer";
-   Match_Tokens_End_Optional_Option_Str : constant String := "%match_tokens_end_optional_option";
-   McKenzie_Check_Limit_Str             : constant String := "%mckenzie_check_limit";
-   McKenzie_Cost_Default_Str            : constant String := "%mckenzie_cost_default";
-   McKenzie_Cost_Delete_Str             : constant String := "%mckenzie_cost_delete";
-   McKenzie_Cost_Insert_Str             : constant String := "%mckenzie_cost_insert";
-   McKenzie_Cost_Limit_Str              : constant String := "%mckenzie_cost_limit";
-   Non_Grammar_Str                      : constant String := "%non_grammar";
-   Output_Language_Str                  : constant String := "%output_language";
-   Parser_Algorithm_Str                 : constant String := "%parser_algorithm";
-   re2c_Regexp_Str                      : constant String := "%re2c_regexp";
-   Start_Str                            : constant String := "%start";
-   Token_Str                            : constant String := "%token";
+   Action_Declaration_Str        : constant String := "%action_declaration";
+   Case_Insensitive_Str          : constant String := "%case_insensitive";
+   Conflict_Str                  : constant String := "%conflict";
+   End_If_Str                    : constant String := "%end if";
+   Elisp_Face_Str                : constant String := "%elisp_face";
+   Elisp_Indent_Str              : constant String := "%elisp_indent";
+   Elisp_Regexp_Str              : constant String := "%elisp_regexp";
+   First_Parser_Label_Str        : constant String := "%first_parser_label";
+   First_State_Index_Str         : constant String := "%first_state_index";
+   If_Str                        : constant String := "%if lexer =";
+   Interface_Str                 : constant String := "%interface";
+   Keyword_Str                   : constant String := "%keyword";
+   Lexer_Str                     : constant String := "%lexer";
+   End_Names_Optional_Option_Str : constant String := "%end_names_optional_option";
+   McKenzie_Check_Limit_Str      : constant String := "%mckenzie_check_limit";
+   McKenzie_Cost_Default_Str     : constant String := "%mckenzie_cost_default";
+   McKenzie_Cost_Delete_Str      : constant String := "%mckenzie_cost_delete";
+   McKenzie_Cost_Insert_Str      : constant String := "%mckenzie_cost_insert";
+   McKenzie_Cost_Limit_Str       : constant String := "%mckenzie_cost_limit";
+   Non_Grammar_Str               : constant String := "%non_grammar";
+   Output_Language_Str           : constant String := "%output_language";
+   Parser_Algorithm_Str          : constant String := "%parser_algorithm";
+   re2c_Regexp_Str               : constant String := "%re2c_regexp";
+   Start_Str                     : constant String := "%start";
+   Token_Str                     : constant String := "%token";
 
    If_Active : Boolean := False;
    --  If true, ignore all declarations except End_If_Str.
@@ -188,6 +188,13 @@ begin
                Elisp_Names.Regexps.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
             end;
 
+         elsif Match (End_Names_Optional_Option_Str) then
+            declare
+               Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+            begin
+               Generate_Params.End_Names_Optional_Option := +Line (Value_First .. Line'Last);
+            end;
+
          elsif Match (First_Parser_Label_Str) then
             declare
                Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
@@ -237,13 +244,6 @@ begin
                   Generate_Params.Lexer := To_Lexer (Line (Value_First .. Line'Last));
                end;
             end if;
-
-         elsif Match (Match_Tokens_End_Optional_Option_Str) then
-            declare
-               Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
-            begin
-               Generate_Params.Match_Tokens_End_Optional_Option := +Line (Value_First .. Line'Last);
-            end;
 
          elsif Match (McKenzie_Check_Limit_Str) then
             McKenzie_Recover.Check_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));

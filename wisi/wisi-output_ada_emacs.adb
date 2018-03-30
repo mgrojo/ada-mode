@@ -625,8 +625,8 @@ is
          return " (Lexer, Descriptor, Tokens, " &
            Params (First .. Second - 1) & ',' &
            Params (Second .. Params'Last - 1) & ", " &
-           (if Length (Generate_Params.Match_Tokens_End_Optional_Option) > 0
-            then -Generate_Params.Match_Tokens_End_Optional_Option
+           (if Length (Generate_Params.End_Names_Optional_Option) > 0
+            then -Generate_Params.End_Names_Optional_Option
             else "False") & ")";
       end Match_Names_Params;
 
