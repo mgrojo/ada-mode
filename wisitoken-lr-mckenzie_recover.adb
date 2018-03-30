@@ -476,6 +476,7 @@ package body WisiToken.LR.McKenzie_Recover is
                               then Invalid_Token_Index
                               else Tree.Min_Terminal_Index (Tree_Index));
                         begin
+                           exit when Tree_Index = Syntax_Trees.Invalid_Node_Index; --  stack bottom
                            exit when not Tree.Is_Nonterm (Tree_Index) and then Terminal_Index < Min_Terminal_Index;
 
                            Stack_Changed := True;

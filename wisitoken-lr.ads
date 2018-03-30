@@ -221,6 +221,7 @@ package WisiToken.LR is
       Push_Back   : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       Undo_Reduce : Token_ID_Array_Natural (First_Nonterminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
+      --  FIXME: Undo_Reduce not used; delete?
 
       Cost_Limit  : Natural; -- max cost of configurations to look at
       Check_Limit : Natural; -- max tokens to parse ahead when checking a configuration.
@@ -380,13 +381,16 @@ package WisiToken.LR is
    --  parameter plus an arbitrary number from the language-specific
    --  repairs; in practice, a capacity of 40 is enough so far.
 
-   function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
+   function Config_Op_Array_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) &
            (case Item.Op is
             when Fast_Forward => "",
             when Undo_Reduce => "," & Ada.Containers.Count_Type'Image (Item.Token_Count),
             when Push_Back | Insert | Delete => "," & WisiToken.Token_Index'Image (Item.Token_Index))
            & ")");
+
+   function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
+     renames Config_Op_Array_Image;
 
    function Image is new Config_Op_Queues.Gen_Image_Aux (WisiToken.Descriptor, Image);
    function Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
@@ -418,7 +422,15 @@ package WisiToken.LR is
    function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor'Class) return String
      is (Image (Item.State) & " : " & Image (Item.Token, Descriptor));
 
-   function Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   --  Unique name for calling from debugger
+
+   function Image
+     (Stack      : in Recover_Stacks.Stack;
+      Descriptor : in WisiToken.Descriptor'Class;
+      Depth      : in SAL.Base_Peek_Type := 0)
+     return String
+     renames Recover_Stack_Image;
 
    function Valid_Tree_Indices (Stack : in Recover_Stacks.Stack; Depth : in SAL.Base_Peek_Type) return Boolean;
    --  Return True if Stack top Depth items have valid Tree_Indices,

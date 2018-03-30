@@ -220,7 +220,7 @@ package body Subprograms_Process is
    is
       pragma Unreferenced (Nonterm);
    begin
-      return Match_Names (Lexer, Tokens, 2, 5 nil, False);
+      return Match_Names (Lexer, Descriptor, Tokens, 2, 5 nil, False);
    end subprogram_1_check;
 
    procedure subtype_0

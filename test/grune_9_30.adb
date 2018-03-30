@@ -54,7 +54,8 @@ package body Grune_9_30 is
       First_Nonterminal => Upper_S_ID,
       Last_Nonterminal  => Upper_B_ID,
       EOF_ID            => EOF_ID,
-      Accept_ID         => Upper_S_ID);
+      Accept_ID         => Upper_S_ID,
+      Case_Insensitive  => False);
    use Token_Enum;
 
    First_State_Index  : constant := 1;

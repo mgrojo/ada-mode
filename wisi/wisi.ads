@@ -83,7 +83,7 @@ package Wisi is
       Interface_Kind                   : Interface_Type        := None;
       First_State_Index                : Integer               := 0;
       First_Parser_Label               : Integer               := 0;
-      Keywords_Case_Insensitive        : Boolean               := False;
+      Case_Insensitive                 : Boolean               := False;
       Match_Tokens_End_Optional_Option : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Start_Token                      : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Action_Declarations              : String_Lists.List;
@@ -242,6 +242,10 @@ package Wisi is
    function "+" (Item : in RHS_Type) return RHS_Lists.List renames RHS_To_RHS_List;
 
    function "+" (List : in RHS_Lists.List; Item : in RHS_Type) return RHS_Lists.List;
+
+   function Image (Item : in Boolean) return String
+     is (if Item then "True" else "False");
+   --  Match casing in Standard.
 
    procedure Put_Command_Line (Comment_Prefix : in String);
    --  Put command line to current output

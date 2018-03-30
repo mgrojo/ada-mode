@@ -35,6 +35,7 @@ is
    use Standard.Ada.Strings.Fixed;
 
    Action_Declaration_Str               : constant String := "%action_declaration";
+   Case_Insensitive_Str                 : constant String := "%case_insensitive";
    Conflict_Str                         : constant String := "%conflict";
    End_If_Str                           : constant String := "%end if";
    Elisp_Face_Str                       : constant String := "%elisp_face";
@@ -45,7 +46,6 @@ is
    If_Str                               : constant String := "%if lexer =";
    Interface_Str                        : constant String := "%interface";
    Keyword_Str                          : constant String := "%keyword";
-   Keywords_Case_Insensitive_Str        : constant String := "%keywords_case_insensitive";
    Lexer_Str                            : constant String := "%lexer";
    Match_Tokens_End_Optional_Option_Str : constant String := "%match_tokens_end_optional_option";
    McKenzie_Check_Limit_Str             : constant String := "%mckenzie_check_limit";
@@ -125,6 +125,9 @@ begin
 
          elsif Match (Action_Declaration_Str) then
             Generate_Params.Action_Declarations.Append (Line (Key_Last + 2 .. Line'Last));
+
+         elsif Match (Case_Insensitive_Str) then
+            Generate_Params.Case_Insensitive := True;
 
          elsif Match (Conflict_Str) then
             declare
@@ -225,9 +228,6 @@ begin
             begin
                Tokens.Keywords.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
             end;
-
-         elsif Match (Keywords_Case_Insensitive_Str) then
-            Generate_Params.Keywords_Case_Insensitive := True;
 
          elsif Match (Lexer_Str) then
             if Generate_Params.Lexer = None then

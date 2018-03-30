@@ -200,11 +200,16 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Begin_Name_Token : Recover_Token renames Config.Check_Status.Begin_Name;
       End_Name_Token   : Recover_Token renames Config.Check_Status.End_Name;
    begin
-      if not (Begin_Name_IDs (Begin_Name_Token.ID) and
-                End_Name_IDs (End_Name_Token.ID) and
-                Nonterm_IDs (Config.Error_Token.ID))
-      then
-         raise Programmer_Error with "unrecognized begin/end/nonterm token id";
+      if not Begin_Name_IDs (Begin_Name_Token.ID) then
+         raise Programmer_Error with "unrecognized begin_name_token id " & Image (Begin_Name_Token.ID, Descriptor);
+      end if;
+
+      if not End_Name_IDs (End_Name_Token.ID) then
+         raise Programmer_Error with "unrecognized begin_name_token id " & Image (End_Name_Token.ID, Descriptor);
+      end if;
+
+      if not Nonterm_IDs (Config.Error_Token.ID) then
+         raise Programmer_Error with "unrecognized begin_name_token id " & Image (Config.Error_Token.ID, Descriptor);
       end if;
 
       if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
@@ -281,8 +286,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Push_Back_Check
                     (New_Config,
                      (+SEMICOLON_ID,
-                     (if Config.Error_Token.ID = +block_statement_ID
-                      then +identifier_opt_ID
+                      (if Config.Error_Token.ID = +block_statement_ID
+                       then +identifier_opt_ID
                        else +name_opt_ID)));
 
                   if New_Config.Stack (1).Token.Min_Terminal_Index = Invalid_Token_Index then
@@ -562,7 +567,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             end if;
             return Abandon;
          end;
-
       end case;
    end Handle_Check_Fail;
 

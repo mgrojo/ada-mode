@@ -35,7 +35,7 @@ package WisiToken.LR.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in
    --  [dragon] LALR algorithm 4.12. That is implemented by setting
-   --  lookahead (Last_Nonterminal + 1) true..
+   --  lookahead (Last_Nonterminal + 1) true.
    subtype Lookahead is Token_ID_Set;
 
    type Item_Node is private;

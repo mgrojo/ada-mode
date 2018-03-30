@@ -37,7 +37,7 @@ with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
    type Error_Data is record
-      Error_Char_Pos : Buffer_Pos;
+      Char_Pos : Buffer_Pos;
       --  Character at that position is not recognized as part of a token.
 
       Recover : String (1 .. 4) := (others => ASCII.NUL);

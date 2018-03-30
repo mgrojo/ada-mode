@@ -556,7 +556,7 @@ package body WisiToken.LR is
       case Item.Label is
       when Action =>
          return "Action, expecting: " & Image (Item.Expecting, Descriptor) &
-           ", found '" & Tree.Image (Item.Error_Token, Descriptor);
+           ", found" & Tree.Image (Item.Error_Token, Descriptor);
 
       when Check =>
          return "Check: " & Semantic_Checks.Image (Item.Check_Status, Descriptor);

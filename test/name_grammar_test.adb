@@ -57,7 +57,8 @@ package body Name_Grammar_Test is
       First_Nonterminal => Component_ID,
       Last_Nonterminal  => Symbol_Name_ID,
       EOF_ID            => EOF_ID,
-      Accept_ID         => Statement_ID);
+      Accept_ID         => Statement_ID,
+      Case_Insensitive  => False);
    use Token_Enum;
 
    First_State_Index  : constant := 1;

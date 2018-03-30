@@ -55,7 +55,8 @@ package body Trivial_Productions_Test is
          First_Nonterminal => E_ID,
          Last_Nonterminal  => T_ID,
          EOF_ID            => EOF_ID,
-         Accept_ID         => E_ID);
+         Accept_ID         => E_ID,
+         Case_Insensitive  => False);
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
@@ -137,7 +138,8 @@ package body Trivial_Productions_Test is
          First_Nonterminal => WisiToken_Accept_ID,
          Last_Nonterminal  => Parameter_List_ID,
          EOF_ID            => EOF_ID,
-         Accept_ID         => WisiToken_Accept_ID);
+         Accept_ID         => WisiToken_Accept_ID,
+         Case_Insensitive  => False);
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);

@@ -56,7 +56,8 @@ package body Dragon_4_45_LALR_Test is
       First_Nonterminal => Accept_ID,
       Last_Nonterminal  => Upper_C_ID,
       EOF_ID            => EOF_ID,
-      Accept_ID         => Accept_ID);
+      Accept_ID         => Accept_ID,
+      Case_Insensitive  => False);
    use Token_Enum;
 
    First_State_Index  : constant := 0;

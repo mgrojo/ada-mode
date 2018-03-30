@@ -268,7 +268,9 @@ package body WisiToken.LR.Parser is
                Shift_Recover_Count := Shift_Recover_Count + 1;
                Parser_State.Set_Verb (Shift_Recover);
 
-            elsif Max_Shared_Token /= Parser_State.Shared_Token then
+            elsif Shared_Parser.Resume_Active and (Max_Shared_Token /= Parser_State.Shared_Token) then
+               --  Max_Shared_Token can differ from Parser.Shared_Token outside
+               --  Resume when one or more is Reduce, others are Shift.
                Shift_Recover_Count := Shift_Recover_Count + 1;
                Parser_State.Set_Verb (Shift_Recover);
 
@@ -306,6 +308,15 @@ package body WisiToken.LR.Parser is
       elsif Shift_Count > 0 then
          Verb := Shift;
 
+         if Trace_Parse > Detail then
+            if Shared_Parser.Resume_Active /= (Resume_Active_Count > 0) then
+               if Resume_Active_Count > 0 then
+                  Shared_Parser.Trace.Put_Line ("resume_active: True");
+               else
+                  Shared_Parser.Trace.Put_Line ("resume_active: False");
+               end if;
+            end if;
+         end if;
          Shared_Parser.Resume_Active := Resume_Active_Count > 0;
 
       else
@@ -577,6 +588,18 @@ package body WisiToken.LR.Parser is
                      Parser_State.Inc_Shared_Token := True;
                   end if;
 
+                  loop
+                     if Parser_State.Recover_Insert_Delete.Length > 0 and then
+                       Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
+                       Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token
+                     then
+                        Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                        Parser_State.Recover_Insert_Delete.Drop;
+                     else
+                        exit;
+                     end if;
+                  end loop;
+
                   if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Shared_Token, Shared_Parser.Terminals);
@@ -763,6 +786,11 @@ package body WisiToken.LR.Parser is
 
                if Recover_Result in Success | Ignore then
                   Shared_Parser.Resume_Active := Recover_Result = Success;
+                  if Trace_Parse > Detail then
+                     if Shared_Parser.Resume_Active then
+                        Shared_Parser.Trace.Put_Line ("resume_active: True");
+                     end if;
+                  end if;
 
                   declare
                      Shift_Recover_Count : Integer := 0;

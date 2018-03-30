@@ -1165,7 +1165,7 @@ package body Test_McKenzie_Recover is
       --  Desired solution is (push_back 'end name_opt ;'), (insert
       --  'end ; end ; begin ;'). The found solution is close to this.
       --
-      --  First call to Semantic_Check_Fixes enqueues (push_back 'end
+      --  First call to Semantic_Check_Fixes enqueues (push_back 'begin end
       --  name_opt ;'), (insert 'end ;'); recover fast-forwards that.
       --
       --  Checking that fails with Match_Names_Error on 'To_Month' 69,

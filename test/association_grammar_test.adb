@@ -60,7 +60,8 @@ package body Association_Grammar_Test is
       First_Nonterminal => Aggregate_ID,
       Last_Nonterminal  => Statement_ID,
       EOF_ID            => EOF_ID,
-      Accept_ID         => Statement_ID);
+      Accept_ID         => Statement_ID,
+      Case_Insensitive  => False);
    use Token_Enum;
 
    package Lexer renames WisiToken.Lexer.Regexp;

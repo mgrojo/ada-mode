@@ -20,7 +20,7 @@ pragma License (Modified_GPL);
 
 package body WisiToken.LR.Parser_Lists is
 
-   function Image
+   function Parser_Stack_Image
      (Stack      : in Parser_Stacks.Stack;
       Descriptor : in WisiToken.Descriptor'Class;
       Tree       : in Syntax_Trees.Tree;
@@ -49,7 +49,7 @@ package body WisiToken.LR.Parser_Lists is
                   else Tree.Image (Stack.Peek (I).Token, Descriptor) & ", ")));
       end loop;
       return To_String (Result & ")");
-   end Image;
+   end Parser_Stack_Image;
 
    function New_List
      (First_Parser_Label : in Natural;

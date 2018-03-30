@@ -55,7 +55,7 @@ with Test_Character_Literal_Aux;
 %lexer re2c
 
 ;; wisi-generate requires some keywords; test case insensitive
-%keywords_case_insensitive
+%case_insensitive
 %keyword FOO "foo"
 
 %token <punctuation> SEMICOLON ";"

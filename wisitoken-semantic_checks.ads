@@ -57,13 +57,15 @@ package WisiToken.Semantic_Checks is
 
    function Match_Names
      (Lexer        : in WisiToken.Lexer.Handle;
+      Descriptor   : in WisiToken.Descriptor;
       Tokens       : in Recover_Token_Array;
       Start_Index  : in Positive_Index_Type;
       End_Index    : in Positive_Index_Type;
       End_Optional : in Boolean)
      return Check_Status;
    --  Check that buffer text at Tokens (Start_Index).Name matches buffer
-   --  text at Tokens (End_Index).Name.
+   --  text at Tokens (End_Index).Name. Comparison is controlled by
+   --  Descriptor.Case_Insensitive.
 
    function Propagate_Name
      (Nonterm    : in out Recover_Token;

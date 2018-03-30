@@ -88,10 +88,11 @@ package WisiToken is
       --
       --  Components are discriminants if they can be specified statically.
 
-      New_Line_ID    : Token_ID;
-      Comment_ID     : Token_ID;
-      Left_Paren_ID  : Token_ID;
-      Right_Paren_ID : Token_ID;
+      Case_Insensitive : Boolean; -- keywords and names
+      New_Line_ID      : Token_ID;
+      Comment_ID       : Token_ID;
+      Left_Paren_ID    : Token_ID;
+      Right_Paren_ID   : Token_ID;
       --  If the language does not define these tokens, set them to
       --  Invalid_Token_ID.
 

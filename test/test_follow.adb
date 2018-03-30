@@ -57,7 +57,8 @@ package body Test_Follow is
          First_Nonterminal => WisiToken_Accept_ID,
          Last_Nonterminal  => Parameter_List_ID,
          EOF_ID            => EOF_ID,
-         Accept_ID         => WisiToken_Accept_ID);
+         Accept_ID         => WisiToken_Accept_ID,
+         Case_Insensitive  => False);
       use Token_Enum;
 
       use all type WisiToken.Production.Right_Hand_Side;

@@ -29,6 +29,7 @@ generic
    Last_Nonterminal  : Token_Enum_ID;
    EOF_ID            : Token_Enum_ID;
    Accept_ID         : Token_Enum_ID;
+   Case_Insensitive  : Boolean;
 package WisiToken.Gen_Token_Enum is
 
    function "+" (Item : in Token_Enum_ID) return Token_ID
@@ -48,6 +49,7 @@ package WisiToken.Gen_Token_Enum is
       Last_Nonterminal     => +Last_Nonterminal,
       EOF_ID               => +EOF_ID,
       Accept_ID            => +Accept_ID,
+      Case_Insensitive     => Case_Insensitive,
       New_Line_ID          => Invalid_Token_ID,
       Comment_ID           => Invalid_Token_ID,
       Left_Paren_ID        => Invalid_Token_ID,
@@ -65,6 +67,7 @@ package WisiToken.Gen_Token_Enum is
       Last_Nonterminal     => +Last_Nonterminal,
       EOF_ID               => +EOF_ID,
       Accept_ID            => +Accept_ID,
+      Case_Insensitive     => Case_Insensitive,
       New_Line_ID          => Invalid_Token_ID,
       Comment_ID           => Invalid_Token_ID,
       Left_Paren_ID        => Invalid_Token_ID,

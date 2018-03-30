@@ -119,6 +119,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
       Indent_Line ("EOF_ID            =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
       Indent_Line ("Accept_ID         =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
+      Indent_Line ("Case_Insensitive  => " & Image (Params.Case_Insensitive) & ",");
       Indent_Line ("New_Line_ID       =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
       Indent_Line ("Comment_ID        =>" & WisiToken.Token_ID'Image (Descriptor.Comment_ID) & ",");
       Indent_Line ("Left_Paren_ID     =>" & WisiToken.Token_ID'Image (Descriptor.Left_Paren_ID) & ",");
@@ -489,7 +490,7 @@ package body Wisi.Gen_Output_Ada_Common is
                --  not declared in definitions
                null;
 
-            elsif Kind (I) = "keyword" and Params.Keywords_Case_Insensitive then
+            elsif Kind (I) = "keyword" and Params.Case_Insensitive then
                Indent_Line (Name (I) & " = '" & Strip_Quotes (Val) & "';");
 
             else

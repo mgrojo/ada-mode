@@ -288,6 +288,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
      return Check_Status
    is
+      use all type Ada.Containers.Count_Type;
+      use all type Syntax_Trees.Node_Index;
       use all type Semantic_Checks.Check_Status_Label;
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
@@ -307,13 +309,18 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  If a Parse_Item failed due to a semantic check, enqueue it so
       --  Language_Fixes can try to fix it.
       declare
-         use all type Syntax_Trees.Node_Index;
+         EOF_ID : Token_ID renames Super.Trace.Descriptor.EOF_ID;
 
          Parse_Error_Found : Boolean := False;
       begin
          for Item of Parse_Items loop
             if Item.Parsed then
                if Item.Config.Check_Status.Label /= Ok then
+                  if Item.Config.Ops.Length > 0 and then
+                    Item.Config.Ops (Item.Config.Ops.Last_Index).Op /= Fast_Forward
+                  then
+                     Item.Config.Ops.Append ((Fast_Forward, EOF_ID));
+                  end if;
                   Local_Config_Heap.Add (Item.Config);
                   if Trace_McKenzie > Detail then
                      Put_Line (Shared.Shared_Parser.Trace.all, Super.Label (Parser_Index),

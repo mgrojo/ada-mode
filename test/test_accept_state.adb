@@ -53,7 +53,8 @@ package body Test_Accept_State is
       First_Nonterminal => Parse_Sequence_ID,
       Last_Nonterminal  => Statement_ID,
       EOF_ID            => EOF_ID,
-      Accept_ID         => Parse_Sequence_ID);
+      Accept_ID         => Parse_Sequence_ID,
+      Case_Insensitive  => False);
    use Token_Enum;
 
    First_State_Index  : constant := 1;

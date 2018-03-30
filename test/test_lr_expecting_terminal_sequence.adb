@@ -71,7 +71,8 @@ package body Test_LR_Expecting_Terminal_Sequence is
       First_Nonterminal => Statement_ID,
       Last_Nonterminal  => Parse_Sequence_ID,
       EOF_ID            => EOF_ID,
-      Accept_ID         => Parse_Sequence_ID);
+      Accept_ID         => Parse_Sequence_ID,
+      Case_Insensitive  => False);
    use Token_Enum;
 
    First_State_Index  : constant := 1;
