@@ -23,12 +23,12 @@ package body WisiToken.Wisi_Runtime.Subprograms is
 
    overriding
    procedure Initialize
-     (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor;
-      Source_File_Name : in     String;
-      Parse_Action     : in     Parse_Action_Type;
-      Line_Count       : in     Line_Number_Type;
-      Params           : in     String)
+     (Data              : in out Parse_Data_Type;
+      Descriptor        : access constant WisiToken.Descriptor;
+      Source_File_Name  : in     String;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Line_Count        : in     Line_Number_Type;
+      Params            : in     String)
    is
       use Ada.Strings.Fixed;
       First : Integer := Params'First;
@@ -36,7 +36,7 @@ package body WisiToken.Wisi_Runtime.Subprograms is
       Temp  : Integer;
    begin
       Wisi_Runtime.Initialize
-        (Wisi_Runtime.Parse_Data_Type (Data), Descriptor, Source_File_Name, Parse_Action, Line_Count, "");
+        (Wisi_Runtime.Parse_Data_Type (Data), Descriptor, Source_File_Name, Post_Parse_Action, Line_Count, "");
 
       if Params /= "" then
          Subp_Indent := Integer'Value (Params (First .. Last));
@@ -63,7 +63,6 @@ package body WisiToken.Wisi_Runtime.Subprograms is
 
    function Function_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      State             : in     Semantic_State.Semantic_State;
       Tree              : in     Syntax_Trees.Tree;
       Tree_Tokens       : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
@@ -71,7 +70,7 @@ package body WisiToken.Wisi_Runtime.Subprograms is
       Args              : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      pragma Unreferenced (Data, State, Tree, Tree_Tokens, Tree_Indenting, Indenting_Comment, Args);
+      pragma Unreferenced (Data, Tree, Tree_Tokens, Tree_Indenting, Indenting_Comment, Args);
    begin
       --  subprograms.el subp-indent-function
       return (Simple, (Int, Subp_Indent_Broken));

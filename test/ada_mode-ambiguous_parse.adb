@@ -9,7 +9,7 @@
 --EMACSCMD:(wisi-parse-buffer)
 procedure Ada_Mode.Ambiguous_Parse is
 begin
-   --EMACSCMD:(length (wisi-parser-errors wisi--parser))
+   --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
    --EMACSRESULT:1
    --EMACSCMD:wisi-parse-failed
    --EMACSRESULT:nil

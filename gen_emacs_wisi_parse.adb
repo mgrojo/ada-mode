@@ -69,6 +69,8 @@ is
       Put_Line ("04quit");
    end Usage;
 
+   Parse_Data : aliased Parse_Data_Type;
+
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    Parser : aliased WisiToken.LR.Parser.Parser;
 
@@ -162,7 +164,7 @@ is
    end Get_Integer;
 
 begin
-   Create_Parser (Parser, LALR, Trace'Unrestricted_Access, Language_Fixes);
+   Create_Parser (Parser, LALR, Trace'Unrestricted_Access, Language_Fixes, Parse_Data'Unchecked_Access);
 
    declare
       use Ada.Command_Line;
@@ -208,26 +210,26 @@ begin
             --  prompt
             declare
                use WisiToken.Wisi_Runtime;
-               Parse_Action     : constant Parse_Action_Type := Wisi_Runtime.Parse_Action_Type'Val
+               Post_Parse_Action : constant Post_Parse_Action_Type := Wisi_Runtime.Post_Parse_Action_Type'Val
                  (Get_Integer (Command_Line, Last));
-               Source_File_Name : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
+
+               Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
+
                Line_Count       : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
-               Verbosity        : constant Integer := Get_Integer (Command_Line, Last);
-               McKenzie_Disable : constant Integer := Get_Integer (Command_Line, Last);
-               Cost_Limit       : constant Integer := Get_Integer (Command_Line, Last);
-               Check_Limit      : constant Integer := Get_Integer (Command_Line, Last);
-               Byte_Count       : constant Integer := Get_Integer (Command_Line, Last);
+               Verbosity        : constant Integer          := Get_Integer (Command_Line, Last);
+               McKenzie_Disable : constant Integer          := Get_Integer (Command_Line, Last);
+               Cost_Limit       : constant Integer          := Get_Integer (Command_Line, Last);
+               Check_Limit      : constant Integer          := Get_Integer (Command_Line, Last);
+               Byte_Count       : constant Integer          := Get_Integer (Command_Line, Last);
                Buffer           : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up
                is begin
                   Parser.Lexer.Discard_Rest_Of_Input;
-                  Put
+                  Parse_Data.Put
                     (Parser.Lexer.Errors,
                      Parser.Parsers.First.State_Ref.Errors,
-                     Parser.Semantic_State,
-                     Parser.Parsers.First.State_Ref.Tree,
-                     Trace.Descriptor.all);
+                     Parser.Parsers.First.State_Ref.Tree);
                   Ada.Strings.Unbounded.Free (Buffer);
                end Clean_Up;
 
@@ -244,13 +246,12 @@ begin
                   then Parser.Enable_McKenzie_Recover
                   else False);
 
-               Parser.Semantic_State.Initialize (Line_Count);
                Parse_Data.Initialize
-                 (Parse_Action     => Parse_Action,
-                  Descriptor       => Descriptor'Access,
-                  Source_File_Name => -Source_File_Name,
-                  Line_Count       => Line_Count,
-                  Params           => Command_Line (Last + 2 .. Command_Line'Last));
+                 (Post_Parse_Action => Post_Parse_Action,
+                  Descriptor        => Descriptor'Access,
+                  Source_File_Name  => -Source_File_Name,
+                  Line_Count        => Line_Count,
+                  Params            => Command_Line (Last + 2 .. Command_Line'Last));
 
                if Cost_Limit > 0 then
                   Parser.Table.McKenzie_Param.Cost_Limit := Cost_Limit;
@@ -264,7 +265,7 @@ begin
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;
-               Parser.Execute_Actions (Parse_Data, Compute_Indent => Parse_Action = Indent);
+               Parser.Execute_Actions;
                Put (Parse_Data);
                Clean_Up;
 

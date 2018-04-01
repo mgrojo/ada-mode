@@ -108,6 +108,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (setq jit-lock-context-time 0.0);; for test-face
 
   (let ((error-count 0)
+	(test-buffer (current-buffer))
 	cmd-line
 	last-result last-cmd expected-result)
     ;; Look for --EMACS comments in the file:
@@ -148,7 +149,12 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 			      (line-number-at-pos)
 			      (car err)
 			      (cdr err))))
-		)))
+		)
+	  ;; save-excursion does not preserve mapping of buffer to
+	  ;; window, but some tests depend on that. For example,
+	  ;; execute-kbd-macro doesn’t work properly if current buffer
+	  ;; is not visible..
+	  (pop-to-buffer test-buffer)))
 
        ((string= (match-string 1) "RESULT")
 	(looking-at ".*$")

@@ -21,10 +21,10 @@ pragma License (GPL);
 with Ada_Process;
 with Gen_Emacs_Wisi_Parse;
 with WisiToken.LR.McKenzie_Recover.Ada;
-with WisiToken.Wisi_Runtime;
+with WisiToken.Wisi_Runtime.Ada;
 procedure Ada_Mode_Wisi_Parse is new Gen_Emacs_Wisi_Parse
-  (Name           => "Ada_mode",
-   Descriptor     => Ada_Process.Descriptor,
-   Parse_Data     => WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Ada_Process.Parse_Data),
-   Language_Fixes => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-   Create_Parser  => Ada_Process.Create_Parser);
+  (Parse_Data_Type => WisiToken.Wisi_Runtime.Ada.Parse_Data_Type,
+   Name            => "Ada_mode",
+   Descriptor      => Ada_Process.Descriptor,
+   Language_Fixes  => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
+   Create_Parser   => Ada_Process.Create_Parser);

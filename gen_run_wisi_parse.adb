@@ -33,10 +33,11 @@ procedure Gen_Run_Wisi_Parse
 is
    use WisiToken; -- Token_ID, "+", "-" Unbounded_string
    use all type SAL.Base_Peek_Type;
-   use all type WisiToken.Wisi_Runtime.Parse_Action_Type;
+   use all type WisiToken.Wisi_Runtime.Post_Parse_Action_Type;
 
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   Parser : aliased WisiToken.LR.Parser.Parser;
+   Parse_Data : aliased Parse_Data_Type;
+   Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   Parser     : aliased WisiToken.LR.Parser.Parser;
 
    procedure Put_Usage
    is
@@ -48,9 +49,9 @@ is
       Put_Line ("--verbosity n m l:");
       Put_Line ("   n: parser; m: mckenzie; l: action");
       Put_Line ("   0 - only report parse errors");
-      Put_Line ("   1 - shows each parser cycle, spawn/terminate parallel parsers, error recovery enter/exit");
-      Put_Line ("   2 - add parse stack in each cycle, error recovery enqueue/check");
-      Put_Line ("   3 - add pending semantic state operations, error recovery parse actions");
+      Put_Line ("   1 - shows spawn/terminate parallel parsers, error recovery enter/exit");
+      Put_Line ("   2 - add each parser cycle, error recovery enqueue/check");
+      Put_Line ("   3 - parse stack in each cycle, error recovery parse actions");
       Put_Line ("   4 - add lexer debug");
       Put_Line ("--cost_limit n   : set error recover cost limit" &
                   (if Parser.Table = null then ""
@@ -68,8 +69,8 @@ is
       New_Line;
    end Put_Usage;
 
-   Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
-   Parse_Action     : WisiToken.Wisi_Runtime.Parse_Action_Type;
+   Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
+   Post_Parse_Action : WisiToken.Wisi_Runtime.Post_Parse_Action_Type;
 
    Line_Count   : WisiToken.Line_Number_Type := 1;
    Lexer_Only   : Boolean                    := False;
@@ -80,7 +81,7 @@ is
    Start        : Ada.Real_Time.Time;
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
-   Create_Parser (Parser, WisiToken.LALR, Trace'Unrestricted_Access, Language_Fixes);
+   Create_Parser (Parser, WisiToken.LALR, Trace'Unrestricted_Access, Language_Fixes, Parse_Data'Unchecked_Access);
 
    declare
       use Ada.Command_Line;
@@ -91,9 +92,9 @@ begin
          return;
       end if;
 
-      Source_File_Name := +Ada.Command_Line.Argument (1);
-      Parse_Action     := WisiToken.Wisi_Runtime.Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
-      Arg              := 3;
+      Source_File_Name  := +Ada.Command_Line.Argument (1);
+      Post_Parse_Action := WisiToken.Wisi_Runtime.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
+      Arg               := 3;
 
       loop
          exit when Arg > Argument_Count;
@@ -159,12 +160,10 @@ begin
       exception
       when WisiToken.Syntax_Error =>
          Parser.Lexer.Discard_Rest_Of_Input;
-         WisiToken.Wisi_Runtime.Put
+         Parse_Data.Put
            (Parser.Lexer.Errors,
             Parser.Parsers.First.State_Ref.Errors,
-            Parser.Semantic_State,
-            Parser.Parsers.First.State_Ref.Tree,
-            Trace.Descriptor.all);
+            Parser.Parsers.First.State_Ref.Tree);
          Put_Line ("(lexer_error)");
       end;
    end loop;
@@ -174,13 +173,12 @@ begin
       Put_Line ("line_count:" & Line_Number_Type'Image (Line_Count));
    end if;
 
-   Parser.Semantic_State.Initialize (Line_Count);
    Parse_Data.Initialize
-     (Parse_Action     => Parse_Action,
-      Descriptor       => Descriptor'Access,
-      Source_File_Name => -Source_File_Name,
-      Line_Count       => Line_Count,
-      Params           => -Lang_Params);
+     (Post_Parse_Action => Post_Parse_Action,
+      Descriptor        => Descriptor'Access,
+      Source_File_Name  => -Source_File_Name,
+      Line_Count        => Line_Count,
+      Params            => -Lang_Params);
 
    if Repeat_Count > 1 then
       Start := Ada.Real_Time.Clock;
@@ -192,12 +190,10 @@ begin
          is begin
             Parser.Lexer.Discard_Rest_Of_Input;
             if Repeat_Count = 1 then
-               WisiToken.Wisi_Runtime.Put
+               Parse_Data.Put
                  (Parser.Lexer.Errors,
                   Parser.Parsers.First.State_Ref.Errors,
-                  Parser.Semantic_State,
-                  Parser.Parsers.First.State_Ref.Tree,
-                  Trace.Descriptor.all);
+                  Parser.Parsers.First.State_Ref.Tree);
             end if;
          end Clean_Up;
 
@@ -219,16 +215,14 @@ begin
             end;
          else
             Parser.Parse;
-            Parser.Execute_Actions (Parse_Data, Compute_Indent => Parse_Action = Indent);
+            Parser.Execute_Actions;
 
             if Repeat_Count = 1 then
-               WisiToken.Wisi_Runtime.Put (Parse_Data);
-               WisiToken.Wisi_Runtime.Put
+               Parse_Data.Put;
+               Parse_Data.Put
                  (Parser.Lexer.Errors,
                   Parser.Parsers.First.State_Ref.Errors,
-                  Parser.Semantic_State,
-                  Parser.Parsers.First.State_Ref.Tree,
-                  Trace.Descriptor.all);
+                  Parser.Parsers.First.State_Ref.Tree);
             end if;
          end if;
       exception

@@ -272,7 +272,7 @@ complete."
 		   (line-number-at-pos pos)
 		   (current-column)
 		   (aref sexp 2))
-	   :inserted (aref sexp 3)))
+	   :inserted (when (= 4 (length sexp)) (aref sexp 3))))
 
     (push err (wisi-parser-lexer-errors parser))
     ))

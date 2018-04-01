@@ -2,7 +2,7 @@
 --
 --  Run the subprograms parser standalone. Useful for debugging grammar issues.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,9 +20,10 @@ pragma License (GPL);
 
 with Gen_Run_Wisi_Parse;
 with Subprograms_Process;
-with WisiToken.Wisi_Runtime;
+with WisiToken.Wisi_Runtime.Subprograms;
 procedure Run_Subprograms_Parse is new Gen_Run_Wisi_Parse
-  (Name          => "subprograms",
-   Descriptor    => Subprograms_Process.Descriptor,
-   Parse_Data    => WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Subprograms_Process.Parse_Data),
-   Create_Parser => Subprograms_Process.Create_Parser);
+  (Parse_Data_Type => WisiToken.Wisi_Runtime.Subprograms.Parse_Data_Type,
+   Name            => "subprograms",
+   Descriptor      => Subprograms_Process.Descriptor,
+   Language_Fixes  => null,
+   Create_Parser   => Subprograms_Process.Create_Parser);

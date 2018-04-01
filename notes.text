@@ -50,13 +50,6 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
-test/ada_mode.adb auto-case test fails
-    works when done manually; some race condition!?
-    also changes ada_mode.ads; it should not!?
-
-merge wisitoken.semantic_state into wisi_runtime
-    provide hook for lexer_to_augmented
-
 emacs track parse-max, don't reparse just for different action; just execute action.
 
 wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible

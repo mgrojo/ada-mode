@@ -17,7 +17,6 @@ package body Ada_Mode is
    --EMACSRESULT:t
    procedure Separate_Procedure is separate;
 
-   -- testing that ada-auto-case is buffer-local;  nil in separate_package_1
    function Separate_Function return Integer is separate;
    --EMACSCMD:ada-auto-case
    --EMACSRESULT:t

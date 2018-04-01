@@ -26,6 +26,3 @@ package body Ada_Mode.Recover_Indent_4 is
 
 
 end Ada_Mode.Recover_Indent_4;
---  Local Variables:
---  wisi-disable-face: t
---  End:

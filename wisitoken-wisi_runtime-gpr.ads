@@ -34,12 +34,12 @@ package WisiToken.Wisi_Runtime.Gpr is
 
    overriding
    procedure Initialize
-     (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor;
-      Source_File_Name : in     String;
-      Parse_Action     : in     Parse_Action_Type;
-      Line_Count       : in     Line_Number_Type;
-      Params           : in     String);
+     (Data              : in out Parse_Data_Type;
+      Descriptor        : access constant WisiToken.Descriptor;
+      Source_File_Name  : in     String;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Line_Count        : in     Line_Number_Type;
+      Params            : in     String);
    --  Call Wisi_Runtime.Initialize, then:
    --
    --  If Params /= "", set all indent parameters from Params, in

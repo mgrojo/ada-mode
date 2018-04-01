@@ -15,7 +15,7 @@
 -- are reported properly.
 
 --EMACSCMD:(wisi-validate-cache (point-max) nil 'navigate)
---EMACSCMD:(length (wisi-parser-errors wisi--parser))
+--EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
 --EMACSRESULT:1
 
 --EMACSCMD:(wisi-validate-cache (point-max) nil 'face)

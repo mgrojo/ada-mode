@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 with Ada_Process;
+with System.Assertions;
 package body WisiToken.LR.McKenzie_Recover.Ada is
 
    use all type Standard.Ada_Process.Token_Enum_ID; -- token names
@@ -659,6 +660,18 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
                end if;
+               return Abandon;
+            exception
+            when System.Assertions.Assert_Failure =>
+               --  From *_Check
+               Put ("Language_Fixes Parse_Error ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
+               Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
+
+               --  We don't re-raise the exception here; so far, this has only
+               --  happened while exploring a high-cost config (which only occurs in
+               --  a race condition with the lower cost solution), and the correct
+               --  thing to do would be to abandon it. If we are trying to fix a
+               --  particular use case, the trace messages will be enough.
                return Abandon;
             end;
          end if;

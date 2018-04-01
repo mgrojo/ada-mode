@@ -28,18 +28,17 @@ package WisiToken.Wisi_Runtime.Subprograms is
 
    overriding
    procedure Initialize
-     (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor;
-      Source_File_Name : in     String;
-      Parse_Action     : in     Parse_Action_Type;
-      Line_Count       : in     Line_Number_Type;
-      Params           : in     String);
+     (Data              : in out Parse_Data_Type;
+      Descriptor        : access constant WisiToken.Descriptor;
+      Source_File_Name  : in     String;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Line_Count        : in     Line_Number_Type;
+      Params            : in     String);
    --  Set all params from Params, in declaration order. Boolean is
    --  represented by 0 | 1. Parameter values are space delimited.
 
    function Function_1
      (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
-      State             : in     Semantic_State.Semantic_State;
       Tree              : in     Syntax_Trees.Tree;
       Tree_Tokens       : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;

@@ -31,29 +31,41 @@ with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with WisiToken.LR;
 with WisiToken.Lexer;
-with WisiToken.Semantic_State;
 with WisiToken.Syntax_Trees;
 package WisiToken.Wisi_Runtime is
 
-   type Parse_Action_Type is (Navigate, Face, Indent);
+   type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
    type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
 
    procedure Initialize
-     (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor;
-      Source_File_Name : in     String;
-      Parse_Action     : in     Parse_Action_Type;
-      Line_Count       : in     Line_Number_Type;
-      Params           : in     String);
+     (Data              : in out Parse_Data_Type;
+      Descriptor        : access constant WisiToken.Descriptor;
+      Source_File_Name  : in     String;
+      Post_Parse_Action : in     Post_Parse_Action_Type;
+      Line_Count        : in     Line_Number_Type;
+      Params            : in     String);
    --  Line_Count only used for Indent. Params contains language-specific
    --  indent parameter values.
 
-   procedure Reset (Data : in out Parse_Data_Type);
+   overriding procedure Reset (Data : in out Parse_Data_Type);
    --  Reset for a new parse, with data from previous Initialize.
 
    function Source_File_Name (Data : in Parse_Data_Type) return String;
-   function Parse_Action (Data : in Parse_Data_Type) return Parse_Action_Type;
+   function Post_Parse_Action (Data : in Parse_Data_Type) return Post_Parse_Action_Type;
+
+   overriding
+   procedure Lexer_To_Augmented
+     (Data  : in out          Parse_Data_Type;
+      Token : in              Base_Token;
+      Lexer : not null access WisiToken.Lexer.Instance'Class);
+
+   overriding
+   procedure Reduce
+     (Data    : in out Parse_Data_Type;
+      Tree    : in out Syntax_Trees.Tree'Class;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     Syntax_Trees.Valid_Node_Index_Array);
 
    type Navigate_Class_Type is (Motion, Name, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
@@ -67,7 +79,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -75,7 +86,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
-      State      : in     WisiToken.Semantic_State.Semantic_State;
       Tree       : in     Syntax_Trees.Tree;
       Nonterm    : in     Syntax_Trees.Valid_Node_Index;
       Tokens     : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -101,7 +111,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -118,7 +127,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -127,7 +135,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -146,7 +153,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -157,7 +163,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Remove_Action
      (Data    : in out Parse_Data_Type;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -198,7 +203,6 @@ package WisiToken.Wisi_Runtime is
 
    type Language_Indent_Function is access function
      (Data              : in out Parse_Data_Type'Class;
-      State             : in     Semantic_State.Semantic_State;
       Tree              : in     Syntax_Trees.Tree;
       Tree_Tokens       : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
@@ -260,7 +264,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -269,7 +272,6 @@ package WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_1
      (Data    : in out Parse_Data_Type'Class;
-      State   : in     WisiToken.Semantic_State.Semantic_State;
       Tree    : in     Syntax_Trees.Tree;
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
@@ -279,7 +281,6 @@ package WisiToken.Wisi_Runtime is
 
    function Indent_Hanging_1
      (Data              : in out Parse_Data_Type;
-      State             : in     WisiToken.Semantic_State.Semantic_State;
       Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Tree_Indenting    : in     Syntax_Trees.Valid_Node_Index;
@@ -295,16 +296,15 @@ package WisiToken.Wisi_Runtime is
    --  wisi-elisp-parse-indent-hanging-function.
 
    procedure Put (Data : in out Parse_Data_Type);
-   --  Perform some post-parse actions, then put parse result to
+   --  Perform post-parse actions, then put result to
    --  Ada.Text_IO.Current_Output, as encoded responses as defined in [3]
    --  wisi-process-parse--execute.
 
    procedure Put
-     (Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
+     (Data         : in Parse_Data_Type;
+      Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
       Parse_Errors : in WisiToken.LR.Parse_Error_Lists.List;
-      State        : in Semantic_State.Semantic_State;
-      Tree         : in Syntax_Trees.Tree;
-      Descriptor   : in WisiToken.Descriptor);
+      Tree         : in Syntax_Trees.Tree);
    --  Put Lexer_Errors and Parse_Errors to Ada.Text_IO.Current_Output,
    --  as encoded error responses as defined in [3]
    --  wisi-process-parse--execute.
@@ -313,6 +313,106 @@ package WisiToken.Wisi_Runtime is
    --  Put an error elisp form to Ada.Text_IO.Standard_Output.
 
 private
+
+   type Non_Grammar_Token is record
+      ID    : Token_ID          := Invalid_Token_ID;
+      Line  : Line_Number_Type  := Invalid_Line_Number;
+      Col   : Ada.Text_IO.Count := Ada.Text_IO.Count'Last;
+      First : Boolean           := False;
+      --  Column is needed to detect comments in column 0.
+   end record;
+
+   package Non_Grammar_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Non_Grammar_Token);
+
+   type Augmented_Token is new Base_Token with record
+      --  Most fields are set by Lexer_To_Augmented at parse time; others
+      --  are set by Reduce for nonterminals.
+
+      Line        : Line_Number_Type  := Invalid_Line_Number; -- At start of token. Not set for nonterm.
+      Col         : Ada.Text_IO.Count := 0;
+      Char_Region : Buffer_Region     := Null_Buffer_Region;
+
+      --  The following fields are only needed for indent.
+
+      First : Boolean := False;
+      --  For a terminal, True if the token is not empty and it is first on
+      --  a line, or if it contains trailing blank or comment lines.
+      --
+      --  For a nonterminal, True if some contained token's First is True,
+      --  including trailing comments and blank lines.
+
+      Paren_State : Integer := 0;
+      --  Parenthesis nesting count, before token.
+
+      First_Terminals_Index : Base_Token_Index := Base_Token_Arrays.No_Index;
+      --  For virtual tokens, No_Index.
+      --
+      --  For terminal tokens, index of this token in State.Terminals.
+      --
+      --  For nonterminal tokens, index of first contained token in
+      --  State.Terminals.
+
+      Last_Terminals_Index : Base_Token_Index := Base_Token_Arrays.No_Index;
+      --  For non-virtual nonterminal tokens, index of last contained
+      --  token in State.Terminals.
+      --
+      --  For all others, same as First_Terminals_Index.
+
+      First_Indent_Line : Line_Number_Type := Invalid_Line_Number;
+      Last_Indent_Line  : Line_Number_Type := Invalid_Line_Number;
+      --  Lines that need indenting; first token on these lines is contained
+      --  in this token. If First is False, these are Invalid_Line_Number.
+      --
+      --  First_, Last_Indent_Line include blank and comment lines between
+      --  grammar tokens, but exclude trailing blanks and comments after the
+      --  last token, so they can be indented differently.
+
+      First_Trailing_Comment_Line : Line_Number_Type := Invalid_Line_Number;
+      Last_Trailing_Comment_Line  : Line_Number_Type := Invalid_Line_Number;
+      --  Trailing comment or blank lines (after the last contained grammar
+      --  token) that need indenting. Excludes comments following code on a
+      --  line. If there are no such lines, these are Invalid_Line_Number.
+
+      Non_Grammar : Non_Grammar_Token_Arrays.Vector;
+      --  For terminals, non-grammar tokens immediately following. For
+      --  nonterminals, empty.
+
+   end record;
+
+   overriding
+   function Image
+     (Item       : in Augmented_Token;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
+   --  Return a string for debug/test messages
+
+   function First_Line
+     (Token             : in Augmented_Token;
+      Indenting_Comment : in Boolean)
+     return Line_Number_Type;
+   function Last_Line
+     (Token             : in Augmented_Token;
+      Indenting_Comment : in Boolean)
+     return Line_Number_Type;
+   --  Return first and last line in Token's region.
+
+   type Augmented_Token_Access is access all Augmented_Token;
+   procedure Free is new Ada.Unchecked_Deallocation (Augmented_Token, Augmented_Token_Access);
+
+   type Augmented_Token_Access_Array is array (Positive_Index_Type range <>) of Augmented_Token_Access;
+   --  1 indexed to match token numbers in grammar actions.
+
+   function Image
+     (Item       : in Augmented_Token_Access_Array;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
+
+   package Augmented_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Augmented_Token);
+   --  Index matches Base_Token_Arrays.
+
+   package Line_Paren_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Integer);
+   package Line_Begin_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Buffer_Pos);
+   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
 
    type Nil_Buffer_Pos (Set : Boolean := False) is record
       case Set is
@@ -396,13 +496,41 @@ private
 
    type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
-      Descriptor       : access constant WisiToken.Descriptor;
-      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
-      Parse_Action     : Parse_Action_Type;
-      Navigate_Caches  : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
-      End_Positions    : Navigate_Cursor_Lists.List; -- Dynamic data for Navigate.
-      Face_Caches      : Face_Cache_Trees.Tree;      -- Set by Face.
-      Indents          : Indent_Vectors.Vector;      -- Set by Indent.
+      --  Data from parsing
+
+      Terminals : Augmented_Token_Arrays.Vector;
+      --  All terminal grammar tokens, in lexical order. Each contains any
+      --  immediately following non-grammar tokens. Does not contain
+      --  nonterminal or virtual tokens.
+      --  FIXME: all terminals are in syntax tree; still need this?
+
+      Leading_Non_Grammar : Base_Token_Arrays.Vector;
+      --  non-grammar tokens before first grammar token.
+
+      Line_Begin_Pos : Line_Begin_Pos_Vectors.Vector;
+      --  Character position at the start of the first token on each line.
+
+      Line_Begin_Token : Line_Begin_Token_Vectors.Vector;
+      --  Index into Terminals of first token on line; may be a Non_Grammar
+      --  contained by the token.
+
+      Line_Paren_State : Line_Paren_Vectors.Vector;
+      --  Parenthesis nesting state at the start of each line; used by
+      --  Indent. Set by Lexer_To_Augmented on New_Line_ID.
+
+      Current_Paren_State : Integer;
+      --  Current parenthesis nesting state; used by Indent. Set by
+      --  Lexer_To_Augmented on Left_Paren_ID, Right_Paren_ID.
+
+      --  Data for post-parse actions
+
+      Descriptor        : access constant WisiToken.Descriptor;
+      Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
+      Post_Parse_Action : Post_Parse_Action_Type;
+      Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
+      End_Positions     : Navigate_Cursor_Lists.List; -- Dynamic data for Navigate.
+      Face_Caches       : Face_Cache_Trees.Tree;      -- Set by Face.
+      Indents           : Indent_Vectors.Vector;      -- Set by Indent.
 
       --  Copied from language-specific parameters
       Indent_Comment_Col_0 : Boolean := False;
@@ -451,11 +579,29 @@ private
    ----------
    --  Utilities for language-specific child packages
 
+   subtype Aug_Token_Ref is Augmented_Token_Arrays.Variable_Reference_Type;
+
    function Current_Indent_Offset
-     (State        : in WisiToken.Semantic_State.Semantic_State;
-      Anchor_Token : in Semantic_State.Augmented_Token;
+     (Data         : in Parse_Data_Type;
+      Anchor_Token : in Augmented_Token'Class;
       Offset       : in Integer)
      return Integer;
+
+   function Find
+     (Data  : in Parse_Data_Type;
+      ID    : in Token_ID;
+      Token : in Augmented_Token'Class)
+     return Base_Token_Index;
+   --  Return index to State.Terminals of first token in
+   --  Token.Char_Region with ID. If not found, return
+   --  No_Index.
+   --  FIXME: use tree instead?
+
+   function Get_Aug_Token
+     (Data       : in Parse_Data_Type'Class;
+      Tree       : in Syntax_Trees.Tree'Class;
+      Tree_Index : in Syntax_Trees.Valid_Node_Index)
+     return Aug_Token_Ref;
 
    function Indent_Anchored_2
      (Data        : in out Parse_Data_Type;
@@ -468,7 +614,6 @@ private
 
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type'Class;
-      State             : in     Semantic_State.Semantic_State;
       Tree              : in     Syntax_Trees.Tree;
       Tokens            : in     Syntax_Trees.Valid_Node_Index_Array;
       Param             : in     Indent_Param;
@@ -478,8 +623,7 @@ private
 
    procedure Indent_Token_1
      (Data              : in out Parse_Data_Type;
-      State             : in     Semantic_State.Semantic_State;
-      Indenting_Token   : in     Semantic_State.Augmented_Token;
+      Indenting_Token   : in     Augmented_Token'Class;
       Delta_Indent      : in     Delta_Type;
       Indenting_Comment : in     Boolean);
    --  [2] wisi-elisp-parse--indent-token-1. Sets Data.Indents, so caller
