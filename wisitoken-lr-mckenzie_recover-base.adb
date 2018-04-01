@@ -331,8 +331,8 @@ package body WisiToken.LR.McKenzie_Recover.Base is
       begin
          if Index > Shared_Parser.Terminals.Last_Index then
             Temp := Next_Grammar_Token
-              (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State,
-               Shared_Parser.Trace.Descriptor.all);
+              (Shared_Parser.Terminals, Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer,
+               Shared_Parser.User_Data);
             pragma Assert (Temp = Index);
          end if;
          return Temp;

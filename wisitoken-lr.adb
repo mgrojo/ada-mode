@@ -598,19 +598,23 @@ package body WisiToken.LR is
    end Put;
 
    function Next_Grammar_Token
-     (Terminals      : in out          Base_Token_Arrays.Vector;
-      Lexer          : not null access WisiToken.Lexer.Instance'Class;
-      Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
-      Descriptor     : in              WisiToken.Descriptor'Class)
+     (Terminals  : in out          Base_Token_Arrays.Vector;
+      Descriptor : in              WisiToken.Descriptor'Class;
+      Lexer      : not null access WisiToken.Lexer.Instance'Class;
+      User_Data  : in              WisiToken.Syntax_Trees.User_Data_Access)
      return Token_Index
    is
+      use all type Syntax_Trees.User_Data_Access;
+
       Token : Base_Token;
    begin
       loop
          Token.ID := Lexer.Find_Next;
          Token.Byte_Region := Lexer.Byte_Region;
 
-         Semantic_State.Lexer_To_Augmented (Descriptor, Token, Lexer);
+         if User_Data /= null then
+            User_Data.Lexer_To_Augmented (Token, Lexer);
+         end if;
 
          exit when Token.ID >= Descriptor.First_Terminal;
       end loop;

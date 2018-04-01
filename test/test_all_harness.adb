@@ -34,7 +34,6 @@ with Grune_9_30;
 with Name_Grammar_Test;
 with Test_Accept_State;
 with Test_Ada_Lite_Terminal_Sequence;
-with Test_Character_Literal;
 with Test_Follow;
 with Test_LR_Expecting_Terminal_Sequence;
 with Test_McKenzie_Recover;
@@ -106,7 +105,6 @@ begin
    Add_Test (Suite, new Name_Grammar_Test.Test_Case);
    Add_Test (Suite, new Test_Accept_State.Test_Case);
    Add_Test (Suite, new Test_Ada_Lite_Terminal_Sequence.Test_Case);
-   Add_Test (Suite, new Test_Character_Literal.Test_Case);
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting_Terminal_Sequence.Test_Case);
    Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Cost_Limit));

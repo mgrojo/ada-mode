@@ -29,12 +29,12 @@ with WisiToken.LR.McKenzie_Recover.Ada_Lite;
 with WisiToken.LR.Parser;
 with WisiToken.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
-with WisiToken.Semantic_State;
 with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
 
-   Parser    : WisiToken.LR.Parser.Parser;
-   User_Data : WisiToken.Syntax_Trees.User_Data_Type;
+   User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
+
+   Parser : WisiToken.LR.Parser.Parser;
 
    EOF_ID : WisiToken.Token_ID renames Ada_Lite.Descriptor.EOF_ID;
 
@@ -48,8 +48,7 @@ package body Test_McKenzie_Recover is
 
    procedure Parse_Text
      (Text             : in String;
-      Line_Count       : in WisiToken.Line_Number_Type := 1;
-      Expect_Exception : in Boolean                    := False)
+      Expect_Exception : in Boolean := False)
    is
       use AUnit.Checks;
    begin
@@ -60,13 +59,12 @@ package body Test_McKenzie_Recover is
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
-      Parser.Semantic_State.Initialize (Line_Count);
       Parser.Lexer.Reset_With_String (Text & "   ");
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
 
       Parser.Parse;
-      Parser.Execute_Actions (User_Data, Compute_Indent => False);
+      Parser.Execute_Actions;
 
       if WisiToken.Trace_Parse > WisiToken.Outline then
          WisiToken.LR.Put
@@ -107,7 +105,6 @@ package body Test_McKenzie_Recover is
    begin
       --  The test is that there is no exception.
 
-      Parser.Semantic_State.Initialize (Line_Count => 49);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    end No_Error;
@@ -569,7 +566,6 @@ package body Test_McKenzie_Recover is
 
       Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
       declare
-         use WisiToken.Semantic_State;
          use WisiToken.LR.Parse_Error_Lists;
          Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
          Error_List   : List renames Parser_State.Errors;
@@ -697,7 +693,7 @@ package body Test_McKenzie_Recover is
       --  Test that syntax error recovery handles a missing string quote.
 
       Parse_Text
-        ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at""; " & ASCII.LF & "end Remove;", 3);
+        ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at""; " & ASCII.LF & "end Remove;");
          --        |10       |20       |30         |40    |45                 |50     |52
 
       --  In process of splitting a string across two lines; missing open
@@ -1119,7 +1115,6 @@ package body Test_McKenzie_Recover is
       --  Semantic_Check Extra_Name_Error enqueues the desired solution.
 
       declare
-         use WisiToken.Semantic_State;
          use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.Semantic_Checks.AUnit;
          use WisiToken.LR.AUnit;
@@ -1177,7 +1172,6 @@ package body Test_McKenzie_Recover is
       --  inserts that, succeeds.
 
       declare
-         use WisiToken.Semantic_State;
          use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.Semantic_Checks.AUnit;
          use WisiToken.LR.AUnit;
@@ -1226,7 +1220,6 @@ package body Test_McKenzie_Recover is
       --  Semantic_Check Extra_Name_Error enqueues the desired solution.
 
       declare
-         use WisiToken.Semantic_State;
          use WisiToken.LR.Parse_Error_Lists;
          use WisiToken.Semantic_Checks.AUnit;
          use WisiToken.LR.AUnit;
@@ -1398,7 +1391,8 @@ package body Test_McKenzie_Recover is
       --  Run before all tests in register
       Ada_Lite.Create_Parser
         (Parser, WisiToken.LALR, Ada_Lite.Trace'Access,
-         WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access);
+         User_Data => User_Data'Access,
+         Language_Fixes => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access);
 
       Orig_Params := Parser.Table.McKenzie_Param;
 

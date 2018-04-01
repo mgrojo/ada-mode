@@ -26,16 +26,15 @@ pragma License (Modified_GPL);
 
 with Ada.Finalization;
 with WisiToken.LR.Parser_Lists;
-with WisiToken.Semantic_State;
 package WisiToken.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
 
    type Parser is new Ada.Finalization.Limited_Controlled with record
-      Trace          : access WisiToken.Trace'Class;
-      Lexer          : WisiToken.Lexer.Handle;
-      Table          : Parse_Table_Ptr;
-      Semantic_State : WisiToken.Semantic_State.Semantic_State;
+      Trace     : access WisiToken.Trace'Class;
+      Lexer     : WisiToken.Lexer.Handle;
+      Table     : Parse_Table_Ptr;
+      User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
       Language_Fixes : Language_Fixes_Access;
 
@@ -79,6 +78,7 @@ package WisiToken.LR.Parser is
       Lexer                : in              WisiToken.Lexer.Handle;
       Table                : in              Parse_Table_Ptr;
       Language_Fixes       : in              Language_Fixes_Access;
+      User_Data            : in              WisiToken.Syntax_Trees.User_Data_Access;
       Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True);
@@ -99,10 +99,7 @@ package WisiToken.LR.Parser is
    --  an appropriate error message. Semantic_State contains information
    --  about previous recovered errors.
 
-   procedure Execute_Actions
-     (Parser         : in out LR.Parser.Parser;
-      User_Data      : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Compute_Indent : in     Boolean);
+   procedure Execute_Actions (Parser : in out LR.Parser.Parser);
    --  Execute the grammar actions in Parser.
 
 end WisiToken.LR.Parser;

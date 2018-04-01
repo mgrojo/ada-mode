@@ -53,32 +53,12 @@
    '(((compilation_unit
        ((statement_list )))
       (statement_list
-       ((statement )
-        (Test_Statement_List_0 (Tree.Augmented_Token_Ref (State.Terminals, Tree_Nonterm));))
+       ((statement ))
        ((statement_list statement )))
       (statement
-       ((IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON )
-        (declare
-        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
-        begin
-        Data.Character_Literal_Count := Data.Character_Literal_Count + 1;
-        Test_Statement_0 (Data, Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens));
-        end;))
-       ((IDENTIFIER tick IDENTIFIER SEMICOLON )
-        (declare
-        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
-        Tokens : WisiToken.Semantic_State.Augmented_Token_Access_Array renames Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens);
-        begin
-        Data.Char_Region := Tokens (3).Char_Region;
-        Test_Statement_1 (Tokens);
-        end;))
-       ((STRING_LITERAL SEMICOLON )
-        (declare
-        Data : Test_Character_Literal_Aux.User_Data renames Test_Character_Literal_Aux.User_Data (User_Data);
-        begin
-        Data.String_Literal_Count := Data.String_Literal_Count + 1;
-        Test_Statement_2 (Tree.Augmented_Token_Array (State.Terminals, Tree_Tokens));
-        end;))
+       ((IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ))
+       ((IDENTIFIER tick IDENTIFIER SEMICOLON ))
+       ((STRING_LITERAL SEMICOLON ))
        ((FOO SEMICOLON )))
       (tick
        ((TICK_1 ))))

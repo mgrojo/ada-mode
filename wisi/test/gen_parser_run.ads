@@ -21,6 +21,7 @@
 pragma License (GPL);
 
 with WisiToken.LR.Parser;
+with WisiToken.Syntax_Trees;
 generic
    Descriptor : in WisiToken.Descriptor;
 
@@ -28,7 +29,8 @@ generic
      (Parser         :    out          WisiToken.LR.Parser.Parser;
       Algorithm      : in              WisiToken.Parser_Algorithm_Type;
       Trace          : not null access WisiToken.Trace'Class;
-      Language_Fixes : in              WisiToken.LR.Language_Fixes_Access);
+      Language_Fixes : in              WisiToken.LR.Language_Fixes_Access;
+      User_Data      : in              WisiToken.Syntax_Trees.User_Data_Access);
 
    LR1 : in Boolean;
 procedure Gen_Parser_Run;

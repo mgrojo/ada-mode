@@ -29,7 +29,7 @@ pragma License (Modified_GPL);
 
 with Ada.Finalization;
 with SAL.Gen_Unbounded_Definite_Vectors;
-with WisiToken.Semantic_State;
+with WisiToken.Lexer;
 package WisiToken.Syntax_Trees is
 
    type Base_Tree is new Ada.Finalization.Controlled with private;
@@ -64,10 +64,36 @@ package WisiToken.Syntax_Trees is
    type Node_Label is (Shared_Terminal, Virtual_Terminal, Nonterm);
 
    type User_Data_Type is tagged limited null record;
+   --  Many test languages don't need this, so we default the procedures
+   --  to null.
+
+   type User_Data_Access is access all User_Data_Type'Class;
+
+   procedure Reset (User_Data : in out User_Data_Type) is null;
+   --  Reset to start a new parse.
+
+   procedure Lexer_To_Augmented
+     (User_Data  : in out          User_Data_Type;
+      Token      : in              Base_Token;
+      Lexer      : not null access WisiToken.Lexer.Instance'Class)
+     is null;
+   --  Read auxiliary data from Lexer, create an Augmented_Token, store
+   --  it in User_Data.
+   --
+   --  Does not have a Tree argument, because this is called from
+   --  recover, which does not maintain a tree.
+
+   procedure Reduce
+     (User_Data : in out User_Data_Type;
+      Tree      : in out Syntax_Trees.Tree'Class;
+      Nonterm   : in     Valid_Node_Index;
+      Tokens    : in     Valid_Node_Index_Array)
+   is null;
+   --  Reduce Tokens to Nonterm. Nonterm.Byte_Region is computed by
+   --  caller.
 
    type Semantic_Action is access procedure
      (User_Data : in out User_Data_Type'Class;
-      State     : in out WisiToken.Semantic_State.Semantic_State;
       Tree      : in out Syntax_Trees.Tree;
       Nonterm   : in     Valid_Node_Index;
       Tokens    : in     Valid_Node_Index_Array);
@@ -140,8 +166,8 @@ package WisiToken.Syntax_Trees is
    function Has_Parent (Tree : in Syntax_Trees.Tree; Children : in Valid_Node_Index_Array) return Boolean;
    function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
-   function Min_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
    function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
@@ -170,6 +196,11 @@ package WisiToken.Syntax_Trees is
      return Boolean;
    --  True if the two tokens have the same ID and Byte_Region.
 
+   function Base_Token
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return WisiToken.Base_Token;
+
    function Recover_Token
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
@@ -182,46 +213,19 @@ package WisiToken.Syntax_Trees is
    --  For non-virtual terminals, copied from Tree.Terminals. For others,
    --  constructed from Tree data.
 
-   type Augmented_Ref (Element : access Semantic_State.Augmented_Token) is null record
-   with Implicit_Dereference => Element;
+   procedure Set_Augmented
+     (Tree  : in out Syntax_Trees.Tree;
+      Node  : in     Valid_Node_Index;
+      Value : in     Base_Token_Class_Access)
+   with Pre => Tree.Is_Nonterm (Node);
+   --  Value will be deallocated when Tree is finalized.
 
-   function Augmented_Token_Ref
-     (Tree                : in out Syntax_Trees.Tree;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Node                : in     Valid_Node_Index)
-     return Augmented_Ref;
-   --  If Nodes (I) is a nonterm, returns result of Set_Augmented, or
-   --  (Nodes (I).terminal_id, Nodes (I).Byte_Region, others => <>)
-   --
-   --  If a virtual terminal, returns result of Set_Augmented, or
-   --  (Nodes (I).terminal_id, others => <>).
-   --
-   --  If a terminal, returns Augmented_Terminals (I).
-
-   type Constant_Augmented_Ref (Element : access constant Semantic_State.Augmented_Token) is null record
-   with Implicit_Dereference => Element;
-
-   function Constant_Aug_Token_Ref
-     (Tree                : in Syntax_Trees.Tree;
-      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector;
-      Node                : in Valid_Node_Index)
-     return Constant_Augmented_Ref;
-
-   --  If Nodes (I) is a nonterm or virtual terminal, returns result of
-   --  Set_Augmented, which may be null.
-   --
-   --  If a terminal, returns access to Augmented_Terminals (I).
-
-   function Augmented_Token_Array
-     (Tree                : in out Syntax_Trees.Tree;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Nodes               : in     Valid_Node_Index_Array)
-     return Semantic_State.Augmented_Token_Access_Array;
-
-   function Virtual
+   function Augmented
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
-     return Boolean;
+     return Base_Token_Class_Access
+   with Pre => Tree.Is_Nonterm (Node);
+   --  Returns result of Set_Augmented.
 
    function Action
      (Tree : in Syntax_Trees.Tree;
@@ -269,7 +273,10 @@ package WisiToken.Syntax_Trees is
    --  Traverse Tree in depth-first order, calling Process_Node on each
    --  node.
 
-   function Min_Shared_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
+   function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   with Pre => Tree.Is_Terminal (Node);
+
+   function Min_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
    --  Returns lowest index of shared terminal in subtree under Node. If
    --  result is Invalid_Token_Index, all terminals are virtual.
 
@@ -317,7 +324,7 @@ private
          Terminal : Token_Index;
 
       when Virtual_Terminal =>
-         Virtual_Augmented : Semantic_State.Augmented_Token_Access := null;
+         null;
 
       when Nonterm =>
          Virtual : Boolean := False;
@@ -341,11 +348,7 @@ private
          Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
          --  Cached for push_back of nonterminals during recovery
 
-         Nonterm_Augmented : Semantic_State.Augmented_Token_Access := null;
-         --  We store Augmented_Token_Access rather than Augmented_Token, to
-         --  save memory space and copy time during Recover. Note that
-         --  Augmented is null during recover; it is only set after parsing is
-         --  complete, while executing actions.
+         Augmented : Base_Token_Class_Access := null;
       end case;
    end record;
 

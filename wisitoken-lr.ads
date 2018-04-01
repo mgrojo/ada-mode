@@ -46,7 +46,6 @@ with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
-with WisiToken.Semantic_State;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR is
 
@@ -577,12 +576,12 @@ private
    end record;
 
    function Next_Grammar_Token
-     (Terminals      : in out          Base_Token_Arrays.Vector;
-      Lexer          : not null access WisiToken.Lexer.Instance'Class;
-      Semantic_State : in out          WisiToken.Semantic_State.Semantic_State;
-      Descriptor     : in              WisiToken.Descriptor'Class)
+     (Terminals  : in out          Base_Token_Arrays.Vector;
+      Descriptor : in              WisiToken.Descriptor'Class;
+      Lexer      : not null access WisiToken.Lexer.Instance'Class;
+      User_Data  : in              WisiToken.Syntax_Trees.User_Data_Access)
      return Token_Index;
-   --  Get next token from Lexer, call Semantic_State.Lexer_To_Augmented.
+   --  Get next token from Lexer, call User_Data.Lexer_To_Augmented.
    --  If it is a grammar token, store in Terminals and return its ID.
    --  Otherwise, repeat.
 

@@ -25,7 +25,6 @@ with Skip_To_Grammar;
 with Test_Skip_To_Aux;
 with WisiToken.LR.Parser;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Semantic_State;
 package body Test_Skip_To is
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar.Descriptor'Access);
@@ -42,7 +41,6 @@ package body Test_Skip_To is
    begin
       Test_Skip_To_Aux.Enable := True;
 
-      Parser.Semantic_State.Initialize (Line_Count => 8);
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    exception
@@ -76,5 +74,5 @@ package body Test_Skip_To is
    end Register_Tests;
 
 begin
-   Skip_To_Grammar.Create_Parser (Parser, WisiToken.LALR, Trace'Access, null);
+   Skip_To_Grammar.Create_Parser (Parser, WisiToken.LALR, Trace'Access, null, null);
 end Test_Skip_To;

@@ -157,115 +157,34 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Adjust;
 
-   function Augmented_Token_Ref
-     (Tree                : in out Syntax_Trees.Tree;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Node                : in     Valid_Node_Index)
-     return Augmented_Ref
+   function Base_Token
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return WisiToken.Base_Token
    is
-      use all type Semantic_State.Augmented_Token_Access;
-
-      function Compute (N : in out Syntax_Trees.Node) return Augmented_Ref
+      function Compute (N : in Syntax_Trees.Node) return WisiToken.Base_Token
       is begin
-         case N.Label is
-         when Shared_Terminal =>
-            return (Element => Augmented_Terminals (N.Terminal).Element);
-
-         when Virtual_Terminal =>
-            if N.Virtual_Augmented = null then
-               N.Virtual_Augmented := new Semantic_State.Augmented_Token'
-                 (ID     => N.ID,
-                  others => <>);
-            end if;
-            return (Element => N.Virtual_Augmented);
-
-         when Nonterm =>
-            if N.Nonterm_Augmented = null then
-               N.Nonterm_Augmented := new Semantic_State.Augmented_Token'
-                 (ID          => N.ID,
-                  Byte_Region => N.Byte_Region,
-                  others      => <>);
-            end if;
-            return (Element => N.Nonterm_Augmented);
-         end case;
+         return (N.ID, N.Byte_Region);
       end Compute;
-
    begin
       if Node <= Tree.Last_Shared_Node then
-         declare
-            N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
-         begin
-            case N.Label is
-            when Shared_Terminal =>
-               return (Element => Augmented_Terminals (Tree.Shared_Tree.Nodes (Node).Terminal).Element);
-
-            when Virtual_Terminal =>
-               if Tree.Flush or N.Virtual_Augmented /= null then
-                  return Compute (N);
-               end if;
-
-            when Nonterm =>
-               if Tree.Flush or N.Nonterm_Augmented /= null then
-                  return Compute (N);
-               end if;
-            end case;
-         end;
-
-         Move_Branch_Point (Tree, Node);
-         --  Can't do this in the case statement above, that would move node
-         --  out from under N.
-
-         return Compute (Tree.Branched_Nodes (Node));
-
+         return Compute (Tree.Shared_Tree.Nodes (Node));
       else
-         --  Node > Tree.Last_Shared_Node
          return Compute (Tree.Branched_Nodes (Node));
       end if;
-   end Augmented_Token_Ref;
+   end Base_Token;
 
-   function Augmented_Token_Array
-     (Tree                : in out Syntax_Trees.Tree;
-      Augmented_Terminals : in     Semantic_State.Augmented_Token_Arrays.Vector;
-      Nodes               : in     Valid_Node_Index_Array)
-     return Semantic_State.Augmented_Token_Access_Array
-   is
-      function Compute (N : in out Syntax_Trees.Node) return Semantic_State.Augmented_Token_Access
-      is
-         use all type Semantic_State.Augmented_Token_Access;
-      begin
-         case N.Label is
-         when Shared_Terminal =>
-            return Semantic_State.Augmented_Token_Access (Augmented_Terminals.Variable_Ref (N.Terminal));
-
-         when Virtual_Terminal =>
-            if N.Virtual_Augmented = null then
-               N.Virtual_Augmented := new Semantic_State.Augmented_Token'
-                 (ID     => N.ID,
-                  others => <>);
-            end if;
-            return N.Virtual_Augmented;
-
-         when Nonterm =>
-            if N.Nonterm_Augmented = null then
-               N.Nonterm_Augmented := new Semantic_State.Augmented_Token'
-                 (ID          => N.ID,
-                  Byte_Region => N.Byte_Region,
-                  others      => <>);
-            end if;
-            return N.Nonterm_Augmented;
-         end case;
-      end Compute;
-   begin
-      return Result : Semantic_State.Augmented_Token_Access_Array (Nodes'First .. Nodes'Last) do
-         for I in Result'Range loop
-            if Nodes (I) > Tree.Last_Shared_Node then
-               Result (I) := Compute (Tree.Branched_Nodes (Nodes (I)));
-            else
-               Result (I) := Compute (Tree.Shared_Tree.Nodes (Nodes (I)));
-            end if;
-         end loop;
-      end return;
-   end Augmented_Token_Array;
+   function Augmented
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Base_Token_Class_Access
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Tree.Shared_Tree.Nodes (Node).Augmented;
+      else
+         return Tree.Branched_Nodes (Node).Augmented;
+      end if;
+   end Augmented;
 
    function Byte_Region
      (Tree : in Syntax_Trees.Tree;
@@ -304,62 +223,24 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Children;
 
-   procedure Clear (Tree : in out Base_Tree)
+   procedure Clear (Tree : in out Syntax_Trees.Base_Tree)
    is begin
-      Tree.Traversing := False;
-      if Tree.Augmented_Present then
-         for Node of Tree.Nodes loop
-            case Node.Label is
-            when Shared_Terminal =>
-               null;
-
-            when Virtual_Terminal =>
-               Semantic_State.Free (Node.Virtual_Augmented);
-
-            when Nonterm =>
-               Semantic_State.Free (Node.Nonterm_Augmented);
-            end case;
-         end loop;
-         Tree.Augmented_Present := False;
-      end if;
-      Tree.Nodes.Finalize;
+      Tree.Finalize;
    end Clear;
 
    procedure Clear (Tree : in out Syntax_Trees.Tree)
    is begin
-      Tree.Shared_Tree.Clear;
+      if Tree.Shared_Tree.Augmented_Present then
+         for Node of Tree.Branched_Nodes loop
+            if Node.Label = Nonterm then
+               Free (Node.Augmented);
+            end if;
+         end loop;
+      end if;
+      Tree.Shared_Tree.Finalize;
       Tree.Last_Shared_Node := Invalid_Node_Index;
       Tree.Branched_Nodes.Clear;
    end Clear;
-
-   function Constant_Aug_Token_Ref
-     (Tree                : in Syntax_Trees.Tree;
-      Augmented_Terminals : in Semantic_State.Augmented_Token_Arrays.Vector;
-      Node                : in Valid_Node_Index)
-     return Constant_Augmented_Ref
-   is
-      use all type Semantic_State.Augmented_Token_Access;
-
-      function Compute (N : in Syntax_Trees.Node) return Constant_Augmented_Ref
-      is begin
-         case N.Label is
-         when Shared_Terminal =>
-            return (Element => Augmented_Terminals (N.Terminal).Element);
-
-         when Virtual_Terminal =>
-            return (Element => N.Virtual_Augmented);
-
-         when Nonterm =>
-            return (Element => N.Nonterm_Augmented);
-         end case;
-      end Compute;
-
-   begin
-      return Compute
-        (if Node <= Tree.Last_Shared_Node
-         then Tree.Shared_Tree.Nodes (Node)
-         else Tree.Branched_Nodes (Node));
-   end Constant_Aug_Token_Ref;
 
    function Count_Terminals
      (Tree   : in     Syntax_Trees.Tree;
@@ -394,16 +275,9 @@ package body WisiToken.Syntax_Trees is
       Tree.Traversing := False;
       if Tree.Augmented_Present then
          for Node of Tree.Nodes loop
-            case Node.Label is
-            when Shared_Terminal =>
-               null;
-
-            when Virtual_Terminal =>
-               Semantic_State.Free (Node.Virtual_Augmented);
-
-            when Nonterm =>
-               Semantic_State.Free (Node.Nonterm_Augmented);
-            end case;
+            if Node.Label = Nonterm then
+               Free (Node.Augmented);
+            end if;
          end loop;
          Tree.Augmented_Present := False;
       end if;
@@ -719,13 +593,21 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Is_Nonterm;
 
+   function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Tree.Shared_Tree.Nodes (Node).Label = Shared_Terminal;
+      else
+         return Tree.Branched_Nodes (Node).Label = Shared_Terminal;
+      end if;
+   end Is_Terminal;
+
    function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is
       function Compute (N : in Syntax_Trees.Node) return Boolean
       is begin
          return N.Label = Virtual_Terminal or (N.Label = Nonterm and then N.Virtual);
       end Compute;
-
    begin
       if Node <= Tree.Last_Shared_Node then
          return Compute (Tree.Shared_Tree.Nodes (Node));
@@ -774,36 +656,6 @@ package body WisiToken.Syntax_Trees is
          end;
       end case;
    end Min_Descendant;
-
-   function Min_Shared_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
-   is
-      function Compute (N : in Syntax_Trees.Node) return Base_Token_Index
-      is begin
-         case N.Label is
-         when Shared_Terminal =>
-            return N.Terminal;
-         when Virtual_Terminal =>
-            return Invalid_Token_Index;
-         when Nonterm =>
-            for I of N.Children loop
-               declare
-                  Temp : constant Base_Token_Index := Min_Shared_Terminal_Index (Tree, I);
-               begin
-                  if Temp /= Invalid_Token_Index then
-                     return Temp;
-                  end if;
-               end;
-            end loop;
-            return Invalid_Token_Index;
-         end case;
-      end Compute;
-
-   begin
-      return Compute
-        ((if Node <= Tree.Last_Shared_Node
-          then Tree.Shared_Tree.Nodes (Node)
-          else Tree.Branched_Nodes (Node)));
-   end Min_Shared_Terminal_Index;
 
    function Min_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
    is
@@ -923,6 +775,18 @@ package body WisiToken.Syntax_Trees is
           else Tree_2.Branched_Nodes (Index_2)));
    end Same_Token;
 
+   procedure Set_Augmented
+     (Tree  : in out Syntax_Trees.Tree;
+      Node  : in     Valid_Node_Index;
+      Value : in     Base_Token_Class_Access)
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         Tree.Shared_Tree.Nodes (Node).Augmented := Value;
+      else
+         Tree.Branched_Nodes (Node).Augmented := Value;
+      end if;
+   end Set_Augmented;
+
    procedure Set_Children
      (Nodes    : in out Node_Arrays.Vector;
       Parent   : in     Valid_Node_Index;
@@ -1020,6 +884,15 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Set_Name_Region;
 
+   function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   is begin
+      if Node <= Tree.Last_Shared_Node then
+         return Tree.Shared_Tree.Nodes (Node).Terminal;
+      else
+         return Tree.Branched_Nodes (Node).Terminal;
+      end if;
+   end Terminal;
+
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean
    is begin
       return Tree.Shared_Tree.Traversing;
@@ -1085,28 +958,5 @@ package body WisiToken.Syntax_Trees is
          return Tree.Branched_Nodes (Node).State;
       end if;
    end State;
-
-   function Virtual
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Boolean
-   is
-      function Compute (N : in Syntax_Trees.Node) return Boolean
-      is begin
-         case N.Label is
-         when Shared_Terminal =>
-            return False;
-         when Virtual_Terminal =>
-            return True;
-         when Nonterm =>
-            return N.Virtual;
-         end case;
-      end Compute;
-   begin
-      return Compute
-        ((if Node <= Tree.Last_Shared_Node
-          then Tree.Shared_Tree.Nodes (Node)
-          else Tree.Branched_Nodes (Node)));
-   end Virtual;
 
 end WisiToken.Syntax_Trees;

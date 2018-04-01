@@ -24,8 +24,6 @@ OK grune_9_30.adb : Test_Parse
 OK name_grammar_test.adb : Nominal
 OK test_accept_state.adb : Nominal
 OK test_ada_lite_terminal_sequence.adb : Test_Terminal_Sequence
-OK test_character_literal.adb : Nominal
-OK test_character_literal.adb : Character_Position
 OK test_follow.adb : Subprograms.One
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_lr_expecting_terminal_sequence.adb : Test_Terminal_Sequence
@@ -65,7 +63,7 @@ OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   65
-Successful Tests:  65
+Total Tests Run:   63
+Successful Tests:  63
 Failed Assertions: 0
 Unexpected Errors: 0

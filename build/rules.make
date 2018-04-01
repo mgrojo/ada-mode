@@ -56,6 +56,8 @@ tests : test_all_harness.diff
 #tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
 tests : case_expression_re2c.c
 tests : case_expression-parse.diff
+tests : character_literal_re2c.c
+tests : character_literal-parse.diff
 tests : conflict_name_re2c.c
 tests : conflict_name-parse.diff
 tests : empty_production_1_re2c.c

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,7 +17,7 @@ with Ada.Text_IO;
 with WisiToken.AUnit;
 package body Test_Skip_To_Aux is
 
-   procedure Test_Declaration_0 (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class)
+   procedure Test_Declaration_0 (Nonterm : in WisiToken.Base_Token)
    is
       use WisiToken.AUnit;
    begin
@@ -26,9 +26,7 @@ package body Test_Skip_To_Aux is
             Ada.Text_IO.Put_Line ("Test_Declaration_0");
          end if;
 
-         Check ("declaration_0 1 char region", Nonterm.Char_Region, (8, 25));
          Check ("declaration_0 1 byte region", Nonterm.Byte_Region, (11, 28)); -- DOS line endings
-         Check ("declaration_0 1 line", Nonterm.Line, 4);
       end if;
    end Test_Declaration_0;
 

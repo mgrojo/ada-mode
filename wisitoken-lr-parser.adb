@@ -60,7 +60,7 @@ package body WisiToken.LR.Parser is
 
       Nonterm := Parser_State.Tree.Add_Nonterm
         (Action.LHS, Action.Action, Action.Production, Action.Name_Index, Children_Tree,
-         Default_Virtual => Parser_State.Tree.Virtual (Parser_State.Current_Token));
+         Default_Virtual => Parser_State.Tree.Is_Virtual (Parser_State.Current_Token));
       --  Computes Nonterm.Byte_Region, Virtual
 
       if Trace_Parse > Detail then
@@ -466,6 +466,7 @@ package body WisiToken.LR.Parser is
       Lexer                : in              WisiToken.Lexer.Handle;
       Table                : in              Parse_Table_Ptr;
       Language_Fixes       : in              Language_Fixes_Access;
+      User_Data            : in              WisiToken.Syntax_Trees.User_Data_Access;
       Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True)
@@ -474,6 +475,7 @@ package body WisiToken.LR.Parser is
       Parser.Trace                   := Trace;
       Parser.Table                   := Table;
       Parser.Language_Fixes          := Language_Fixes;
+      Parser.User_Data               := User_Data;
       Parser.Enable_McKenzie_Recover :=
         Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
       Parser.Max_Parallel            := Max_Parallel;
@@ -483,6 +485,7 @@ package body WisiToken.LR.Parser is
 
    procedure Parse (Shared_Parser : in out LR.Parser.Parser)
    is
+      use all type Syntax_Trees.User_Data_Access;
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
@@ -532,7 +535,9 @@ package body WisiToken.LR.Parser is
       --  The user must call Lexer.Reset_* to set the input text.
       Shared_Parser.Lexer.Errors.Clear;
 
-      Shared_Parser.Semantic_State.Reset;
+      if Shared_Parser.User_Data /= null then
+         Shared_Parser.User_Data.Reset;
+      end if;
       Shared_Parser.Terminals.Clear;
       Shared_Parser.Shared_Tree.Clear;
 
@@ -606,8 +611,8 @@ package body WisiToken.LR.Parser is
                   else
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Next_Grammar_Token
-                          (Shared_Parser.Terminals, Shared_Parser.Lexer, Shared_Parser.Semantic_State,
-                           Shared_Parser.Trace.Descriptor.all),
+                          (Shared_Parser.Terminals, Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer,
+                           Shared_Parser.User_Data),
                         Shared_Parser.Terminals);
                   end if;
                end if;
@@ -952,11 +957,10 @@ package body WisiToken.LR.Parser is
       end loop;
    end Parse;
 
-   procedure Execute_Actions
-     (Parser         : in out LR.Parser.Parser;
-      User_Data      : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Compute_Indent : in     Boolean)
+   procedure Execute_Actions (Parser : in out LR.Parser.Parser)
    is
+      use all type Syntax_Trees.User_Data_Access;
+
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
       procedure Process_Node
@@ -973,38 +977,21 @@ package body WisiToken.LR.Parser is
          declare
             use all type Syntax_Trees.Semantic_Action;
             Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
-            Aug_Nonterm   : Semantic_State.Augmented_Token renames Tree.Augmented_Token_Ref
-              (Parser.Semantic_State.Terminals, Node);
-            Aug_Children  : constant Semantic_State.Augmented_Token_Access_Array := Tree.Augmented_Token_Array
-              (Parser.Semantic_State.Terminals, Tree_Children);
          begin
-            Semantic_State.Reduce (Aug_Nonterm, Aug_Children, Descriptor, Compute_Indent);
-
-            if Trace_Action > Detail then
-               declare
-                  Action_Name : constant String :=
-                    (if Tree.Action (Node) /= null
-                     then Ada.Characters.Handling.To_Lower
-                       (Image (Aug_Nonterm.ID, Descriptor)) & "_" &
-                        Int_Image (Tree.Name_Index (Node)) & ": "
-                     else "");
-               begin
-                  Parser.Trace.Put_Line
-                    (Action_Name & Aug_Nonterm.Image (Descriptor) & " <= " &
-                       Semantic_State.Image (Aug_Children, Descriptor));
-               end;
-            end if;
+            Parser.User_Data.Reduce (Tree, Node, Tree_Children);
 
             if Tree.Action (Node) /= null then
-               Tree.Action (Node) (User_Data, Parser.Semantic_State, Tree, Node, Tree_Children);
+               Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Tree_Children);
             end if;
          end;
       end Process_Node;
 
    begin
-      for Parser_State of Parser.Parsers loop
-         Parser_State.Tree.Process_Tree (Process_Node'Access);
-      end loop;
+      if Parser.User_Data /= null then
+         for Parser_State of Parser.Parsers loop
+            Parser_State.Tree.Process_Tree (Process_Node'Access);
+         end loop;
+      end if;
    end Execute_Actions;
 
 end WisiToken.LR.Parser;

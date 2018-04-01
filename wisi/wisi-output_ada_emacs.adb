@@ -126,9 +126,9 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
          end if;
       end Statement_Params;
 
@@ -138,7 +138,7 @@ is
          First  : constant Integer := Params'First;
          Second : constant Integer := Index (Params, " ", First);
       begin
-         return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, " &
+         return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, " &
            Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
       end Containing_Params;
 
@@ -155,7 +155,7 @@ is
          Last   : Integer          := Params'First; -- skip [
          First  : Integer;
          Vector : Boolean;
-         Result : Unbounded_String := +" (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (";
+         Result : Unbounded_String := +" (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (";
 
          Index_First  : Integer;
          Index_Last   : Integer;
@@ -251,9 +251,9 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
@@ -297,9 +297,9 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
@@ -334,9 +334,9 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
@@ -367,7 +367,7 @@ is
          subtype Digit is Character range '0' .. '9';
 
          Last          : Integer         := Params'First; -- skip [
-         Prefix        : constant String := " (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, " & N & "(";
+         Prefix        : constant String := " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, " & N & "(";
          Result        : Unbounded_String;
          Need_Comma    : Boolean         := False;
          Param_Count   : Count_Type      := 0;            -- in Params
@@ -815,7 +815,6 @@ is
          --  In an action
          Indent_Line ("procedure " & Name);
          Indent_Line (" (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
-         Indent_Line ("  State        : in out WisiToken.Semantic_State.Semantic_State;");
          Indent_Line ("  Tree         : in out WisiToken.Syntax_Trees.Tree;");
          Indent_Line ("  Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
          Indent_Line ("  Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
@@ -825,7 +824,7 @@ is
          Indent_Line ("begin");
          Indent := Indent + 3;
 
-         Indent_Line ("case Parse_Data.Parse_Action is");
+         Indent_Line ("case Parse_Data.Post_Parse_Action is");
          Indent_Line ("when Navigate =>");
          if Navigate_Lines.Length > 0 then
             Indent := Indent + 3;
@@ -933,10 +932,6 @@ is
       Put_Line ("with WisiToken.Lexer.re2c;");
       if Check_Count > 0 then
          Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
-      end if;
-      Put_Line ("with WisiToken.Semantic_State;");
-      if Action_Count > 0 or Check_Count > 0 then
-         Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
       Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
@@ -1374,7 +1369,6 @@ begin
         (case Data.Interface_Kind is
          when Process => "_Process",
          when Module  => "_Module"),
-      Language_Name   => Language_Name,
       Output_Language => Ada_Emacs,
       Descriptor      => Generate_Utils.LALR_Descriptor,
       Interface_Kind  => Generate_Params.Interface_Kind,

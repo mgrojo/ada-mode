@@ -30,7 +30,6 @@ with WisiToken.LR.LR1_Generator;
 procedure Wisi.Output_Ada
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
-   Language_Name         : in String;
    Params                : in Generate_Param_Type;
    Prologues             : in Wisi.Prologues;
    Tokens                : in Wisi.Tokens;
@@ -67,7 +66,6 @@ is
       Lower_Package_Name_Root : constant String := -Data.Lower_Package_Name_Root;
 
       User_Data_Regexp    : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive    => False);
-      State_Regexp        : constant Regexp := Compile (Symbol_Regexp ("State"), Case_Sensitive        => False);
       Tree_Regexp         : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive         => False);
       Tree_Nonterm_Regexp : constant Regexp := Compile (Symbol_Regexp ("Tree_Nonterm"), Case_Sensitive => False);
       Tree_Tokens_Regexp  : constant Regexp := Compile (Symbol_Regexp ("Tree_Tokens"), Case_Sensitive  => False);
@@ -119,12 +117,6 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
-      if Action_Count > 0 then
-         Put_Line ("with WisiToken.Semantic_State;");
-      end if;
-      if Action_Count > 0 or Check_Count > 0 then
-         Put_Line ("with WisiToken.Syntax_Trees;");
-      end if;
       if Check_Count > 0 then
          Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
       end if;
@@ -177,7 +169,6 @@ is
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
                      Unref_User_Data : Boolean := True;
-                     Unref_State     : Boolean := True;
                      Unref_Tree      : Boolean := True;
                      Unref_Nonterm   : Boolean := True;
                      Unref_Tokens    : Boolean := True;
@@ -187,9 +178,6 @@ is
                      is begin
                         if Match (Line, User_Data_Regexp) then
                            Unref_User_Data := False;
-                        end if;
-                        if Match (Line, State_Regexp) then
-                           Unref_State := False;
                         end if;
                         if Match (Line, Tree_Regexp) then
                            Unref_Tree := False;
@@ -215,21 +203,16 @@ is
                      Action_Names (Prod_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
                      Indent_Line (" (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
-                     Indent_Line ("  State        : in out WisiToken.Semantic_State.Semantic_State;");
                      Indent_Line ("  Tree         : in out WisiToken.Syntax_Trees.Tree;");
                      Indent_Line ("  Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
                      Indent_Line ("  Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
                      Indent_Line ("is");
 
-                     if Unref_User_Data or Unref_State or Unref_Tree or Unref_Nonterm or Unref_Tokens then
+                     if Unref_User_Data or Unref_Tree or Unref_Nonterm or Unref_Tokens then
                         Indent_Start ("   pragma Unreferenced (");
 
                         if Unref_User_Data then
                            Put ((if Need_Comma then ", " else "") & "User_Data");
-                           Need_Comma := True;
-                        end if;
-                        if Unref_State then
-                           Put ((if Need_Comma then ", " else "") & "State");
                            Need_Comma := True;
                         end if;
                         if Unref_Tree then
@@ -372,7 +355,7 @@ begin
    end case;
 
    Create_Ada_Spec
-     (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root, Language_Name,
+     (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root,
       Ada, Generate_Utils.LR1_Descriptor, None, Declare_Enum);
 
    Create_Ada_Body;

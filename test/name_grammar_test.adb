@@ -107,7 +107,6 @@ package body Name_Grammar_Test is
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
       Parser.Lexer.Reset_With_String (Command);
-      Parser.Semantic_State.Reset;
       Parser.Parse;
 
       Ada.Text_IO.Put_Line ("success");
@@ -162,6 +161,7 @@ package body Name_Grammar_Test is
                LALR_Descriptor,
                First_State_Index,
                Ignore_Unused_Tokens => False),
+            User_Data      => null,
             Language_Fixes => null,
          First_Parser_Label => First_Parser_Label);
          Parse_Command ("Full Parser", Parser, "Module.Symbol");

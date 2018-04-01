@@ -107,7 +107,6 @@ package body Association_Grammar_Test is
       Trace.Put_Line ("'" & Command & "'");
 
       Parser.Lexer.Reset_With_String (Command);
-      Parser.Semantic_State.Reset;
       Parser.Parse;
 
       Trace.Put_Line ("success");
@@ -153,6 +152,7 @@ package body Association_Grammar_Test is
            (Full_Grammar,
             LALR_Descriptor,
             First_State_Index => 1),
+         User_Data            => null,
          Language_Fixes       => null,
          First_Parser_Label   => First_Parser_Label);
 

@@ -37,6 +37,7 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with Ada.Unchecked_Deallocation;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux;
 package WisiToken is
 
@@ -225,10 +226,15 @@ package WisiToken is
       Byte_Region : Buffer_Region := Null_Buffer_Region;
    end record;
 
+   type Base_Token_Class_Access is access all Base_Token'Class;
+   type Base_Token_Class_Access_Array is array (Positive_Index_Type range <>) of Base_Token_Class_Access;
+
    function Image
      (Item       : in Base_Token;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Base_Token'Class, Base_Token_Class_Access);
 
    Invalid_Token : constant Base_Token := (others => <>);
 
