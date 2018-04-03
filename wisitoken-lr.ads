@@ -547,7 +547,7 @@ package WisiToken.LR is
       Errors           : in Parse_Error_Lists.List;
       Tree             : in Syntax_Trees.Tree;
       Descriptor       : in WisiToken.Descriptor);
-   --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
+   --  Put user-friendly error messages to Ada.Text_IO.Current_Error.
 
 private
 

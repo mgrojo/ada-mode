@@ -23,6 +23,8 @@ pragma License (GPL);
 with WisiToken.LR.Parser;
 with WisiToken.Syntax_Trees;
 generic
+   type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
+
    Descriptor : in WisiToken.Descriptor;
 
    with procedure  Create_Parser

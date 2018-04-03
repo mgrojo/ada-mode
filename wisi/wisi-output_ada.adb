@@ -51,7 +51,7 @@ is
       --
       --  GNAT.Regexp does not have a char for 'end of string', so we hope
       --  that doesn't occur. Sigh.
-      return ".*[ (\.]" & Item & "[ );\.].*";
+      return ".*[ (\.]" & Item & "[ );\.,].*";
    end Symbol_Regexp;
 
    procedure Create_Ada_Body
@@ -65,10 +65,10 @@ is
       Package_Name            : constant String := -Data.Package_Name_Root;
       Lower_Package_Name_Root : constant String := -Data.Lower_Package_Name_Root;
 
-      User_Data_Regexp    : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive    => False);
-      Tree_Regexp         : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive         => False);
-      Tree_Nonterm_Regexp : constant Regexp := Compile (Symbol_Regexp ("Tree_Nonterm"), Case_Sensitive => False);
-      Tree_Tokens_Regexp  : constant Regexp := Compile (Symbol_Regexp ("Tree_Tokens"), Case_Sensitive  => False);
+      User_Data_Regexp : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive => False);
+      Tree_Regexp      : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive      => False);
+      Nonterm_Regexp   : constant Regexp := Compile (Symbol_Regexp ("Nonterm"), Case_Sensitive   => False);
+      Tokens_Regexp    : constant Regexp := Compile (Symbol_Regexp ("Tokens"), Case_Sensitive    => False);
 
       Body_File : File_Type;
    begin
@@ -182,18 +182,15 @@ is
                         if Match (Line, Tree_Regexp) then
                            Unref_Tree := False;
                         end if;
-                        if Match (Line, Tree_Nonterm_Regexp) then
+                        if Match (Line, Nonterm_Regexp) then
                            Unref_Nonterm := False;
                         end if;
-                        if Match (Line, Tree_Tokens_Regexp) then
+                        if Match (Line, Tokens_Regexp) then
                            Unref_Tokens := False;
                         end if;
                      end Check_Unref;
 
                   begin
-                     for Line of Params.Action_Declarations loop
-                        Check_Unref (Line);
-                     end loop;
                      for Line of RHS.Action loop
                         Check_Unref (Line);
                      end loop;
@@ -202,10 +199,10 @@ is
 
                      Action_Names (Prod_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
-                     Indent_Line (" (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
-                     Indent_Line ("  Tree         : in out WisiToken.Syntax_Trees.Tree;");
-                     Indent_Line ("  Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
-                     Indent_Line ("  Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
+                     Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
+                     Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
+                     Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
+                     Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
                      Indent_Line ("is");
 
                      if Unref_User_Data or Unref_Tree or Unref_Nonterm or Unref_Tokens then
@@ -220,21 +217,15 @@ is
                            Need_Comma := True;
                         end if;
                         if Unref_Nonterm then
-                           Put ((if Need_Comma then ", " else "") & "Tree_Nonterm");
+                           Put ((if Need_Comma then ", " else "") & "Nonterm");
                            Need_Comma := True;
                         end if;
                         if Unref_Tokens then
-                           Put ((if Need_Comma then ", " else "") & "Tree_Tokens");
+                           Put ((if Need_Comma then ", " else "") & "Tokens");
                            Need_Comma := True;
                         end if;
                         Put_Line (");");
                      end if;
-
-                     Indent := Indent + 3;
-                     for Line of Params.Action_Declarations loop
-                        Indent_Line (Line);
-                     end loop;
-                     Indent := Indent - 3;
 
                      Indent_Line ("begin");
                      Indent := Indent + 3;

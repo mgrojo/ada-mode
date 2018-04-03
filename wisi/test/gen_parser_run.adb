@@ -45,7 +45,7 @@ is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
-   User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
+   User_Data : aliased User_Data_Type;
 
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
    is

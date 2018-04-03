@@ -8,6 +8,8 @@ project WisiToken is
      ("..",
       "../wisi");
 
+   for Languages use ("Ada", "C");
+
    case Standard_Common.Profile is
    when "On" =>
       for Object_Dir use "obj_pro";

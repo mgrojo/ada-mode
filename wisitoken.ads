@@ -47,7 +47,9 @@ package WisiToken is
 
    Fatal_Error : exception; -- Error in code or grammar; editing input cannot fix error.
 
-   Grammar_Error : exception; -- Grammar is not consistent (ie unused tokens, missing productions, invalid actions)
+   Grammar_Error : exception;
+   --  Grammar file has bad syntax, or grammar is not consistent (ie
+   --  unused tokens, missing productions, invalid actions)
 
    User_Error : exception; -- other user error (ie command line parameter)
 
@@ -246,6 +248,7 @@ package WisiToken is
    type Base_Token_Array is array (Positive_Index_Type range <>) of Base_Token;
 
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Base_Token);
+   type Base_Token_Array_Access is access all Base_Token_Arrays.Vector;
 
    Invalid_Token_Index : constant Base_Token_Index := Base_Token_Arrays.No_Index;
 

@@ -481,6 +481,8 @@ package body WisiToken.LR.Parser is
       Parser.Max_Parallel            := Max_Parallel;
       Parser.First_Parser_Label      := First_Parser_Label;
       Parser.Terminate_Same_State    := Terminate_Same_State;
+
+      User_Data.Set_Lexer_Terminals (Lexer, Parser.Terminals'Unchecked_Access);
    end New_Parser;
 
    procedure Parse (Shared_Parser : in out LR.Parser.Parser)

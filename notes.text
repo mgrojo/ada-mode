@@ -19,9 +19,12 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-update ada-mode
-    run all tests
-    propagate to .s-2?
+use wisi_grammar to parse .wy for wisi-generate
+    (setenv "OTHER_WISITOKEN" "c:/Projects/org.wisitoken/build")
+
+use delimited-text for regexp, action, check
+
+use gen_parser_run for ada_lite
 
 change configure_access to persistent_ref record with container, node components;
     allow ref.delete to abort config

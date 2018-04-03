@@ -577,24 +577,26 @@ package body WisiToken.LR is
          return;
       end if;
 
-      Put_Line ("parser errors:");
+      Put_Line (Current_Error, "parser errors:");
       for Item of Errors loop
          case Item.Label is
          when Action =>
             Put_Line
-              (Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+              (Current_Error,
+               Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                  ", found '" & Tree.Image (Item.Error_Token, Descriptor) & "'");
 
          when Check =>
             Put_Line
-              (Source_File_Name & ": semantic check error: " & Semantic_Checks.Image (Item.Check_Status, Descriptor));
+              (Current_Error,
+               Source_File_Name & ": semantic check error: " & Semantic_Checks.Image (Item.Check_Status, Descriptor));
          end case;
 
          if Item.Recover.Stack.Depth /= 0 then
-            Put_Line ("   recovered: " & Image (Item.Recover.Ops, Descriptor));
+            Put_Line (Current_Error, "   recovered: " & Image (Item.Recover.Ops, Descriptor));
          end if;
       end loop;
-      New_Line;
+      New_Line (Current_Error);
    end Put;
 
    function Next_Grammar_Token

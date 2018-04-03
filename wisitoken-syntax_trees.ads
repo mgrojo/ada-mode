@@ -69,6 +69,12 @@ package WisiToken.Syntax_Trees is
 
    type User_Data_Access is access all User_Data_Type'Class;
 
+   procedure Set_Lexer_Terminals
+     (User_Data : in out User_Data_Type;
+      Lexer     : in     WisiToken.Lexer.Handle;
+      Terminals : in     Base_Token_Array_Access)
+   is null;
+
    procedure Reset (User_Data : in out User_Data_Type) is null;
    --  Reset to start a new parse.
 

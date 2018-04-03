@@ -32,3 +32,6 @@
 ^build/test_one_harness\.log$
 ^wisi/test/.*-wy\.el$
 ^wisi/test/wisent\.output$
+^wisi/wisi_grammar\.parse_table$
+^wisi/wisi_grammar\.re2c$
+
