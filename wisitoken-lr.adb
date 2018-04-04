@@ -565,7 +565,9 @@ package body WisiToken.LR is
 
    procedure Put
      (Source_File_Name : in String;
+      Lexer            : in WisiToken.Lexer.Handle;
       Errors           : in Parse_Error_Lists.List;
+      Terminals        : in Base_Token_Arrays.Vector;
       Tree             : in Syntax_Trees.Tree;
       Descriptor       : in WisiToken.Descriptor)
    is
@@ -577,19 +579,25 @@ package body WisiToken.LR is
          return;
       end if;
 
-      Put_Line (Current_Error, "parser errors:");
       for Item of Errors loop
          case Item.Label is
          when Action =>
-            Put_Line
-              (Current_Error,
-               Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                 ", found '" & Tree.Image (Item.Error_Token, Descriptor) & "'");
+            declare
+               Token : Base_Token renames Terminals (Tree.Min_Terminal_Index (Item.Error_Token));
+            begin
+               Put_Line
+                 (Current_Error,
+                  Error_Message
+                    (Source_File_Name, Token.Line, Token.Col,
+                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                       ", found '" & Lexer.Buffer_Text (Token.Byte_Region) & "'"));
+            end;
 
          when Check =>
             Put_Line
               (Current_Error,
-               Source_File_Name & ": semantic check error: " & Semantic_Checks.Image (Item.Check_Status, Descriptor));
+               Source_File_Name & ":0:0: semantic check error: " &
+                 Semantic_Checks.Image (Item.Check_Status, Descriptor));
          end case;
 
          if Item.Recover.Stack.Depth /= 0 then
@@ -611,8 +619,11 @@ package body WisiToken.LR is
       Token : Base_Token;
    begin
       loop
-         Token.ID := Lexer.Find_Next;
+         Token.ID          := Lexer.Find_Next;
          Token.Byte_Region := Lexer.Byte_Region;
+         Token.Line        := Lexer.Line;
+         Token.Col         := Lexer.Column;
+         Token.Char_Region := Lexer.Char_Region;
 
          if User_Data /= null then
             User_Data.Lexer_To_Augmented (Token, Lexer);

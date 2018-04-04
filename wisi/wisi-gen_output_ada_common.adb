@@ -398,16 +398,17 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("      {");
          Indent_Line ("        i = 0;");
          Indent_Line ("        do");
-         Indent_Line ("          {");
-         Indent_Line ("            i++;");
-         Indent_Line ("            skip(lexer);");
-         Indent_Line ("          }");
+         Indent_Line ("          i++;");
          Indent_Line ("        while (0 != target[i] &&");
-         Indent_Line ("               lexer->cursor <= lexer->buffer_last &&");
-         Indent_Line ("               *lexer->cursor == target[i]);");
+         Indent_Line ("               lexer->cursor + i <= lexer->buffer_last &&");
+         Indent_Line ("               *(lexer->cursor + i) == target[i]);");
          New_Line;
          Indent_Line ("        if (0 == target[i])");
+         Indent_Line ("          {");
+         Indent_Line ("            for (i = 0; 0 != target[i]; i++)");
+         Indent_Line ("               skip(lexer);");
          Indent_Line ("            break;");
+         Indent_Line ("          }");
          Indent_Line ("      }");
          Indent_Line ("      skip(lexer);");
          Indent_Line ("    };");
@@ -1001,7 +1002,7 @@ package body Wisi.Gen_Output_Ada_Common is
          use Wisi.Utils;
          Quit : Boolean := False;
       begin
-         Data.Parser_Algorithm := Params.Parser_Algorithm; -- checked in Wisi.Declarations
+         Data.Parser_Algorithm := Params.Parser_Algorithm;
 
          if Params.Lexer in Valid_Lexer then
             Data.Lexer := Valid_Lexer (Params.Lexer);

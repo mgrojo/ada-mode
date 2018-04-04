@@ -212,7 +212,9 @@ begin
    when WisiToken.Syntax_Error =>
       WisiToken.LR.Put
         (-Grammar_Parse_Data.Input_File_Name,
+         Grammar_Parser.Lexer,
          Grammar_Parser.Parsers.First.State_Ref.Errors,
+         Grammar_Parser.Terminals,
          Grammar_Parser.Parsers.First.State_Ref.Tree,
          Wisi_Grammar.Descriptor);
       raise;

@@ -25,7 +25,7 @@ package body WisiToken.AUnit is
         Result : Base_Token_Arrays.Vector
       do
          for I of Item loop
-            Result.Append ((I, Null_Buffer_Region));
+            Result.Append ((I, others => <>));
          end loop;
       end return;
    end To_Base_Token_Array;

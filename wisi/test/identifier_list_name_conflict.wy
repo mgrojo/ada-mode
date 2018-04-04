@@ -15,12 +15,12 @@
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL_GREATER "=>"
 
-%token <string-double> STRING_LITERAL '"'[^"]*'"'
+%token <string-double> STRING_LITERAL %[ '"'[^"]*'"' ]%
 ;; ' terminate quote
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
-%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
+%non_grammar <non-reporting> COMMENT %[ "--"[^\n]*[\n] ]%
 
 ;; not first nonterminal
 %start compilation
@@ -47,7 +47,7 @@ association_list
 
 compilation
   : compilation_unit compilation_unit compilation_unit
-    (null; -- setq wisi-test-success t)
+    %(null; -- setq wisi-test-success t)%
   ;
 
 compilation_unit
@@ -63,11 +63,11 @@ identifier_list
 
 name
   : IDENTIFIER
-    ()
-    (return Propagate_Name (Nonterm, Tokens, 1);)
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   | STRING_LITERAL  ;; operator_symbol
-    ()
-    (return Propagate_Name (Nonterm, Tokens, 1);)
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   ;
 
 name_list
@@ -77,11 +77,11 @@ name_list
 
 selector_name
   : IDENTIFIER
-    ()
-    (return Propagate_Name (Nonterm, Tokens, 1);)
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   | STRING_LITERAL  ;; operator_symbol
-    ()
-    (return Propagate_Name (Nonterm, Tokens, 1);)
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   ;
 
 %%

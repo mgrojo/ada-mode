@@ -202,11 +202,6 @@ package WisiToken.Syntax_Trees is
      return Boolean;
    --  True if the two tokens have the same ID and Byte_Region.
 
-   function Base_Token
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return WisiToken.Base_Token;
-
    function Recover_Token
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)

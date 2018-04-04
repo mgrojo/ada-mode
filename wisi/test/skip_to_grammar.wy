@@ -10,10 +10,10 @@ with Test_Skip_To_Aux; use Test_Skip_To_Aux;
 
 %keyword PERCENT "%"
 %token <delimited-text> PREAMBLE "%{" "%}"
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_-]*
-%non_grammar <non-reporting> WHITESPACE [ \t]
-%non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
-%non_grammar <comment> COMMENT ";;"[^\x0a\x04]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
 
 %output_language Ada
 %lexer re2c
@@ -25,7 +25,7 @@ with Test_Skip_To_Aux; use Test_Skip_To_Aux;
 
 declaration
   : PERCENT IDENTIFIER declaration_item_list
-  (Test_Declaration_0 (Tree.Base_Token (Tree_Nonterm));)
+  %(Test_Declaration_0 ((Tree.ID (Nonterm), Tree.Byte_Region (Nonterm), others => <>));)%
   ;
 
 declaration_item_list

@@ -14,9 +14,9 @@
 %keyword BEGIN "begin"
 %keyword END "end"
 
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
 
 %start compilation_unit
 %first_state_index 1
@@ -34,7 +34,6 @@
 
 compilation_unit
   : BEGIN sequence_of_statements END SEMICOLON
-    (null; -- setq wisi-test-success t)
   ;
 
 statement
@@ -49,7 +48,6 @@ sequence_of_statements
 label_opt
   : ;; empty
   | IDENTIFIER COLON ;; on blocks, loops
-    (null; -- wisi-statement-action [1 block-start])
   ;
 
 %%

@@ -60,18 +60,21 @@ is
    use Common;
 
    procedure Create_Ada_Action
-     (Name  : in String;
-      RHS   : in RHS_Type;
-      Lines : in String_Lists.List;
-      Check : in Boolean)
+     (Name          : in String;
+      RHS           : in RHS_Type;
+      Unsplit_Lines : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Check         : in Boolean)
    is
       --  Create Action (if Check = False; Lines must be RHS.Action) or
       --  Check (if Check = True; Lines must be RHS.Check) subprogram named
       --  Name for RHS.
 
+      use Standard.Ada.Strings;
       use Standard.Ada.Strings.Fixed;
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
+
+      Lines : constant String_Lists.List := Trim (Split_Lines (-Unsplit_Lines), Elisp_Comment);
 
       Temp : Unbounded_String;
 
@@ -498,7 +501,7 @@ is
                     (if Arg_Count = 0 then "Null_Args"
                      elsif Arg_Count = 1 then '+' & (-Args)
                      else -Args)
-                  & ')';
+                    & ')';
 
                else
                   --  wisi lisp function call
@@ -865,6 +868,7 @@ is
    procedure Create_Ada_Body
    is
       use all type WisiToken.Unknown_State_Index;
+      use Standard.Ada.Strings.Unbounded;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -977,7 +981,7 @@ is
             Check_All_Empty  : Boolean := True;
          begin
             for RHS of Rule.Right_Hand_Sides loop
-               if RHS.Action.Length > 0 then
+               if Length (RHS.Action) > 0 then
                   Action_All_Empty := False;
                   declare
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
@@ -987,7 +991,7 @@ is
                   end;
                end if;
 
-               if RHS.Check.Length > 0 then
+               if Length (RHS.Check) > 0 then
                   Check_All_Empty := False;
                   declare
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index) & "_check";
@@ -1389,7 +1393,7 @@ begin
 
    if Wisi.Utils.Error then
       Wisi.Utils.Put_Error (Input_File_Name, 1, "Errors: aborting");
-      raise Syntax_Error;
+      raise WisiToken.Syntax_Error;
    end if;
 exception
 when others =>

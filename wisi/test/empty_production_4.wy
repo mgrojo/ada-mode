@@ -10,9 +10,9 @@
 %keyword OTHER "other"
 %keyword PROCEDURE "procedure"
 
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
 
 %start compilation_unit
 %first_state_index 1
@@ -27,13 +27,8 @@ compilation_unit
   : subprogram_declaration subprogram_declaration subprogram_declaration
   ;
 
-;; test various action syntax
 subprogram_declaration
   : overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON
-    (null; -- progn
-      --  (wisi-statement-action [1 statement-start 2 statement-other 4 name-1])
-      --  (wisi-motion-action [3 5])
-      --  (wisi-extend-action 1))
   ;
 
 overriding_indicator
@@ -48,8 +43,4 @@ other_indicator
 
 
 %%
-
-;; Local Variables:
-;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-;; End:
 ;;; end of file

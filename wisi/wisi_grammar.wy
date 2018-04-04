@@ -37,49 +37,35 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 %keyword IF "if"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
-%keyword PERCENT "%"
-%keyword PERCENT_PERCENT "%%"
 %keyword TOKEN "token"
+
+%token <delimited-text> PREAMBLE "%{" "%}"
+%token <delimited-text> REGEXP "%[" "]%"
+%token <delimited-text> ACTION "%(" ")%"
 
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
-
-%token <punctuation> COLON_EQUAL ":="
-;; in Ada actions. FIXME: use delimited-text for actions, multi-major
-;; mode for indent actions
-
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
 %token <punctuation> LESS "<"
-%token <punctuation> LEFT_BRACKET "["
-%token <punctuation> LEFT_PAREN "("
-%token <punctuation> MINUS "-"
-%token <punctuation> PLUS "+"
-%token <punctuation> RIGHT_BRACKET "]"
-%token <punctuation> RIGHT_PAREN ")"
+%token <punctuation> PERCENT "%"
+%token <punctuation> PERCENT_PERCENT "%%"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
-%token <punctuation> STAR "*"
-%token <punctuation> TICK "'"
 
-%elisp_regexp wisi-number-p [0-9][0-9]*
+%elisp_regexp wisi-number-p %[ [0-9][0-9]* ]%
 %token <number> NUMERIC_LITERAL wisi-number-p
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_-]*
-
-;; IMPROVEME: This works for the files we've tested; it could be much more.
-%token <regexp> REGEXP_CONTENT [._\\{}?^>]+
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
 
 ;; 0x22 = "
 ;; 0x27 = '
-%token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
-%token <string-single> STRING_LITERAL_CASE_INS (['][\x20-\x26\x28-\U0010FFFF]*['])+
+%token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
+%token <string-single> STRING_LITERAL_CASE_INS %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]%
 
-%token <delimited-text> PREAMBLE "%{" "%}"
-
-%non_grammar <non-reporting> WHITESPACE [ \t]
-%non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
-%non_grammar <comment> COMMENT ";;"[^\x0a\x04]*
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
@@ -94,8 +80,6 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 %start compilation_unit_list
 
 %mckenzie_cost_default 2 2 4 1 1
-%mckenzie_cost_insert RIGHT_BRACKET 1
-%mckenzie_cost_insert RIGHT_PAREN 1
 %mckenzie_cost_insert SEMICOLON 1
 %mckenzie_cost_limit 5
 %mckenzie_check_limit 4
@@ -108,23 +92,21 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 
 declaration
   : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
-    (Add_Declaration (User_Data, Tree, Tokens);)
+    %(Add_Declaration (User_Data, Tree, Tokens);)%
   | PERCENT IDENTIFIER declaration_item_list
-    (Add_Declaration (User_Data, Tree, Tokens);)
+    %(Add_Declaration (User_Data, Tree, Tokens);)%
   | PERCENT IDENTIFIER
-    (Add_Declaration (User_Data, Tree, Tokens);)
+    %(Add_Declaration (User_Data, Tree, Tokens);)%
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-    (Start_If (User_Data, Tree, Tokens);)
+    %(Start_If (User_Data, Tree, Tokens);)%
   | PERCENT END IF
-    (End_If (User_Data);)
+    %(End_If (User_Data);)%
   ;
 
 token_keyword_non_grammar
   : KEYWORD
   | NON_GRAMMAR LESS IDENTIFIER GREATER
-    (wisi-face-apply-action [3 nil font-lock-type-face])
   | TOKEN LESS IDENTIFIER GREATER
-    (wisi-face-apply-action [3 nil font-lock-type-face])
   ;
 
 declaration_item_list
@@ -132,52 +114,36 @@ declaration_item_list
   | declaration_item_list declaration_item
   ;
 
-;; Declaring a separate regexp_item_list is redundant. Also, we can't
-;; define CHARSET as a token, because that hides lisp arrays as
-;; action_items. So we include the components of a charset, and other
-;; regexp components, in declaration_item.
 declaration_item
-  : IDENTIFIER
-  | REGEXP_CONTENT
-  | BAR
-  | COMMA
+  : COMMA
+  | IDENTIFIER
   | EQUAL
-  | LEFT_BRACKET
-  | LEFT_PAREN
-  | LESS IDENTIFIER GREATER
-  | MINUS
   | NUMERIC_LITERAL
-  | PLUS
-  | RIGHT_BRACKET
-  | RIGHT_PAREN
+  | REGEXP
   | SLASH
-  | STAR
   | STRING_LITERAL
   | STRING_LITERAL_CASE_INS
-    (wisi-face-apply-action [1 nil font-lock-string-face])
   | TOKEN
-  ;; "token", "/" appear in %conflict declarations
+  ;; ",", "token", "/" appear in %conflict declarations
   ;
 
 nonterminal
   : IDENTIFIER COLON rhs_list SEMICOLON
-    (Add_Nonterminal (User_Data, Tree, Tokens);)
+    %(Add_Nonterminal (User_Data, Tree, Tokens);)%
   ;
 
 rhs_list
   : rhs
   | rhs_list BAR rhs
+  | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | rhs_list PERCENT END IF
   ;
 
 rhs
   : ;; empty
   | token_list
-  | token_list action
-  | token_list action action
-  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-    (Start_If (User_Data, Tree, Tokens);)
-  | PERCENT END IF
-    (End_If (User_Data);)
+  | token_list ACTION
+  | token_list ACTION ACTION
   ;
 
 token_list
@@ -185,40 +151,11 @@ token_list
   | token_list IDENTIFIER
   ;
 
-action
-  : LEFT_PAREN action_item_list RIGHT_PAREN
-    (wisi-indent-action [0 (wisi-anchored 1 2) (wisi-anchored 1 2)])
-  | LEFT_PAREN RIGHT_PAREN
-  ;
-
-action_item_list
-  : action_item
-  | action_item_list action_item
-  ;
-
-action_item
-  : COLON_EQUAL
-  | COMMA
-  | IDENTIFIER
-  | IF
-  | MINUS
-  | NUMERIC_LITERAL
-  | PERCENT
-  | PLUS
-  | STAR
-  | SEMICOLON
-  | REGEXP_CONTENT
-  | TICK
-  | LEFT_BRACKET action_item_list RIGHT_BRACKET
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1)])
-  | action
-  ;
-
 ;; We don't enforce a complete order, nor require all parts, so
 ;; partial files can still be parsed successfully.
 compilation_unit
   : PREAMBLE
-    (Add_Preamble (User_Data, Tree, Tokens);)
+    %(Add_Preamble (User_Data, Tree, Tokens);)%
   | declaration
   | PERCENT_PERCENT
   | nonterminal

@@ -1,9 +1,5 @@
 
 OK test_generate_errors.adb ../wisi/test/unused_tokens : Run_Test
-OK test_generate_errors.adb ../wisi/test/rules_errors : Run_Test
-OK ../wisi/test/wisi_rules_test.adb : Nominal_Elisp
-OK ../wisi/test/wisi_rules_test.adb : Nominal_Ada
-OK ../wisi/test/wisi_rules_test.adb : Single_Line
 OK wisi_wy_test.adb ../wisi/test/body_instantiation_conflict : Run_Test
 OK wisi_wy_test.adb ../wisi/test/case_expression : Run_Test
 OK wisi_wy_test.adb ../wisi/test/character_literal : Run_Test
@@ -63,7 +59,7 @@ OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   63
-Successful Tests:  63
+Total Tests Run:   59
+Successful Tests:  59
 Failed Assertions: 0
 Unexpected Errors: 0

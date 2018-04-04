@@ -2,7 +2,7 @@
 --  with command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process
 --  ../wisi/test/subprograms.wy
 --
---  Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as

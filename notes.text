@@ -19,10 +19,11 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-use wisi_grammar to parse .wy for wisi-generate
-    (setenv "OTHER_WISITOKEN" "c:/Projects/org.wisitoken/build")
+delete recover_token.Virtual?
+    use byte_region = null
 
-use delimited-text for regexp, action, check
+update ada-mode
+propagate
 
 use gen_parser_run for ada_lite
 

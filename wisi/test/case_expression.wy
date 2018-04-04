@@ -6,7 +6,7 @@
 ;; (ediff "case_expression.wy" "../../../org.wisitoken/wisi/test/case_expression.wy")
 
 %{
---  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -23,18 +23,18 @@
 %%
 %}
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
-%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
+%non_grammar <non-reporting> COMMENT %[ "--"[^\n]*[\n] ]%
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
-%elisp_regexp ada-wisi-number-p ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#")
+%elisp_regexp ada-wisi-number-p %[ ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
 
 %token <number> NUMBER_LITERAL ada-wisi-number-p
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
 %keyword RANGE "range"
 %keyword WHEN "when"

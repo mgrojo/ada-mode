@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2012, 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -57,7 +57,7 @@ package body Wisi.Utils is
 
    function Error_String
      (File_Name : in String;
-      File_Line : in Standard.Ada.Text_IO.Positive_Count;
+      File_Line : in WisiToken.Line_Number_Type;
       Message   : in String)
      return String
    is
@@ -67,12 +67,12 @@ package body Wisi.Utils is
       use Standard.Ada.Text_IO;
    begin
       return Simple_Name (File_Name) & ":" &
-        Trim (Positive_Count'Image (File_Line), Left) & ":0: " & Message;
+        Trim (WisiToken.Line_Number_Type'Image (File_Line), Left) & ":0: " & Message;
    end Error_String;
 
    procedure Put_Error
      (File_Name : in String;
-      File_Line : in Standard.Ada.Text_IO.Positive_Count;
+      File_Line : in WisiToken.Line_Number_Type;
       Message   : in String)
    is
       use Standard.Ada.Text_IO;
@@ -86,7 +86,7 @@ package body Wisi.Utils is
       use Standard.Ada.Text_IO;
    begin
       Error := True;
-      Put_Error (Name (File), Line (File) - 1, Message);
+      Put_Error (Name (File), WisiToken.Line_Number_Type (Line (File) - 1), Message);
    end Put_Error;
 
    procedure Indent_Line (Text : in String)

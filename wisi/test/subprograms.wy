@@ -2,7 +2,7 @@
 ;; (ediff "subprograms.wy" "../../../org.wisitoken.stephe-1/wisi/test/subprograms.wy")
 
 %{
-;;  Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -36,11 +36,11 @@
 %token <punctuation> DOT "."
 %token <punctuation> SEMICOLON ";"
 
-%token <symbol> SYMBOL [a-zA-Z][0-9a-zA-Z_]*
+%token <symbol> SYMBOL %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
-%non_grammar <non-reporting> WHITESPACE [ \t]
-%non_grammar <new-line> NEW_LINE [\n]
-%non_grammar <comment> COMMENT "--"[^\n]*
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\n] ]%
+%non_grammar <comment> COMMENT %[ "--"[^\n]* ]%
 
 %start compilation_unit
 %parser_algorithm LALR
@@ -61,9 +61,9 @@
 block
   : BEGIN END
   | BEGIN loop_statement EXCEPTION WHEN name END
-    (progn
+    %((progn
       (wisi-statement-action [3 motion 4 motion])
-      (wisi-indent-action [0 subp-indent 0 subp-indent 0 0]))
+      (wisi-indent-action [0 subp-indent 0 subp-indent 0 0])))%
 ;
 
 compilation_unit
@@ -82,18 +82,18 @@ declaration
 
 loop_statement
   : FOR SYMBOL IN subtype LOOP SEMICOLON
-    (progn
+    %((progn
       (wisi-face-remove-action [4])
-      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent 0 0]))
+      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent 0 0])))%
   ;
 
 name
   : SYMBOL
-    (wisi-face-mark-action [1 suffix])
-    (wisi-propagate-name 1)
+    %((wisi-face-mark-action [1 suffix]))%
+    %((wisi-propagate-name 1))%
   | name DOT SYMBOL
-    (wisi-face-mark-action [1 prefix 3 suffix])
-    (wisi-merge-names 1 3)
+    %((wisi-face-mark-action [1 prefix 3 suffix]))%
+    %((wisi-merge-names 1 3))%
   ;
 
 name_list
@@ -104,17 +104,17 @@ name_list
 ;; not on one line, empty production with comment
 parameter_list
   : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
-    (wisi-statement-action [1 misc 2 misc]) ;; single action; no progn
+    %((wisi-statement-action [1 misc 2 misc]))% ;; single action; no progn
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
-    (progn
+    %((progn
       (wisi-statement-action [2 misc]) ;; single pair
-      (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+      (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))%
   ;
 
 subprogram
   : FUNCTION name parameter_list block SEMICOLON
-    (progn
+    %((progn
       ;; an example of each supported action, with somewhat complex parameter syntax
       (wisi-statement-action [1 statement-start 2 name 3 misc 4 motion 5 statement-end])
       (wisi-containing-action 1 2)
@@ -123,14 +123,14 @@ subprogram
       (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 [subp-indent-broken subp-indent-broken]
                              (subp-indent-function (* 2 subp-indent-broken))
-                             0 0])) ;; single action on multiple lines
+                             0 0])) ;; single action on multiple lines )%
   | PROCEDURE name parameter_list END name SEMICOLON
-    (progn
+    %((progn
       (wisi-statement-action [1 statement-start 2 name 6 statement-end])
       (wisi-containing-action 1 2)
       (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
-      (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0]))
-    (wisi-match-names 2 5 nil)
+      (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0])))%
+    %((wisi-match-names 2 5 nil))%
  ;; We don't have procedures nested in another named statement, so we
  ;; can't test that 'wisi-match-names' actually helps here (note that
  ;; there are no McKenzie parameters defined). But this serves to test
@@ -139,14 +139,14 @@ subprogram
 
 subtype
   : name
-    (wisi-face-apply-action [1 font-lock-type-face font-lock-function-name-face])
+    %((wisi-face-apply-action [1 font-lock-type-face font-lock-function-name-face]))%
   ;
 
 use_clause
   : USE name_list SEMICOLON
-    (progn
+    %((progn
       (wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
-      (wisi-indent-action [0 subp-indent-broken 0]))
+      (wisi-indent-action [0 subp-indent-broken 0])))%
   ;
 %%
 ;; end of file

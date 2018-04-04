@@ -50,8 +50,8 @@ package body Test_Skip_To is
       begin
          Ada.Text_IO.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
          WisiToken.LR.Put
-           (File_Name, Parser.Parsers.First.State_Ref.Errors,
-            Parser.Parsers.First.State_Ref.Tree, Skip_To_Grammar.Descriptor);
+           (File_Name, Parser.Lexer, Parser.Parsers.First.State_Ref.Errors,
+            Parser.Terminals, Parser.Parsers.First.State_Ref.Tree, Skip_To_Grammar.Descriptor);
       end;
       AUnit.Assertions.Assert (False, "exception");
    end Nominal;

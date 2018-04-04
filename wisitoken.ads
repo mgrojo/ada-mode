@@ -222,10 +222,26 @@ package WisiToken is
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
    --  Return region enclosing both Left and Right.
 
+   type Line_Number_Type is range 1 .. Natural'Last; -- Match Emacs buffer line numbers.
+
+   Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
+
    type Base_Token is tagged record
-      --  Base_Token is used in the core parser.
-      ID          : Token_ID      := Invalid_Token_ID;
-      Byte_Region : Buffer_Region := Null_Buffer_Region;
+      --  Base_Token is used in the core parser. The parser only needs ID;
+      --  semantic checks need Byte_Region to compare names. Line, Col, and
+      --  Char_Region are included for error messages.
+      ID : Token_ID := Invalid_Token_ID;
+
+      Byte_Region : Buffer_Region     := Null_Buffer_Region;
+      --  Index into the Lexer buffer for the token text.
+
+      Line : Line_Number_Type  := Invalid_Line_Number;
+      Col  : Ada.Text_IO.Count := 0;
+      --  At start of token.
+
+      Char_Region : Buffer_Region := Null_Buffer_Region;
+      --  Character position, useful for finding the token location in Emacs
+      --  buffers.
    end record;
 
    type Base_Token_Class_Access is access all Base_Token'Class;
@@ -235,6 +251,7 @@ package WisiToken is
      (Item       : in Base_Token;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
+   --  For debug/test messages.
 
    procedure Free is new Ada.Unchecked_Deallocation (Base_Token'Class, Base_Token_Class_Access);
 
@@ -263,7 +280,9 @@ package WisiToken is
    type Recover_Token is record
       --  Maintaining a syntax tree during recover is too slow, so we store
       --  enough information in the recover stack to perform semantic_checks
-      --  and to apply the solution to the main parser state.
+      --  and to apply the solution to the main parser state. We make
+      --  thousands of copies of the parse stack during recover, so
+      --  minimizing size is critical.
       ID : Token_ID := Invalid_Token_ID;
 
       Byte_Region : Buffer_Region := Null_Buffer_Region;
@@ -272,8 +291,7 @@ package WisiToken is
       Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
       --  For terminals, index of this token in Shared_Parser.Terminals. For
       --  nonterminals, minimum of contained tokens. For virtuals,
-      --  Invalid_Token_Index. Used for push_back of nonterminals in
-      --  recover.
+      --  Invalid_Token_Index. Used for push_back of nonterminals.
 
       Name : Buffer_Region := Null_Buffer_Region;
       --  Set and used by semantic_checks.
@@ -349,10 +367,6 @@ package WisiToken is
 
    function Int_Image (Item : in Integer) return String;
    --  No leading space
-
-   type Line_Number_Type is range 1 .. Natural'Last; -- Match Emacs buffer line numbers.
-
-   Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
 
    function Error_Message
      (File_Name : in String;

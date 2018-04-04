@@ -7,9 +7,9 @@
 
 %keyword IN "in"
 
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]+
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]+ ]%
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
 
 %start compilation_unit
 %first_state_index 1
@@ -22,7 +22,7 @@
 
 compilation_unit
   : parameter_specification parameter_specification
-    (null; -- setq wisi-test-success 't)
+    %(null; -- setq wisi-test-success t)%
   ;
 
 mode
@@ -32,8 +32,8 @@ mode
 
 name
   : IDENTIFIER
-    ()
-    (return Propagate_Name (Nonterm, Tokens, 1);)
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   ;
 
 parameter_specification
@@ -41,8 +41,4 @@ parameter_specification
   ;
 
 %%
-
-;; Local Variables:
-;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-;; End:
 ;;; end of file

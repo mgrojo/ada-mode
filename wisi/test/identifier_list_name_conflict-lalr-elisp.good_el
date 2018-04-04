@@ -36,7 +36,7 @@
        ((association_list COMMA association )))
       (compilation
        ((compilation_unit compilation_unit compilation_unit )
-        (null; -- setq wisi-test-success t)))
+        null; -- setq wisi-test-success t))
       (compilation_unit
        ((identifier_list ))
        ((name_list ))

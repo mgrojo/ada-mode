@@ -69,7 +69,9 @@ package body Test_McKenzie_Recover is
       if WisiToken.Trace_Parse > WisiToken.Outline then
          WisiToken.LR.Put
            (Source_File_Name => "<string>",
+            Lexer            => Parser.Lexer,
             Errors           => Parser.Parsers.First.State_Ref.Errors,
+            Terminals        => Parser.Terminals,
             Tree             => Parser.Parsers.First.State_Ref.Tree,
             Descriptor       => Parser.Trace.Descriptor.all);
       end if;
@@ -80,7 +82,9 @@ package body Test_McKenzie_Recover is
       if WisiToken.Trace_Parse > WisiToken.Outline then
          WisiToken.LR.Put
            (Source_File_Name => "<string>",
+            Lexer            => Parser.Lexer,
             Errors           => Parser.Parsers.First.State_Ref.Errors,
+            Terminals        => Parser.Terminals,
             Tree             => Parser.Parsers.First.State_Ref.Tree,
             Descriptor       => Parser.Trace.Descriptor.all);
       end if;
@@ -276,7 +280,9 @@ package body Test_McKenzie_Recover is
          for Error of Parser.Parsers.First.State_Ref.Errors loop
             WisiToken.LR.Put
               (Source_File_Name => "<string>",
+               Lexer            => Parser.Lexer,
                Errors           => Parser.Parsers.First.State_Ref.Errors,
+               Terminals        => Parser.Terminals,
                Tree             => Parser.Parsers.First.State_Ref.Tree,
                Descriptor       => Ada_Lite.Descriptor);
          end loop;
@@ -526,7 +532,9 @@ package body Test_McKenzie_Recover is
             for Error of Error_List loop
                WisiToken.LR.Put
                  (Source_File_Name => "<string>",
+                  Lexer            => Parser.Lexer,
                   Errors           => Parser.Parsers.First.State_Ref.Errors,
+                  Terminals        => Parser.Terminals,
                   Tree             => Parser.Parsers.First.State_Ref.Tree,
                   Descriptor       => Ada_Lite.Descriptor);
             end loop;

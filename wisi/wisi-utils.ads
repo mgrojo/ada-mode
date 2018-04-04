@@ -2,7 +2,7 @@
 --
 --  Utilities for parsing Wisent files
 --
---  Copyright (C) 2012, 2013, 2015, 2017 Stephen Leake. All Rights Reserved.
+--  Copyright (C) 2012, 2013, 2015, 2017, 2018 Stephen Leake. All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -29,13 +29,13 @@ package Wisi.Utils is
 
    function Error_String
      (File_Name : in String;
-      File_Line : in Standard.Ada.Text_IO.Positive_Count;
+      File_Line : in WisiToken.Line_Number_Type;
       Message   : in String)
      return String;
 
    procedure Put_Error
      (File_Name : in String;
-      File_Line : in Standard.Ada.Text_IO.Positive_Count;
+      File_Line : in WisiToken.Line_Number_Type;
       Message   : in String);
    --  Set Error True, output to Standard_Error
 

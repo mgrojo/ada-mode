@@ -157,23 +157,6 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Adjust;
 
-   function Base_Token
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return WisiToken.Base_Token
-   is
-      function Compute (N : in Syntax_Trees.Node) return WisiToken.Base_Token
-      is begin
-         return (N.ID, N.Byte_Region);
-      end Compute;
-   begin
-      if Node <= Tree.Last_Shared_Node then
-         return Compute (Tree.Shared_Tree.Nodes (Node));
-      else
-         return Compute (Tree.Branched_Nodes (Node));
-      end if;
-   end Base_Token;
-
    function Augmented
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)

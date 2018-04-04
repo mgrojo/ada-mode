@@ -24,8 +24,8 @@
 
 %token <punctuation> SEMICOLON ";"
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
-%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
+%non_grammar <non-reporting> COMMENT %[ "--"[^\n]*[\n] ]%
 
 %start declarations
 %first_state_index 1
@@ -57,7 +57,7 @@ declarations
 
 body
   : IS declarations BEGIN SEMICOLON
-    (null; -- wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])
+    %(null; -- wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])%
   ;
 
 %%

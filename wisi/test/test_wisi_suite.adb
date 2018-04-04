@@ -2,7 +2,7 @@
 --
 --  Build AUnit test suite containing all Wisi tests
 --
---  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,6 @@ pragma License (GPL);
 
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_Generate_Errors;
-with Wisi_Rules_Test;
 with Wisi_WY_Test;
 function Test_Wisi_Suite return Access_Test_Suite
 is
@@ -29,8 +28,6 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/unused_tokens"), LR1 => True));
-   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/rules_errors"), LR1 => False));
-   Add_Test (Suite, new Wisi_Rules_Test.Test_Case (Debug => False));
 
    --  elisp grammar generate tests; grammar file name order
 

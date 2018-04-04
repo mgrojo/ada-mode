@@ -20,6 +20,8 @@ pragma License (GPL);
 
 with Ada.Command_Line;
 with Ada.Directories;
+with Ada.Text_IO;
+with Ada.Strings.Fixed;
 package body Wisi is
 
    function To_Lexer (Item : in String) return Lexer_Type
@@ -31,6 +33,61 @@ package body Wisi is
       end loop;
       raise User_Error with "invalid lexer name: '" & Item & "'";
    end To_Lexer;
+
+   function Split_Lines (Item : in String) return String_Lists.List
+   is
+      CR : Character renames ASCII.CR;
+      LF : Character renames ASCII.LF;
+
+      Result    : Wisi.String_Lists.List;
+      I         : Integer   := Item'First;
+      First     : Integer   := Item'First;
+      Last_Char : Character := ' ';
+   begin
+      loop
+         exit when I > Item'Last;
+         if Item (I) = LF then
+            if Last_Char /= CR then
+               Result.Append (Item (First .. I - 1));
+            end if;
+            First := I + 1;
+
+         elsif I = Item'Last then
+            Result.Append (Item (First .. I));
+         end if;
+
+         Last_Char := Item (I);
+
+         I := I + 1;
+      end loop;
+      return Result;
+   end Split_Lines;
+
+   function Trim (Item : in String_Lists.List; Comment_Start : in String) return String_Lists.List
+   is
+      use Standard.Ada.Strings;
+      use Standard.Ada.Strings.Fixed;
+      Result : String_Lists.List;
+      Comment : Integer;
+
+      procedure Maybe_Append (Line : in String)
+      is begin
+         if Line'Length > 0 then
+            Result.Append (Line);
+         end if;
+      end Maybe_Append;
+
+   begin
+      for Line of Item loop
+         Comment := Index (Line, Comment_Start, Going => Backward);
+         if Comment /= 0 then
+            Maybe_Append (Trim (Line (Line'First .. Comment - 1), Both));
+         else
+            Maybe_Append (Trim (Line, Both));
+         end if;
+      end loop;
+      return Result;
+   end Trim;
 
    procedure Put_Prologue
      (Comment_Syntax : in String_2;

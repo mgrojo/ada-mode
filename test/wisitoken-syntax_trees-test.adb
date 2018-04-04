@@ -65,13 +65,13 @@ package body WisiToken.Syntax_Trees.Test is
 
       Branched_Tree.Initialize (Shared_Tree'Unchecked_Access, Flush => True);
 
-      Terminals.Append ((+PROCEDURE_ID, (1, 9)));
+      Terminals.Append ((+PROCEDURE_ID, (1, 9), others => <>));
       Junk := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 1
 
-      Terminals.Append ((+IDENTIFIER_ID, (11, 16)));
+      Terminals.Append ((+IDENTIFIER_ID, (11, 16), others => <>));
       Node_Ident_1 := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 2
 
-      Terminals.Append ((+IDENTIFIER_ID, (18, 19)));
+      Terminals.Append ((+IDENTIFIER_ID, (18, 19), others => <>));
       Junk := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 3
 
       Branched_Tree.Set_Flush_False;
@@ -82,7 +82,7 @@ package body WisiToken.Syntax_Trees.Test is
 
       Check ("node 4", Node_Name, 4);
 
-      Terminals.Append ((+IDENTIFIER_ID, (21, 22)));
+      Terminals.Append ((+IDENTIFIER_ID, (21, 22), others => <>));
       Node_Ident_2 := Branched_Tree.Add_Terminal (Terminals.Last_Index, Terminals); -- 5
 
       Check ("node 5", Node_Ident_2, 5);

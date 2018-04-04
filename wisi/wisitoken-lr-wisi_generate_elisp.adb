@@ -208,21 +208,25 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
             for Token of RHS.Production loop
                Put (Token & " ");
             end loop;
-            Action_Length := RHS.Action.Length;
-            Action_Count  := 1;
-            if Action_Length = 0 then
-               Put (")");
-            else
-               Put_Line (")");
-            end if;
-            for Line of RHS.Action loop
-               if Action_Count = Action_Length then
-                  Put ("        " & Line);
+            declare
+               Lines : constant String_Lists.List := Split_Lines (-RHS.Action);
+            begin
+               Action_Length := Lines.Length;
+               Action_Count  := 1;
+               if Action_Length = 0 then
+                  Put (")");
                else
-                  Put_Line ("        " & Line);
+                  Put_Line (")");
                end if;
-               Action_Count := Action_Count + 1;
-            end loop;
+               for Line of Lines loop
+                  if Action_Count = Action_Length then
+                     Put ("        " & Line);
+                  else
+                     Put_Line ("        " & Line);
+                  end if;
+                  Action_Count := Action_Count + 1;
+               end loop;
+            end;
             if RHS_Count = RHS_Length then
                Put (")");
             else

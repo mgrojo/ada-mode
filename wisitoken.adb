@@ -321,9 +321,20 @@ package body WisiToken is
      (Item       : in Base_Token;
       Descriptor : in WisiToken.Descriptor'Class)
      return String
-   is begin
-      return "(" & Image (Item.ID, Descriptor) &
-        (if Item.Byte_Region = Null_Buffer_Region then "" else ", " & Image (Item.Byte_Region)) & ")";
+   is
+      use all type Ada.Text_IO.Count;
+      ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
+   begin
+      if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
+         return "(" & ID_Image &
+           Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
+
+      elsif Item.Char_Region = Null_Buffer_Region then
+         return "(" & ID_Image & ")";
+
+      else
+         return "(" & ID_Image & ", " & Image (Item.Char_Region) & ")";
+      end if;
    end Image;
 
    function Image
@@ -335,13 +346,7 @@ package body WisiToken is
       if Token = Invalid_Token_Index then
          return "<invalid_token_index>";
       else
-         declare
-            T : Base_Token renames Terminals (Token);
-         begin
-            return Token_Index'Image (Token) & ":" &
-              "(" & Image (T.ID, Descriptor) &
-              (if T.Byte_Region = Null_Buffer_Region then "" else ", " & Image (T.Byte_Region)) & ")";
-         end;
+         return Token_Index'Image (Token) & ":" & Image (Terminals (Token), Descriptor);
       end if;
    end Image;
 

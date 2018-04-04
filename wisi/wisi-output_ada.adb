@@ -141,6 +141,7 @@ is
          --  No need for a Token_Cursor here, since we only need the
          --  nonterminals.
          declare
+            use Standard.Ada.Strings.Unbounded;
             use all type Standard.Ada.Containers.Count_Type;
 
             LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
@@ -151,20 +152,20 @@ is
             Action_All_Empty : Boolean := True;
             Check_All_Empty  : Boolean := True;
 
-            function Is_Elisp (Action : in String_Lists.List) return Boolean
-            is
-               Line : constant String := String_Lists.Element (Action.First);
-            begin
-               return Line'Length >= 5 and then
-                 (Line (Line'First .. Line'First + 4) = "progn" or
-                    Line (Line'First .. Line'First + 4) = "wisi-");
+            function Is_Elisp (Action : in Unbounded_String) return Boolean
+            is begin
+               return Length (Action) >= 6 and then
+                 (Slice (Action, 1, 6) = "(progn" or
+                    Slice (Action, 1, 5) = "wisi-");
             end Is_Elisp;
 
          begin
             for RHS of Rule.Right_Hand_Sides loop
-               if RHS.Action.Length > 0 and then not Is_Elisp (RHS.Action) then
+               if Length (RHS.Action) > 0 and then not Is_Elisp (RHS.Action) then
                   declare
                      use Standard.Ada.Strings.Fixed;
+                     Line : constant String := -RHS.Action;
+                     --  Actually multiple lines; we assume the formatting is adequate.
 
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
@@ -191,9 +192,7 @@ is
                      end Check_Unref;
 
                   begin
-                     for Line of RHS.Action loop
-                        Check_Unref (Line);
-                     end loop;
+                     Check_Unref (Line);
 
                      Action_All_Empty := False;
 
@@ -230,36 +229,32 @@ is
                      Indent_Line ("begin");
                      Indent := Indent + 3;
 
-                     for Line of RHS.Action loop
-                        Indent_Line (Line);
-                     end loop;
+                     Indent_Line (Line);
                      Indent := Indent - 3;
                      Indent_Line ("end " & Name & ";");
                      New_Line;
                   end;
                end if;
 
-               if RHS.Check.Length > 0 and then not Is_Elisp (RHS.Check) then
+               if Length (RHS.Check) > 0 and then not Is_Elisp (RHS.Check) then
                   declare
                      use Standard.Ada.Strings.Fixed;
-
+                     Line : constant String := -RHS.Check;
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
                      Unref_Lexer   : Boolean := True;
                      Unref_Nonterm : Boolean := True;
                      Unref_Tokens  : Boolean := True;
                   begin
-                     for Line of RHS.Check loop
-                        if 0 < Index (Line, "Lexer") then
-                           Unref_Lexer := False;
-                        end if;
-                        if 0 < Index (Line, "Nonterm") then
-                           Unref_Nonterm := False;
-                        end if;
-                        if 0 < Index (Line, "Tokens") then
-                           Unref_Tokens := False;
-                        end if;
-                     end loop;
+                     if 0 < Index (Line, "Lexer") then
+                        Unref_Lexer := False;
+                     end if;
+                     if 0 < Index (Line, "Nonterm") then
+                        Unref_Nonterm := False;
+                     end if;
+                     if 0 < Index (Line, "Tokens") then
+                        Unref_Tokens := False;
+                     end if;
 
                      Check_All_Empty := False;
 
@@ -283,10 +278,7 @@ is
 
                      Indent_Line ("begin");
                      Indent := Indent + 3;
-
-                     for Line of RHS.Check loop
-                        Indent_Line (Line);
-                     end loop;
+                     Indent_Line (Line);
                      Indent := Indent - 3;
                      Indent_Line ("end " & Name & "_check;");
                      New_Line;

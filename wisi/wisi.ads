@@ -37,7 +37,7 @@ with Ada.Characters.Handling;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
-with Ada.Text_IO;
+with WisiToken;
 package Wisi is
 
    User_Error : exception; -- error in command line options or parameters
@@ -100,6 +100,12 @@ package Wisi is
    Ada_Comment   : constant String_2 := "--";
    C_Comment     : constant String_2 := "//";
    Elisp_Comment : constant String_2 := ";;";
+
+   function Split_Lines (Item : in String) return String_Lists.List;
+
+   function Trim (Item : in String_Lists.List; Comment_Start : in String) return String_Lists.List;
+   --  From each element, delete trailing comments starting with
+   --  Comment_Start; delete leading and trailing spaces.
 
    procedure Put_Prologue
      (Comment_Syntax : in String_2;
@@ -171,7 +177,7 @@ package Wisi is
      return Boolean;
 
    type Conflict is record
-      Source_Line : Standard.Ada.Text_IO.Count;
+      Source_Line : WisiToken.Line_Number_Type;
       Action_A    : Standard.Ada.Strings.Unbounded.Unbounded_String;
       LHS_A       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Action_B    : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -183,9 +189,9 @@ package Wisi is
 
    type RHS_Type is record
       Production  : String_Lists.List; -- Tokens
-      Action      : String_Lists.List; -- one string per line
-      Check       : String_Lists.List; -- one string per line
-      Source_Line : Standard.Ada.Text_IO.Positive_Count;
+      Action      : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Check       : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Source_Line : WisiToken.Line_Number_Type;
    end record;
    package RHS_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 

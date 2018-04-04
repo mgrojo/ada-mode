@@ -129,8 +129,8 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
          then
             Shared.Token (Config.Current_Shared_Token)
          else
-           (ID          => Config.Inserted (Config.Current_Inserted),
-            Byte_Region => Null_Buffer_Region));
+           (ID     => Config.Inserted (Config.Current_Inserted),
+            others => <>));
 
       New_State : Unknown_State_Index;
       Success   : Boolean := True;
@@ -187,8 +187,8 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                Config.Current_Inserted := Config.Current_Inserted + 1;
 
                Current_Token :=
-                 (ID          => Config.Inserted (Config.Current_Inserted),
-                  Byte_Region => Null_Buffer_Region);
+                 (ID     => Config.Inserted (Config.Current_Inserted),
+                  others => <>);
 
             else
                Config.Current_Shared_Token := Shared.Get_Token (Config.Current_Shared_Token + 1);

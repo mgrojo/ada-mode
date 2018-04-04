@@ -3,7 +3,7 @@
 --  Utilities for translating input file structures to WisiToken
 --  structures needed for LALR.Generate.
 --
---  Copyright (C) 2014, 2015, 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -86,7 +86,7 @@ package Wisi.Gen_Generate_Utils is
    --
    --  1. Non_Grammar
    --  2. Keywords
-   --  3. Tokens
+   --  3. other terminal tokens, in declaration order
    --  4. EOI
    --  5. Accept
    --  6. Nonterminals

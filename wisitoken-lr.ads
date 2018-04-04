@@ -544,7 +544,9 @@ package WisiToken.LR is
 
    procedure Put
      (Source_File_Name : in String;
+      Lexer            : in WisiToken.Lexer.Handle;
       Errors           : in Parse_Error_Lists.List;
+      Terminals        : in Base_Token_Arrays.Vector;
       Tree             : in Syntax_Trees.Tree;
       Descriptor       : in WisiToken.Descriptor);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Error.

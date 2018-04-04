@@ -8,9 +8,9 @@
 %keyword CONSTANT "constant"
 
 %token <punctuation> SEMICOLON ";"
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
 
 %start object_declaration_list
 %first_state_index 1
@@ -23,9 +23,7 @@
 
 object_declaration_list
   : object_declaration
-    (null; -- setq wisi-test-success t)
   | object_declaration_list object_declaration
-    (null; -- setq wisi-test-success t)
   ;
 
 object_declaration

@@ -23,9 +23,9 @@
 
 %token <punctuation> TICK "'"
 
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
 
 %start name
 %first_state_index 1
@@ -50,8 +50,8 @@ attribute_designator
 
 name
   : IDENTIFIER
-    ()
-    (return Propagate_Name (Nonterm, Tokens, 1);)
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   | attribute_reference
   | qualified_expression
   ;

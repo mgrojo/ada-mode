@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 with Ada.Exceptions;
+with Ada.Text_IO;
 with Wisi.Utils;
 with WisiToken.Syntax_Trees;
 with WisiToken.Token_ID_Lists;

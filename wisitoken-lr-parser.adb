@@ -470,7 +470,9 @@ package body WisiToken.LR.Parser is
       Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True)
-   is begin
+   is
+      use all type Syntax_Trees.User_Data_Access;
+   begin
       Parser.Lexer                   := Lexer;
       Parser.Trace                   := Trace;
       Parser.Table                   := Table;
@@ -482,7 +484,9 @@ package body WisiToken.LR.Parser is
       Parser.First_Parser_Label      := First_Parser_Label;
       Parser.Terminate_Same_State    := Terminate_Same_State;
 
-      User_Data.Set_Lexer_Terminals (Lexer, Parser.Terminals'Unchecked_Access);
+      if User_Data /= null then
+         User_Data.Set_Lexer_Terminals (Lexer, Parser.Terminals'Unchecked_Access);
+      end if;
    end New_Parser;
 
    procedure Parse (Shared_Parser : in out LR.Parser.Parser)

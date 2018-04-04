@@ -21,14 +21,15 @@ pragma License (GPL);
 with AUnit.Checks.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with Wisi.Declarations;
 with Wisi.Gen_Generate_Utils;
-with Wisi.Prologue;
-with Wisi.Rules;
 with WisiToken.AUnit;
 with WisiToken.LR.Generator_Utils;
+with WisiToken.LR.Parser;
 with WisiToken.Production;
 with WisiToken.Syntax_Trees;
+with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Grammar_Runtime;
+with Wisi_Grammar;
 package body Test_Ada_Lite_Terminal_Sequence is
 
    ----------
@@ -42,17 +43,10 @@ package body Test_Ada_Lite_Terminal_Sequence is
 
       use Ada.Text_IO;
       Input_File_Name  : constant String := "../wisi/test/ada_lite.wy";
-      Input_File       : File_Type;
-      Prologues        : Wisi.Prologues;
-      pragma Unreferenced (Prologues); -- They must be read before the rest of the file.
-      Generate_Params  : Wisi.Generate_Param_Type;
-      Tokens           : Wisi.Tokens;
-      Conflicts        : Wisi.Conflict_Lists.List;
-      McKenzie_Recover : Wisi.McKenzie_Recover_Param_Type;
-      Elisp_Names      : Wisi.Elisp_Names;
-      Rule_Count       : Integer;
-      Action_Count     : Integer;
-      Check_Count      : Integer;
+
+      Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar.Descriptor'Access);
+      Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Grammar_Parser     : WisiToken.LR.Parser.Parser;
 
       EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String ("Wisi_EOI");
@@ -60,16 +54,18 @@ package body Test_Ada_Lite_Terminal_Sequence is
         Ada.Strings.Unbounded.To_Unbounded_String ("wisitoken_accept");
 
    begin
-      Open (Input_File, In_File, Input_File_Name);
+      Wisi_Grammar.Create_Parser
+        (Grammar_Parser, WisiToken.LALR, Trace'Unchecked_Access,
+         Language_Fixes => null,
+         User_Data      => Grammar_Parse_Data'Unchecked_Access);
 
-      Wisi.Prologue (Input_File, Prologues);
-      Wisi.Declarations (Input_File, Generate_Params, Tokens, Elisp_Names, Conflicts, McKenzie_Recover);
-      Wisi.Rules
-        (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Tokens.Rules,
-         Rule_Count, Action_Count, Check_Count);
+      Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
+      Grammar_Parser.Parse;
+      Grammar_Parser.Execute_Actions;
 
       declare
-         package Generate_Utils is new Wisi.Gen_Generate_Utils (Tokens, Conflicts, EOI_Name, WisiToken_Accept_Name);
+         package Generate_Utils is new Wisi.Gen_Generate_Utils
+           (Grammar_Parse_Data.Tokens, Grammar_Parse_Data.Conflicts, EOI_Name, WisiToken_Accept_Name);
          use Generate_Utils;
 
          Grammar : constant WisiToken.Production.List.Instance := To_Grammar
