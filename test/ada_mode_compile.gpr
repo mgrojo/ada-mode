@@ -27,7 +27,6 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_1.adb",
       "ada_mode-interactive_2.adb",
       "ada_mode-interactive_gps_fallback.adb",
-      "ada_mode-interactive_recover.adb",
 
       -- This has incomplete code; tests a former bug in syntax-ppss
       "ada_mode-long_paren.adb",
@@ -36,9 +35,12 @@ project Ada_Mode_Compile is
       "ada_mode-opentoken.ads",
 
       -- These have syntax errors on purpose
+      "ada_mode-recover_1.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_bad_char.adb",
       "ada_mode-recover_block_name_mismatch.adb",
+      "ada_mode-recover_end_1.adb",
+      "ada_mode-recover_end_2.adb",
       "ada_mode-recover_extra_declare.adb",
       "ada_mode-recover_extra_end_loop.adb",
       "ada_mode-recover_indent_1.adb",
@@ -46,8 +48,6 @@ project Ada_Mode_Compile is
       "ada_mode-recover_indent_3.adb",
       "ada_mode-recover_indent_4.adb",
       "ada_mode-recover_match_names.adb",
-      "ada_mode-recover_pattern_1.adb",
-      "ada_mode-recover_pattern_2.adb",
       "ada_mode-recover_pattern_end_eof.adb",
       "ada_mode-recover_repair_1.adb",
       "ada_mode-recover_string_quote.adb",

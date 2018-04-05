@@ -13,7 +13,7 @@
 %keyword BEGIN "begin"
 %keyword END "end"
 
-%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <symbol> IDENTIFIER %[ "[a-zA-Z][0-9a-zA-Z_]*" ]%
 
 %start compilation_unit
 %parser_algorithm LALR
@@ -26,7 +26,7 @@
 
 compilation_unit
   : BEGIN sequence_of_statements END SEMICOLON
-    (setq wisi-test-success t)
+    %((setq wisi-test-success t))%
   ;
 
 statement
@@ -41,7 +41,7 @@ sequence_of_statements
 label_opt
   : ;; empty
   | IDENTIFIER COLON ;; on blocks, loops
-    (wisi-statement-action [1 statement-start])
+    %((wisi-statement-action [1 statement-start]))%
   ;
 
 %%

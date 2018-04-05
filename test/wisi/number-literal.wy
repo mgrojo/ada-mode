@@ -14,7 +14,7 @@
 
 compilation_unit
   : number_list
-    (setq wisi-test-success t)
+    %((setq wisi-test-success t))%
   ;
 
 number_list

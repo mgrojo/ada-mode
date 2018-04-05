@@ -328,10 +328,6 @@ private
       --  Most fields are set by Lexer_To_Augmented at parse time; others
       --  are set by Reduce for nonterminals.
 
-      Line        : Line_Number_Type  := Invalid_Line_Number; -- At start of token. Not set for nonterm.
-      Col         : Ada.Text_IO.Count := 0;
-      Char_Region : Buffer_Region     := Null_Buffer_Region;
-
       --  The following fields are only needed for indent.
 
       First : Boolean := False;

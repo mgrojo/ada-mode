@@ -681,7 +681,9 @@ package body WisiToken.Wisi_Runtime is
       use all type Augmented_Token_Arrays.Cursor;
 
       Aug_Nonterm : constant Augmented_Token_Access := new Augmented_Token'
-        (Tree.Base_Token (Nonterm) with others => <>);
+        (ID          => Tree.ID (Nonterm),
+         Byte_Region => Tree.Byte_Region (Nonterm),
+         others      => <>);
 
       Trailing_Comment_Done : Boolean := False;
    begin

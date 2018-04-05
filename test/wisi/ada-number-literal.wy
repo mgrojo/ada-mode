@@ -3,10 +3,11 @@
 %{
 (require 'ada-wisi) ;; for ada-wisi-number-p
 %}
+;; ' terminate quote
 
 ;; This defines comment syntax for the Ada parser. Comment syntax for
 ;; the elisp parser is defined by run-wisi-test
-%non_grammar <comment> COMMENT "--"[^\n]*
+%non_grammar <comment> COMMENT %[ "--"[^\n]* ]%
 
 %keyword NUMBER "number"
 %keyword RANGE "range"
@@ -23,7 +24,7 @@
 
 compilation_unit
   : number_list
-    (setq wisi-test-success t)
+    %((setq wisi-test-success t))%
   ;
 
 number
