@@ -363,8 +363,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  forever, making no progress. So we give it a cost.
 
       if not Token.Virtual then
-         --  If Virtual, this is from a previous recover session; no point in trying to
-         --  redo it.
+         --  If Virtual, this is from earlier in this recover session; no point
+         --  in trying to redo it.
 
          declare
             New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);

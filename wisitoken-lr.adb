@@ -563,50 +563,6 @@ package body WisiToken.LR is
       end case;
    end Image;
 
-   procedure Put
-     (Source_File_Name : in String;
-      Lexer            : in WisiToken.Lexer.Handle;
-      Errors           : in Parse_Error_Lists.List;
-      Terminals        : in Base_Token_Arrays.Vector;
-      Tree             : in Syntax_Trees.Tree;
-      Descriptor       : in WisiToken.Descriptor)
-   is
-      use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
-      use Ada.Text_IO;
-   begin
-      if Errors.Length = 0 then
-         return;
-      end if;
-
-      for Item of Errors loop
-         case Item.Label is
-         when Action =>
-            declare
-               Token : Base_Token renames Terminals (Tree.Min_Terminal_Index (Item.Error_Token));
-            begin
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (Source_File_Name, Token.Line, Token.Col,
-                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                       ", found '" & Lexer.Buffer_Text (Token.Byte_Region) & "'"));
-            end;
-
-         when Check =>
-            Put_Line
-              (Current_Error,
-               Source_File_Name & ":0:0: semantic check error: " &
-                 Semantic_Checks.Image (Item.Check_Status, Descriptor));
-         end case;
-
-         if Item.Recover.Stack.Depth /= 0 then
-            Put_Line (Current_Error, "   recovered: " & Image (Item.Recover.Ops, Descriptor));
-         end if;
-      end loop;
-      New_Line (Current_Error);
-   end Put;
-
    function Next_Grammar_Token
      (Terminals  : in out          Base_Token_Arrays.Vector;
       Descriptor : in              WisiToken.Descriptor'Class;

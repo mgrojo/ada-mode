@@ -69,16 +69,15 @@ is
       end case;
 
       Parser.Lexer.Reset_With_File (-File_Name);
-      loop
-         exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
-      end loop;
-
-      Parser.Lexer.Reset;
       Parser.Parse;
       Parser.Execute_Actions;
+      Parser.Put_Errors (-File_Name);
 
    exception
-   when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+   when WisiToken.Syntax_Error =>
+      Parser.Put_Errors (-File_Name);
+
+   when E : WisiToken.Parse_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
 
    when Name_Error =>

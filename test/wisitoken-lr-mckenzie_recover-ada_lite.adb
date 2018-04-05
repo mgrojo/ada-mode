@@ -356,11 +356,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  ahead, except in case 0b. So we return two solutions; 'ignore
          --  error' and either 'insert begin' or 'delete end;'.
 
-         if Config.Error_Token.Virtual or
-           (not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.Check_Token_Count)))
-         then
-            --  Config.Error_Token.Virtual happens when a previous fix inserts tokens.
-            --
+         if not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.Check_Token_Count)) then
             --  Invalid tree indices happens when recover enqueues a config that
             --  contains tokens pushed during recover.
 

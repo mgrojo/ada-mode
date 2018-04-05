@@ -22,9 +22,10 @@ with Wisi_Grammar; use Wisi_Grammar;
 package body WisiToken.Wisi_Grammar_Runtime is
 
    function Get_Text
-     (Data       : in User_Data_Type;
-      Tree       : in Syntax_Trees.Tree;
-      Tree_Index : in Syntax_Trees.Valid_Node_Index)
+     (Data         : in User_Data_Type;
+      Tree         : in Syntax_Trees.Tree;
+      Tree_Index   : in Syntax_Trees.Valid_Node_Index;
+      Strip_Quotes : in Boolean := False)
      return String
    is
       use all type Syntax_Trees.Node_Label;
@@ -36,6 +37,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
          if -Tree.ID (Tree_Index) in REGEXP_ID | ACTION_ID then
             --  strip delimiters.
             return Data.Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
+
+         elsif -Tree.ID (Tree_Index) in STRING_LITERAL_ID | STRING_LITERAL_CASE_INS_ID and Strip_Quotes then
+            return Data.Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
          else
             return Data.Lexer.Buffer_Text (Region);
          end if;
@@ -66,15 +70,16 @@ package body WisiToken.Wisi_Grammar_Runtime is
    end Get_Text;
 
    function Get_Child_Text
-     (Data   : in User_Data_Type;
-      Tree   : in Syntax_Trees.Tree;
-      Parent : in Syntax_Trees.Valid_Node_Index;
-      Child  : in SAL.Peek_Type)
+     (Data         : in User_Data_Type;
+      Tree         : in Syntax_Trees.Tree;
+      Parent       : in Syntax_Trees.Valid_Node_Index;
+      Child        : in SAL.Peek_Type;
+      Strip_Quotes : in Boolean := False)
      return String
    is
       Tree_Indices : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Parent);
    begin
-      return Get_Text (Data, Tree, Tree_Indices (Child));
+      return Get_Text (Data, Tree, Tree_Indices (Child), Strip_Quotes);
    end Get_Child_Text;
 
    procedure Start_If_1
@@ -355,11 +360,11 @@ package body WisiToken.Wisi_Grammar_Runtime is
                      null;
 
                   elsif Kind = "elisp_face" then
-                     Data.Elisp_Names.Faces.Append (Get_Text (Data, Tree, Tokens (3)));
+                     Data.Elisp_Names.Faces.Append (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
 
                   elsif Kind = "elisp_indent" then
                      Data.Elisp_Names.Indents.Append
-                       ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1),
+                       ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1, Strip_Quotes => True),
                          Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                   elsif Kind = "elisp_regexp" then

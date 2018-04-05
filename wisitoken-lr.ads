@@ -373,12 +373,12 @@ package WisiToken.LR is
    package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
-     (Positive_Index_Type, Config_Op, Capacity => 40);
+     (Positive_Index_Type, Config_Op, Capacity => 80);
    --  Using a fixed size vector significantly speeds up
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
    --  parameter plus an arbitrary number from the language-specific
-   --  repairs; in practice, a capacity of 40 is enough so far.
+   --  repairs; in practice, a capacity of 80 is enough so far.
 
    function Config_Op_Array_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) &
@@ -541,15 +541,6 @@ package WisiToken.LR is
       Tree       : in Syntax_Trees.Tree;
       Descriptor : in WisiToken.Descriptor)
      return String;
-
-   procedure Put
-     (Source_File_Name : in String;
-      Lexer            : in WisiToken.Lexer.Handle;
-      Errors           : in Parse_Error_Lists.List;
-      Terminals        : in Base_Token_Arrays.Vector;
-      Tree             : in Syntax_Trees.Tree;
-      Descriptor       : in WisiToken.Descriptor);
-   --  Put user-friendly error messages to Ada.Text_IO.Current_Error.
 
 private
 

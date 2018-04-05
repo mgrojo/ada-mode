@@ -59,6 +59,90 @@ is
    package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Generate_Params);
    use Common;
 
+   function Split_Sexp
+     (Item            : in String;
+      Input_File_Name : in String;
+      Source_Line     : in WisiToken.Line_Number_Type)
+     return String_Lists.List
+   is
+      --  Return one sexp per element. Remove comments, newlines, and outer '(progn )'.
+
+      Item_I : Integer := Item'First;
+
+      Buffer       : String (Item'First .. Item'Last);
+      Buffer_J     : Integer := Buffer'First;
+      Buffer_First : Integer := Buffer'First;
+      Paren_Count  : Integer := 0;
+      In_Comment   : Boolean := False;
+      Result       : String_Lists.List;
+
+      Delete_Last_Paren : Boolean := False;
+   begin
+      --  Loop thru Item, copying chars to Buffer, ignoring comments, newlines.
+
+      if Item (Item'First .. Item'First + 5) = "(progn" then
+         Item_I := Item'First + 6;
+
+         Delete_Last_Paren := True;
+      end if;
+
+      loop
+         exit when Item_I > Item'Last;
+
+         if In_Comment then
+            if Item (Item_I) in ASCII.CR | ASCII.LF then
+               In_Comment := False;
+            end if;
+         else
+            if Item (Item_I) = '(' then
+               if Paren_Count = 0 then
+                  Buffer_First := Buffer_J;
+               end if;
+               Paren_Count := Paren_Count + 1;
+
+               Buffer (Buffer_J) := Item (Item_I);
+               Buffer_J := Buffer_J + 1;
+
+            elsif Item (Item_I) = ')' then
+               Paren_Count := Paren_Count - 1;
+               if Paren_Count = 0 then
+                  Buffer (Buffer_J) := Item (Item_I);
+                  Result.Append (Buffer (Buffer_First .. Buffer_J));
+                  Buffer_First := Buffer'First;
+                  Buffer_J     := Buffer'First;
+
+               elsif Paren_Count = -1 then
+                  if Delete_Last_Paren then
+                     --  all done
+                     return Result;
+                  else
+                     Wisi.Utils.Put_Error (Input_File_Name, Source_Line, "mismatched parens");
+                     return String_Lists.Empty_List;
+                  end if;
+               else
+                  Buffer (Buffer_J) := Item (Item_I);
+                  Buffer_J := Buffer_J + 1;
+               end if;
+
+            elsif Item (Item_I) in ASCII.CR | ASCII.LF then
+               null;
+
+            elsif Item (Item_I) = ';' and then Item_I < Item'Last and then Item (Item_I + 1) = ';' then
+               In_Comment := True;
+
+            else
+               Buffer (Buffer_J) := Item (Item_I);
+               Buffer_J := Buffer_J + 1;
+            end if;
+         end if;
+         Item_I := Item_I + 1;
+      end loop;
+      if Paren_Count /= 0 then
+         Wisi.Utils.Put_Error (Input_File_Name, Source_Line, "mismatched parens");
+      end if;
+      return Result;
+   end Split_Sexp;
+
    procedure Create_Ada_Action
      (Name          : in String;
       RHS           : in RHS_Type;
@@ -74,35 +158,19 @@ is
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
 
-      Lines : constant String_Lists.List := Trim (Split_Lines (-Unsplit_Lines), Elisp_Comment);
+      Sexps : constant String_Lists.List := Split_Sexp (-Unsplit_Lines, Input_File_Name, RHS.Source_Line);
 
-      Temp : Unbounded_String;
+      use all type Standard.Ada.Strings.Maps.Character_Set;
 
-      Paren_State           : Integer := 0;
-      Translate_Paren_State : Integer := 0;
+      Blank_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ");
+
+      Space_Paren_Set : constant Standard.Ada.Strings.Maps.Character_Set :=
+        Standard.Ada.Strings.Maps.To_Set ("])") or Blank_Set;
 
       Navigate_Lines     : String_Lists.List;
       Face_Line          : Unbounded_String;
       Indent_Action_Line : Unbounded_String;
       Check_Lines        : String_Lists.List;
-
-      Space_Paren_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ])");
-
-      procedure Count_Parens
-      is
-         Line : String renames To_String (Temp);
-      begin
-         for I in Line'First .. Line'Last loop
-            case Line (I) is
-            when '(' =>
-               Paren_State := Paren_State + 1;
-            when ')' =>
-               Paren_State := Paren_State - 1;
-            when others =>
-               null;
-            end case;
-         end loop;
-      end Count_Parens;
 
       function Statement_Params (Params : in String) return String
       is
@@ -116,7 +184,7 @@ is
       begin
          loop
             First  := Last + 1;
-            Second := Index (Params, " ", First);
+            Second := Index (Params, Blank_Set, First);
             exit when Second < Params'First;
 
             Count := Count + 1;
@@ -139,7 +207,7 @@ is
       is
          --  Input looks like: 1 2)
          First  : constant Integer := Params'First;
-         Second : constant Integer := Index (Params, " ", First);
+         Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, " &
            Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
@@ -153,7 +221,7 @@ is
          use Standard.Ada.Strings.Maps;
          use WisiToken;
 
-         Delim : constant Character_Set := To_Set (" ]");
+         Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
          Last   : Integer          := Params'First; -- skip [
          First  : Integer;
@@ -214,7 +282,7 @@ is
          --  Params is a vector of triples: [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face ...]
          --  Result: ((1, 3, 1), (3, 3, 2), ...)
          use Standard.Ada.Strings.Maps;
-         Delim : constant Character_Set := To_Set (" ]");
+         Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
          Last       : Integer          := Params'First; -- skip [
          First      : Integer;
@@ -270,7 +338,7 @@ is
          --  Params is a vector of pairs: [1 prefix 3 suffix ...]
          --  Result: ((1, Prefix), (3, Suffix), ...)
          use Standard.Ada.Strings.Maps;
-         Delim : constant Character_Set := To_Set (" ]");
+         Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
          Last       : Integer          := Params'First; -- skip [
          First      : Integer;
@@ -316,7 +384,7 @@ is
          --  Params is a vector of token numbers: [1 3 ...]
          --  Result: (1, 3, ...)
          use Standard.Ada.Strings.Maps;
-         Delim : constant Character_Set := To_Set (" ]");
+         Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
          Last       : Integer          := Params'First; -- skip [
          First      : Integer;
@@ -365,11 +433,11 @@ is
          use Standard.Ada.Strings.Maps;
          use Standard.Ada.Containers;
 
-         Delim : constant Character_Set := To_Set (" ])");
+         Delim : constant Character_Set := To_Set ("])") or Blank_Set;
 
          subtype Digit is Character range '0' .. '9';
 
-         Last          : Integer         := Params'First; -- skip [
+         Last          : Integer         := Index_Non_Blank (Params); -- skip [
          Prefix        : constant String := " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, " & N & "(";
          Result        : Unbounded_String;
          Need_Comma    : Boolean         := False;
@@ -613,7 +681,7 @@ is
       is
          --  Input looks like "1 2)"
          First  : constant Integer := Params'First;
-         Second : constant Integer := Index (Params, " ", First);
+         Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Nonterm, Tokens, " & Params (First .. Second - 1) & ',' &
            Params (Second .. Params'Last);
@@ -623,7 +691,7 @@ is
       is
          --  Input looks like: 1 2)
          First  : constant Integer := Params'First;
-         Second : constant Integer := Index (Params, " ", First);
+         Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Lexer, Descriptor, Tokens, " &
            Params (First .. Second - 1) & ',' &
@@ -635,7 +703,7 @@ is
 
       procedure Translate_Line (Line : in String)
       is
-         Last       : constant Integer := Index (Line, " ");
+         Last       : constant Integer := Index (Line, Blank_Set);
          Elisp_Name : constant String  := Line (Line'First + 1 .. Last - 1);
       begin
          --  wisi action/check functions, in same order as typically used in
@@ -698,7 +766,7 @@ is
          elsif Elisp_Name = "wisi-indent-action*" then
             if Length (Indent_Action_Line) = 0 then
                declare
-                  Temp : constant Integer := Index (Line, " ", Last + 1);
+                  Temp : constant Integer := Index (Line, Blank_Set, Last + 1);
                begin
                   Indent_Action_Line := +"Indent_Action_1" &
                     Indent_Params (Line (Temp + 1 .. Line'Last), Line (Last + 1 .. Temp - 1) & ", ") & ";";
@@ -735,53 +803,17 @@ is
                  Match_Names_Params (Line (Last + 1 .. Line'Last)) & ";");
 
          else
-            Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized elisp action: " & Elisp_Name);
+            Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized elisp action: '" & Elisp_Name & "'");
          end if;
       end Translate_Line;
 
    begin
-      for Line of Lines loop
+      for Sexp of Sexps loop
          begin
-            if Translate_Paren_State = 0 and Length (Temp) = 0 then
-               if Line = "(progn" then
-                  Translate_Paren_State := 1;
-                  Paren_State := 1;
-               elsif Lines.Length = 1 then
-                  Temp := +Line;
-                  Count_Parens;
-                  if Paren_State = 0 then
-                     Translate_Line (-Temp);
-                     Temp := +"";
-                  end if;
-               else
-                  --  Single elisp form on two or more lines; combine them.
-                  Temp := +Line;
-               end if;
-            else
-               if Length (Temp) = 0 then
-                  Temp := +Line;
-               else
-                  Temp := Temp & ' ' & Line;
-               end if;
-
-               Count_Parens;
-               if Paren_State = Translate_Paren_State then
-                  Translate_Line (-Temp);
-                  Temp := +"";
-               elsif Translate_Paren_State = 1 and Paren_State = 0 then
-                  --  last line of a 'progn'
-                  Translate_Paren_State := 0;
-                  Translate_Line (Slice (Temp, 1, Length (Temp) - 1));
-                  Temp := +"";
-               else
-                  --  need another line
-                  Paren_State := Translate_Paren_State;
-               end if;
-            end if;
+            Translate_Line (Sexp);
          exception
          when E : Not_Found =>
             Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
-            Temp := +"";
          end;
       end loop;
 

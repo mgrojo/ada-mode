@@ -176,6 +176,7 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
       Parser        : in Parse_Table_Ptr;
       Descriptor    : in WisiToken.Descriptor'Class)
    is
+      use Ada.Strings.Unbounded;
       use Ada.Containers; -- count_type
       use Wisi; -- "-" unbounded_string
 
@@ -184,9 +185,6 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
 
       RHS_Length : Count_Type;
       RHS_Count  : Count_Type;
-
-      Action_Length : Count_Type;
-      Action_Count  : Count_Type;
    begin
       Put_Line ("(defconst " & Elisp_Package & "-elisp-parse-table");
       Put_Line ("   (wisi-compile-grammar");
@@ -208,25 +206,13 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
             for Token of RHS.Production loop
                Put (Token & " ");
             end loop;
-            declare
-               Lines : constant String_Lists.List := Split_Lines (-RHS.Action);
-            begin
-               Action_Length := Lines.Length;
-               Action_Count  := 1;
-               if Action_Length = 0 then
-                  Put (")");
-               else
-                  Put_Line (")");
-               end if;
-               for Line of Lines loop
-                  if Action_Count = Action_Length then
-                     Put ("        " & Line);
-                  else
-                     Put_Line ("        " & Line);
-                  end if;
-                  Action_Count := Action_Count + 1;
-               end loop;
-            end;
+            if Length (RHS.Action) = 0 then
+               Put (")");
+            else
+               Put_Line (")");
+            end if;
+            Put (-RHS.Action);
+
             if RHS_Count = RHS_Length then
                Put (")");
             else

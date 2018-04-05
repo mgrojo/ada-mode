@@ -553,6 +553,7 @@ package body WisiToken.LR.Parser is
 
       Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 
+      Main_Loop :
       loop
          --  exit on Accept_It action or syntax error.
 
@@ -693,7 +694,7 @@ package body WisiToken.LR.Parser is
                   if Trace_Parse > Outline then
                      Trace.Put_Line (Integer'Image (Shared_Parser.Parsers.First.Label) & ": succeed");
                   end if;
-                  return;
+                  exit Main_Loop;
 
                elsif Zombie_Count + 1 = Count then
                   --  All but one are zombies
@@ -710,7 +711,7 @@ package body WisiToken.LR.Parser is
                      exit when Current_Parser.Is_Done;
                   end loop;
 
-                  return;
+                  exit Main_Loop;
 
                else
                   --  More than one parser is active.
@@ -743,7 +744,7 @@ package body WisiToken.LR.Parser is
                            Trace.Put_Line ("ambiguous with error");
                         end if;
 
-                        return;
+                        exit Main_Loop;
 
                      else
                         --  There were no previous errors. We allow the parse to fail, on the
@@ -960,7 +961,11 @@ package body WisiToken.LR.Parser is
                Current_Parser.Next;
             end if;
          end loop;
-      end loop;
+      end loop Main_Loop;
+
+      --  We don't raise Syntax_Error for lexer errors, since they are all
+      --  recovered, either by inserting a quote, or by ignoring the
+      --  character.
    end Parse;
 
    procedure Execute_Actions (Parser : in out LR.Parser.Parser)
@@ -999,5 +1004,57 @@ package body WisiToken.LR.Parser is
          end loop;
       end if;
    end Execute_Actions;
+
+   function Any_Errors (Parser : in out LR.Parser.Parser) return Boolean
+   is
+      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
+      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;
+   begin
+      return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Lexer.Errors.Length > 0;
+   end Any_Errors;
+
+   procedure Put_Errors (Parser : in out LR.Parser.Parser; File_Name : in String)
+   is
+      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
+      use Ada.Text_IO;
+
+      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;
+      Descriptor   : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+   begin
+      for Item of Parser.Lexer.Errors loop
+         Put_Line
+           (Current_Error,
+            File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
+      end loop;
+
+      for Item of Parser_State.Errors loop
+         case Item.Label is
+         when Action =>
+            declare
+               Token : Base_Token renames Parser.Terminals (Parser_State.Tree.Min_Terminal_Index (Item.Error_Token));
+            begin
+               Put_Line
+                 (Current_Error,
+                  Error_Message
+                    (File_Name, Token.Line, Token.Col,
+                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                       ", found '" & Parser.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
+            end;
+
+         when Check =>
+            Put_Line
+              (Current_Error,
+               File_Name & ":0:0: semantic check error: " &
+                 Semantic_Checks.Image (Item.Check_Status, Descriptor));
+         end case;
+
+         if Item.Recover.Stack.Depth /= 0 then
+            Put_Line (Current_Error, "   recovered: " & Image (Item.Recover.Ops, Descriptor));
+         end if;
+      end loop;
+      New_Line (Current_Error);
+   end Put_Errors;
 
 end WisiToken.LR.Parser;

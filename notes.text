@@ -19,12 +19,6 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-delete recover_token.Virtual?
-    use byte_region = null
-
-update ada-mode
-propagate
-
 use gen_parser_run for ada_lite
 
 change configure_access to persistent_ref record with container, node components;

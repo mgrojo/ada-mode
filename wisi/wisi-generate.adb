@@ -208,15 +208,12 @@ begin
    begin
       Grammar_Parser.Parse;
       Grammar_Parser.Execute_Actions;
+      if Grammar_Parser.Any_Errors then
+         raise WisiToken.Syntax_Error;
+      end if;
    exception
    when WisiToken.Syntax_Error =>
-      WisiToken.LR.Put
-        (-Grammar_Parse_Data.Input_File_Name,
-         Grammar_Parser.Lexer,
-         Grammar_Parser.Parsers.First.State_Ref.Errors,
-         Grammar_Parser.Terminals,
-         Grammar_Parser.Parsers.First.State_Ref.Tree,
-         Wisi_Grammar.Descriptor);
+      Grammar_Parser.Put_Errors (-Grammar_Parse_Data.Input_File_Name);
       raise;
    end;
 

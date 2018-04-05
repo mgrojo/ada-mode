@@ -102,4 +102,11 @@ package WisiToken.LR.Parser is
    procedure Execute_Actions (Parser : in out LR.Parser.Parser);
    --  Execute the grammar actions in Parser.
 
+   function Any_Errors (Parser : in out LR.Parser.Parser) return Boolean;
+   --  Return True if any errors where encountered, recovered or not.
+
+   procedure Put_Errors (Parser : in out LR.Parser.Parser; File_Name : in String);
+   --  Put user-friendly error messages from the parse to
+   --  Ada.Text_IO.Current_Error.
+
 end WisiToken.LR.Parser;
