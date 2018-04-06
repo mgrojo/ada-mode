@@ -1,6 +1,10 @@
-;;; Wisi grammar for Wisi grammar.
+;;; Wisi grammar for Wisi grammar, for Emacs wisi-grammar mode.
+;;
+;;  WisiToken uses the same grammar for parsing .wy files, but with
+;;  different actions.
+;;  (ediff "wisi_grammar_1.wy" "../org.wisitoken/wisi/wisi_grammar.wy")
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -33,46 +37,36 @@
 %keyword END "end"
 %keyword IF "if"
 %keyword KEYWORD "keyword"
-%keyword PERCENT "%"
-%keyword PERCENT_PERCENT "%%"
+%keyword NON_GRAMMAR "non_grammar"
 %keyword TOKEN "token"
+
+%token <delimited-text> PREAMBLE "%{" "%}"
+%token <delimited-text> REGEXP "%[" "]%"
+%token <delimited-text> ACTION "%(" ")%"
 
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
-
-%token <punctuation> COLON_EQUAL ":="
-;; in Ada actions. FIXME: use delimited-text for actions, multi-major
-;; mode for indent actions
-
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
 %token <punctuation> LESS "<"
-%token <punctuation> LEFT_BRACKET "["
-%token <punctuation> LEFT_PAREN "("
-%token <punctuation> MINUS "-"
-%token <punctuation> PLUS "+"
-%token <punctuation> RIGHT_BRACKET "]"
-%token <punctuation> RIGHT_PAREN ")"
+%token <punctuation> PERCENT "%"
+%token <punctuation> PERCENT_PERCENT "%%"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
-%token <punctuation> STAR "*"
-%token <punctuation> TICK "'"
 
-%elisp_regexp wisi-number-p [0-9][0-9]*
+%elisp_regexp wisi-number-p %[ [0-9][0-9]* ]%
 %token <number> NUMERIC_LITERAL wisi-number-p
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_-]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
 
-%token <regexp> REGEXP_CONTENT [._\\{}?^]+
+;; 0x22 = "
+;; 0x27 = '
+%token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
+%token <string-single> STRING_LITERAL_CASE_INS %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]%
 
-%token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
-
-%token <delimited-text> PREAMBLE "%{" "%}"
-%token <delimited-text> CONFLICT "%conflict" "\n"
-
-%non_grammar <non-reporting> WHITESPACE [ \t]
-%non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
-%non_grammar <comment> COMMENT ";;"[^\x0a\x04]*
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
@@ -81,12 +75,13 @@
 %elisp_face font-lock-type-face
 %elisp_face nil
 
+%output_language Ada_Emacs
+%lexer re2c
 %parser_algorithm LALR
 %start compilation_unit_list
+%no_language_runtime
 
-%mckenzie_cost_default 2 2 4
-%mckenzie_cost_insert RIGHT_BRACKET 1
-%mckenzie_cost_insert RIGHT_PAREN 1
+%mckenzie_cost_default 2 2 4 1 1
 %mckenzie_cost_insert SEMICOLON 1
 %mckenzie_cost_limit 5
 %mckenzie_check_limit 4
@@ -98,28 +93,30 @@
 ;;;; grammar rules
 
 declaration
-  : PERCENT token_keyword_punctuation IDENTIFIER declaration_item_list
-    (progn
+  : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
+    %( (progn
      (wisi-statement-action [1 statement-start 3 name])
      (wisi-face-apply-action
       [1 nil font-lock-constant-face
        2 nil font-lock-keyword-face
-       3 nil font-lock-function-name-face]))
+       3 nil font-lock-function-name-face])) )%
   | PERCENT IDENTIFIER declaration_item_list
-    (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
+    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER
-    (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
+    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-    (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face])
+    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT END IF
-    (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face 3 nil font-lock-keyword-face])
+    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face 3 nil
+        font-lock-keyword-face]) )%
   ;
 
-token_keyword_punctuation
-  : TOKEN
-  | KEYWORD
+token_keyword_non_grammar
+  : KEYWORD
+  | NON_GRAMMAR LESS IDENTIFIER GREATER
+    %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
   | TOKEN LESS IDENTIFIER GREATER
-    (wisi-face-apply-action [3 nil font-lock-type-face])
+    %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
   ;
 
 declaration_item_list
@@ -127,54 +124,43 @@ declaration_item_list
   | declaration_item_list declaration_item
   ;
 
-;; Declaring a separate regexp_item_list is redundant. Also, we can't
-;; define CHARSET as a token, because that hides lisp arrays as
-;; action_items. So we include the components of a charset, and other
-;; regexp components, in declaration_item.
 declaration_item
-  : IDENTIFIER
-  | REGEXP_CONTENT
-  | BAR
-  | COMMA
+  : COMMA
+  | IDENTIFIER
   | EQUAL
-  | LEFT_BRACKET
-  | LEFT_PAREN
-  | LESS IDENTIFIER GREATER
-  | MINUS
   | NUMERIC_LITERAL
-  | PLUS
-  | RIGHT_BRACKET
-  | RIGHT_PAREN
+  | REGEXP
   | SLASH
-  | STAR
   | STRING_LITERAL
-    (wisi-face-apply-action [1 nil font-lock-string-face])
+  | STRING_LITERAL_CASE_INS
+  | TOKEN
+  ;; ",", "token", "/" appear in %conflict declarations
   ;
 
 nonterminal
   : IDENTIFIER COLON rhs_list SEMICOLON
-    (progn
+    %( (progn
      (wisi-statement-action [1 statement-start 4 statement-end])
      (wisi-face-apply-action [1 nil font-lock-function-name-face])
-     (wisi-indent-action [0 [2 -1] 2 2]))
+     (wisi-indent-action [0 [2 -1] 2 2])) )%
   ;
 
 rhs_list
   : rhs
   | rhs_list BAR rhs
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-  (wisi-indent-action [0 -2 0 0 0 0])
+    %( (wisi-indent-action [0 -2 0 0 0 0]) )%
   | rhs_list PERCENT END IF
-  (wisi-indent-action [0 -2 0 0])
+    %( (wisi-indent-action [0 -2 0 0]) )%
   ;
 
 rhs
   : ;; empty
   | token_list
-  | token_list action
-    (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1]])
-  | token_list action action
-    (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1] [2 -1]])
+  | token_list ACTION
+    %( (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1]]) )%
+  | token_list ACTION ACTION
+    %( (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1] [2 -1]]) )%
   ;
 
 token_list
@@ -182,41 +168,11 @@ token_list
   | token_list IDENTIFIER
   ;
 
-action
-  : LEFT_PAREN action_item_list RIGHT_PAREN
-    (wisi-indent-action [0 (wisi-anchored 1 2) (wisi-anchored 1 2)])
-  | LEFT_PAREN RIGHT_PAREN
-  ;
-
-action_item_list
-  : action_item
-  | action_item_list action_item
-  ;
-
-action_item
-  : COLON_EQUAL
-  | COMMA
-  | IDENTIFIER
-  | IF
-  | MINUS
-  | NUMERIC_LITERAL
-  | PERCENT
-  | PLUS
-  | STAR
-  | SEMICOLON
-  | REGEXP_CONTENT
-  | TICK
-  | LEFT_BRACKET action_item_list RIGHT_BRACKET
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1)])
-  | action
-  ;
-
 ;; We don't enforce a complete order, nor require all parts, so
 ;; partial files can still be parsed successfully.
 compilation_unit
   : PREAMBLE
   | declaration
-  | CONFLICT
   | PERCENT_PERCENT
   | nonterminal
   ;

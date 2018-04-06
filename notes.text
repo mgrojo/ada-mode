@@ -7,12 +7,20 @@ Makefile
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2") ;; aka wisi
   (xmtn . "c:/Projects/org.wisitoken.grammar_mode/")))
 
-(progn
- (require 'wisi-grammar-mode)
- (wisi-grammar-set-exec "c:/Projects/org.wisitoken.grammar_mode/wisi_grammar_mode_parse.exe"))
-
-run tests
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.stephe_leake.makerules")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4") ;; aka wisi
+  (xmtn . "c:/Projects/org.wisitoken.grammar_mode.stephe-1")))
 
+(dvc-propagate-multiple
+ '(("../org.stephe_leake.sal.stephe-1"       . "../org.stephe_leake.sal")
+   ("../org.wisitoken.stephe-1"              . "../org.wisitoken")
+   ("../org.emacs.ada-mode.stephe-4"         . "../org.emacs.ada-mode.stephe-2")
+   ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
+
+
 page up/down stop at %%?
 
 move parse_table_mode to o.w.g_m?

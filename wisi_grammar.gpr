@@ -49,11 +49,11 @@ project Wisi_Grammar is
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
 
-         for Switches ("wisi_grammar_process.adb") use
+         for Switches ("wisi_grammar_1_process.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
-         for Switches ("wisi_grammar.adb") use
+         for Switches ("wisi_grammar_1.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
@@ -66,11 +66,11 @@ project Wisi_Grammar is
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler.Release_Switches;
 
-         for Switches ("wisi_grammar_process.adb") use
+         for Switches ("wisi_grammar_1_process.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Release_Switches;
-         for Switches ("wisi_grammar.adb") use
+         for Switches ("wisi_grammar_1.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Release_Switches;

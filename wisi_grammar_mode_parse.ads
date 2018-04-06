@@ -2,7 +2,7 @@
 --
 --  External process parser for Ada mode
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,11 +18,12 @@
 
 pragma License (GPL);
 
-with Wisi_Grammar_Process;
+with Wisi_Grammar_1_Process;
 with Gen_Emacs_Wisi_Parse;
 with WisiToken.Wisi_Runtime;
 procedure Wisi_Grammar_Mode_Parse is new Gen_Emacs_Wisi_Parse
-  (Name          => "wisi_grammar_mode",
-   Descriptor    => Wisi_Grammar_Process.Descriptor,
-   Parse_Data    => WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Wisi_Grammar_Process.Parse_Data),
-   Create_Parser => Wisi_Grammar_Process.Create_Parser);
+  (Parse_Data_Type => WisiToken.Wisi_Runtime.Parse_Data_Type,
+   Name            => "wisi_grammar_mode",
+   Descriptor      => Wisi_Grammar_1_Process.Descriptor,
+   Language_Fixes  => null,
+   Create_Parser   => Wisi_Grammar_1_Process.Create_Parser);

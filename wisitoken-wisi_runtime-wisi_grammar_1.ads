@@ -4,7 +4,7 @@
 --
 --  Actually empty, but wisitoken requires this file.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -19,8 +19,8 @@
 
 pragma License (Modified_GPL);
 
-package WisiToken.Wisi_Runtime.Wisi_Grammar is
+package WisiToken.Wisi_Runtime.Wisi_Grammar_1 is
 
    type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
 
-end WisiToken.Wisi_Runtime.Wisi_Grammar;
+end WisiToken.Wisi_Runtime.Wisi_Grammar_1;

@@ -27,7 +27,7 @@
 (require 'cl-lib)
 (require 'xref)
 (require 'wisi)
-(require 'wisi_grammar-process)
+(require 'wisi_grammar_1-process)
 (require 'wisi-process-parse)
 
 (defgroup wisi-grammar nil
@@ -218,8 +218,8 @@ Otherwise insert a plain new line."
 	    (make-wisi-process--parser
 	     :label "wisi-grammar"
 	     :exec-file wisi-grammar-process-parse-exec
-	     :face-table wisi_grammar-process-face-table
-	     :token-table wisi_grammar-process-token-table
+	     :face-table wisi_grammar_1-process-face-table
+	     :token-table wisi_grammar_1-process-token-table
 	     ))
    :lexer nil)
 

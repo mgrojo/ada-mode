@@ -13,8 +13,8 @@ elisp : update-elisp test
 
 pub : docs pub-wisi-grammar build-elpa uninstall-elpa
 
-update-elisp : autoloads
 update-elisp : install_ada_executables
+update-elisp : autoloads
 update-elisp : byte-compile
 
 test : test-wisi_grammar.stamp
@@ -30,11 +30,10 @@ one : $(ONE_TEST_FILE).diff
 #two : RUN_ARGS ?= --verbosity 2 --cost_limit 5
 #two : RUN_ARGS ?= --repeat_count 5
 #two : RUN_LOG := > debug.log
-#two : export Standard_Common_Build := Debug
+two : export Standard_Common_Build := Debug
 two : build_ada_executables
 two : force
-#	./run_wisi_grammar_parse.exe Test/debug.wy Indent $(RUN_ARGS) $(RUN_LOG)
-	./run_wisi_grammar_parse.exe ../org.emacs.ada-mode.stephe-2/ada.wy Face $(RUN_ARGS)
+	./run_wisi_grammar_1_parse.exe wisi_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
 %_process.ads %.re2c : %.wy $(WISITOKEN)/wisi-generate.exe
 	$(WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum $(<F) > $(*F).ada_parse_table
@@ -79,7 +78,7 @@ $(WISITOKEN)/wisi-generate.exe : force
 
 vpath %.wy ../org.emacs.ada-mode.stephe-2 ../org.wisitoken/wisi/test/ ../org.emacs.java-wisi/source/
 
-TEST_FILES := wisi_grammar.wy
+TEST_FILES := wisi_grammar_1.wy
 TEST_FILES += ada.wy
 TEST_FILES += java.wy
 TEST_FILES += gpr.wy
@@ -102,7 +101,7 @@ test-wisi_grammar.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-build_ada_executables : wisi_grammar_re2c.c wisi_grammar_process.ads force
+build_ada_executables : wisi_grammar_1_re2c.c wisi_grammar_1_process.ads force
 	gprbuild -p wisi_grammar.gpr
 
 install_ada_executables : build_ada_executables
