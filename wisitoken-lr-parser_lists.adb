@@ -40,7 +40,7 @@ package body WisiToken.LR.Parser_Lists is
    begin
       for I in 1 .. Last loop
          Result := Result &
-           (Image (Stack.Peek (I).State) & " : " &
+           (Image (Stack.Peek (I).State) & " :" &
               (if I = Stack.Depth
                then ""
                else
