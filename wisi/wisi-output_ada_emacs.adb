@@ -41,7 +41,7 @@ procedure Wisi.Output_Ada_Emacs
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
    Language_Name         : in String;
-   Generate_Params                : in Generate_Param_Type;
+   Generate_Params       : in Generate_Param_Type;
    Prologues             : in Wisi.Prologues;
    Tokens                : in Wisi.Tokens;
    Conflicts             : in Conflict_Lists.List;
@@ -67,6 +67,8 @@ is
    is
       --  Return one sexp per element. Remove comments, newlines, and outer '(progn )'.
 
+      Progn_Index : constant Integer := Standard.Ada.Strings.Fixed.Index (Item, "(progn");
+
       Item_I : Integer := Item'First;
 
       Buffer       : String (Item'First .. Item'Last);
@@ -80,8 +82,8 @@ is
    begin
       --  Loop thru Item, copying chars to Buffer, ignoring comments, newlines.
 
-      if Item (Item'First .. Item'First + 5) = "(progn" then
-         Item_I := Item'First + 6;
+      if 0 /= Progn_Index then
+         Item_I := Progn_Index + 6;
 
          Delete_Last_Paren := True;
       end if;
@@ -175,7 +177,7 @@ is
       function Statement_Params (Params : in String) return String
       is
          --  Input looks like: [1 function 2 other ...]
-         Last       : Integer := Params'First; -- skip [
+         Last       : Integer := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Second     : Integer;
          Need_Comma : Boolean := False;
@@ -185,7 +187,7 @@ is
          loop
             First  := Last + 1;
             Second := Index (Params, Blank_Set, First);
-            exit when Second < Params'First;
+            exit when Second = 0;
 
             Count := Count + 1;
             Last  := Index (Params, Space_Paren_Set, Second + 1);
@@ -206,7 +208,7 @@ is
       function Containing_Params (Params : in String) return String
       is
          --  Input looks like: 1 2)
-         First  : constant Integer := Params'First;
+         First  : constant Integer := Index_Non_Blank (Params);
          Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, " &
@@ -223,7 +225,7 @@ is
 
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
-         Last   : Integer          := Params'First; -- skip [
+         Last   : Integer          := Index_Non_Blank (Params); -- skip [
          First  : Integer;
          Vector : Boolean;
          Result : Unbounded_String := +" (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (";
@@ -284,7 +286,7 @@ is
          use Standard.Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
-         Last       : Integer          := Params'First; -- skip [
+         Last       : Integer          := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Result     : Unbounded_String;
          Need_Comma : Boolean          := False;
@@ -340,7 +342,7 @@ is
          use Standard.Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
-         Last       : Integer          := Params'First; -- skip [
+         Last       : Integer          := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Result     : Unbounded_String;
          Need_Comma : Boolean          := False;
@@ -386,7 +388,7 @@ is
          use Standard.Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
-         Last       : Integer          := Params'First; -- skip [
+         Last       : Integer          := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Result     : Unbounded_String;
          Need_Comma : Boolean          := False;
@@ -680,7 +682,7 @@ is
       function Merge_Names_Params (Params : in String) return String
       is
          --  Input looks like "1 2)"
-         First  : constant Integer := Params'First;
+         First  : constant Integer := Index_Non_Blank (Params);
          Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Nonterm, Tokens, " & Params (First .. Second - 1) & ',' &
@@ -690,7 +692,7 @@ is
       function Match_Names_Params (Params : in String) return String
       is
          --  Input looks like: 1 2)
-         First  : constant Integer := Params'First;
+         First  : constant Integer := Index_Non_Blank (Params);
          Second : constant Integer := Index (Params, Blank_Set, First);
       begin
          return " (Lexer, Descriptor, Tokens, " &
@@ -970,7 +972,10 @@ is
          Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
       end if;
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
-      Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
+      if Generate_Params.Language_Runtime then
+         Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
+      end if;
+
       Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
 
       case Data.Interface_Kind is

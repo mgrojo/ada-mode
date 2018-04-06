@@ -424,6 +424,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   elsif Kind = "mckenzie_cost_limit" then
                      Data.McKenzie_Recover.Cost_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
 
+                  elsif Kind = "no_language_runtime" then
+                     Data.Generate_Params.Language_Runtime := False;
+
                   elsif Kind = "output_language" then
                      if Data.Generate_Params.Output_Language = None then
                         Data.Generate_Params.Output_Language := Wisi.Valid_Output_Language'Value

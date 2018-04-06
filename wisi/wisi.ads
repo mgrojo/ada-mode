@@ -83,6 +83,7 @@ package Wisi is
       First_State_Index         : Integer               := 0;
       Interface_Kind            : Interface_Type        := None;
       Lexer                     : Lexer_Type            := None;
+      Language_Runtime          : Boolean               := True;
       Output_Language           : Output_Language_Type  := None;
       Parser_Algorithm          : Parser_Algorithm_Type := None;
       Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
