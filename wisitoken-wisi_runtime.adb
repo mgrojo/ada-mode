@@ -202,19 +202,6 @@ package body WisiToken.Wisi_Runtime is
       end case;
    end Indent_Zero_P;
 
-   function Last_Comment_Line
-     (Tokens     : in Non_Grammar_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return Line_Number_Type
-   is begin
-      for Token of reverse Tokens loop
-         if Token.First and Token.ID = Descriptor.Comment_ID then
-            return Token.Line;
-         end if;
-      end loop;
-      return Invalid_Line_Number;
-   end Last_Comment_Line;
-
    function Max_Anchor_ID
      (Data       : in out Parse_Data_Type;
       First_Line : in     Line_Number_Type;
@@ -260,7 +247,7 @@ package body WisiToken.Wisi_Runtime is
       Text_Begin_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
    begin
       --  [1] wisi-elisp-parse--paren-in-anchor-line. That uses elisp syntax-ppss; here
-      --  we search All_Tokens.
+      --  we search Terminals.
       loop
          declare
             Tok : Augmented_Token renames Data.Terminals (I);
@@ -623,8 +610,14 @@ package body WisiToken.Wisi_Runtime is
                     Containing_Token.Non_Grammar
                       (Containing_Token.Non_Grammar.Last_Index).ID = Data.Descriptor.New_Line_ID);
             begin
-               Containing_Token.First := Containing_Token.First or
-                 (Lexer.First and (Token.ID = Data.Descriptor.Comment_ID or Trailing_Blank));
+               if Lexer.First and (Token.ID = Data.Descriptor.Comment_ID or Trailing_Blank) then
+                  Containing_Token.First := True;
+
+                  if Containing_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
+                     Containing_Token.First_Trailing_Comment_Line := Lexer.Line;
+                  end if;
+                  Containing_Token.Last_Trailing_Comment_Line  := Lexer.Line;
+               end if;
 
                Containing_Token.Non_Grammar.Append ((Token.ID, Lexer.Line, Lexer.Column, Lexer.First));
 
@@ -699,12 +692,6 @@ package body WisiToken.Wisi_Runtime is
             begin
 
                if Data.Post_Parse_Action = Indent then
-                  if Aug_Token.Non_Grammar.Length > 0 then
-                     Aug_Token.First_Trailing_Comment_Line := Aug_Token.Line + 1; -- May be a blank line.
-                     Aug_Token.Last_Trailing_Comment_Line  := Last_Comment_Line
-                       (Aug_Token.Non_Grammar, Data.Descriptor.all);
-                  end if;
-
                   if Aug_Token.First_Terminals_Index /= Augmented_Token_Arrays.No_Index then
                      Aug_Nonterm.First_Terminals_Index := Aug_Token.First_Terminals_Index;
                   end if;

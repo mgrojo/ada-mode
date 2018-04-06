@@ -72,24 +72,24 @@
    (wisi-compile-grammar
    '(((aggregate_g
        ((LEFT_PAREN string_list RIGHT_PAREN )
-        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))
+(wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))
       (attribute_declaration
        ((FOR IDENTIFIER USE expression SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 5 statement-end])
-        (wisi-face-apply-action [2 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0])))
+(progn
+      (wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-face-apply-action [2 nil font-lock-function-name-face])
+      (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0])))
        ((FOR IDENTIFIER LEFT_PAREN discrete_choice RIGHT_PAREN USE expression SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 8 statement-end])
-        (wisi-face-apply-action [2 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
-        gpr-indent-broken 0])))
+(progn
+      (wisi-statement-action [1 statement-start 8 statement-end])
+      (wisi-face-apply-action [2 nil font-lock-function-name-face])
+      (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
+                             gpr-indent-broken 0])))
        ((FOR EXTERNAL LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 8 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
-        gpr-indent-broken 0]))))
+(progn
+      (wisi-statement-action [1 statement-start 8 statement-end])
+      (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
+                             gpr-indent-broken 0]))))
       (attribute_prefix
        ((PROJECT ))
        ((name )))
@@ -98,15 +98,15 @@
        ((attribute_prefix QUOTE IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN )))
       (case_statement
        ((CASE name IS case_items END CASE SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-containing-action 1 4)
-        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent-when gpr-indent-when] 0 0 0]))))
+(progn
+      (wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-containing-action 1 4);; for gpr-which-function
+      (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent-when gpr-indent-when] 0 0 0]))))
       (case_item
        ((WHEN discrete_choice_list EQUAL_GREATER declarative_items_opt )
-        (progn
-        (wisi-statement-action [1 motion])
-        (wisi-indent-action [0 gpr-indent-broken gpr-indent gpr-indent]))))
+(progn
+      (wisi-statement-action [1 motion])
+      (wisi-indent-action [0 gpr-indent-broken gpr-indent gpr-indent]))))
       (case_items
        (())
        ((case_item ))
@@ -154,34 +154,34 @@
        ((package_renaming )))
       (package_spec
        ((PACKAGE identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-containing-action 1 4)
-        (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
+(progn
+      (wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-containing-action 1 4)
+      (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
+      (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (package_extension
        ((PACKAGE identifier_opt EXTENDS name IS declarative_items_opt END identifier_opt SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 9 statement-end])
-        (wisi-containing-action 1 6)
-        (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
+(progn
+      (wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-containing-action 1 6)
+      (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
+      (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (package_renaming
        ((PACKAGE identifier_opt RENAMES name SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 5 statement-end])
-        (wisi-face-apply-action [2 nil font-lock-function-name-face 4 nil font-lock-function-name-face]))))
+(progn
+      (wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-face-apply-action [2 nil font-lock-function-name-face 4 nil font-lock-function-name-face]))))
       (project_declaration_opt
        (())
        ((simple_project_declaration ))
        ((project_extension )))
       (project_extension
        ((PROJECT identifier_opt EXTENDS STRING_LITERAL IS declarative_items_opt END identifier_opt SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 9 statement-end])
-        (wisi-containing-action 1 6)
-        (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
+(progn
+      (wisi-statement-action [1 statement-start 9 statement-end])
+      (wisi-containing-action 1 6)
+      (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
+      (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (project_qualifier_opt
        (())
        ((ABSTRACT ))
@@ -192,24 +192,24 @@
        ((CONFIGURATION )))
       (simple_declarative_item
        ((IDENTIFIER COLON_EQUALS expression SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 4 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken 0])))
+(progn
+      (wisi-statement-action [1 statement-start 4 statement-end])
+      (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken 0])))
        ((IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 6 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken gpr-indent-broken 0])))
+(progn
+      (wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken gpr-indent-broken 0])))
        ((attribute_declaration ))
        ((case_statement ))
        ((NULL SEMICOLON )
-        (wisi-statement-action [1 statement-start 2 statement-end])))
+(wisi-statement-action [1 statement-start 2 statement-end])))
       (simple_project_declaration
        ((PROJECT identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-containing-action 1 4)
-        (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
+(progn
+      (wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-containing-action 1 4)
+      (wisi-face-apply-action [2 nil font-lock-function-name-face 6 nil font-lock-function-name-face])
+      (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (string_primary
        ((STRING_LITERAL ))
        ((name ))
@@ -224,9 +224,9 @@
        ((aggregate_g )))
       (typed_string_declaration
        ((TYPE IDENTIFIER IS aggregate_g SEMICOLON )
-        (progn
-        (wisi-statement-action [1 statement-start 5 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken 0]))))
+(progn
+      (wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken 0]))))
       (with_clause
        ((WITH string_list SEMICOLON ))))
      [((default . error) (ABSTRACT . (context_clause_opt . 0)) (AGGREGATE . (context_clause_opt . 0)) (CONFIGURATION . (context_clause_opt . 0)) (LIBRARY . (context_clause_opt . 0)) (PROJECT . (context_clause_opt . 0)) (STANDARD . (context_clause_opt . 0)) (WITH .  7) (Wisi_EOI . (context_clause_opt . 0)))

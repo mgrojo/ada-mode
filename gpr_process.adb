@@ -18,8 +18,6 @@
 
 with WisiToken.Lexer.re2c;
 with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;
-with WisiToken.Semantic_State;
-with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Gpr; use WisiToken.Wisi_Runtime.Gpr;
 with gpr_re2c_c;
@@ -35,116 +33,110 @@ package body Gpr_Process is
 
    procedure aggregate_g_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
          null;
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end aggregate_g_0;
 
    procedure attribute_declaration_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (5, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (5, Statement_End)));
       when Face =>
-         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => (2, 1, 0)));
+         Face_Apply_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => (2, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end attribute_declaration_0;
 
    procedure attribute_declaration_1
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (8, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (8, Statement_End)));
       when Face =>
-         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => (2, 1, 0)));
+         Face_Apply_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => (2, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end attribute_declaration_1;
 
    procedure attribute_declaration_2
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (8, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (8, Statement_End)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end attribute_declaration_2;
 
    procedure case_statement_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 4);
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (7, Statement_End)));
+         Containing_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, 1, 4);
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent_When)), (Simple, (Int, Gpr_Indent_When))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent_When)), (Simple, (Int, Gpr_Indent_When))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end case_statement_0;
 
    procedure case_item_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, (1 => (1, Motion)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => (1, Motion)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, Gpr_Indent)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, Gpr_Indent)))));
       end case;
    end case_item_0;
 
@@ -161,21 +153,20 @@ package body Gpr_Process is
 
    procedure package_spec_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 4);
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (7, Statement_End)));
+         Containing_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, 1, 4);
       when Face =>
-         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (6, 1, 0)));
+         Face_Apply_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (6, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end package_spec_0;
 
@@ -192,21 +183,20 @@ package body Gpr_Process is
 
    procedure package_extension_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (9, Statement_End)));
-         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 6);
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (9, Statement_End)));
+         Containing_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, 1, 6);
       when Face =>
-         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (8, 1, 0)));
+         Face_Apply_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (8, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end package_extension_0;
 
@@ -223,18 +213,17 @@ package body Gpr_Process is
 
    procedure package_renaming_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (5, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (5, Statement_End)));
       when Face =>
-         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (4, 1, 0)));
+         Face_Apply_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (4, 1, 0)));
       when Indent =>
          null;
       end case;
@@ -242,21 +231,20 @@ package body Gpr_Process is
 
    procedure project_extension_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (9, Statement_End)));
-         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 6);
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (9, Statement_End)));
+         Containing_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, 1, 6);
       when Face =>
-         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (8, 1, 0)));
+         Face_Apply_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (8, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end project_extension_0;
 
@@ -273,54 +261,51 @@ package body Gpr_Process is
 
    procedure simple_declarative_item_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (4, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (4, Statement_End)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end simple_declarative_item_0;
 
    procedure simple_declarative_item_1
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (6, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (6, Statement_End)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end simple_declarative_item_1;
 
    procedure simple_declarative_item_4
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (2, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (2, Statement_End)));
       when Face =>
          null;
       when Indent =>
@@ -330,21 +315,20 @@ package body Gpr_Process is
 
    procedure simple_project_declaration_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (7, Statement_End)));
-         Containing_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, 1, 4);
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (7, Statement_End)));
+         Containing_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, 1, 4);
       when Face =>
-         Face_Apply_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (6, 1, 0)));
+         Face_Apply_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((2, 1, 0), (6, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end simple_project_declaration_0;
 
@@ -361,20 +345,19 @@ package body Gpr_Process is
 
    procedure typed_string_declaration_0
     (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     State        : in out WisiToken.Semantic_State.Semantic_State;
      Tree         : in out WisiToken.Syntax_Trees.Tree;
      Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
    begin
-      case Parse_Data.Parse_Action is
+      case Parse_Data.Post_Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (5, Statement_End)));
+         Statement_Action (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((1, Statement_Start), (5, Statement_End)));
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, State, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end typed_string_declaration_0;
 
@@ -382,7 +365,8 @@ package body Gpr_Process is
      (Parser         :    out WisiToken.LR.Parser.Parser;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Trace          : not null access WisiToken.Trace'Class;
-      Language_Fixes : in     WisiToken.LR.Language_Fixes_Access)
+      Language_Fixes : in     WisiToken.LR.Language_Fixes_Access;
+      User_Data      : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
       use WisiToken.LR;
       use all type WisiToken.Parser_Algorithm_Type;
@@ -431,11 +415,11 @@ package body Gpr_Process is
             2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2),
          Undo_Reduce =>
-           (0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0),
+           (2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2),
          Cost_Limit  => 12,
          Check_Limit => 3);
 
@@ -1501,6 +1485,7 @@ package body Gpr_Process is
          Lexer.New_Lexer (Trace),
          Table,
          Language_Fixes,
+         User_Data,
          Max_Parallel         => 15,
          First_Parser_Label   => 0,
          Terminate_Same_State => True);

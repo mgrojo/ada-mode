@@ -16,7 +16,7 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with WisiToken.Wisi_Runtime.Gpr;
+with WisiToken.Syntax_Trees;
 with WisiToken.LR.Parser;
 package Gpr_Process is
 
@@ -190,12 +190,11 @@ package Gpr_Process is
    function "-" (Item : in WisiToken.Token_ID) return Token_Enum_ID
      is (Token_Enum_ID'Val (Item - WisiToken.Token_ID'First));
 
-   Parse_Data : WisiToken.Wisi_Runtime.Gpr.Parse_Data_Type;
-
    procedure Create_Parser
      (Parser         :    out WisiToken.LR.Parser.Parser;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Trace          : not null access WisiToken.Trace'Class;
-      Language_Fixes : in     WisiToken.LR.Language_Fixes_Access);
+      Language_Fixes : in     WisiToken.LR.Language_Fixes_Access;
+      User_Data      : in     WisiToken.Syntax_Trees.User_Data_Access);
 
 end Gpr_Process;
