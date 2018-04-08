@@ -152,6 +152,9 @@ package WisiToken is
      return Token_ID_Set;
    --  terminals and nonterminals
 
+   procedure To_Set (Item : in Token_ID_Arrays.Vector; Set : out Token_ID_Set);
+   --  For each element of Item, set Set (element) True.
+
    function Any (Item : in Token_ID_Set) return Boolean;
 
    function Count (Item : in Token_ID_Set) return Integer;
@@ -367,6 +370,9 @@ package WisiToken is
 
    function Int_Image (Item : in Integer) return String;
    --  No leading space
+
+   function Image (Item : in Integer; Width : in Integer) return String;
+   --  Padded with leading spaces to Width
 
    function Error_Message
      (File_Name : in String;

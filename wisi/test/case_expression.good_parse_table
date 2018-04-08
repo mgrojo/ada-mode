@@ -29,151 +29,164 @@ factor => (NUMBER_LITERAL)
 factor_list => (NUMBER_LITERAL)
 range_nt => (NUMBER_LITERAL, DOT_DOT, NUMBER_LITERAL)
 
-State 0:
-  wisitoken_accept <= ^ case_expression Wisi_EOI, 
+Productions:
+1: wisitoken_accept <= (case_expression, Wisi_EOI)
+2: case_expression <= (WHEN, discrete_choice, EQUAL_GREATER, factor)
+3: choice_expression <= (choice_relation)
+4: choice_relation <= (factor_list)
+5: discrete_choice <= (choice_expression)
+6: discrete_choice <= (range_nt)
+7: factor <= (IDENTIFIER)
+8: factor <= (NUMBER_LITERAL)
+9: factor_list <= (factor)
+10: range_nt <= (IDENTIFIER, TICK, RANGE)
+11: range_nt <= (factor_list, DOT_DOT, factor_list)
 
-   WHEN              => shift and goto state 1
+State 0:
+     1:wisitoken_accept <= ^ case_expression Wisi_EOI, 
+
+   WHEN              => shift and goto state 1 (2)
    default           => ERROR
 
-   case_expression   goto state 2
+     1: case_expression   goto state 2
 
 State 1:
-  case_expression <= WHEN ^ discrete_choice EQUAL_GREATER factor, Wisi_EOI
+     2:case_expression <= WHEN ^ discrete_choice EQUAL_GREATER factor, Wisi_EOI
 
-   NUMBER_LITERAL    => shift and goto state 3
-   IDENTIFIER        => shift and goto state 4
+   NUMBER_LITERAL    => shift and goto state 3 (8)
+   IDENTIFIER        => shift and goto state 4 (7, 10)
    default           => ERROR
 
-   choice_expression goto state 5
-   choice_relation   goto state 6
-   discrete_choice   goto state 7
-   factor            goto state 8
-   factor_list       goto state 9
-   range_nt          goto state 10
+     5: choice_expression goto state 5
+     3: choice_relation   goto state 6
+     2: discrete_choice   goto state 7
+     9: factor            goto state 8
+     4: factor_list       goto state 9
+     6: range_nt          goto state 10
 
 State 2:
-  wisitoken_accept <= case_expression ^ Wisi_EOI, 
+     1:wisitoken_accept <= case_expression ^ Wisi_EOI, 
 
-   Wisi_EOI          => accept it
+   Wisi_EOI          => accept it (1)
    default           => ERROR
 
 
 State 3:
-  factor <= NUMBER_LITERAL ^, DOT_DOT/EQUAL_GREATER/Wisi_EOI
+     8:factor <= NUMBER_LITERAL ^, DOT_DOT/EQUAL_GREATER/Wisi_EOI
 
-   DOT_DOT           => reduce 1 tokens to factor
-   EQUAL_GREATER     => reduce 1 tokens to factor
-   Wisi_EOI          => reduce 1 tokens to factor
+   DOT_DOT           => reduce 1 tokens to factor (8)
+   EQUAL_GREATER     => reduce 1 tokens to factor (8)
+   Wisi_EOI          => reduce 1 tokens to factor (8)
    default           => ERROR
 
 
 State 4:
-  factor <= IDENTIFIER ^, DOT_DOT/EQUAL_GREATER
-  range_nt <= IDENTIFIER ^ TICK RANGE, EQUAL_GREATER
+     7:factor <= IDENTIFIER ^, DOT_DOT/EQUAL_GREATER
+    10:range_nt <= IDENTIFIER ^ TICK RANGE, EQUAL_GREATER
 
-   DOT_DOT           => reduce 1 tokens to factor
-   EQUAL_GREATER     => reduce 1 tokens to factor
-   TICK              => shift and goto state 13
+   DOT_DOT           => reduce 1 tokens to factor (7)
+   EQUAL_GREATER     => reduce 1 tokens to factor (7)
+   TICK              => shift and goto state 13 (10)
    default           => ERROR
 
 
 State 5:
-  discrete_choice <= choice_expression ^, EQUAL_GREATER
+     5:discrete_choice <= choice_expression ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to discrete_choice
+   EQUAL_GREATER     => reduce 1 tokens to discrete_choice (5)
    default           => ERROR
 
 
 State 6:
-  choice_expression <= choice_relation ^, EQUAL_GREATER
+     3:choice_expression <= choice_relation ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to choice_expression
+   EQUAL_GREATER     => reduce 1 tokens to choice_expression (3)
    default           => ERROR
 
 
 State 7:
-  case_expression <= WHEN discrete_choice ^ EQUAL_GREATER factor, Wisi_EOI
+     2:case_expression <= WHEN discrete_choice ^ EQUAL_GREATER factor, Wisi_EOI
 
-   EQUAL_GREATER     => shift and goto state 12
+   EQUAL_GREATER     => shift and goto state 12 (2)
    default           => ERROR
 
 
 State 8:
-  factor_list <= factor ^, DOT_DOT/EQUAL_GREATER
+     9:factor_list <= factor ^, DOT_DOT/EQUAL_GREATER
 
-   DOT_DOT           => reduce 1 tokens to factor_list
-   EQUAL_GREATER     => reduce 1 tokens to factor_list
+   DOT_DOT           => reduce 1 tokens to factor_list (9)
+   EQUAL_GREATER     => reduce 1 tokens to factor_list (9)
    default           => ERROR
 
 
 State 9:
-  choice_relation <= factor_list ^, EQUAL_GREATER
-  range_nt <= factor_list ^ DOT_DOT factor_list, EQUAL_GREATER
+     4:choice_relation <= factor_list ^, EQUAL_GREATER
+    11:range_nt <= factor_list ^ DOT_DOT factor_list, EQUAL_GREATER
 
-   DOT_DOT           => shift and goto state 11
-   EQUAL_GREATER     => reduce 1 tokens to choice_relation
+   DOT_DOT           => shift and goto state 11 (11)
+   EQUAL_GREATER     => reduce 1 tokens to choice_relation (4)
    default           => ERROR
 
 
 State 10:
-  discrete_choice <= range_nt ^, EQUAL_GREATER
+     6:discrete_choice <= range_nt ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to discrete_choice
+   EQUAL_GREATER     => reduce 1 tokens to discrete_choice (6)
    default           => ERROR
 
 
 State 11:
-  range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
+    11:range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
 
-   NUMBER_LITERAL    => shift and goto state 3
-   IDENTIFIER        => shift and goto state 15
+   NUMBER_LITERAL    => shift and goto state 3 (8)
+   IDENTIFIER        => shift and goto state 15 (7)
    default           => ERROR
 
-   factor            goto state 8
-   factor_list       goto state 17
+     9: factor            goto state 8
+    11: factor_list       goto state 17
 
 State 12:
-  case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor, Wisi_EOI
+     2:case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor, Wisi_EOI
 
-   NUMBER_LITERAL    => shift and goto state 3
-   IDENTIFIER        => shift and goto state 15
+   NUMBER_LITERAL    => shift and goto state 3 (8)
+   IDENTIFIER        => shift and goto state 15 (7)
    default           => ERROR
 
-   factor            goto state 16
+     2: factor            goto state 16
 
 State 13:
-  range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
+    10:range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
 
-   RANGE             => shift and goto state 14
+   RANGE             => shift and goto state 14 (10)
    default           => ERROR
 
 
 State 14:
-  range_nt <= IDENTIFIER TICK RANGE ^, EQUAL_GREATER
+    10:range_nt <= IDENTIFIER TICK RANGE ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 3 tokens to range_nt
+   EQUAL_GREATER     => reduce 3 tokens to range_nt (10)
    default           => ERROR
 
 
 State 15:
-  factor <= IDENTIFIER ^, EQUAL_GREATER/Wisi_EOI
+     7:factor <= IDENTIFIER ^, EQUAL_GREATER/Wisi_EOI
 
-   EQUAL_GREATER     => reduce 1 tokens to factor
-   Wisi_EOI          => reduce 1 tokens to factor
+   EQUAL_GREATER     => reduce 1 tokens to factor (7)
+   Wisi_EOI          => reduce 1 tokens to factor (7)
    default           => ERROR
 
 
 State 16:
-  case_expression <= WHEN discrete_choice EQUAL_GREATER factor ^, Wisi_EOI
+     2:case_expression <= WHEN discrete_choice EQUAL_GREATER factor ^, Wisi_EOI
 
-   Wisi_EOI          => reduce 4 tokens to case_expression
+   Wisi_EOI          => reduce 4 tokens to case_expression (2)
    default           => ERROR
 
 
 State 17:
-  range_nt <= factor_list DOT_DOT factor_list ^, EQUAL_GREATER
+    11:range_nt <= factor_list DOT_DOT factor_list ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 3 tokens to range_nt
+   EQUAL_GREATER     => reduce 3 tokens to range_nt (11)
    default           => ERROR
 
 
@@ -189,176 +202,176 @@ factor_list => (NUMBER_LITERAL)
 range_nt => (NUMBER_LITERAL, DOT_DOT, NUMBER_LITERAL)
 
 State 0:
-  wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI
+     1:wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI
 
-   WHEN              => shift and goto state 1
+   WHEN              => shift and goto state 1 (2)
    default           => ERROR
 
-   case_expression   goto state 2
+     1: case_expression   goto state 2
 
 State 1:
-  case_expression <= WHEN ^ discrete_choice EQUAL_GREATER factor, Wisi_EOI
+     2:case_expression <= WHEN ^ discrete_choice EQUAL_GREATER factor, Wisi_EOI
 
-   NUMBER_LITERAL    => shift and goto state 3
-   IDENTIFIER        => shift and goto state 4
+   NUMBER_LITERAL    => shift and goto state 3 (8)
+   IDENTIFIER        => shift and goto state 4 (7, 10)
    default           => ERROR
 
-   choice_expression goto state 5
-   choice_relation   goto state 6
-   discrete_choice   goto state 7
-   factor            goto state 8
-   factor_list       goto state 9
-   range_nt          goto state 10
+     5: choice_expression goto state 5
+     3: choice_relation   goto state 6
+     2: discrete_choice   goto state 7
+     9: factor            goto state 8
+     4: factor_list       goto state 9
+     6: range_nt          goto state 10
 
 State 2:
-  wisitoken_accept <= case_expression ^ Wisi_EOI, Wisi_EOI
+     1:wisitoken_accept <= case_expression ^ Wisi_EOI, Wisi_EOI
 
-   Wisi_EOI          => accept it
+   Wisi_EOI          => accept it (1)
    default           => ERROR
 
 
 State 3:
-  factor <= NUMBER_LITERAL ^, DOT_DOT/EQUAL_GREATER
+     8:factor <= NUMBER_LITERAL ^, DOT_DOT/EQUAL_GREATER
 
-   DOT_DOT           => reduce 1 tokens to factor
-   EQUAL_GREATER     => reduce 1 tokens to factor
+   DOT_DOT           => reduce 1 tokens to factor (8)
+   EQUAL_GREATER     => reduce 1 tokens to factor (8)
    default           => ERROR
 
 
 State 4:
-  factor <= IDENTIFIER ^, DOT_DOT/EQUAL_GREATER
-  range_nt <= IDENTIFIER ^ TICK RANGE, EQUAL_GREATER
+     7:factor <= IDENTIFIER ^, DOT_DOT/EQUAL_GREATER
+    10:range_nt <= IDENTIFIER ^ TICK RANGE, EQUAL_GREATER
 
-   DOT_DOT           => reduce 1 tokens to factor
-   EQUAL_GREATER     => reduce 1 tokens to factor
-   TICK              => shift and goto state 13
+   DOT_DOT           => reduce 1 tokens to factor (7)
+   EQUAL_GREATER     => reduce 1 tokens to factor (7)
+   TICK              => shift and goto state 13 (10)
    default           => ERROR
 
 
 State 5:
-  discrete_choice <= choice_expression ^, EQUAL_GREATER
+     5:discrete_choice <= choice_expression ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to discrete_choice
+   EQUAL_GREATER     => reduce 1 tokens to discrete_choice (5)
    default           => ERROR
 
 
 State 6:
-  choice_expression <= choice_relation ^, EQUAL_GREATER
+     3:choice_expression <= choice_relation ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to choice_expression
+   EQUAL_GREATER     => reduce 1 tokens to choice_expression (3)
    default           => ERROR
 
 
 State 7:
-  case_expression <= WHEN discrete_choice ^ EQUAL_GREATER factor, Wisi_EOI
+     2:case_expression <= WHEN discrete_choice ^ EQUAL_GREATER factor, Wisi_EOI
 
-   EQUAL_GREATER     => shift and goto state 12
+   EQUAL_GREATER     => shift and goto state 12 (2)
    default           => ERROR
 
 
 State 8:
-  factor_list <= factor ^, DOT_DOT/EQUAL_GREATER
+     9:factor_list <= factor ^, DOT_DOT/EQUAL_GREATER
 
-   DOT_DOT           => reduce 1 tokens to factor_list
-   EQUAL_GREATER     => reduce 1 tokens to factor_list
+   DOT_DOT           => reduce 1 tokens to factor_list (9)
+   EQUAL_GREATER     => reduce 1 tokens to factor_list (9)
    default           => ERROR
 
 
 State 9:
-  choice_relation <= factor_list ^, EQUAL_GREATER
-  range_nt <= factor_list ^ DOT_DOT factor_list, EQUAL_GREATER
+     4:choice_relation <= factor_list ^, EQUAL_GREATER
+    11:range_nt <= factor_list ^ DOT_DOT factor_list, EQUAL_GREATER
 
-   DOT_DOT           => shift and goto state 11
-   EQUAL_GREATER     => reduce 1 tokens to choice_relation
+   DOT_DOT           => shift and goto state 11 (11)
+   EQUAL_GREATER     => reduce 1 tokens to choice_relation (4)
    default           => ERROR
 
 
 State 10:
-  discrete_choice <= range_nt ^, EQUAL_GREATER
+     6:discrete_choice <= range_nt ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to discrete_choice
+   EQUAL_GREATER     => reduce 1 tokens to discrete_choice (6)
    default           => ERROR
 
 
 State 11:
-  range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
+    11:range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
 
-   NUMBER_LITERAL    => shift and goto state 18
-   IDENTIFIER        => shift and goto state 19
+   NUMBER_LITERAL    => shift and goto state 18 (8)
+   IDENTIFIER        => shift and goto state 19 (7)
    default           => ERROR
 
-   factor            goto state 20
-   factor_list       goto state 21
+     9: factor            goto state 20
+    11: factor_list       goto state 21
 
 State 12:
-  case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor, Wisi_EOI
+     2:case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor, Wisi_EOI
 
-   NUMBER_LITERAL    => shift and goto state 15
-   IDENTIFIER        => shift and goto state 16
+   NUMBER_LITERAL    => shift and goto state 15 (8)
+   IDENTIFIER        => shift and goto state 16 (7)
    default           => ERROR
 
-   factor            goto state 17
+     2: factor            goto state 17
 
 State 13:
-  range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
+    10:range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
 
-   RANGE             => shift and goto state 14
+   RANGE             => shift and goto state 14 (10)
    default           => ERROR
 
 
 State 14:
-  range_nt <= IDENTIFIER TICK RANGE ^, EQUAL_GREATER
+    10:range_nt <= IDENTIFIER TICK RANGE ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 3 tokens to range_nt
+   EQUAL_GREATER     => reduce 3 tokens to range_nt (10)
    default           => ERROR
 
 
 State 15:
-  factor <= NUMBER_LITERAL ^, Wisi_EOI
+     8:factor <= NUMBER_LITERAL ^, Wisi_EOI
 
-   Wisi_EOI          => reduce 1 tokens to factor
+   Wisi_EOI          => reduce 1 tokens to factor (8)
    default           => ERROR
 
 
 State 16:
-  factor <= IDENTIFIER ^, Wisi_EOI
+     7:factor <= IDENTIFIER ^, Wisi_EOI
 
-   Wisi_EOI          => reduce 1 tokens to factor
+   Wisi_EOI          => reduce 1 tokens to factor (7)
    default           => ERROR
 
 
 State 17:
-  case_expression <= WHEN discrete_choice EQUAL_GREATER factor ^, Wisi_EOI
+     2:case_expression <= WHEN discrete_choice EQUAL_GREATER factor ^, Wisi_EOI
 
-   Wisi_EOI          => reduce 4 tokens to case_expression
+   Wisi_EOI          => reduce 4 tokens to case_expression (2)
    default           => ERROR
 
 
 State 18:
-  factor <= NUMBER_LITERAL ^, EQUAL_GREATER
+     8:factor <= NUMBER_LITERAL ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to factor
+   EQUAL_GREATER     => reduce 1 tokens to factor (8)
    default           => ERROR
 
 
 State 19:
-  factor <= IDENTIFIER ^, EQUAL_GREATER
+     7:factor <= IDENTIFIER ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to factor
+   EQUAL_GREATER     => reduce 1 tokens to factor (7)
    default           => ERROR
 
 
 State 20:
-  factor_list <= factor ^, EQUAL_GREATER
+     9:factor_list <= factor ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 1 tokens to factor_list
+   EQUAL_GREATER     => reduce 1 tokens to factor_list (9)
    default           => ERROR
 
 
 State 21:
-  range_nt <= factor_list DOT_DOT factor_list ^, EQUAL_GREATER
+    11:range_nt <= factor_list DOT_DOT factor_list ^, EQUAL_GREATER
 
-   EQUAL_GREATER     => reduce 3 tokens to range_nt
+   EQUAL_GREATER     => reduce 3 tokens to range_nt (11)
    default           => ERROR
 
 

@@ -80,6 +80,13 @@ package body WisiToken is
       end return;
    end To_Token_ID_Set;
 
+   procedure To_Set (Item : in Token_ID_Arrays.Vector; Set : out Token_ID_Set)
+   is begin
+      for ID of Item loop
+         Set (ID) := True;
+      end loop;
+   end To_Set;
+
    function Any (Item : in Token_ID_Set) return Boolean
    is begin
       for I in Item'Range loop
@@ -246,6 +253,15 @@ package body WisiToken is
    begin
       return Trim (Integer'Image (Item), Both);
    end Int_Image;
+
+   function Image (Item : in Integer; Width : in Integer) return String
+   is
+      use Ada.Strings.Fixed;
+   begin
+      return Result : String (1 .. Width) do
+         Move (Integer'Image (Item), Result, Justify => Ada.Strings.Right);
+      end return;
+   end Image;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_ID_Set)
    is begin

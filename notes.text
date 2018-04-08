@@ -19,16 +19,8 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-lots of missing 'end ...':
-    function Decode_Plus (Item : in String) return String
-    is begin
-      return Result : String := Item do
-      for I in Result'Range loop
-      if Result (I) = '+' then
+review FIXME:
 
-    end Decode_Plus;
-
-use gen_parser_run for ada_lite
 
 change configure_access to persistent_ref record with container, node components;
     allow ref.delete to abort config
@@ -36,18 +28,12 @@ change configure_access to persistent_ref record with container, node components
 sal unbounded vectors:
     shrink elements to exact size on copy?
 
-review FIXME:
-
 use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
 
 update NEWS.text
 
 Fixed size stack speed mckenzie?
     init current to 50 was slightly slower
-
-need case-insensitive compare in match-names
-    UTF-8 version
-    ASCII bytes do not appear in UTF-8 unless they are valid, so to_lower (Character) is safe
 
 if full parse fails, go back to successful error recover and find more expensive solutions
     save full config_heap after successful error recover

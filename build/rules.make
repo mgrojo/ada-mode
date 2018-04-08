@@ -110,12 +110,18 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
 # We want the files generated for wisi_grammar in ../wisi.
-# we don't include wisi-generate.exe in the dependencies here, to allow bootstrapping.
+# We don't include wisi-generate.exe in the dependencies here, to allow bootstrapping.
 ../wisi/wisi_grammar.re2c : wisi_grammar.wy
 	cd ../wisi; $(CURDIR)/wisi-generate.exe -v 1 wisi_grammar.wy > wisi_grammar.parse_table
 
 ../wisi/wisi_grammar_re2c.c : ../wisi/wisi_grammar.re2c
 	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+
+wisi_grammar-clean :
+	rm -rf wisi_grammar*
+	cd ../wisi/; rm -rf wisi_grammar.ad? wisi_grammar.parse_table wisi_grammar.re2c wisi_grammar_re2c.c wisi_grammar_re2c_c.ads
+
+update-wisi_grammar : wisi_grammar-clean ../wisi/wisi_grammar_re2c.c
 
 # the test executables are only in the test project file, which requires AUnit
 # Override the project file for wisi-generate.exe, for use with Emacs Ada mode without AUnit

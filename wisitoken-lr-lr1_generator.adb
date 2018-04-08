@@ -30,7 +30,7 @@ package body WisiToken.LR.LR1_Generator is
       Symbol               : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in Production.List.Instance;
+      Grammar              : in WisiToken.Production.List.Instance;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set
@@ -75,7 +75,7 @@ package body WisiToken.LR.LR1_Generator is
    function LR1_Item_Sets
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in Production.List.Instance;
+      Grammar              : in WisiToken.Production.List.Instance;
       First_State_Index    : in State_Index;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
@@ -90,8 +90,8 @@ package body WisiToken.LR.LR1_Generator is
         (Head             => new Item_Set'
            (Closure
               ((Set       => New_Item_Node
-                  (Production.List.Current (Production.List.First (Grammar)),
-                   Production.List.RHS (Production.List.First (Grammar)).Tokens.First,
+                  (WisiToken.Production.List.Current (Grammar.First),
+                   WisiToken.Production.List.RHS (Grammar.First).Tokens.First,
                    First_State_Index,
                    To_Lookahead (Descriptor.EOF_ID, Descriptor)),
                 Goto_List => null,
@@ -238,10 +238,10 @@ package body WisiToken.LR.LR1_Generator is
 
    function Check_Unused_Tokens
      (Descriptor : in WisiToken.Descriptor;
-      Grammar    : in Production.List.Instance)
+      Grammar    : in WisiToken.Production.List.Instance)
      return Boolean
    is
-      use Production.List;
+      use WisiToken.Production.List;
 
       Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 
@@ -254,10 +254,10 @@ package body WisiToken.LR.LR1_Generator is
       loop
          exit when Is_Done (I);
          declare
-            use Production;
+            use WisiToken.Production;
             use Token_ID_Lists;
-            Prod : constant Production.Instance := Current (I);
-            J    : Cursor                       := Prod.RHS.Tokens.First;
+            Prod : constant WisiToken.Production.Instance := Current (I);
+            J    : Cursor                                 := Prod.RHS.Tokens.First;
          begin
             loop
                exit when not Has_Element (J);
@@ -283,7 +283,7 @@ package body WisiToken.LR.LR1_Generator is
    end Check_Unused_Tokens;
 
    function Generate
-     (Grammar                  : in Production.List.Instance;
+     (Grammar                  : in WisiToken.Production.List.Instance;
       Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;

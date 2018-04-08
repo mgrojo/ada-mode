@@ -195,11 +195,12 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser         :    out WisiToken.LR.Parser.Parser;");
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Trace          : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   Language_Fixes : in     WisiToken.LR.Language_Fixes_Access;");
-         Indent_Line ("   User_Data      : in     WisiToken.Syntax_Trees.User_Data_Access);");
+         Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
+         Indent_Line ("   Algorithm                    : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
+         Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
+         Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+         Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);");
          New_Line;
 
       when Ada_Emacs =>
@@ -209,11 +210,12 @@ package body Wisi.Gen_Output_Ada_Common is
 
          when Process =>
             Indent_Line ("procedure Create_Parser");
-            Indent_Line ("  (Parser         :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Trace          : not null access WisiToken.Trace'Class;");
-            Indent_Line ("   Language_Fixes : in     WisiToken.LR.Language_Fixes_Access;");
-            Indent_Line ("   User_Data      : in     WisiToken.Syntax_Trees.User_Data_Access);");
+            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
+            Indent_Line ("   Algorithm                    : in     WisiToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
+            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
+            Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+            Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);");
             New_Line;
 
          when Module =>
@@ -639,11 +641,12 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("procedure Create_Parser");
       case Interface_Kind is
       when None | Process =>
-         Indent_Line ("  (Parser         :    out WisiToken.LR.Parser.Parser;");
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Trace          : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   Language_Fixes : in     WisiToken.LR.Language_Fixes_Access;");
-         Indent_Line ("   User_Data      : in     WisiToken.Syntax_Trees.User_Data_Access)");
+         Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
+         Indent_Line ("   Algorithm                    : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
+         Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
+         Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+         Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)");
       when Module =>
          Indent_Line ("  (Parser              :    out WisiToken.LR.Parser.Parser;");
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
@@ -718,6 +721,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("   Lexer.New_Lexer (Trace),");
          Indent_Line ("   Table,");
          Indent_Line ("   Language_Fixes,");
+         Indent_Line ("   Language_Constrain_Terminals,");
          Indent_Line ("   User_Data,");
          Indent_Line ("   Max_Parallel         => 15,");
          Indent_Line ("   First_Parser_Label   => " & WisiToken.Int_Image (First_Parser_Label) & ",");
@@ -801,7 +805,9 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Table.Productions.Set_Length (" & WisiToken.Int_Image (Integer (Data.Grammar.Length)) & ");");
 
       for P of Data.Grammar loop
-         Indent_Start ("Set_Token_Sequence (Table.Productions (" & WisiToken.Int_Image (P.Index) & "), (");
+         Indent_Start
+           ("Set_Production (Table.Productions (" & WisiToken.Int_Image (P.Index) & "), " &
+              WisiToken.Int_Image (P.LHS) & ", (");
          declare
             use WisiToken.Token_ID_Lists;
             Token_I : Cursor := P.RHS.Tokens.First;
@@ -859,6 +865,10 @@ package body Wisi.Gen_Output_Ada_Common is
       Data.Table_Entry_Count := 0;
 
       for State_Index in Table.States'Range loop
+         Indent_Line
+           ("Table.States (" & WisiToken.Image (State_Index) & ").Productions := WisiToken.LR.To_Vector (" &
+              WisiToken.LR.Image (Table.States (State_Index).Productions, Strict => True) & ");");
+
          Actions :
          declare
             use Standard.Ada.Containers;
@@ -895,6 +905,7 @@ package body Wisi.Gen_Output_Ada_Common is
                   case Action_Node.Item.Verb is
                   when Shift =>
                      Line := +"Add_Action (Table.States (" & WisiToken.Image (State_Index) & "), " &
+                       WisiToken.LR.Image (Action_Node.Item.Productions, Strict => True) & ", " &
                        WisiToken.Int_Image (Node.Symbol);
                      Append (", ");
                      Append (WisiToken.Image (Action_Node.Item.State));
@@ -908,7 +919,7 @@ package body Wisi.Gen_Output_Ada_Common is
                         Append (", Accept_It");
                      end if;
                      Append (",");
-                     Append (Integer'Image (Action_Node.Item.Production) & ",");
+                     Append (Integer'Image (Action_Node.Item.Productions (1)) & ",");
                      Append (WisiToken.Token_ID'Image (Action_Node.Item.LHS) & ",");
                      Append (Count_Type'Image (Action_Node.Item.Token_Count) & ",");
                      Append (Integer'Image (Action_Node.Item.Name_Index) & ", ");
@@ -933,7 +944,7 @@ package body Wisi.Gen_Output_Ada_Common is
                      case Action_Node.Item.Verb is
                      when Reduce | Accept_It =>
                         Append (",");
-                        Append (Integer'Image (Action_Node.Item.Production) & ",");
+                        Append (Integer'Image (Action_Node.Item.Productions (1)) & ",");
                         Append (WisiToken.Token_ID'Image (Action_Node.Item.LHS) & ",");
                         Append (Count_Type'Image (Action_Node.Item.Token_Count) & ",");
                         Append (Integer'Image (Action_Node.Item.Name_Index) & ", ");
@@ -969,7 +980,8 @@ package body Wisi.Gen_Output_Ada_Common is
             loop
                exit when Node = null;
                Set_Col (Indent);
-               Put ("Add_Goto (Table.States (" & WisiToken.Image (State_Index) & "), ");
+               Put ("Add_Goto (Table.States (" & WisiToken.Image (State_Index) & "),");
+               Put (Integer'Image (WisiToken.LR.Prod_ID (Node)) & ", ");
                Put_Line (WisiToken.Int_Image (Symbol (Node)) & ", " & WisiToken.Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;

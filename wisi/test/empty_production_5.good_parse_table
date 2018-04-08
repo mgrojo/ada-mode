@@ -20,95 +20,103 @@ accept_statement => (ACCEPT, IDENTIFIER, SEMICOLON)
 name => (IDENTIFIER)
 parameter_profile => ()
 
-State 1:
-  wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+Productions:
+1: wisitoken_accept <= (compilation_unit, Wisi_EOI)
+2: compilation_unit <= (accept_statement, accept_statement)
+3: accept_statement <= (ACCEPT, name, parameter_profile, SEMICOLON)
+4: name <= (IDENTIFIER)
+5: parameter_profile <= ()
+6: parameter_profile <= (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
 
-   ACCEPT            => shift and goto state 2
+State 1:
+     1:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+
+   ACCEPT            => shift and goto state 2 (3)
    default           => ERROR
 
-   compilation_unit  goto state 3
-   accept_statement  goto state 4
+     1: compilation_unit  goto state 3
+     2: accept_statement  goto state 4
 
 State 2:
-  accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
+     3:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
-   IDENTIFIER        => shift and goto state 6
+   IDENTIFIER        => shift and goto state 6 (4)
    default           => ERROR
 
-   name              goto state 7
+     3: name              goto state 7
 
 State 3:
-  wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
+     1:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
 
-   Wisi_EOI          => accept it
+   Wisi_EOI          => accept it (1)
    default           => ERROR
 
 
 State 4:
-  compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
+     2:compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
 
-   ACCEPT            => shift and goto state 2
+   ACCEPT            => shift and goto state 2 (3)
    default           => ERROR
 
-   accept_statement  goto state 5
+     2: accept_statement  goto state 5
 
 State 5:
-  compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
+     2:compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
 
-   Wisi_EOI          => reduce 2 tokens to compilation_unit
+   Wisi_EOI          => reduce 2 tokens to compilation_unit (2)
    default           => ERROR
 
 
 State 6:
-  name <= IDENTIFIER ^, LEFT_PAREN/SEMICOLON
+     4:name <= IDENTIFIER ^, LEFT_PAREN/SEMICOLON
 
-   LEFT_PAREN        => reduce 1 tokens to name
-   SEMICOLON         => reduce 1 tokens to name
+   LEFT_PAREN        => reduce 1 tokens to name (4)
+   SEMICOLON         => reduce 1 tokens to name (4)
    default           => ERROR
 
 
 State 7:
-  accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
+     3:accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
-   LEFT_PAREN        => shift and goto state 8
-   SEMICOLON         => reduce 0 tokens to parameter_profile
+   LEFT_PAREN        => shift and goto state 8 (6)
+   SEMICOLON         => reduce 0 tokens to parameter_profile (5)
    default           => ERROR
 
-   parameter_profile goto state 9
+     3: parameter_profile goto state 9
 
 State 8:
-  parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
+     6:parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
 
-   IDENTIFIER        => shift and goto state 11
+   IDENTIFIER        => shift and goto state 11 (6)
    default           => ERROR
 
 
 State 9:
-  accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/Wisi_EOI
+     3:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/Wisi_EOI
 
-   SEMICOLON         => shift and goto state 10
+   SEMICOLON         => shift and goto state 10 (3)
    default           => ERROR
 
 
 State 10:
-  accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT/Wisi_EOI
+     3:accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT/Wisi_EOI
 
-   ACCEPT            => reduce 4 tokens to accept_statement
-   Wisi_EOI          => reduce 4 tokens to accept_statement
+   ACCEPT            => reduce 4 tokens to accept_statement (3)
+   Wisi_EOI          => reduce 4 tokens to accept_statement (3)
    default           => ERROR
 
 
 State 11:
-  parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
+     6:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
 
-   RIGHT_PAREN       => shift and goto state 12
+   RIGHT_PAREN       => shift and goto state 12 (6)
    default           => ERROR
 
 
 State 12:
-  parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^, SEMICOLON
+     6:parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^, SEMICOLON
 
-   SEMICOLON         => reduce 3 tokens to parameter_profile
+   SEMICOLON         => reduce 3 tokens to parameter_profile (6)
    default           => ERROR
 
 
@@ -121,124 +129,124 @@ name => (IDENTIFIER)
 parameter_profile => ()
 
 State 1:
-  wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
+     1:wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
-   ACCEPT            => shift and goto state 2
+   ACCEPT            => shift and goto state 2 (3)
    default           => ERROR
 
-   compilation_unit  goto state 3
-   accept_statement  goto state 4
+     1: compilation_unit  goto state 3
+     2: accept_statement  goto state 4
 
 State 2:
-  accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT
+     3:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT
 
-   IDENTIFIER        => shift and goto state 7
+   IDENTIFIER        => shift and goto state 7 (4)
    default           => ERROR
 
-   name              goto state 8
+     3: name              goto state 8
 
 State 3:
-  wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
+     1:wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
-   Wisi_EOI          => accept it
+   Wisi_EOI          => accept it (1)
    default           => ERROR
 
 
 State 4:
-  compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
+     2:compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
 
-   ACCEPT            => shift and goto state 5
+   ACCEPT            => shift and goto state 5 (3)
    default           => ERROR
 
-   accept_statement  goto state 6
+     2: accept_statement  goto state 6
 
 State 5:
-  accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, Wisi_EOI
+     3:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, Wisi_EOI
 
-   IDENTIFIER        => shift and goto state 7
+   IDENTIFIER        => shift and goto state 7 (4)
    default           => ERROR
 
-   name              goto state 11
+     3: name              goto state 11
 
 State 6:
-  compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
+     2:compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
 
-   Wisi_EOI          => reduce 2 tokens to compilation_unit
+   Wisi_EOI          => reduce 2 tokens to compilation_unit (2)
    default           => ERROR
 
 
 State 7:
-  name <= IDENTIFIER ^, LEFT_PAREN/SEMICOLON
+     4:name <= IDENTIFIER ^, LEFT_PAREN/SEMICOLON
 
-   LEFT_PAREN        => reduce 1 tokens to name
-   SEMICOLON         => reduce 1 tokens to name
+   LEFT_PAREN        => reduce 1 tokens to name (4)
+   SEMICOLON         => reduce 1 tokens to name (4)
    default           => ERROR
 
 
 State 8:
-  accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT
+     3:accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT
 
-   LEFT_PAREN        => shift and goto state 9
-   SEMICOLON         => reduce 0 tokens to parameter_profile
+   LEFT_PAREN        => shift and goto state 9 (6)
+   SEMICOLON         => reduce 0 tokens to parameter_profile (5)
    default           => ERROR
 
-   parameter_profile goto state 10
+     3: parameter_profile goto state 10
 
 State 9:
-  parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
+     6:parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
 
-   IDENTIFIER        => shift and goto state 14
+   IDENTIFIER        => shift and goto state 14 (6)
    default           => ERROR
 
 
 State 10:
-  accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT
+     3:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT
 
-   SEMICOLON         => shift and goto state 13
+   SEMICOLON         => shift and goto state 13 (3)
    default           => ERROR
 
 
 State 11:
-  accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, Wisi_EOI
+     3:accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, Wisi_EOI
 
-   LEFT_PAREN        => shift and goto state 9
-   SEMICOLON         => reduce 0 tokens to parameter_profile
+   LEFT_PAREN        => shift and goto state 9 (6)
+   SEMICOLON         => reduce 0 tokens to parameter_profile (5)
    default           => ERROR
 
-   parameter_profile goto state 12
+     3: parameter_profile goto state 12
 
 State 12:
-  accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, Wisi_EOI
+     3:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, Wisi_EOI
 
-   SEMICOLON         => shift and goto state 16
+   SEMICOLON         => shift and goto state 16 (3)
    default           => ERROR
 
 
 State 13:
-  accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT
+     3:accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT
 
-   ACCEPT            => reduce 4 tokens to accept_statement
+   ACCEPT            => reduce 4 tokens to accept_statement (3)
    default           => ERROR
 
 
 State 14:
-  parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
+     6:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
 
-   RIGHT_PAREN       => shift and goto state 15
+   RIGHT_PAREN       => shift and goto state 15 (6)
    default           => ERROR
 
 
 State 15:
-  parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^, SEMICOLON
+     6:parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^, SEMICOLON
 
-   SEMICOLON         => reduce 3 tokens to parameter_profile
+   SEMICOLON         => reduce 3 tokens to parameter_profile (6)
    default           => ERROR
 
 
 State 16:
-  accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, Wisi_EOI
+     3:accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, Wisi_EOI
 
-   Wisi_EOI          => reduce 4 tokens to accept_statement
+   Wisi_EOI          => reduce 4 tokens to accept_statement (3)
    default           => ERROR
 
 

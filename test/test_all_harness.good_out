@@ -54,12 +54,13 @@ OK test_mckenzie_recover.adb : Extra_Name_2
 OK test_mckenzie_recover.adb : Extra_Name_3
 OK test_mckenzie_recover.adb : Two_Missing_Ends
 OK test_mckenzie_recover.adb : Match_Selected_Component_1
+OK test_mckenzie_recover.adb : Actual_Parameter_Part_1
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   59
-Successful Tests:  59
+Total Tests Run:   60
+Successful Tests:  60
 Failed Assertions: 0
 Unexpected Errors: 0

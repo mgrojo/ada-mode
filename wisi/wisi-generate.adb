@@ -94,8 +94,9 @@ is
 
       Wisi_Grammar.Create_Parser
         (Grammar_Parser, WisiToken.LALR, Trace'Unchecked_Access,
-         Language_Fixes => null,
-         User_Data      => Grammar_Parse_Data'Unchecked_Access);
+         Language_Fixes               => null,
+         Language_Constrain_Terminals => null,
+         User_Data                    => Grammar_Parse_Data'Unchecked_Access);
 
       Grammar_Parser.Lexer.Reset_With_File (File_Name);
 

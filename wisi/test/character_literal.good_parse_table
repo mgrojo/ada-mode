@@ -27,170 +27,170 @@ statement => (FOO, SEMICOLON)
 tick => (TICK_2)
 
 State 1:
-  wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
+     1:wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
-   FOO               => shift and goto state 2
-   IDENTIFIER        => shift and goto state 3
-   STRING_LITERAL    => shift and goto state 4
+   FOO               => shift and goto state 2 (8)
+   IDENTIFIER        => shift and goto state 3 (5, 6)
+   STRING_LITERAL    => shift and goto state 4 (7)
    default           => ERROR
 
-   compilation_unit  goto state 5
-   statement_list    goto state 6
-   statement         goto state 7
+     1: compilation_unit  goto state 5
+     2: statement_list    goto state 6
+     3: statement         goto state 7
 
 State 2:
-  statement <= FOO ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     8:statement <= FOO ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   SEMICOLON         => shift and goto state 13
+   SEMICOLON         => shift and goto state 13 (8)
    default           => ERROR
 
 
 State 3:
-  statement <= IDENTIFIER ^ tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
-  statement <= IDENTIFIER ^ tick IDENTIFIER SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     5:statement <= IDENTIFIER ^ tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     6:statement <= IDENTIFIER ^ tick IDENTIFIER SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   TICK_1            => shift and goto state 10
-   TICK_2            => shift and goto state 11
+   TICK_1            => shift and goto state 10 (9)
+   TICK_2            => shift and goto state 11 (10)
    default           => ERROR
 
-   tick              goto state 12
+     5: tick              goto state 12
 
 State 4:
-  statement <= STRING_LITERAL ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     7:statement <= STRING_LITERAL ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   SEMICOLON         => shift and goto state 9
+   SEMICOLON         => shift and goto state 9 (7)
    default           => ERROR
 
 
 State 5:
-  wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
+     1:wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
-   Wisi_EOI          => accept it
+   Wisi_EOI          => accept it (1)
    default           => ERROR
 
 
 State 6:
-  compilation_unit <= statement_list ^, Wisi_EOI
-  statement_list <= statement_list ^ statement, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     2:compilation_unit <= statement_list ^, Wisi_EOI
+     4:statement_list <= statement_list ^ statement, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   FOO               => shift and goto state 2
-   IDENTIFIER        => shift and goto state 3
-   STRING_LITERAL    => shift and goto state 4
-   Wisi_EOI          => reduce 1 tokens to compilation_unit
+   FOO               => shift and goto state 2 (8)
+   IDENTIFIER        => shift and goto state 3 (5, 6)
+   STRING_LITERAL    => shift and goto state 4 (7)
+   Wisi_EOI          => reduce 1 tokens to compilation_unit (2)
    default           => ERROR
 
-   statement         goto state 8
+     4: statement         goto state 8
 
 State 7:
-  statement_list <= statement ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     3:statement_list <= statement ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   FOO               => reduce 1 tokens to statement_list
-   IDENTIFIER        => reduce 1 tokens to statement_list
-   STRING_LITERAL    => reduce 1 tokens to statement_list
-   Wisi_EOI          => reduce 1 tokens to statement_list
+   FOO               => reduce 1 tokens to statement_list (3)
+   IDENTIFIER        => reduce 1 tokens to statement_list (3)
+   STRING_LITERAL    => reduce 1 tokens to statement_list (3)
+   Wisi_EOI          => reduce 1 tokens to statement_list (3)
    default           => ERROR
 
 
 State 8:
-  statement_list <= statement_list statement ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     4:statement_list <= statement_list statement ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   FOO               => reduce 2 tokens to statement_list
-   IDENTIFIER        => reduce 2 tokens to statement_list
-   STRING_LITERAL    => reduce 2 tokens to statement_list
-   Wisi_EOI          => reduce 2 tokens to statement_list
+   FOO               => reduce 2 tokens to statement_list (4)
+   IDENTIFIER        => reduce 2 tokens to statement_list (4)
+   STRING_LITERAL    => reduce 2 tokens to statement_list (4)
+   Wisi_EOI          => reduce 2 tokens to statement_list (4)
    default           => ERROR
 
 
 State 9:
-  statement <= STRING_LITERAL SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     7:statement <= STRING_LITERAL SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   FOO               => reduce 2 tokens to statement
-   IDENTIFIER        => reduce 2 tokens to statement
-   STRING_LITERAL    => reduce 2 tokens to statement
-   Wisi_EOI          => reduce 2 tokens to statement
+   FOO               => reduce 2 tokens to statement (7)
+   IDENTIFIER        => reduce 2 tokens to statement (7)
+   STRING_LITERAL    => reduce 2 tokens to statement (7)
+   Wisi_EOI          => reduce 2 tokens to statement (7)
    default           => ERROR
 
 
 State 10:
-  tick <= TICK_1 ^, LEFT_PAREN/IDENTIFIER
+     9:tick <= TICK_1 ^, LEFT_PAREN/IDENTIFIER
 
-   LEFT_PAREN        => reduce 1 tokens to tick
-   IDENTIFIER        => reduce 1 tokens to tick
+   LEFT_PAREN        => reduce 1 tokens to tick (9)
+   IDENTIFIER        => reduce 1 tokens to tick (9)
    default           => ERROR
 
 
 State 11:
-  tick <= TICK_2 ^, LEFT_PAREN/IDENTIFIER
+    10:tick <= TICK_2 ^, LEFT_PAREN/IDENTIFIER
 
-   LEFT_PAREN        => reduce 1 tokens to tick
-   IDENTIFIER        => reduce 1 tokens to tick
+   LEFT_PAREN        => reduce 1 tokens to tick (10)
+   IDENTIFIER        => reduce 1 tokens to tick (10)
    default           => ERROR
 
 
 State 12:
-  statement <= IDENTIFIER tick ^ LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
-  statement <= IDENTIFIER tick ^ IDENTIFIER SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     5:statement <= IDENTIFIER tick ^ LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     6:statement <= IDENTIFIER tick ^ IDENTIFIER SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   LEFT_PAREN        => shift and goto state 14
-   IDENTIFIER        => shift and goto state 15
+   LEFT_PAREN        => shift and goto state 14 (5)
+   IDENTIFIER        => shift and goto state 15 (6)
    default           => ERROR
 
 
 State 13:
-  statement <= FOO SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     8:statement <= FOO SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   FOO               => reduce 2 tokens to statement
-   IDENTIFIER        => reduce 2 tokens to statement
-   STRING_LITERAL    => reduce 2 tokens to statement
-   Wisi_EOI          => reduce 2 tokens to statement
+   FOO               => reduce 2 tokens to statement (8)
+   IDENTIFIER        => reduce 2 tokens to statement (8)
+   STRING_LITERAL    => reduce 2 tokens to statement (8)
+   Wisi_EOI          => reduce 2 tokens to statement (8)
    default           => ERROR
 
 
 State 14:
-  statement <= IDENTIFIER tick LEFT_PAREN ^ CHARACTER_LITERAL RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     5:statement <= IDENTIFIER tick LEFT_PAREN ^ CHARACTER_LITERAL RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   CHARACTER_LITERAL => shift and goto state 17
+   CHARACTER_LITERAL => shift and goto state 17 (5)
    default           => ERROR
 
 
 State 15:
-  statement <= IDENTIFIER tick IDENTIFIER ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     6:statement <= IDENTIFIER tick IDENTIFIER ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   SEMICOLON         => shift and goto state 16
+   SEMICOLON         => shift and goto state 16 (6)
    default           => ERROR
 
 
 State 16:
-  statement <= IDENTIFIER tick IDENTIFIER SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     6:statement <= IDENTIFIER tick IDENTIFIER SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   FOO               => reduce 4 tokens to statement
-   IDENTIFIER        => reduce 4 tokens to statement
-   STRING_LITERAL    => reduce 4 tokens to statement
-   Wisi_EOI          => reduce 4 tokens to statement
+   FOO               => reduce 4 tokens to statement (6)
+   IDENTIFIER        => reduce 4 tokens to statement (6)
+   STRING_LITERAL    => reduce 4 tokens to statement (6)
+   Wisi_EOI          => reduce 4 tokens to statement (6)
    default           => ERROR
 
 
 State 17:
-  statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL ^ RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     5:statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL ^ RIGHT_PAREN SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   RIGHT_PAREN       => shift and goto state 18
+   RIGHT_PAREN       => shift and goto state 18 (5)
    default           => ERROR
 
 
 State 18:
-  statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     5:statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   SEMICOLON         => shift and goto state 19
+   SEMICOLON         => shift and goto state 19 (5)
    default           => ERROR
 
 
 State 19:
-  statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     5:statement <= IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   FOO               => reduce 6 tokens to statement
-   IDENTIFIER        => reduce 6 tokens to statement
-   STRING_LITERAL    => reduce 6 tokens to statement
-   Wisi_EOI          => reduce 6 tokens to statement
+   FOO               => reduce 6 tokens to statement (5)
+   IDENTIFIER        => reduce 6 tokens to statement (5)
+   STRING_LITERAL    => reduce 6 tokens to statement (5)
+   Wisi_EOI          => reduce 6 tokens to statement (5)
    default           => ERROR
 
 

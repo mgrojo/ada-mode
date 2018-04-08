@@ -20,6 +20,7 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Characters.Latin_1;
+with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.AUnit;
@@ -241,6 +242,33 @@ package body Dragon_4_43_LR1_Test is
          Last_Terminal     => +EOF_ID,
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
+
+      procedure Add_Action
+        (State       : in out Parse_State;
+         Symbol      : in     WisiToken.Token_ID;
+         State_Index : in     WisiToken.State_Index)
+      is begin
+         Add_Action (State, (1 .. 0 => 1), Symbol, State_Index);
+      end Add_Action;
+
+      procedure Add_Action
+        (State           : in out Parse_State;
+         Symbol          : in     WisiToken.Token_ID;
+         Verb            : in     Parse_Action_Verbs;
+         LHS_ID          : in     WisiToken.Token_ID;
+         RHS_Token_Count : in     Ada.Containers.Count_Type)
+      is begin
+         Add_Action (State, Symbol, Verb, 1, LHS_ID, RHS_Token_Count, 0, null, null);
+      end Add_Action;
+
+      procedure Add_Goto
+        (State    : in out Parse_State;
+         Symbol   : in     WisiToken.Token_ID;
+         To_State : in     WisiToken.State_Index)
+      is begin
+         Add_Goto (State, 1, Symbol, To_State);
+      end Add_Goto;
+
    begin
       --  figure 4.41 pg 239
       --  'r1' means reduce by production 1, 0 indexed; our production 2
@@ -252,7 +280,7 @@ package body Dragon_4_43_LR1_Test is
       Add_Goto (Expected.States (Map (0)), +Upper_C_ID, Map (2));
       Add_Goto (Expected.States (Map (0)), +Upper_S_ID, Map (1));
 
-      Add_Action (Expected.States (Map (1)), +EOF_ID, Accept_It, 1, +Accept_ID, 1, 0, Null_Action, null);
+      Add_Action (Expected.States (Map (1)), +EOF_ID, Accept_It, +Accept_ID, 1);
       Add_Error (Expected.States (Map (1)));
 
       Add_Action (Expected.States (Map (2)), +Lower_C_ID, Map (6));
@@ -312,9 +340,10 @@ package body Dragon_4_43_LR1_Test is
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
 
-         User_Data          => null,
-         Language_Fixes     => null,
-         First_Parser_Label => First_Parser_Label);
+         User_Data                    => null,
+         Language_Fixes               => null,
+         Language_Constrain_Terminals => null,
+         First_Parser_Label           => First_Parser_Label);
 
       Execute_Command ("cdcd");
    end Test_Parse;

@@ -210,8 +210,8 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
                Put (")");
             else
                Put_Line (")");
+               Put ("        " & (-RHS.Action));
             end if;
-            Put (-RHS.Action);
 
             if RHS_Count = RHS_Length then
                Put (")");

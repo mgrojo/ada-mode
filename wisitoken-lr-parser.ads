@@ -38,6 +38,8 @@ package WisiToken.LR.Parser is
 
       Language_Fixes : Language_Fixes_Access;
 
+      Language_Constrain_Terminals : Language_Constrain_Terminals_Access;
+
       Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Does not contain
       --  virtual tokens. Tokens past Parser.Current_Token are lookahead.
@@ -73,15 +75,16 @@ package WisiToken.LR.Parser is
    --  wisitoken-lr-parser and -lr-mckenzie_recover.
 
    procedure New_Parser
-     (Parser               :    out          LR.Parser.Parser;
-      Trace                : not null access WisiToken.Trace'Class;
-      Lexer                : in              WisiToken.Lexer.Handle;
-      Table                : in              Parse_Table_Ptr;
-      Language_Fixes       : in              Language_Fixes_Access;
-      User_Data            : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      First_Parser_Label   : in              Integer            := 1;
-      Terminate_Same_State : in              Boolean            := True);
+     (Parser                       :    out          LR.Parser.Parser;
+      Trace                        : not null access WisiToken.Trace'Class;
+      Lexer                        : in              WisiToken.Lexer.Handle;
+      Table                        : in              Parse_Table_Ptr;
+      Language_Fixes               : in              Language_Fixes_Access;
+      Language_Constrain_Terminals : in              Language_Constrain_Terminals_Access;
+      User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
+      Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      First_Parser_Label           : in              Integer            := 1;
+      Terminate_Same_State         : in              Boolean            := True);
 
    procedure Parse (Shared_Parser : in out LR.Parser.Parser);
    --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to

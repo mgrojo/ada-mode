@@ -41,9 +41,11 @@ package body WisiToken.LR.Generator_Utils is
       end if;
 
       if Matching_Action /= null then
-         if Matching_Action.Action.Item = Action then
+         if Equal (Matching_Action.Action.Item, Action) then
             --  Matching_Action is identical to Action, so there is no
             --  conflict; just don't add it again.
+            Matching_Action.Action.Item.Productions.Append (Action.Productions);
+
             if Trace then
                Ada.Text_IO.Put_Line (" - already present");
             end if;
@@ -142,6 +144,7 @@ package body WisiToken.LR.Generator_Utils is
          elsif Token_ID_Lists.Element (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
             declare
+               use Production_ID_Arrays;
                use all type Ada.Containers.Count_Type;
                use all type LR1_Items.Item_Set_Ptr;
 
@@ -156,17 +159,19 @@ package body WisiToken.LR.Generator_Utils is
                   --  source files, not grammars defined in Ada code.
                   Add_Action
                     (Dot_ID,
-                     (Accept_It, LHS (Item), RHS (Item).Action, null,
+                     (Accept_It, +Prod_Index (Item),
+                      LHS (Item), RHS (Item).Action, null,
                       RHS (Item).Tokens.Length - 1, -- EOF is not pushed on stack
-                      Prod_Index (Item), RHS (Item).Name_Index),
+                      RHS (Item).Name_Index),
                      Table.States (State).Action_List,
                      Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                else
                   if Goto_Set /= null then
                      Add_Action
                        (Dot_ID,
-                        (Verb              => Shift,
-                           State             => Goto_Set.State),
+                        (Verb        => Shift,
+                         Productions => +Prod_Index (Item),
+                         State       => Goto_Set.State),
                         Table.States (State).Action_List,
                         Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                   end if;
@@ -192,7 +197,8 @@ package body WisiToken.LR.Generator_Utils is
            --  it the default. The various Put routines replace
            --  this with 'default'.
            (Symbol => Invalid_Token_ID,
-            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => LR.Error), null),
+            Action => new Parse_Action_Node'
+              (Parse_Action_Rec'(Verb => LR.Error, Productions => Production_ID_Arrays.Empty_Vector), null),
             Next   => null);
 
          Last_Action : Action_Node_Ptr := Table.States (State).Action_List;
@@ -238,7 +244,7 @@ package body WisiToken.LR.Generator_Utils is
       begin
          while Goto_Ptr /= null loop
             if Symbol (Goto_Ptr) in Descriptor.Last_Terminal + 1 .. Descriptor.Last_Nonterminal then
-               Add_Goto (Table.States (State), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
+               Add_Goto (Table.States (State), Prod_Index (Goto_Ptr), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
             end if;
             Goto_Ptr := Next (Goto_Ptr);
          end loop;
@@ -255,12 +261,13 @@ package body WisiToken.LR.Generator_Utils is
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
+      use Production_ID_Arrays;
       use all type LR1_Items.Item_Ptr;
 
       --  Note that semantic_check is null; we only support semantic checks
       --  in Wisi source files, not grammars defined in Ada code.
       Action : constant Parse_Action_Rec :=
-        (Reduce, LHS (Item), RHS (Item).Action, null, RHS (Item).Tokens.Length, Prod_Index (Item),
+        (Reduce, +Prod_Index (Item), LHS (Item), RHS (Item).Action, null, RHS (Item).Tokens.Length,
          RHS (Item).Name_Index);
    begin
       if Trace then
@@ -503,7 +510,7 @@ package body WisiToken.LR.Generator_Utils is
    end Put;
 
    procedure Terminal_Sequence
-     (Grammar       : in     Production.List.Instance;
+     (Grammar       : in     WisiToken.Production.List.Instance;
       Descriptor    : in     WisiToken.Descriptor'Class;
       All_Sequences : in out Token_Sequence_Arrays.Vector;
       All_Set       : in out Token_ID_Set;
@@ -611,7 +618,7 @@ package body WisiToken.LR.Generator_Utils is
    end Terminal_Sequence;
 
    procedure Compute_Terminal_Sequences
-     (Grammar    : in     Production.List.Instance;
+     (Grammar    : in     WisiToken.Production.List.Instance;
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector)
    is

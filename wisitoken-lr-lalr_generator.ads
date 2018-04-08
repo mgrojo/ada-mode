@@ -27,7 +27,7 @@ with WisiToken.Production;
 package WisiToken.LR.LALR_Generator is
 
    function Generate
-     (Grammar                  : in Production.List.Instance;
+     (Grammar                  : in WisiToken.Production.List.Instance;
       Descriptor               : in LALR_Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
@@ -59,12 +59,12 @@ package WisiToken.LR.LALR_Generator is
      (Kernel     : in LR1_Items.Item_Set;
       Symbol     : in Token_ID;
       First      : in Token_Array_Token_Set;
-      Grammar    : in Production.List.Instance;
+      Grammar    : in WisiToken.Production.List.Instance;
       Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set;
 
    function LALR_Kernels
-     (Grammar           : in Production.List.Instance;
+     (Grammar           : in WisiToken.Production.List.Instance;
       First             : in Token_Array_Token_Set;
       First_State_Index : in State_Index;
       Descriptor        : in LALR_Descriptor)

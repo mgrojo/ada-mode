@@ -160,10 +160,12 @@ package body Name_Grammar_Test is
               (Full_Grammar,
                LALR_Descriptor,
                First_State_Index,
-               Ignore_Unused_Tokens => False),
-            User_Data      => null,
-            Language_Fixes => null,
-         First_Parser_Label => First_Parser_Label);
+               Ignore_Unused_Tokens      => False),
+            User_Data                    => null,
+            Language_Fixes               => null,
+            Language_Constrain_Terminals => null,
+            First_Parser_Label           => First_Parser_Label);
+
          Parse_Command ("Full Parser", Parser, "Module.Symbol");
          Parse_Command ("Full Parser", Parser, "Module.Symbol (Index)");
          Parse_Command ("Full Parser", Parser, "Module.Symbol.Component");

@@ -22,16 +22,16 @@ with AUnit.Assertions;
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
+with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Lexer.Regexp;
 with WisiToken.LR.AUnit;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
+with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-with WisiToken.AUnit;
 with WisiToken_AUnit; use WisiToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
@@ -204,6 +204,22 @@ package body Dragon_4_45_LALR_Test is
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
 
+      procedure Add_Action
+        (State       : in out Parse_State;
+         Symbol      : in     WisiToken.Token_ID;
+         State_Index : in     WisiToken.State_Index)
+      is begin
+         Add_Action (State, (1 .. 0 => 1), Symbol, State_Index);
+      end Add_Action;
+
+      procedure Add_Goto
+        (State    : in out Parse_State;
+         Symbol   : in     WisiToken.Token_ID;
+         To_State : in     WisiToken.State_Index)
+      is begin
+         Add_Goto (State, 1, Symbol, To_State);
+      end Add_Goto;
+
    begin
       --  figure 4.41 pg 239
 
@@ -266,9 +282,10 @@ package body Dragon_4_45_LALR_Test is
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index),
-         User_Data          => null,
-         Language_Fixes     => null,
-         First_Parser_Label => First_Parser_Label);
+         User_Data                    => null,
+         Language_Fixes               => null,
+         Language_Constrain_Terminals => null,
+         First_Parser_Label           => First_Parser_Label);
 
       Execute_Command ("cdcd");
    end Test_Parse;

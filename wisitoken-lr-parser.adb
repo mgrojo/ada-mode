@@ -59,7 +59,7 @@ package body WisiToken.LR.Parser is
       end loop;
 
       Nonterm := Parser_State.Tree.Add_Nonterm
-        (Action.LHS, Action.Action, Action.Production, Action.Name_Index, Children_Tree,
+        (Action.LHS, Action.Action, Action.Productions (1), Action.Name_Index, Children_Tree,
          Default_Virtual => Parser_State.Tree.Is_Virtual (Parser_State.Current_Token));
       --  Computes Nonterm.Byte_Region, Virtual
 
@@ -175,7 +175,8 @@ package body WisiToken.LR.Parser is
       when Accept_It =>
          case Reduce_Stack_1
            (Current_Parser,
-            (Reduce, Action.LHS, Action.Action, Action.Check, Action.Token_Count, Action.Production, Action.Name_Index),
+            (Reduce, Action.Productions, Action.LHS, Action.Action, Action.Check, Action.Token_Count,
+             Action.Name_Index),
             Nonterm, Shared_Parser.Lexer, Shared_Parser.Resume_Active, Trace)
          is
          when Ok =>
@@ -461,28 +462,30 @@ package body WisiToken.LR.Parser is
    end Finalize;
 
    procedure New_Parser
-     (Parser               :    out          LR.Parser.Parser;
-      Trace                : not null access WisiToken.Trace'Class;
-      Lexer                : in              WisiToken.Lexer.Handle;
-      Table                : in              Parse_Table_Ptr;
-      Language_Fixes       : in              Language_Fixes_Access;
-      User_Data            : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      First_Parser_Label   : in              Integer            := 1;
-      Terminate_Same_State : in              Boolean            := True)
+     (Parser                       :    out          LR.Parser.Parser;
+      Trace                        : not null access WisiToken.Trace'Class;
+      Lexer                        : in              WisiToken.Lexer.Handle;
+      Table                        : in              Parse_Table_Ptr;
+      Language_Fixes               : in              Language_Fixes_Access;
+      Language_Constrain_Terminals : in              Language_Constrain_Terminals_Access;
+      User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
+      Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      First_Parser_Label           : in              Integer            := 1;
+      Terminate_Same_State         : in              Boolean            := True)
    is
       use all type Syntax_Trees.User_Data_Access;
    begin
-      Parser.Lexer                   := Lexer;
-      Parser.Trace                   := Trace;
-      Parser.Table                   := Table;
-      Parser.Language_Fixes          := Language_Fixes;
-      Parser.User_Data               := User_Data;
-      Parser.Enable_McKenzie_Recover :=
+      Parser.Lexer                        := Lexer;
+      Parser.Trace                        := Trace;
+      Parser.Table                        := Table;
+      Parser.Language_Fixes               := Language_Fixes;
+      Parser.Language_Constrain_Terminals := Language_Constrain_Terminals;
+      Parser.User_Data                    := User_Data;
+      Parser.Enable_McKenzie_Recover      :=
         Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
-      Parser.Max_Parallel            := Max_Parallel;
-      Parser.First_Parser_Label      := First_Parser_Label;
-      Parser.Terminate_Same_State    := Terminate_Same_State;
+      Parser.Max_Parallel                 := Max_Parallel;
+      Parser.First_Parser_Label           := First_Parser_Label;
+      Parser.Terminate_Same_State         := Terminate_Same_State;
 
       if User_Data /= null then
          User_Data.Set_Lexer_Terminals (Lexer, Parser.Terminals'Unchecked_Access);

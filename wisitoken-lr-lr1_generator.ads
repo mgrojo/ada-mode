@@ -7,7 +7,7 @@
 --  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
 --  Sethi, and Ullman (aka: "The [Red] Dragon Book").
 --
---  Copyright (C) 2017 Stephe Leake
+--  Copyright (C) 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -33,7 +33,7 @@ package WisiToken.LR.LR1_Generator is
    use Generator_Utils;
 
    function Generate
-     (Grammar                  : in Production.List.Instance;
+     (Grammar                  : in WisiToken.Production.List.Instance;
       Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
@@ -68,7 +68,7 @@ package WisiToken.LR.LR1_Generator is
       Symbol               : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in Production.List.Instance;
+      Grammar              : in WisiToken.Production.List.Instance;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set;
@@ -77,7 +77,7 @@ package WisiToken.LR.LR1_Generator is
    function LR1_Item_Sets
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in Production.List.Instance;
+      Grammar              : in WisiToken.Production.List.Instance;
       First_State_Index    : in State_Index;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)

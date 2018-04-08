@@ -53,18 +53,20 @@ is
       Parser : WisiToken.LR.Parser.Parser;
    begin
       case Algorithm is
-      when WisiToken.LALR  =>
+      when WisiToken.LALR                =>
          Create_Parser
            (Parser, WisiToken.LALR, Trace'Unchecked_Access,
-            Language_Fixes => null,
-            User_Data      => User_Data'Unchecked_Access);
+            Language_Fixes               => null,
+            Language_Constrain_Terminals => null,
+            User_Data                    => User_Data'Unchecked_Access);
          Put_Line ("LALR_Parser parse:");
 
-      when WisiToken.LR1 =>
+      when WisiToken.LR1                 =>
          Create_Parser
            (Parser, WisiToken.LR1, Trace'Unchecked_Access,
-            Language_Fixes => null,
-            User_Data      => User_Data'Unchecked_Access);
+            Language_Fixes               => null,
+            Language_Constrain_Terminals => null,
+            User_Data                    => User_Data'Unchecked_Access);
          Put_Line ("LR1_Parser parse:");
       end case;
 

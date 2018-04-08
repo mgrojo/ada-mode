@@ -67,26 +67,14 @@ package body Test_McKenzie_Recover is
       Parser.Execute_Actions;
 
       if WisiToken.Trace_Parse > WisiToken.Outline then
-         WisiToken.LR.Put
-           (Source_File_Name => "<string>",
-            Lexer            => Parser.Lexer,
-            Errors           => Parser.Parsers.First.State_Ref.Errors,
-            Terminals        => Parser.Terminals,
-            Tree             => Parser.Parsers.First.State_Ref.Tree,
-            Descriptor       => Parser.Trace.Descriptor.all);
+         Parser.Put_Errors (File_Name => "<string>");
       end if;
 
       Check ("exception", False, Expect_Exception);
    exception
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Parse > WisiToken.Outline then
-         WisiToken.LR.Put
-           (Source_File_Name => "<string>",
-            Lexer            => Parser.Lexer,
-            Errors           => Parser.Parsers.First.State_Ref.Errors,
-            Terminals        => Parser.Terminals,
-            Tree             => Parser.Parsers.First.State_Ref.Tree,
-            Descriptor       => Parser.Trace.Descriptor.all);
+         Parser.Put_Errors (File_Name => "<string>");
       end if;
 
       Check ("exception", True, Expect_Exception);
@@ -277,15 +265,7 @@ package body Test_McKenzie_Recover is
       --  yet more parsers).
 
       if WisiToken.Trace_Parse > WisiToken.Outline then
-         for Error of Parser.Parsers.First.State_Ref.Errors loop
-            WisiToken.LR.Put
-              (Source_File_Name => "<string>",
-               Lexer            => Parser.Lexer,
-               Errors           => Parser.Parsers.First.State_Ref.Errors,
-               Terminals        => Parser.Terminals,
-               Tree             => Parser.Parsers.First.State_Ref.Tree,
-               Descriptor       => Ada_Lite.Descriptor);
-         end loop;
+         Parser.Put_Errors (File_Name => "<string>");
       end if;
 
       declare
@@ -529,15 +509,7 @@ package body Test_McKenzie_Recover is
          Check ("parser label", Parser_State.Label, 0);
 
          if WisiToken.Trace_Parse > 0 then
-            for Error of Error_List loop
-               WisiToken.LR.Put
-                 (Source_File_Name => "<string>",
-                  Lexer            => Parser.Lexer,
-                  Errors           => Parser.Parsers.First.State_Ref.Errors,
-                  Terminals        => Parser.Terminals,
-                  Tree             => Parser.Parsers.First.State_Ref.Tree,
-                  Descriptor       => Ada_Lite.Descriptor);
-            end loop;
+            Parser.Put_Errors (File_Name => "<string>");
          end if;
 
          Check ("errors.length", Error_List.Length, 1);
@@ -1345,6 +1317,52 @@ package body Test_McKenzie_Recover is
       end;
    end Match_Selected_Component_1;
 
+   procedure Actual_Parameter_Part_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Ada_Lite;
+      use WisiToken.AUnit;
+   begin
+      Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
+
+      Parse_Text
+        ("procedure Slow_Recover_2 is begin if 0 /= Input (Context, Name end Slow_Recover_2;");
+      --           |10       |20       |30       |40       |50       |60       |70       |80
+
+      --  Missing ');' 63. Enters error recovery on 'end' 64
+      --  expecting lots of things.
+      --
+      --  Desired solution is ((insert ') then end if;')
+      --
+      --  Previous version found that after enqueue 3291; now enqueues only 10.
+
+      declare
+         use WisiToken.LR.Parse_Error_Lists;
+         use WisiToken.LR.AUnit;
+         use WisiToken.LR.Config_Op_Arrays;
+         use WisiToken.Semantic_Checks.AUnit;
+         use all type WisiToken.Semantic_Checks.Check_Status_Label;
+         use all type WisiToken.LR.Config_Op_Label;
+         use all type WisiToken.LR.Parse_Error_Label;
+
+         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+         Error_List   : List renames Parser_State.Errors;
+         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
+         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
+      begin
+         Check ("errors.length", Error_List.Length, 1);
+         Check ("error.label", Error.Label, Action);
+         Check
+           ("errors 1.recover.ops", Error.Recover.Ops,
+            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
+              (Insert, +SEMICOLON_ID, 13));
+         Check ("enqueue", Parser_State.Recover.Enqueue_Count, 60);
+         Check ("check", Parser_State.Recover.Check_Count, 35);
+      end;
+   end Actual_Parameter_Part_1;
+
    ----------
    --  Public subprograms
 
@@ -1383,6 +1401,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Extra_Name_3'Access, "Extra_Name_3");
       Register_Routine (T, Two_Missing_Ends'Access, "Two_Missing_Ends");
       Register_Routine (T, Match_Selected_Component_1'Access, "Match_Selected_Component_1");
+      Register_Routine (T, Actual_Parameter_Part_1'Access, "Actual_Parameter_Part_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -1400,7 +1419,8 @@ package body Test_McKenzie_Recover is
       Ada_Lite.Create_Parser
         (Parser, WisiToken.LALR, Ada_Lite.Trace'Access,
          User_Data => User_Data'Access,
-         Language_Fixes => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access);
+         Language_Fixes => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access,
+         Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada_Lite.Constrain_Terminals'Access);
 
       Orig_Params := Parser.Table.McKenzie_Param;
 

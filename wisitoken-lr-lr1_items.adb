@@ -107,7 +107,7 @@ package body WisiToken.LR.LR1_Items is
    end Deep_Copy;
 
    function First
-     (Grammar              : in Production.List.Instance;
+     (Grammar              : in WisiToken.Production.List.Instance;
       Descriptor           : in WisiToken.Descriptor'Class;
       Has_Empty_Production : in Token_ID_Set;
       Non_Terminal         : in Token_ID;
@@ -115,9 +115,9 @@ package body WisiToken.LR.LR1_Items is
      return Token_ID_Set
    is
       use Token_ID_Lists;
-      use all type Production.List.List_Iterator;
+      use all type WisiToken.Production.List.List_Iterator;
 
-      Prod_Iterator  : Production.List.List_Iterator;
+      Prod_Iterator  : WisiToken.Production.List.List_Iterator;
       Token_Iterator : Cursor;
       Derived_Token  : Token_ID;
       Derivations    : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
@@ -187,7 +187,7 @@ package body WisiToken.LR.LR1_Items is
    end First;
 
    function First
-     (Grammar              : in Production.List.Instance;
+     (Grammar              : in WisiToken.Production.List.Instance;
       Descriptor           : in WisiToken.Descriptor'Class;
       Has_Empty_Production : in Token_ID_Set;
       Trace                : in Boolean)
@@ -221,23 +221,23 @@ package body WisiToken.LR.LR1_Items is
    end First;
 
    function Has_Empty_Production
-     (Grammar    : in Production.List.Instance;
+     (Grammar    : in WisiToken.Production.List.Instance;
       Descriptor : in WisiToken.Descriptor'Class)
      return Token_ID_Set
    is
       use Token_ID_Lists;
       subtype Nonterminal is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
-      Result  : Token_ID_Set                  := (Nonterminal => False);
-      Prod_I  : Production.List.List_Iterator := Production.List.First (Grammar);
-      Prod    : Production.Instance;
+      Result  : Token_ID_Set                            := (Nonterminal => False);
+      Prod_I  : WisiToken.Production.List.List_Iterator := Grammar.First;
+      Prod    : WisiToken.Production.Instance;
       RHS_I   : Token_ID_Lists.Cursor;
-      Changed : Boolean                       := True;
+      Changed : Boolean                                 := True;
    begin
       loop
          exit when not Changed;
          Changed := False;
-         while not Production.List.Is_Done (Prod_I) loop
-            Prod  := Production.List.Current (Prod_I);
+         while not WisiToken.Production.List.Is_Done (Prod_I) loop
+            Prod  := WisiToken.Production.List.Current (Prod_I);
             RHS_I := Prod.RHS.Tokens.First;
 
             if (RHS_I = No_Element or else
@@ -247,21 +247,21 @@ package body WisiToken.LR.LR1_Items is
                Result (Prod.LHS) := True;
                Changed := True;
             end if;
-            Production.List.Next (Prod_I);
+            WisiToken.Production.List.Next (Prod_I);
          end loop;
       end loop;
       return Result;
    end Has_Empty_Production;
 
    function Follow
-     (Grammar              : in Production.List.Instance;
+     (Grammar              : in WisiToken.Production.List.Instance;
       Descriptor           : in WisiToken.Descriptor'Class;
       First                : in Token_Array_Token_Set;
       Has_Empty_Production : in Token_ID_Set)
      return Token_Array_Token_Set
    is
-      use all type Production.List.List_Iterator;
-      use all type Production.Instance;
+      use all type WisiToken.Production.List.List_Iterator;
+      use all type WisiToken.Production.Instance;
       use Token_ID_Lists;
 
       Prev_Result : Token_Array_Token_Set :=
@@ -272,7 +272,7 @@ package body WisiToken.LR.LR1_Items is
         (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
            (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
 
-      A     : Production.List.List_Iterator;
+      A     : WisiToken.Production.List.List_Iterator;
       RHS_I : Token_ID_Lists.Cursor;
       ID    : Token_ID;
    begin
@@ -290,7 +290,7 @@ package body WisiToken.LR.LR1_Items is
       --  have to keep applying rule 3 until nothing changes.
 
       for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         A := Production.List.First (Grammar);
+         A := WisiToken.Production.List.First (Grammar);
          while not Is_Null (A) loop
             RHS_I := Current (A).RHS.Tokens.First;
             while Has_Element (RHS_I) loop
@@ -307,14 +307,14 @@ package body WisiToken.LR.LR1_Items is
                end if;
                Next (RHS_I);
             end loop;
-            Production.List.Next (A);
+            Next (A);
          end loop;
       end loop;
 
       Prev_Result := Result;
       loop
          for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-            A := Production.List.First (Grammar);
+            A := Grammar.First;
             while not Is_Null (A) loop
                RHS_I := Current (A).RHS.Tokens.First;
                while Has_Element (RHS_I) loop
@@ -330,7 +330,7 @@ package body WisiToken.LR.LR1_Items is
                   end if;
                   Next (RHS_I);
                end loop;
-               Production.List.Next (A);
+               Next (A);
             end loop;
          end loop;
 
@@ -340,7 +340,7 @@ package body WisiToken.LR.LR1_Items is
       return Result;
    end Follow;
 
-   function Prod (Item : in Item_Ptr) return Production.Instance
+   function Prod (Item : in Item_Ptr) return WisiToken.Production.Instance
    is begin
       return Item.Prod;
    end Prod;
@@ -355,7 +355,7 @@ package body WisiToken.LR.LR1_Items is
       return Item.Prod.LHS;
    end LHS;
 
-   function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side
+   function RHS (Item : in Item_Ptr) return WisiToken.Production.Right_Hand_Side
    is begin
       return Item.Prod.RHS;
    end RHS;
@@ -381,7 +381,7 @@ package body WisiToken.LR.LR1_Items is
    end Next;
 
    function New_Item_Node
-     (Prod       : in Production.Instance;
+     (Prod       : in WisiToken.Production.Instance;
       Dot        : in Token_ID_Lists.Cursor;
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead)
@@ -393,7 +393,7 @@ package body WisiToken.LR.LR1_Items is
 
    procedure Set
      (Item       : in out Item_Node;
-      Prod       : in     Production.Instance;
+      Prod       : in     WisiToken.Production.Instance;
       Dot        : in     Token_ID_Lists.Cursor;
       State      : in     Unknown_State_Index;
       Lookaheads : in     Lookahead)
@@ -532,6 +532,11 @@ package body WisiToken.LR.LR1_Items is
       return List.Symbol;
    end Symbol;
 
+   function Prod_Index (List : in Goto_Item_Ptr) return Natural
+   is begin
+      return List.Set.Set.Prod.Index;
+   end Prod_Index;
+
    function State (List : in Goto_Item_Ptr) return Unknown_State_Index
    is begin
       return List.Set.State;
@@ -594,14 +599,14 @@ package body WisiToken.LR.LR1_Items is
    end Add;
 
    function Find
-     (Prod             : in     Production.Instance;
+     (Prod             : in     WisiToken.Production.Instance;
       Dot              : in     Token_ID_Lists.Cursor;
       Right            : in     Item_Set;
       Lookaheads       : access Lookahead := null;
       Match_Lookaheads : in     Boolean)
      return Item_Ptr
    is
-      use all type Production.Instance;
+      use all type WisiToken.Production.Instance;
       use all type Token_ID_Lists.Cursor;
       Current : Item_Ptr := Right.Set;
    begin
@@ -717,7 +722,7 @@ package body WisiToken.LR.LR1_Items is
    end Goto_Set;
 
    function Merge
-     (Prod         : in     Production.Instance;
+     (Prod         : in     WisiToken.Production.Instance;
       Dot          : in     Token_ID_Lists.Cursor;
       State        : in     Unknown_State_Index;
       Lookaheads   : in     Lookahead;
@@ -747,14 +752,14 @@ package body WisiToken.LR.LR1_Items is
      (Set                  : in Item_Set;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in Production.List.Instance;
+      Grammar              : in WisiToken.Production.List.Instance;
       Descriptor           : in WisiToken.Descriptor'Class;
       Trace                : in Boolean)
      return Item_Set
    is
       use all type Token_ID;
       use Token_ID_Lists;
-      use all type Production.List.List_Iterator;
+      use all type WisiToken.Production.List.List_Iterator;
       --  Can't 'use' Production.List or Token.List; they hide each other.
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "closure"
@@ -765,7 +770,7 @@ package body WisiToken.LR.LR1_Items is
       I : Item_Set; --  The result.
 
       Item       : Item_Ptr := Set.Set;           -- iterator 'for each item in I'
-      B          : Production.List.List_Iterator; -- iterator 'for each production in G'
+      B          : WisiToken.Production.List.List_Iterator; -- iterator 'for each production in G'
       Added_Item : Boolean  := False;             -- 'until no more items can be added'
 
       Beta : Token_ID_Lists.Cursor;
@@ -787,9 +792,9 @@ package body WisiToken.LR.LR1_Items is
          then
             Beta := Next (Item.Dot); -- tokens after nonterminal, possibly null
 
-            B := Production.List.First (Grammar);
+            B := Grammar.First;
             For_Each_Production :
-            while not Production.List.Is_Done (B) loop
+            while not Is_Done (B) loop
                if LHS (B) = Element (Item.Dot) then
                   --  Compute FIRST (<tail of right hand side> a); loop
                   --  until find a terminal, a nonterminal that
@@ -838,7 +843,7 @@ package body WisiToken.LR.LR1_Items is
                   Beta := Next (Item.Dot);
                end if;
 
-               Production.List.Next (B);
+               Next (B);
             end loop For_Each_Production;
          end if; -- Dot is at non-terminal
 
@@ -860,6 +865,19 @@ package body WisiToken.LR.LR1_Items is
 
       return I;
    end Closure;
+
+   function Productions (Set : in Item_Set) return Production_ID_Arrays.Vector
+   is
+      I : Item_Ptr := Set.Set;
+   begin
+      return Result : Production_ID_Arrays.Vector do
+         loop
+            exit when I = null;
+            Result.Append (I.Prod.Index);
+            I := I.Next;
+         end loop;
+      end return;
+   end Productions;
 
    procedure Free (Item : in out Item_Set)
    is
@@ -959,8 +977,7 @@ package body WisiToken.LR.LR1_Items is
       I : Cursor;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        Ada.Strings.Unbounded.To_Unbounded_String (Image (Item.Prod.LHS, Descriptor)) &
-          " <=";
+        +Image (Item.Prod.Index, Width => 4) & ":" & Image (Item.Prod.LHS, Descriptor) & " <=";
    begin
       I := First (Item.Prod.RHS.Tokens);
 

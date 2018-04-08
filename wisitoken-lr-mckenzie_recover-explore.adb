@@ -400,6 +400,12 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       Table  : Parse_Table renames Shared.Shared_Parser.Table.all;
       EOF_ID : Token_ID renames Super.Trace.Descriptor.EOF_ID;
+
+      Valid_Insert : constant Token_ID_Set (Table.First_Terminal .. Table.Last_Terminal) :=
+        (if Shared.Shared_Parser.Language_Constrain_Terminals = null
+         then (Table.First_Terminal .. Table.Last_Terminal => True)
+         else Shared.Shared_Parser.Language_Constrain_Terminals
+           (Super.Trace.all, Super.Label (Parser_Index), Table, Config));
    begin
       --  Find terminal insertions to try; loop over input actions for the
       --  current state.
@@ -411,7 +417,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  semantic check fails encountered, they create other configs to
       --  enqueue.
       declare
-         I : Action_List_Iterator := First (Table.States (Config.Stack.Peek.State));
+         I : Action_List_Iterator := First (Table.States (Config.Stack (1).State));
 
          Cached_Config : Configuration;
          Cached_Action : Reduce_Action_Rec;
@@ -427,7 +433,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                ID     : constant Token_ID := I.Symbol;
                Action : Parse_Action_Rec renames I.Action;
             begin
-               if ID /= EOF_ID and --  can't insert eof
+               if ID /= EOF_ID and then --  can't insert eof
+                  (ID /= Invalid_Token_ID and then Valid_Insert (ID)) and then -- invalid when Verb = Error
                  (Config.Ops.Length = 0 or else -- don't insert an id we just pushed back.
                     Config.Ops (Config.Ops.Last_Index) /= (Push_Back, ID, Config.Current_Shared_Token))
                then

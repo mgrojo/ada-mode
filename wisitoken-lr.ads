@@ -44,10 +44,19 @@ with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR is
+
+   package Production_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Positive);
+   function Image is new Production_ID_Arrays.Gen_Image (Int_Image);
+
+   type Production_ID_Array is array (Natural range <>) of Positive;
+
+   function To_Vector (Item : in Production_ID_Array) return Production_ID_Arrays.Vector;
+   function "+" (Item : in Production_ID_Array) return Production_ID_Arrays.Vector renames To_Vector;
 
    ----------
    --  Following are the types used in the parse table. The parse
@@ -66,6 +75,9 @@ package WisiToken.LR is
    --  Shift_Recover is only used for error recovery.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
+      Productions : Production_ID_Arrays.Vector;
+      --  Index into Parse_Table.Productions, for McKenzie_Recover.
+
       case Verb is
       when Shift =>
          State : State_Index := State_Index'Last;
@@ -75,9 +87,6 @@ package WisiToken.LR is
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
          Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
          Token_Count : Ada.Containers.Count_Type                := 0;
-
-         Production : Natural := 0;
-         --  Index into Parse_Table.Productions, for McKenzie_Recover.
 
          Name_Index : Natural := 0;
          --  Index of production among productions for a nonterminal,
@@ -90,8 +99,13 @@ package WisiToken.LR is
    subtype Shift_Action_Rec is Parse_Action_Rec (Shift);
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
+   type Reduce_Action_Array is array (Positive range <>) of Reduce_Action_Rec;
+
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String;
-   --  Ada aggregate syntax, leaving out Semantic_Action in reduce.
+   --  Ada aggregate syntax, leaving out Action, Check in reduce.
+
+   function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
+   --  Ignore Production, Action, Check, Name_Index.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
 
@@ -118,10 +132,12 @@ package WisiToken.LR is
    type Goto_Node_Ptr is access Goto_Node;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID;
+   function Prod_ID (List : in Goto_Node_Ptr) return Positive;
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
    type Parse_State is record
+      Productions : Production_ID_Arrays.Vector;
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
    end record;
@@ -154,6 +170,7 @@ package WisiToken.LR is
 
    procedure Add_Action
      (State       : in out Parse_State;
+      Productions : in     Production_ID_Array;
       Symbol      : in     Token_ID;
       State_Index : in     WisiToken.State_Index);
    --  Add a Shift action to tail of State action list.
@@ -171,15 +188,16 @@ package WisiToken.LR is
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
-     (State           : in out Parse_State;
-      Symbol          : in     Token_ID;
-      State_Index     : in     WisiToken.State_Index;
-      Production      : in     Positive;
-      LHS_ID          : in     Token_ID;
-      RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Name_Index      : in     Natural;
-      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
+     (State             : in out Parse_State;
+      Shift_Productions : in     Production_ID_Array;
+      Symbol            : in     Token_ID;
+      State_Index       : in     WisiToken.State_Index;
+      Reduce_Production : in     Positive;
+      LHS_ID            : in     Token_ID;
+      RHS_Token_Count   : in     Ada.Containers.Count_Type;
+      Name_Index        : in     Natural;
+      Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
+      Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Shift/Reduce conflict to State.
 
    procedure Add_Action
@@ -204,9 +222,10 @@ package WisiToken.LR is
    --  Add an Error action to State, at tail of action list.
 
    procedure Add_Goto
-     (State    : in out Parse_State;
-      Symbol   : in     Token_ID;
-      To_State : in     State_Index);
+     (State      : in out Parse_State;
+      Production : in     Positive;
+      Symbol     : in     Token_ID;
+      To_State   : in     State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
 
    type McKenzie_Param_Type
@@ -241,11 +260,21 @@ package WisiToken.LR is
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class);
    --  Put Item to Ada.Text_IO.Current_Output
 
-   package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID_Arrays.Vector);
+   type Production is record
+      LHS : Token_ID;
+      RHS : Token_ID_Arrays.Vector;
+   end record;
+
+   package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Production);
 
    package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
 
    procedure Set_Token_Sequence (Vector : in out Token_ID_Arrays.Vector; Tokens : in Token_ID_Array);
+
+   procedure Set_Production
+     (Prod : in out Production;
+      LHS  : in     Token_ID;
+      RHS  : in     Token_ID_Array);
 
    type Parse_Table
      (State_First       : State_Index;
@@ -254,25 +283,27 @@ package WisiToken.LR is
       Last_Terminal     : Token_ID;
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
-     is
+     is tagged
    record
       States             : Parse_State_Array (State_First .. State_Last);
       McKenzie_Param     : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Productions        : Production_Arrays.Vector;     -- Indexed by Production.Index
+      Productions        : Production_Arrays.Vector;     -- Indexed by Action.Production
       Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
-      --  FIXME: Productions, Terminal_Sequences not used?
    end record;
-
-   type Parse_Table_Ptr is access Parse_Table;
-   procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
 
    function Goto_For
      (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Token_ID)
      return Unknown_State_Index;
+   function Goto_For
+     (Table : in Parse_Table;
+      State : in State_Index;
+      ID    : in Token_ID)
+     return Goto_Node_Ptr;
    --  Return next state after reducing stack by nonterminal ID;
    --  Unknown_State if none (only possible during error recovery).
+   --  Second form allows retrieving Production.
 
    function Action_For
      (Table : in Parse_Table;
@@ -283,13 +314,14 @@ package WisiToken.LR is
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
-   function Minimal_Terminal_Sequence
-     (Table   : in Parse_Table;
-      Nonterm : in Token_ID)
-     return Token_ID_Arrays.Vector;
-   --  Return the minimal terminal sequence for Nonterm; this can be
-   --  inserted as virtual terminals in the input stream when
-   --  McKenzie_Recover inserts a nonterm.
+   function Reductions
+     (Table       : in     Parse_Table;
+      State       : in     State_Index;
+      Shift_Count :    out Natural)
+     return Reduce_Action_Array;
+
+   type Parse_Table_Ptr is access Parse_Table;
+   procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);
@@ -327,9 +359,7 @@ package WisiToken.LR is
    --  pointer back to the first shared_terminal contained by that item.
    --
    --  Insert inserts a new token in the token input stream, before the
-   --  given point in Terminals. If ID is a nonterm, the minimal terminal token
-   --  sequence (from Table.Terminal_Sequences) for that nonterm is
-   --  inserted.
+   --  given point in Terminals.
    --
    --  Delete deletes one item from the token input stream, at the given
    --  point.
@@ -505,6 +535,18 @@ package WisiToken.LR is
    --  caused the error. Return Abandon if a known good solution is
    --  enqueued, Continue otherwise.
 
+   type Language_Constrain_Terminals_Access is access function
+     (Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Table        : in     Parse_Table;
+      Config       : in     Configuration)
+     return Token_ID_Set;
+   --  Return a token ID set that constrains McKenzie explore.
+   --
+   --  For example, in some cases, the best strategy is to complete the
+   --  current production as quickly as possible; only insert terminals
+   --  that are in the minimal terminal sequence for each production.
+
    type McKenzie_Data is tagged record
       Config_Heap   : Config_Heaps.Heap_Type;
       Enqueue_Count : Integer := 0;
@@ -547,9 +589,10 @@ private
    --  Private to enforce use of Add; doesn't succeed, since only
    --  children use it.
    type Goto_Node is record
-      Symbol : Token_ID;
-      State  : State_Index;
-      Next   : Goto_Node_Ptr;
+      Production : Natural := 0;
+      Symbol     : Token_ID;
+      State      : State_Index;
+      Next       : Goto_Node_Ptr;
    end record;
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Node, Goto_Node_Ptr);
 

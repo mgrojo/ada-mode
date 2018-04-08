@@ -101,9 +101,10 @@ package body Test_Accept_State is
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
-         User_Data          => null,
-         Language_Fixes     => null,
-         First_Parser_Label => First_Parser_Label);
+         User_Data                    => null,
+         Language_Fixes               => null,
+         Language_Constrain_Terminals => null,
+         First_Parser_Label           => First_Parser_Label);
 
       Parser.Lexer.Reset_With_String ("set A = 2");
 

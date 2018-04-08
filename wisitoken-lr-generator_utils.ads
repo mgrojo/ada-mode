@@ -122,7 +122,7 @@ package WisiToken.LR.Generator_Utils is
       Descriptor : in WisiToken.Descriptor'Class);
 
    procedure Compute_Terminal_Sequences
-     (Grammar    : in     Production.List.Instance;
+     (Grammar    : in     WisiToken.Production.List.Instance;
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector);
 

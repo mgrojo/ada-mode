@@ -25,9 +25,6 @@ package WisiToken.Syntax_Trees.AUnit_Public is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Node_Index);
 
-   function "+" (Item : in Node_Index) return Valid_Node_Index_Arrays.Vector
-     is (Valid_Node_Index_Arrays.To_Vector (Item, 1));
-
    procedure Check is new Valid_Node_Index_Arrays.Gen_AUnit
      (Check_Index   => SAL.AUnit.Check,
       Check_Element => Check);

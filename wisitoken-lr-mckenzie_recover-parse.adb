@@ -148,12 +148,19 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
 
       loop
          if Action.Next /= null then
-            if Trace_McKenzie > Detail then
-               Put_Line
-                 (Trace, Super.Label (Parser_Index), Trace_Prefix & ": add conflict " &
-                    Image (Action.Next.Item, Descriptor));
+            if Parse_Items.Is_Full then
+               if Trace_McKenzie > Detail then
+                  Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": too many conflicts; abandoning");
+               end if;
+            else
+               if Trace_McKenzie > Detail then
+                  Put_Line
+                    (Trace, Super.Label (Parser_Index), Trace_Prefix & ": add conflict " &
+                       Image (Action.Next.Item, Descriptor));
+               end if;
+
+               Parse_Items.Append ((Config, Action.Next, Parsed => False));
             end if;
-            Parse_Items.Append ((Config, Action.Next, Parsed => False));
          end if;
 
          if Trace_McKenzie > Extra then
