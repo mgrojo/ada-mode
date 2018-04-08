@@ -81,7 +81,9 @@ is
    Start        : Ada.Real_Time.Time;
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
-   Create_Parser (Parser, WisiToken.LALR, Trace'Unrestricted_Access, Language_Fixes, Parse_Data'Unchecked_Access);
+   Create_Parser
+     (Parser, WisiToken.LALR, Trace'Unrestricted_Access, Language_Fixes, Language_Constrain_Terminals,
+      Parse_Data'Unchecked_Access);
 
    declare
       use Ada.Command_Line;

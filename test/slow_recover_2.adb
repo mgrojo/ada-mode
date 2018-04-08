@@ -12,11 +12,11 @@
 -- IMPROVEME: don't pop END if name matches.
 
 --EMACSCMD:(setq skip-recase-test t)
-procedure SMM.Metadata.Debug is
+procedure Slow_Recover_2 is
    use Interfaces.C.Strings;
 
    C_File_Name :
 begin
    if 0 /= AV_Format_Open_Input (Context, Name
 
-end SMM.Metadata.Debug;
+end Slow_Recover_2;

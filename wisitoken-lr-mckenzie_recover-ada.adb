@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
+with Ada.Containers;
 with Ada_Process;
 with System.Assertions;
 package body WisiToken.LR.McKenzie_Recover.Ada is
@@ -404,7 +405,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
                Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
-               if Config.Error_Token.ID in +block_statement_ID | +subprogram_body_ID | +task_body_ID then
+               case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+               when block_statement_ID | subprogram_body_ID | task_body_ID =>
                   End_Item := Stack.Peek (3);
 
                   Push_Back_Check
@@ -420,16 +422,16 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                      (+handled_sequence_of_statements_ID,
                       +sequence_of_statements_opt_ID));
 
-               elsif Config.Error_Token.ID = +package_specification_ID then
+               when package_specification_ID =>
                   End_Item := Stack.Peek (2);
 
                   Push_Back_Check (New_Config, (+name_opt_ID, +END_ID));
                   Undo_Reduce_Check (New_Config, Tree, +declarative_part_opt_ID);
 
-               else
+               when others =>
                   raise Programmer_Error with "unimplemented nonterm for Missing_Name_Error " &
                     Image (Config.Error_Token, Descriptor);
-               end if;
+               end case;
 
                Ops.Append ((Delete, +END_ID, Token_Index => End_Item.Token.Min_Terminal_Index));
 
@@ -679,6 +681,49 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       return Continue;
    end Handle_Parse_Error;
 
+   function Member (ID : in Token_ID; Item : in Token_ID_Arrays.Vector) return Boolean
+   is begin
+      for I of Item loop
+         if I = ID then return True; end if;
+      end loop;
+      return False;
+   end Member;
+
+   function Member (ID : in Natural; Item : in Production_ID_Arrays.Vector) return Boolean
+   is begin
+      for I of Item loop
+         if I = ID then return True; end if;
+      end loop;
+      return False;
+   end Member;
+
+   function Find (ID : in Natural; Reductions : in Reduce_Action_Array) return Natural
+   is begin
+      for I in Reductions'Range loop
+         if Member (ID, Reductions (I).Productions) then
+            return I;
+         end if;
+      end loop;
+      return 0;
+   end Find;
+
+   procedure Do_Reduce
+     (Table   : in     Parse_Table;
+      Config  : in out Configuration;
+      Action  : in     Reduce_Action_Rec;
+      Prod_ID :    out Positive)
+   is
+      Goto_Node : Goto_Node_Ptr;
+   begin
+      Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
+      Goto_Node := Goto_For (Table, Config.Stack (1).State, Action.LHS);
+      Prod_ID := LR.Prod_ID (Goto_Node);
+      Config.Stack.Push
+        ((State (Goto_Node),
+          Syntax_Trees.Invalid_Node_Index,
+          (Action.LHS, others => <>)));
+   end Do_Reduce;
+
    ----------
    --  Public subprograms
 
@@ -708,5 +753,102 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          return Handle_Check_Fail (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);
       end case;
    end Language_Fixes;
+
+   function Constrain_Terminals
+     (Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Table        : in     Parse_Table;
+      Config       : in     Configuration)
+     return WisiToken.Token_ID_Set
+   is
+      All_Ok : constant WisiToken.Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => True);
+   begin
+      if Config.Error_Token.ID = Invalid_Token_ID then
+         --  no error
+         return All_Ok;
+      end if;
+
+      case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+      when END_ID =>
+         declare
+            Temp_Config : Configuration          := Config;
+            Result      : WisiToken.Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => False);
+            Prod_ID     : Natural                := 0;
+         begin
+            Reduce_To_Shift :
+            loop
+               declare
+                  use all type Standard.Ada.Containers.Count_Type;
+                  State       : State_Index renames Temp_Config.Stack (1).State;
+                  Shift_Count : Integer;
+                  Reductions  : constant Reduce_Action_Array := Table.Reductions (State, Shift_Count);
+                  Prod_Index  : constant Integer             := Find (Prod_ID, Reductions);
+               begin
+                  if Reductions'Length = 1 and then Reductions (1).Token_Count > 0 then
+                     --  test/slow_recover_2.adb
+                     Do_Reduce (Table, Temp_Config, Reductions (1), Prod_ID);
+
+                  elsif Prod_Index /= 0 then
+                     --  test/slow_recover_2.adb association_opt <= expression
+                     Do_Reduce (Table, Temp_Config, Reductions (Prod_Index), Prod_ID);
+
+                  elsif Shift_Count > 0 then
+                     declare
+                        Item        : Recover_Stack_Item renames Temp_Config.Stack (1);
+                        Table_Entry : Parse_State renames Table.States (Item.State);
+                        I           : Action_List_Iterator                 := First (Table_Entry);
+                        Prods       : constant Production_ID_Arrays.Vector := Table.States (Item.State).Productions;
+                        LHS         : constant Token_ID                    := Table.Productions (Prods (1)).LHS;
+                        One_LHS     : Boolean                              := True;
+                     begin
+                        for P of Prods loop
+                           if LHS /= Table.Productions (P).LHS then
+                              One_LHS := False;
+                           end if;
+                        end loop;
+
+                        if One_LHS then
+                           To_Set (Table.Terminal_Sequences (LHS), Result);
+                           --  FIXME: merge multiple sequences?
+                        else
+                           loop
+                              exit when Is_Done (I);
+                              if I.Action.Verb = Shift then
+                                 declare
+                                    Action : Parse_Action_Rec renames I.Action;
+                                 begin
+                                    for J of Action.Productions loop
+                                       if Member
+                                         (I.Symbol, Table.Terminal_Sequences (Table.Productions (J).LHS))
+                                       then
+                                          --  FIXME: change terminal_sequences to set?
+                                          --  or find position in it?
+                                          Result (I.Symbol) := True;
+                                       end if;
+                                    end loop;
+                                 end;
+                              end if;
+
+                              Next (I);
+                           end loop;
+                        end if;
+                     end;
+                     exit Reduce_To_Shift;
+                  else
+                     --  FIXME: conflicts
+                     raise Programmer_Error with "conflicts in Constrain_Terminals; state" & State_Index'Image (State);
+                  end if;
+               end;
+            end loop Reduce_To_Shift;
+            if Trace_McKenzie > Detail then
+               Put_Line (Trace, Parser_Label, "constrain_terminals: " & Image (Result, Trace.Descriptor.all));
+            end if;
+            return Result;
+         end;
+
+      when others =>
+         return All_Ok;
+      end case;
+   end Constrain_Terminals;
 
 end WisiToken.LR.McKenzie_Recover.Ada;

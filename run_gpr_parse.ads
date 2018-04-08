@@ -26,4 +26,5 @@ procedure Run_Gpr_Parse is new Gen_Run_Wisi_Parse
    "gpr",
    Gpr_Process.Descriptor,
    null,
+   null,
    Gpr_Process.Create_Parser);

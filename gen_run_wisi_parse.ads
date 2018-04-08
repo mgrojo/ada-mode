@@ -26,15 +26,17 @@ with WisiToken.Wisi_Runtime;
 generic
    type Parse_Data_Type is new WisiToken.Wisi_Runtime.Parse_Data_Type with private;
 
-   Name           : in String; --  for Usage, error messages. "_wisi_parse" will be appended
-   Descriptor     : in WisiToken.Descriptor;
-   Language_Fixes : in WisiToken.LR.Language_Fixes_Access;
+   Name                         : in String; --  for Usage, error messages. "_wisi_parse" will be appended
+   Descriptor                   : in WisiToken.Descriptor;
+   Language_Fixes               : in WisiToken.LR.Language_Fixes_Access;
+   Language_Constrain_Terminals : in WisiToken.LR.Language_Constrain_Terminals_Access;
 
    with procedure Create_Parser
-     (Parser         :    out          WisiToken.LR.Parser.Parser;
-      Algorithm      : in              WisiToken.Parser_Algorithm_Type;
-      Trace          : not null access WisiToken.Trace'Class;
-      Language_Fixes : in              WisiToken.LR.Language_Fixes_Access;
-      User_Data      : in              WisiToken.Syntax_Trees.User_Data_Access);
+     (Parser                       :    out          WisiToken.LR.Parser.Parser;
+      Algorithm                    : in              WisiToken.Parser_Algorithm_Type;
+      Trace                        : not null access WisiToken.Trace'Class;
+      Language_Fixes               : in              WisiToken.LR.Language_Fixes_Access;
+      Language_Constrain_Terminals : in              WisiToken.LR.Language_Constrain_Terminals_Access;
+      User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access);
 
 procedure Gen_Run_Wisi_Parse;

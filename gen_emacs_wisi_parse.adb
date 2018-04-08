@@ -164,7 +164,9 @@ is
    end Get_Integer;
 
 begin
-   Create_Parser (Parser, LALR, Trace'Unrestricted_Access, Language_Fixes, Parse_Data'Unchecked_Access);
+   Create_Parser
+     (Parser, LALR, Trace'Unrestricted_Access, Language_Fixes, Language_Constrain_Terminals,
+      Parse_Data'Unchecked_Access);
 
    declare
       use Ada.Command_Line;

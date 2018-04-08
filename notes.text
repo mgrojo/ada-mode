@@ -39,6 +39,7 @@ run test from emacs -Q using source:
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
   (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
@@ -50,75 +51,24 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+parse fail:
+    function Decode_Plus (Item : in String) return String
+    is begin
+      return Result : String := Item do
+      for I in Result'Range loop
+      if Result (I) = '+' then
+
+    end Decode_Plus;
+
+slow_recover_1.adb
+ 6: fail, enqueue 9, check  9, cost_limit:  12
+ 5: fail, enqueue 75967, check  5189, cost_limit:  12
+ 1: succeed 1, enqueue 172, check  25, cost:  6
+    kill parser 5 when cost > parser 1 cost + param.success_cost_delta
+
 test/gpr/gpr-ske-test fails with 'undefined skeleton token'
 
-parse fail
-    test/slow_recover_2.adb
-        2 parsers going in to first recover, 4 leaving
- 2: succeed 1, enqueue 102, check  25, cost:  4
- 2:  4, Error (BEGIN, (557 . 561)) (1092 : (SEMICOLON))| 17:(BEGIN 19:0)|((INSERT, IDENTIFIER, 17), (INSERT, SEMICOLON, 17))
- 1: succeed 3, enqueue 195, check  36, cost:  7
-spawn parser 3 from 1 (3 active)
- 3:  7, Error (BEGIN, (557 . 561)) (274 : (declarations, (513 . 537)))| 17:(BEGIN 19:0)|((PUSH_BACK, COLON, 16), (PUSH_BACK, IDENTIFIER, 15), (DELETE, IDENTIFIER, 15), (DELETE, COLON, 16))
-spawn parser 4 from 1 (4 active)
- 4:  7, Error (BEGIN, (557 . 561)) (111 : (LEFT_PAREN))| 18:(IF 20:3)|((INSERT, IDENTIFIER, 17), (INSERT, LEFT_PAREN, 17), (DELETE, BEGIN, 17))
- 1:  7, Error (BEGIN, (557 . 561)) (382 : (BEGIN))| 15:(IDENTIFIER 18:3)|((PUSH_BACK, COLON, 16), (PUSH_BACK, IDENTIFIER, 15), (INSERT, BEGIN, 15))
-recover: succeed, parser count 4
-
-3 parsers enter second recover, 12 leave
-parser 4: State 47 Current_Token 26:(END, (611 . 613))
-Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 26:(END, (611 . 613))
-main_task_01003188 4: (47 :  25:(IDENTIFIER, (605 . 608)), 256 :  24:(COMMA, (603 . 603)), 187 : (association_list, (596 . 602)), 111 :  22:(LEFT_PAREN, (595 . 595)), 317 : (name, (574 . 593)), 337 : (relational_operator, (571 . 572)), 364 : (simple_expression, (569 . 569)), 149 :  18:(IF, (566 . 567)), 111 : (LEFT_PAREN), 719 : (name), 555 : (null_exclusion_opt), 435 :  16:(COLON, (555 . 555)), 267 :  15:(IDENTIFIER, (543 . 553)), 274 : (declarations, (513 . 537)), 136 :  7:(IS, (507 . 508)), 131 : (aspect_specification_opt), 42 : (subprogram_specification, (478 . 505)), 26 : (overriding_indicator_opt), 0 : )
- 4: enqueue: 0, Error (END, (611 . 613)) (47 : (IDENTIFIER, (605 . 608)))| 26:(END 22:0)|()
-
-parser 3: State 47 Current_Token 26:(END, (611 . 613))
-Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 26:(END, (611 . 613))
-main_task_01003188 3: (47 :  25:(IDENTIFIER, (605 . 608)), 256 :  24:(COMMA, (603 . 603)), 187 : (association_list, (596 . 602)), 111 :  22:(LEFT_PAREN, (595 . 595)), 317 : (name, (574 . 593)), 337 : (relational_operator, (571 . 572)), 364 : (simple_expression, (569 . 569)), 596 :  18:(IF, (566 . 567)), 643 :  17:(BEGIN, (557 . 561)), 609 : (block_label_opt, (543 . 555)), 382 : (BEGIN), 377 : (declarative_part_opt, (513 . 537)), 136 :  7:(IS, (507 . 508)), 131 : (aspect_specification_opt), 42 : (subprogram_specification, (478 . 505)), 26 : (overriding_indicator_opt), 0 : )
- 3: enqueue: 0, Error (END, (611 . 613)) (47 : (IDENTIFIER, (605 . 608)))| 26:(END 22:0)|()
-
-parser 2: State 47 Current_Token 26:(END, (611 . 613))
-Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 26:(END, (611 . 613))
-main_task_01003188 2: (47 :  25:(IDENTIFIER, (605 . 608)), 256 :  24:(COMMA, (603 . 603)), 187 : (association_list, (596 . 602)), 111 :  22:(LEFT_PAREN, (595 . 595)), 317 : (name, (574 . 593)), 337 : (relational_operator, (571 . 572)), 364 : (simple_expression, (569 . 569)), 596 :  18:(IF, (566 . 567)), 382 :  17:(BEGIN, (557 . 561)), 377 : (declarative_part_opt, (513 . 555)), 136 :  7:(IS, (507 . 508)), 131 : (aspect_specification_opt), 42 : (subprogram_specification, (478 . 505)), 26 : (overriding_indicator_opt), 0 : )
- 2: enqueue: 0, Error (END, (611 . 613)) (47 : (IDENTIFIER, (605 . 608)))| 26:(END 22:0)|()
-
-
- 4: succeed 4, enqueue 484, check  44, cost:  4
-spawn parser 5 from 4 (4 active)
- 5:  4, Error (END, (611 . 613)) (47 : (IDENTIFIER, (605 . 608)))| 28:(DOT 22:7)|((DELETE, END, 26), (DELETE, IDENTIFIER, 27))
-spawn parser 6 from 4 (5 active)
- 6:  4, Error (END, (611 . 613)) (256 : (COMMA, (603 . 603)))| 27:(IDENTIFIER 22:4)|((PUSH_BACK, IDENTIFIER, 25), (DELETE, IDENTIFIER, 25), (DELETE, END, 26))
-spawn parser 7 from 4 (6 active)
- 7:  4, Error (END, (611 . 613)) (111 : (LEFT_PAREN))| 27:(IDENTIFIER 22:4)|((INSERT, LEFT_PAREN, 26), (DELETE, END, 26))
- 4:  4, Error (END, (611 . 613)) (256 : (COMMA))| 27:(IDENTIFIER 22:4)|((INSERT, COMMA, 26), (DELETE, END, 26))
- 2: succeed 4, enqueue 494, check  44, cost:  4
-spawn parser 8 from 2 (7 active)
- 8:  4, Error (END, (611 . 613)) (256 : (COMMA, (603 . 603)))| 27:(IDENTIFIER 22:4)|((PUSH_BACK, IDENTIFIER, 25), (DELETE, IDENTIFIER, 25), (DELETE, END, 26))
-spawn parser 9 from 2 (8 active)
- 9:  4, Error (END, (611 . 613)) (47 : (IDENTIFIER, (605 . 608)))| 28:(DOT 22:7)|((DELETE, END, 26), (DELETE, IDENTIFIER, 27))
-spawn parser 10 from 2 (9 active)
- 10:  4, Error (END, (611 . 613)) (111 : (LEFT_PAREN))| 27:(IDENTIFIER 22:4)|((INSERT, LEFT_PAREN, 26), (DELETE, END, 26))
- 2:  4, Error (END, (611 . 613)) (256 : (COMMA))| 27:(IDENTIFIER 22:4)|((INSERT, COMMA, 26), (DELETE, END, 26))
- 1: succeed 4, enqueue 494, check  44, cost:  4
-spawn parser 11 from 1 (10 active)
- 11:  4, Error (END, (611 . 613)) (47 : (IDENTIFIER, (605 . 608)))| 28:(DOT 22:7)|((DELETE, END, 26), (DELETE, IDENTIFIER, 27))
-spawn parser 12 from 1 (11 active)
- 12:  4, Error (END, (611 . 613)) (256 : (COMMA, (603 . 603)))| 27:(IDENTIFIER 22:4)|((PUSH_BACK, IDENTIFIER, 25), (DELETE, IDENTIFIER, 25), (DELETE, END, 26))
-spawn parser 13 from 1 (12 active)
- 13:  4, Error (END, (611 . 613)) (111 : (LEFT_PAREN))| 27:(IDENTIFIER 22:4)|((INSERT, LEFT_PAREN, 26), (DELETE, END, 26))
- 1:  4, Error (END, (611 . 613)) (256 : (COMMA))| 27:(IDENTIFIER 22:4)|((INSERT, COMMA, 26), (DELETE, END, 26))
-recover: succeed, parser count 12
-
-3 enter 3rd recover, fail
-
-state 47 name <= IDENTIFIER ^, ; dot at end; look at next stack item
-state 256 association_list <= association_list COMMA ^ association_opt, ; dot before empty at end; next
-state 187 actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN ; dot before terminal; insert right_paren
-    not "complete current nonterm", but definitely prunes search space.
-    don't insert terminals whose action is reduce; look up the stack instead.
-        in o.w.s-1
-
 emacs track parse-max, don't reparse just for different action; just execute action.
-    o.e.a.s-4
 
 wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
     include package name in error message fix

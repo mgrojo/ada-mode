@@ -30,4 +30,11 @@ package WisiToken.LR.McKenzie_Recover.Ada is
       Config            : in     Configuration)
      return Non_Success_Status;
 
+   function Constrain_Terminals
+     (Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Table        : in     Parse_Table;
+      Config       : in     Configuration)
+     return WisiToken.Token_ID_Set;
+
 end WisiToken.LR.McKenzie_Recover.Ada;
