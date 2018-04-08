@@ -287,6 +287,13 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end return;
    end To_Vector;
 
+   function "+" (Element : in Element_Type) return Vector
+   is begin
+      return Result : Vector do
+         Result.Append (Element);
+      end return;
+   end "+";
+
    function "&" (Left, Right : in Element_Type) return Vector
    is begin
       return Result : Vector do

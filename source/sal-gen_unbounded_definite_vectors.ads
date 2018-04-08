@@ -105,6 +105,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector;
 
+   function "+" (Element : in Element_Type) return Vector;
+
    function "&" (Left, Right : in Element_Type) return Vector;
    function "&" (Left : in Vector; Right : in Element_Type) return Vector;
 
