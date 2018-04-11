@@ -281,7 +281,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
       use all type Wisi.Lexer_Type;
       use all type Wisi.Interface_Type;
       use all type Wisi.Output_Language_Type;
-      use all type Wisi.Parser_Algorithm_Type;
+      use all type Wisi.Generator_Algorithm_Type;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
    begin
@@ -397,9 +397,11 @@ package body WisiToken.Wisi_Grammar_Runtime is
                      end if;
 
                   elsif Kind = "mckenzie_check_limit" then
+                     Data.Generate_Params.Error_Recover := True;
                      Data.McKenzie_Recover.Check_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
                   elsif Kind = "mckenzie_cost_default" then
+                     Data.Generate_Params.Error_Recover := True;
                      Data.McKenzie_Recover.Default_Insert          := Natural'Value
                        (Get_Child_Text (Data, Tree, Tokens (3), 1));
                      Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
@@ -412,16 +414,19 @@ package body WisiToken.Wisi_Grammar_Runtime is
                        (Get_Child_Text (Data, Tree, Tokens (3), 5));
 
                   elsif Kind = "mckenzie_cost_delete" then
+                     Data.Generate_Params.Error_Recover := True;
                      Data.McKenzie_Recover.Delete.Append
                        ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                          +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                   elsif Kind = "mckenzie_cost_insert" then
+                     Data.Generate_Params.Error_Recover := True;
                      Data.McKenzie_Recover.Insert.Append
                        ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                          +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                   elsif Kind = "mckenzie_cost_limit" then
+                     Data.Generate_Params.Error_Recover := True;
                      Data.McKenzie_Recover.Cost_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
 
                   elsif Kind = "no_language_runtime" then
@@ -433,9 +438,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
                           (Get_Text (Data, Tree, Tokens (3)));
                      end if;
 
-                  elsif Kind = "parser_algorithm" then
-                     if Data.Generate_Params.Parser_Algorithm = None then
-                        Data.Generate_Params.Parser_Algorithm := Wisi.Valid_Parser_Algorithm'Value
+                  elsif Kind = "generator_algorithm" then
+                     if Data.Generate_Params.Generator_Algorithm = None then
+                        Data.Generate_Params.Generator_Algorithm := Wisi.Valid_Generator_Algorithm'Value
                           (Get_Text (Data, Tree, Tokens (3)));
                      end if;
 
@@ -449,7 +454,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
 
                   else
                      Put_Error (Error_Message (-Data.Input_File_Name, Token.Line, Token.Col, "unexpected syntax"));
-                     raise WisiToken.Grammar_Error;
+                     raise WisiToken.Syntax_Error;
 
                   end if;
                end;

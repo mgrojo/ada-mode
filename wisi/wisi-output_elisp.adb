@@ -52,13 +52,13 @@ is
 
    Parser : WisiToken.LR.Parse_Table_Ptr;
 
-   procedure Create_Elisp (Algorithm : in Single_Parser_Algorithm)
+   procedure Create_Elisp (Algorithm : in Single_Generator_Algorithm)
    is
       use Standard.Ada.Strings.Unbounded;
       File            : File_Type;
       Elisp_Package_1 : Unbounded_String;
    begin
-      case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
+      case Valid_Generator_Algorithm (Params.Generator_Algorithm) is
       when LALR | LR1 =>
             Elisp_Package_1 := +Elisp_Package;
       when LALR_LR1 =>
@@ -126,9 +126,9 @@ is
 
    use all type WisiToken.Unknown_State_Index;
 begin
-   case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
+   case Valid_Generator_Algorithm (Params.Generator_Algorithm) is
    when LALR | LR1 =>
-      Create_Elisp (Params.Parser_Algorithm);
+      Create_Elisp (Params.Generator_Algorithm);
    when LALR_LR1 =>
       Create_Elisp (LALR);
       Create_Elisp (LR1);

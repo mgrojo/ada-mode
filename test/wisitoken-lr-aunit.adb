@@ -172,9 +172,21 @@ package body WisiToken.LR.AUnit is
       Expected : in Config_Op)
    is
       use WisiToken.AUnit;
+      use Standard.AUnit.Checks.Containers;
    begin
       Check (Label & ".op", Computed.Op, Expected.Op);
-      Check (Label & ".id", Computed.ID, Expected.ID);
+      case Computed.Op is
+      when Fast_Forward =>
+         Check (Label & ".ff_token_index", Computed.FF_Token_Index, Expected.FF_Token_Index);
+
+      when Undo_Reduce =>
+         Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
+         Check (Label & ".id", Computed.Token_Count, Expected.Token_Count);
+
+      when Push_Back | Insert | Delete =>
+         Check (Label & ".id", Computed.ID, Expected.ID);
+         Check (Label & ".token_index", Computed.Token_Index, Expected.Token_Index);
+      end case;
    end Check;
 
    procedure Check

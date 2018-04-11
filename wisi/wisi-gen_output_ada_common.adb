@@ -72,7 +72,13 @@ package body Wisi.Gen_Output_Ada_Common is
             Put_Line ("with WisiToken.Semantic_State;");
          end case;
       end case;
-      Put_Line ("with WisiToken.LR.Parser;");
+
+      if Params.Error_Recover then
+         Put_Line ("with WisiToken.LR.Parser;");
+      else
+         Put_Line ("with WisiToken.LR.Parser_No_Recover;");
+      end if;
+
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
@@ -195,11 +201,15 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-         Indent_Line ("   Algorithm                    : in     WisiToken.Parser_Algorithm_Type;");
+         if Params.Error_Recover then
+            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
+            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
+            Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+         else
+            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
+         end if;
+         Indent_Line ("   Algorithm                    : in     WisiToken.Generator_Algorithm_Type;");
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
-         Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
          Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);");
          New_Line;
 
@@ -210,11 +220,16 @@ package body Wisi.Gen_Output_Ada_Common is
 
          when Process =>
             Indent_Line ("procedure Create_Parser");
-            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Algorithm                    : in     WisiToken.Parser_Algorithm_Type;");
+            if Params.Error_Recover then
+               Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
+               Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
+               Indent_Line
+                 ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+            else
+               Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
+            end if;
+            Indent_Line ("   Algorithm                    : in     WisiToken.Generator_Algorithm_Type;");
             Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
-            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
-            Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
             Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);");
             New_Line;
 
@@ -629,10 +644,10 @@ package body Wisi.Gen_Output_Ada_Common is
    end Create_re2c;
 
    procedure Create_Create_Parser
-     (Parser_Algorithm   : in Valid_Parser_Algorithm;
-      Interface_Kind     : in Interface_Type;
-      First_State_Index  : in Integer;
-      First_Parser_Label : in Integer)
+     (Generator_Algorithm : in Valid_Generator_Algorithm;
+      Interface_Kind      : in Interface_Type;
+      First_State_Index   : in Integer;
+      First_Parser_Label  : in Integer)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -641,12 +656,17 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("procedure Create_Parser");
       case Interface_Kind is
       when None | Process =>
-         Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-         Indent_Line ("   Algorithm                    : in     WisiToken.Parser_Algorithm_Type;");
+         if Params.Error_Recover then
+            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
+            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
+            Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+         else
+            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
+         end if;
+         Indent_Line ("   Algorithm                    : in     WisiToken.Generator_Algorithm_Type;");
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
-         Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
          Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)");
+
       when Module =>
          Indent_Line ("  (Parser              :    out WisiToken.LR.Parser.Parser;");
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
@@ -657,13 +677,13 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
 
       Indent_Line ("use WisiToken.LR;");
-      Indent_Line ("use all type WisiToken.Parser_Algorithm_Type;");
+      Indent_Line ("use all type WisiToken.Generator_Algorithm_Type;");
       Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
       Indent_Line ("  (State_First       =>" & Integer'Image (First_State_Index) & ",");
       Indent := Indent + 3;
       Indent_Start ("State_Last        => ");
 
-      case Parser_Algorithm is
+      case Generator_Algorithm is
       when LALR =>
          Put_Line (WisiToken.Image (Parsers (LALR).State_Last) & ",");
 
@@ -681,7 +701,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Last_Nonterminal  => Descriptor.Last_Nonterminal);");
       Indent := Indent - 3;
 
-      case Parser_Algorithm is
+      case Generator_Algorithm is
       when LALR =>
          Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
@@ -713,15 +733,21 @@ package body Wisi.Gen_Output_Ada_Common is
       end case;
       New_Line;
 
-      Indent_Line ("WisiToken.LR.Parser.New_Parser");
+      if Params.Error_Recover then
+         Indent_Line ("WisiToken.LR.Parser.New_Parser");
+      else
+         Indent_Line ("WisiToken.LR.Parser_No_Recover.New_Parser");
+      end if;
       Indent_Line ("  (Parser,");
       case Interface_Kind is
       when None | Process =>
          Indent_Line ("   Trace,");
          Indent_Line ("   Lexer.New_Lexer (Trace),");
          Indent_Line ("   Table,");
-         Indent_Line ("   Language_Fixes,");
-         Indent_Line ("   Language_Constrain_Terminals,");
+         if Params.Error_Recover then
+            Indent_Line ("   Language_Fixes,");
+            Indent_Line ("   Language_Constrain_Terminals,");
+         end if;
          Indent_Line ("   User_Data,");
          Indent_Line ("   Max_Parallel         => 15,");
          Indent_Line ("   First_Parser_Label   => " & WisiToken.Int_Image (First_Parser_Label) & ",");
@@ -1014,7 +1040,7 @@ package body Wisi.Gen_Output_Ada_Common is
          use Wisi.Utils;
          Quit : Boolean := False;
       begin
-         Data.Parser_Algorithm := Params.Parser_Algorithm;
+         Data.Generator_Algorithm := Params.Generator_Algorithm;
 
          if Params.Lexer in Valid_Lexer then
             Data.Lexer := Valid_Lexer (Params.Lexer);

@@ -67,12 +67,9 @@ package body WisiToken is
       raise Programmer_Error with "token name '" & Name & "' not found in descriptor.image";
    end Find_ID;
 
-   function To_Token_ID_Set
-     (Item       : in Token_ID_Array;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return Token_ID_Set
+   function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set
    is begin
-      return Result : Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal) := (others => False)
+      return Result : Token_ID_Set := (First .. Last => False)
       do
          for ID of Item loop
             Result (ID) := True;
@@ -341,11 +338,7 @@ package body WisiToken is
       use all type Ada.Text_IO.Count;
       ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
    begin
-      if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
-         return "(" & ID_Image &
-           Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
-
-      elsif Item.Char_Region = Null_Buffer_Region then
+      if Item.Char_Region = Null_Buffer_Region then
          return "(" & ID_Image & ")";
 
       else

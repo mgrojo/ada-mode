@@ -31,7 +31,7 @@ with Wisi.Output_Ada;
 with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
 with Wisi.Output_Elisp_Common;
-with WisiToken.LR.Parser;
+with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
 with Wisi_Grammar;
@@ -52,7 +52,7 @@ is
       Put_Line (Standard_Error, "The following grammar file directives control parser generation:");
       Put_Line (Standard_Error, "%first_state_index <n> - default 0");
       Put_Line (Standard_Error, "%first_parser_label <n> -  default 0");
-      Put_Line (Standard_Error, "%parser_algorithm {LALR | LR1 | LALR_LR1}");
+      Put_Line (Standard_Error, "%generator_algorithm {LALR | LR1 | LALR_LR1}");
       Put_Line (Standard_Error, "   LALR_LR1 generates both parsers; choice is made at parser run-time.");
       Put_Line (Standard_Error, "%output_language' {Ada | Ada_Emacs | Elisp}");
       Put_Line (Standard_Error, "%lexer {re2c | Elisp | Regexp}");
@@ -81,7 +81,7 @@ is
 
    Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar.Descriptor'Access);
    Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser     : WisiToken.LR.Parser.Parser;
+   Grammar_Parser     : WisiToken.LR.Parser_No_Recover.Parser;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -93,10 +93,10 @@ is
       Output_File_Root := +Standard.Ada.Directories.Base_Name (File_Name) & Suffix;
 
       Wisi_Grammar.Create_Parser
-        (Grammar_Parser, WisiToken.LALR, Trace'Unchecked_Access,
-         Language_Fixes               => null,
-         Language_Constrain_Terminals => null,
-         User_Data                    => Grammar_Parse_Data'Unchecked_Access);
+        (Parser    => Grammar_Parser,
+         Algorithm => WisiToken.LALR,
+         Trace     => Trace'Unchecked_Access,
+         User_Data => Grammar_Parse_Data'Unchecked_Access);
 
       Grammar_Parser.Lexer.Reset_With_File (File_Name);
 
@@ -177,15 +177,15 @@ begin
                raise User_Error with "invalid value for output_language: '" & Argument (Arg_Next) & ";";
             end;
 
-         elsif Argument (Arg_Next) = "--parser_algorithm" then
+         elsif Argument (Arg_Next) = "--generator_algorithm" then
             Arg_Next  := Arg_Next + 1;
             begin
-               Grammar_Parse_Data.Generate_Params.Parser_Algorithm := Parser_Algorithm_Type'Value
+               Grammar_Parse_Data.Generate_Params.Generator_Algorithm := Generator_Algorithm_Type'Value
                  (Argument (Arg_Next));
                Arg_Next := Arg_Next + 1;
             exception
             when Constraint_Error =>
-               raise User_Error with "invalid value for parser_algorithm: '" & Argument (Arg_Next) & ";";
+               raise User_Error with "invalid value for generator_algorithm: '" & Argument (Arg_Next) & ";";
             end;
 
          elsif Argument (Arg_Next) = "--suffix" then
@@ -209,9 +209,6 @@ begin
    begin
       Grammar_Parser.Parse;
       Grammar_Parser.Execute_Actions;
-      if Grammar_Parser.Any_Errors then
-         raise WisiToken.Syntax_Error;
-      end if;
    exception
    when WisiToken.Syntax_Error =>
       Grammar_Parser.Put_Errors (-Grammar_Parse_Data.Input_File_Name);

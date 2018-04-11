@@ -23,7 +23,7 @@
 %first_parser_label 1
 
 ;; LR1 gives different conflict names
-%parser_algorithm LALR
+%generator_algorithm LALR
 %output_language Ada
 %lexer re2c
 

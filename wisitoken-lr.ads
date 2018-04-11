@@ -377,25 +377,30 @@ package WisiToken.LR is
       --  will be left on the main stack). We also store IDs, so we can
       --  check that everything is in sync, and for debugging.
 
-      ID : Token_ID;
-      --  For Fast_Forward, ID is EOF.
-      --  For Undo_Reduce | Push_Back, ID is the nonterm ID popped off the stack.
-      --  For Insert | Delete, ID is the token inserted or deleted.
-
       case Op is
       when Fast_Forward =>
-         null;
+         FF_Token_Index : WisiToken.Token_Index;
+         --  Config.Current_Shared_Token after the operation is done.
 
       when Undo_Reduce =>
+         Nonterm     : Token_ID;
          Token_Count : Ada.Containers.Count_Type;
          --  The number of tokens pushed on the stack.
-         --  ID is the nonterminal.
+         --  Nonterm is the nonterminal popped off the stack.
 
       when Push_Back | Insert | Delete =>
-         Token_Index : WisiToken.Token_Index;
-         --  The position in the input stream after the operation is done.
-         --  Multiple tokens may be pushed/inserted/deleted in one operation;
-         --  ID is the first of those.
+         ID : Token_ID;
+         --  For Push_Back, ID is the nonterm ID popped off the stack.
+         --  For Insert | Delete, ID is the token inserted or deleted.
+
+         Token_Index : WisiToken.Base_Token_Index;
+         --  For Push_Back, Token_Index is Config.Current_Shared_Token after
+         --  the operation is done. If the token is empty, Token_Index is
+         --  Invalid_Token_Index.
+         --
+         --  For Insert, ID is inserted before Token_Index.
+         --
+         --  For Delete, token at Token_Index is deleted.
 
       end case;
    end record;
@@ -410,19 +415,23 @@ package WisiToken.LR is
    --  parameter plus an arbitrary number from the language-specific
    --  repairs; in practice, a capacity of 80 is enough so far.
 
-   function Config_Op_Array_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
-     is ("(" & Config_Op_Label'Image (Item.Op) & ", " & Image (Item.ID, Descriptor) &
+   function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
+     is ("(" & Config_Op_Label'Image (Item.Op) & ", " &
            (case Item.Op is
-            when Fast_Forward => "",
-            when Undo_Reduce => "," & Ada.Containers.Count_Type'Image (Item.Token_Count),
-            when Push_Back | Insert | Delete => "," & WisiToken.Token_Index'Image (Item.Token_Index))
+            when Fast_Forward => WisiToken.Token_Index'Image (Item.FF_Token_Index),
+            when Undo_Reduce => Image (Item.Nonterm, Descriptor) & "," &
+                 Ada.Containers.Count_Type'Image (Item.Token_Count),
+            when Push_Back | Insert | Delete => Image (Item.ID, Descriptor) & "," &
+                 WisiToken.Token_Index'Image (Item.Token_Index))
            & ")");
 
    function Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
-     renames Config_Op_Array_Image;
+     renames Config_Op_Image;
 
    function Image is new Config_Op_Queues.Gen_Image_Aux (WisiToken.Descriptor, Image);
-   function Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Config_Op_Array_Image is new Config_Op_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image (Item : in Config_Op_Arrays.Vector; Descriptor : in WisiToken.Descriptor) return String
+     renames Config_Op_Array_Image;
 
    function None (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is (for all O of Ops => O.Op /= Op);
@@ -514,7 +523,6 @@ package WisiToken.LR is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : in     WisiToken.Lexer.Handle;
       Parser_Label      : in     Natural;
-      McKenzie_Param    : in     McKenzie_Param_Type;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;

@@ -690,7 +690,7 @@ package body WisiToken.LR is
            ", found" & Tree.Image (Item.Error_Token, Descriptor);
 
       when Check =>
-         return "Check: " & Semantic_Checks.Image (Item.Check_Status, Descriptor);
+         return "Check, " & Semantic_Checks.Image (Item.Check_Status, Descriptor);
       end case;
    end Image;
 

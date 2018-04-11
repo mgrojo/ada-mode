@@ -43,7 +43,7 @@
 %non_grammar <comment> COMMENT %[ "--"[^\n]* ]%
 
 %start compilation_unit
-%parser_algorithm LALR
+%generator_algorithm LALR
 %output_language Ada_Emacs
 %lexer Elisp
 
@@ -130,11 +130,6 @@ subprogram
       (wisi-containing-action 1 2)
       (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0])))%
-    %((wisi-match-names 2 5 nil))%
- ;; We don't have procedures nested in another named statement, so we
- ;; can't test that 'wisi-match-names' actually helps here (note that
- ;; there are no McKenzie parameters defined). But this serves to test
- ;; that wisi-output_ada_emacs generates check source code properly.
   ;
 
 subtype

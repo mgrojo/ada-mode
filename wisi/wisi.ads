@@ -49,9 +49,9 @@ package Wisi is
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
-   type Parser_Algorithm_Type is (None, LALR, LR1, LALR_LR1);
-   subtype Valid_Parser_Algorithm is Parser_Algorithm_Type range LALR .. LALR_LR1;
-   subtype Single_Parser_Algorithm is Parser_Algorithm_Type range LALR .. LR1;
+   type Generator_Algorithm_Type is (None, LALR, LR1, LALR_LR1);
+   subtype Valid_Generator_Algorithm is Generator_Algorithm_Type range LALR .. LALR_LR1;
+   subtype Single_Generator_Algorithm is Generator_Algorithm_Type range LALR .. LR1;
 
    type Output_Language_Type is (None, Ada, Ada_Emacs, Elisp);
    subtype Valid_Output_Language is Output_Language_Type range Ada .. Elisp;
@@ -77,15 +77,16 @@ package Wisi is
    type Generate_Param_Type is record
       --  Set by grammar file declarations. Error recover parameters
       --  are elsewhere.
-      Case_Insensitive          : Boolean               := False;
+      Case_Insensitive          : Boolean                  := False;
       End_Names_Optional_Option : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      First_Parser_Label        : Integer               := 0;
-      First_State_Index         : Integer               := 0;
-      Interface_Kind            : Interface_Type        := None;
-      Lexer                     : Lexer_Type            := None;
-      Language_Runtime          : Boolean               := True;
-      Output_Language           : Output_Language_Type  := None;
-      Parser_Algorithm          : Parser_Algorithm_Type := None;
+      First_Parser_Label        : Integer                  := 0;
+      First_State_Index         : Integer                  := 0;
+      Interface_Kind            : Interface_Type           := None;
+      Lexer                     : Lexer_Type               := None;
+      Language_Runtime          : Boolean                  := True;
+      Error_Recover             : Boolean                  := False;
+      Output_Language           : Output_Language_Type     := None;
+      Generator_Algorithm       : Generator_Algorithm_Type := None;
       Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 

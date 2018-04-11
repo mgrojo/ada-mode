@@ -97,7 +97,7 @@ with WisiToken.Text_IO_Trace;
 %non_grammar <comment> COMMENT %[ "--"[^\n]*[\n] ]%
 
 %start compilation_unit_list
-%parser_algorithm LALR
+%generator_algorithm LALR
 %output_language Ada
 %lexer re2c
 

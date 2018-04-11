@@ -43,8 +43,6 @@ package WisiToken.LR.Parser is
       Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Does not contain
       --  virtual tokens. Tokens past Parser.Current_Token are lookahead.
-      --
-      --  We use Protected, for safe multi-task access in McKenzie_Recover.
 
       Shared_Tree : aliased Syntax_Trees.Base_Tree;
       --  Each parser (normal and recover) has its own branched syntax tree,
@@ -71,9 +69,6 @@ package WisiToken.LR.Parser is
    overriding procedure Finalize (Object : in out LR.Parser.Parser);
    --  Deep free Object.Table.
 
-   --  'Parse' is not declared here, so wisi-generate is independent of
-   --  wisitoken-lr-parser and -lr-mckenzie_recover.
-
    procedure New_Parser
      (Parser                       :    out          LR.Parser.Parser;
       Trace                        : not null access WisiToken.Trace'Class;
@@ -95,8 +90,8 @@ package WisiToken.LR.Parser is
    --  errors.
    --
    --  If recover does not succeed, raises Syntax_Error. Semantic_State
-   --  contains information about the failing error and any previous
-   --  recovered errors.
+   --  contains information about the error and any previous recovered
+   --  errors.
    --
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message. Semantic_State contains information

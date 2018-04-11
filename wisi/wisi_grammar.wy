@@ -76,7 +76,7 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 
 %output_language Ada
 %lexer re2c
-%parser_algorithm LALR
+%generator_algorithm LALR
 %start compilation_unit_list
 
 %mckenzie_cost_default 2 2 4 1 1
@@ -166,5 +166,4 @@ compilation_unit_list
   | compilation_unit_list compilation_unit
   ;
 
-%%
 ;; end of file

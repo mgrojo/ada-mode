@@ -31,12 +31,14 @@ with WisiToken.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
+   use Ada_Lite;
+   use WisiToken.LR.Config_Op_Arrays;
+   use all type WisiToken.LR.Config_Op_Label;
+   use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
    Parser : WisiToken.LR.Parser.Parser;
-
-   EOF_ID : WisiToken.Token_ID renames Ada_Lite.Descriptor.EOF_ID;
 
    Orig_Params : WisiToken.LR.McKenzie_Param_Type
      (First_Terminal    => Ada_Lite.Descriptor.First_Terminal,
@@ -45,6 +47,10 @@ package body Test_McKenzie_Recover is
       Last_Nonterminal  => Ada_Lite.Descriptor.Last_Nonterminal);
 
    Orig_End_Name_Optional : Boolean;
+
+   Empty_Token_ID_Set : constant WisiToken.Token_ID_Set :=
+     WisiToken.To_Token_ID_Set
+       (Descriptor.First_Terminal, Descriptor.Last_Terminal, (1 .. 0 => WisiToken.Invalid_Token_ID));
 
    procedure Parse_Text
      (Text             : in String;
@@ -59,14 +65,12 @@ package body Test_McKenzie_Recover is
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
-      Parser.Lexer.Reset_With_String (Text & "   ");
-      --  Trailing spaces so final token has proper region;
-      --  otherwise it is wrapped to 1.
+      Parser.Lexer.Reset_With_String (Text);
 
       Parser.Parse;
       Parser.Execute_Actions;
 
-      if WisiToken.Trace_Parse > WisiToken.Outline then
+      if WisiToken.Trace_Action > WisiToken.Outline then
          Parser.Put_Errors (File_Name => "<string>");
       end if;
 
@@ -85,48 +89,134 @@ package body Test_McKenzie_Recover is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
 
+   procedure Check_Recover
+     (Label                   : in String                                       := "";
+      Errors_Length           : in Ada.Containers.Count_Type;
+      Error_Token_ID          : in WisiToken.Token_ID;
+      Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
+      Ops                     : in WisiToken.LR.Config_Op_Arrays.Vector := WisiToken.LR.Config_Op_Arrays.Empty_Vector;
+      Ops_Race_Condition      : in Boolean                                      := False;
+      Enqueue_Low             : in Integer;
+      Enqueue_High            : in Integer;
+      Check_Low               : in Integer;
+      Check_High              : in Integer;
+      Cost                    : in Integer;
+      Expecting               : in WisiToken.Token_ID_Set                       := Empty_Token_ID_Set;
+      Code                    : in WisiToken.Semantic_Checks.Check_Status_Label := WisiToken.Semantic_Checks.Ok)
+   is
+      use AUnit.Checks;
+      use WisiToken.AUnit;
+      use WisiToken.LR.AUnit;
+      use WisiToken.Semantic_Checks.AUnit;
+      use all type WisiToken.Buffer_Region;
+      use all type WisiToken.Token_ID;
+      use all type WisiToken.Token_ID_Set;
+      use all type WisiToken.LR.Parse_Error_Label;
+
+      Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+      Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
+      Error        : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
+   begin
+      Check (Label & ".errors.length", Parser_State.Errors.Length, Errors_Length);
+
+      if Expecting /= Empty_Token_ID_Set then
+         Check (Label & "expecting", Error.Expecting, Expecting);
+      end if;
+
+      if Code = Ok then
+         declare
+            Token : WisiToken.Recover_Token renames Parser_State.Tree.Recover_Token (Error.Error_Token);
+         begin
+            Check (Label & ".label", Error.Label, Action);
+            Check (Label & ".error_token.id", Token.ID, Error_Token_ID);
+            if Error_Token_ID /= +Wisi_EOI_ID then
+               --  EOF byte_region is unreliable
+               Check (Label & ".error_token.byte_region", Token.Byte_Region, Error_Token_Byte_Region);
+            end if;
+         end;
+      else
+         Check (Label & ".label", Error.Label, Check);
+         Check (Label & ".code", Error.Check_Status.Label, Code);
+         if Error.Check_Status.End_Name.Byte_Region = WisiToken.Null_Buffer_Region then
+            --  End_Name is empty; check begin_name
+            Check (Label & ".begin_name.id", Error.Check_Status.Begin_Name.ID, Error_Token_ID);
+            Check (Label & ".begin_name.byte_region", Error.Check_Status.Begin_Name.Byte_Region,
+                   Error_Token_Byte_Region);
+         else
+            Check (Label & ".end_name.id", Error.Check_Status.End_Name.ID, Error_Token_ID);
+            Check (Label & ".end_name.byte_region", Error.Check_Status.End_Name.Byte_Region, Error_Token_Byte_Region);
+         end if;
+      end if;
+
+      if not Ops_Race_Condition then
+         Check (Label & ".recover.ops", Error.Recover.Ops, Ops);
+      end if;
+
+      --  The enqueue count depends on a race condition; configs with costs
+      --  higher than the final solution may or may not be enqueued. So we
+      --  test a range; we want to know if it gets a lot higher when we
+      --  change something. Similarly for Check_Low, _High.
+      --
+      --  Recover does not come from the same parser as Error if the
+      --  succeeding parser was spawned after error recovery, but we copy
+      --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
+      Check_Range (Label & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
+      Check_Range (Label & ".check", Parser_State.Recover.Check_Count, Check_Low, Check_High);
+      Check (Label & ".cost", Error.Recover.Cost, Cost);
+
+   end Check_Recover;
+
    ----------
    --  Test procedures
 
    procedure No_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
    begin
-      --  The test is that there is no exception.
+      --  The test is that there is no exception and no errors.
 
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
+      Check ("errors length", Parser.Parsers.First.State_Ref.Errors.Length, 0);
    end No_Error;
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
       use AUnit.Checks;
    begin
       Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;");
       --           1        |10       |20       |30       |40
       --  Missing "if" in "end if;"
       --
-      --  error 1 at ';' 39, expecting 'if'. Inserts 'if', succeeds.
+      --  error 1 at ';' 44, expecting 'if'. Inserts 'if', succeeds.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +SEMICOLON_ID,
+         Error_Token_Byte_Region => (44, 44),
+         Ops                     => +(Insert, +IF_ID, 11),
+         Enqueue_Low             => 25,
+         Enqueue_High            => 40,
+         Check_Low               => 6,
+         Check_High              => 10,
+         Cost                    => 2);
    end Error_1;
 
    procedure Error_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
       use AUnit.Checks;
    begin
       Parse_Text
         ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc; ");
       --  |1       |10       |20       |30       |40       |50       |60       |70       |80       |90
+      --  1         2    3  4     5      6 7     8  9 10 11  13 14  15  16     17 18 19  21  22  23
+      --                                                   12                          20
+
       --  Missing "begin" for Block_2.
       --
       --  Error 1 at 'Block_2' 63, expecting 'if'. It finds (push_back 'end'
@@ -141,26 +231,30 @@ package body Test_McKenzie_Recover is
       --  block; insert begin before end.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
-
-      declare
-         use WisiToken.LR;
-         Error_List : Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (63, 69),
+         Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
+           (Delete,  +END_ID, 15),
+         Enqueue_Low             => 50,
+         Enqueue_High            => 93,
+         Check_Low               => 18,
+         Check_High              => 27,
+         Cost                    => 1);
    end Error_2;
 
    procedure Error_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
       use AUnit.Checks;
    begin
       Parse_Text
         ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; "
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
-         );
+         --  1      2     3  4     5    6     7  9  10     12 13     15  16  18   19   20 22 23    25  26 27 28   29
+         --                                    8      11        14         17           21     24
+        );
       --  Missing "end if" at 67.
       --
       --  Enters error recovery on ';' 84 expecting 'IF'. Inserts 'IF ;
@@ -168,39 +262,27 @@ package body Test_McKenzie_Recover is
       --  Check_Limit = 2, only inserts 'if ;', and errors again on 'loop'
       --  90.
 
-      declare
-         use WisiToken.AUnit;
-         use WisiToken.LR;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Parse_Error_Lists;
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
-         Cursor       : constant Parse_Error_Lists.Cursor := Error_List.First;
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-
-         Check ("1.error token.id", Tree.ID (Element (Cursor).Error_Token), +SEMICOLON_ID);
-         Check
-           ("1.error token.byte_region",
-            Tree.Recover_Token (Element (Cursor).Error_Token).Byte_Region,
-            (84, 84));
-
-         Check
-           ("1.expecting", Element (Cursor).Expecting, To_Token_ID_Set
-               (Descriptor.First_Terminal,
-                Descriptor.Last_Terminal,
-               (1 => +IF_ID)));
-
-         --  Confirm that the subprogram_body was parsed:
-         Check ("action_count", Action_Count (+subprogram_body_ID), 1);
-      end;
+      --  Confirm that the subprogram_body was parsed:
+      Check ("action_count", Action_Count (+subprogram_body_ID), 1);
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +SEMICOLON_ID,
+         Error_Token_Byte_Region => (84, 84),
+         Ops                     => +(Insert, +IF_ID, 23) & (Insert, +SEMICOLON_ID, 23) & (Insert, +END_ID, 23),
+         Enqueue_Low             => 71,
+         Enqueue_High            => 110,
+         Check_Low               => 18,
+         Check_High              => 27,
+         Cost                    => 4,
+         Expecting               => WisiToken.To_Token_ID_Set
+           (Descriptor.First_Terminal,
+            Descriptor.Last_Terminal,
+            (1                   => +IF_ID)));
    end Error_3;
 
    procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
@@ -217,24 +299,29 @@ package body Test_McKenzie_Recover is
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
    begin
-      Parse_Text ("procedure Debug is begin A; ");
+      Parse_Text ("procedure Debug is begin A;");
+      --                    |10       |20
       --           1         2     3  4     5 6 = SEMICOLON, 7 = Wisi_EOI
       --  Missing "end;"
       --
       --  Inserts 'end ;', continues to EOF, succeeds
       --  Test hitting EOF and Accept_It in error recovery
-      Check ("errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +Wisi_EOI_ID,
+         Error_Token_Byte_Region => (27, 27),
+         Ops                     => +(Insert, +END_ID, 7) & (Insert, +SEMICOLON_ID, 7),
+         Enqueue_Low             => 60,
+         Enqueue_High            => 140,
+         Check_Low               => 8,
+         Check_High              => 21,
+         Cost                    => 2);
    end Check_Accept;
 
    procedure Extra_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
       use AUnit.Checks;
    begin
       Parse_Text
@@ -264,51 +351,31 @@ package body Test_McKenzie_Recover is
       --  sequence of declarations. That fails eventually (after spawning
       --  yet more parsers).
 
-      if WisiToken.Trace_Parse > WisiToken.Outline then
-         Parser.Put_Errors (File_Name => "<string>");
-      end if;
+      --  Confirm that both subprogram_bodys were parsed:
+      Check ("action_count", Action_Count (+subprogram_body_ID), 2);
 
-      declare
-         use WisiToken.AUnit;
-         use WisiToken.LR;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.Config_Op_Arrays;
-
-         Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
-         Cursor       : constant Parse_Error_Lists.Cursor := Error_List.First;
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-
-         Check ("1.error token.id", Tree.ID (Element (Cursor).Error_Token), +PROCEDURE_ID);
-         Check
-           ("1.error token.byte_region",
-            Tree.Recover_Token (Element (Cursor).Error_Token).Byte_Region,
-            (26, 34));
-
-         Check
-           ("1.recover.ops", Element (Cursor).Recover.Ops,
-            +(Push_Back, +BEGIN_ID, 1) &
-              (Push_Back, +declarative_part_opt_ID, 1) &
-              (Delete, +BEGIN_ID, 1));
-
-         --  Confirm that both subprogram_bodys were parsed:
-         Check ("action_count", Action_Count (+subprogram_body_ID), 2);
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +PROCEDURE_ID,
+         Error_Token_Byte_Region => (26, 34),
+         Ops                     =>
+           +(Push_Back, +BEGIN_ID, 4) &
+             (Push_Back, +declarative_part_opt_ID, 4) &
+             (Delete, +BEGIN_ID, 4),
+         Enqueue_Low             => 63,
+         Enqueue_High            => 110,
+         Check_Low               => 11,
+         Check_High              => 17,
+         Cost                    => 1);
    end Extra_Begin;
 
    procedure Conflict_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
    begin
       Parse_Text
         ("procedure Check_1 is end begin end Check_1;");
-      --        |10       |20       |30       |40       |50       |60       |70       |80
+      --           |10       |20       |30       |40
 
       --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
       --
@@ -328,7 +395,17 @@ package body Test_McKenzie_Recover is
       --  hitting the cost limit after trying hundreds of possible
       --  solutions.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
+      Check_Recover
+        (Label                   => "1",
+         Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (22, 24),
+         Ops                     => +(Delete, +END_ID, 4),
+         Enqueue_Low             => 10,
+         Enqueue_High            => 25,
+         Check_Low               => 5,
+         Check_High              => 20,
+         Cost                    => 1);
 
       --  Symmetric case where generic_instantiation is desired
 
@@ -336,7 +413,7 @@ package body Test_McKenzie_Recover is
 
       Parse_Text
         ("procedure Check_2 is end new Check_2;");
-      --        |10       |20       |30       |40       |50       |60       |70       |80
+      --           |10       |20       |30       |40       |50       |60       |70       |80
 
       --  Syntax error (extra 'end' 22) while two parsers are sorting out a
       --  conflict.
@@ -349,36 +426,46 @@ package body Test_McKenzie_Recover is
       --  This is an example of adjusting the cost limit to allow conflict
       --  resolution.
 
-      Check ("2 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
+      Check_Recover
+        (Label                   => "2",
+         Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (22, 24),
+         Ops                     => +(Delete, +END_ID, 4),
+         Enqueue_Low             => 7,
+         Enqueue_High            => 25,
+         Check_Low               => 3,
+         Check_High              => 7,
+         Cost                    => 1);
    end Conflict_1;
 
    procedure Conflict_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
    begin
       Parse_Text
         ("function Find_Path return Path is begin return Result : Path (1 .. Result_Length) end Find_Path; "
          --        |10       |20       |30       |40       |50       |60       |70       |80
-         );
+        );
       --  Syntax error (missing ';' (and rest of extended return) at
       --  82) while two parsers are sorting out a conflict.
       --
-      --  Both have pending push_token, which used to mess up the
-      --  lookahead queue.
-      --
       --  both insert semicolon, which leads to identical stacks.
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (83, 85),
+         Ops                     => +(Insert, +SEMICOLON_ID, 16),
+         Enqueue_Low             => 5,
+         Enqueue_High            => 16,
+         Check_Low               => 3,
+         Check_High              => 9,
+         Cost                    => 1);
    end Conflict_2;
 
    procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
    begin
       Parse_Text
         ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; "
@@ -389,35 +476,64 @@ package body Test_McKenzie_Recover is
       --  Enter recover at 'is' 69; expecting 'return'. Inserts 'return IDENTIFIER'.
       --  continues to eof, succeeds.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +IS_ID,
+         Error_Token_Byte_Region => (69, 70),
+         Ops                     => +(Insert, +RETURN_ID, 11) & (Insert, +IDENTIFIER_ID, 11),
+         Enqueue_Low             => 35,
+         Enqueue_High            => 165,
+         Check_Low               => 12,
+         Check_High              => 18,
+         Cost                    => 6);
    end Missing_Return;
 
    procedure Loop_Bounds (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Check ("Check_Limit", Parser.Table.McKenzie_Param.Check_Limit, 3);
+
       Parse_Text
-        ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end;"
+        ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;"
          --        |10       |20       |30       |40       |50       |60       |70       |80
+         --    1    2   3  4     5   6 7  8 9  10            11   12   13 14 15 16 17
         );
       --  'To' should be '..'
       --
       --  error 1 at 'To' 35; expecting '..'.
-      --  with Check_Token_Limit = 3, pops "1", deletes To, leaving Result_Length as subtype
-      --  continues to eof, succeeds.
+      --
+      --  The desired solution is '(insert, "..") (delete "To")' cost 8.
+      --
+      --  With no cost for fast_forward, recover finds '(push_back&delete,
+      --  "1") (fast_forward "To") (insert, "loop") (fast_forward
+      --  "Result_Length") (insert ";")' cost 7. That encounters another
+      --  error at 'end' 67.
+      --
+      --  This is the motivation for a cost for fast_forward; with that, it
+      --  finds two cost 8 solutions; the desired one, and
+      --  '(push_back&delete, "1") (delete "To")'. That treats
+      --  "Result_Length" as a subtype.
+      --
+      --  Both solutions continue to EOF; then the one with the longer
+      --  recover ops is terminated.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (35, 36),
+         Ops                     => +(Insert, +DOT_DOT_ID, 9) & (Delete, +IDENTIFIER_ID, 9),
+         Enqueue_Low             => 350,
+         Enqueue_High            => 425,
+         Check_Low               => 65,
+         Check_High              => 75,
+         Cost                    => 8);
    end Loop_Bounds;
 
    procedure Pattern_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
    begin
       --  We used to need a pattern to find a solution to these quickly, now
       --  it just works.
@@ -425,47 +541,90 @@ package body Test_McKenzie_Recover is
 
       Parse_Text
         ("procedure Test_CASE_1 is begin case I is when 1 => A; end;"
-         --        |10       |20       |30       |40       |50       |60       |70       |80
+         --        |10       |20       |30       |40       |50       |60
+         --  1      2           3  4     5    6 7  8    9 10 11 13 14
+         --                                                   12
         );
       --  Missing 'end case;'
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        ("1",
+         Errors_Length           => 1,
+         Error_Token_ID          => +SEMICOLON_ID,
+         Error_Token_Byte_Region => (58, 58),
+         Ops                     => +(Insert, +CASE_ID, 14) & (Insert, +SEMICOLON_ID, 14) & (Insert, +END_ID, 14),
+         Enqueue_Low             => 25,
+         Enqueue_High            => 35,
+         Check_Low               => 10,
+         Check_High              => 12,
+         Cost                    => 5);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
       Parse_Text
         ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;"
-         --        |10       |20       |30       |40       |50       |60       |70       |80
+         --        |10       |20       |30       |40       |50       |60       |70
+         --  1      2           3  4     5    6 7  8    9 10 11 13  14         15
+         --                                                   12
         );
       --  Missing 'end case;'
       --
       --  error 1 at ';' 56; expecting 'case'.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        ("2",
+         Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (59, 69),
+         Ops                     => +(Insert, +CASE_ID, 14) & (Insert, +SEMICOLON_ID, 14) & (Insert, +END_ID, 14),
+         Enqueue_Low             => 35,
+         Enqueue_High            => 50,
+         Check_Low               => 11,
+         Check_High              => 13,
+         Cost                    => 5);
 
       Parse_Text
         ("procedure Test_IF is begin if A then B; end;");
-      --        |10       |20       |30       |40       |50       |60       |70       |80
+      --           |10       |20       |30       |40
+      --  1         2       3  4     5  6 7    8  10 11
+      --                                        9
 
       --  Missing 'end if;'
-
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        ("3",
+         Errors_Length           => 1,
+         Error_Token_ID          => +SEMICOLON_ID,
+         Error_Token_Byte_Region => (44, 44),
+         Ops                     => +(Insert, +IF_ID, 11) & (Insert, +SEMICOLON_ID, 11) & (Insert, +END_ID, 11),
+         Enqueue_Low             => 62,
+         Enqueue_High            => 80,
+         Check_Low               => 13,
+         Check_High              => 17,
+         Cost                    => 4);
 
       Parse_Text
         ("procedure Test_LOOP is begin for I in A loop B; end;");
-      --        |10       |20       |30       |40       |50       |60       |70       |80
+      --           |10       |20       |30       |40       |50       |60       |70       |80
+      --  1         2         3  4     5   6 7  8 9    10 12 13
+      --                                                11
 
       --  Missing 'end loop;'
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        ("4",
+         Errors_Length           => 1,
+         Error_Token_ID          => +SEMICOLON_ID,
+         Error_Token_Byte_Region => (52, 52),
+         Ops                     => +(Insert, +LOOP_ID, 13) & (Insert, +SEMICOLON_ID, 13) & (Insert, +END_ID, 13),
+         Enqueue_Low             => 50,
+         Enqueue_High            => 70,
+         Check_Low               => 12,
+         Check_High              => 14,
+         Cost                    => 4);
    end Pattern_1;
 
    procedure Revive_Zombie_Parser (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use WisiToken.AUnit;
    begin
       Parse_Text
         ("procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);");
@@ -497,38 +656,22 @@ package body Test_McKenzie_Recover is
       --  parser 2 continues to EOF, becomes a zombie, is terminated.
       --
       --  The three parsers have different error tokens; make sure the correct
-      --  one (from the successful parser 0) is reported.
-
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
-      begin
-         Check ("parser label", Parser_State.Label, 0);
-
-         if WisiToken.Trace_Parse > 0 then
-            Parser.Put_Errors (File_Name => "<string>");
-         end if;
-
-         Check ("errors.length", Error_List.Length, 1);
-
-         Check ("error_token.id", Tree.ID (Element (Cursor).Error_Token), +IDENTIFIER_ID);
-         Check
-           ("1.error token.byte_region",
-            Tree.Recover_Token (Element (Cursor).Error_Token).Byte_Region,
-            (23, 25));
-      end;
+      --  one (from the successful parser) is reported.
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (23, 25),
+         Ops                     => +(Insert, +NEW_ID, 4),
+         Enqueue_Low             => 10,
+         Enqueue_High            => 20,
+         Check_Low               => 4,
+         Check_High              => 9,
+         Cost                    => 3);
    end Revive_Zombie_Parser;
 
    procedure Error_Token_When_Parallel (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use WisiToken.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -544,27 +687,21 @@ package body Test_McKenzie_Recover is
       --  encountered at 'and' 28. Error recovery for the procedure body
       --  inserts IDENTIFIER; the other fails.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
-         Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Element (Cursor).Error_Token);
-      begin
-         Check ("error_token.id", Token.ID, +AND_ID);
-         Check ("error_token.byte_region", Token.Byte_Region, (28, 30));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +AND_ID,
+         Error_Token_Byte_Region => (28, 30),
+         Ops                     => +(Insert, +IDENTIFIER_ID, 6),
+         Enqueue_Low             => 30,
+         Enqueue_High            => 78,
+         Check_Low               => 6,
+         Check_High              => 14,
+         Cost                    => 3);
    end Error_Token_When_Parallel;
 
    procedure If_In_Handler (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use WisiToken.AUnit;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
@@ -572,8 +709,11 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_Text_File is begin " &
          --        |10       |20       |30       |40       |50       |60
+         --  1      2              3  4         5                 6  7
            "exception if then end if; end Process_Text_File; begin begin end; end Journal_To_TSV;");
          --   |67         |80       |90       |100      |110      |120      |130      |140
+         --  8        9  10   11  12  14  15               16
+         --                         13
 
       --  Mistakenly pasted 'if then end if' in exception handler 66 .. 91.
       --
@@ -584,33 +724,30 @@ package body Test_McKenzie_Recover is
       --  sequence_of_statement_opt' cost 4 (since
       --  sequence_of_statements_opt is empty), and continues to EOF.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
-         Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Element (Cursor).Error_Token);
-      begin
-         Check ("error_token.id", Token.ID, +IF_ID);
-         Check ("error_token.byte_region", Token.Byte_Region, (76, 77));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +IF_ID,
+         Error_Token_Byte_Region => (76, 77),
+         Ops                     =>
+           +(Push_Back, +EXCEPTION_ID, 8) & (Push_Back, +sequence_of_statements_opt_ID, 8) &
+             (Delete, +EXCEPTION_ID, 8),
+         Enqueue_Low             => 80,
+         Enqueue_High            => 150,
+         Check_Low               => 20,
+         Check_High              => 35,
+         Cost                    => 4);
    end If_In_Handler;
 
    procedure Zombie_In_Resume (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
    begin
       --  Test that the correct error token is reported when the error occurs
       --  during parallel parsing (a previous version got this wrong).
 
       Parse_Text
-        ("package body Ada_Mode.Loop_face");
-         --        |10       |20
+        ("package body Ada_Mode.Loop_face  ");
+      --           |10       |20       |30
 
       --  Just started typing a package
       --
@@ -619,25 +756,32 @@ package body Test_McKenzie_Recover is
       --
       --  Enters error recovery at Wisi_EOF, inserts 'is end;'
       --
-      --  A second parser is spawned on 'is', and errors on 'end'. Resume is
-      --  still active, so the parser does not become a zombie, but is
-      --  terminated immediately. The first parser continues thru EOF.
+      --  During resume, a second parser is spawned on 'is', and errors on
+      --  'end'; the parser does not become a zombie, but is terminated
+      --  immediately. The first parser continues thru EOF.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +Wisi_EOI_ID,
+         Ops                     => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
+         Enqueue_Low             => 57,
+         Enqueue_High            => 149,
+         Check_Low               => 16,
+         Check_High              => 29,
+         Cost                    => 5);
    end Zombie_In_Resume;
 
    procedure Push_Back_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use WisiToken.AUnit;
    begin
       --  Test that push_back error recovery works.
 
       Parse_Text
         ("procedure Remove is begin loop A := B; loop; end Remove;");
          --        |10       |20       |30       |40       |50
+         --  1      2      3  4     5    6 7  8  10  11    13    14
+         --                                    9       12
 
       --  Typed 'loop;' instead of 'end loop;'
       --
@@ -645,30 +789,21 @@ package body Test_McKenzie_Recover is
       --
       --  (push_back loop)()(insert end) cost 3
 
-      declare
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.Config_Op_Arrays;
-         use all type WisiToken.LR.Config_Op_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.First;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("error count", Error_List.Length, 1);
-         Check ("error_token.id", Tree.ID (Error.Error_Token), +SEMICOLON_ID);
-         Check ("recover.ops", Error.Recover.Ops, +(Push_Back, +LOOP_ID, 1) & (Insert, +END_ID, 1));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +SEMICOLON_ID,
+         Error_Token_Byte_Region => (44, 44),
+         Ops                     => +(Push_Back, +LOOP_ID, 10) & (Insert, +END_ID, 10),
+         Enqueue_Low             => 103,
+         Enqueue_High            => 207,
+         Check_Low               => 13,
+         Check_High              => 27,
+         Cost                    => 3);
    end Push_Back_1;
 
    procedure Missing_Quote (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
    begin
       --  Test that syntax error recovery handles a missing string quote.
 
@@ -687,15 +822,21 @@ package body Test_McKenzie_Recover is
       --
       --  That leads to a parse error at '"' 50; missing operator. Simplest
       --  solution is to delete the STRING_LITERAL.
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +STRING_LITERAL_ID,
+         Error_Token_Byte_Region => (50, 50),
+         Ops                     => +(Delete, +STRING_LITERAL_ID, 14),
+         Enqueue_Low             => 50,
+         Enqueue_High            => 75,
+         Check_Low               => 10,
+         Check_High              => 19,
+         Cost                    => 2);
    end Missing_Quote;
 
    procedure Missing_Name_0 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -727,34 +868,22 @@ package body Test_McKenzie_Recover is
       --  Only 'ignore error' survives checks in recover, so recover returns
       --  one solution, which continues to EOF.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Label, Check);
-         Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
-         Check ("errors 1.recover.ops.length", Error.Recover.Ops.Length, 0);
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +subprogram_specification_ID,
+         Error_Token_Byte_Region => (19, 34),
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9),
+         Enqueue_Low             => 13,
+         Enqueue_High            => 45,
+         Check_Low               => 2,
+         Check_High              => 2,
+         Cost                    => 0,
+         Code                    => Missing_Name_Error);
    end Missing_Name_0;
 
    procedure Missing_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -776,38 +905,25 @@ package body Test_McKenzie_Recover is
       --  'push_back, insert' is the result of recovery, and parsing
       --  succeeds to EOF.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Label, Check);
-         Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 15) & (Push_Back, +name_opt_ID, 16) &
-              (Push_Back, +END_ID, 14) & (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) &
-              (Fast_Forward, EOF_ID));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +subprogram_specification_ID,
+         Error_Token_Byte_Region => (19, 34),
+         Ops                     =>
+           +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 15) & (Push_Back, +name_opt_ID, 15) &
+             (Push_Back, +END_ID, 14) & (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) &
+             (Fast_Forward, 9),
+         Enqueue_Low             => 28,
+         Enqueue_High            => 44,
+         Check_Low               => 7,
+         Check_High              => 13,
+         Cost                    => 0,
+         Code                    => Missing_Name_Error);
    end Missing_Name_1;
 
    procedure Missing_Name_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -819,45 +935,32 @@ package body Test_McKenzie_Recover is
       --  with Missing_Name_Error. See Missing_Name_0 for general
       --  discussion. See Missing_Name_3; there is no way to distinguish
       --  this case from that, other than parsing to EOF. So
-      --  Semantic_Check_Fixes returns two solutions, 'ignore error' and
+      --  Language_Fixes returns two solutions, 'ignore error' and
       --  'push_back, delete end;'.
       --
       --  In this case, only 'push_back, delete end;' is returned from
       --  Recover; it then parses to EOF.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Label, Check);
-         Check ("error.code", Error.Check_Status.Label, Missing_Name_Error);
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 14) &
-              (Push_Back, +name_opt_ID, 15) & (Push_Back, +END_ID, 13) &
-              (Undo_Reduce, +handled_sequence_of_statements_ID, 3) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
-              (Delete, +END_ID, 1) & (Delete, +SEMICOLON_ID, 14));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +subprogram_specification_ID,
+         Error_Token_Byte_Region => (19, 34),
+         Ops                     =>
+           +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 14) &
+             (Push_Back, +name_opt_ID, 14) & (Push_Back, +END_ID, 13) &
+             (Undo_Reduce, +handled_sequence_of_statements_ID, 1) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
+             (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14),
+         Enqueue_Low             => 25,
+         Enqueue_High            => 44,
+         Check_Low               => 7,
+         Check_High              => 13,
+         Cost                    => 0,
+         Code                    => Missing_Name_Error);
    end Missing_Name_2;
 
    procedure Missing_Name_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -868,7 +971,7 @@ package body Test_McKenzie_Recover is
       --  Missing 'Remove' 56. Enters error recovery on 'end' 58 with
       --  Missing_Name_Error. See Missing_Name_0 for general discussion. See
       --  Missing_Name_2; there is no way to distinguish this case from
-      --  that, other than parsing to EOF. So Semantic_Check_Fixes returns
+      --  that, other than parsing to EOF. So Language_Fixes returns
       --  two solutions; 'ignore error' and 'push_back, delete end;'.
       --
       --  In this case, 'ignore error' passes recover check, so recover
@@ -879,33 +982,22 @@ package body Test_McKenzie_Recover is
       --  One is eliminated due to duplicate state; we eliminate the one
       --  with the longer Recover.Ops list.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
-         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +subprogram_specification_ID,
+         Error_Token_Byte_Region => (19, 34),
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9),
+         Enqueue_Low             => 3,
+         Enqueue_High            => 5,
+         Check_Low               => 2,
+         Check_High              => 2,
+         Cost                    => 0,
+         Code                    => Missing_Name_Error);
    end Missing_Name_3;
 
    procedure Missing_Name_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -917,36 +1009,24 @@ package body Test_McKenzie_Recover is
       --  Missing_Name_Error.
       --
       --  In this case, 'ignore error' is the only solution returned by
-      --  Semantic_Error_Fixes. The check immediately succeeds, and that is
+      --  Language_Fixes. The check immediately succeeds, and that is
       --  the result from recover.
-
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
-         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +name_ID,
+         Error_Token_Byte_Region => (32, 37),
+         Ops                     => +(Undo_Reduce, +package_body_ID, 9),
+         Enqueue_Low             => 1,
+         Enqueue_High            => 1,
+         Check_Low               => 1,
+         Check_High              => 1,
+         Cost                    => 0,
+         Code                    => Missing_Name_Error);
    end Missing_Name_4;
 
    procedure Missing_Name_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -966,34 +1046,22 @@ package body Test_McKenzie_Recover is
       --
       --  Parser 2 gets the 'push_back' solution, which fails at EOF.
       --  Parser 3 gets the 'ignore error' solution, which succeeds.
-
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Check_Status.Label, Missing_Name_Error);
-         Check ("errors 1.recover.ops.Length", Error.Recover.Ops.Length, 0);
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +subprogram_specification_ID,
+         Error_Token_Byte_Region => (21, 36),
+         Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9),
+         Enqueue_Low             => 2,
+         Enqueue_High            => 2,
+         Check_Low               => 2,
+         Check_High              => 2,
+         Cost                    => 0,
+         Code                    => Missing_Name_Error);
    end Missing_Name_5;
 
    procedure Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Parse_Text
         ("package body Debug is procedure Find_First is begin begin Match (Middle_Initial_Pat); end Find_First;" &
@@ -1011,38 +1079,23 @@ package body Test_McKenzie_Recover is
       --  That check does fail with Extra_Name_Error in recover. The desired
       --  fix is (Push_Back 'Find_First ;', Insert '; end ;'). The
       --  found solution is close to that.
-
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use all type WisiToken.LR.Config_Op_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Tree         : WisiToken.Syntax_Trees.Tree renames Parser_State.Tree;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-         Token        : WisiToken.Recover_Token renames Tree.Recover_Token (Error.Error_Token);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("errors 1.error_token.id", Token.ID, +PROCEDURE_ID);
-         Check ("errors 1.error_token.byte_region", Token.Byte_Region, (102, 110));
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 1) &
-              (Push_Back, +identifier_opt_ID, 1) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 1) &
-              (Insert, +SEMICOLON_ID, 1) & (Fast_Forward, EOF_ID));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +PROCEDURE_ID,
+         Error_Token_Byte_Region => (102, 110),
+         Ops                     =>
+           +(Push_Back, +SEMICOLON_ID, 17) & (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
+             (Insert, +END_ID, 15) & (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
+         Enqueue_Low             => 7,
+         Enqueue_High            => 32,
+         Check_Low               => 3,
+         Check_High              => 8,
+         Cost                    => 0);
    end Block_Match_Names_1;
 
    procedure Two_Parsers_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       --  Show that the Match_Names_Error pattern is not applied when an
       --  insert has already been done.
@@ -1063,28 +1116,35 @@ package body Test_McKenzie_Recover is
       --  1: 5, ((INSERT, BEGIN), (INSERT, END), (INSERT, SEMICOLON))
       --  1: 5, ((POP, IS), (POP, aspect_specification_opt), (INSERT, SEMICOLON))
       --  0: 5, ((INSERT, SEPARATE), (INSERT, SEMICOLON))
-      --  0: 5, (15 : SEMICOLON)| 8|((POP, IS), (INSERT, SEMICOLON))
+      --  0: 5, ((POP, IS), (INSERT, SEMICOLON))
       --
-      --  All four continue to EOF, resulting in an ambiguous parse; one
-      --  parser is chosen to succeed. Since it's a race condition which is
-      --  chosen, we can't test the solution.
+      --  All four continue to EOF, resulting in an ambiguous parse; the
+      --  parser with the shortest recover ops is chosen. That's still a
+      --  race condition, so we can't test the solution.
 
-      Check ("1 errors.length", Parser.Parsers.First.State_Ref.Errors.Length, 1); -- error from surviving parser
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (38, 40),
+         Ops_Race_Condition      => True,
+         Enqueue_Low             => 30,
+         Enqueue_High            => 45,
+         Check_Low               => 14,
+         Check_High              => 19,
+         Cost                    => 5);
    end Two_Parsers_1;
 
    procedure Extra_Name_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_CSV_File is procedure To_Month is begin" &
            --      |10       |20       |30       |40       |50       |60       |70       |80
+           --  1    2              3  4         5                6  7         8        9  10
            " begin end Process_CSV_File; begin end Journal_To_TSV;");
       --    |86 |90       |100      |110      |120      |130      |140
+      --     11    12  13              14 15   16  17            18
 
       --  Missing 'end To_Month;' at 86.
       --
@@ -1092,36 +1152,29 @@ package body Test_McKenzie_Recover is
       --  the preceding block ("" begin 87 .. "Process_CSV_File" ; 113).
       --  Desired solution is (push_back block_statement), (insert 'end ;')
       --
-      --  Semantic_Check Extra_Name_Error enqueues the desired solution.
+      --  Language_Fixes for Extra_Name_Error enqueues the desired solution.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.Semantic_Checks.AUnit;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-
-         Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
-         Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error      : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
-         Check
-           ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID, 11) & (Insert, +END_ID, 11) & (Insert, +SEMICOLON_ID, 11) &
-              (Fast_Forward, EOF_ID));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +identifier_opt_ID,
+         Error_Token_Byte_Region => (97, 112),
+         Ops                     =>
+           +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 14) &
+             (Push_Back, +identifier_opt_ID, 13) & (Push_Back, +END_ID, 12) &
+             (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 11) &
+             (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 11) & (Insert, +SEMICOLON_ID, 11) &
+             (Fast_Forward, 11),
+         Enqueue_Low             => 2,
+         Enqueue_High            => 2,
+         Check_Low               => 2,
+         Check_High              => 2,
+         Cost                    => 0,
+         Code                    => Extra_Name_Error);
    end Extra_Name_1;
 
    procedure Extra_Name_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_CSV_File is procedure To_Month is" &
@@ -1151,43 +1204,37 @@ package body Test_McKenzie_Recover is
       --  Checking that fails at 'end' 108, expecting 'begin'. Recover
       --  inserts that, succeeds.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.Semantic_Checks.AUnit;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-
-         Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
-         Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error      : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
-         Check ("error 1.recover.ops.length", Error.Recover.Ops.Length, 12);
-         Check
-           ("error 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID, 14) & (Insert, +END_ID, 14) & (Insert, +SEMICOLON_ID, 14) &
-               (Fast_Forward, EOF_ID) & (Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 17) &
-               (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
-               (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, EOF_ID) & (Insert, +BEGIN_ID, 15));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +identifier_opt_ID,
+         Error_Token_Byte_Region => (112, 127),
+         Ops                     =>
+           +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 17) &
+             (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
+             (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 14) &
+             (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 14) & (Insert, +SEMICOLON_ID, 14) &
+             (Fast_Forward, 14) & (Insert, +BEGIN_ID, 14) & (Fast_Forward,  18) & (Push_Back, +SEMICOLON_ID, 17) &
+             (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
+             (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 14) &
+             (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 14) & (Insert, +SEMICOLON_ID, 14) &
+             (Fast_Forward,  14),
+         Enqueue_Low             => 45,
+         Enqueue_High            => 84,
+         Check_Low               => 20,
+         Check_High              => 32,
+         Cost                    => 4,
+         Code                    => Extra_Name_Error);
    end Extra_Name_2;
 
    procedure Extra_Name_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_CSV_File is begin begin" &
            --      |10       |20       |30       |40       |50       |60       |70
            " end Process_CSV_File; begin end Journal_To_TSV;");
-      --    |70       |80       |100      |110      |120
+      --    |70       |80       |90       |100      |110
 
       --  Similar to Extra_Name_1; here we are missing 'end;' at 65.
       --  Solution is to insert 'end ;' at 70.
@@ -1197,37 +1244,27 @@ package body Test_McKenzie_Recover is
       --
       --  Desired solution is (push_back 'end name_opt ;'), (insert 'end ;')
       --
-      --  Semantic_Check Extra_Name_Error enqueues the desired solution.
+      --  Language_Fixes Extra_Name_Error enqueues the desired solution.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.Semantic_Checks.AUnit;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-
-         Error_List : List renames Parser.Parsers.First.State_Ref.Errors;
-         Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error      : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error 1.code", Error.Check_Status.Label, Extra_Name_Error);
-         Check
-           ("error 1.recover.ops", Error.Recover.Ops,
-            +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 11) &
-              (Push_Back, +identifier_opt_ID, 10) & (Push_Back, +END_ID, 9) & (Insert, +END_ID, 1) &
-              (Insert, +SEMICOLON_ID, 1) & (Fast_Forward, EOF_ID));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +identifier_opt_ID,
+         Error_Token_Byte_Region => (75, 90),
+         Ops                     =>
+           +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 11) &
+             (Push_Back, +identifier_opt_ID, 10) & (Push_Back, +END_ID, 9) & (Insert, +END_ID, 9) &
+             (Insert, +SEMICOLON_ID, 9) & (Fast_Forward, 9),
+         Enqueue_Low             => 2,
+         Enqueue_High            => 2,
+         Check_Low               => 2,
+         Check_High              => 2,
+         Cost                    => 0,
+         Code                    => Extra_Name_Error);
    end Extra_Name_3;
 
    procedure Two_Missing_Ends (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Parse_Text
         ("package body Pack_1 is procedure Proc_1 is procedure Proc_A is begin case B is when 1 => a;" &
@@ -1243,37 +1280,31 @@ package body Test_McKenzie_Recover is
       --  the preceding block (no label on preceding 'begin').
       --
       --  The desired solution is (push_back block_statement, insert 'end
-      --  case ; end ;'). With help from Semantic_Check_Fixes, that solution
-      --  is found with cost 3 after checking 5 configs.
+      --  case ; end ;'). With help from Language_Fixes, that solution
+      --  is found after checking 5 configs.
 
-      declare
-         use WisiToken.Semantic_Checks.AUnit;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-
-         Error_List : WisiToken.LR.Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
-         Cursor     : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error      : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
-      begin
-         Check ("errors 1.code", Error.Check_Status.Label, Extra_Name_Error);
-         Check ("errors 1.recover.cost", Error.Recover.Cost, 3);
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +block_statement_ID, 20) & (Insert, +END_ID, 20) & (Insert, +CASE_ID, 20) &
-              (Insert, +SEMICOLON_ID, 20) & (Fast_Forward, EOF_ID) & (Push_Back, +block_statement_ID, 20) &
-              (Insert, +END_ID, 20) & (Insert, +SEMICOLON_ID, 20) & (Fast_Forward, EOF_ID));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +identifier_opt_ID,
+         Error_Token_Byte_Region => (103, 108),
+         Ops                     =>
+           +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 23) &
+             (Push_Back, +identifier_opt_ID, 22) & (Push_Back, +END_ID, 21) &
+             (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 20) &
+             (Push_Back, +block_label_opt_ID, 0)  & (Insert, +END_ID, 20) &
+             (Insert, +CASE_ID, 20) & (Insert, +SEMICOLON_ID, 20) & (Fast_Forward, 20) & (Insert, +END_ID, 20) &
+             (Insert, +SEMICOLON_ID, 20),
+         Enqueue_Low             => 80,
+         Enqueue_High            => 114,
+         Check_Low               => 14,
+         Check_High              => 26,
+         Cost                    => 5,
+         Code                    => Extra_Name_Error);
    end Two_Missing_Ends;
 
    procedure Match_Selected_Component_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -1290,40 +1321,28 @@ package body Test_McKenzie_Recover is
       --  the fix is the same. It provided the first rationale for expanding
       --  Semantic_Check_Fixes into Language_Fixes.
       --
-      --  Language_Fixes returns (push_back 'end IDENTIFIER', insert 'end ; ').
+      --  Language_Fixes returns (push_back 'end IDENTIFIER', insert 'end ;
+      --  '), and that succeeds on the first check.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Label, Action);
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) &
-              (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
-              (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
-              (Fast_Forward, EOF_ID));
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +DOT_ID,
+         Error_Token_Byte_Region => (93, 93),
+         Ops                     =>
+           +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) &
+             (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
+             (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
+             (Fast_Forward, 12),
+         Enqueue_Low             => 2,
+         Enqueue_High            => 2,
+         Check_Low               => 2,
+         Check_High              => 2,
+         Cost                    => 0);
    end Match_Selected_Component_1;
 
    procedure Actual_Parameter_Part_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-      use AUnit.Checks;
-      use Ada_Lite;
-      use WisiToken.AUnit;
    begin
       Ada_Lite.End_Name_Optional := False; -- Triggers Missing_Name_Error.
 
@@ -1334,33 +1353,23 @@ package body Test_McKenzie_Recover is
       --  Missing ');' 63. Enters error recovery on 'end' 64
       --  expecting lots of things.
       --
-      --  Desired solution is ((insert ') then end if;')
+      --  Desired solution is ((insert ') then end if;') cost 10.
       --
-      --  Previous version found that after enqueue 3291; now enqueues only 10.
+      --  Previous version found that after enqueue 3291; now enqueues much less.
+      --  IMPROVME: apply the same logic in language_fixes.
 
-      declare
-         use WisiToken.LR.Parse_Error_Lists;
-         use WisiToken.LR.AUnit;
-         use WisiToken.LR.Config_Op_Arrays;
-         use WisiToken.Semantic_Checks.AUnit;
-         use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         use all type WisiToken.LR.Config_Op_Label;
-         use all type WisiToken.LR.Parse_Error_Label;
-
-         Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-         Error_List   : List renames Parser_State.Errors;
-         Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Error_List.Last;
-         Error        : WisiToken.LR.Parse_Error renames Element (Cursor);
-      begin
-         Check ("errors.length", Error_List.Length, 1);
-         Check ("error.label", Error.Label, Action);
-         Check
-           ("errors 1.recover.ops", Error.Recover.Ops,
-            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
-              (Insert, +SEMICOLON_ID, 13));
-         Check ("enqueue", Parser_State.Recover.Enqueue_Count, 60);
-         Check ("check", Parser_State.Recover.Check_Count, 35);
-      end;
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (64, 66),
+         Ops                     =>
+           +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
+             (Insert, +SEMICOLON_ID, 13),
+         Enqueue_Low             => 140,
+         Enqueue_High            => 170,
+         Check_Low               => 35,
+         Check_High              => 45,
+         Cost                    => 10);
    end Actual_Parameter_Part_1;
 
    ----------
@@ -1417,10 +1426,12 @@ package body Test_McKenzie_Recover is
    begin
       --  Run before all tests in register
       Ada_Lite.Create_Parser
-        (Parser, WisiToken.LALR, Ada_Lite.Trace'Access,
-         User_Data => User_Data'Access,
-         Language_Fixes => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access,
-         Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada_Lite.Constrain_Terminals'Access);
+        (Parser,
+         Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access,
+         Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada_Lite.Constrain_Terminals'Access,
+         Algorithm                    => WisiToken.LALR,
+         Trace                        => Ada_Lite.Trace'Access,
+         User_Data                    => User_Data'Access);
 
       Orig_Params := Parser.Table.McKenzie_Param;
 

@@ -72,7 +72,7 @@ is
 
       Body_File : File_Type;
    begin
-      if Data.Parser_Algorithm in LALR | LALR_LR1 then
+      if Data.Generator_Algorithm in LALR | LALR_LR1 then
          Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
@@ -87,7 +87,7 @@ is
          Data.Parser_State_Count := Parsers (LALR).State_Last - Parsers (LALR).State_First + 1;
       end if;
 
-      if Data.Parser_Algorithm in LR1 | LALR_LR1 then
+      if Data.Generator_Algorithm in LR1 | LALR_LR1 then
          Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
            (Data.Grammar,
             LR1_Descriptor,
@@ -297,7 +297,7 @@ is
          end;
       end loop;
 
-      Create_Create_Parser (Data.Parser_Algorithm, None, Params.First_State_Index, Params.First_Parser_Label);
+      Create_Create_Parser (Data.Generator_Algorithm, None, Params.First_State_Index, Params.First_Parser_Label);
 
       Put_Line ("end " & Package_Name & ";");
       Close (Body_File);

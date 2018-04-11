@@ -116,8 +116,6 @@ package WisiToken.Gen_Token_Enum is
 
    type Nonterminal_ID_Set is array (Nonterminal_ID) of Boolean;
 
-   function To_Token_ID_Set (Item : in Nonterminal_ID_Set) return WisiToken.Token_ID_Set;
-
    type Token_Array is array (Positive range <>) of Token_Enum_ID;
 
    function "+" (Item : in Token_Array) return WisiToken.Token_ID_Set;

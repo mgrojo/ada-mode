@@ -16,7 +16,7 @@
 %token <punctuation> EQUAL_GREATER "=>"
 
 %token <string-double> STRING_LITERAL %[ '"'[^"]*'"' ]%
-;; ' terminate quote
+;; " terminate quote
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
@@ -24,7 +24,7 @@
 
 ;; not first nonterminal
 %start compilation
-%parser_algorithm LALR_LR1
+%generator_algorithm LALR_LR1
 %output_language Ada
 %lexer re2c
 
@@ -63,11 +63,7 @@ identifier_list
 
 name
   : IDENTIFIER
-    %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   | STRING_LITERAL  ;; operator_symbol
-    %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   ;
 
 name_list
@@ -77,11 +73,7 @@ name_list
 
 selector_name
   : IDENTIFIER
-    %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   | STRING_LITERAL  ;; operator_symbol
-    %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
   ;
 
 %%

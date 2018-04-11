@@ -100,7 +100,7 @@ package body WisiToken.LR.Parser_Lists is
       return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Label;
    end Label;
 
-   function Max_Error_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type
+   function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type
    is
       use Ada.Containers;
       Result : Count_Type := 0;
@@ -112,7 +112,7 @@ package body WisiToken.LR.Parser_Lists is
          end if;
       end loop;
       return Result;
-   end Max_Error_Ops_Length;
+   end Max_Recover_Ops_Length;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs)
    is begin
@@ -166,6 +166,7 @@ package body WisiToken.LR.Parser_Lists is
 
          --  We specify all items individually, rather copy Item and then
          --  override a few, to avoid copying large items like Recover.
+         --  We copy Recover.Enqueue_Count, .Check_Count for unit tests.
          New_Item :=
            (Shared_Token          => Item.Shared_Token,
             Recover_Insert_Delete => Item.Recover_Insert_Delete,
@@ -173,7 +174,10 @@ package body WisiToken.LR.Parser_Lists is
             Inc_Shared_Token      => Item.Inc_Shared_Token,
             Stack                 => Item.Stack,
             Tree                  => Item.Tree,
-            Recover               => (others => <>),
+            Recover               =>
+              (Enqueue_Count      => Item.Recover.Enqueue_Count,
+               Check_Count        => Item.Recover.Check_Count,
+               others             => <>),
             Zombie_Token_Count    => 0,
             Errors                => Item.Errors,
             Label                 => List.Parser_Label,

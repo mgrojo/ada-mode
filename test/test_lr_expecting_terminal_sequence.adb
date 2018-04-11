@@ -146,6 +146,8 @@ package body Test_LR_Expecting_Terminal_Sequence is
    is
       pragma Unreferenced (T);
       use WisiToken.AUnit;
+      First : WisiToken.Token_ID renames LR1_Descriptor.First_Terminal;
+      Last  : WisiToken.Token_ID renames LR1_Descriptor.Last_Terminal;
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
@@ -159,23 +161,25 @@ package body Test_LR_Expecting_Terminal_Sequence is
 
       Execute
         ("set A = 2",
-         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Semicolon_ID)));
+         WisiToken.To_Token_ID_Set (First, Last, (1 => +Semicolon_ID)));
 
       Execute
         ("set A = ",
-         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Int_ID)));
+         WisiToken.To_Token_ID_Set (First, Last, (1 => +Int_ID)));
 
       Execute
         ("set A",
-         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Equals_ID)));
+         WisiToken.To_Token_ID_Set (First, Last, (1 => +Equals_ID)));
 
       Execute
         ("set",
-         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Identifier_ID)));
+         WisiToken.To_Token_ID_Set
+           (First, Last, (1 => +Identifier_ID)));
 
       Execute
         ("2",
-         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (+Set_ID, +Verify_ID)));
+         WisiToken.To_Token_ID_Set
+           (First, Last, (+Set_ID, +Verify_ID)));
    end Test_Expecting;
 
    procedure Test_Terminal_Sequence (T : in out AUnit.Test_Cases.Test_Case'Class)

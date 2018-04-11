@@ -96,6 +96,7 @@ uninstall:
 library:
 	gprbuild -p --RTS=$(ADA_RUN_TIME) -Pwisitoken_lib
 
+# We do not include wisi-clean here, since that would prevent bootstrapping.
 clean :: test-clean
 	rm -rf obj *.exe
 	rm -rf obj_pro exec_pro
@@ -115,7 +116,7 @@ source-clean ::
 	cd ../wisi; $(CURDIR)/wisi-generate.exe -v 1 wisi_grammar.wy > wisi_grammar.parse_table
 
 ../wisi/wisi_grammar_re2c.c : ../wisi/wisi_grammar.re2c
-	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 wisi_grammar-clean :
 	rm -rf wisi_grammar*

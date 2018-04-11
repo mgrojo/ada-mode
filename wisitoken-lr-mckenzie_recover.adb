@@ -188,7 +188,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Config.Stack := To_Recover (Parser_State.Stack, Parser_State.Tree);
 
-      --  Parser_State.Local_Lookahead must be empty (else we would not get
+      --  Parser_State.Recover_Insert_Delete must be empty (else we would not get
       --  here). Therefore Parser_State current token is in
       --  Shared_Parser.Shared_Token.
 
@@ -211,8 +211,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Config.Error_Token       := Config.Stack (1).Token;
          Config.Check_Token_Count := Undo_Reduce (Config.Stack, Parser_State.Tree);
 
-         --  We don't append Undo_Reduce to Config.Ops, because Process_One
-         --  will redo the reduce, or record a Push_Back or Undo_Reduce for it.
+         Config.Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
 
          if Trace_McKenzie > Detail then
             Put ("undo_reduce " & Image
@@ -393,6 +392,7 @@ package body WisiToken.LR.McKenzie_Recover is
          end loop;
       end;
 
+      --  Edit Parser_State to apply solutions.
       for Parser_State of Parsers loop
          if Parser_State.Recover.Success then
             declare
@@ -405,12 +405,15 @@ package body WisiToken.LR.McKenzie_Recover is
                Data       : McKenzie_Data renames Parser_State.Recover;
                Result     : Configuration renames Data.Results.Peek;
 
-               Min_Terminal_Index : Token_Index := Token_Index'Last;
+               Stack_Changed        : Boolean     := False;
+               Shared_Token_Changed : Boolean     := False;
+               Virtuals_Inserted    : Boolean     := False;
+               Fast_Forward_Seen    : Boolean     := False;
             begin
-               --  We don't apply all of Result.Ops to Parser_State; that's what the
-               --  main parser does. We apply all Insert and Delete ops, and push
-               --  back the stack to the earliest of those. Then the main parser
-               --  parses the edited input stream.
+               --  We apply Push_Back ops to Parser_State.Stack up to the first
+               --  Fast_Forward, and enqueue Insert and Delete ops on
+               --  Parser_State.Recover_Insert_Delete. Then the main parser parses
+               --  the edited input stream.
                --
                --  There's no need to modify Parser_State.Tree. The tree nodes
                --  created by the failed parse are useful for error repair, and will
@@ -434,125 +437,90 @@ package body WisiToken.LR.McKenzie_Recover is
 
                for Op of Result.Ops loop
                   case Op.Op is
-                  when Fast_Forward | Undo_Reduce | Push_Back =>
-                     null;
+                  when Fast_Forward =>
+                     Fast_Forward_Seen := True;
+
+                  when Undo_Reduce =>
+                     if Fast_Forward_Seen then
+                        --  The real parser stack will not be in this state, so we don't need
+                        --  to do anything with this.
+                        null;
+                     else
+                        Undo_Reduce (Parser_State.Stack, Tree);
+                        Stack_Changed := True;
+                     end if;
+
+                  when Push_Back =>
+                     if Fast_Forward_Seen then
+                        --  The real parser stack will not be in this state, so we don't need
+                        --  to do anything with this.
+                        null;
+                     else
+                        Parser_State.Stack.Pop;
+                        if Op.Token_Index /= Invalid_Token_Index then
+                           Parser_State.Shared_Token := Op.Token_Index;
+                        end if;
+                        Stack_Changed        := True;
+                        Shared_Token_Changed := True;
+                     end if;
 
                   when Insert =>
-                     if Op.Token_Index < Min_Terminal_Index then
-                        Min_Terminal_Index := Op.Token_Index;
-                     end if;
                      Parser_State.Recover_Insert_Delete.Put (Op);
+                     Virtuals_Inserted := True;
 
                   when Delete =>
-                     if Op.Token_Index < Min_Terminal_Index then
-                        Min_Terminal_Index := Op.Token_Index;
+                     if Op.Token_Index = Parser_State.Shared_Token then
+                        pragma Assert (not Fast_Forward_Seen);
+                        Parser_State.Shared_Token := Op.Token_Index + 1;
+                     else
+                        Parser_State.Recover_Insert_Delete.Put (Op);
                      end if;
-
-                     Parser_State.Recover_Insert_Delete.Put (Op);
+                     Shared_Token_Changed := True;
 
                   end case;
                end loop;
 
-               if Min_Terminal_Index = Token_Index'Last then
-                  --  No change in Parser_State.Current_Token, no virtuals inserted.
-                  null;
-
-               else
-                  --  Push_Back Parser_State.Stack to the terminal shift before
-                  --  Min_Terminal_Index; inserted terminal at that point can change
-                  --  reductions.
+               if Virtuals_Inserted then
                   declare
-                     Stack_Changed        : Boolean := False;
-                     Shared_Token_Changed : Boolean := Parser_State.Shared_Token /= Min_Terminal_Index;
-                     Virtuals_Inserted    : Boolean := False;
+                     Op : constant Config_Op := Parser_State.Recover_Insert_Delete.Peek;
                   begin
-                     Parser_State.Shared_Token := Min_Terminal_Index;
+                     if Op.Op = Insert and then Op.Token_Index <= Parser_State.Shared_Token then
+                        --  "<" because Op.Token_Index may have been deleted.
+                        Parser_State.Recover_Insert_Delete.Drop;
 
-                     loop
-                        declare
-                           Tree_Index     : constant Syntax_Trees.Node_Index := Parser_State.Stack (1).Token;
-                           Terminal_Index : constant Base_Token_Index        :=
-                             (if Tree_Index = Syntax_Trees.Invalid_Node_Index
-                              then Invalid_Token_Index
-                              else Tree.Min_Terminal_Index (Tree_Index));
-                        begin
-                           exit when Tree_Index = Syntax_Trees.Invalid_Node_Index; --  stack bottom
-                           exit when not Tree.Is_Nonterm (Tree_Index) and then Terminal_Index < Min_Terminal_Index;
-
-                           Stack_Changed := True;
-
-                           if Tree.Is_Nonterm (Tree_Index) then
-                              Undo_Reduce (Parser_State.Stack, Tree);
-                           else
-                              Parser_State.Stack.Pop;
-                           end if;
-                        end;
-                     end loop;
-
-                     --  Handle immediate Delete ops.
-                     loop
-                        exit when Parser_State.Recover_Insert_Delete.Is_Empty;
-                        exit when Parser_State.Recover_Insert_Delete.Peek.Op /= Delete;
-                        declare
-                           Op : constant Config_Op := Parser_State.Recover_Insert_Delete.Peek;
-                        begin
-                           if Op.Token_Index = Parser_State.Shared_Token then
-                              if Shared_Parser.Terminals (Op.Token_Index).ID /= Op.ID then
-                                 raise Programmer_Error;
-                              end if;
-                              Parser_State.Recover_Insert_Delete.Drop;
-                              Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-                              Shared_Token_Changed := True;
-                           else
-                              exit;
-                           end if;
-                        end;
-                     end loop;
-
-                     if not Parser_State.Recover_Insert_Delete.Is_Empty then
-                        declare
-                           Op : constant Config_Op := Parser_State.Recover_Insert_Delete.Peek;
-                        begin
-                           if Op.Op = Insert and then Op.Token_Index = Parser_State.Shared_Token then
-                              Virtuals_Inserted := True;
-
-                              Parser_State.Recover_Insert_Delete.Drop;
-
-                              Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Op.ID);
-                           end if;
-                        end;
-                     end if;
-
-                     if Shared_Token_Changed and not Virtuals_Inserted then
-                        Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                          (Parser_State.Shared_Token, Shared_Parser.Terminals);
-                     end if;
-
-                     if Stack_Changed or Shared_Token_Changed or Virtuals_Inserted then
-                        Parser_State.Set_Verb (Shift_Recover);
-                        Update_Shared_Verb (Shift_Recover);
-                     end if;
-
-                     if Virtuals_Inserted or (Shared_Token_Changed and Parser_State.Verb = Reduce) then
-                        --  On exit from McKenzie_Recover, Verb gives the action that will be
-                        --  performed immediately, if it is the same as Shared_Verb.
-                        --  Shared_Verb is checked in a separate loop below.
-                        --
-                        --  If Verb is Reduce, the main parser will do reduce until it gets to
-                        --  Shift. At that point, it would normally increment
-                        --  Parser_State.Shared_Terminal to get to the next token. However, we
-                        --  have set Shared_Terminal to the next token, so we don't want it to
-                        --  increment. We could set Shared_Terminal to 1 less, but this way
-                        --  the debug messages all show the expected shared_terminal.
-                        --
-                        --  If Verb is Shift or Shift_Recover, then Shared_Token will be
-                        --  shifted immediately, and we want it to increment on the next
-                        --  shift.
-                        Parser_State.Inc_Shared_Token := False;
-                     else
-                        Parser_State.Inc_Shared_Token := True;
+                        Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Op.ID);
                      end if;
                   end;
+               end if;
+
+               if Shared_Token_Changed and not Virtuals_Inserted then
+                  Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                    (Parser_State.Shared_Token, Shared_Parser.Terminals);
+               end if;
+
+               if Stack_Changed or Shared_Token_Changed or Virtuals_Inserted then
+                  Parser_State.Set_Verb (Shift_Recover);
+                  Update_Shared_Verb (Shift_Recover);
+               end if;
+
+               if Virtuals_Inserted or (Shared_Token_Changed and Parser_State.Verb = Reduce) then
+                  --  On exit from McKenzie_Recover, Verb gives the action that will be
+                  --  performed immediately, if it is the same as Shared_Verb.
+                  --  Shared_Verb is checked in a separate loop below.
+                  --
+                  --  If Verb is Reduce, the main parser will do reduce until it gets to
+                  --  Shift. At that point, it would normally increment
+                  --  Parser_State.Shared_Terminal to get to the next token. However, we have
+                  --  set Shared_Terminal to the next token, so we don't want it to increment.
+                  --  We could set Shared_Terminal to 1 less, but this way the debug messages
+                  --  all show the expected shared_terminal.
+                  --
+                  --  If Verb is Shift or Shift_Recover, then Shared_Token will be
+                  --  shifted immediately, and we want it to increment on the next
+                  --  shift.
+                  Parser_State.Inc_Shared_Token := False;
+               else
+                  Parser_State.Inc_Shared_Token := True;
                end if;
 
                Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
@@ -600,6 +568,20 @@ package body WisiToken.LR.McKenzie_Recover is
    ----------
    --  Spec private subprograms not declared above; for language-specific
    --  child packages.
+
+   procedure Find_ID
+     (Config         : in     Configuration;
+      IDs            : in     Token_ID_Set;
+      Matching_Index : in out SAL.Peek_Type)
+   is
+      use all type SAL.Peek_Type;
+   begin
+      loop
+         exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         exit when IDs (Config.Stack (Matching_Index).Token.ID);
+         Matching_Index := Matching_Index + 1;
+      end loop;
+   end Find_ID;
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;

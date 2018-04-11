@@ -21,7 +21,6 @@ org.wisitoken.stephe-1 - available
  current work
 review FIXME:
 
-
 change configure_access to persistent_ref record with container, node components;
     allow ref.delete to abort config
 

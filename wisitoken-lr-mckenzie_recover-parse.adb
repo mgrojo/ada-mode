@@ -159,7 +159,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                        Image (Action.Next.Item, Descriptor));
                end if;
 
-               Parse_Items.Append ((Config, Action.Next, Parsed => False));
+               Parse_Items.Append ((Config, Action.Next, Parsed => False, Shift_Count => 0));
             end if;
          end if;
 
@@ -172,6 +172,8 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
 
          case Action.Item.Verb is
          when Shift =>
+            Item.Shift_Count := Item.Shift_Count + 1;
+
             Config.Stack.Push
               ((Action.Item.State,
                 Syntax_Trees.Invalid_Node_Index,
@@ -232,7 +234,12 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
             end;
 
          when Error =>
-            Success := False;
+
+            Config.Error_Token :=
+              (ID          => Current_Token.ID,
+               Byte_Region => Current_Token.Byte_Region,
+               others      => <>);
+            Success            := False;
 
          when Accept_It =>
             null;
@@ -268,7 +275,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Success    : Boolean;
    begin
       Parse_Items.Clear;
-      Parse_Items.Append ((Config, null, Parsed => False));
+      Parse_Items.Append ((Config, Action => null, Parsed => False, Shift_Count => 0));
 
       loop
          --  Loop over initial config and any conflicts.
@@ -277,7 +284,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
          Success := Parse_One_Item
            (Super, Shared, Parser_Index, Parse_Items, Last_Index, Shared_Token_Goal, Trace_Prefix);
 
-         --  FIXME: examine remaining conflict items for semantic_check failures?
+         --  FIXME: continue remaining conflict items?
          exit when Success or Parse_Items.Last_Index = Last_Index;
 
          if Trace_McKenzie > Detail then

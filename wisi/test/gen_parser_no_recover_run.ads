@@ -20,7 +20,7 @@
 
 pragma License (GPL);
 
-with WisiToken.LR.Parser;
+with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 generic
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
@@ -28,12 +28,9 @@ generic
    Descriptor : in WisiToken.Descriptor;
 
    with procedure  Create_Parser
-     (Parser                       :    out          WisiToken.LR.Parser.Parser;
-      Algorithm                    : in              WisiToken.Generator_Algorithm_Type;
-      Trace                        : not null access WisiToken.Trace'Class;
-      Language_Fixes               : in              WisiToken.LR.Language_Fixes_Access;
-      Language_Constrain_Terminals : in              WisiToken.LR.Language_Constrain_Terminals_Access;
-      User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access);
+     (Parser    :    out          WisiToken.LR.Parser_No_Recover.Parser;
+      Algorithm : in              WisiToken.Generator_Algorithm_Type;
+      Trace     : not null access WisiToken.Trace'Class;
+      User_Data : in              WisiToken.Syntax_Trees.User_Data_Access);
 
-   LR1 : in Boolean;
-procedure Gen_Parser_Run;
+procedure Gen_Parser_No_Recover_Run;

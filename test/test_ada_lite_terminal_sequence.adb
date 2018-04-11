@@ -24,7 +24,7 @@ with Ada.Text_IO;
 with Wisi.Gen_Generate_Utils;
 with WisiToken.AUnit;
 with WisiToken.LR.Generator_Utils;
-with WisiToken.LR.Parser;
+with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Production;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -46,7 +46,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
 
       Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar.Descriptor'Access);
       Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser     : WisiToken.LR.Parser.Parser;
+      Grammar_Parser     : WisiToken.LR.Parser_No_Recover.Parser;
 
       EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String ("Wisi_EOI");
@@ -56,9 +56,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
    begin
       Wisi_Grammar.Create_Parser
         (Grammar_Parser, WisiToken.LALR, Trace'Unchecked_Access,
-         Language_Fixes               => null,
-         Language_Constrain_Terminals => null,
-         User_Data                    => Grammar_Parse_Data'Unchecked_Access);
+         User_Data => Grammar_Parse_Data'Unchecked_Access);
 
       Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
       Grammar_Parser.Parse;

@@ -31,21 +31,22 @@ private package WisiToken.LR.McKenzie_Recover.Parse is
    --  Action.Token_Count = 0, set Nonterm.Virtual := Default_Virtual.
 
    type Parse_Item is record
-      Config : Configuration;
-      Action : Parse_Action_Node_Ptr;
-      Parsed : Boolean;
+      Config      : Configuration;
+      Action      : Parse_Action_Node_Ptr;
+      Parsed      : Boolean;
+      Shift_Count : Natural := 0;
 
-      --  On return from Parse, if Parsed is False, this item was queued by
-      --  a conflict, but not parsed; it should be ignored.
+      --  On return from Parse, if Parsed = False, this item was queued by a
+      --  conflict, but not parsed; it should be ignored.
       --
-      --  Otherwise, If Action.Item.Verb is Error, the parse failed.
+      --  Otherwise, if Config.Error_Token.ID = Invalid_Token_ID and
+      --  Config.Check_Status.Label = Ok, Config was parsed successfully to
+      --  the goal.
       --
-      --  Otherwise, if Config.Check_Status.Label is Ok, Config was parsed
-      --  successfully to the goal.
-      --
-      --  Otherwie, Check_Status.Label must be Error, Action.Item.Verb must
-      --  be Reduce, and Semantic_Check_Fixes can be called; Config is in
-      --  the pre-reduce state.
+      --  Otherwise, the parser failed a semantic check, or encountered an
+      --  Error action. Shift_Count gives the number of shifts performed. If
+      --  Check_Status.Label is Error, Action.Item.Verb must be Reduce, and
+      --  Config is in the pre-reduce state.
    end record;
 
    package Parse_Item_Arrays is new SAL.Gen_Bounded_Definite_Vectors (Positive, Parse_Item, Capacity => 10);

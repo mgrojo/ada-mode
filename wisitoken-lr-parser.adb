@@ -320,6 +320,11 @@ package body WisiToken.LR.Parser is
          end if;
          Shared_Parser.Resume_Active := Resume_Active_Count > 0;
 
+         --  Verify that we don't create zombies when recover is active.
+         if Shared_Parser.Resume_Active and Zombie_Count > 0 then
+            raise Programmer_Error;
+         end if;
+
       else
          raise Programmer_Error;
       end if;
@@ -397,6 +402,7 @@ package body WisiToken.LR.Parser is
             Other_Parser : Parser_Lists.Parser_State renames Other.State_Ref;
          begin
             if Other.Label /= Current_Parser.Label and then
+              Other.Verb /= Error and then
               Compare
                 (Other_Parser.Stack, Other_Parser.Tree, Current_Parser.State_Ref.Stack, Current_Parser.State_Ref.Tree)
             then
@@ -407,7 +413,9 @@ package body WisiToken.LR.Parser is
       end loop;
 
       if not Other.Is_Done then
-         if Other.Max_Error_Ops_Length > Current_Parser.Max_Error_Ops_Length then
+         --  Both have the same number of errors, otherwise one would have been
+         --  zombied or terminated earlier.
+         if Other.Max_Recover_Ops_Length > Current_Parser.Max_Recover_Ops_Length then
             Terminate_Parser (Shared_Parser, "duplicate state", Other);
          else
             Terminate_Parser (Shared_Parser, "duplicate state", Current_Parser);
@@ -527,12 +535,18 @@ package body WisiToken.LR.Parser is
 
             else
                if Shared_Parser.Parsers.Count = 1 then
-                  if Trace_Parse > Detail then
+                  if Trace_Parse > Outline then
                      Trace.Put_Line (Integer'Image (Check_Parser.Label) & ": error during resume");
                   end if;
                   raise Syntax_Error;
                else
-                  Terminate_Parser (Shared_Parser, "error during resume", Check_Parser);
+                  --  This is ok if a conflict occured during resume, and this is the
+                  --  new parser; otherwise it's a programmer error.
+                  if Check_Parser.State_Ref.Recover.Enqueue_Count = 0 then
+                     Terminate_Parser (Shared_Parser, "error in conflict during resume", Check_Parser);
+                  else
+                     raise Programmer_Error with "error during resume";
+                  end if;
                end if;
             end if;
          else
@@ -563,18 +577,18 @@ package body WisiToken.LR.Parser is
          Parse_Verb (Shared_Parser, Current_Verb, Max_Shared_Token, Zombie_Count);
 
          --  When parsing in the absense of errors, the current token for all
-         --  parsers is at Shared_Parser.Shared_Lookahead(1).
+         --  parsers is at Shared_Parser.Terminals(last_index).
          --
          --  When there are zombie parsers (ie, parsers that have encountered
          --  an error, but are not terminated yet), the current token for each
          --  parser is Shared_Parser.Terminals (Parsers(*).Shared_Token).
          --
-         --  When resuming after error recovery, the shift verb is
-         --  Shift_Local_Lookahead; the current token is at either
-         --  Parsers(*).Local_Lookahead(1) (inserted during error recovery), or
-         --  Shared_Parser.Terminals (Parsers(*).Shared_Token) (read ahead from
-         --  Lexer during error recovery). Resuming is finished when all
-         --  parsers are at the same current shared token.
+         --  When resuming after error recovery, the verb is Shift_Recover; the
+         --  current token is at either Parsers(*).Recover_Insert_Delete head
+         --  (inserted during error recovery), or Shared_Parser.Terminals
+         --  (Parsers(*).Shared_Token) (read ahead from Lexer during error
+         --  recovery). Resuming is finished when all parsers are at the same
+         --  current shared token.
          --
          --  Error recovery should ensure that the resume parsing can complete
          --  without error, so we cannot have zombie parsers while resuming.
@@ -629,12 +643,8 @@ package body WisiToken.LR.Parser is
             end loop;
 
          when Shift_Recover =>
-            --  Set Parsers(*).Current_Token
-
-            --  Verify that we don't create zombies when recover is active.
-            if Zombie_Count > 0 then
-               raise Programmer_Error;
-            end if;
+            --  Same as Shift, except input a token inserted by error recovery, or
+            --  read from Lexer during error recovery.
 
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Verb = Shift_Recover then
@@ -645,22 +655,8 @@ package body WisiToken.LR.Parser is
                      then Parser_State.Shared_Token + 1
                      else Parser_State.Shared_Token)
                   then
-                     --  Input a token inserted by error recovery
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Recover_Insert_Delete.Get.ID);
-
-                     --  Handle deletes here, so Parse_Verb can see next insert.
-                     loop
-                        if Parser_State.Recover_Insert_Delete.Length > 0 and then
-                          Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
-                          Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token
-                        then
-                           Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-                           Parser_State.Recover_Insert_Delete.Drop;
-                        else
-                           exit;
-                        end if;
-                     end loop;
 
                   elsif (if Parser_State.Inc_Shared_Token
                          then Parser_State.Shared_Token + 1
@@ -683,6 +679,21 @@ package body WisiToken.LR.Parser is
                      --  Done with all recover insertions; waiting for other parsers to
                      --  finish with them, so do nothing this cycle.
                      Parser_State.Set_Verb (Shift);
+                  end if;
+
+                  if Parser_State.Verb = Shift_Recover then
+                     --  Handle following deletes here, so Parse_Verb can see next insert.
+                     loop
+                        if Parser_State.Recover_Insert_Delete.Length > 0 and then
+                          Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
+                          Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token
+                        then
+                           Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                           Parser_State.Recover_Insert_Delete.Drop;
+                        else
+                           exit;
+                        end if;
+                     end loop;
                   end if;
                end if;
             end loop;
@@ -719,7 +730,11 @@ package body WisiToken.LR.Parser is
                else
                   --  More than one parser is active.
                   declare
-                     Error_Parser_Count : Integer := (if Shared_Parser.Lexer.Errors.Length > 0 then 1 else 0);
+                     use all type Parser_Lists.Cursor;
+                     Error_Parser_Count     : Integer := (if Shared_Parser.Lexer.Errors.Length > 0 then 1 else 0);
+                     Recover_Ops_Length     : Ada.Containers.Count_Type;
+                     Min_Recover_Ops_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
+                     Min_Recover_Ops_Cur    : Parser_Lists.Cursor;
                   begin
                      for Parser_State of Shared_Parser.Parsers loop
                         if Parser_State.Errors.Length > 0 then
@@ -729,17 +744,30 @@ package body WisiToken.LR.Parser is
 
                      if Error_Parser_Count > 0 then
                         --  There was at least one error. We assume that caused the ambiguous
-                        --  parse, and we pick the first parser arbitrarily to allow the parse
-                        --  to succeed. We terminate the other parsers so the first parser
-                        --  executes actions.
+                        --  parse, and we pick the parser with the minimum recover ops length
+                        --  to allow the parse to succeed. We terminate the other parsers so
+                        --  the first parser executes actions.
                         --
                         --  Note all surviving parsers must have the same error count, or only
-                        --  the one with the lowest would get here. FIXME: return one with
-                        --  shortest Recover.Ops?
+                        --  the one with the lowest would get here.
                         Current_Parser := Shared_Parser.Parsers.First;
-                        Current_Parser.Next;
                         loop
-                           Terminate_Parser (Shared_Parser, "errors", Current_Parser);
+                           Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;
+                           if Recover_Ops_Length < Min_Recover_Ops_Length then
+                              Min_Recover_Ops_Length := Recover_Ops_Length;
+                              Min_Recover_Ops_Cur    := Current_Parser;
+                           end if;
+                           Current_Parser.Next;
+                           exit when Current_Parser.Is_Done;
+                        end loop;
+
+                        Current_Parser := Shared_Parser.Parsers.First;
+                        loop
+                           if Current_Parser = Min_Recover_Ops_Cur then
+                              Current_Parser.Next;
+                           else
+                              Terminate_Parser (Shared_Parser, "errors", Current_Parser);
+                           end if;
                            exit when Current_Parser.Is_Done;
                         end loop;
 
@@ -751,7 +779,7 @@ package body WisiToken.LR.Parser is
 
                      else
                         --  There were no previous errors. We allow the parse to fail, on the
-                        --  assumption that an otherwise correct input should not yeild an
+                        --  assumption that an otherwise correct input should not yield an
                         --  ambiguous parse.
                         raise WisiToken.Parse_Error with Error_Message
                           ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
@@ -1036,16 +1064,29 @@ package body WisiToken.LR.Parser is
          case Item.Label is
          when Action =>
             declare
-               Token : Base_Token renames Parser.Terminals (Parser_State.Tree.Min_Terminal_Index (Item.Error_Token));
+               Index : constant Base_Token_Index := Parser_State.Tree.Min_Terminal_Index (Item.Error_Token);
             begin
-               Put_Line
-                 (Current_Error,
-                  Error_Message
-                    (File_Name, Token.Line, Token.Col,
-                     "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
-                       ", found '" & Parser.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
+               if Index = Invalid_Token_Index then
+                  --  Error_Token is virtual
+                  Put_Line
+                    (Current_Error,
+                     Error_Message
+                       (File_Name, 1, 0,
+                        "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                          ", found " & Image (Parser_State.Tree.ID (Item.Error_Token), Descriptor)));
+               else
+                  declare
+                     Token : Base_Token renames Parser.Terminals (Index);
+                  begin
+                     Put_Line
+                       (Current_Error,
+                        Error_Message
+                          (File_Name, Token.Line, Token.Col,
+                           "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
+                             ", found '" & Parser.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
+                  end;
+               end if;
             end;
-
          when Check =>
             Put_Line
               (Current_Error,

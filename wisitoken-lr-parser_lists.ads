@@ -119,7 +119,7 @@ package WisiToken.LR.Parser_Lists is
    function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type;
 
    function Label (Cursor : in Parser_Lists.Cursor) return Natural;
-   function Max_Error_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
+   function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;
@@ -141,7 +141,7 @@ package WisiToken.LR.Parser_Lists is
    --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).
    --
-   --  Copy.Recover is set to Default_McKenzie.
+   --  Copy.Recover is set to default.
 
    procedure Free (Cursor : in out Parser_Lists.Cursor'Class);
    --  Delete the Cursor parser. It will not appear in future

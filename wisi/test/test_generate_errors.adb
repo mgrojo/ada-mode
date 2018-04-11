@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -56,7 +56,7 @@ package body Test_Generate_Errors is
       Spawn
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
-           (1         => new String'("--parser_algorithm"),
+           (1         => new String'("--generator_algorithm"),
             2         => new String'("LALR"),
             3         => WY_File),
          Output_File  => Computed_LALR_File,
@@ -73,7 +73,7 @@ package body Test_Generate_Errors is
          Spawn
            (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
             Args         =>
-              (1         => new String'("--parser_algorithm"),
+              (1         => new String'("--generator_algorithm"),
                2         => new String'("LR1"),
                3         => WY_File),
             Output_File  => Computed_LR1_File,

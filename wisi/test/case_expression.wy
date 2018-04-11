@@ -45,7 +45,7 @@
 %first_state_index 0
 %first_parser_label 0
 
-%parser_algorithm LALR_LR1
+%generator_algorithm LALR_LR1
 %output_language Ada
 %lexer re2c
 

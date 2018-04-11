@@ -39,9 +39,9 @@ package Wisi.Gen_Output_Ada_Common is
    package Generate_Utils is new Wisi.Gen_Generate_Utils (Tokens, Conflicts, EOI_Name, WisiToken_Accept_Name);
 
    type Data_Type is record
-      Parser_Algorithm : Valid_Parser_Algorithm;
-      Lexer            : Valid_Lexer;
-      Interface_Kind   : Valid_Interface;
+      Generator_Algorithm : Valid_Generator_Algorithm;
+      Lexer               : Valid_Lexer;
+      Interface_Kind      : Valid_Interface;
 
       Accept_Reduce_Conflict_Count : Integer := -1;
       Shift_Reduce_Conflict_Count  : Integer := -1;
@@ -74,7 +74,7 @@ package Wisi.Gen_Output_Ada_Common is
    --  Ada names of subprograms for each grammar semantic action and check;
    --  non-null only if there is an action or check in the grammar.
 
-   Parsers : array (Single_Parser_Algorithm) of WisiToken.LR.Parse_Table_Ptr;
+   Parsers : array (Single_Generator_Algorithm) of WisiToken.LR.Parse_Table_Ptr;
 
    procedure Create_Ada_Spec
      (Input_File_Name  : in String;
@@ -86,10 +86,10 @@ package Wisi.Gen_Output_Ada_Common is
       Declare_Enum     : in Boolean);
 
    procedure Create_Create_Parser
-     (Parser_Algorithm   : in Valid_Parser_Algorithm;
-      Interface_Kind     : in Interface_Type;
-      First_State_Index  : in Integer;
-      First_Parser_Label : in Integer);
+     (Generator_Algorithm : in Valid_Generator_Algorithm;
+      Interface_Kind      : in Interface_Type;
+      First_State_Index   : in Integer;
+      First_Parser_Label  : in Integer);
 
    procedure Create_Parser_Core (Table : in WisiToken.LR.Parse_Table_Ptr);
 

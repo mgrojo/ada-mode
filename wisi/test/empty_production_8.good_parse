@@ -29,11 +29,10 @@ constant_opt_1: (constant_opt, (18 . 25)) <= ( 4:(CONSTANT, (18 . 25)))
  2: 11:  5:(SEMICOLON, (26 . 26)) : shift and goto state 12
  1: 9:  5:(SEMICOLON, (26 . 26)) : ERROR
  1: expecting: COLON_EQUAL
- 1: zombie
+ 1: terminate (1 active)
  2: 12:  6:(IDENTIFIER, (28 . 34)) : reduce 4 tokens to object_declaration
 object_declaration_0: (object_declaration, (10 . 26)) <= ( 3:(IDENTIFIER, (10 . 16)), (aliased_opt), (constant_opt, (18 . 25)),  5:(SEMICOLON, (26 . 26)))
  ... goto state 5
- 1: terminate (1 active): zombie
  2: 5:  6:(IDENTIFIER, (28 . 34)) : reduce 2 tokens to object_declaration_list
 object_declaration_list_1: (object_declaration_list, (1 . 26)) <= ((object_declaration_list, (1 . 8)), (object_declaration, (10 . 26)))
  ... goto state 3
@@ -95,9 +94,8 @@ constant_opt_1: (constant_opt, (92 . 99)) <= ( 17:(CONSTANT, (92 . 99)))
  ... goto state 9
  3: 11:  18:(COLON_EQUAL, (101 . 102)) : ERROR
  3: expecting: SEMICOLON
- 3: zombie
+ 3: terminate (1 active)
  2: 9:  18:(COLON_EQUAL, (101 . 102)) : shift and goto state 10
- 3: terminate (1 active): zombie
  2: 10:  19:(SEMICOLON, (104 . 104)) : shift and goto state 13
  2: 13:  20:(Wisi_EOI, (106 . 105)) : reduce 4 tokens to object_declaration
 object_declaration_1: (object_declaration, (84 . 104)) <= ( 16:(IDENTIFIER, (84 . 90)), (constant_opt, (92 . 99)),  18:(COLON_EQUAL, (101 . 102)),  19:(SEMICOLON, (104 . 104)))

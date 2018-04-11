@@ -31,7 +31,7 @@
 %start compilation_unit
 %first_state_index 0
 %first_parser_label 0
-%parser_algorithm LALR_LR1
+%generator_algorithm LALR_LR1
 %output_language Elisp
 
 %conflict SHIFT/REDUCE in state range, range on token LEFT_PAREN

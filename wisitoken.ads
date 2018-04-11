@@ -146,11 +146,9 @@ package WisiToken is
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
-   function To_Token_ID_Set
-     (Item       : in Token_ID_Array;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return Token_ID_Set;
-   --  terminals and nonterminals
+   function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set;
+   --  First, Last determine size of result.
+   --  For each element in Item, set result (element) True.
 
    procedure To_Set (Item : in Token_ID_Arrays.Vector; Set : out Token_ID_Set);
    --  For each element of Item, set Set (element) True.
@@ -385,6 +383,6 @@ package WisiToken is
    procedure Put_Error (Message : in String);
    --  Put Message to Standard_Error.
 
-   type Parser_Algorithm_Type is (LALR, LR1);
+   type Generator_Algorithm_Type is (LALR, LR1);
 
 end WisiToken;

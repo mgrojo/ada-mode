@@ -17,7 +17,7 @@ with Test_Skip_To_Aux; use Test_Skip_To_Aux;
 
 %output_language Ada
 %lexer re2c
-%parser_algorithm LALR
+%generator_algorithm LALR
 
 %start compilation_unit_list
 

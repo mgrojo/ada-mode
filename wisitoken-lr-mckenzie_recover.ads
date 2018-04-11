@@ -43,6 +43,14 @@ private
    ----------
    --  Visible for language-specific child packages. Alphabetical.
 
+   procedure Find_ID
+     (Config         : in     Configuration;
+      IDs            : in     Token_ID_Set;
+      Matching_Index : in out SAL.Peek_Type);
+   --  Search Config.Stack for a token with ID in IDs, starting at
+   --  Matching_Index. If found, Matching_Index points to it.
+   --  If not found, Matching_Index = Config.Stack.Depth.
+
    procedure Find_Matching_Name
      (Config              : in     Configuration;
       Lexer               : in     WisiToken.Lexer.Handle;

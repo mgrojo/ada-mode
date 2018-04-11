@@ -34,14 +34,20 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
    --  subprogram_specification  name_opt       in subprogram_body
 
    Begin_Name_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
-     ((+block_label_opt_ID & (+name_ID) & (+subprogram_specification_ID)), Descriptor);
+     (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
+      (+block_label_opt_ID & (+name_ID) & (+subprogram_specification_ID)));
 
-   End_Name_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set ((+identifier_opt_ID & (+name_opt_ID)), Descriptor);
+   End_Name_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
+     (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
+      (+identifier_opt_ID & (+name_opt_ID)));
 
    Nonterm_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
-     ((+block_statement_ID & (+package_body_ID) & (+subprogram_body_ID)), Descriptor);
+     (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
+      (+block_statement_ID & (+package_body_ID) & (+subprogram_body_ID)));
 
-   Begin_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set ((1 => +BEGIN_ID), Descriptor);
+   Begin_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
+     (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
+      (1 => +BEGIN_ID));
 
    type Grammar_Token_ID_Set_Array is array (Positive range <>) of Grammar_Token_ID_Set;
    type Natural_Array is array (Positive range <>) of Natural;
@@ -273,15 +279,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   New_Config : Configuration := Config;
                   --  We don't use Configuration_Access here because we might abandon
                   --  this config.
-
-                  Ops : Config_Op_Arrays.Vector renames New_Config.Ops;
                begin
                   --  This is a not a guess, so it has zero cost.
 
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
-
-                  Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
                   Push_Back_Check
                     (New_Config,
@@ -382,8 +384,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
 
-               Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
-
                Push_Back_Check
                  (New_Config,
                   (+SEMICOLON_ID,
@@ -418,14 +418,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             --  before 'handled_sequence_of_statements'
             declare
                New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-               Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
             begin
                --  This is a guess, but it is equally as likely as 'ignore error', so
                --  it has the same cost.
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
-
-               Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
                Push_Back_Check
                  (New_Config,
@@ -507,16 +504,20 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                declare
                   New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                   Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
-                  Stack      : Recover_Stacks.Stack renames New_Config.Stack;
                begin
                   --  We don't increase the cost, because this is not a guess.
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
-                  --  Change the failed reduce into a Push_Back.
-                  Stack.Pop (Token_Count);
-                  New_Config.Current_Shared_Token := Config.Error_Token.Min_Terminal_Index;
-                  Ops.Append ((Push_Back, Config.Error_Token.ID, Config.Error_Token.Min_Terminal_Index));
+                  --  Push_Back the failed reduce tokens.
+                  for I in 1 .. New_Config.Check_Token_Count loop
+                     declare
+                        Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
+                     begin
+                        Ops.Append ((Push_Back, Item.Token.ID, Item.Token.Min_Terminal_Index));
+                     end;
+                  end loop;
+                  New_Config.Current_Shared_Token := New_Config.Error_Token.Min_Terminal_Index;
 
                   Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
@@ -533,14 +534,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                --  Case 2
                declare
                   New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                  Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
                begin
                   --  We don't increase the cost, because this is not a guess.
 
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
-
-                  Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count)); -- the failed reduce
 
                   Push_Back_Check
                     (New_Config,
@@ -653,15 +651,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : in     WisiToken.Lexer.Handle;
       Parser_Label      : in     Natural;
-      McKenzie_Param    : in     McKenzie_Param_Type;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
      return Non_Success_Status
-   is
-      pragma Unreferenced (McKenzie_Param); --  FIXME: if no solution uses costs, delete
-   begin
+   is begin
       if Trace_McKenzie > Extra then
          Put ("Ada_Lite Language_Fixes", Trace, Parser_Label, Terminals, Config);
          Put_Line (Trace, Parser_Label, "config stack: " & Image (Config.Stack, Descriptor));

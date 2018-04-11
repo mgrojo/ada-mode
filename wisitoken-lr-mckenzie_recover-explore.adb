@@ -64,6 +64,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  Perform Action on Config, setting Config.Check_Status. If that is
       --  not Ok, call Semantic_Check_Fixes (which may enqueue configs),
       --  return Abandon. Otherwise return Continue.
+      use all type Semantic_Checks.Check_Status_Label;
 
       Table     : Parse_Table renames Shared.Shared_Parser.Table.all;
       Nonterm   : Recover_Token;
@@ -71,7 +72,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
    begin
       Config.Check_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm, Default_Virtual => True);
       case Config.Check_Status.Label is
-      when Semantic_Checks.Ok =>
+      when Ok =>
          null;
 
       when Semantic_Checks.Error =>
@@ -83,7 +84,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             return Abandon;
          else
             case Shared.Shared_Parser.Language_Fixes
-              (Super.Trace.all, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
+              (Super.Trace.all, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index),
                Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config)
             is
@@ -91,6 +92,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                --  "ignore error" is viable; continue with Config.
                --  Finish the reduce.
                Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+               Config.Error_Token.ID := Invalid_Token_ID;
+               Config.Check_Status   := (Label => Ok);
+
             when Abandon =>
                return Abandon;
             end case;
@@ -188,8 +192,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
-      EOF_ID : Token_ID renames Super.Trace.Descriptor.EOF_ID;
-
       Parse_Items : Parse.Parse_Item_Arrays.Vector;
    begin
       if Parse.Parse
@@ -201,7 +203,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  immediate problem, so continue with the parsed config.
          if Parse_Items.Length = 1 then
             Config := Parse_Items (1).Config;
-            Config.Ops.Append ((Fast_Forward, EOF_ID));
+            Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
 
             Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
          else
@@ -306,31 +308,45 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          return Success;
       end if;
 
-      --  If a Parse_Item failed due to a semantic check, enqueue it so
-      --  Language_Fixes can try to fix it.
+      --  Enqueue failed Parse_Items so Language_Fixes can try to fix them.
       declare
-         EOF_ID : Token_ID renames Super.Trace.Descriptor.EOF_ID;
-
          Parse_Error_Found : Boolean := False;
       begin
          for Item of Parse_Items loop
             if Item.Parsed then
-               if Item.Config.Check_Status.Label /= Ok then
-                  if Item.Config.Ops.Length > 0 and then
-                    Item.Config.Ops (Item.Config.Ops.Last_Index).Op /= Fast_Forward
+               if Item.Config.Error_Token.ID /= Invalid_Token_ID then
+                  Parse_Error_Found := True;
+
+                  if Item.Shift_Count = 0 or
+                    (Item.Config.Ops.Length = 0 or else
+                       Item.Config.Ops (Item.Config.Ops.Last_Index).Op in Undo_Reduce | Push_Back)
                   then
-                     Item.Config.Ops.Append ((Fast_Forward, EOF_ID));
+                     --  (Item.config.ops is empty on the very first Check).
+                     --  This is the same error Config originally found; report it in
+                     --  Config, so Language_Constrain_Terminals can see it.
+                     Config.Error_Token := Item.Config.Error_Token;
                   end if;
+               end if;
+
+               if Item.Shift_Count > 1 and then
+                 (Item.Config.Check_Status.Label /= Ok or
+                    Item.Config.Error_Token.ID /= Invalid_Token_ID) and then
+                 Item.Config.Ops (Item.Config.Ops.Last_Index).Op in Insert | Delete
+               then
+                  --  Some progress was made; let Language_Fixes try to fix the new
+                  --  error.
+                  --
+                  --  This is abandoning the original location of the error, which may
+                  --  not be entirely fixed. So we increase the cost. See
+                  --  test_mckenzie_recover Loop_Bounds.
+                  Item.Config.Cost := Item.Config.Cost + 1;
+                  Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+
                   Local_Config_Heap.Add (Item.Config);
                   if Trace_McKenzie > Detail then
-                     Put_Line (Shared.Shared_Parser.Trace.all, Super.Label (Parser_Index),
-                               Semantic_Checks.Image
-                                 (Item.Config.Check_Status, Shared.Shared_Parser.Trace.Descriptor.all));
-                     Base.Put ("semantic_check_fix ", Super, Shared, Parser_Index, Item.Config);
+                     Base.Put ("for Language_Fixes ", Super, Shared, Parser_Index, Item.Config);
                   end if;
 
-               elsif Item.Action.Item.Verb = Error then
-                  Parse_Error_Found := True;
                end if;
             end if;
          end loop;
@@ -338,7 +354,14 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          if Parse_Error_Found then
             return Continue;
          else
-            return Abandon;
+            --  Failed due to Semantic_Check
+            if Shared.Shared_Parser.Language_Fixes = null then
+               --  Only fix is to ignore the error
+               return Continue;
+            else
+               --  Assume Language_Fixes handles this
+               return Abandon;
+            end if;
          end if;
       end;
    end Check;
@@ -369,6 +392,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          declare
             New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
          begin
+            New_Config.Error_Token.ID := Invalid_Token_ID;
+            New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+
             New_Config.Stack.Pop;
 
             if Token.Min_Terminal_Index = Invalid_Token_Index then
@@ -393,7 +419,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
      (Super             : not null access Base.Supervisor;
       Shared            : not null access Base.Shared_Lookahead;
       Parser_Index      : in              SAL.Base_Peek_Type;
-      Config            : in out          Configuration;
+      Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
       use all type Ada.Containers.Count_Type;
@@ -443,11 +469,14 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      declare
                         New_Config : Configuration := Config;
                      begin
+                        New_Config.Error_Token.ID := Invalid_Token_ID;
+                        New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+
                         Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID);
                      end;
 
                   when Reduce =>
-                     if Action /= Cached_Action then
+                     if not Equal (Action, Cached_Action) then
                         declare
                            New_Config : Configuration := Config;
                         begin
@@ -559,8 +588,15 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          return;
       end if;
 
+      if Trace_McKenzie > Extra then
+         Base.Put ("dequeue", Super, Shared, Parser_Index, Config);
+         Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
+      end if;
+
       if Config.Current_Inserted /= No_Inserted then
          --  This Config was enqueued by a previous Language_Fixes.
+         pragma Assert (Config.Error_Token.ID = Invalid_Token_ID and Config.Check_Status.Label = Ok);
+
          case Fast_Forward (Super, Shared, Parser_Index, Config, Post_Fast_Forward_Fail) is
          when Abandon =>
             --  We know Local_Config_Heap is empty; just tell
@@ -568,6 +604,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             Super.Put (Parser_Index, Local_Config_Heap);
             return;
          when Continue =>
+            --  We don't increase cost for this Fast_Forward, since it is due to a
+            --  Language_Fixes.
             null;
          end case;
       end if;
@@ -580,17 +618,23 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             return;
          else
             case Shared.Shared_Parser.Language_Fixes
-              (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index), Table.McKenzie_Param,
+              (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index),
                Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config)
             is
             when Continue =>
+               --  We don't clear Config.Error_Token here, because Try_Insert calls
+               --  Language_Constrain_Terminals, which needs it. We only clear it
+               --  when a parse results in no error (or a different error), or a
+               --  push_back moves the Current_Token.
+
                if Config.Check_Status.Label = Ok then
                   --  Parse table Error action; try other Config changes.
                   null;
 
                else
-               --  "ignore error" is a viable solution, so continue with Config;
+                  --  "ignore check error" is a viable solution, so continue with Config;
+
                   declare
                      use all type Semantic_Checks.Semantic_Check;
                      use all type Semantic_Checks.Check_Status;
@@ -599,16 +643,26 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      --  finish reduce.
                      Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
 
-                     New_State := Goto_For (Table, Config.Stack (1).State, Config.Error_Token.ID);
-                     if New_State = Unknown_State then
-                        raise Programmer_Error with "process_one found test case for new_state = Unkown; old state " &
-                          Image (Config.Stack (1).State) & " nonterm " & Image
-                            (Config.Error_Token.ID, Trace.Descriptor.all);
+                     if Config.Stack.Depth = 1 then
+                        --  Stack is empty; really bad syntax got us here; abandon this
+                        --  config. See ada_mode-recover_bad_char.adb.
+                        Super.Put (Parser_Index, Local_Config_Heap);
+                        return;
+                     else
+                        New_State := Goto_For (Table, Config.Stack (1).State, Config.Error_Token.ID);
+                        if New_State = Unknown_State then
+                           raise Programmer_Error with
+                             "process_one found test case for new_state = Unknown; old state " &
+                             Image (Config.Stack (1).State) & " nonterm " & Image
+                               (Config.Error_Token.ID, Trace.Descriptor.all);
+                        end if;
+
+                        --  We must clear Check_Status here, so if this config comes back
+                        --  here, we don't try to reduce the stack again.
+                        Config.Check_Status := (Label => Ok);
+
+                        Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Config.Error_Token));
                      end if;
-
-                     Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Config.Error_Token));
-
-                     Config.Check_Status := (Label => Ok);
                   end;
                end if;
 
@@ -631,13 +685,14 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
          when Continue =>
             null;
+
          end case;
       end if;
 
       if Trace_McKenzie > Detail then
          Base.Put ("continuing", Super, Shared, Parser_Index, Config);
          if Trace_McKenzie > Extra then
-            Put_Line (Trace, Super.Label (Parser_Index), Image (Config.Stack, Trace.Descriptor.all));
+            Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
          end if;
       end if;
 

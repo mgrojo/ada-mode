@@ -43,7 +43,8 @@ with Trivial_Productions_Test;
 with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
-   --  command line arguments: [<verbose> [test_name [routine_name [trace_parse [trace_mckenzie [cost_limit]]]]]
+   --  command line arguments:
+   --  [<verbose> [test_name [routine_name [trace_parse [trace_mckenzie [cost_limit trace_action]]]]]
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  test_name, routine_name can be '' to set trace for all routines.
@@ -93,6 +94,8 @@ begin
       WisiToken.Trace_Parse    := (if Argument_Count > 3 then Integer'Value (Argument (4)) else 0);
       WisiToken.Trace_McKenzie := (if Argument_Count > 4 then Integer'Value (Argument (5)) else 0);
       Cost_Limit               := (if Argument_Count > 5 then Natural'Value (Argument (6)) else Natural'Last);
+      WisiToken.Trace_Action   := (if Argument_Count > 6 then Integer'Value (Argument (7)) else 0);
+      --  Trace_Action is used for verbosity in tests.
    end;
 
    --  Test cases; test package alphabetical order, unless otherwise noted.

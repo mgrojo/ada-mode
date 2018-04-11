@@ -105,17 +105,6 @@ package body WisiToken.Gen_Token_Enum is
       return Result;
    end To_Nonterminal_Array_Terminal_Set;
 
-   function To_Token_ID_Set (Item : in Nonterminal_ID_Set) return WisiToken.Token_ID_Set
-   is
-      Result : WisiToken.Token_ID_Set :=
-        (LR1_Descriptor.First_Nonterminal .. LR1_Descriptor.Last_Nonterminal => False);
-   begin
-      for I in Item'Range loop
-         Result (+I) := Item (I);
-      end loop;
-      return Result;
-   end To_Token_ID_Set;
-
    function "+" (Item : in Token_Array) return WisiToken.Token_ID_Set
    is
       Result : Token_ID_Set := (LR1_Descriptor.First_Terminal .. LR1_Descriptor.Last_Terminal => False);

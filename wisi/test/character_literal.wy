@@ -47,7 +47,7 @@ with WisiToken.Syntax_Trees;
 
 %}
 
-%parser_algorithm LR1
+%generator_algorithm LR1
 %output_language Ada
 %lexer re2c
 

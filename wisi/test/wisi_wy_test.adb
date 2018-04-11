@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -52,7 +52,7 @@ package body Wisi_WY_Test is
       Spawn
         (Program_Name => Exe.all,
          Args         =>
-           (1         => new String'("--parser_algorithm"),
+           (1         => new String'("--generator_algorithm"),
             2         => new String'((if Test.LR1 then "LALR_LR1" else "LALR")),
             3         => new String'("--output_language"),
             4         => new String'("Elisp"),
