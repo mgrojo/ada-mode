@@ -63,7 +63,7 @@ is
 
          or
             accept Read (Index : in Positive; Value : out Integer) do
-               Value := Shared (Index);
+               Value := Shared.Element (Index);
             end Read;
 
          --  WORKAROUND: see comment on iterators in spec
@@ -115,14 +115,14 @@ is
       Check ("1.capacity", Shared.Capacity, 2);
 
       --  Test Constant_Reference lock
-      Value := Shared (10);
+      Value := Shared.Element (10);
 
       Check ("1a lock", Shared.Locked, False);
 
       Check
         ("1.data",
-         (Shared (10) = 1 and Shared (11) = 2) or
-           (Shared (10) = 2 and Shared (11) = 1),
+         (Shared.Element (10) = 1 and Shared.Element (11) = 2) or
+           (Shared.Element (10) = 2 and Shared.Element (11) = 1),
          True);
 
       Check ("1b lock", Shared.Locked, False);
@@ -153,10 +153,10 @@ is
       Check ("3.capacity", Shared.Capacity, 4);
       Check
         ("3.data",
-         ((Shared (8) = 3 and Shared (9) = 4) or
-            (Shared (8) = 4 and Shared (9) = 3)) and
-           ((Shared (10) = 1 and Shared (11) = 2) or
-              (Shared (10) = 2 and Shared (11) = 1)),
+         ((Shared.Element (8) = 3 and Shared.Element (9) = 4) or
+            (Shared.Element (8) = 4 and Shared.Element (9) = 3)) and
+           ((Shared.Element (10) = 1 and Shared.Element (11) = 2) or
+              (Shared.Element (10) = 2 and Shared.Element (11) = 1)),
          True);
 
       Test_Task_1.Append (5);
@@ -168,7 +168,7 @@ is
       Check ("4.length", Shared.Length, 5);
       Check ("4.capacity", Shared.Capacity, 8);
       Check ("4.read_data", Value = 1 or Value = 2, True);
-      Check ("4.written_data", Shared (12), 5);
+      Check ("4.written_data", Shared.Element (12), 5);
 
       --  WORKAROUND: see comment on iterators in spec
       --  Check ("5a lock", Shared.Locked, False);
@@ -180,12 +180,7 @@ is
 
       --  Check ("5b lock", Shared.Locked, False);
       --  Check ("5 length", Shared.Length, 6);
-      --  Check ("5 data", Shared (13), 6);
-
-      --  Test Variable_Reference locking
-      Check ("6a lock", Shared.Locked, False);
-      Shared (13) := 0;
-      Check ("6b.lock", Shared.Locked, False);
+      --  Check ("5 data", Shared.Element (13), 6);
 
    end Nominal;
 
