@@ -63,12 +63,6 @@ kill slow/expensive other parser during recover
      5: fail, enqueue 75967, check  5189, cost_limit:  12
      1: succeed 1, enqueue 172, check  25, cost:  6
 
-run all tests
-
-
-wisi-generate depends on mckenzie_recover-* because of wisi_grammar
-    define a new parser runtime with no mckenzie, since wisi_grammar doesn't use it anyway
-
 test/gpr/gpr-ske-test fails with 'undefined skeleton token'
 
 emacs track parse-max, don't reparse just for different action; just execute action.

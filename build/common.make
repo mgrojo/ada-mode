@@ -98,6 +98,9 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 %.tmp : %
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
+benchmark :
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el
+
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
 
@@ -129,7 +132,7 @@ GPRBUILD := gprbuild
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
 
 # for recompiling with release options
-clean-recursive : force
+recursive-clean : force
 	gprclean -r -P ../ada_mode_wisi_parse.gpr
 
 clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
