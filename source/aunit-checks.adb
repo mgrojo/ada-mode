@@ -211,6 +211,18 @@ package body AUnit.Checks is
          Label & " got " & Integer'Image (Computed) & " expecting " & Integer'Image (Expected));
    end Check;
 
+   procedure Check_Range
+     (Label         : in String;
+      Computed      : in Integer;
+      Expected_Low  : in Integer;
+      Expected_High : in Integer)
+   is begin
+      AUnit.Assertions.Assert
+        (Computed >= Expected_Low and Computed <= Expected_High,
+         Label & " got " & Integer'Image (Computed) & " expecting range " & Integer'Image (Expected_Low) & " .." &
+           Integer'Image (Expected_High));
+   end Check_Range;
+
    procedure Check
      (Label    : in String;
       Computed : in Boolean;

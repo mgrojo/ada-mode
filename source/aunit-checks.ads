@@ -181,6 +181,12 @@ package AUnit.Checks is
       Computed : in Integer;
       Expected : in Integer);
 
+   procedure Check_Range
+     (Label         : in String;
+      Computed      : in Integer;
+      Expected_Low  : in Integer;
+      Expected_High : in Integer);
+
    procedure Check
      (Label    : in String;
       Computed : in Boolean;
