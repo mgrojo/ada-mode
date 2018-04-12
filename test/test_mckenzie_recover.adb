@@ -92,6 +92,7 @@ package body Test_McKenzie_Recover is
    procedure Check_Recover
      (Label                   : in String                                       := "";
       Errors_Length           : in Ada.Containers.Count_Type;
+      Checking_Error          : in Ada.Containers.Count_Type                    := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
       Ops                     : in WisiToken.LR.Config_Op_Arrays.Vector := WisiToken.LR.Config_Op_Arrays.Empty_Vector;
@@ -113,57 +114,67 @@ package body Test_McKenzie_Recover is
       use all type WisiToken.Token_ID_Set;
       use all type WisiToken.LR.Parse_Error_Label;
 
+      Label_I : constant String := Label & "." & Ada.Containers.Count_Type'Image (Checking_Error);
+
       Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-      Cursor       : constant WisiToken.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
-      Error        : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
+      Cursor       : WisiToken.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
    begin
-      Check (Label & ".errors.length", Parser_State.Errors.Length, Errors_Length);
+      Check (Label_I & ".errors.length", Parser_State.Errors.Length, Errors_Length);
 
-      if Expecting /= Empty_Token_ID_Set then
-         Check (Label & "expecting", Error.Expecting, Expecting);
-      end if;
+      for I in 2 .. Checking_Error loop
+         WisiToken.LR.Parse_Error_Lists.Next (Cursor);
+      end loop;
 
-      if Code = Ok then
-         declare
-            Token : WisiToken.Recover_Token renames Parser_State.Tree.Recover_Token (Error.Error_Token);
-         begin
-            Check (Label & ".label", Error.Label, Action);
-            Check (Label & ".error_token.id", Token.ID, Error_Token_ID);
-            if Error_Token_ID /= +Wisi_EOI_ID then
-               --  EOF byte_region is unreliable
-               Check (Label & ".error_token.byte_region", Token.Byte_Region, Error_Token_Byte_Region);
-            end if;
-         end;
-      else
-         Check (Label & ".label", Error.Label, Check);
-         Check (Label & ".code", Error.Check_Status.Label, Code);
-         if Error.Check_Status.End_Name.Byte_Region = WisiToken.Null_Buffer_Region then
-            --  End_Name is empty; check begin_name
-            Check (Label & ".begin_name.id", Error.Check_Status.Begin_Name.ID, Error_Token_ID);
-            Check (Label & ".begin_name.byte_region", Error.Check_Status.Begin_Name.Byte_Region,
-                   Error_Token_Byte_Region);
-         else
-            Check (Label & ".end_name.id", Error.Check_Status.End_Name.ID, Error_Token_ID);
-            Check (Label & ".end_name.byte_region", Error.Check_Status.End_Name.Byte_Region, Error_Token_Byte_Region);
+      declare
+         Error : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
+      begin
+         if Expecting /= Empty_Token_ID_Set then
+            Check (Label_I & "expecting", Error.Expecting, Expecting);
          end if;
-      end if;
 
-      if not Ops_Race_Condition then
-         Check (Label & ".recover.ops", Error.Recover.Ops, Ops);
-      end if;
+         if Code = Ok then
+            declare
+               Token : WisiToken.Recover_Token renames Parser_State.Tree.Recover_Token (Error.Error_Token);
+            begin
+               Check (Label_I & ".label", Error.Label, Action);
+               Check (Label_I & ".error_token.id", Token.ID, Error_Token_ID);
+               if Error_Token_ID /= +Wisi_EOI_ID then
+                  --  EOF byte_region is unreliable
+                  Check (Label_I & ".error_token.byte_region", Token.Byte_Region, Error_Token_Byte_Region);
+               end if;
+            end;
+         else
+            Check (Label_I & ".label", Error.Label, Check);
+            Check (Label_I & ".code", Error.Check_Status.Label, Code);
+            if Error.Check_Status.End_Name.Byte_Region = WisiToken.Null_Buffer_Region then
+               --  End_Name is empty; check begin_name
+               Check (Label_I & ".begin_name.id", Error.Check_Status.Begin_Name.ID, Error_Token_ID);
+               Check (Label_I & ".begin_name.byte_region", Error.Check_Status.Begin_Name.Byte_Region,
+                      Error_Token_Byte_Region);
+            else
+               Check (Label_I & ".end_name.id", Error.Check_Status.End_Name.ID, Error_Token_ID);
+               Check (Label_I & ".end_name.byte_region",
+                      Error.Check_Status.End_Name.Byte_Region,
+                      Error_Token_Byte_Region);
+            end if;
+         end if;
 
-      --  The enqueue count depends on a race condition; configs with costs
-      --  higher than the final solution may or may not be enqueued. So we
-      --  test a range; we want to know if it gets a lot higher when we
-      --  change something. Similarly for Check_Low, _High.
-      --
-      --  Recover does not come from the same parser as Error if the
-      --  succeeding parser was spawned after error recovery, but we copy
-      --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
-      Check_Range (Label & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
-      Check_Range (Label & ".check", Parser_State.Recover.Check_Count, Check_Low, Check_High);
-      Check (Label & ".cost", Error.Recover.Cost, Cost);
+         if not Ops_Race_Condition then
+            Check (Label_I & ".recover.ops", Error.Recover.Ops, Ops);
+         end if;
 
+         --  The enqueue count depends on a race condition; configs with costs
+         --  higher than the final solution may or may not be enqueued. So we
+         --  test a range; we want to know if it gets a lot higher when we
+         --  change something. Similarly for Check_Low, _High.
+         --
+         --  Recover does not come from the same parser as Error if the
+         --  succeeding parser was spawned after error recovery, but we copy
+         --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
+         Check_Range (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
+         Check_Range (Label_I & ".check", Parser_State.Recover.Check_Count, Check_Low, Check_High);
+         Check (Label_I & ".cost", Error.Recover.Cost, Cost);
+      end;
    end Check_Recover;
 
    ----------
@@ -362,7 +373,7 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +BEGIN_ID, 4) &
              (Push_Back, +declarative_part_opt_ID, 4) &
              (Delete, +BEGIN_ID, 4),
-         Enqueue_Low             => 63,
+         Enqueue_Low             => 57,
          Enqueue_High            => 110,
          Check_Low               => 11,
          Check_High              => 17,
@@ -694,7 +705,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +IDENTIFIER_ID, 6),
          Enqueue_Low             => 30,
          Enqueue_High            => 78,
-         Check_Low               => 6,
+         Check_Low               => 4,
          Check_High              => 14,
          Cost                    => 3);
    end Error_Token_When_Parallel;
@@ -1372,6 +1383,51 @@ package body Test_McKenzie_Recover is
          Cost                    => 10);
    end Actual_Parameter_Part_1;
 
+   procedure Unfinished_Subprogram_Type_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-interactive_2.adb
+      Parse_Text
+        ("package body Debug is function Function_Access_1 (A_Param : Float) return Float is begin" &
+      --           |10       |20       |30       |40       |50       |60       |70       |80       |90
+           " type Wait_Return is (Read_Success,); end Debug;");
+      --    |90       |100      |110      |120      |130
+
+      --  Missing 'end Function_Access_1;' 81 and '<identifier>' 116.
+      --
+      --  Reported 'error in resume' after both recoveries, now fixed.
+      --
+      --  FIXME: desired solution to first error is '(insert 'end ;'). Add
+      --  'type' and other keywords to Constrain_Terminals.
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
+         Error_Token_ID          => +BEGIN_ID,
+         Error_Token_Byte_Region => (84, 88),
+         Ops                     => +(Insert, +SEPARATE_ID, 15) & (Insert, +SEMICOLON_ID, 15) & (Delete, +BEGIN_ID, 15),
+         Enqueue_Low             => 0,
+         Enqueue_High            => Integer'Last,
+         Check_Low               => 0,
+         Check_High              => Integer'Last,
+         --  We only save Enqueue_Count and Check_Count from the last error, so
+         --  we can't check them for error 1.
+         Cost                    => 6);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +RIGHT_PAREN_ID,
+         Error_Token_Byte_Region => (124, 124),
+         Ops                     => +(Insert, +IDENTIFIER_ID, 22),
+         Enqueue_Low             => 7,
+         Enqueue_High            => 9,
+         Check_Low               => 3,
+         Check_High              => 5,
+         Cost                    => 3);
+   end Unfinished_Subprogram_Type_1;
+
    ----------
    --  Public subprograms
 
@@ -1411,6 +1467,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Two_Missing_Ends'Access, "Two_Missing_Ends");
       Register_Routine (T, Match_Selected_Component_1'Access, "Match_Selected_Component_1");
       Register_Routine (T, Actual_Parameter_Part_1'Access, "Actual_Parameter_Part_1");
+      Register_Routine (T, Unfinished_Subprogram_Type_1'Access, "Unfinished_Subprogram_Type_1");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

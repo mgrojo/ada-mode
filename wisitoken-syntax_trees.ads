@@ -272,7 +272,7 @@ package WisiToken.Syntax_Trees is
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Index));
    --  Traverse Tree in depth-first order, calling Process_Node on each
-   --  node.
+   --  node. Tree root is assumed to be last node added.
 
    function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
    with Pre => Tree.Is_Terminal (Node);
@@ -295,11 +295,6 @@ package WisiToken.Syntax_Trees is
       Nodes      : in Valid_Node_Index_Array;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
-   --  function Image
-   --    (Tree       : in Syntax_Trees.Tree;
-   --     Nodes      : in Valid_Node_Index_Arrays.Vector;
-   --     Descriptor : in WisiToken.Descriptor)
-   --    return String;
    --  For debug and error messages.
 
 private

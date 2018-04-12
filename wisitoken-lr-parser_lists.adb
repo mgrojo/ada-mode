@@ -178,6 +178,7 @@ package body WisiToken.LR.Parser_Lists is
               (Enqueue_Count      => Item.Recover.Enqueue_Count,
                Check_Count        => Item.Recover.Check_Count,
                others             => <>),
+            Conflict_During_Resume => Item.Conflict_During_Resume,
             Zombie_Token_Count    => 0,
             Errors                => Item.Errors,
             Label                 => List.Parser_Label,

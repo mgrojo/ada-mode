@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 with Ada_Lite;
+with System.Assertions;
 package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
    use all type Standard.Ada_Lite.Token_Enum_ID; -- token names
@@ -219,7 +220,10 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       end if;
 
       if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
-         raise Programmer_Error with "found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
+         if Trace_McKenzie > Outline then
+            Put ("Handle_Check_Fail test case for Ops_Insert_Point", Config);
+         end if;
+         raise Programmer_Error with "Handle_Check_Fail found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
       end if;
 
       case Config.Check_Status.Label is
@@ -328,7 +332,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  0b. "<begin_named_token> is declarative_part_opt end <end_name_token> ;"
          --
          --  where <end_name_token> is empty, because the user is changing it.
-         --  0a looks like a subprogram or named block; 1b looks like a package
+         --  0a looks like a subprogram or named block; 0b looks like a package
          --  body.
          --
          --  The fix is to ignore the error; return Continue. See
@@ -496,7 +500,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             end if;
 
             if Other_Counts (1) = 0 or Other_Counts (2) = 0 then
-               raise Programmer_Error with "unrecognized Extra_Name_Error case";
+               raise Programmer_Error with "unrecognized Extra_Name_Error case " & Image
+                 (Config.Error_Token, Descriptor);
             end if;
 
             if Other_Counts (1) > Other_Counts (2) then
@@ -578,7 +583,20 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
       end Put;
+
+      procedure Check_Ops_Insert_Point
+      is begin
+         if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
+            if Trace_McKenzie > Outline then
+               Put ("Handle_Parse_Error test case for Ops_Insert_Point", Config);
+            end if;
+            raise Programmer_Error with
+              "Handle_Parse_Error found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
+         end if;
+      end Check_Ops_Insert_Point;
+
    begin
+      --  This is simple enough to use 'case'; full Ada needs 'if'.
       case Standard.Ada_Lite.Token_Enum_ID'(-Config.Error_Token.ID) is
       when DOT_ID =>
          --  We've encountered a Selected_Component when we were expecting a
@@ -589,6 +607,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          if Config.Stack (1).Token.ID = +IDENTIFIER_ID and
            Config.Stack (2).Token.ID = +END_ID
          then
+            Check_Ops_Insert_Point;
+
             --  The input looks like
             --
             --  "<begin_name_token_1> ... <begin_name_token_2> ... begin ... begin ... end <end_name_token_1> ;"
@@ -604,11 +624,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             --  would generate a semantic check fail, not a parse table error,
             --  since a "." would be permitted.
 
-            if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
-               raise Programmer_Error with "found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
-            end if;
-
             declare
+               Label      : constant String               := "selected_component 1";
                New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
             begin
                New_Config.Error_Token.ID := Invalid_Token_ID;
@@ -626,6 +643,18 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
                end if;
+               return Abandon;
+            exception
+            when System.Assertions.Assert_Failure =>
+               --  From *_Check
+               Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
+               Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
+
+               --  We don't re-raise the exception here; so far, this has only
+               --  happened while exploring a high-cost config (which only occurs in
+               --  a race condition with the lower cost solution), and the correct
+               --  thing to do would be to abandon it. If we are trying to fix a
+               --  particular use case, the trace messages will be enough.
                return Abandon;
             end;
          end if;
@@ -754,10 +783,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                      exit Reduce_To_Shift;
                   else
                      --  FIXME: conflicts
-                     raise Programmer_Error with "unrecognized Constrain_Terminals case";
+                     raise Programmer_Error with "conflicts in Constrain_Terminals; state" & State_Index'Image (State);
                   end if;
                end;
             end loop Reduce_To_Shift;
+
             if Trace_McKenzie > Detail then
                Put_Line (Trace, Parser_Label, "constrain_terminals: " & Image (Result, Trace.Descriptor.all));
             end if;

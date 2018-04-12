@@ -508,7 +508,7 @@ package body WisiToken.Syntax_Trees is
         (case N.Label is
          when Shared_Terminal => Token_Index'Image (N.Terminal) & ":",
          when Virtual_Terminal | Nonterm => "") &
-      "(" & Image (N.ID, Descriptor) &
+        "(" & Image (N.ID, Descriptor) &
         (if N.Byte_Region = Null_Buffer_Region then "" else ", " & Image (N.Byte_Region)) & ")";
    end Image;
 
@@ -718,16 +718,19 @@ package body WisiToken.Syntax_Trees is
          Node : in     Valid_Node_Index))
    is begin
       Tree.Shared_Tree.Traversing := True;
-      for N in Tree.Shared_Tree.Nodes.First_Index .. Tree.Shared_Tree.Nodes.Last_Index loop
-         if Tree.Shared_Tree.Nodes (N).Parent = 0 then
-            Process_Tree (Tree, N, Process_Node);
+      if Tree.Flush then
+         if Tree.Shared_Tree.Nodes (Tree.Shared_Tree.Nodes.Last_Index).Parent = 0 then
+            Process_Tree (Tree, Tree.Shared_Tree.Nodes.Last_Index, Process_Node);
+         else
+            raise Programmer_Error with "last tree node is not a root";
          end if;
-      end loop;
-      for N in Tree.Branched_Nodes.First_Index .. Tree.Branched_Nodes.Last_Index loop
-         if Tree.Branched_Nodes (N).Parent = 0 then
-            Process_Tree (Tree, N, Process_Node);
+      else
+         if Tree.Branched_Nodes (Tree.Branched_Nodes.Last_Index).Parent = 0 then
+            Process_Tree (Tree, Tree.Branched_Nodes.Last_Index, Process_Node);
+         else
+            raise Programmer_Error with "last tree node is not a root";
          end if;
-      end loop;
+      end if;
       Tree.Shared_Tree.Traversing := False;
    exception
    when others =>

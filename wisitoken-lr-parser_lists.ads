@@ -89,6 +89,8 @@ package WisiToken.LR.Parser_Lists is
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 
+      Conflict_During_Resume : Boolean := False;
+
       Errors : Parse_Error_Lists.List;
    end record;
 

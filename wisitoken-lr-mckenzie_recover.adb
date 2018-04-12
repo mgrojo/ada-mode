@@ -405,10 +405,10 @@ package body WisiToken.LR.McKenzie_Recover is
                Data       : McKenzie_Data renames Parser_State.Recover;
                Result     : Configuration renames Data.Results.Peek;
 
-               Stack_Changed        : Boolean     := False;
-               Shared_Token_Changed : Boolean     := False;
-               Virtuals_Inserted    : Boolean     := False;
-               Fast_Forward_Seen    : Boolean     := False;
+               Shared_Token_Changed : Boolean := False;
+               Virtuals_Inserted    : Boolean := False;
+               Fast_Forward_Seen    : Boolean := False;
+               Insert_Seen          : Boolean := False;
             begin
                --  We apply Push_Back ops to Parser_State.Stack up to the first
                --  Fast_Forward, and enqueue Insert and Delete ops on
@@ -447,7 +447,6 @@ package body WisiToken.LR.McKenzie_Recover is
                         null;
                      else
                         Undo_Reduce (Parser_State.Stack, Tree);
-                        Stack_Changed := True;
                      end if;
 
                   when Push_Back =>
@@ -460,16 +459,16 @@ package body WisiToken.LR.McKenzie_Recover is
                         if Op.Token_Index /= Invalid_Token_Index then
                            Parser_State.Shared_Token := Op.Token_Index;
                         end if;
-                        Stack_Changed        := True;
                         Shared_Token_Changed := True;
                      end if;
 
                   when Insert =>
+                     Insert_Seen := True;
                      Parser_State.Recover_Insert_Delete.Put (Op);
                      Virtuals_Inserted := True;
 
                   when Delete =>
-                     if Op.Token_Index = Parser_State.Shared_Token then
+                     if not Insert_Seen and then Op.Token_Index = Parser_State.Shared_Token then
                         pragma Assert (not Fast_Forward_Seen);
                         Parser_State.Shared_Token := Op.Token_Index + 1;
                      else
@@ -498,7 +497,7 @@ package body WisiToken.LR.McKenzie_Recover is
                     (Parser_State.Shared_Token, Shared_Parser.Terminals);
                end if;
 
-               if Stack_Changed or Shared_Token_Changed or Virtuals_Inserted then
+               if Shared_Token_Changed or Virtuals_Inserted then
                   Parser_State.Set_Verb (Shift_Recover);
                   Update_Shared_Verb (Shift_Recover);
                end if;
@@ -578,7 +577,11 @@ package body WisiToken.LR.McKenzie_Recover is
    begin
       loop
          exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
-         exit when IDs (Config.Stack (Matching_Index).Token.ID);
+         declare
+            ID : Token_ID renames Config.Stack (Matching_Index).Token.ID;
+         begin
+            exit when ID in IDs'First .. IDs'Last and then IDs (ID);
+         end;
          Matching_Index := Matching_Index + 1;
       end loop;
    end Find_ID;

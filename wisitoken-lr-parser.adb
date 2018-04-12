@@ -540,9 +540,10 @@ package body WisiToken.LR.Parser is
                   end if;
                   raise Syntax_Error;
                else
-                  --  This is ok if a conflict occured during resume, and this is the
-                  --  new parser; otherwise it's a programmer error.
-                  if Check_Parser.State_Ref.Recover.Enqueue_Count = 0 then
+                  --  This is ok if a conflict occured during resume - we assume this is
+                  --  a branch that failed during recover as well. Otherwise it's a
+                  --  programmer error.
+                  if Check_Parser.State_Ref.Conflict_During_Resume then
                      Terminate_Parser (Shared_Parser, "error in conflict during resume", Check_Parser);
                   else
                      raise Programmer_Error with "error during resume";
@@ -553,6 +554,21 @@ package body WisiToken.LR.Parser is
             Check_Parser.Next;
          end if;
       end Check_Error;
+
+      procedure Do_Deletes (Parser_State : in out Parser_Lists.Parser_State)
+      is begin
+         loop
+            if Parser_State.Recover_Insert_Delete.Length > 0 and then
+              Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
+              Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token
+            then
+               Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+               Parser_State.Recover_Insert_Delete.Drop;
+            else
+               exit;
+            end if;
+         end loop;
+      end Do_Deletes;
 
    begin
       --  The user must call Lexer.Reset_* to set the input text.
@@ -617,17 +633,7 @@ package body WisiToken.LR.Parser is
                      Parser_State.Inc_Shared_Token := True;
                   end if;
 
-                  loop
-                     if Parser_State.Recover_Insert_Delete.Length > 0 and then
-                       Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
-                       Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token
-                     then
-                        Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-                        Parser_State.Recover_Insert_Delete.Drop;
-                     else
-                        exit;
-                     end if;
-                  end loop;
+                  Do_Deletes (Parser_State);
 
                   if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
@@ -673,27 +679,14 @@ package body WisiToken.LR.Parser is
                         Parser_State.Inc_Shared_Token := True;
                      end if;
 
+                     Do_Deletes (Parser_State);
+
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Shared_Token, Shared_Parser.Terminals);
                   else
                      --  Done with all recover insertions; waiting for other parsers to
                      --  finish with them, so do nothing this cycle.
                      Parser_State.Set_Verb (Shift);
-                  end if;
-
-                  if Parser_State.Verb = Shift_Recover then
-                     --  Handle following deletes here, so Parse_Verb can see next insert.
-                     loop
-                        if Parser_State.Recover_Insert_Delete.Length > 0 and then
-                          Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
-                          Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token
-                        then
-                           Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-                           Parser_State.Recover_Insert_Delete.Drop;
-                        else
-                           exit;
-                        end if;
-                     end loop;
                   end if;
                end if;
             end loop;
@@ -848,6 +841,8 @@ package body WisiToken.LR.Parser is
                            Trace.New_Line;
                         end if;
 
+                        Parser_State.Conflict_During_Resume := False;
+
                         case Parser_State.Verb is
                         when Shift_Recover =>
                            Shift_Recover_Count := Shift_Recover_Count + 1;
@@ -956,6 +951,8 @@ package body WisiToken.LR.Parser is
                   --  Conflict; spawn a new parser (before modifying Current_Parser
                   --  stack).
 
+                  Current_Parser.State_Ref.Conflict_During_Resume := Shared_Parser.Resume_Active;
+
                   if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
                      raise WisiToken.Parse_Error with Error_Message
                        ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
@@ -967,8 +964,8 @@ package body WisiToken.LR.Parser is
                   else
                      if Trace_Parse > Outline then
                         Trace.Put_Line
-                          ("spawn parser from " & Int_Image (Current_Parser.Label) &
-                             " (" & Int_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                          (Integer'Image (Current_Parser.Label) & ": spawn, (" &
+                             Int_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                      end if;
 
                      Shared_Parser.Parsers.Prepend_Copy (Current_Parser);
