@@ -12,13 +12,13 @@ all : test-clean tests
 # test_all_harness.adb
 #
 #t_one : one-clean
-#t_one : character_literal_re2c.c
+t_one : ada_lite_re2c.c
 t_one : export Standard_Common_Build := Debug
 # t_one : RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
 t_one : test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
-t_all : ./wisi-generate.exe
+t_all : wisi-generate.exe
 t_all : ada_lite_re2c.c
 t_all : character_literal_re2c.c
 t_all : skip_to_grammar_re2c.c
@@ -26,13 +26,18 @@ t_all : skip_to_grammar_re2c.c
 t_all : test_all_harness.run
 
 one-clean :
-	rm -rf character_literal*
+	rm -rf wisi_grammar*
+	cd ../wisi/; rm -rf wisi_grammar.ad? wisi_grammar.parse_table wisi_grammar.re2c wisi_grammar_re2c.c wisi_grammar_re2c_c.ads
 
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-one : export Standard_Common_Build := Debug
-#one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
-one : identifier_list_name_conflict_run.exe
-	./identifier_list_name_conflict_run.exe -v 3 ../wisi/test/identifier_list_name_conflict.input
+#one :: one-clean
+one :: export Standard_Common_Build := Debug
+#one :: RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
+#one :: ../wisi/wisi_grammar_re2c.c
+one :: wisi_grammar_run.exe
+	./wisi_grammar_run.exe -v 2  ../wisi/test/debug.wy
+
+#c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make
@@ -43,50 +48,6 @@ two : exec_pro/ada_lite_run.exe
 	exec_pro/ada_lite_run.exe 5 c:/Projects/org.emacs.ada-mode.stephe-2/test/slow_recover_1.adb
 	gnatmem exec_pro/ada_lite_run.exe
 	gprof exec_pro/ada_lite_run.exe gmon.out > ada_lite-slow_recover_1.profile
-
-some-clean :
-	rm -rf $(addsuffix *, $(SOME_CLEAN_FILE))
-some : export Standard_Common_Build := Debug
-some : some-clean
-#some : RUN_ARGS := -v 4
-#some : GPRBUILD_ARGS := -v
-# some : wisi-generate.exe
-# some : SOME_CLEAN_FILE += case_expression
-# some : case_expression_re2c.c
-# some : case_expression-parse.diff
-# some : SOME_CLEAN_FILE += conflict_name
-# some : conflict_name_re2c.c
-# some : conflict_name-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_1
-# some : empty_production_1_re2c.c
-# some : empty_production_1-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_2
-# some : empty_production_2_re2c.c
-# some : empty_production_2-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_3
-# some : empty_production_3_re2c.c
-# some : empty_production_3-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_4
-# some : empty_production_4_re2c.c
-# some : empty_production_4-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_5
-# some : empty_production_5_re2c.c
-# some : empty_production_5-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_6
-# some : empty_production_6_re2c.c
-# some : empty_production_6-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_7
-# some : empty_production_7_re2c.c
-# some : empty_production_7-parse.diff
-# some : SOME_CLEAN_FILE += empty_production_8
-# some : empty_production_8_re2c.c
-# some : empty_production_8-parse.diff
-# some : SOME_CLEAN_FILE += identifier_list_name_conflict
-# some : identifier_list_name_conflict_re2c.c
-# some : identifier_list_name_conflict-parse.diff
-# some : SOME_CLEAN_FILE += subprograms-process
-# some : subprograms-process.el.diff
-# some : subprograms_process.adb.diff
 
 .PHONY : t_one_1 t_one_2
 

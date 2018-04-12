@@ -131,8 +131,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       if Next_Action.Next /= null then
          --  There is a conflict; create a new config to shift or reduce.
          declare
-            New_Config : Configuration             := Config;
-            Action     : constant Parse_Action_Rec := Next_Action.Next.Item;
+            New_Config : Configuration := Config;
+            Action     : Parse_Action_Rec renames Next_Action.Next.Item;
          begin
             case Action.Verb is
             when Shift =>
