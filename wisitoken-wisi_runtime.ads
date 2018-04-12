@@ -552,6 +552,9 @@ private
    end record;
    subtype Anchored_Delta is Simple_Delta_Type (Anchored);
 
+   function Image (Item : in Simple_Delta_Type) return String;
+   --  For debugging
+
    type Delta_Labels is (Simple, Hanging);
 
    type Delta_Type (Label : Delta_Labels := Simple) is
@@ -571,6 +574,9 @@ private
    end record;
 
    Null_Delta : constant Delta_Type := (Simple, (Int, 0));
+
+   function Image (Item : in Delta_Type) return String;
+   --  For debugging
 
    ----------
    --  Utilities for language-specific child packages

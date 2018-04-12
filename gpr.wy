@@ -102,7 +102,7 @@
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 
 %start compilation_unit
-%parser_algorithm LALR
+%generator_algorithm LALR
 
 ;; output_language and lexer are set on the command line; this file is
 ;; used to generate elisp and Ada_Emacs parsers.

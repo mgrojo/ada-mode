@@ -55,20 +55,21 @@ project Ada_Mode_Wisi_Parse is
          for Switches ("ada_process.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Debug_Switches;
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
          for Switches ("ada.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Debug_Switches;
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+         --  Debug_Switches dies with 'out of memory'; don't need debug in this file
 
          for Switches ("gpr_process.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Debug_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
          for Switches ("gpr.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Debug_Switches & ("-O1");
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
 
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
 

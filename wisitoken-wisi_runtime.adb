@@ -434,7 +434,7 @@ package body WisiToken.Wisi_Runtime is
    is
       Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
    begin
-      if Trace_Action > Detail then
+      if Trace_Action > Outline then
          Ada.Text_IO.New_Line;
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Ada.Text_IO.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
@@ -1215,9 +1215,11 @@ package body WisiToken.Wisi_Runtime is
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Indent_Param_Array)
-   is
-      pragma Unreferenced (Nonterm);
-   begin
+   is begin
+      if Trace_Action > Outline then
+         Ada.Text_IO.Put_Line ("indent_action_0: " & Tree.Image (Nonterm, Data.Descriptor.all));
+      end if;
+
       --  [2] wisi-indent-action
       for I in Tokens'Range loop
          if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
@@ -1452,6 +1454,25 @@ package body WisiToken.Wisi_Runtime is
 
    ----------
    --  Spec visible private subprograms, alphabetical
+
+   function Image (Item : in Simple_Delta_Type) return String
+   is begin
+      return "(" & Simple_Delta_Labels'Image (Item.Label) &
+        (case Item.Label is
+         when Int => Integer'Image (Item.Int_Delta),
+         when Anchored => Integer'Image (Item.Anchored_ID) & Integer'Image (Item.Anchored_Delta) & " " &
+              Boolean'Image (Item.Anchored_Accumulate) & ")");
+   end Image;
+
+   function Image (Item : in Delta_Type) return String
+   is begin
+      return "(" & Delta_Labels'Image (Item.Label) &
+        (case Item.Label is
+         when Simple => " " & Image (Item.Simple_Delta),
+         when Hanging => Line_Number_Type'Image (Item.Hanging_First_Line) & Integer'Image (Item.Hanging_Paren_State) &
+              " " & Image (Item.Hanging_Delta_1) & " " & Image (Item.Hanging_Delta_2) & " " &
+              Boolean'Image (Item.Hanging_Accumulate)) & ")";
+   end Image;
 
    function Current_Indent_Offset
      (Data         : in Parse_Data_Type;
@@ -1708,6 +1729,12 @@ package body WisiToken.Wisi_Runtime is
       First_Line : constant Line_Number_Type := Indenting_Token.First_Line (Indenting_Comment);
       Last_Line  : constant Line_Number_Type := Indenting_Token.Last_Line (Indenting_Comment);
    begin
+      if Trace_Action > Detail then
+         Ada.Text_IO.Put_Line
+           ("indent_token_1: " & Indenting_Token.Image (Data.Descriptor.all) & " " & Image (Delta_Indent) &
+           (if Indenting_Comment then " comment" else ""));
+      end if;
+
       for Line in First_Line .. Last_Line loop
          if Data.Indent_Comment_Col_0 then
             declare

@@ -37,7 +37,9 @@ pragma License (Modified_Gpl);
 package body Ada_Mode.Recover_Match_Names is
 
    task body Accept_Statement_0
-   is begin
+   is
+      A : Integer;
+   begin
       accept Start do
          loop
          loop;
@@ -45,7 +47,9 @@ package body Ada_Mode.Recover_Match_Names is
    end Accept_Statement_0;
 
    procedure Block_Statement_0
-   is begin
+   is
+      A : Integer;
+   begin
    Block_1:
       declare
       begin
@@ -55,7 +59,9 @@ package body Ada_Mode.Recover_Match_Names is
    end Block_Statement_0;
 
    procedure Block_Statement_1
-   is begin
+   is
+      A : Integer;
+   begin
    Block_1:
       begin
          loop
@@ -73,7 +79,9 @@ package body Ada_Mode.Recover_Match_Names is
    end Entry_Body_0;
 
    procedure Loop_Statement_0
-   is begin
+   is
+      A : Integer;
+   begin
    Loop_1 :
       for I in B'Range loop
          if then
@@ -82,7 +90,9 @@ package body Ada_Mode.Recover_Match_Names is
    end Loop_Statement_0;
 
    procedure Loop_Statement_1
-   is begin
+   is
+      A : Integer;
+   begin
    Loop_1 :
       loop
          exit when C;
@@ -92,6 +102,7 @@ package body Ada_Mode.Recover_Match_Names is
    end Loop_Statement_1;
 
    package body Package_Body_0 is
+      A : Integer;
    begin -- for package_body_1
       loop
       loop; -- meant 'end loop;'
@@ -100,26 +111,29 @@ package body Ada_Mode.Recover_Match_Names is
    package body Package_Body_1 is
       procedure A
       is
-            B : Integer;
+         B : Integer;
       begin
-            C;
-            -- missing 'end A;'
+         C;
+         -- missing 'end A;'
    end Package_Body_1;
 
    package Package_Specification_0 is
+      A : Integer;
    private
       type A is record
         record; -- meant 'end record'
    end Package_Specification_0;
 
    package Package_Specification_1 is
+      A : Integer;
       type A is record
         record; -- meant 'end record'
    end Package_Specification_1;
 
    protected body Protected_Body_0 is
-   entry E1 is
-   -- missing 'end E1'
+      entry E2 when True is begin end E2;
+      entry E1 when True is begin
+      -- missing 'end E1'
    end Protected_Body_0;
 
    --  protected protected_definition
@@ -133,13 +147,17 @@ package body Ada_Mode.Recover_Match_Names is
    --  missing an 'end'
 
    procedure Subprogram_Body_0
-   is begin
+   is
+      A : Integer;
+   begin
       loop
       loop; --  meant 'end loop;'
    end Subprogram_Body_0;
 
    task body Task_Body_0
-   is begin
+   is
+      A : Integer;
+   begin
       loop
       loop; --  meant 'end loop;'
    end Task_Body_0;

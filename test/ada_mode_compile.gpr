@@ -70,6 +70,7 @@ project Ada_Mode_Compile is
       -- deliberate errors to test error recovery
       "slow_recover_1.adb",
       "slow_recover_2.adb",
+      "slow_recover_3.adb",
 
       -- deliberate errors to test error recovery
       "virtual_renames.adb"

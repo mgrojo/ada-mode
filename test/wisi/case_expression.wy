@@ -41,7 +41,7 @@
 %start case_expression
 %first_state_index 0
 %first_parser_label 0
-%parser_algorithm LALR
+%generator_algorithm LALR
 %output_language Elisp
 %%
 

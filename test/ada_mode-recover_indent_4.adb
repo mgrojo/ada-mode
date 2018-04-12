@@ -18,11 +18,10 @@ package body Ada_Mode.Recover_Indent_4 is
          else Data.Semantic_State.All_Tokens
            (Data.Semantic_State.Find_Line_Begin
               --  Error here; missing left paren; converting from package.function
-              -- (object, args) to objec.function (args)
+              -- (object, args) to object.function (args)
               Anchor_Token.Line, Anchor_Token)).Char_Region.First);
    begin
       return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
    end Current_Indent_Offset;
-
 
 end Ada_Mode.Recover_Indent_4;

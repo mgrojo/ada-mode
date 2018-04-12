@@ -33,10 +33,10 @@ generic
 
    with procedure Create_Parser
      (Parser                       :    out          WisiToken.LR.Parser.Parser;
-      Algorithm                    : in              WisiToken.Parser_Algorithm_Type;
-      Trace                        : not null access WisiToken.Trace'Class;
       Language_Fixes               : in              WisiToken.LR.Language_Fixes_Access;
       Language_Constrain_Terminals : in              WisiToken.LR.Language_Constrain_Terminals_Access;
+      Algorithm                    : in              WisiToken.Generator_Algorithm_Type;
+      Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access);
 
 procedure Gen_Run_Wisi_Parse;

@@ -2,7 +2,8 @@
 --
 --  An error from a real editing session; typed '"' instead of '?'.
 --
---  Lexer now reports bad characters, and recovers by skipping them.
+--  Lexer now reports bad characters, and recovers by skipping them or
+--  inserting a matching quote.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 

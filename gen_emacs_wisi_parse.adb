@@ -165,7 +165,7 @@ is
 
 begin
    Create_Parser
-     (Parser, LALR, Trace'Unrestricted_Access, Language_Fixes, Language_Constrain_Terminals,
+     (Parser, Language_Fixes, Language_Constrain_Terminals, LALR, Trace'Unrestricted_Access,
       Parse_Data'Unchecked_Access);
 
    declare

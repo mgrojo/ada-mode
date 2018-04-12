@@ -16,7 +16,7 @@
 %token <symbol> IDENTIFIER %[ "[a-zA-Z][0-9a-zA-Z_]*" ]%
 
 %start compilation_unit
-%parser_algorithm LALR
+%generator_algorithm LALR
 %output_language Elisp
 
 %conflict SHIFT/REDUCE in state compilation_unit, compilation_unit  on token IDENTIFIER

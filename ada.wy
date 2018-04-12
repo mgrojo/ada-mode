@@ -195,7 +195,7 @@
 %token <string-single> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 
 %start compilation_unit_list
-%parser_algorithm LALR
+%generator_algorithm LALR
 
 ;; output_language and lexer are set on the command line; this file is
 ;; used to generate elisp and Ada_Emacs parsers.

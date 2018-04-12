@@ -7,7 +7,7 @@
 %token <number> NUMERIC_LITERAL wisi-number-p
 
 %start compilation_unit
-%parser_algorithm LALR
+%generator_algorithm LALR
 %output_language Elisp
 
 %%

@@ -82,7 +82,7 @@ is
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
    Create_Parser
-     (Parser, WisiToken.LALR, Trace'Unrestricted_Access, Language_Fixes, Language_Constrain_Terminals,
+     (Parser, Language_Fixes, Language_Constrain_Terminals, WisiToken.LALR, Trace'Unrestricted_Access,
       Parse_Data'Unchecked_Access);
 
    declare

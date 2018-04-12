@@ -29,6 +29,9 @@ ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 # test with installed elpa package: (setenv "ADA_MODE_DIR" "-f package-initialize")
 ADA_MODE_DIR ?= -L .. -l autoloads.el
 
+# compile with debug to get assertions for testing new code
+export Standard_Common_Build := Debug
+
 elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test autoloads test-clean test
 
 pub : docs pub-ada pub-wisi pub-ada-ref-man build-elpa uninstall-elpa
@@ -40,7 +43,8 @@ docs : info html
 update-elisp : autoloads
 update-elisp : ../ada-elisp.el
 update-elisp : ../gpr-elisp.el
-update-elisp : install_ada_executables
+update-elisp : build_ada_executables
+#update-elisp : install_ada_executables
 update-elisp : byte-compile
 
 # This updates everything after any source change, without running the
@@ -69,13 +73,14 @@ byte-compile-clean :
 
 # IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
-test : test-ada-elisp-gpr_query.stamp
+test : build_ada_executables
+#test : test-ada-elisp-gpr_query.stamp
 test : test-ada-process-gpr_query.stamp
-test : test-ada-gps.stamp
-test : gpr-skel.gpr.diff
-test : test-gpr-elisp.stamp
+#test : test-ada-gps.stamp
+#test : gpr-skel.gpr.diff
+#test : test-gpr-elisp.stamp
 test : test-gpr-process.stamp
-test : test-elisp
+#test : test-elisp
 test : summarize
 
 test-wisi :: ada-number-literal.wisi-test
@@ -86,45 +91,39 @@ test-wisi :: empty_production_8.wisi-test
 test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
-
-test-wisi :: ../test/wisi/subprograms_re2c.c subprograms_process.ads
-test-wisi :: ../test/wisi/subprograms_wisi_parse.exe
-test-wisi :: RUNTEST := run-indent-test-process-gpr_query.el
-test-wisi :: subprograms.input.diff
 test-wisi :: force
 	find . -name "*.diff" -not -size 0 >> test.log
 
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += ada_mode-parens.adb
+ONE_TEST_FILES += ada_mode-recover_indent_4.adb
+one : export Standard_Common_Build := Debug
 one : build_ada_executables
-#one : subprograms_wisi_parse.exe
-#one : byte-compile
+one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 #one : RUNTEST := run-indent-test-elisp-gpr_query.el
 one : RUNTEST := run-indent-test-process-gpr_query.el
-one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
-#one : $(addsuffix .diff, $(ONE_TEST_FILES))
+one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= --verbosity 2 2 --cost_limit 12
-#two : RUN_LOG ?= > recover_pattern_2.log
+two : RUN_ARGS ?= --verbosity 1 1 0
+#two : RUN_ARGS ?= --repeat_count 5
 two : export Standard_Common_Build := Debug
-#two : build_ada_executables
+two : build_ada_executables
 two :
-	../run_ada_parse.exe ../test/debug.adb Indent $(RUN_ARGS)
+	../run_ada_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables
 	../exec_mem/run_ada_parse.exe ../test/slow_recover_1.adb Face
-	gnatmem ../exec_pro/run_ada_parse.exe > slo_recover_1.memory
+	gnatmem ../exec_pro/run_ada_parse.exe > slow_recover_1.memory
 
 two_pro : export Standard_Common_Profile := On
 two_pro : build_ada_executables
-	../exec_pro/run_ada_parse.exe ../test/slow_recover_1.adb Face --repeat_count 5
-	gprof ../exec_pro/run_ada_parse.exe > slow_recover_1.profile
+	../exec_pro/run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 2
+	gprof ../exec_pro/run_ada_parse.exe > gnatcoll-xref.adb.profile
 
 # WISI_WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
