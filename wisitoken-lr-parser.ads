@@ -58,7 +58,9 @@ package WisiToken.LR.Parser is
 
       Parsers : aliased Parser_Lists.List;
 
-      Resume_Active : Boolean := False;
+      Resume_Active     : Boolean := False;
+      Resume_Token_Goal : Token_Index;
+      --  Resume is complete when all parsers Shared_Token reaches this goal.
 
       Max_Parallel            : SAL.Base_Peek_Type;
       First_Parser_Label      : Integer;

@@ -313,7 +313,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Local_Config_Heap.Add (New_Config);
 
                   if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Match_Names_Error 1 " & Image (Config.Error_Token.ID, Descriptor),
+                     Put ("Match_Names_Error 1 " & Image (Config.Error_Token.ID, Descriptor),
                           New_Config);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -409,7 +409,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor),
+                  Put ("Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor),
                        New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -439,7 +439,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                Insert (New_Config, +BEGIN_ID);
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor),
+                  Put ("Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor),
                        New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -527,7 +527,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
                   if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Extra_Name_Error 1 " & Image
+                     Put ("Extra_Name_Error 1 " & Image
                             (Config.Error_Token.ID, Descriptor), New_Config.all);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -556,7 +556,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
                   if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Extra_Name_Error 2 " & Image
+                     Put ("Extra_Name_Error 2 " & Image
                             (Config.Error_Token.ID, Descriptor), New_Config.all);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));

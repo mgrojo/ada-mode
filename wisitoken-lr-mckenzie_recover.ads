@@ -30,9 +30,8 @@ with WisiToken.LR.Parser;
 package WisiToken.LR.McKenzie_Recover is
 
    type Recover_Status is
-     (Fail,    --  Error is not fixed; fail parse with Syntax_Error
-      Success, --  Error is fixed; parser continue with Resume_Active = True
-      Ignore); --  Error is a semantic check, and is ignored; parser continue with Resume_Active = False
+     (Fail,     --  Error is not fixed; fail parse with Syntax_Error
+      Success); --  Error is fixed; parser continue with Resume_Active = True
 
    function Recover (Shared_Parser : in out WisiToken.LR.Parser.Parser) return Recover_Status;
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to

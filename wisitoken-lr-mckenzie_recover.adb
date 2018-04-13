@@ -249,6 +249,8 @@ package body WisiToken.LR.McKenzie_Recover is
       --  When there are multiple parsers, this is the 'worst case' verb.
       --  Verbs are worse in the order Shift, Shift_Reduce, Reduce.
 
+      Check_Limit : constant Token_Index := Token_Index (Shared_Parser.Table.McKenzie_Param.Check_Limit);
+
       procedure Update_Shared_Verb (Parser_Verb : in All_Parse_Action_Verbs)
       is begin
          case Parser_Verb is
@@ -283,7 +285,12 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Super.Initialize;
 
+      Shared_Parser.Resume_Token_Goal := Token_Index'First;
+
       for Parser_State of Parsers loop
+         Shared_Parser.Resume_Token_Goal := Token_Index'Max
+           (Shared_Parser.Resume_Token_Goal, Parser_State.Shared_Token + Check_Limit);
+
          Recover_Init (Shared_Parser, Parser_State);
       end loop;
 
@@ -393,6 +400,7 @@ package body WisiToken.LR.McKenzie_Recover is
       end;
 
       --  Edit Parser_State to apply solutions.
+
       for Parser_State of Parsers loop
          if Parser_State.Recover.Success then
             declare
@@ -524,25 +532,6 @@ package body WisiToken.LR.McKenzie_Recover is
 
                Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
 
-               if Trace_McKenzie > Extra then
-                  Put_Line (Trace, Parser_State.Label, "after Ops applied:", Task_ID => False);
-                  Put_Line
-                    (Trace, Parser_State.Label, "parser stack " & Image (Parser_State.Stack, Descriptor, Tree),
-                     Task_ID => False);
-                  Put_Line
-                    (Trace, Parser_State.Label, "parser Shared_Token  " & Image
-                       (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor), Task_ID => False);
-                  Put_Line
-                    (Trace, Parser_State.Label, "parser Current_Token " & Parser_State.Tree.Image
-                       (Parser_State.Current_Token, Descriptor), Task_ID => False);
-                  Put_Line
-                    (Trace, Parser_State.Label, "parser recover_insert_delete " & Image
-                       (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
-                  Put_Line
-                    (Trace, Parser_State.Label, "parser inc_shared_token " & Boolean'Image
-                       (Parser_State.Inc_Shared_Token) & " parser verb " & All_Parse_Action_Verbs'Image
-                         (Parser_State.Verb), Task_ID => False);
-               end if;
             end;
          end if;
       end loop;
@@ -551,6 +540,32 @@ package body WisiToken.LR.McKenzie_Recover is
          if Parser_State.Verb /= Shared_Verb then
             --  Shared_Token will not be shifted immediately.
             Parser_State.Inc_Shared_Token := False;
+         end if;
+
+         if Trace_McKenzie > Extra then
+            declare
+               Descriptor : WisiToken.Descriptor renames Shared_Parser.Trace.Descriptor.all;
+               Tree       : Syntax_Trees.Tree renames Parser_State.Tree;
+            begin
+               Put_Line (Trace, Parser_State.Label, "after Ops applied:", Task_ID => False);
+               Put_Line
+                 (Trace, Parser_State.Label, "parser stack " & Parser_Lists.Image
+                    (Parser_State.Stack, Descriptor, Tree),
+                  Task_ID => False);
+               Put_Line
+                 (Trace, Parser_State.Label, "parser Shared_Token  " & Image
+                    (Parser_State.Shared_Token, Shared_Parser.Terminals, Descriptor), Task_ID => False);
+               Put_Line
+                 (Trace, Parser_State.Label, "parser Current_Token " & Parser_State.Tree.Image
+                    (Parser_State.Current_Token, Descriptor), Task_ID => False);
+               Put_Line
+                 (Trace, Parser_State.Label, "parser recover_insert_delete " & Image
+                    (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
+               Put_Line
+                 (Trace, Parser_State.Label, "parser inc_shared_token " & Boolean'Image
+                    (Parser_State.Inc_Shared_Token) & " parser verb " & All_Parse_Action_Verbs'Image
+                      (Parser_State.Verb), Task_ID => False);
+            end;
          end if;
       end loop;
 

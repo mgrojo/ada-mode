@@ -27,7 +27,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in out          Configuration;
       State             : in              State_Index;
-      ID                : in              Token_ID)
+      ID                : in              Token_ID;
+      Cost_Delta        : in              Integer)
    is
       use all type SAL.Base_Peek_Type;
       McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
@@ -42,7 +43,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Config.Current_Inserted := Config.Current_Inserted + 1;
       end if;
 
-      Config.Cost := Config.Cost + McKenzie_Param.Insert (ID);
+      Config.Cost := Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta;
 
       Config.Stack.Push ((State, Syntax_Trees.Invalid_Node_Index, (ID, Virtual => True, others => <>)));
       if Trace_McKenzie > Detail then
@@ -108,12 +109,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
    end Do_Reduce_1;
 
    procedure Do_Reduce_2
-     (Super               : not null access Base.Supervisor;
-      Shared              : not null access Base.Shared_Lookahead;
-      Parser_Index        : in              SAL.Peek_Type;
-      Local_Config_Heap   : in out          Config_Heaps.Heap_Type;
-      Config              : in out          Configuration;
-      Inserted_ID         : in              Token_ID)
+     (Super             : not null access Base.Supervisor;
+      Shared            : not null access Base.Shared_Lookahead;
+      Parser_Index      : in              SAL.Peek_Type;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in out          Configuration;
+      Inserted_ID       : in              Token_ID;
+      Cost_Delta        : in              Integer)
    is
       --  Perform reduce actions until shift Inserted_Token; if all succeed,
       --  add the final configuration to the heap. If a conflict is
@@ -136,14 +138,15 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          begin
             case Action.Verb is
             when Shift =>
-               Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, Inserted_ID);
+               Do_Shift
+                 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, Inserted_ID, Cost_Delta);
 
             when Reduce =>
                case Do_Reduce_1 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action) is
                when Abandon =>
                   null;
                when Continue =>
-                  Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Inserted_ID);
+                  Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Inserted_ID, Cost_Delta);
                end case;
 
             when Accept_It =>
@@ -159,14 +162,15 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       case Next_Action.Item.Verb is
       when Shift =>
-         Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item.State, Inserted_ID);
+         Do_Shift
+           (Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item.State, Inserted_ID, Cost_Delta);
 
       when Reduce =>
          case Do_Reduce_1 (Super, Shared, Parser_Index, Local_Config_Heap, Config, Next_Action.Item) is
          when Abandon =>
             null;
          when Continue =>
-            Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, Config, Inserted_ID);
+            Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, Config, Inserted_ID, Cost_Delta);
          end case;
 
       when Accept_It =>
@@ -296,17 +300,11 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       use all type Syntax_Trees.Node_Index;
       use all type Semantic_Checks.Check_Status_Label;
 
-      McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
-
       Parse_Items : Parse.Parse_Item_Arrays.Vector;
-
-      --  If there are push_backs, config.current_shared_token reflects
-      --  them, and we must parse all of the push back tokens, and then
-      --  Check_Limit more.
-      Shared_Token_Goal : constant Token_Index := Super.Parser_State (Parser_Index).Shared_Token + Token_Index
-        (McKenzie_Param.Check_Limit);
    begin
-      if Parse.Parse (Super, Shared, Parser_Index, Parse_Items, Config, Shared_Token_Goal, "check") then
+      if Parse.Parse
+        (Super, Shared, Parser_Index, Parse_Items, Config, Shared.Shared_Parser.Resume_Token_Goal, "check")
+      then
          return Success;
       end if;
 
@@ -436,6 +434,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          then (Table.First_Terminal .. Table.Last_Terminal => True)
          else Shared.Shared_Parser.Language_Constrain_Terminals
            (Super.Trace.all, Super.Label (Parser_Index), Table, Config));
+
+      Cost_Delta : constant Integer :=
+        (if Valid_Insert = (Table.First_Terminal .. Table.Last_Terminal => True)
+         then 0 else -1);
    begin
       --  Find terminal insertions to try; loop over input actions for the
       --  current state.
@@ -476,7 +478,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                         New_Config.Error_Token.ID := Invalid_Token_ID;
                         New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
-                        Do_Shift (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID);
+                        Do_Shift
+                          (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, ID, Cost_Delta);
                      end;
 
                   when Reduce =>
@@ -490,7 +493,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                            Cached_Action := Action;
 
                            if Cached_Status = Continue then
-                              Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID);
+                              Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID, Cost_Delta);
                            end if;
                         end;
 
@@ -499,7 +502,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                            declare
                               New_Config : Configuration := Cached_Config;
                            begin
-                              Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID);
+                              Do_Reduce_2 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, ID, Cost_Delta);
                            end;
                         end if;
                      end if;

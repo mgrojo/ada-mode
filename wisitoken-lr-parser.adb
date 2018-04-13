@@ -243,17 +243,12 @@ package body WisiToken.LR.Parser is
       Shift_Recover_Count : SAL.Base_Peek_Type := 0;
       Accept_Count        : SAL.Base_Peek_Type := 0;
       Error_Count         : SAL.Base_Peek_Type := 0;
-      Resume_Active_Count : SAL.Base_Peek_Type := 0;
    begin
       Max_Shared_Token := Base_Token_Index'First;
       Zombie_Count     := 0;
 
       for Parser_State of Shared_Parser.Parsers loop
          Max_Shared_Token := Token_Index'Max (Max_Shared_Token, Parser_State.Shared_Token);
-
-         if Parser_State.Recover_Insert_Delete.Length > 0 then
-            Resume_Active_Count := Resume_Active_Count + 1;
-         end if;
       end loop;
 
       for Parser_State of Shared_Parser.Parsers loop
@@ -309,16 +304,14 @@ package body WisiToken.LR.Parser is
       elsif Shift_Count > 0 then
          Verb := Shift;
 
-         if Trace_Parse > Detail then
-            if Shared_Parser.Resume_Active /= (Resume_Active_Count > 0) then
-               if Resume_Active_Count > 0 then
-                  Shared_Parser.Trace.Put_Line ("resume_active: True");
-               else
+         if Shared_Parser.Resume_Active then
+            if Shared_Parser.Resume_Token_Goal <= Max_Shared_Token then
+               Shared_Parser.Resume_Active := False;
+               if Trace_Parse > Detail then
                   Shared_Parser.Trace.Put_Line ("resume_active: False");
                end if;
             end if;
          end if;
-         Shared_Parser.Resume_Active := Resume_Active_Count > 0;
 
          --  Verify that we don't create zombies when recover is active.
          if Shared_Parser.Resume_Active and Zombie_Count > 0 then
@@ -579,6 +572,8 @@ package body WisiToken.LR.Parser is
       end if;
       Shared_Parser.Terminals.Clear;
       Shared_Parser.Shared_Tree.Clear;
+      Shared_Parser.Resume_Active := False;
+      Shared_Parser.Resume_Token_Goal := Token_Index'First;
 
       Shared_Parser.Parsers := Parser_Lists.New_List
         (First_Parser_Label => Shared_Parser.First_Parser_Label,
@@ -802,7 +797,7 @@ package body WisiToken.LR.Parser is
                end if;
 
                if Trace_Parse > Outline then
-                  if Recover_Result in Success | Ignore then
+                  if Recover_Result = Success  then
                      if Shared_Parser.Parsers.Count > 1 then
                         Trace.Put_Line
                           ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
@@ -820,11 +815,12 @@ package body WisiToken.LR.Parser is
                   end if;
                end if;
 
-               if Recover_Result in Success | Ignore then
+               if Recover_Result = Success then
                   Shared_Parser.Resume_Active := Recover_Result = Success;
                   if Trace_Parse > Detail then
                      if Shared_Parser.Resume_Active then
-                        Shared_Parser.Trace.Put_Line ("resume_active: True");
+                        Shared_Parser.Trace.Put_Line
+                          ("resume_active: True, token goal" & Token_Index'Image (Shared_Parser.Resume_Token_Goal));
                      end if;
                   end if;
 
