@@ -23,7 +23,7 @@ Makefile
   (xmtn . "c:/Projects/org.stephe_leake.sal")
   (xmtn . "c:/Projects/org.wisitoken")
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2") ;; aka wisi
-  (xmtn . "c:/Projects/org.wisitoken.grammar_mode/")))
+  (xmtn . "c:/Projects/org.wisitoken.grammar_mode")))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -43,16 +43,12 @@ add multi-mode for regexp, actions
     wisi-grammar-mmm.el
 
     indent test failing with elisp action
-        looks like indent-line-function not set
-        works with manual code above
-        race condition; mmm-mode-hook is run after test runs
-        mmm-global-mode uses post-command-hook; command is 'run-test'
-        (add-hook 'wisi-grammar-mode-hook 'mmm-mode-on); EMACSCMD tests pass, indent still wrong!?
-            posted mmm-mode issue
+        posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
 
+        wisitoken uses indent-region, mmm-mode overrides indent-line
+        write mmm-indent-region
+            should only call wisi-process-parse once, then use indent caches
 
-
-        redesign test to use ert, or at least not spawn a new emacs?
 
     test indent ada
         should fail with syntax error

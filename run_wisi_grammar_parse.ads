@@ -24,5 +24,5 @@ with WisiToken.Wisi_Runtime;
 procedure Run_Wisi_Grammar_Parse is new Gen_Run_Wisi_Parse
   (WisiToken.Wisi_Runtime.Parse_Data_Type,
    "Wisi_Grammar", Wisi_Grammar_1_Process.Descriptor,
-   null,
+   null, null,
    Wisi_Grammar_1_Process.Create_Parser);
