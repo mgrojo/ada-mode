@@ -55,6 +55,9 @@
     map
   )  "Local keymap used for WISI-GRAMMAR mode.")
 
+(defvar-local wisi-grammar-action-mode nil
+  "Emacs major mode used for actions, inferred from ’%output_language’ declaration.")
+
 (defun wisi-grammar-new-line ()
   "If in comment, insert new comment line.
 If in nonterminal, insert new production right hand side.
@@ -131,8 +134,28 @@ Otherwise insert a plain new line."
 	 (match-beginning 0) (match-end 0) 'syntax-table '(11 . nil)))
   )))
 
+(defun wisi-grammar-set-action-mode ()
+  (save-excursion
+    (goto-char (point-min))
+    (if (search-forward-regexp "%output_language +\\([A-Za-z_]+\\)$")
+	(cond
+	 ((string-equal (match-string 1) "Ada_Emacs")
+	  (setq wisi-grammar-action-mode 'emacs-lisp-mode))
+
+	 ((string-equal (match-string 1) "Ada")
+	  (setq wisi-grammar-action-mode 'ada-mode))
+
+	 (t
+	  (error "unrecognized output language %s" (match-string 1)))
+	 )
+      (error "output_language declaration not found"))))
+
 ;;; xref integration
-(defun wisi-grammar--xref-backend () 'wisi-grammar)
+(defun wisi-grammar--xref-backend ()
+  (cl-case major-mode
+    (wisi-grammar 'wisi-grammar)
+    (emacs-lisp-mode 'elisp)
+    (t nil)))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisi-grammar)))
   (thing-at-point 'symbol))
@@ -207,6 +230,8 @@ Otherwise insert a plain new line."
        'wisi-grammar-add-log-current-function)
   (setq wisi-size-threshold most-positive-fixnum);; grammar is simple enough for very large files
 
+  (wisi-grammar-set-action-mode)
+
   (add-hook 'xref-backend-functions #'wisi-grammar--xref-backend nil t)
   (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
   (add-hook 'before-save-hook 'copyright-update nil t)
@@ -237,4 +262,8 @@ Otherwise insert a plain new line."
 (put 'wisi-grammar-mode 'custom-mode-group 'wisi-grammar)
 
 (provide 'wisi-grammar-mode)
+
+(when (locate-library "mmm-mode")
+  (require 'wisi-grammar-mmm))
+
 ;;; end of file

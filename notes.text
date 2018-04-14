@@ -1,5 +1,23 @@
 Makefile
 
+(progn
+  (setq eval-expression-debug-on-error nil)
+  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
+  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2") ;; wisi
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build") ;; run-indent-test
+  (add-to-list 'load-path "/Projects/org.wisitoken.grammar_mode")
+  (setq debug-on-error t)
+  (setq debug-on-quit t)
+  (setq default-directory "/Projects/org.wisitoken.grammar_mode/")
+  (load "autoloads.el")
+  (load "run-indent-test-grammar")
+  ; (setq wisi-debug 1)
+  (setq wisi-disable-face t)
+  (find-file "wisi_grammar_1.wy")
+  ;(wisi-debug-keys)
+  )
+
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
   (xmtn . "c:/Projects/org.stephe_leake.sal")
@@ -21,6 +39,25 @@ Makefile
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
+add multi-mode for regexp, actions
+    wisi-grammar-mmm.el
+
+    indent test failing with elisp action
+        looks like indent-line-function not set
+        works with manual code above
+        race condition; mmm-mode-hook is run after test runs
+        mmm-global-mode uses post-command-hook; command is 'run-test'
+        (add-hook 'wisi-grammar-mode-hook 'mmm-mode-on); EMACSCMD tests pass, indent still wrong!?
+            posted mmm-mode issue
+
+
+
+        redesign test to use ert, or at least not spawn a new emacs?
+
+    test indent ada
+        should fail with syntax error
+        or not; don't have any multi-line Ada actions (sigh).
+
 page up/down stop at %%?
 
 move parse_table_mode to o.w.g_m?

@@ -6,10 +6,10 @@
 (setq project-find-functions '(project-menu-prj))
 
 (let* ((prj-file "wisi_grammar.prj")
-       (prj-name "wisi_grammar stephe-1")
+       (prj-name "wisi_grammar main")
        (prj (make-ada-project
-	     :env-vars '(("WISITOKEN" . "c:/Projects/org.wisitoken.stephe-1/build")
-			 ("WISI" . "c:/Projects/org.emacs.ada-mode.stephe-4"))
+	     :env-vars '(("WISITOKEN" . "c:/Projects/org.wisitoken/build")
+			 ("WISI" . "c:/Projects/org.emacs.ada-mode.stephe-2"))
 	     :ada-prj-file prj-file)))
 
   (project-menu-add-project prj prj-name default-directory)

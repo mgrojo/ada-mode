@@ -47,7 +47,7 @@ two : force
 # monotone update. Doing byte-compile-clean first avoids errors caused
 # by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L . -L $(WISI) --eval '(progn (package-initialize)(batch-byte-compile))' *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(WISI) --eval "(progn (add-to-list 'load-path \"c:/Projects/mmm-mode\")(package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -90,13 +90,15 @@ TEST_FILES += identifier_list_name_conflict.wy
 	diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -batch -L . -L $(WISI) -L $(WISI)/build -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . -L $(WISI) -L $(WISI)/build -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 test-wisi_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisi_grammar : $(addsuffix .diff, $(TEST_FILES))
 
-test-wisi_grammar.stamp : force
-	rm -f *.diff *.tmp
+test-clean : force
+	rm -f *.diff *.tmp *.log
+
+test-wisi_grammar.stamp : test-clean
 	$(MAKE) test-wisi_grammar
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
@@ -107,7 +109,7 @@ build_ada_executables : wisi_grammar_1_re2c.c wisi_grammar_1_process.ads force
 install_ada_executables : build_ada_executables
 	gprinstall -f -p -P wisi_grammar.gpr --install-name=wisi_grammar_wisi_parse
 
-clean : byte-compile-clean exe-clean generate-clean source-clean
+clean : byte-compile-clean exe-clean generate-clean source-clean test-clean
 	rm -f autoloads.el
 
 exe-clean :

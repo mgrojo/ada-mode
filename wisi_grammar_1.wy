@@ -77,7 +77,7 @@
 
 %output_language Ada_Emacs
 %lexer re2c
-%parser_algorithm LALR
+%generator_algorithm LALR
 %start compilation_unit_list
 %no_language_runtime
 
@@ -92,14 +92,20 @@
 %%
 ;;;; grammar rules
 
+;;EMACSCMD:indent-line-function
+;;EMACSRESULT:'mmm-indent-line
+;;EMACSCMD:(progn (forward-line 8) (null (mmm-overlay-at (point))))
+;;EMACSRESULT:nil
+;;EMACSCMD:(progn (forward-line 6) (mmm-update-submode-region) (calculate-lisp-indent (lisp-ppss)))
+;;EMACSRESULT:9
 declaration
   : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
     %( (progn
-     (wisi-statement-action [1 statement-start 3 name])
-     (wisi-face-apply-action
-      [1 nil font-lock-constant-face
-       2 nil font-lock-keyword-face
-       3 nil font-lock-function-name-face])) )%
+         (wisi-statement-action [1 statement-start 3 name])
+         (wisi-face-apply-action
+          [1 nil font-lock-constant-face
+             2 nil font-lock-keyword-face
+             3 nil font-lock-function-name-face])) )%
   | PERCENT IDENTIFIER declaration_item_list
     %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER
@@ -130,6 +136,7 @@ declaration_item
   | EQUAL
   | NUMERIC_LITERAL
   | REGEXP
+  %((wisi-face-apply-action [1 nil font-lock-string-face]))%
   | SLASH
   | STRING_LITERAL
   | STRING_LITERAL_CASE_INS
@@ -140,9 +147,9 @@ declaration_item
 nonterminal
   : IDENTIFIER COLON rhs_list SEMICOLON
     %( (progn
-     (wisi-statement-action [1 statement-start 4 statement-end])
-     (wisi-face-apply-action [1 nil font-lock-function-name-face])
-     (wisi-indent-action [0 [2 -1] 2 2])) )%
+         (wisi-statement-action [1 statement-start 4 statement-end])
+         (wisi-face-apply-action [1 nil font-lock-function-name-face])
+         (wisi-indent-action [0 [2 -1] 2 2])) )%
   ;
 
 rhs_list
