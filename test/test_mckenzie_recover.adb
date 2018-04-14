@@ -213,7 +213,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 25,
          Enqueue_High            => 40,
          Check_Low               => 6,
-         Check_High              => 10,
+         Check_High              => 12,
          Cost                    => 2);
    end Error_1;
 
@@ -250,7 +250,7 @@ package body Test_McKenzie_Recover is
            (Delete,  +END_ID, 15),
          Enqueue_Low             => 50,
          Enqueue_High            => 93,
-         Check_Low               => 16,
+         Check_Low               => 14,
          Check_High              => 27,
          Cost                    => 1);
    end Error_2;
@@ -776,7 +776,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +Wisi_EOI_ID,
          Ops                     => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
          Enqueue_Low             => 57,
-         Enqueue_High            => 155,
+         Enqueue_High            => 170,
          Check_Low               => 16,
          Check_High              => 29,
          Cost                    => 5);

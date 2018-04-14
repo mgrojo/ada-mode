@@ -587,6 +587,10 @@ package body WisiToken.LR.Parser is
 
          Parse_Verb (Shared_Parser, Current_Verb, Max_Shared_Token, Zombie_Count);
 
+         if Trace_Parse > Extra then
+            Trace.Put_Line ("cycle start; current_verb: " & Parse_Action_Verbs'Image (Current_Verb));
+         end if;
+
          --  When parsing in the absense of errors, the current token for all
          --  parsers is at Shared_Parser.Terminals(last_index).
          --
@@ -636,9 +640,15 @@ package body WisiToken.LR.Parser is
                   else
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Next_Grammar_Token
-                          (Shared_Parser.Terminals, Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer,
+                          (Shared_Parser.Terminals, Trace.Descriptor.all, Shared_Parser.Lexer,
                            Shared_Parser.User_Data),
                         Shared_Parser.Terminals);
+                  end if;
+
+                  if Trace_Parse > Extra then
+                     Trace.Put_Line
+                       (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
+                          (Parser_State.Current_Token, Trace.Descriptor.all));
                   end if;
                end if;
             end loop;
@@ -659,6 +669,12 @@ package body WisiToken.LR.Parser is
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Recover_Insert_Delete.Get.ID);
 
+                     if Trace_Parse > Extra then
+                        Trace.Put_Line
+                          (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
+                             (Parser_State.Current_Token, Trace.Descriptor.all));
+                     end if;
+
                   elsif (if Parser_State.Inc_Shared_Token
                          then Parser_State.Shared_Token + 1
                          else Parser_State.Shared_Token) <= Shared_Parser.Terminals.Last_Index
@@ -678,6 +694,13 @@ package body WisiToken.LR.Parser is
 
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Shared_Token, Shared_Parser.Terminals);
+
+                     if Trace_Parse > Extra then
+                        Trace.Put_Line
+                          (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
+                             (Parser_State.Current_Token, Trace.Descriptor.all));
+                     end if;
+
                   else
                      --  Done with all recover insertions; waiting for other parsers to
                      --  finish with them, so do nothing this cycle.
@@ -847,9 +870,6 @@ package body WisiToken.LR.Parser is
 
                         when Reduce =>
                            Current_Verb := Reduce;
-                           if Trace_Parse > Extra then
-                              Trace.Put_Line ("new current_verb: " & All_Parse_Action_Verbs'Image (Current_Verb));
-                           end if;
 
                            Parser_State.Zombie_Token_Count := 0;
 
@@ -871,10 +891,6 @@ package body WisiToken.LR.Parser is
 
                      if Shift_Recover_Count > 0 then
                         Current_Verb := Shift_Recover;
-
-                        if Trace_Parse > Extra then
-                           Trace.Put_Line ("new current_verb: " & All_Parse_Action_Verbs'Image (Current_Verb));
-                        end if;
                      end if;
                   end;
 
