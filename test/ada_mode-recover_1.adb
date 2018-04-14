@@ -24,6 +24,13 @@ is begin
    end
    loop
    ;
+
+   --  This used to give "error during resume"; fixed now.
+   if File_Head.Version_Msb = 4 and
+   then
+      null;
+   end if;
+
    -- This used to have a newline after the '.'; that confuses the
    -- Match_Name check. It's not a credible style, so we don't have it
    -- here any more.

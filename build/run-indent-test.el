@@ -111,26 +111,26 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 	(test-buffer (current-buffer))
 	cmd-line
 	last-result last-cmd expected-result)
-    ;; Look for --EMACS comments in the file:
+    ;; Look for EMACS* comments in the file:
     ;;
-    ;; --EMACSCMD: <form>
+    ;; EMACSCMD: <form>
     ;;    Executes the lisp form inside a save-excursion, saves the result as a lisp object.
     ;;
-    ;; --EMACSRESULT: <form>
+    ;; EMACSRESULT: <form>
     ;;    point is moved to end of line, <form> is evaluated inside
     ;;    save-excursion and compared (using `equal') with the result
     ;;    of the previous EMACSCMD, and the test fails if they don't
     ;;    match.
     ;;
-    ;; --EMACS_SKIP_UNLESS: <form>
+    ;; EMACS_SKIP_UNLESS: <form>
     ;;   skip entire test if form evals nil
     ;;
-    ;; --EMACSDEBUG: <form>
+    ;; EMACSDEBUG: <form>
     ;;    Eval form, display result. Also used for setting breakpoint.
 
     (goto-char (point-min))
     (while (and (not skip-cmds)
-		(re-search-forward "--EMACS\\([^:]+\\):" nil t))
+		(re-search-forward (concat comment-start "EMACS\\([^:]+\\):") nil t))
       (cond
        ((string= (match-string 1) "CMD")
 	(looking-at ".*$")

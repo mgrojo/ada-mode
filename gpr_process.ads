@@ -191,10 +191,11 @@ package Gpr_Process is
      is (Token_Enum_ID'Val (Item - WisiToken.Token_ID'First));
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.LR.Parser.Parser;
-      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Trace          : not null access WisiToken.Trace'Class;
-      Language_Fixes : in     WisiToken.LR.Language_Fixes_Access;
-      User_Data      : in     WisiToken.Syntax_Trees.User_Data_Access);
+     (Parser                       :    out WisiToken.LR.Parser.Parser;
+      Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;
+      Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;
+      Algorithm                    : in     WisiToken.Generator_Algorithm_Type;
+      Trace                        : not null access WisiToken.Trace'Class;
+      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);
 
 end Gpr_Process;

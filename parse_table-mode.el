@@ -1,6 +1,6 @@
 ;; parse_table-mode.el --- For navigating in a parse_table as output by wisi-generate. -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -39,7 +39,7 @@
   ;; - ’( nnn)’ in the unknown conflicts list
   (save-excursion
     (end-of-line)
-    (when (or (looking-back "[Ss]tate \\([0-9]+\\),?" (line-beginning-position))
+    (when (or (looking-back "[Ss]tate \\([0-9]+\\) ([0-9 ,]+),?" (line-beginning-position))
 	      (looking-back "( \\([0-9]+\\))" (line-beginning-position)))
       (match-string 1))))
 

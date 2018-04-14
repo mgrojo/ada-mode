@@ -10,9 +10,9 @@ begin
      (Prev_1 = -With_ID and
         (Prev_3 = Invalid_Token_ID or
            Prev_3 /= Left_Paren_ID))
-        or
+        or -- missing paren around this; mixed boolean operators.
        ()
       then
-
+         --  missing 'end if;'
 
 end Slow_Recover_1;
