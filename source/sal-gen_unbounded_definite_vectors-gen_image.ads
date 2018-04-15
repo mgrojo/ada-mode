@@ -19,6 +19,6 @@ pragma License (Modified_GPL);
 
 generic
    with function Element_Image (Item : in Element_Type) return String;
-function SAL.Gen_Unbounded_Definite_Vectors.Gen_Image (Item : in Vector; Strict : in Boolean) return String;
+function SAL.Gen_Unbounded_Definite_Vectors.Gen_Image (Item : in Vector; Strict : in Boolean := False) return String;
 --  Image of Item, in Ada aggregate syntax. If Strict, use correct
 --  syntax for 0 and 1 item; otherwise, use () and (item).
