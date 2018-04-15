@@ -305,6 +305,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       if Parse.Parse
         (Super, Shared, Parser_Index, Parse_Items, Config, Shared.Shared_Parser.Resume_Token_Goal, "check")
       then
+         Config.Error_Token.ID := Invalid_Token_ID;
          return Success;
       end if;
 
@@ -600,9 +601,11 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
       end if;
 
-      if Config.Current_Inserted /= No_Inserted then
+      if Config.Current_Inserted /= No_Inserted and Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
          --  This Config was enqueued by a previous Language_Fixes.
-         pragma Assert (Config.Error_Token.ID = Invalid_Token_ID and Config.Check_Status.Label = Ok);
+         pragma Assert (Config.Error_Token.ID = Invalid_Token_ID and Config.Check_Status.Label = Ok,
+                        Image (Config.Error_Token.ID, Super.Trace.Descriptor.all) & ", " &
+                          Config.Check_Status.Label'Img);
 
          case Fast_Forward (Super, Shared, Parser_Index, Config, Post_Fast_Forward_Fail) is
          when Abandon =>

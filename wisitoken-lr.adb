@@ -165,11 +165,11 @@ package body WisiToken.LR is
    begin
       case Item.Verb is
       when Shift =>
-         return "(Shift," & State_Index'Image (Item.State) & ")";
+         return "(Shift," & State_Index'Image (Item.State) & "," & Image (Item.Productions) & ")";
 
       when Reduce =>
          return "(Reduce," & Count_Type'Image (Item.Token_Count) & ", " &
-           Image (Item.LHS, Descriptor) & ")";
+           Image (Item.LHS, Descriptor) & "," & Image (Item.Productions) & ")";
       when Accept_It =>
          return "(Accept It)";
       when Error =>

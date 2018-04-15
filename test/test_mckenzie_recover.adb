@@ -524,7 +524,7 @@ package body Test_McKenzie_Recover is
       --
       --  This is the motivation for a cost for fast_forward; with that, it
       --  finds two cost 8 solutions; the desired one, and
-      --  '(push_back&delete, "1") (delete "To")'. That treats
+      --  '(push_back&delete, "1") (delete "To")', which treats
       --  "Result_Length" as a subtype.
       --
       --  Both solutions continue to EOF; then the one with the longer
