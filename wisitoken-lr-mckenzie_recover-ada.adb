@@ -861,21 +861,19 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             loop
                declare
                   use all type Standard.Ada.Containers.Count_Type;
-                  State       : State_Index renames Temp_Config.Stack (1).State;
+                  State       : constant State_Index := Temp_Config.Stack (1).State;
                   Shift_Count : Integer;
                   Reductions  : constant Reduce_Action_Array := Table.Reductions (State, Shift_Count);
                   Prod_Index  : constant Integer             := Find (Prod_ID, Reductions);
                begin
-                  if Trace_McKenzie > Extra then
-                     Put_Line (Trace, Parser_Label, "constrain: state " & Image (State));
-                  end if;
-
                   if Reductions'Length = 1 and then Reductions (1).Token_Count > 0 then
                      --  test/slow_recover_2.adb
                      Do_Reduce (Table, Temp_Config, Reductions (1), Prod_ID);
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Parser_Label, "constrain: " & Image (Reductions (1), Trace.Descriptor.all));
+                        Put_Line
+                          (Trace, Parser_Label, "constrain:" & Image (State) & " " &
+                             Image (Reductions (1), Trace.Descriptor.all));
                      end if;
 
                   elsif Prod_Index /= 0 then
@@ -884,8 +882,9 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                      Do_Reduce (Table, Temp_Config, Reductions (Prod_Index), Prod_ID);
 
                      if Trace_McKenzie > Extra then
-                        Put_Line (Trace, Parser_Label, "constrain: " & Image
-                                    (Reductions (Prod_Index), Trace.Descriptor.all));
+                        Put_Line
+                          (Trace, Parser_Label, "constrain:" & Image (State) & " " & Image
+                             (Reductions (Prod_Index), Trace.Descriptor.all));
                      end if;
 
                   elsif Shift_Count > 0 then
@@ -933,8 +932,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                      end;
                      exit Reduce_To_Shift;
                   else
-                     --  FIXME: conflicts
-                     raise Programmer_Error with "conflicts in Constrain_Terminals; state" & State_Index'Image (State);
+                     --  FIXME: handle conflicts? so far not handling them has not been
+                     --  critical.
+                     if Trace_McKenzie > Outline then
+                        Put_Line (Trace, "conflicts in Constrain_Terminals; state" & State_Index'Image (State));
+                     end if;
+                     exit Reduce_To_Shift;
                   end if;
                end;
             end loop Reduce_To_Shift;

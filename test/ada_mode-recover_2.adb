@@ -1,11 +1,11 @@
--- Error recovery fails on this, because it requires too much editing to fix.
+-- Real editing example. Error recovery used to fail, now it finds a reasonable solution quickly.
 --
 -- Correct solution:
 -- insert ');' after 'Parser_Label'
 -- delete ': constant Token_ID' after 'Current_Input'
 --
--- The first step is rejected because it requires the second step to
--- be legal.
+-- Error recovery finds (insert '); return') after 'Parser_Label',
+-- turning the object declaration into an extended return statement.
 
 --EMACSCMD:(setq skip-recase-test t)
 
@@ -16,7 +16,7 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Queues;
 with WisiToken.Token;
-package body WisiToken.Parser.LR.McKenzie_Recover is
+package body Ada_Mode.Recover_1 is
 
    procedure Check_One
      (Parser_Label : Natural;
@@ -51,7 +51,4 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       --  Terminate; no more configs to check.
    end Check_Parser_Config;
 
-end WisiToken.Parser.LR.McKenzie_Recover;
--- Local variables:
--- wisi-disable-face: t
--- End:
+end Ada_Mode.Recover_1;

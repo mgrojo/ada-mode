@@ -51,9 +51,6 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
-test/slow_recover_1.adb
-    SYSTEM.ASSERTIONS.ASSERT_FAILURE: wisitoken-lr-mckenzie_recover-explore.adb:605
-
 kill slow/expensive other parser during recover
     when cost > succeed parser cost + param.success_cost_delta
     or enqueue/check > succeed enqueue/check
