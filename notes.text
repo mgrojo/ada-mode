@@ -51,6 +51,23 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+slow_recover_4.adb
+    first mckenzie
+    'return (header, to_string_list ( when'
+        should use Constrain_Terminals to insert )); cost 3
+        found (delete 'when') and (insert 'case is') cost 4
+
+constrain_terminals: CASE, FOR, IF, OTHERS, RAISE, LEFT_PAREN, MINUS, STRING_LITERAL
+    want RIGHT_PAREN!
+        to get that, need to handle  the "conflict" in the two different reductions to empty
+
+    in second mckenzie
+     8: succeed 3, enqueue 157961, check  23504, cost:  12
+
+     7: succeed 1, enqueue 6185, check  473, cost:  8
+     good solution
+
+
 kill slow/expensive other parser during recover
     when cost > succeed parser cost + param.success_cost_delta
     or enqueue/check > succeed enqueue/check

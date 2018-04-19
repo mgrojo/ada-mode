@@ -41,6 +41,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_block_name_mismatch.adb",
       "ada_mode-recover_end_1.adb",
       "ada_mode-recover_end_2.adb",
+      "ada_mode-recover_exception_1.adb",
       "ada_mode-recover_extra_declare.adb",
       "ada_mode-recover_extra_end_loop.adb",
       "ada_mode-recover_indent_1.adb",
@@ -49,6 +50,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_indent_4.adb",
       "ada_mode-recover_match_names.adb",
       "ada_mode-recover_pattern_end_eof.adb",
+      "ada_mode-recover_renaming_1.adb",
       "ada_mode-recover_repair_1.adb",
       "ada_mode-recover_string_quote.adb",
       "ada_mode-recover_virtual.adb",
@@ -71,6 +73,7 @@ project Ada_Mode_Compile is
       "slow_recover_1.adb",
       "slow_recover_2.adb",
       "slow_recover_3.adb",
+      "slow_recover_4.adb",
 
       -- deliberate errors to test error recovery
       "virtual_renames.adb"

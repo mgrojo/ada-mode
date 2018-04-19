@@ -73,10 +73,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       +package_specification_ID  & (+protected_type_declaration_ID) & (+single_protected_declaration_ID) &
         (+single_task_declaration_ID) & (+task_type_declaration_ID));
 
-   Begin_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
-     (Descriptor.First_Terminal, Descriptor.Last_Nonterminal, (1 => +BEGIN_ID));
-   --  Must be a Grammar_Token_ID_Set to be part of a Grammar_Token_ID_Set_Array.
-
    Statement_Declaration_Start_IDs : constant Terminal_Token_ID_Set :=
      To_Token_ID_Set
        (Descriptor.First_Terminal, Descriptor.Last_Terminal,
@@ -85,46 +81,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             (+LOOP_ID) & (+OVERRIDING_ID) & (+PACKAGE_ID) & (+PRAGMA_ID) & (+PROCEDURE_ID) & (+PROTECTED_ID) &
             (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+SELECT_ID) & (+SUBTYPE_ID) & (+TASK_ID) & (+TYPE_ID) &
             (+USE_ID) & (+WHEN_ID) & (+WITH_ID));
-
-   type Grammar_Token_ID_Set_Array is array (Positive range <>) of Grammar_Token_ID_Set;
-   type Natural_Array is array (Positive range <>) of Natural;
-
-   procedure Find_Matching_Name
-     (Config              : in     Configuration;
-      Lexer               : in     WisiToken.Lexer.Handle;
-      Name                : in     String;
-      Matching_Name_Index : in out SAL.Peek_Type;
-      Other_IDs           : in     Grammar_Token_ID_Set_Array;
-      Other_Counts        :    out Natural_Array;
-      Case_Insensitive    : in     Boolean)
-   is
-      use Standard.Ada.Characters.Handling;
-      use all type SAL.Peek_Type;
-      Match_Name : constant String := (if Case_Insensitive then To_Lower (Name) else Name);
-   begin
-      Other_Counts := (others => 0);
-
-      loop
-         exit when Matching_Name_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
-         declare
-            Token : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
-         begin
-            exit when Token.Name /= Null_Buffer_Region and then
-              Match_Name =
-              (if Case_Insensitive
-               then To_Lower (Lexer.Buffer_Text (Token.Name))
-               else Lexer.Buffer_Text (Token.Name));
-
-            for I in Other_IDs'Range loop
-               if Other_IDs (I)(Token.ID) then
-                  Other_Counts (I) := Other_Counts (I) + 1;
-               end if;
-            end loop;
-
-            Matching_Name_Index := Matching_Name_Index + 1;
-         end;
-      end loop;
-   end Find_Matching_Name;
 
    procedure Check
      (ID          :    Token_ID;
@@ -306,7 +262,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          declare
             End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
 
-            Matching_Name_Index : SAL.Peek_Type := 2; -- start search before <end_name_token>
+            Matching_Name_Index : SAL.Peek_Type := 3; -- start search before <end_name_token>
          begin
             Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
@@ -351,7 +307,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   Local_Config_Heap.Add (New_Config);
 
                   if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Match_Names_Error 1 " & Image (Config.Error_Token.ID, Descriptor),
+                     Put ("Match_Names_Error 1 " & Image (Config.Error_Token.ID, Descriptor),
                           New_Config);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -470,7 +426,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor),
+                  Put ("Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor),
                        New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -500,7 +456,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                Insert (New_Config, +BEGIN_ID);
 
                if Trace_McKenzie > Detail then
-                  Put ("Semantic_Check Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor),
+                  Put ("Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor),
                        New_Config.all);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
@@ -531,8 +487,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          --  test_mckenzie_recover.adb Extra_Name_3, Block_Match_Names_1. The
          --  solution is to insert 'end ;' before the 'end'.
          --
-         --  We can distinguish between 1 and 2 by counting the number of
-         --  Begin_Name_IDs and Begin_IDs.
+         --  There is no reliable way to distinguish between 1 and 2, so we
+         --  enqueue both solutions. See test/ada_mode-recover_exception_1.adb
          --
          --  If there is more than one missing 'end', a later recover operation
          --  will fix the others.
@@ -549,82 +505,71 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             Matching_Name_Index : SAL.Peek_Type := Token_Count;
             --  'block_label_opt' is empty; start on token before 'begin'.
 
-            Other_Tokens : constant Grammar_Token_ID_Set_Array := (1 => Begin_Name_IDs, 2 => Begin_IDs);
-            Other_Counts : Natural_Array (1 .. 2);
          begin
-            Find_Matching_Name
-              (Config, Lexer, End_Name, Matching_Name_Index, Other_Tokens, Other_Counts, Case_Insensitive => True);
+            Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
             if Matching_Name_Index > Config.Stack.Depth then
                --  case 0
                return Continue;
             end if;
 
-            if Other_Counts (1) = 0 or Other_Counts (2) = 0 then
-               raise Programmer_Error with "unrecognized Extra_Name_Error case " & Image
-                 (Config.Error_Token, Descriptor);
-            end if;
+            --  Case 1
+            declare
+               New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
+            begin
+               --  We don't increase the cost, because this is not a guess.
+               New_Config.Error_Token.ID := Invalid_Token_ID;
+               New_Config.Check_Status   := (Label => Ok);
 
-            if Other_Counts (1) > Other_Counts (2) then
-               --  Case 1
-               declare
-                  New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                  Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
-               begin
-                  --  We don't increase the cost, because this is not a guess.
-                  New_Config.Error_Token.ID := Invalid_Token_ID;
-                  New_Config.Check_Status   := (Label => Ok);
+               --  Push_Back the failed reduce tokens.
+               for I in 1 .. New_Config.Check_Token_Count loop
+                  declare
+                     Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
+                  begin
+                     Ops.Append ((Push_Back, Item.Token.ID, Item.Token.Min_Terminal_Index));
+                  end;
+               end loop;
+               New_Config.Current_Shared_Token := New_Config.Error_Token.Min_Terminal_Index;
 
-                  --  Push_Back the failed reduce tokens.
-                  for I in 1 .. New_Config.Check_Token_Count loop
-                     declare
-                        Item : constant Recover_Stack_Item := New_Config.Stack.Pop;
-                     begin
-                        Ops.Append ((Push_Back, Item.Token.ID, Item.Token.Min_Terminal_Index));
-                     end;
-                  end loop;
-                  New_Config.Current_Shared_Token := New_Config.Error_Token.Min_Terminal_Index;
+               Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
-                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
-
-                  if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Extra_Name_Error 1 " & Image
-                            (Config.Error_Token.ID, Descriptor), New_Config.all);
-                     if Trace_McKenzie > Extra then
-                        Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
-                     end if;
+               if Trace_McKenzie > Detail then
+                  Put ("Extra_Name_Error 1 " & Image
+                         (Config.Error_Token.ID, Descriptor), New_Config.all);
+                  if Trace_McKenzie > Extra then
+                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
-               end;
+               end if;
+            end;
 
-            else
-               --  Case 2
-               declare
-                  New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-               begin
-                  --  We don't increase the cost, because this is not a guess.
+            --  Case 2
+            declare
+               New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+            begin
+               --  We don't increase the cost, because this is not a guess.
 
-                  New_Config.Error_Token.ID := Invalid_Token_ID;
-                  New_Config.Check_Status   := (Label => Ok);
+               New_Config.Error_Token.ID := Invalid_Token_ID;
+               New_Config.Check_Status   := (Label => Ok);
 
-                  Push_Back_Check
-                    (New_Config,
-                     (+SEMICOLON_ID,
-                     (if Config.Error_Token.ID = +block_statement_ID
-                      then +identifier_opt_ID
-                      else +name_opt_ID),
-                      +END_ID));
+               Push_Back_Check
+                 (New_Config,
+                  (+SEMICOLON_ID,
+                   (if Config.Error_Token.ID = +block_statement_ID
+                    then +identifier_opt_ID
+                    else +name_opt_ID),
+                   +END_ID));
 
-                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
+               Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
-                  if Trace_McKenzie > Detail then
-                     Put ("Semantic_Check Extra_Name_Error 2 " & Image
-                            (Config.Error_Token.ID, Descriptor), New_Config.all);
-                     if Trace_McKenzie > Extra then
-                        Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
-                     end if;
+               if Trace_McKenzie > Detail then
+                  Put ("Extra_Name_Error 2 " & Image
+                         (Config.Error_Token.ID, Descriptor), New_Config.all);
+                  if Trace_McKenzie > Extra then
+                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
-               end;
-            end if;
+               end if;
+            end;
             return Abandon;
          end;
       end case;
@@ -699,9 +644,10 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             exception
             when System.Assertions.Assert_Failure =>
                --  From *_Check
-               Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
-               Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
-
+               if Trace_McKenzie > Outline then
+                  Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
+                  Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
+               end if;
                --  We don't re-raise the exception here; so far, this has only
                --  happened while exploring a high-cost config (which only occurs in
                --  a race condition with the lower cost solution), and the correct
@@ -903,7 +849,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                         end loop;
 
                         if One_LHS then
-                           To_Set (Table.Terminal_Sequences (LHS), Result);
+                           To_Set (Table.Minimal_Terminal_Sequences (LHS), Result);
                            --  FIXME: merge multiple sequences?
                            --  FIXME: store Dot, constrain to token following Dot.
                         else
@@ -915,9 +861,9 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                                  begin
                                     for J of Action.Productions loop
                                        if Member
-                                         (I.Symbol, Table.Terminal_Sequences (Table.Productions (J).LHS))
+                                         (I.Symbol, Table.Minimal_Terminal_Sequences
+                                            (Table.Productions (J).LHS))
                                        then
-                                          --  FIXME: this condition is trivially always true?
                                           --  FIXME: change terminal_sequences to set?
                                           --  or find position in it?
                                           Result (I.Symbol) := True;
