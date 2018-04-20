@@ -51,15 +51,15 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
-slow_recover_4.adb
+test/slow_recover_4.adb
     first mckenzie
     'return (header, to_string_list ( when'
         should use Constrain_Terminals to insert )); cost 3
         found (delete 'when') and (insert 'case is') cost 4
 
-constrain_terminals: CASE, FOR, IF, OTHERS, RAISE, LEFT_PAREN, MINUS, STRING_LITERAL
-    want RIGHT_PAREN!
-        to get that, need to handle  the "conflict" in the two different reductions to empty
+    constrain_terminals: CASE, FOR, IF, OTHERS, RAISE, LEFT_PAREN, MINUS, STRING_LITERAL
+        want RIGHT_PAREN!
+            to get that, need to handle  the "conflict" in the two different reductions to empty
 
     in second mckenzie
      8: succeed 3, enqueue 157961, check  23504, cost:  12
@@ -75,10 +75,12 @@ kill slow/expensive other parser during recover
     test/ada_mode-recover_bad_char.adb
      3: succeed 1, enqueue 16296, check  1356, cost:  10
      2: succeed 1, enqueue 556, check  63, cost:  6
-    slow_recover_1.adb
+    test/slow_recover_1.adb
      6: fail, enqueue 9, check  9, cost_limit:  12
      5: fail, enqueue 75967, check  5189, cost_limit:  12
      1: succeed 1, enqueue 172, check  25, cost:  6
+
+    unit_test/test_harness.adb, test_recover.adb
 
 test/gpr/gpr-ske-test fails with 'undefined skeleton token'
 

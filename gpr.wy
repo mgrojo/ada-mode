@@ -104,7 +104,8 @@
 %start compilation_unit
 %generator_algorithm LALR
 
-;; output_language and lexer are set on the command line; this file is
+%output_language elisp
+;; output_language and lexer are overridden on the command line; this file is
 ;; used to generate elisp and Ada_Emacs parsers.
 
 %elisp_face font-lock-function-name-face

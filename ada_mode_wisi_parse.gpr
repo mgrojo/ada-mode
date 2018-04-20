@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  build ada_mode_wisi_parse
+--  build ada_mode_wisi_parse and other executables
 --
 --  Copyright (C) 2014 Stephen Leake All Rights Reserved.
 --
@@ -27,9 +27,7 @@ project Ada_Mode_Wisi_Parse is
       "run_gpr_parse.ads"
      );
 
-   for Source_Dirs use (".", "build", "test/wisi");
-   --  "build" holds some generated files
-   --  "test/wisi" holds a test
+   for Source_Dirs use (".");
 
    case Standard_Common.Profile is
    when "On" =>
@@ -56,17 +54,9 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-         for Switches ("ada.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
          --  Debug_Switches dies with 'out of memory'; don't need debug in this file
 
          for Switches ("gpr_process.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-         for Switches ("gpr.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
@@ -83,18 +73,9 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-
-         for Switches ("ada.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-            -- With GNAT GPL 2016: gnatn hangs; 01 slow; 02 out of memory
+         -- With GNAT GPL 2016: gnatn hangs; 01 slow; 02 out of memory
 
          for Switches ("gpr_process.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-         for Switches ("gpr.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
