@@ -18,7 +18,7 @@
 
 with "aunit";
 with "standard_common";
-project AUnit_SAL_Ext is
+project AUnit_Ext is
 
    for Source_Dirs use ("../source");
 
@@ -41,4 +41,4 @@ project AUnit_SAL_Ext is
 
    end Compiler;
 
-end AUnit_SAL_Ext;
+end AUnit_Ext;
