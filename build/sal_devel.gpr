@@ -1,6 +1,6 @@
 --  For use by other projects writing tests; includes sal-*-aunit
 with "aunit";
-with "aunit_sal_ext";
+with "aunit_ext";
 with "standard_common";
 with "sal";
 project SAL_Devel is

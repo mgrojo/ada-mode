@@ -53,7 +53,7 @@ package body SAL.Gen_Bounded_Definite_Vectors is
 
    procedure Append (Container : in out Vector; New_Item : in Element_Type)
    is
-      J : constant Peek_Type := Peek_Type (Container.Last + 1 - Index_Type'First + 1);
+      J : constant Peek_Type := To_Peek_Index (Container.Last + 1);
    begin
       Container.Elements (J) := New_Item;
       Container.Last := Container.Last + 1;
@@ -73,8 +73,8 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       New_Item  : in     Element_Type;
       Before    : in     Extended_Index)
    is
-      J : constant Peek_Type := To_Peek_Index (Before);
-      K : constant Peek_Type := To_Peek_Index (Container.Last);
+      J : constant Peek_Type := To_Peek_Index ((if Before = No_Index then Container.Last + 1 else Before));
+      K : constant Base_Peek_Type := To_Peek_Index (Container.Last);
    begin
       Container.Elements (J + 1 .. K + 1) := Container.Elements (J .. K);
       Container.Elements (J) := New_Item;
