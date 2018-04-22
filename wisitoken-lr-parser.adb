@@ -167,7 +167,6 @@ package body WisiToken.LR.Parser is
             end if;
 
          when Semantic_Checks.Error =>
-            Current_Parser.Save_Verb; -- For error recovery
             Current_Parser.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;
          end case;
@@ -183,13 +182,11 @@ package body WisiToken.LR.Parser is
             Current_Parser.Set_Verb (Action.Verb);
 
          when Semantic_Checks.Error =>
-            Current_Parser.Save_Verb; -- For error recovery
             Current_Parser.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;
          end case;
 
       when Error =>
-         Current_Parser.Save_Verb; -- For error recovery
          Current_Parser.Set_Verb (Action.Verb);
 
          Parser_State.Zombie_Token_Count := 1;
@@ -239,14 +236,15 @@ package body WisiToken.LR.Parser is
 
       Shift_Count         : SAL.Base_Peek_Type := 0;
       Shift_Recover_Count : SAL.Base_Peek_Type := 0;
+      Shift_Virtual_Count : SAL.Base_Peek_Type := 0;
       Accept_Count        : SAL.Base_Peek_Type := 0;
       Error_Count         : SAL.Base_Peek_Type := 0;
-      Max_Shared_Token    : Base_Token_Index   := Base_Token_Index'First;
+      Min_Shared_Token    : Base_Token_Index   := Base_Token_Index'Last;
    begin
       Zombie_Count := 0;
 
       for Parser_State of Shared_Parser.Parsers loop
-         Max_Shared_Token := Token_Index'Max (Max_Shared_Token, Parser_State.Shared_Token);
+         Min_Shared_Token := Token_Index'Min (Min_Shared_Token, Parser_State.Shared_Token);
       end loop;
 
       for Parser_State of Shared_Parser.Parsers loop
@@ -260,6 +258,7 @@ package body WisiToken.LR.Parser is
                else Parser_State.Shared_Token)
             then
                --  Shifting a virtual token.
+               Shift_Virtual_Count := Shift_Virtual_Count + 1;
                Shift_Recover_Count := Shift_Recover_Count + 1;
                Parser_State.Set_Verb (Shift_Recover);
 
@@ -301,23 +300,24 @@ package body WisiToken.LR.Parser is
       elsif Shift_Count > 0 then
          Verb := Shift;
 
-         if Shared_Parser.Resume_Active then
-            if Shared_Parser.Resume_Token_Goal <= Max_Shared_Token then
-               Shared_Parser.Resume_Active := False;
-               if Trace_Parse > Detail then
-                  Shared_Parser.Trace.Put_Line ("resume_active: False");
-               end if;
-            end if;
-         end if;
-
-         --  Verify that we don't create zombies when recover is active.
-         if Shared_Parser.Resume_Active and Zombie_Count > 0 then
-            raise Programmer_Error;
-         end if;
-
       else
          raise Programmer_Error;
       end if;
+
+      if Shared_Parser.Resume_Active then
+         if Shift_Virtual_Count = 0 and Shared_Parser.Resume_Token_Goal <= Min_Shared_Token then
+            Shared_Parser.Resume_Active := False;
+            if Trace_Parse > Detail then
+               Shared_Parser.Trace.Put_Line ("resume_active: False");
+            end if;
+         end if;
+      end if;
+
+      --  Verify that we don't create zombies when recover is active.
+      if Shared_Parser.Resume_Active and Zombie_Count > 0 then
+         raise Programmer_Error;
+      end if;
+
    end Parse_Verb;
 
    procedure Terminate_Parser
@@ -972,7 +972,8 @@ package body WisiToken.LR.Parser is
                   else
                      if Trace_Parse > Outline then
                         Trace.Put_Line
-                          (Integer'Image (Current_Parser.Label) & ": spawn, (" &
+                          (Integer'Image (Current_Parser.Label) & ": spawn" &
+                             Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
                              Int_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                      end if;
 

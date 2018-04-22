@@ -223,7 +223,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          if Trace_McKenzie > Outline then
             Put ("Handle_Check_Fail test case for Ops_Insert_Point", Config);
          end if;
-         raise Programmer_Error with "Handle_Check_Fail found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
+         return Continue;
       end if;
 
       case Config.Check_Status.Label is
@@ -269,7 +269,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          declare
             End_Name : constant String := Lexer.Buffer_Text (End_Name_Token.Name);
 
-            Matching_Name_Index : SAL.Peek_Type := 2; -- start search before <end_name_token>
+            Matching_Name_Index : SAL.Peek_Type := 3; -- start search before <end_name_token>
          begin
             Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
@@ -583,18 +583,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
       end Put;
-
-      procedure Check_Ops_Insert_Point
-      is begin
-         if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
-            if Trace_McKenzie > Outline then
-               Put ("Handle_Parse_Error test case for Ops_Insert_Point", Config);
-            end if;
-            raise Programmer_Error with
-              "Handle_Parse_Error found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
-         end if;
-      end Check_Ops_Insert_Point;
-
    begin
       --  This is simple enough to use 'case'; full Ada needs 'if'.
       case Standard.Ada_Lite.Token_Enum_ID'(-Config.Error_Token.ID) is
@@ -607,7 +595,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          if Config.Stack (1).Token.ID = +IDENTIFIER_ID and
            Config.Stack (2).Token.ID = +END_ID
          then
-            Check_Ops_Insert_Point;
+            if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
+               if Trace_McKenzie > Outline then
+                  Put ("Handle_Parse_Error test case for Ops_Insert_Point", Config);
+               end if;
+               return Continue;
+            end if;
 
             --  The input looks like
             --
@@ -755,7 +748,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                         end loop;
 
                         if One_LHS then
-                           To_Set (Table.Terminal_Sequences (LHS), Result);
+                           To_Set (Table.Minimal_Terminal_Sequences (LHS), Result);
                            --  FIXME: merge multiple sequences?
                         else
                            loop
@@ -766,7 +759,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                                  begin
                                     for J of Action.Productions loop
                                        if Member
-                                         (I.Symbol, Table.Terminal_Sequences (Table.Productions (J).LHS))
+                                         (I.Symbol, Table.Minimal_Terminal_Sequences (Table.Productions (J).LHS))
                                        then
                                           --  FIXME: change terminal_sequences to set?
                                           --  or find position in it?

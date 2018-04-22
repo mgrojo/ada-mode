@@ -281,7 +281,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (84, 84),
          Ops                     => +(Insert, +IF_ID, 23) & (Insert, +SEMICOLON_ID, 23) & (Insert, +END_ID, 23),
          Enqueue_Low             => 71,
-         Enqueue_High            => 124,
+         Enqueue_High            => 149,
          Check_Low               => 16,
          Check_High              => 27,
          Cost                    => 4,
@@ -495,7 +495,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 35,
          Enqueue_High            => 165,
          Check_Low               => 12,
-         Check_High              => 18,
+         Check_High              => 20,
          Cost                    => 6);
    end Missing_Return;
 
@@ -629,7 +629,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 50,
          Enqueue_High            => 98,
          Check_Low               => 12,
-         Check_High              => 19,
+         Check_High              => 21,
          Cost                    => 4);
    end Pattern_1;
 
@@ -704,7 +704,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (28, 30),
          Ops                     => +(Insert, +IDENTIFIER_ID, 6),
          Enqueue_Low             => 30,
-         Enqueue_High            => 78,
+         Enqueue_High            => 88,
          Check_Low               => 4,
          Check_High              => 14,
          Cost                    => 3);
@@ -1379,9 +1379,9 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 115,
-         Enqueue_High            => 208,
+         Enqueue_High            => 210,
          Check_Low               => 20,
-         Check_High              => 35,
+         Check_High              => 38,
          Cost                    => 5);
    end Actual_Parameter_Part_1;
 
@@ -1426,7 +1426,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 7,
          Enqueue_High            => 15,
          Check_Low               => 3,
-         Check_High              => 5,
+         Check_High              => 7,
          Cost                    => 3);
    end Unfinished_Subprogram_Type_1;
 
@@ -1507,6 +1507,8 @@ package body Test_McKenzie_Recover is
       if T.Cost_Limit /= Natural'Last then
          Parser.Table.McKenzie_Param.Cost_Limit := T.Cost_Limit;
       end if;
+
+      Parser.Post_Recover := null;
    end Set_Up;
 
 end Test_McKenzie_Recover;

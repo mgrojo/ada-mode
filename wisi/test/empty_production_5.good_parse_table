@@ -13,7 +13,7 @@ Tokens:
  11 => parameter_profile
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON, Wisi_EOI)
 compilation_unit => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON)
 accept_statement => (ACCEPT, IDENTIFIER, SEMICOLON)
@@ -121,7 +121,7 @@ State 12:
 
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON, Wisi_EOI)
 compilation_unit => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON)
 accept_statement => (ACCEPT, IDENTIFIER, SEMICOLON)

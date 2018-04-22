@@ -12,7 +12,7 @@ Tokens:
  10 => constant_opt
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, SEMICOLON, Wisi_EOI)
 object_declaration_list => (IDENTIFIER, SEMICOLON)
 object_declaration => (IDENTIFIER, SEMICOLON)
@@ -114,7 +114,7 @@ State 10:
 
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, SEMICOLON, Wisi_EOI)
 object_declaration_list => (IDENTIFIER, SEMICOLON)
 object_declaration => (IDENTIFIER, SEMICOLON)

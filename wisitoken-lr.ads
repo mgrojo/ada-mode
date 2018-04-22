@@ -45,6 +45,7 @@ with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
+with System.Multiprocessors;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
@@ -241,8 +242,13 @@ package WisiToken.LR is
       --  Cost of operations on config stack, input.
       --  FIXME: Undo_Reduce not used; delete?
 
-      Cost_Limit  : Natural; -- max cost of configurations to look at
-      Check_Limit : Natural; -- max tokens to parse ahead when checking a configuration.
+      Task_Count : System.Multiprocessors.CPU_Range;
+      --  Number of parallel tasks during recovery. If 0, use
+      --  System.Multiprocessors.Number_Of_CPUs - 1.
+
+      Cost_Limit        : Natural; -- max cost of configurations to look at
+      Check_Limit       : Natural; -- max tokens to parse ahead when checking a configuration.
+      Check_Delta_Limit : Natural; -- max configs checked, delta over successful parser.
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
@@ -254,8 +260,10 @@ package WisiToken.LR is
       Delete            => (others => 0),
       Push_Back         => (others => 0),
       Undo_Reduce       => (others => 0),
+      Task_Count        => 0,
       Cost_Limit        => Natural'Last,
-      Check_Limit       => Natural'Last);
+      Check_Limit       => Natural'Last,
+      Check_Delta_Limit => Natural'Last);
 
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class);
    --  Put Item to Ada.Text_IO.Current_Output
@@ -285,10 +293,11 @@ package WisiToken.LR is
       Last_Nonterminal  : Token_ID)
      is tagged
    record
-      States             : Parse_State_Array (State_First .. State_Last);
-      McKenzie_Param     : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Productions        : Production_Arrays.Vector;     -- Indexed by Action.Production
-      Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
+      States         : Parse_State_Array (State_First .. State_Last);
+      McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
+      Productions    : Production_Arrays.Vector; -- Indexed by Action.Production
+
+      Minimal_Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
    end record;
 
    function Goto_For

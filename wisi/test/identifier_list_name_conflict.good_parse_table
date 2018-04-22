@@ -19,7 +19,7 @@ Tokens:
  17 => selector_name
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (STRING_LITERAL, STRING_LITERAL, STRING_LITERAL, Wisi_EOI)
 association => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)
 association_list => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)
@@ -311,7 +311,7 @@ State 25:
 
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (STRING_LITERAL, STRING_LITERAL, STRING_LITERAL, Wisi_EOI)
 association => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)
 association_list => (STRING_LITERAL, EQUAL_GREATER, STRING_LITERAL)

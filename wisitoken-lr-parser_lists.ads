@@ -109,6 +109,8 @@ package WisiToken.LR.Parser_Lists is
       Shared_Tree        : in Syntax_Trees.Base_Tree_Access)
      return List;
 
+   function Last_Label (List : in Parser_Lists.List) return Natural;
+
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 
    type Cursor is tagged private;
@@ -125,10 +127,6 @@ package WisiToken.LR.Parser_Lists is
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;
-
-   procedure Save_Verb (Cursor : in Parser_Lists.Cursor);
-   --  Saves current verb to Prev_Verb
-   function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
 
    type State_Reference (Element : not null access Parser_State) is null record
    with Implicit_Dereference => Element;
@@ -207,7 +205,6 @@ package WisiToken.LR.Parser_Lists is
    function Label (Iterator : in Parser_State) return Natural;
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
-   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
 
 private
 
@@ -215,8 +212,6 @@ private
       Label : Natural; -- for debugging/verbosity
 
       Verb : All_Parse_Action_Verbs := Shift; -- current action to perform
-
-      Prev_Verb : All_Parse_Action_Verbs := Parse_Action_Verbs'First; -- previous action performed
    end record;
 
    package Parser_State_Lists is new SAL.Gen_Indefinite_Doubly_Linked_Lists (Parser_State);

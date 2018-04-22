@@ -203,20 +203,29 @@ package body WisiToken.LR.McKenzie_Recover is
          end if;
 
       when Check =>
-         --  Undo the reduction that encountered the error, let Process_One
-         --  enqueue possible solutions. We leave the cost at 0, because this
-         --  is the root config.
+         if Shared_Parser.Language_Fixes = null then
+            --  The only fix is to ignore the error.
+            if Trace_McKenzie > Detail then
+               Put ("enqueue", Trace, Parser_State.Label, Shared_Parser.Terminals, Config.all,
+                    Task_ID => False);
+            end if;
 
-         Config.Check_Status      := Error.Check_Status;
-         Config.Error_Token       := Config.Stack (1).Token;
-         Config.Check_Token_Count := Undo_Reduce (Config.Stack, Parser_State.Tree);
+         else
+            --  Undo the reduction that encountered the error, let Process_One
+            --  enqueue possible solutions. We leave the cost at 0, because this
+            --  is the root config.
 
-         Config.Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
+            Config.Check_Status      := Error.Check_Status;
+            Config.Error_Token       := Config.Stack (1).Token;
+            Config.Check_Token_Count := Undo_Reduce (Config.Stack, Parser_State.Tree);
 
-         if Trace_McKenzie > Detail then
-            Put ("undo_reduce " & Image
-                   (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
-                 Shared_Parser.Terminals, Config.all, Task_ID => False);
+            Config.Ops.Append ((Undo_Reduce, Config.Error_Token.ID, Config.Check_Token_Count));
+
+            if Trace_McKenzie > Detail then
+               Put ("undo_reduce " & Image
+                      (Config.Error_Token.ID, Trace.Descriptor.all), Trace, Parser_State.Label,
+                    Shared_Parser.Terminals, Config.all, Task_ID => False);
+            end if;
          end if;
       end case;
 
@@ -225,6 +234,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    function Recover (Shared_Parser : in out LR.Parser.Parser) return Recover_Status
    is
+      use all type Parser.Post_Recover_Access;
       use all type SAL.Base_Peek_Type;
       use all type System.Multiprocessors.CPU_Range;
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
@@ -235,38 +245,21 @@ package body WisiToken.LR.McKenzie_Recover is
         (Trace'Access,
          Parsers'Access,
          Shared_Parser.Terminals'Access,
-         Cost_Limit   => Shared_Parser.Table.McKenzie_Param.Cost_Limit,
-         Parser_Count => Parsers.Count);
+         Cost_Limit        => Shared_Parser.Table.McKenzie_Param.Cost_Limit,
+         Check_Delta_Limit => Shared_Parser.Table.McKenzie_Param.Check_Delta_Limit,
+         Parser_Count      => Parsers.Count);
 
       Shared : aliased Base.Shared_Lookahead (Shared_Parser'Access);
 
-      Worker_Tasks   : array (1 .. System.Multiprocessors.Number_Of_CPUs - 1) of Worker_Task
-        (Super'Access, Shared'Access);
-      --  Keep one CPU free for this main task, and the user.
+      Task_Count : constant System.Multiprocessors.CPU_Range :=
+        (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
+         then System.Multiprocessors.Number_Of_CPUs - 1 --  Keep one CPU free for this main task, and the user.
+         else Shared_Parser.Table.McKenzie_Param.Task_Count);
       --  FIXME: see if more tasks go faster or slower.
 
-      Shared_Verb : All_Parse_Action_Verbs := Shift;
-      --  When there are multiple parsers, this is the 'worst case' verb.
-      --  Verbs are worse in the order Shift, Shift_Reduce, Reduce.
+      Worker_Tasks : array (1 .. Task_Count) of Worker_Task (Super'Access, Shared'Access);
 
       Check_Limit : constant Token_Index := Token_Index (Shared_Parser.Table.McKenzie_Param.Check_Limit);
-
-      procedure Update_Shared_Verb (Parser_Verb : in All_Parse_Action_Verbs)
-      is begin
-         case Parser_Verb is
-         when Shift =>
-            return;
-         when Shift_Recover =>
-            if Shared_Verb = Shift then
-               Shared_Verb := Shift_Recover;
-            end if;
-         when Reduce =>
-            Shared_Verb := Reduce;
-         when others =>
-            raise Programmer_Error;
-         end case;
-      end Update_Shared_Verb;
-
 
       procedure Cleanup
       is begin
@@ -348,11 +341,6 @@ package body WisiToken.LR.McKenzie_Recover is
                           ", check " & Integer'Image (Data.Check_Count) &
                           ", cost: " & Integer'Image (Data.Results.Min_Key));
                   end if;
-
-                  --  Restore pre-error parser verb before spawning, just for
-                  --  simplicity.
-                  Cur.Set_Verb (Cur.Prev_Verb);
-                  Update_Shared_Verb (Cur.Prev_Verb);
 
                   if Data.Results.Count > 1 then
                      if Parsers.Count + Data.Results.Count > Shared_Parser.Max_Parallel then
@@ -516,20 +504,26 @@ package body WisiToken.LR.McKenzie_Recover is
                --  increment. We could set Shared_Token to 1 less, but this way the
                --  debug messages all show the expected shared_terminal.
 
-               case Tree.Label (Parser_State.Stack (1).Token) is
-               when Syntax_Trees.Shared_Terminal =>
-                  --  We know this token is not Shared_Parser.Terminals.Last_Index.
-                  Parser_State.Set_Verb (Shift_Recover);
-                  Parser_State.Inc_Shared_Token := not Virtual_Inserted;
-
-               when Syntax_Trees.Virtual_Terminal =>
+               if Parser_State.Stack (1).Token = Syntax_Trees.Invalid_Node_Index then
+                  --  a virtual token
                   Parser_State.Set_Verb (Shift_Recover);
                   Parser_State.Inc_Shared_Token := False;
+               else
+                  case Tree.Label (Parser_State.Stack (1).Token) is
+                  when Syntax_Trees.Shared_Terminal =>
+                     --  We know this token is not Shared_Parser.Terminals.Last_Index.
+                     Parser_State.Set_Verb (Shift_Recover);
+                     Parser_State.Inc_Shared_Token := not Virtual_Inserted;
 
-               when Syntax_Trees.Nonterm =>
-                  Parser_State.Set_Verb (Reduce);
-                  Parser_State.Inc_Shared_Token := not Virtual_Inserted;
-               end case;
+                  when Syntax_Trees.Virtual_Terminal =>
+                     Parser_State.Set_Verb (Shift_Recover);
+                     Parser_State.Inc_Shared_Token := False;
+
+                  when Syntax_Trees.Nonterm =>
+                     Parser_State.Set_Verb (Reduce);
+                     Parser_State.Inc_Shared_Token := not Virtual_Inserted;
+                  end case;
+               end if;
 
                if Trace_McKenzie > Extra then
                   Put_Line (Trace, Parser_State.Label, "after Ops applied:", Task_ID => False);
@@ -562,6 +556,10 @@ package body WisiToken.LR.McKenzie_Recover is
       end loop;
 
       Cleanup;
+
+      if Shared_Parser.Post_Recover /= null then
+         Shared_Parser.Post_Recover.all;
+      end if;
 
       return Super.Recover_Result;
 
@@ -607,13 +605,17 @@ package body WisiToken.LR.McKenzie_Recover is
       loop
          exit when Matching_Name_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+            Token       : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+            Name_Region : constant Buffer_Region :=
+              (if Token.Name = Null_Buffer_Region
+               then Token.Byte_Region
+               else Token.Name);
          begin
-            exit when Token.Name /= Null_Buffer_Region and then
+            exit when Name_Region /= Null_Buffer_Region and then
               Match_Name =
               (if Case_Insensitive
-               then To_Lower (Lexer.Buffer_Text (Token.Name))
-               else Lexer.Buffer_Text (Token.Name));
+               then To_Lower (Lexer.Buffer_Text (Name_Region))
+               else Lexer.Buffer_Text (Name_Region));
 
             Matching_Name_Index := Matching_Name_Index + 1;
          end;
@@ -638,13 +640,17 @@ package body WisiToken.LR.McKenzie_Recover is
       loop
          exit when Matching_Name_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
          declare
-            Token : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+            Token       : Recover_Token renames Config.Stack (Matching_Name_Index).Token;
+            Name_Region : constant Buffer_Region :=
+              (if Token.Name = Null_Buffer_Region
+               then Token.Byte_Region
+               else Token.Name);
          begin
-            exit when Token.Name /= Null_Buffer_Region and then
+            exit when Name_Region /= Null_Buffer_Region and then
               Match_Name =
               (if Case_Insensitive
-               then To_Lower (Lexer.Buffer_Text (Token.Name))
-               else Lexer.Buffer_Text (Token.Name));
+               then To_Lower (Lexer.Buffer_Text (Name_Region))
+               else Lexer.Buffer_Text (Name_Region));
 
             if Other_ID = Token.ID then
                Other_Count := Other_Count + 1;

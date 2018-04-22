@@ -73,7 +73,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
          Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;
          Sequence : WisiToken.Token_ID_Arrays.Vector;
       begin
-         WisiToken.LR.Generator_Utils.Compute_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
+         WisiToken.LR.Generator_Utils.Compute_Minimal_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
 
          if WisiToken.Trace_Generate > WisiToken.Detail then
             Ada.Text_IO.New_Line;

@@ -11,7 +11,7 @@ Tokens:
  9 => body
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (Wisi_EOI)
 declarations => (IS, BEGIN, SEMICOLON)
 declarative_part => ()
@@ -107,7 +107,7 @@ State 9:
 
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (Wisi_EOI)
 declarations => (IS, BEGIN, SEMICOLON)
 declarative_part => ()

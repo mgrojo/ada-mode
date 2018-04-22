@@ -30,6 +30,8 @@ package WisiToken.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
 
+   type Post_Recover_Access is access procedure;
+
    type Parser is new Ada.Finalization.Limited_Controlled with record
       Trace     : access WisiToken.Trace'Class;
       Lexer     : WisiToken.Lexer.Handle;
@@ -39,6 +41,9 @@ package WisiToken.LR.Parser is
       Language_Fixes : Language_Fixes_Access;
 
       Language_Constrain_Terminals : Language_Constrain_Terminals_Access;
+
+      Post_Recover : Post_Recover_Access;
+      --  Gather data for tests.
 
       Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Does not contain

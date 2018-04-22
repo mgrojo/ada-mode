@@ -68,6 +68,11 @@ package body WisiToken.LR.Parser_Lists is
       end return;
    end New_List;
 
+   function Last_Label (List : in Parser_Lists.List) return Natural
+   is begin
+      return List.Parser_Label;
+   end Last_Label;
+
    function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type
    is begin
       return List.Elements.Length;
@@ -124,18 +129,6 @@ package body WisiToken.LR.Parser_Lists is
       return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Verb;
    end Verb;
 
-   procedure Save_Verb (Cursor : in Parser_Lists.Cursor)
-   is
-      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Ptr);
-   begin
-      Item.Prev_Verb := Item.Verb;
-   end Save_Verb;
-
-   function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs
-   is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Prev_Verb;
-   end Prev_Verb;
-
    function State_Ref (Position : in Cursor) return State_Reference
    is begin
       return (Element => Parser_State_Lists.Constant_Reference (Position.Ptr).Element);
@@ -182,8 +175,7 @@ package body WisiToken.LR.Parser_Lists is
             Zombie_Token_Count    => 0,
             Errors                => Item.Errors,
             Label                 => List.Parser_Label,
-            Verb                  => Item.Verb,
-            Prev_Verb             => Item.Prev_Verb);
+            Verb                  => Item.Verb);
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
@@ -275,11 +267,6 @@ package body WisiToken.LR.Parser_Lists is
    is begin
       return Iterator.Verb;
    end Verb;
-
-   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs
-   is begin
-      return Iterator.Prev_Verb;
-   end Prev_Verb;
 
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs)
    is begin

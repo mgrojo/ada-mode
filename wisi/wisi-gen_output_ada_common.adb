@@ -19,6 +19,7 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
+with System.Multiprocessors;
 with Wisi.Utils;
 with WisiToken.Token_ID_Lists;
 package body Wisi.Gen_Output_Ada_Common is
@@ -807,9 +808,7 @@ package body Wisi.Gen_Output_Ada_Common is
       end Put;
 
    begin
-      if Table.McKenzie_Param = WisiToken.LR.Default_McKenzie_Param then
-         Indent_Line ("Table.McKenzie_Param := Default_McKenzie_Param;");
-      else
+      if Table.McKenzie_Param /= WisiToken.LR.Default_McKenzie_Param then
          Indent_Line ("Table.McKenzie_Param :=");
          Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
          Indent := Indent + 3;
@@ -820,8 +819,11 @@ package body Wisi.Gen_Output_Ada_Common is
          Put ("Delete", Table.McKenzie_Param.Delete);
          Put ("Push_Back", Table.McKenzie_Param.Push_Back);
          Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
+         Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
+                        (Table.McKenzie_Param.Task_Count) & ",");
          Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");
-         Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Limit) & ");");
+         Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Limit) & ",");
+         Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ");");
          Indent := Indent - 3;
          New_Line;
 
@@ -858,18 +860,18 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
 
       Indent_Line
-        ("Table.Terminal_Sequences.Set_First (" & WisiToken.Int_Image
-           (Integer (Table.Terminal_Sequences.First_Index)) & ");");
+        ("Table.Minimal_Terminal_Sequences.Set_First (" & WisiToken.Int_Image
+           (Integer (Table.Minimal_Terminal_Sequences.First_Index)) & ");");
 
       Indent_Line
-        ("Table.Terminal_Sequences.Set_Last (" & WisiToken.Int_Image
-           (Integer (Table.Terminal_Sequences.Last_Index)) & ");");
+        ("Table.Minimal_Terminal_Sequences.Set_Last (" & WisiToken.Int_Image
+           (Integer (Table.Minimal_Terminal_Sequences.Last_Index)) & ");");
 
-      for I in Table.Terminal_Sequences.First_Index .. Table.Terminal_Sequences.Last_Index loop
-         Indent_Start ("Set_Token_Sequence (Table.Terminal_Sequences (" & WisiToken.Int_Image (I) & "), (");
+      for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
+         Indent_Start ("Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & WisiToken.Int_Image (I) & "), (");
 
          declare
-            S : WisiToken.Token_ID_Arrays.Vector renames Table.Terminal_Sequences (I);
+            S : WisiToken.Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
          begin
             if S.Length = 0 then
                Put ("1 .. 0 => <>");

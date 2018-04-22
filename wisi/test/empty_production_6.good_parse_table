@@ -14,7 +14,7 @@ Tokens:
  12 => label_opt
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (BEGIN, IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON, END, SEMICOLON, Wisi_EOI)
 compilation_unit => (BEGIN, IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON, END, SEMICOLON)
 statement => (IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)

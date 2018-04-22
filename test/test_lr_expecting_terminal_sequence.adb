@@ -190,7 +190,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       Expected : WisiToken.LR.Token_Sequence_Arrays.Vector;
       Sequence : WisiToken.Token_ID_Arrays.Vector;
    begin
-      WisiToken.LR.Generator_Utils.Compute_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
+      WisiToken.LR.Generator_Utils.Compute_Minimal_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
 
       Expected.Set_First (+Statement_ID);
       Expected.Set_Last (+Parse_Sequence_ID);

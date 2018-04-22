@@ -121,7 +121,7 @@ package WisiToken.LR.Generator_Utils is
       File       : in Ada.Text_IO.File_Type;
       Descriptor : in WisiToken.Descriptor'Class);
 
-   procedure Compute_Terminal_Sequences
+   procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Production.List.Instance;
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector);

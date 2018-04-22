@@ -13,7 +13,7 @@
 --  For running WisiToken tests.
 
 with "aunit";
-with "aunit_sal_ext";
+with "aunit_ext";
 with "sal_devel";
 with "wisitoken";
 with "standard_common";

@@ -19,10 +19,6 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-ERROR test_mckenzie_recover.adb : Two_Missing_Ends
-    WISITOKEN.PROGRAMMER_ERROR
-    Exception Message: Handle_Check_Fail found test case for Ada_Lite Language_Fixes Ops_Insert_Point.
-
 review FIXME:
 
 change configure_access to persistent_ref record with container, node components;

@@ -220,9 +220,9 @@ package body WisiToken.LR.LR1_Generator is
          New_Line;
       end if;
 
-      Put_Line ("Terminal_Sequences:");
-      for I in Table.Terminal_Sequences.First_Index .. Table.Terminal_Sequences.Last_Index loop
-         Put_Line (Image (I, Descriptor) & " => " & Image (Table.Terminal_Sequences (I), Descriptor));
+      Put_Line ("Minimal_Terminal_Sequences:");
+      for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
+         Put_Line (Image (I, Descriptor) & " => " & Image (Table.Minimal_Terminal_Sequences (I), Descriptor));
       end loop;
       New_Line;
 
@@ -335,13 +335,15 @@ package body WisiToken.LR.LR1_Generator is
             Delete            => (others => 0),
             Push_Back         => (others => 0),
             Undo_Reduce       => (others => 0),
+            Task_Count        => 0,
             Cost_Limit        => Default_McKenzie_Param.Cost_Limit,
-            Check_Limit       => Default_McKenzie_Param.Check_Limit);
+            Check_Limit       => Default_McKenzie_Param.Check_Limit,
+            Check_Delta_Limit => Default_McKenzie_Param.Check_Delta_Limit);
       else
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Generator_Utils.Compute_Terminal_Sequences (Grammar, Descriptor, Table.Terminal_Sequences);
+      Generator_Utils.Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
 
       Add_Actions (Item_Sets, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
 

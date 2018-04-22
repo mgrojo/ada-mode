@@ -617,7 +617,7 @@ package body WisiToken.LR.Generator_Utils is
       All_Set (Nonterm) := True;
    end Terminal_Sequence;
 
-   procedure Compute_Terminal_Sequences
+   procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Production.List.Instance;
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector)
@@ -651,6 +651,6 @@ package body WisiToken.LR.Generator_Utils is
          end if;
          Last_Count := This_Count;
       end loop;
-   end Compute_Terminal_Sequences;
+   end Compute_Minimal_Terminal_Sequences;
 
 end WisiToken.LR.Generator_Utils;

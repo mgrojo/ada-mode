@@ -278,8 +278,10 @@ package body Subprograms_Process is
          Undo_Reduce =>
            (0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0),
+         Task_Count  => 0,
          Cost_Limit  => 2147483647,
-         Check_Limit => 2147483647);
+         Check_Limit => 2147483647,
+         Check_Delta_Limit => 2147483647);
 
 
       Table.Productions.Set_Length (20);
@@ -304,20 +306,20 @@ package body Subprograms_Process is
       Set_Production (Table.Productions (19), 30, (1 => 26));
       Set_Production (Table.Productions (20), 31, (12, 27, 17));
 
-      Table.Terminal_Sequences.Set_First (20);
-      Table.Terminal_Sequences.Set_Last (31);
-      Set_Token_Sequence (Table.Terminal_Sequences (20), (12, 18, 17, 19));
-      Set_Token_Sequence (Table.Terminal_Sequences (21), (3, 4));
-      Set_Token_Sequence (Table.Terminal_Sequences (22), (12, 18, 17));
-      Set_Token_Sequence (Table.Terminal_Sequences (23), (12, 18, 17));
-      Set_Token_Sequence (Table.Terminal_Sequences (24), (12, 18, 17));
-      Set_Token_Sequence (Table.Terminal_Sequences (25), (6, 18, 8, 18, 9, 17));
-      Set_Token_Sequence (Table.Terminal_Sequences (26), (1 => 18));
-      Set_Token_Sequence (Table.Terminal_Sequences (27), (1 => 18));
-      Set_Token_Sequence (Table.Terminal_Sequences (28), (1 .. 0 => <>));
-      Set_Token_Sequence (Table.Terminal_Sequences (29), (10, 18, 4, 18, 17));
-      Set_Token_Sequence (Table.Terminal_Sequences (30), (1 => 18));
-      Set_Token_Sequence (Table.Terminal_Sequences (31), (12, 18, 17));
+      Table.Minimal_Terminal_Sequences.Set_First (20);
+      Table.Minimal_Terminal_Sequences.Set_Last (31);
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (20), (12, 18, 17, 19));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (21), (3, 4));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (22), (12, 18, 17));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (23), (12, 18, 17));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (24), (12, 18, 17));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (25), (6, 18, 8, 18, 9, 17));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (26), (1 => 18));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (27), (1 => 18));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (28), (1 .. 0 => <>));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (29), (10, 18, 4, 18, 17));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (30), (1 => 18));
+      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (31), (12, 18, 17));
 
       Table.States (0).Productions := WisiToken.LR.To_Vector ((1 => 1));
       Add_Action (Table.States (0), (1 => 17), 7, 1);

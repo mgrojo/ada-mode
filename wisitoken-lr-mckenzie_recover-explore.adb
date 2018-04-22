@@ -245,28 +245,28 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                   else
                      --  We need new insertions to be made at the current input point in
                      --  Config.Inserted, not at Config.Current_Shared_Token. Similarly,
-                     --  insert new Ops at the correct point in Config.Ops. We don't try
-                     --  this more than once. FIXME: why not?
-                     if Parsed_Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
+                     --  insert new Ops at the correct point in Config.Ops.
+                     --
+                     --  It doesn't matter if Parsed_Config.Ops_Insert_Point was previously
+                     --  set, we just change it to the new insert point.
 
-                        Good_Item_Index := I;
-                        Good_Item_Count := Good_Item_Count + 1;
+                     Good_Item_Index := I;
+                     Good_Item_Count := Good_Item_Count + 1;
 
-                        Post_Fast_Forward_Fail := True;
-                        Insert_Ops_Count := SAL.Base_Peek_Type (Parsed_Config.Inserted.Length);
-                        for I in reverse Parsed_Config.Ops.First_Index .. Parsed_Config.Ops.Last_Index loop
-                           if Parsed_Config.Ops (I).Op = Insert then
-                              if Insert_Ops_Count = Parsed_Config.Current_Inserted then
-                                 Parsed_Config.Current_Shared_Token := Parsed_Config.Ops (I).Token_Index;
-                                 Parsed_Config.Ops_Insert_Point := I;
-                                 exit;
-                              end if;
-                              Insert_Ops_Count := Insert_Ops_Count - 1;
+                     Post_Fast_Forward_Fail := True;
+                     Insert_Ops_Count := SAL.Base_Peek_Type (Parsed_Config.Inserted.Length);
+                     for I in reverse Parsed_Config.Ops.First_Index .. Parsed_Config.Ops.Last_Index loop
+                        if Parsed_Config.Ops (I).Op = Insert then
+                           if Insert_Ops_Count = Parsed_Config.Current_Inserted then
+                              Parsed_Config.Current_Shared_Token := Parsed_Config.Ops (I).Token_Index;
+                              Parsed_Config.Ops_Insert_Point := I;
+                              exit;
                            end if;
-                        end loop;
-                        if Parsed_Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
-                           raise Programmer_Error;
+                           Insert_Ops_Count := Insert_Ops_Count - 1;
                         end if;
+                     end loop;
+                     if Parsed_Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
+                        raise Programmer_Error;
                      end if;
                   end if;
                end;
@@ -281,7 +281,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                Parse_Items.Clear;
             else
                --  FIXME: figure out how to deal with this; need a test case
-               raise Programmer_Error with "fast_forward returned multiple configs";
+               raise Programmer_Error with "Fast_Forward returned multiple configs";
             end if;
          end;
       end if;
@@ -601,8 +601,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
       end if;
 
-      if Config.Current_Inserted /= No_Inserted and Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
-         --  This Config was enqueued by a previous Language_Fixes.
+      if Config.Current_Inserted /= No_Inserted then
+         --  It doesn't matter if Parsed_Config.Ops_Insert_Point was previously
+         --  set, we just change it to the new insert point.
          pragma Assert (Config.Error_Token.ID = Invalid_Token_ID and Config.Check_Status.Label = Ok,
                         Image (Config.Error_Token.ID, Super.Trace.Descriptor.all) & ", " &
                           Config.Check_Status.Label'Img);

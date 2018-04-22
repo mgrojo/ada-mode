@@ -400,6 +400,10 @@ package body WisiToken.Wisi_Grammar_Runtime is
                      Data.Generate_Params.Error_Recover := True;
                      Data.McKenzie_Recover.Check_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
+                  elsif Kind = "mckenzie_check_delta_limit" then
+                     Data.Generate_Params.Error_Recover := True;
+                     Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+
                   elsif Kind = "mckenzie_cost_default" then
                      Data.Generate_Params.Error_Recover := True;
                      Data.McKenzie_Recover.Default_Insert          := Natural'Value

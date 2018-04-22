@@ -74,11 +74,12 @@ private package WisiToken.LR.McKenzie_Recover.Base is
    --  Index is same as Parser_Status.
 
    protected type Supervisor
-     (Trace        : not null access WisiToken.Trace'Class;
-      Parsers      : not null access Parser_Lists.List;
-      Terminals    : not null access Base_Token_Arrays.Vector;
-      Cost_Limit   : Natural;
-      Parser_Count : SAL.Peek_Type)
+     (Trace             : not null access WisiToken.Trace'Class;
+      Parsers           : not null access Parser_Lists.List;
+      Terminals         : not null access Base_Token_Arrays.Vector;
+      Cost_Limit        : Natural;
+      Check_Delta_Limit : Natural;
+      Parser_Count      : SAL.Peek_Type)
    is
       --  There is only one object of this type, declared in Recover.
 
@@ -97,7 +98,7 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       --
       --  Valid - Parser_Index, Config are valid, should be checked.
       --
-      --  All_Done - Parser_Index, Config are not valid; all configs checked.
+      --  All_Done - Parser_Index, Config are not valid.
 
       procedure Success
         (Parser_Index : in     SAL.Peek_Type;
@@ -133,15 +134,16 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       --  Worker_Tasks for each Parser that have done Get but not Put or
       --  Success.
 
-      All_Parsers_Done : Boolean;
-      Success_Counter  : Natural;
-      Fatal_Called     : Boolean;
-      Result           : Recover_Status;
-      Error_ID         : Ada.Exceptions.Exception_Id;
-      Error_Message    : Ada.Strings.Unbounded.Unbounded_String;
-      Parser_Status    : Parser_Status_Array (1 .. Parser_Count);
-      Parser_States    : Parser_State_Array (1 .. Parser_Count);
-      Parser_Labels    : Parser_Natural_Array (1 .. Parser_Count); -- For Trace
+      All_Parsers_Done        : Boolean;
+      Success_Counter         : Natural;
+      Min_Success_Check_Count : Natural;
+      Fatal_Called            : Boolean;
+      Result                  : Recover_Status;
+      Error_ID                : Ada.Exceptions.Exception_Id;
+      Error_Message           : Ada.Strings.Unbounded.Unbounded_String;
+      Parser_Status           : Parser_Status_Array (1 .. Parser_Count);
+      Parser_States           : Parser_State_Array (1 .. Parser_Count);
+      Parser_Labels           : Parser_Natural_Array (1 .. Parser_Count); -- For Trace
    end Supervisor;
 
    protected type Shared_Lookahead (Shared_Parser : not null access LR.Parser.Parser)

@@ -19,7 +19,7 @@ Tokens:
  17 => range_nt
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL, Wisi_EOI)
 case_expression => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL)
 choice_expression => (NUMBER_LITERAL)
@@ -191,7 +191,7 @@ State 17:
 
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL, Wisi_EOI)
 case_expression => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL)
 choice_expression => (NUMBER_LITERAL)

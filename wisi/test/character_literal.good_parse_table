@@ -19,7 +19,7 @@ Tokens:
  17 => tick
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (FOO, SEMICOLON, Wisi_EOI)
 compilation_unit => (FOO, SEMICOLON)
 statement_list => (FOO, SEMICOLON)

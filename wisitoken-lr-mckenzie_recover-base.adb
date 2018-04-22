@@ -22,11 +22,13 @@ with GNAT.Traceback.Symbolic;
 package body WisiToken.LR.McKenzie_Recover.Base is
 
    function Get_Barrier
-     (Parsers        : not null access Parser_Lists.List;
-      Parser_Status  : in              Parser_Status_Array;
-      Parser_States  : in              Parser_State_Array;
-      Active_Workers : in              Parser_Natural_Array;
-      Cost_Limit     : in              Natural)
+     (Parsers                 : not null access Parser_Lists.List;
+      Parser_Status           : in              Parser_Status_Array;
+      Parser_States           : in              Parser_State_Array;
+      Active_Workers          : in              Parser_Natural_Array;
+      Cost_Limit              : in              Natural;
+      Min_Success_Check_Count : in              Natural;
+      Check_Delta_Limit       : in              Natural)
      return Boolean
    is
       use all type SAL.Base_Peek_Type;
@@ -37,7 +39,11 @@ package body WisiToken.LR.McKenzie_Recover.Base is
       for I in 1 .. Parsers.Count loop
          case Parser_Status (I) is
          when Active =>
-            if Parser_States (I).Recover.Config_Heap.Count > 0 then
+            if Parser_States (I).Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
+               --  fail; another parser succeeded, this one taking too long.
+               Done_Count := Done_Count + 1;
+
+            elsif Parser_States (I).Recover.Config_Heap.Count > 0 then
                if Parser_States (I).Recover.Config_Heap.Min_Key <= Cost_Limit then
                   return True;
                else
@@ -46,6 +52,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
                      Done_Count := Done_Count + 1;
                   end if;
                end if;
+
             else
                if Active_Workers (I) = 0 then
                   --  fail; no configs left to check (rarely happens with real
@@ -80,12 +87,13 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          use all type SAL.Base_Peek_Type;
          Index : SAL.Peek_Type := 1;
       begin
-         All_Parsers_Done := False;
-         Active_Workers   := (others => 0);
-         Success_Counter  := 0;
-         Fatal_Called     := False;
-         Result           := Fail;
-         Error_ID         := Ada.Exceptions.Null_Id;
+         All_Parsers_Done        := False;
+         Active_Workers          := (others => 0);
+         Success_Counter         := 0;
+         Min_Success_Check_Count := Natural'Last;
+         Fatal_Called            := False;
+         Result                  := Fail;
+         Error_ID                := Ada.Exceptions.Null_Id;
 
          for I in Parsers.Iterate loop
             if Parsers.Reference (I).Recover_Insert_Delete.Length > 0 then
@@ -117,10 +125,14 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          Config       : out Configuration;
          Status       : out Config_Status)
         when (Fatal_Called or All_Parsers_Done) or else
-          Get_Barrier (Parsers, Parser_Status, Parser_States, Active_Workers, Cost_Limit)
+          Get_Barrier
+            (Parsers, Parser_Status, Parser_States, Active_Workers, Cost_Limit, Min_Success_Check_Count,
+             Check_Delta_Limit)
       is
          use all type SAL.Base_Peek_Type;
-         Done_Count : SAL.Base_Peek_Type := 0;
+         Done_Count     : SAL.Base_Peek_Type := 0;
+         Min_Cost       : Integer            := Integer'Last;
+         Min_Cost_Index : SAL.Base_Peek_Type;
 
          procedure Set_Outputs (I : in SAL.Peek_Type)
          is begin
@@ -151,14 +163,24 @@ package body WisiToken.LR.McKenzie_Recover.Base is
             case Parser_Status (I) is
             when Active =>
                if Parser_States (I).Recover.Config_Heap.Count > 0 then
-                  if Parser_States (I).Recover.Config_Heap.Min_Key <= Cost_Limit then
+                  if Parser_States (I).Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
+                     if Trace_McKenzie > Detail then
+                        Put_Line (Trace.all, Parser_Labels (I), "fail; too slow (limit" &
+                                    Integer'Image (Min_Success_Check_Count + Check_Delta_Limit) & ")");
+                     end if;
+                     Parser_Status (I) := Fail;
+                     Done_Count        := Done_Count + 1;
 
-                     Set_Outputs (I);
-                     return;
+                  elsif Parser_States (I).Recover.Config_Heap.Min_Key <= Cost_Limit then
+                     if Parser_States (I).Recover.Config_Heap.Min_Key < Min_Cost then
+                        Min_Cost       := Parser_States (I).Recover.Config_Heap.Min_Key;
+                        Min_Cost_Index := I;
+                     end if;
+
                   else
                      if Active_Workers (I) = 0 then
                         if Trace_McKenzie > Detail then
-                           Put_Line (Trace.all, Parser_Labels (I), "fail");
+                           Put_Line (Trace.all, Parser_Labels (I), "fail; too expensive");
                         end if;
                         Parser_Status (I) := Fail;
                         Done_Count        := Done_Count + 1;
@@ -193,7 +215,10 @@ package body WisiToken.LR.McKenzie_Recover.Base is
             end case;
          end loop;
 
-         if Done_Count = Parsers.Count then
+         if Min_Cost /= Integer'Last then
+            Set_Outputs (Min_Cost_Index);
+
+         elsif Done_Count = Parsers.Count then
             if Trace_McKenzie > Extra then
                Trace.Put_Line ("Supervisor: done, " & (if Success_Counter > 0 then "succeed" else "fail"));
             end if;
@@ -225,6 +250,10 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          end if;
 
          Data.Success := True;
+
+         if Data.Check_Count < Min_Success_Check_Count then
+            Min_Success_Check_Count := Data.Check_Count;
+         end if;
 
          if Data.Results.Count = 0 then
             Data.Results.Add (Config);
@@ -273,11 +302,12 @@ package body WisiToken.LR.McKenzie_Recover.Base is
                "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
                  "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
                  "/" & Int_Image (Data.Enqueue_Count) &
-                 ", cost:" &
+                 "/" & Int_Image (Data.Check_Count) &
+                 ", min cost:" &
                  (if Data.Config_Heap.Count > 0
                   then Integer'Image (Data.Config_Heap.Min_Key)
                   else " ? ") &
-                 ", workers:" & Integer'Image (Active_Workers (Parser_Index)));
+                 ", active workers:" & Integer'Image (Active_Workers (Parser_Index)));
          end if;
       end Put;
 

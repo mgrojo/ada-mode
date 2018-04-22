@@ -10,7 +10,7 @@ Tokens:
  8 => parameter_specification
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, Wisi_EOI)
 compilation_unit => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER)
 mode => ()
@@ -97,7 +97,7 @@ State 9:
 
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, Wisi_EOI)
 compilation_unit => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER)
 mode => ()

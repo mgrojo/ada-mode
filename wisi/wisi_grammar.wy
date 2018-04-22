@@ -79,10 +79,7 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 %generator_algorithm LALR
 %start compilation_unit_list
 
-%mckenzie_cost_default 2 2 4 1 1
-%mckenzie_cost_insert SEMICOLON 1
-%mckenzie_cost_limit 5
-%mckenzie_check_limit 4
+;; no error recovery, so wisi-generate is independent of mckenzie_recover.
 
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER

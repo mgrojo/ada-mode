@@ -13,7 +13,7 @@ Tokens:
  11 => qualified_expression
 
 LALR Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, Wisi_EOI)
 aggregate => (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
 attribute_reference => (IDENTIFIER, TICK, IDENTIFIER)
@@ -152,7 +152,7 @@ State 12:
 
 
 LR1 Parse Table:
-Terminal_Sequences:
+Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, Wisi_EOI)
 aggregate => (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
 attribute_reference => (IDENTIFIER, TICK, IDENTIFIER)

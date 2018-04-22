@@ -152,6 +152,7 @@ package Wisi is
       Insert                     : String_Pair_Lists.List;
       Cost_Limit                 : Natural := Integer'Last;
       Check_Limit                : Natural := Integer'Last;
+      Check_Delta_Limit          : Natural := Integer'Last;
    end record;
 
    type Token_Kind_Type is record
