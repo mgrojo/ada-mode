@@ -62,13 +62,16 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       +IF_ID & (+CASE_ID) & (+LOOP_ID) & (+RECORD_ID) & (+RETURN_ID) & (+SELECT_ID));
 
    Named_Nonterm_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
+     --  Nonterms that have a 'wisi-match-names' check.
      (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
       +accept_statement_ID & (+block_statement_ID) & (+entry_body_ID) & (+loop_statement_ID) & (+package_body_ID) &
-        (+package_specification_ID) & (+protected_type_declaration_ID) &
+        (+package_specification_ID) & (+protected_body_ID) & (+protected_type_declaration_ID) &
         (+single_protected_declaration_ID) & (+single_task_declaration_ID) & (+subprogram_body_ID) & (+task_body_ID) &
         (+task_type_declaration_ID));
 
-   No_Begin_Nonterm_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
+   No_Statements_Nonterm_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
+     --  Nonterms that cannot contain a handled_sequence_of_statements
+     --  (transitive).
      (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
       +package_specification_ID  & (+protected_type_declaration_ID) & (+single_protected_declaration_ID) &
         (+single_task_declaration_ID) & (+task_type_declaration_ID));
@@ -214,9 +217,10 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
       if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
          if Trace_McKenzie > Outline then
-            Put ("Handle_Check_Fail test case for Ops_Insert_Point", Config);
+            Put ("Handle_Check_Fail test case for Ops_Insert_Point" &
+                   SAL.Base_Peek_Type'Image (Config.Ops_Insert_Point), Config);
          end if;
-         raise Programmer_Error with "Handle_Check_Fail found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
+         return Continue;
       end if;
 
       case Config.Check_Status.Label is
@@ -372,7 +376,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             return Continue;
          end if;
 
-         if No_Begin_Nonterm_IDs (Config.Error_Token.ID) then
+         if No_Statements_Nonterm_IDs (Config.Error_Token.ID) then
             --  case 0b.
             --  test/ada_mode.ads
             return Continue;
@@ -603,8 +607,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                if Trace_McKenzie > Outline then
                   Put ("Handle_Parse_Error test case for Ops_Insert_Point", Config);
                end if;
-               raise Programmer_Error with
-                 "Handle_Parse_Error found test case for Ada_Lite Language_Fixes Ops_Insert_Point.";
+               --  So far this has not been critical for a good solution.
+               return Continue;
             end if;
 
             --  The input looks like

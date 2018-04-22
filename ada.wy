@@ -288,6 +288,8 @@
 ;; 4 required for test/ada_mode-recover_match_names.adb.
 %mckenzie_check_limit 4
 
+%mckenzie_check_delta_limit 200
+
 %end_names_optional_option End_Names_Optional
 
 ;; known conflicts that are resolved by generalized LALR parser

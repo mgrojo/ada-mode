@@ -22,12 +22,13 @@ run test from emacs -Q using source:
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/debug.adb")
+  (find-file "../test/ada_mode-recover_string_quote.adb")
   (wisi-debug-keys))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
   (xmtn . "c:/Projects/org.stephe_leake.sal")
+  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
   (xmtn . "c:/Projects/org.wisitoken")
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
@@ -51,6 +52,8 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+emacs track parse-max, don't reparse just for different action; just execute action.
+
 test/slow_recover_4.adb
     first mckenzie
     'return (header, to_string_list ( when'
@@ -61,30 +64,9 @@ test/slow_recover_4.adb
         want RIGHT_PAREN!
             to get that, need to handle  the "conflict" in the two different reductions to empty
 
-    in second mckenzie
-     8: succeed 3, enqueue 157961, check  23504, cost:  12
 
-     7: succeed 1, enqueue 6185, check  473, cost:  8
-     good solution
-
-
-kill slow/expensive other parser during recover
-    when cost > succeed parser cost + param.success_cost_delta
-    or enqueue/check > succeed enqueue/check
-
-    test/ada_mode-recover_bad_char.adb
-     3: succeed 1, enqueue 16296, check  1356, cost:  10
-     2: succeed 1, enqueue 556, check  63, cost:  6
-    test/slow_recover_1.adb
-     6: fail, enqueue 9, check  9, cost_limit:  12
-     5: fail, enqueue 75967, check  5189, cost_limit:  12
-     1: succeed 1, enqueue 172, check  25, cost:  6
-
-    unit_test/test_harness.adb, test_recover.adb
 
 test/gpr/gpr-ske-test fails with 'undefined skeleton token'
-
-emacs track parse-max, don't reparse just for different action; just execute action.
 
 wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
     include package name in error message fix
@@ -337,6 +319,56 @@ mckenzie recover
         parser 1: State 1112 Current_Token 28:(IDENTIFIER, (404 . 417)) Action, expecting: IF, found 28:(IDENTIFIER, (404 . 417))
          1: succeed 1, enqueue 197, check  24, cost:  2
          1:  2, (1230 : (SEMICOLON))| 27:(END, (400 . 402))|((PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, IF, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, LOOP, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, RETURN, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27))
+
+    20 Apr 2018
+        kill slow parser, fix bugs
+        slow_recover_1.adb, debug: 0.044365563, release 0.041309647, 0.041447012
+        parser 6: State 357 Current_Token 28:(RIGHT_PAREN, (159 . 159)) Action, expecting: WITH, found 28:(RIGHT_PAREN, (159 . 159))
+        parser 5: State 357 Current_Token 27:(RIGHT_PAREN, (158 . 158)) Action, expecting: WITH, found 27:(RIGHT_PAREN, (158 . 158))
+        parser 1: State 670 Current_Token 29:(OR, (161 . 162)) Action, expecting: THEN, found 29:(OR, (161 . 162))
+         6: succeed 1, enqueue 1051, check  86, cost:  7
+         6:  7, (395 : (RIGHT_PAREN))| 32:(THEN, (168 . 171))|((PUSH_BACK, expression_opt, 14), (INSERT, LEFT_PAREN, 14), (FAST_FORWARD,  32), (INSERT, RIGHT_PAREN, 32))
+         5: fail, enqueue 2684, check  206, cost_limit:  12
+         1: succeed 1, enqueue 961, check  92, cost:  7
+         1:  7, (395 : (RIGHT_PAREN))| 29:(OR, (161 . 162))|((PUSH_BACK, expression_opt, 6), (INSERT, LEFT_PAREN, 6), (FAST_FORWARD,  29), (INSERT, RIGHT_PAREN, 29))
+        parser 1: State 1112 Current_Token 34:(IDENTIFIER, (177 . 190)) Action, expecting: IF, found 34:(IDENTIFIER, (177 . 190))
+         1: succeed 1, enqueue 2, check  2, cost:  0
+         1:  0, (1227 : (SEMICOLON))| 33:(END, (173 . 175))|((PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
+
+        slow_recover_2.adb, debug: 0.018879361 release 0.017998993, 0.018000352
+        parser 2: State 431 Current_Token 13:(BEGIN, (597 . 601)) Action, expecting: ACCESS, ALIASED, ARRAY, CONSTANT, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (597 . 601))
+        parser 1: State 435 Current_Token 13:(BEGIN, (597 . 601)) Action, expecting: ACCESS, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (597 . 601))
+         2: succeed 1, enqueue 33, check  10, cost:  3
+         2:  3, (716 : (SEMICOLON))| 13:(BEGIN, (597 . 601))|((INSERT, EXCEPTION, 13), (INSERT, SEMICOLON, 13))
+         1: succeed 1, enqueue 114, check  31, cost:  5
+         1:  5, (111 : (LEFT_PAREN))| 14:(IF, (605 . 606))|((INSERT, IDENTIFIER, 13), (INSERT, LEFT_PAREN, 13), (DELETE, BEGIN, 13))
+        parser 2: State 47 Current_Token 22:(END, (650 . 652)) Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (650 . 652))
+        parser 1: State 47 Current_Token 22:(END, (650 . 652)) Action, expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (650 . 652))
+         2: succeed 1, enqueue 165, check  28, cost:  3
+         2:  3, (1227 : (SEMICOLON))| 22:(END, (650 . 652))|((INSERT, RIGHT_PAREN, 22), (INSERT, THEN, 22), (FAST_FORWARD,  23), (PUSH_BACK, END, 22), (INSERT, END, 22), (INSERT, IF, 22), (INSERT, SEMICOLON, 22), (FAST_FORWARD,  22))
+         1: fail, enqueue 1435, check  228, cost_limit:  12
+
+        slow_recover_3.adb, debug: 0.003649699, release 0.003497308
+        parser 1: State 1112 Current_Token 28:(IDENTIFIER, (404 . 417)) Action, expecting: IF, found 28:(IDENTIFIER, (404 . 417))
+         1: succeed 1, enqueue 230, check  25, cost:  2
+         1:  2, (1230 : (SEMICOLON))| 27:(END, (400 . 402))|((PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, IF, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, LOOP, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27), (FAST_FORWARD,  28), (PUSH_BACK, END, 27), (INSERT, END, 27), (INSERT, RETURN, 27), (INSERT, SEMICOLON, 27), (FAST_FORWARD,  27))
+
+        slow_recover_4.adb, release: 0.136253722
+        parser 2: State 111 Current_Token 122:(WHEN, (994 . 997)) Action, expecting: ABS, CASE, FOR, IF, NEW, NOT, NULL, OTHERS, RAISE, LEFT_PAREN, RIGHT_PAREN, BAR, COMMA, EQUAL_GREATER, MINUS, PLUS, NUMERIC_LITERAL, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 122:(WHEN, (994 . 997))
+         2: succeed 2, enqueue 232, check  36, cost:  4
+         5:  4, (111 : (LEFT_PAREN, (968 . 968)))| 123:(IDENTIFIER, (974 . 993))|((DELETE, WHEN, 122))
+         2:  4, (387 : (IS))| 122:(WHEN, (969 . 972))|((INSERT, CASE, 122), (INSERT, IS, 122))
+        parser 6: State 402 Current_Token 131:(WITH, (1100 . 1103)) Action, expecting: IS, RIGHT_PAREN, COMMA, SEMICOLON, found 131:(WITH, (1100 . 1103))
+        parser 5: State 187 Current_Token 133:(SEMICOLON, (1120 . 1120)) Action, expecting: RIGHT_PAREN, COMMA, found 133:(SEMICOLON, (1120 . 1120))
+        conflicts in Constrain_Terminals; state 891
+        conflicts in Constrain_Terminals; state 887
+        conflicts in Constrain_Terminals; state 888
+         6: fail, enqueue 6900, check  1061, cost_limit:  12
+         5: succeed 1, enqueue 6110, check  463, cost:  8
+         5:  8, (1241 : (SEMICOLON))| 134:(WHEN, (1109 . 1112))|((INSERT, RIGHT_PAREN, 133), (INSERT, RIGHT_PAREN, 133), (INSERT, SEMICOLON, 133), (INSERT, END, 133), (INSERT, IF, 133), (FAST_FORWARD,  134), (INSERT, END, 134), (INSERT, SEMICOLON, 134))
+        parser 5: State 1112 Current_Token 146:(IDENTIFIER, (1222 . 1235)) Action, expecting: IF, found 146:(IDENTIFIER, (1222 . 1235))
+         5: succeed 1, enqueue 2, check  2, cost:  0
+         5:  0, (1227 : (SEMICOLON))| 145:(END, (1187 . 1189))|((PUSH_BACK, END, 145), (INSERT, END, 145), (INSERT, IF, 145), (INSERT, SEMICOLON, 145), (FAST_FORWARD,  145))
 
 parse navigate
     make -r benchmark

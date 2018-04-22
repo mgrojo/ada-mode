@@ -421,8 +421,10 @@ package body Gpr_Process is
             2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2, 2, 2,
             2, 2),
+         Task_Count  => 0,
          Cost_Limit  => 12,
-         Check_Limit => 3);
+         Check_Limit => 3,
+         Check_Delta_Limit => 2147483647);
 
 
       Table.Productions.Set_Length (73);

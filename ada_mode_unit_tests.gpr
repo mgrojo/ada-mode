@@ -25,6 +25,7 @@ project Ada_Mode_Unit_Tests is
 
    for Source_Dirs use ("unit_test");
    for Object_Dir use "obj";
+   for Exec_Dir use ".";
 
    for Languages use ("Ada");
 
