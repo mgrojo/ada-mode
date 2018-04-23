@@ -822,63 +822,72 @@ package body WisiToken.Wisi_Runtime is
       pragma Unreferenced (Nonterm);
 
       --  [2] wisi-containing-action
-      use Navigate_Cache_Trees;
-      Containing_Tok    : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Containing));
-      Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
-      Contained_Tok     : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Contained));
-      Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
-      Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
-      Cursor            : Navigate_Cache_Trees.Cursor;
-      Mark              : constant Buffer_Pos                    := Containing_Region.First;
    begin
-      if Containing_Region = Null_Buffer_Region then
-         if Tree.Is_Virtual (Tokens (Containing)) then
-            return;
-         else
-            raise Fatal_Error with Error_Message
-              (File_Name => -Data.Source_File_Name,
-               Line      => Containing_Tok.Line,
-               Col       => Containing_Tok.Col,
-               Message   => "wisi-containing-action: containing-region " &
-                 Image (Containing_Tok.ID, Data.Descriptor.all) &
-                 " is empty. grammar error; bad action.");
-         end if;
-      end if;
-
-      if not Data.Navigate_Caches.Present (Containing_Region.First) then
-         raise Fatal_Error with Error_Message
-           (File_Name => -Data.Source_File_Name,
-            Line      => Containing_Tok.Line,
-            Col       => Containing_Tok.Col,
-            Message   => "wisi-containing-action: containing token " &
-              Image (Containing_Tok.ID, Data.Descriptor.all) &
-              " has no cache. grammar error; missing action.");
-      end if;
-
-      if Contained_Tok.Char_Region /= Null_Buffer_Region then
-         --  Contained region is nil in an empty production.
-         Cursor := Previous (Iterator, Contained_Tok.Char_Region.Last);
-
-         while Has_Element (Cursor) loop
-            declare
-               Cache : Navigate_Cache_Type renames Variable_Ref (Data.Navigate_Caches, Cursor).Element.all;
-            begin
-
-               exit when Cache.Pos < Contained_Region.First or
-                 (Containing_Region.First = Contained_Region.First and
-                    Cache.Pos <= Contained_Region.First);
-
-               --  Skip blocks that are already marked.
-
-               if Cache.Containing_Pos.Set then
-                  Cursor := Find (Iterator, Cache.Containing_Pos.Item, Direction => Descending);
+      if Tree.Is_Virtual (Tokens (Containing)) or
+        Tree.Is_Virtual (Tokens (Contained))
+      then
+         return;
+      else
+         declare
+            use Navigate_Cache_Trees;
+            Containing_Tok    : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Containing));
+            Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
+            Contained_Tok     : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Contained));
+            Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
+            Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
+            Cursor            : Navigate_Cache_Trees.Cursor;
+            Mark              : constant Buffer_Pos                    := Containing_Region.First;
+         begin
+            if Containing_Region = Null_Buffer_Region then
+               if Tree.Is_Virtual (Tokens (Containing)) then
+                  return;
                else
-                  Cache.Containing_Pos := (True, Mark);
-                  Cursor := Previous (Iterator, Cursor);
+                  raise Fatal_Error with Error_Message
+                    (File_Name => -Data.Source_File_Name,
+                     Line      => Containing_Tok.Line,
+                     Col       => Containing_Tok.Col,
+                     Message   => "wisi-containing-action: containing-region " &
+                       Image (Containing_Tok.ID, Data.Descriptor.all) &
+                       " is empty. grammar error; bad action.");
                end if;
+            end if;
 
-            end;
-         end loop;
+            if not Data.Navigate_Caches.Present (Containing_Region.First) then
+               raise Fatal_Error with Error_Message
+                 (File_Name => -Data.Source_File_Name,
+                  Line      => Containing_Tok.Line,
+                  Col       => Containing_Tok.Col,
+                  Message   => "wisi-containing-action: containing token " &
+                    Image (Containing_Tok.ID, Data.Descriptor.all) &
+                    " has no cache. grammar error; missing action.");
+            end if;
+
+            if Contained_Tok.Char_Region /= Null_Buffer_Region then
+               --  Contained region is nil in an empty production.
+               Cursor := Previous (Iterator, Contained_Tok.Char_Region.Last);
+
+               while Has_Element (Cursor) loop
+                  declare
+                     Cache : Navigate_Cache_Type renames Variable_Ref (Data.Navigate_Caches, Cursor).Element.all;
+                  begin
+
+                     exit when Cache.Pos < Contained_Region.First or
+                       (Containing_Region.First = Contained_Region.First and
+                          Cache.Pos <= Contained_Region.First);
+
+                     --  Skip blocks that are already marked.
+
+                     if Cache.Containing_Pos.Set then
+                        Cursor := Find (Iterator, Cache.Containing_Pos.Item, Direction => Descending);
+                     else
+                        Cache.Containing_Pos := (True, Mark);
+                        Cursor := Previous (Iterator, Cursor);
+                     end if;
+
+                  end;
+               end loop;
+            end if;
+         end;
       end if;
    end Containing_Action;
 
@@ -1526,7 +1535,7 @@ package body WisiToken.Wisi_Runtime is
       return
         (case Tree.Label (Tree_Index) is
          when Shared_Terminal => Data.Terminals.Variable_Reference (Tree.Terminal (Tree_Index)),
-         when Virtual_Terminal => raise Programmer_Error with "get_aug_token virtual",
+         when Virtual_Terminal => raise Programmer_Error with "wisi_runtime.get_aug_token virtual",
          when Nonterm => (Element => Augmented_Token_Access (Tree.Augmented (Tree_Index))));
    end Get_Aug_Token;
 

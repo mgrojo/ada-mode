@@ -22,7 +22,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/ada_mode-recover_string_quote.adb")
+  (find-file "../test/ada_mode-recover_navigate_1.adb")
   (wisi-debug-keys))
 
 (dvc-state-multiple
