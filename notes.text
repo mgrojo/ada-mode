@@ -52,6 +52,9 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+-- FIXME: check for lexer error in language_fixes, insert the quote where it belongs.
+    test/ada_mode-recover_string_quote_2.adb
+
 emacs track parse-max, don't reparse just for different action; just execute action.
 
 test/slow_recover_4.adb

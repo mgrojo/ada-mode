@@ -53,7 +53,8 @@ project Ada_Mode_Compile is
       "ada_mode-recover_pattern_end_eof.adb",
       "ada_mode-recover_renaming_1.adb",
       "ada_mode-recover_repair_1.adb",
-      "ada_mode-recover_string_quote.adb",
+      "ada_mode-recover_string_quote_1.adb",
+      "ada_mode-recover_string_quote_2.adb",
       "ada_mode-recover_virtual.adb",
 
       -- This has illegal code; used for testing skeleton expansion
