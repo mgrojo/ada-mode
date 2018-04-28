@@ -2,7 +2,7 @@ General notes on Emacs Ada mode
 
 build/Makefile
 
-o.e.a.stephe-1 (from o.e.a): dead
+o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser
 o.e.a.stephe-4 (from o.e.a.s-2, with o.w.s-1): Ada compute indent
@@ -62,6 +62,7 @@ review execute permissions in git
     see if mingw git can keep them straight.
 
 add missing features to gpr_query; see fixmes.
+    option to run in background, from Makefiles
 
 refactor ada auto-case into wisi, use in gpr
 
