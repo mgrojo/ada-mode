@@ -121,6 +121,12 @@ begin
 
    AUnit.Reporter.Text.Report (Reporter, Result);
 
+   case Status is
+   when AUnit.Success =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Success);
+   when AUnit.Failure =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+   end case;
 exception
 when E : others =>
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

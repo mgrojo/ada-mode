@@ -192,6 +192,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
    is
       --  Apply the ops in Config; they were inserted by Language_Fixes.
       --  Return Abandon if Config should be abandoned, otherwise Continue.
+      --  Leaves Config.Error_Token, Config.Check_Status set.
 
       use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
@@ -604,9 +605,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       if Config.Current_Inserted /= No_Inserted then
          --  It doesn't matter if Parsed_Config.Ops_Insert_Point was previously
          --  set, we just change it to the new insert point.
-         pragma Assert (Config.Error_Token.ID = Invalid_Token_ID and Config.Check_Status.Label = Ok,
-                        Image (Config.Error_Token.ID, Super.Trace.Descriptor.all) & ", " &
-                          Config.Check_Status.Label'Img);
 
          case Fast_Forward (Super, Shared, Parser_Index, Config, Post_Fast_Forward_Fail) is
          when Abandon =>

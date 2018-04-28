@@ -277,6 +277,10 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Parse_Items.Clear;
       Parse_Items.Append ((Config, Action => null, Parsed => False, Shift_Count => 0));
 
+      --  Clear any errors; so they reflect the parse result.
+      Parse_Items (Parse_Items.First_Index).Config.Error_Token.ID := Invalid_Token_ID;
+      Parse_Items (Parse_Items.First_Index).Config.Check_Status   := (Label => Semantic_Checks.Ok);
+
       loop
          --  Loop over initial config and any conflicts.
          Last_Index := Parse_Items.Last_Index;
