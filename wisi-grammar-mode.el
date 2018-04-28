@@ -139,7 +139,9 @@ Otherwise insert a plain new line."
     (goto-char (point-min))
     (if (search-forward-regexp "%output_language +\\([A-Za-z_]+\\)$")
 	(cond
-	 ((string-equal (match-string 1) "Ada_Emacs")
+	 ((or
+	   (string-equal (match-string 1) "Ada_Emacs")
+	   (string-equal (match-string 1) "elisp"))
 	  (setq wisi-grammar-action-mode 'emacs-lisp-mode))
 
 	 ((string-equal (match-string 1) "Ada")
