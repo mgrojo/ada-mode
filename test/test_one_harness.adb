@@ -23,19 +23,24 @@ with AUnit.Test_Filters.Verbose;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
+with System.Multiprocessors;
 with Test_McKenzie_Recover;
 with WisiToken;
 procedure Test_One_Harness
 is
-   --  command line arguments: [<verbose> [routine_name [trace_generate trace_parse trace_mckenzie [cost_limit]]]]
+   --  command line arguments:
+   --  [<verbose> [routine_name [trace_generate trace_parse trace_mckenzie [task_count cost_limit]]]]
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace or cost for all routines.
 
-   Cost_Limit : constant Natural := (if Argument_Count >= 6 then Natural'Value (Argument (6)) else Natural'Last);
-   --  pragma Unreferenced (Cost_Limit);
+   Task_Count : constant System.Multiprocessors.CPU_Range :=
+     (if Argument_Count >= 6 then System.Multiprocessors.CPU_Range'Value (Argument (6)) else 0);
+   Cost_Limit : constant Natural := (if Argument_Count >= 7 then Natural'Value (Argument (7)) else Natural'Last);
+   --  pragma Unreferenced (Task_Count, Cost_Limit);
 
-   Tc : constant AUnit.Simple_Test_Cases.Test_Case_Access := new Test_McKenzie_Recover.Test_Case (Cost_Limit);
+   Tc : constant AUnit.Simple_Test_Cases.Test_Case_Access := new Test_McKenzie_Recover.Test_Case
+     (Task_Count, Cost_Limit);
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 

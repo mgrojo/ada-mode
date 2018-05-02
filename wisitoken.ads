@@ -99,8 +99,8 @@ package WisiToken is
       --  If the language does not define these tokens, set them to
       --  Invalid_Token_ID.
 
-      String_1_ID  : Token_ID; -- delimited by '
-      String_2_ID  : Token_ID; -- delimited by "
+      String_1_ID  : Token_ID; -- delimited by ', error if New_Line_ID
+      String_2_ID  : Token_ID; -- delimited by ", error if New_Line_ID
       --
       --  Support for lexer level missing quote error recovery. If the
       --  language does not have two kinds of string literals, set one or

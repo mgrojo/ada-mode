@@ -259,7 +259,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Worker_Tasks : array (1 .. Task_Count) of Worker_Task (Super'Access, Shared'Access);
 
-      Check_Limit : constant Token_Index := Token_Index (Shared_Parser.Table.McKenzie_Param.Check_Limit);
+      Check_Limit : constant Token_Index := Shared_Parser.Table.McKenzie_Param.Check_Limit;
 
       procedure Cleanup
       is begin
@@ -377,7 +377,8 @@ package body WisiToken.LR.McKenzie_Recover is
                        (Integer'Image (Cur.Label) &
                           ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
                           ", check " & Integer'Image (Data.Check_Count) &
-                          ", cost_limit: " & Integer'Image (Shared_Parser.Table.McKenzie_Param.Cost_Limit));
+                          ", cost_limit: " & Integer'Image (Shared_Parser.Table.McKenzie_Param.Cost_Limit) &
+                          ", max shared_token " & Token_Index'Image (Shared_Parser.Terminals.Last_Index));
                   end if;
                end if;
 
@@ -401,11 +402,12 @@ package body WisiToken.LR.McKenzie_Recover is
                Data       : McKenzie_Data renames Parser_State.Recover;
                Result     : Configuration renames Data.Results.Peek;
 
-               Tokens_Deleted    : Boolean          := False;
-               Virtual_Inserted  : Boolean          := False;
-               Fast_Forward_Seen : Boolean          := False;
-               Insert_Seen       : Boolean          := False;
-               Last_Token_Index  : Base_Token_Index := 0;
+               Tokens_Pushed_Back : Boolean          := False; --  At final Shared_Token.
+               Tokens_Deleted     : Boolean          := False; --  At final Shared_Token.
+               Virtual_Inserted   : Boolean          := False; --  At final Shared_Token.
+               Fast_Forward_Seen  : Boolean          := False;
+               Insert_Seen        : Boolean          := False;
+               Last_Token_Index   : Base_Token_Index := 0;
             begin
                Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
 
@@ -464,12 +466,13 @@ package body WisiToken.LR.McKenzie_Recover is
                         Parser_State.Stack.Pop;
                         if Op.Token_Index /= Invalid_Token_Index then
                            Parser_State.Shared_Token := Op.Token_Index;
+                           Tokens_Pushed_Back        := True;
                         end if;
                      end if;
 
                   when Insert =>
                      Insert_Seen := True;
-                     if not Virtual_Inserted and Op.Token_Index = Parser_State.Shared_Token then
+                     if not (Virtual_Inserted or Fast_Forward_Seen) and Op.Token_Index = Parser_State.Shared_Token then
                         Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Op.ID);
                         Virtual_Inserted := True;
                      else
@@ -477,8 +480,7 @@ package body WisiToken.LR.McKenzie_Recover is
                      end if;
 
                   when Delete =>
-                     if not Insert_Seen and then Op.Token_Index = Parser_State.Shared_Token then
-                        pragma Assert (not Fast_Forward_Seen);
+                     if not (Insert_Seen or Fast_Forward_Seen) and Op.Token_Index = Parser_State.Shared_Token then
                         Parser_State.Shared_Token := Op.Token_Index + 1;
                         Tokens_Deleted            := True;
                      else
@@ -488,7 +490,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   end case;
                end loop;
 
-               if Tokens_Deleted and not Virtual_Inserted then
+               if (Tokens_Deleted or Tokens_Pushed_Back) and not Virtual_Inserted then
                   Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                     (Parser_State.Shared_Token, Shared_Parser.Terminals);
                end if;
@@ -575,6 +577,24 @@ package body WisiToken.LR.McKenzie_Recover is
 
    procedure Find_ID
      (Config         : in     Configuration;
+      ID             : in     Token_ID;
+      Matching_Index : in out SAL.Peek_Type)
+   is
+      use all type SAL.Peek_Type;
+   begin
+      loop
+         exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         declare
+            Stack_ID : Token_ID renames Config.Stack (Matching_Index).Token.ID;
+         begin
+            exit when Stack_ID = ID;
+         end;
+         Matching_Index := Matching_Index + 1;
+      end loop;
+   end Find_ID;
+
+   procedure Find_ID
+     (Config         : in     Configuration;
       IDs            : in     Token_ID_Set;
       Matching_Index : in out SAL.Peek_Type)
    is
@@ -590,6 +610,24 @@ package body WisiToken.LR.McKenzie_Recover is
          Matching_Index := Matching_Index + 1;
       end loop;
    end Find_ID;
+
+   procedure Find_Descendant_ID
+     (Tree           : in     Syntax_Trees.Tree;
+      Config         : in     Configuration;
+      ID             : in     Token_ID;
+      Matching_Index : in out SAL.Peek_Type)
+   is
+      use Syntax_Trees;
+      use all type SAL.Peek_Type;
+   begin
+      loop
+         exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
+         exit when Config.Stack (Matching_Index).Tree_Index /= Invalid_Node_Index and then
+           Tree.Find_Descendant (Config.Stack (Matching_Index).Tree_Index, ID) /= Invalid_Node_Index;
+
+         Matching_Index := Matching_Index + 1;
+      end loop;
+   end Find_Descendant_ID;
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;

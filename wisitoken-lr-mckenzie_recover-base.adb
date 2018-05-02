@@ -373,6 +373,21 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          return Shared_Parser.Terminals.Element (Index);
       end Token;
 
+      function Last_Index return Token_Index
+      is begin
+         return Shared_Parser.Terminals.Last_Index;
+      end Last_Index;
+
+      function Lexer_Error_Count return Ada.Containers.Count_Type
+      is begin
+         return Shared_Parser.Lexer.Errors.Length;
+      end Lexer_Error_Count;
+
+      function Last_Lexer_Error return WisiToken.Lexer.Error_Data
+      is begin
+         return Shared_Parser.Lexer.Errors.Last_Element;
+      end Last_Lexer_Error;
+
    end Shared_Lookahead;
 
    procedure Put

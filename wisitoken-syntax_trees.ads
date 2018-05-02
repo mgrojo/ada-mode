@@ -266,6 +266,14 @@ package WisiToken.Syntax_Trees is
    --  Return the child of Node that contains ID, or Invalid_Node_Index if
    --  none match.
 
+   function Find_Descendant
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index;
+   --  Return the child of Node that contains ID (may be Node), or
+   --  Invalid_Node_Index if none match.
+
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
       Process_Node : access procedure

@@ -182,7 +182,8 @@ package body WisiToken.LR.Parser_No_Recover is
          when Error =>
             Error_Count := Error_Count + 1;
 
-         when Shift_Recover =>
+         when Pause | Shift_Recover =>
+            --  This is parser_no_recover
             raise Programmer_Error;
          end case;
       end loop;
@@ -466,7 +467,8 @@ package body WisiToken.LR.Parser_No_Recover is
             --  raise the exception.
             raise Syntax_Error;
 
-         when Shift_Recover =>
+         when Pause | Shift_Recover =>
+            --  This is parser_no_recover
             raise Programmer_Error;
          end case;
 

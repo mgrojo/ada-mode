@@ -71,9 +71,9 @@ package WisiToken.LR is
    --  Gotos are indexed by the nonterminal they match and designate
    --  the state the parser need to change to.
 
-   type All_Parse_Action_Verbs is (Shift_Recover, Shift, Reduce, Accept_It, Error);
+   type All_Parse_Action_Verbs is (Pause, Shift_Recover, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
-   --  Shift_Recover is only used for error recovery.
+   --  Pause, Shift_Recover are only used for error recovery.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       Productions : Production_ID_Arrays.Vector;
@@ -246,9 +246,9 @@ package WisiToken.LR is
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
 
-      Cost_Limit        : Natural; -- max cost of configurations to look at
-      Check_Limit       : Natural; -- max tokens to parse ahead when checking a configuration.
-      Check_Delta_Limit : Natural; -- max configs checked, delta over successful parser.
+      Cost_Limit        : Natural;     -- max cost of configurations to look at
+      Check_Limit       : Token_Index; -- max tokens to parse ahead when checking a configuration.
+      Check_Delta_Limit : Natural;     -- max configs checked, delta over successful parser.
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
@@ -260,9 +260,9 @@ package WisiToken.LR is
       Delete            => (others => 0),
       Push_Back         => (others => 0),
       Undo_Reduce       => (others => 0),
-      Task_Count        => 0,
+      Task_Count        => System.Multiprocessors.CPU_Range'Last,
       Cost_Limit        => Natural'Last,
-      Check_Limit       => Natural'Last,
+      Check_Limit       => Token_Index'Last,
       Check_Delta_Limit => Natural'Last);
 
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class);
@@ -492,6 +492,9 @@ package WisiToken.LR is
       Current_Shared_Token : Token_Index := Token_Index'Last;
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
+
+      String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
+      --  Max line checked for missing string quote.
 
       Inserted         : Fast_Token_ID_Arrays.Vector;
       Current_Inserted : SAL.Base_Peek_Type := No_Inserted;

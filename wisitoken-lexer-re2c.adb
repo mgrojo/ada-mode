@@ -160,18 +160,23 @@ package body WisiToken.Lexer.re2c is
                   if Buffer (Lexer.Byte_Position) = ''' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after '.
-                     Lexer.Errors.Append ((Buffer_Pos (Lexer.Char_Position), (1 => ''', others => ASCII.NUL)));
+                     Lexer.Errors.Append
+                       ((Buffer_Pos (Lexer.Char_Position), Lexer.Line, Lexer.Trace.Descriptor.String_1_ID,
+                         (1 => ''', others => ASCII.NUL)));
                      return Lexer.Trace.Descriptor.String_1_ID;
 
                   elsif Buffer (Lexer.Byte_Position) = '"' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after ".
-                     Lexer.Errors.Append ((Buffer_Pos (Lexer.Char_Position), (1 => '"', others => ASCII.NUL)));
+                     Lexer.Errors.Append
+                       ((Buffer_Pos (Lexer.Char_Position), Lexer.Line, Lexer.Trace.Descriptor.String_2_ID,
+                         (1 => '"', others => ASCII.NUL)));
                      return Lexer.Trace.Descriptor.String_2_ID;
 
                   else
                      --  Just skip the character; call Next_Token again.
-                     Lexer.Errors.Append ((Buffer_Pos (Lexer.Char_Position), (others => ASCII.NUL)));
+                     Lexer.Errors.Append
+                       ((Buffer_Pos (Lexer.Char_Position), Lexer.Line, Invalid_Token_ID, (others => ASCII.NUL)));
                   end if;
                end;
 

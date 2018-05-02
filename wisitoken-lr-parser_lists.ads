@@ -85,7 +85,7 @@ package WisiToken.LR.Parser_Lists is
 
       Recover : aliased LR.McKenzie_Data := (others => <>);
 
-      Zombie_Token_Count : Integer := 0;
+      Zombie_Token_Count : Base_Token_Index := 0;
       --  If Zombie_Token_Count > 0, this parser has errored, but is waiting
       --  to see if other parsers do also.
 

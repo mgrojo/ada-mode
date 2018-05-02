@@ -159,6 +159,12 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       function Token (Index : in Token_Index) return Base_Token;
       --  Return Shared_Parser.Terminals (Index).
 
+      function Last_Index return Token_Index;
+      --  Return Shared_Parser.Terminals.Last_Index.
+
+      function Lexer_Error_Count return Ada.Containers.Count_Type;
+      function Last_Lexer_Error return WisiToken.Lexer.Error_Data;
+
    end Shared_Lookahead;
 
    procedure Put

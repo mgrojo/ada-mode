@@ -468,7 +468,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (83, 85),
          Ops                     => +(Insert, +SEMICOLON_ID, 16),
          Enqueue_Low             => 5,
-         Enqueue_High            => 22,
+         Enqueue_High            => 35,
          Check_Low               => 3,
          Check_High              => 9,
          Cost                    => 0);
@@ -503,6 +503,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
       use AUnit.Checks;
+      use WisiToken.AUnit;
    begin
       Check ("Check_Limit", Parser.Table.McKenzie_Param.Check_Limit, 3);
 
@@ -778,7 +779,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 57,
          Enqueue_High            => 170,
          Check_Low               => 16,
-         Check_High              => 29,
+         Check_High              => 31,
          Cost                    => 5);
    end Zombie_In_Resume;
 
@@ -812,38 +813,38 @@ package body Test_McKenzie_Recover is
          Cost                    => 3);
    end Push_Back_1;
 
-   procedure Missing_Quote (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure String_Quote_0 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
       --  Test that syntax error recovery handles a missing string quote.
+      --  See also String_Quote_n.
 
       Parse_Text
         ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at""; " & ASCII.LF & "end Remove;");
          --        |10       |20       |30         |40    |45                 |50     |52
 
       --  In process of splitting a string across two lines; missing open
-      --  quote 'at";' 48.
+      --  quote at 48.
       --
-      --  lexer error at '"' 50. Desired solution is insert quote char
-      --  before 'at', but that's not implemented (and impossible for a
-      --  string with embedded spaces). Instead we insert a virtual '"' at
-      --  the error point, and return a STRING_LITERAL. The lexer has
-      --  skipped to LF 52, but then backtracked to ';' 51.
+      --  lexer error at '"' 50. The lexer has skipped to LF 52, but then
+      --  backtracked to ';' 51.
       --
-      --  That leads to a parse error at '"' 50; missing operator. Simplest
-      --  solution is to delete the STRING_LITERAL.
+      --  Desired solution is insert quote char before 'at'. Recover entered
+      --  at '"' 50, finds the desired solution, succeeds.
+
       Check_Recover
         (Errors_Length           => 1,
          Error_Token_ID          => +STRING_LITERAL_ID,
          Error_Token_Byte_Region => (50, 50),
-         Ops                     => +(Delete, +STRING_LITERAL_ID, 14),
+         Ops                     => +(Push_Back, +IDENTIFIER_ID, 13) & (Delete, +IDENTIFIER_ID, 13) &
+           (Fast_Forward,  14),
          Enqueue_Low             => 50,
          Enqueue_High            => 77,
-         Check_Low               => 10,
-         Check_High              => 19,
-         Cost                    => 2);
-   end Missing_Quote;
+         Check_Low               => 7,
+         Check_High              => 11,
+         Cost                    => 1);
+   end String_Quote_0;
 
    procedure Missing_Name_0 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -927,7 +928,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 28,
          Enqueue_High            => 56,
          Check_Low               => 7,
-         Check_High              => 13,
+         Check_High              => 15,
          Cost                    => 0,
          Code                    => Missing_Name_Error);
    end Missing_Name_1;
@@ -1379,9 +1380,9 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 115,
-         Enqueue_High            => 210,
+         Enqueue_High            => 228,
          Check_Low               => 20,
-         Check_High              => 38,
+         Check_High              => 40,
          Cost                    => 5);
    end Actual_Parameter_Part_1;
 
@@ -1392,11 +1393,11 @@ package body Test_McKenzie_Recover is
       --  From ada_mode-interactive_2.adb
       Parse_Text
         ("package body Debug is function Function_Access_1 (A_Param : Float) return Float is begin" &
-      --           |10       |20       |30       |40       |50       |60       |70       |80       |90
+           --      |10       |20       |30       |40       |50       |60       |70       |80       |90
            " type Wait_Return is (Read_Success,); end Debug;");
-      --    |90       |100      |110      |120      |130
+      --     |90       |100      |110      |120      |130
 
-      --  Missing 'end Function_Access_1;' 81 and '<identifier>' 116.
+      --  Missing 'end Function_Access_1;' 91 and '<identifier>' 124.
       --
       --  Reported 'error in resume' after both recoveries, now fixed.
       --
@@ -1430,6 +1431,117 @@ package body Test_McKenzie_Recover is
          Cost                    => 3);
    end Unfinished_Subprogram_Type_1;
 
+   procedure String_Quote_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-recover_string_quote_2.adb
+      Parse_Text
+        ("procedure Handle_Search is begin if Is_Empty then return ""text/html""; else Response := " &
+           --      |10       |20       |30       |40       |50        |60        |70       |80       |90
+           --  1    2             3  4     5  6        7    8      9           10 11   12       13
+           """</table>""</body></html>"";" & ASCII.LF & "end if; end Handle_Search;");
+      --     |88          |100      |110     |114             |120      |130      |140
+      --     14         15    18 21
+      --                 16    19
+      --                  17    20
+
+      --  The actual editing error was to leave an extra quote at 97. To the
+      --  lexer this looks like a missing quote to match '"' 112; when it gets
+      --  that far, it inserts a matching quote at 112.
+      --
+      --  Error recover only tries inserting new quotes, not deleting
+      --  existing ones; the later involves resetting the lexer, which we
+      --  don't support.
+      --
+      --  Before Lexer notices the missing quote, parser enters McKenzie
+      --  recover at '/' 99.
+      --
+      --  It inserts a virtual quote before '/' 98, succeeds.
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +SLASH_ID,
+         Error_Token_Byte_Region => (99, 99),
+         Ops                     => +(Delete, +SLASH_ID, 16) & (Delete, +BODY_ID, 17) & (Delete, +GREATER_ID, 18) &
+           (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
+           (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
+         Enqueue_Low             => 40,
+         Enqueue_High            => 55,
+         Check_Low               => 7,
+         Check_High              => 9,
+         Cost                    => 1);
+
+   end String_Quote_1;
+
+   procedure String_Quote_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Parse_Text
+        ("procedure Handle_Search is begin if Is_Empty then return ""text/html""; else Response := " &
+           --      |10       |20       |30       |40       |50        |60        |70       |80       |90
+           --  1    2             3  4     5  6        7    8      9           10 11   12       13
+           """</table></body></html>;" & ASCII.LF & "end if; end Handle_Search;");
+      --     |88         |100      |110  |112               |120      |130      |140
+      --     14                     27               28
+      --      15
+
+      --  The error is a missing quote before ';' 110. Lexer detects the
+      --  missing quote at LF 112, inserts recover quote at 88.
+      --
+      --  Recover moves the inserted quote to just before LF 112, then
+      --  inserts ';'.
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +SLASH_ID,
+         Error_Token_Byte_Region => (90, 90),
+         Ops                     => +(Push_Back, +LESS_ID, 15) & (Push_Back, +simple_expression_ID, 14) &
+           (Fast_Forward, 15) & (Delete, +LESS_ID, 15) & (Delete, +SLASH_ID, 16) & (Delete, +IDENTIFIER_ID, 17) &
+           (Delete, +GREATER_ID, 18) & (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +BODY_ID, 21) &
+           (Delete, +GREATER_ID, 22) & (Delete, +LESS_ID, 23) & (Delete, +SLASH_ID, 24) & (Delete, +IDENTIFIER_ID, 25) &
+           (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) & (Insert, +SEMICOLON_ID, 28),
+         Enqueue_Low             => 58,
+         Enqueue_High            => 136,
+         Check_Low               => 10,
+         Check_High              => 18,
+         Cost                    => 1);
+   end String_Quote_2;
+
+   procedure String_Quote_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      Parse_Text
+        ("procedure Handle_Search is begin if Is_Empty then return ""text/html""; else Response := " &
+           --      |10       |20       |30       |40       |50        |60       |70       |80
+           --  1    2             3  4     5  6        7    8      9           10 11   12       13
+           """</table>"" & </body></html>"";" & ASCII.LF & "end if; end Handle_Search;");
+      --     |88          |100      |110   |116               |120      |130      |140
+      --     14          15               24                25
+      --                   16
+
+
+      --  Actual error is missing quote at 102.
+      --
+      --  Parser enters McKenzie --  recover at '<' 102.
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +LESS_ID,
+         Error_Token_Byte_Region => (101, 101),
+         Ops                     => +(Delete, +LESS_ID, 16) & (Delete, +SLASH_ID, 17) & (Delete, +BODY_ID, 18) &
+           (Delete, +GREATER_ID, 19) & (Delete, +LESS_ID, 20) & (Delete, +SLASH_ID, 21) &
+           (Delete, +IDENTIFIER_ID, 22) & (Delete, +GREATER_ID, 23) & (Fast_Forward,  24),
+         Enqueue_Low             => 69,
+         Enqueue_High            => 145,
+         Check_Low               => 7,
+         Check_High              => 11,
+         Cost                    => 1);
+
+   end String_Quote_3;
+
    ----------
    --  Public subprograms
 
@@ -1454,7 +1566,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, If_In_Handler'Access, "If_In_Handler");
       Register_Routine (T, Zombie_In_Resume'Access, "Zombie_In_Resume");
       Register_Routine (T, Push_Back_1'Access, "Push_Back_1");
-      Register_Routine (T, Missing_Quote'Access, "Missing_Quote");
+      Register_Routine (T, String_Quote_0'Access, "String_Quote_0");
       Register_Routine (T, Missing_Name_0'Access, "Missing_Name_0");
       Register_Routine (T, Missing_Name_1'Access, "Missing_Name_1");
       Register_Routine (T, Missing_Name_2'Access, "Missing_Name_2");
@@ -1470,6 +1582,9 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Match_Selected_Component_1'Access, "Match_Selected_Component_1");
       Register_Routine (T, Actual_Parameter_Part_1'Access, "Actual_Parameter_Part_1");
       Register_Routine (T, Unfinished_Subprogram_Type_1'Access, "Unfinished_Subprogram_Type_1");
+      Register_Routine (T, String_Quote_1'Access, "String_Quote_1");
+      Register_Routine (T, String_Quote_2'Access, "String_Quote_2");
+      Register_Routine (T, String_Quote_3'Access, "String_Quote_3");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -1498,11 +1613,17 @@ package body Test_McKenzie_Recover is
    end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
-   is begin
+   is
+      use all type System.Multiprocessors.CPU_Range;
+   begin
       --  Run before each test
       Ada_Lite.End_Name_Optional := Orig_End_Name_Optional;
 
       Parser.Table.McKenzie_Param := Orig_Params;
+
+      if T.Task_Count /= System.Multiprocessors.CPU_Range'Last then
+         Parser.Table.McKenzie_Param.Task_Count := T.Task_Count;
+      end if;
 
       if T.Cost_Limit /= Natural'Last then
          Parser.Table.McKenzie_Param.Cost_Limit := T.Cost_Limit;

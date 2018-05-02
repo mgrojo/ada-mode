@@ -37,10 +37,14 @@ with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
    type Error_Data is record
-      Char_Pos : Buffer_Pos;
+      Char_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
+      Line     : Line_Number_Type := Invalid_Line_Number;
       --  Character at that position is not recognized as part of a token.
 
-      Recover : String (1 .. 4) := (others => ASCII.NUL);
+      Recover_ID : Token_ID := Invalid_Token_ID;
+      --  If the error was corrected, the Token_ID that was returned.
+
+      Recover_Char : String (1 .. 4) := (others => ASCII.NUL);
       --  If the error was corrected, the character (in UTF-8 encoding) that
       --  was inserted; unused trailing bytes set to ASCII.NUL. Otherwise,
       --  all ASCII.Nul.
@@ -114,7 +118,7 @@ package WisiToken.Lexer is
    function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
    --  Return the next token.
    --
-   --  If their is an error, adds an entry to Lexer.Errors. If the error
+   --  If there is an error, adds an entry to Lexer.Errors. If the error
    --  was not corrected, raises Parse_Error with an appropriate
    --  message.
 

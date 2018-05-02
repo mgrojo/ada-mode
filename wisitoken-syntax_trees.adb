@@ -26,6 +26,18 @@ package body WisiToken.Syntax_Trees is
 
    procedure Move_Branch_Point (Tree : in out Syntax_Trees.Tree; Required_Node : in Valid_Node_Index);
 
+   function Process_Tree
+     (Tree         : in Syntax_Trees.Tree;
+      Node         : in Valid_Node_Index;
+      Process_Node : access function
+        (Tree : in Syntax_Trees.Tree;
+         Node : in Valid_Node_Index)
+        return Boolean)
+     return Boolean;
+   --  Call Process_Node on nodes in tree rooted at Node. Return when
+   --  Process_Node returns False (Process_Tree returns False), or when
+   --  all nodes have been processed (Process_Tree returns True).
+
    procedure Set_Children
      (Nodes    : in out Node_Arrays.Vector;
       Parent   : in     Valid_Node_Index;
@@ -320,6 +332,35 @@ package body WisiToken.Syntax_Trees is
           then Tree.Shared_Tree.Nodes (Node)
           else Tree.Branched_Nodes (Node)));
    end Find_Child;
+
+   function Find_Descendant
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Node_Index
+   is
+      Found : Node_Index := Invalid_Node_Index;
+
+      function Process (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+      is
+         Node_ID : constant Token_ID :=
+           (if Node <= Tree.Last_Shared_Node
+            then Tree.Shared_Tree.Nodes (Node).ID
+            else Tree.Branched_Nodes (Node).ID);
+      begin
+         if Node_ID = ID then
+            Found := Node;
+            return False;
+         else
+            return True;
+         end if;
+      end Process;
+
+      Junk : constant Boolean := Process_Tree (Tree, Node, Process'Access);
+      pragma Unreferenced (Junk);
+   begin
+      return Found;
+   end Find_Descendant;
 
    function Find_Sibling
      (Tree : in Syntax_Trees.Tree;
@@ -685,6 +726,35 @@ package body WisiToken.Syntax_Trees is
          return Tree.Branched_Nodes (Node).Parent;
       end if;
    end Parent;
+
+   function Process_Tree
+     (Tree         : in Syntax_Trees.Tree;
+      Node         : in Valid_Node_Index;
+      Process_Node : access function
+        (Tree : in Syntax_Trees.Tree;
+         Node : in Valid_Node_Index)
+        return Boolean)
+     return Boolean
+   is
+      function Compute (N : in Syntax_Trees.Node) return Boolean
+      is begin
+         if N.Label = Nonterm then
+            for Child of N.Children loop
+               if not Process_Tree (Tree, Child, Process_Node) then
+                  return False;
+               end if;
+            end loop;
+         end if;
+
+         return Process_Node (Tree, Node);
+      end Compute;
+   begin
+      if Node <= Tree.Last_Shared_Node then
+         return Compute (Tree.Shared_Tree.Nodes (Node));
+      else
+         return Compute (Tree.Branched_Nodes (Node));
+      end if;
+   end Process_Tree;
 
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;

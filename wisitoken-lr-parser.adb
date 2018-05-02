@@ -214,6 +214,34 @@ package body WisiToken.LR.Parser is
       end case;
    end Do_Action;
 
+   procedure Do_Deletes
+     (Shared_Parser : in out LR.Parser.Parser;
+      Parser_State  : in out Parser_Lists.Parser_State)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Trace_Parse > Extra then
+         Shared_Parser.Trace.Put_Line
+           (Integer'Image (Parser_State.Label) & ": recover_insert_delete: " &
+              Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Trace.Descriptor.all));
+      end if;
+
+      loop
+         if Parser_State.Recover_Insert_Delete.Length > 0 and then
+           Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
+           Parser_State.Recover_Insert_Delete.Peek.Token_Index =
+           (if Parser_State.Inc_Shared_Token
+            then Parser_State.Shared_Token + 1
+            else Parser_State.Shared_Token)
+         then
+            Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+            Parser_State.Recover_Insert_Delete.Drop;
+         else
+            exit;
+         end if;
+      end loop;
+   end Do_Deletes;
+
    --  Return the type of parser cycle to execute.
    --
    --  Accept : all Parsers.Verb return Accept - done parsing.
@@ -223,6 +251,9 @@ package body WisiToken.LR.Parser is
    --
    --  Shift_Recover : some Parsers.Verb return Shift, with current
    --  tokens either virtual or < Terminals.Last_Index.
+   --
+   --  Pause : Resume is active, but this parser has reached Resume_Goal,
+   --  so it is waiting for the others to catch up.
    --
    --  Reduce : some Parsers.Verb return Reduce.
    --
@@ -245,11 +276,11 @@ package body WisiToken.LR.Parser is
 
       for Parser_State of Shared_Parser.Parsers loop
          Min_Shared_Token := Token_Index'Min (Min_Shared_Token, Parser_State.Shared_Token);
-      end loop;
 
-      for Parser_State of Shared_Parser.Parsers loop
          case Parser_State.Verb is
-         when Shift | Shift_Recover =>
+         when Pause | Shift_Recover | Shift =>
+            Do_Deletes (Shared_Parser, Parser_State);
+
             if Parser_State.Recover_Insert_Delete.Length > 0 and then
               Parser_State.Recover_Insert_Delete.Peek.Op = Insert and then
               Parser_State.Recover_Insert_Delete.Peek.Token_Index =
@@ -311,6 +342,16 @@ package body WisiToken.LR.Parser is
                Shared_Parser.Trace.Put_Line ("resume_active: False");
             end if;
          end if;
+      end if;
+
+      if Shared_Parser.Resume_Active then
+         for Parser_State of Shared_Parser.Parsers loop
+            if Parser_State.Verb in Shift | Shift_Recover and
+              Parser_State.Shared_Token >= Shared_Parser.Resume_Token_Goal
+            then
+               Parser_State.Set_Verb (Pause);
+            end if;
+         end loop;
       end if;
 
       --  Verify that we don't create zombies when recover is active.
@@ -543,21 +584,6 @@ package body WisiToken.LR.Parser is
          end if;
       end Check_Error;
 
-      procedure Do_Deletes (Parser_State : in out Parser_Lists.Parser_State)
-      is begin
-         loop
-            if Parser_State.Recover_Insert_Delete.Length > 0 and then
-              Parser_State.Recover_Insert_Delete.Peek.Op = Delete and then
-              Parser_State.Recover_Insert_Delete.Peek.Token_Index = Parser_State.Shared_Token
-            then
-               Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-               Parser_State.Recover_Insert_Delete.Drop;
-            else
-               exit;
-            end if;
-         end loop;
-      end Do_Deletes;
-
    begin
       --  The user must call Lexer.Reset_* to set the input text.
       Shared_Parser.Lexer.Errors.Clear;
@@ -604,6 +630,9 @@ package body WisiToken.LR.Parser is
          --  Error recovery should ensure that the resume parsing can complete
          --  without error, so we cannot have zombie parsers while resuming.
          case Current_Verb is
+         when Pause =>
+            null;
+
          when Shift =>
             --  We just shifted a token; get the next token
 
@@ -614,7 +643,7 @@ package body WisiToken.LR.Parser is
                      if Trace_Parse > Extra then
                         Trace.Put_Line
                           (Integer'Image (Parser_State.Label) & ": zombie (" &
-                             Int_Image
+                             Token_Index'Image
                                (Shared_Parser.Table.McKenzie_Param.Check_Limit - Parser_State.Zombie_Token_Count) &
                              " tokens remaining)");
                      end if;
@@ -627,8 +656,6 @@ package body WisiToken.LR.Parser is
                   else
                      Parser_State.Inc_Shared_Token := True;
                   end if;
-
-                  Do_Deletes (Parser_State);
 
                   if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
@@ -685,8 +712,6 @@ package body WisiToken.LR.Parser is
                      else
                         Parser_State.Inc_Shared_Token := True;
                      end if;
-
-                     Do_Deletes (Parser_State);
 
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Shared_Token, Shared_Parser.Terminals);
@@ -880,7 +905,7 @@ package body WisiToken.LR.Parser is
                               Current_Verb := Shift;
                            end if;
 
-                        when Accept_It =>
+                        when Pause | Accept_It =>
                            raise Programmer_Error;
                         end case;
                      end loop;

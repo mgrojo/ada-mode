@@ -757,7 +757,7 @@ package body WisiToken.LR.LALR_Generator is
             Delete            => (others => 0),
             Push_Back         => (others => 0),
             Undo_Reduce       => (others => 0),
-            Task_Count        => 0,
+            Task_Count        => Default_McKenzie_Param.Task_Count,
             Cost_Limit        => Default_McKenzie_Param.Cost_Limit,
             Check_Limit       => Default_McKenzie_Param.Check_Limit,
             Check_Delta_Limit => Default_McKenzie_Param.Check_Delta_Limit);

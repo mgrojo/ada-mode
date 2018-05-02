@@ -44,10 +44,27 @@ private
 
    procedure Find_ID
      (Config         : in     Configuration;
+      ID             : in     Token_ID;
+      Matching_Index : in out SAL.Peek_Type);
+   --  Search Config.Stack for a token with ID, starting at
+   --  Matching_Index. If found, Matching_Index points to it.
+   --  If not found, Matching_Index = Config.Stack.Depth.
+
+   procedure Find_ID
+     (Config         : in     Configuration;
       IDs            : in     Token_ID_Set;
       Matching_Index : in out SAL.Peek_Type);
    --  Search Config.Stack for a token with ID in IDs, starting at
    --  Matching_Index. If found, Matching_Index points to it.
+   --  If not found, Matching_Index = Config.Stack.Depth.
+
+   procedure Find_Descendant_ID
+     (Tree           : in     Syntax_Trees.Tree;
+      Config         : in     Configuration;
+      ID             : in     Token_ID;
+      Matching_Index : in out SAL.Peek_Type);
+   --  Search Config.Stack for a token with a descendant with ID,
+   --  starting at Matching_Index. If found, Matching_Index points to it.
    --  If not found, Matching_Index = Config.Stack.Depth.
 
    procedure Find_Matching_Name

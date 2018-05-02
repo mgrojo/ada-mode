@@ -40,7 +40,7 @@ OK test_mckenzie_recover.adb : Error_Token_When_Parallel
 OK test_mckenzie_recover.adb : If_In_Handler
 OK test_mckenzie_recover.adb : Zombie_In_Resume
 OK test_mckenzie_recover.adb : Push_Back_1
-OK test_mckenzie_recover.adb : Missing_Quote
+OK test_mckenzie_recover.adb : String_Quote_0
 OK test_mckenzie_recover.adb : Missing_Name_0
 OK test_mckenzie_recover.adb : Missing_Name_1
 OK test_mckenzie_recover.adb : Missing_Name_2
@@ -56,12 +56,15 @@ OK test_mckenzie_recover.adb : Two_Missing_Ends
 OK test_mckenzie_recover.adb : Match_Selected_Component_1
 OK test_mckenzie_recover.adb : Actual_Parameter_Part_1
 OK test_mckenzie_recover.adb : Unfinished_Subprogram_Type_1
+OK test_mckenzie_recover.adb : String_Quote_1
+OK test_mckenzie_recover.adb : String_Quote_2
+OK test_mckenzie_recover.adb : String_Quote_3
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   61
-Successful Tests:  61
+Total Tests Run:   64
+Successful Tests:  64
 Failed Assertions: 0
 Unexpected Errors: 0
