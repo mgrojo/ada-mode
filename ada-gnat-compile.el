@@ -121,6 +121,10 @@ For `compilation-filter-hook'."
 
 ;;;;; auto fix compilation errors
 
+(defconst ada-gnat-file-name-regexp
+  "\\([a-z-]+\\)"
+  "regexp to extract a file name, sans extension")
+
 (defconst ada-gnat-quoted-name-regexp
   "\"\\([a-zA-Z0-9_.']+\\)\""
   "regexp to extract the quoted names in error messages")
@@ -420,8 +424,12 @@ Prompt user if more than one."
 		 (replace-match correct-spelling)
 		 t))))
 
-	  ((looking-at (concat "operator for \\(private \\)?type " ada-gnat-quoted-name-regexp))
-	   (let ((type (match-string 2)))
+	  ((looking-at (concat "operator for \\(private \\)?type " ada-gnat-quoted-name-regexp
+			       "\\( defined at " ada-gnat-file-name-regexp "\\)?"))
+	   (let ((type (match-string 2))
+		 (package-file (match-string 4)))
+	     (when package-file
+	       (setq type (concat (ada-gnat-ada-name-from-file-name package-file) "." type)))
 	     (pop-to-buffer source-buffer)
 	     (ada-fix-add-use-type type)
 	   t))
