@@ -37,6 +37,15 @@ package WisiToken.LR.McKenzie_Recover is
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to
    --  allow recovering from an error state.
 
+   Force_Full_Explore        : Boolean := False;
+   --  Sometimes recover throws an exception in a race condition case
+   --  that is hard to reproduce. Setting this True ignores all Success,
+   --  so all configs are checked.
+
+   Force_High_Cost_Solutions : Boolean := False;
+   --  Similarly, setting this true keeps all solutions that are found,
+   --  and forces at least three.
+
 private
 
    ----------

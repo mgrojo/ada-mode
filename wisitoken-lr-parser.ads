@@ -42,12 +42,20 @@ package WisiToken.LR.Parser is
 
       Language_Constrain_Terminals : Language_Constrain_Terminals_Access;
 
+      String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
+      --  Max line checked for missing string quote.
+
+      Lexer_Errors : WisiToken.Lexer.Error_Lists.List;
+
       Post_Recover : Post_Recover_Access;
       --  Gather data for tests.
 
       Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order. Does not contain
       --  virtual tokens. Tokens past Parser.Current_Token are lookahead.
+
+      Line_Begin_Token : Line_Begin_Token_Vectors.Vector;
+      --  Index into Terminals of first grammar token on line.
 
       Shared_Tree : aliased Syntax_Trees.Base_Tree;
       --  Each parser (normal and recover) has its own branched syntax tree,

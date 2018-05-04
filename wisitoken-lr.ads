@@ -389,7 +389,8 @@ package WisiToken.LR is
       case Op is
       when Fast_Forward =>
          FF_Token_Index : WisiToken.Token_Index;
-         --  Config.Current_Shared_Token after the operation is done.
+         --  Config.Current_Shared_Token after the operation is done; the last
+         --  token shifted.
 
       when Undo_Reduce =>
          Nonterm     : Token_ID;
@@ -488,6 +489,11 @@ package WisiToken.LR is
       Stack : Recover_Stacks.Stack;
       --  Initially built from the parser stack, then the stack after the
       --  Ops below have been performed.
+
+      Resume_Token_Goal : Token_Index := Token_Index'Last;
+      --  A successful solution shifts this token. Per-config because it
+      --  increases with Delete; we increase Shared_Parser.Resume_Token_Goal
+      --  only from successful configs.
 
       Current_Shared_Token : Token_Index := Token_Index'Last;
       --  Index into Shared_Parser.Terminals for current input token, after
@@ -604,6 +610,8 @@ package WisiToken.LR is
       Descriptor : in WisiToken.Descriptor)
      return String;
 
+   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
+
 private
 
    --  Private to enforce use of Add; doesn't succeed, since only
@@ -632,10 +640,12 @@ private
    end record;
 
    function Next_Grammar_Token
-     (Terminals  : in out          Base_Token_Arrays.Vector;
-      Descriptor : in              WisiToken.Descriptor'Class;
-      Lexer      : not null access WisiToken.Lexer.Instance'Class;
-      User_Data  : in              WisiToken.Syntax_Trees.User_Data_Access)
+     (Terminals        : in out          Base_Token_Arrays.Vector;
+      Errors           : in out          WisiToken.Lexer.Error_Lists.List;
+      Line_Begin_Token : in out          Line_Begin_Token_Vectors.Vector;
+      Descriptor       : in              WisiToken.Descriptor'Class;
+      Lexer            : not null access WisiToken.Lexer.Instance'Class;
+      User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
      return Token_Index;
    --  Get next token from Lexer, call User_Data.Lexer_To_Augmented.
    --  If it is a grammar token, store in Terminals and return its ID.

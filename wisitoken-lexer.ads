@@ -32,17 +32,16 @@ pragma Warnings (Off, "license of withed unit ""GNATCOLL.Mmap"" may be inconsist
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
 with Ada.Strings.Unbounded;
-with Ada.Text_IO;
 with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
-   type Error_Data is record
-      Char_Pos : Buffer_Pos       := Invalid_Buffer_Pos;
-      Line     : Line_Number_Type := Invalid_Line_Number;
+   type Error is record
+      Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
       --  Character at that position is not recognized as part of a token.
 
-      Recover_ID : Token_ID := Invalid_Token_ID;
-      --  If the error was corrected, the Token_ID that was returned.
+      Recover_Token : Base_Token_Index := Invalid_Token_Index;
+      --  If the error was corrected by inserting a missing quote, the token
+      --  (in shared parser Terminals) that was returned.
 
       Recover_Char : String (1 .. 4) := (others => ASCII.NUL);
       --  If the error was corrected, the character (in UTF-8 encoding) that
@@ -50,15 +49,11 @@ package WisiToken.Lexer is
       --  all ASCII.Nul.
    end record;
 
-   package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error_Data);
-   --  Some lexers can recover from some errors (ie insert missing
-   --  quotes), so there can be more than one error.
+   package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error);
 
    type Instance
      (Trace  : not null access WisiToken.Trace'Class)
-   is abstract new Ada.Finalization.Limited_Controlled with record
-      Errors : Error_Lists.List;
-   end record;
+   is abstract new Ada.Finalization.Limited_Controlled with null record;
 
    subtype Class is Instance'Class;
 
@@ -85,42 +80,44 @@ package WisiToken.Lexer is
    --  If reading input from a stream, abort reading (or force it to
    --  complete); Find_Next will not be called before another Reset.
 
-   function Char_Region (Lexer : in Instance) return Buffer_Region is abstract;
-   function Byte_Region (Lexer : in Instance) return Buffer_Region is abstract;
-   --  Returns the position of the start and end of the last token that
-   --  was matched, in the internal buffer, 1-indexed; Char_Region in
-   --  character position, Byte_Region in byte position.
-   --
-   --  Char_Region and Byte_Region differ when text is UTF-8 or other
-   --  multi-byte encoding.
-   --
-   --  Most useful when the internal buffer holds the entire input text
-   --  (as it will for editor parsers).
-
    function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String is abstract;
    --  Return text from internal buffer, given region in byte position.
-
-   function Line (Lexer : in Instance) return Line_Number_Type is abstract;
-   --  Returns the line number in which the most recent token started.
-   --
-   --  If the underlying text feeder does not support the notion of
-   --  'line', returns Invalid_Line_Number.
-
-   function Column (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
-   --  Return the column number of the start of the most recent token..
-   --
-   --  If the underlying text feeder does not support the notion of
-   --  'line', returns buffer position in internal buffer.
 
    function First (Lexer : in Instance) return Boolean is abstract;
    --  True if most recent token is first on a line.
 
-   function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
-   --  Return the next token.
+   function Find_Next
+     (Lexer  : in out Instance;
+      Token  :    out Base_Token;
+      Errors : in out Error_Lists.List)
+     return Boolean is abstract;
+   --  Set Token to the next token from the input stream.
    --
-   --  If there is an error, adds an entry to Lexer.Errors. If the error
-   --  was not corrected, raises Parse_Error with an appropriate
-   --  message.
+   --  If there is a recovered error, adds an entry to Lexer.Errors (with
+   --  Recover_Token invalid). Unrecognized characters are skipped;
+   --  missing quotes are inserted at the found quote. There can be more
+   --  than one error entry for one call to Find_Next, if several
+   --  unrecognized characters are skipped. If the recovery inserted a
+   --  missing quote, it is the last entry in Errors, the returned token
+   --  is an empty string literal, and Find_Next returns True.
+   --
+   --  If there is a non-recoverable error, raises Fatal_Error with an
+   --  appropriate message.
+   --
+   --  Otherwise returns False.
+   --
+   --  Token.Char_Region, Token.Byte_Region are the character and byte
+   --  position of the start and end of token, in the internal buffer,
+   --  1-indexed. Char_Region and Byte_Region differ when text is UTF-8
+   --  or other multi-byte encoding, and when line endings are two byte.
+   --
+   --  Token.Line is the line number in which recent token starts.
+   --  If the underlying text feeder does not support the notion of
+   --  'line', returns Invalid_Line_Number.
+   --
+   --  Token.Col is the column number of the start of the token, 1
+   --  indexed. If the underlying text feeder does not support the notion
+   --  of 'line', returns byte position in internal buffer.
 
 private
 

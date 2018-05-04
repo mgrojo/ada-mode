@@ -92,18 +92,14 @@ package WisiToken.Lexer.re2c is
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String;
 
-   overriding
-   function Line (Lexer : in Instance) return Line_Number_Type;
-
-   overriding
-   function Column (Lexer : in Instance) return Ada.Text_IO.Count;
-
-   overriding function Char_Region (Lexer : in Instance) return Buffer_Region;
-   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region;
-
    overriding function First (Lexer : in Instance) return Boolean;
 
-   overriding function Find_Next (Lexer : in out Instance) return Token_ID;
+   overriding
+   function Find_Next
+     (Lexer  : in out Instance;
+      Token  :    out Base_Token;
+      Errors : in out Error_Lists.List)
+     return Boolean;
 
 private
 

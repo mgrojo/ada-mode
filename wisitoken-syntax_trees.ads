@@ -274,6 +274,10 @@ package WisiToken.Syntax_Trees is
    --  Return the child of Node that contains ID (may be Node), or
    --  Invalid_Node_Index if none match.
 
+   function Root (Tree : in Syntax_Trees.Tree) return Node_Index;
+   --  The last node added; normally the final nonterm.
+   --  Invalid_Node_Index if Tree is empty.
+
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
       Process_Node : access procedure

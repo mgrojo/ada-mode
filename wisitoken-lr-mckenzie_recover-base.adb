@@ -240,14 +240,18 @@ package body WisiToken.LR.McKenzie_Recover.Base is
       begin
          Put (Parser_Index, Configs); --  Decrements Active_Worker_Count.
 
-         Success_Counter := Success_Counter + 1;
-         Result          := Success;
-
          if Trace_McKenzie > Detail then
             Put
               ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) & ", check " & Integer'Image (Data.Check_Count),
                Trace.all, Parser_Labels (Parser_Index), Terminals.all, Config);
          end if;
+
+         if Force_Full_Explore then
+            return;
+         end if;
+
+         Success_Counter := Success_Counter + 1;
+         Result          := Success;
 
          Data.Success := True;
 
@@ -255,26 +259,34 @@ package body WisiToken.LR.McKenzie_Recover.Base is
             Min_Success_Check_Count := Data.Check_Count;
          end if;
 
-         if Data.Results.Count = 0 then
+         if Force_High_Cost_Solutions then
             Data.Results.Add (Config);
-            Parser_Status (Parser_Index) := Ready;
-
-         elsif Config.Cost < Data.Results.Min_Key then
-            --  delete higher cost configs from Results
-            loop
-               Data.Results.Drop;
-               exit when Data.Results.Count = 0 or else
-                 Config.Cost >= Data.Results.Min_Key;
-            end loop;
-
-            Data.Results.Add (Config);
-
-         elsif Config.Cost = Data.Results.Min_Key then
-            Data.Results.Add (Config);
-
+            if Data.Results.Count > 3 then
+               Parser_Status (Parser_Index) := Ready;
+            end if;
          else
-            --  Config.Cost > Results.Min_Key
-            null;
+            if Data.Results.Count = 0 then
+               Data.Results.Add (Config);
+
+               Parser_Status (Parser_Index) := Ready;
+
+            elsif Config.Cost < Data.Results.Min_Key then
+               --  delete higher cost configs from Results
+               loop
+                  Data.Results.Drop;
+                  exit when Data.Results.Count = 0 or else
+                    Config.Cost >= Data.Results.Min_Key;
+               end loop;
+
+               Data.Results.Add (Config);
+
+            elsif Config.Cost = Data.Results.Min_Key then
+               Data.Results.Add (Config);
+
+            else
+               --  Config.Cost > Results.Min_Key
+               null;
+            end if;
          end if;
       end Success;
 
@@ -361,8 +373,8 @@ package body WisiToken.LR.McKenzie_Recover.Base is
       begin
          if Index > Shared_Parser.Terminals.Last_Index then
             Temp := Next_Grammar_Token
-              (Shared_Parser.Terminals, Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer,
-               Shared_Parser.User_Data);
+              (Shared_Parser.Terminals, Shared_Parser.Lexer_Errors, Shared_Parser.Line_Begin_Token,
+               Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer, Shared_Parser.User_Data);
             pragma Assert (Temp = Index);
          end if;
          return Temp;
@@ -378,15 +390,52 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          return Shared_Parser.Terminals.Last_Index;
       end Last_Index;
 
-      function Lexer_Error_Count return Ada.Containers.Count_Type
-      is begin
-         return Shared_Parser.Lexer.Errors.Length;
-      end Lexer_Error_Count;
+      procedure Find_Lexer_Error (Line : in Line_Number_Type)
+      is
+         use Ada.Containers;
+         EOF_ID            : constant Token_ID := Shared_Parser.Trace.Descriptor.EOF_ID;
+         Line_Token        : Token_Index       := Shared_Parser.Terminals.Last_Index;
+      begin
+         if Shared_Parser.String_Quote_Checked /= Invalid_Line_Number and then
+           Shared_Parser.String_Quote_Checked >= Line
+         then
+            return;
 
-      function Last_Lexer_Error return WisiToken.Lexer.Error_Data
+         elsif Shared_Parser.Terminals (Line_Token).Line > Line then
+            Shared_Parser.String_Quote_Checked := Line;
+            return;
+
+         else
+            loop
+               exit when Shared_Parser.Terminals (Line_Token).Line > Line or
+                 Shared_Parser.Terminals (Line_Token).ID = EOF_ID;
+
+               Line_Token := Get_Token (Line_Token + 1);
+            end loop;
+
+            Shared_Parser.String_Quote_Checked := Line;
+         end if;
+      end Find_Lexer_Error;
+
+      function Recovered_Lexer_Error (Line : in Line_Number_Type) return Base_Token_Index
+      is
+         use WisiToken.Lexer;
+         use WisiToken.Lexer.Error_Lists;
+      begin
+         for Err of reverse Shared_Parser.Lexer_Errors loop
+            if Err.Recover_Token /= Invalid_Token_Index and then
+              Shared_Parser.Terminals (Err.Recover_Token).Line = Line
+            then
+               return Err.Recover_Token;
+            end if;
+         end loop;
+         return Invalid_Token_Index;
+      end Recovered_Lexer_Error;
+
+      function Next_Line_Token (Line : in Line_Number_Type) return Token_Index
       is begin
-         return Shared_Parser.Lexer.Errors.Last_Element;
-      end Last_Lexer_Error;
+         return Shared_Parser.Line_Begin_Token (Line + 1);
+      end Next_Line_Token;
 
    end Shared_Lookahead;
 

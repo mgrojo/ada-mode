@@ -283,7 +283,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 71,
          Enqueue_High            => 149,
          Check_Low               => 16,
-         Check_High              => 27,
+         Check_High              => 30,
          Cost                    => 4,
          Expecting               => WisiToken.To_Token_ID_Set
            (Descriptor.First_Terminal,
@@ -373,7 +373,7 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +BEGIN_ID, 4) &
              (Push_Back, +declarative_part_opt_ID, 4) &
              (Delete, +BEGIN_ID, 4),
-         Enqueue_Low             => 57,
+         Enqueue_Low             => 32,
          Enqueue_High            => 110,
          Check_Low               => 11,
          Check_High              => 17,
@@ -818,7 +818,8 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Test that syntax error recovery handles a missing string quote.
-      --  See also String_Quote_n.
+      --  See also String_Quote_*, ada_mode-recover_bad_char.adb,
+      --  ada_mode-recover_string_quote_*.
 
       Parse_Text
         ("procedure Remove is begin A := ""B""; A := ""C"" &" & ASCII.LF & "at""; " & ASCII.LF & "end Remove;");
@@ -840,9 +841,9 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 13) & (Delete, +IDENTIFIER_ID, 13) &
            (Fast_Forward,  14),
          Enqueue_Low             => 50,
-         Enqueue_High            => 77,
+         Enqueue_High            => 88,
          Check_Low               => 7,
-         Check_High              => 11,
+         Check_High              => 13,
          Cost                    => 1);
    end String_Quote_0;
 
@@ -1382,7 +1383,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 115,
          Enqueue_High            => 228,
          Check_Low               => 20,
-         Check_High              => 40,
+         Check_High              => 45,
          Cost                    => 5);
    end Actual_Parameter_Part_1;
 
@@ -1394,10 +1395,14 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("package body Debug is function Function_Access_1 (A_Param : Float) return Float is begin" &
            --      |10       |20       |30       |40       |50       |60       |70       |80       |90
+           --  1  2    3     4  5        6                 7 8      9 10   11 12    13    14 15
            " type Wait_Return is (Read_Success,); end Debug;");
       --     |90       |100      |110      |120      |130
+      --     16   17          18 19 28        21  24  25   26
+      --                                       22
+      --                                        23
 
-      --  Missing 'end Function_Access_1;' 91 and '<identifier>' 124.
+      --  Missing 'end Function_Access_1;' 89 and '<identifier>' 124.
       --
       --  Reported 'error in resume' after both recoveries, now fixed.
       --
@@ -1467,11 +1472,10 @@ package body Test_McKenzie_Recover is
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
          Enqueue_Low             => 40,
-         Enqueue_High            => 55,
+         Enqueue_High            => 69,
          Check_Low               => 7,
-         Check_High              => 9,
+         Check_High              => 11,
          Cost                    => 1);
-
    end String_Quote_1;
 
    procedure String_Quote_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1498,7 +1502,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SLASH_ID,
          Error_Token_Byte_Region => (90, 90),
          Ops                     => +(Push_Back, +LESS_ID, 15) & (Push_Back, +simple_expression_ID, 14) &
-           (Fast_Forward, 15) & (Delete, +LESS_ID, 15) & (Delete, +SLASH_ID, 16) & (Delete, +IDENTIFIER_ID, 17) &
+           (Fast_Forward, 14) & (Delete, +LESS_ID, 15) & (Delete, +SLASH_ID, 16) & (Delete, +IDENTIFIER_ID, 17) &
            (Delete, +GREATER_ID, 18) & (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +BODY_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Delete, +LESS_ID, 23) & (Delete, +SLASH_ID, 24) & (Delete, +IDENTIFIER_ID, 25) &
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) & (Insert, +SEMICOLON_ID, 28),
@@ -1628,6 +1632,9 @@ package body Test_McKenzie_Recover is
       if T.Cost_Limit /= Natural'Last then
          Parser.Table.McKenzie_Param.Cost_Limit := T.Cost_Limit;
       end if;
+
+      WisiToken.LR.McKenzie_Recover.Force_High_Cost_Solutions := False;
+      WisiToken.LR.McKenzie_Recover.Force_Full_Explore := False;
 
       Parser.Post_Recover := null;
    end Set_Up;

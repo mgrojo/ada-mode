@@ -127,10 +127,38 @@ package body WisiToken.Lexer.re2c is
          else Lexer.Trace.Descriptor.New_Line_ID);
    end Reset;
 
-   overriding function Find_Next (Lexer : in out Instance) return Token_ID
+   overriding function Find_Next
+     (Lexer  : in out Instance;
+      Token  :    out Base_Token;
+      Errors : in out Error_Lists.List)
+     return Boolean
    is
       use all type Ada.Text_IO.Count;
       use Interfaces.C;
+
+      procedure Build_Token (ID : in Token_ID)
+      is begin
+         Token :=
+           (ID => ID,
+
+            Byte_Region =>
+              (Buffer_Pos (Lexer.Byte_Position),
+               Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1)),
+
+            Line => Lexer.Line,
+
+            Col =>
+              (if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID or
+                 Lexer.ID = Lexer.Trace.Descriptor.EOF_ID
+               then 0
+               else Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start)),
+
+            Char_Region =>
+            --  In an empty buffer, char_position = 0 and char_length = 0.
+              (Buffer_Pos (Lexer.Char_Position),
+               Buffer_Pos (Integer'Max (1, Lexer.Char_Position + Lexer.Char_Length - 1))));
+      end Build_Token;
+
    begin
       Lexer.Prev_ID := Lexer.ID;
       loop
@@ -148,7 +176,9 @@ package body WisiToken.Lexer.re2c is
                if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID then
                   Lexer.Char_Line_Start := Lexer.Char_Position + 1;
                end if;
-               return Lexer.ID;
+
+               Build_Token (Lexer.ID);
+               return False;
 
             when 1 =>
                --  Unrecognized character from lexer. Handle missing quotes by
@@ -160,23 +190,25 @@ package body WisiToken.Lexer.re2c is
                   if Buffer (Lexer.Byte_Position) = ''' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after '.
-                     Lexer.Errors.Append
-                       ((Buffer_Pos (Lexer.Char_Position), Lexer.Line, Lexer.Trace.Descriptor.String_1_ID,
-                         (1 => ''', others => ASCII.NUL)));
-                     return Lexer.Trace.Descriptor.String_1_ID;
+                     Errors.Append
+                       ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => ''', others => ASCII.NUL)));
+
+                     Build_Token (Lexer.Trace.Descriptor.String_1_ID);
+                     return True;
 
                   elsif Buffer (Lexer.Byte_Position) = '"' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after ".
-                     Lexer.Errors.Append
-                       ((Buffer_Pos (Lexer.Char_Position), Lexer.Line, Lexer.Trace.Descriptor.String_2_ID,
-                         (1 => '"', others => ASCII.NUL)));
-                     return Lexer.Trace.Descriptor.String_2_ID;
+                     Errors.Append
+                       ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => '"', others => ASCII.NUL)));
+
+                     Build_Token (Lexer.Trace.Descriptor.String_2_ID);
+                     return True;
 
                   else
                      --  Just skip the character; call Next_Token again.
-                     Lexer.Errors.Append
-                       ((Buffer_Pos (Lexer.Char_Position), Lexer.Line, Invalid_Token_ID, (others => ASCII.NUL)));
+                     Errors.Append
+                       ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (others => ASCII.NUL)));
                   end if;
                end;
 
@@ -186,35 +218,6 @@ package body WisiToken.Lexer.re2c is
          end;
       end loop;
    end Find_Next;
-
-   overriding function Line (Lexer : in Instance) return Line_Number_Type
-   is begin
-      return Lexer.Line;
-   end Line;
-
-   overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
-   is begin
-      if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID or
-        Lexer.ID = Lexer.Trace.Descriptor.EOF_ID
-      then
-         return 0;
-      else
-         return Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start);
-      end if;
-   end Column;
-
-   overriding function Char_Region (Lexer : in Instance) return Buffer_Region
-   is begin
-      --  In an empty buffer, char_position = 0 and char_length = 0.
-      return
-        (Buffer_Pos (Lexer.Char_Position),
-         Buffer_Pos (Integer'Max (1, Lexer.Char_Position + Lexer.Char_Length - 1)));
-   end Char_Region;
-
-   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
-   is begin
-      return (Buffer_Pos (Lexer.Byte_Position), Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1));
-   end Byte_Region;
 
    overriding function First (Lexer : in Instance) return Boolean
    is begin

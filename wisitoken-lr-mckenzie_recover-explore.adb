@@ -304,7 +304,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Parse_Items : Parse.Parse_Item_Arrays.Vector;
    begin
       if Parse.Parse
-        (Super, Shared, Parser_Index, Parse_Items, Config, Shared.Shared_Parser.Resume_Token_Goal, "check")
+        (Super, Shared, Parser_Index, Parse_Items, Config, Config.Resume_Token_Goal, "check")
       then
          Config.Error_Token.ID := Invalid_Token_ID;
          return Success;
@@ -468,7 +468,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                Action : Parse_Action_Rec renames I.Action;
             begin
                if ID /= EOF_ID and then --  can't insert eof
-                  (ID /= Invalid_Token_ID and then Valid_Insert (ID)) and then -- invalid when Verb = Error
+                 (ID /= Invalid_Token_ID and then Valid_Insert (ID)) and then -- invalid when Verb = Error
                  (Config.Ops.Length = 0 or else -- don't insert an id we just pushed back.
                     Config.Ops (Config.Ops.Last_Index) /= (Push_Back, ID, Config.Current_Shared_Token))
                then
@@ -533,15 +533,49 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
+      use all type Lexer.Error_Lists.Cursor;
       use all type Ada.Containers.Count_Type;
 
-      Check_Limit       : Token_Index renames Shared.Shared_Parser.Table.McKenzie_Param.Check_Limit;
-      Resume_Token_Goal : Token_Index renames Shared.Shared_Parser.Resume_Token_Goal;
+      Check_Limit : Token_Index renames Shared.Shared_Parser.Table.McKenzie_Param.Check_Limit;
 
-      EOF_ID            : constant Token_ID                  := Super.Trace.Descriptor.EOF_ID;
-      Start_Line        : constant Line_Number_Type          := Shared.Token (Shared.Last_Index).Line;
-      Start_Error_Count : constant Ada.Containers.Count_Type := Shared.Lexer_Error_Count;
-      Token             : Token_Index                        := Shared.Last_Index;
+      Current_Line            : constant Line_Number_Type := Shared.Token (Config.Current_Shared_Token).Line;
+      Lexer_Error_Token_Index : Base_Token_Index;
+      Lexer_Error_Token       : Base_Token;
+
+      procedure String_Literal_In_Stack
+        (New_Config        : in Configuration_Access;
+         Matching          : in SAL.Peek_Type;
+         String_Literal_ID : in Token_ID)
+      is
+         Tok                  : Recover_Token;
+         J                    : Token_Index;
+         String_Literal_Index : Base_Token_Index;
+      begin
+         --  Matching is index of token on New_Config.Stack containing a string
+         --  literal. Push back thru that token, then delete all
+         --  tokens after the string literal to New_Config.Current_Shared_Token.
+         for I in 1 .. Matching loop
+            Tok := New_Config.Stack.Pop.Token;
+            New_Config.Ops.Append ((Push_Back, Tok.ID, Tok.Min_Terminal_Index));
+         end loop;
+
+         String_Literal_Index := Invalid_Token_Index;
+         J                    := Tok.Min_Terminal_Index;
+         loop
+            exit when J = New_Config.Current_Shared_Token;
+
+            if String_Literal_Index /= Invalid_Token_Index then
+               New_Config.Ops.Append ((Delete, Shared.Token (J).ID, J));
+            end if;
+
+            if Shared.Token (J).ID = String_Literal_ID then
+               New_Config.Ops.Append ((Fast_Forward, J));
+               String_Literal_Index := J;
+            end if;
+
+            J := J + 1;
+         end loop;
+      end String_Literal_In_Stack;
 
       procedure Finish
         (Label       : in String;
@@ -564,8 +598,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  Allow insert/delete tokens
          New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
 
-         if Resume_Token_Goal - Check_Limit < Last + 1 then
-            Resume_Token_Goal := Last + 1 + Check_Limit;
+         if New_Config.Resume_Token_Goal - Check_Limit < New_Config.Current_Shared_Token then
+            New_Config.Resume_Token_Goal := New_Config.Current_Shared_Token + Check_Limit;
+            if Trace_McKenzie > Detail then
+               Put_Line
+                 (Super.Trace.all, Super.Label (Parser_Index), "resume_token_goal:" & Token_Index'Image
+                    (New_Config.Resume_Token_Goal));
+            end if;
          end if;
 
          if Trace_McKenzie > Detail then
@@ -574,152 +613,127 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       end Finish;
 
    begin
+      --  When the lexer finds an unbalanced quote, it inserts a virtual
+      --  balancing quote at the same character position as the unbalanced
+      --  quote, returning an empty string literal there. The parser does
+      --  not see that as an error; it encounters a syntax error before or
+      --  after that string literal.
+      --
+      --  We assume parse error in Config.Error_Token is due to putting the
+      --  balancing quote in the wrong place; find a better place to put the
+      --  balancing quote.
+
       --  First we check to see if there is an unbalanced quote in the
-      --  current line; if not, just return.
+      --  current line; if not, just return. Some lexer errors are for other
+      --  unrecognized characters; see ada_mode-recover_bad_char.adb.
       --
       --  An alternate strategy is to treat the lexer error as a parse error
       --  immediately, but that complicates the parse logic.
-      --
-      --  When the lexer finds an unbalanced quote, it inserts a virtual
-      --  balancing quote at the same character position as the unbalanced
-      --  quote, returning a string literal there. The parser does not see
-      --  that as an error; it encounters a syntax error before or after
-      --  that string literal.
-      --
-      --  We assume the parse error is due to putting the balancing quote in
-      --  the wrong place; find a better place to put the balancing quote.
 
-      if Start_Error_Count > 0 and then Config.Error_Token.ID = Shared.Last_Lexer_Error.Recover_ID then
+      Shared.Find_Lexer_Error (Current_Line);
+
+      Config.String_Quote_Checked := Current_Line;
+
+      Lexer_Error_Token_Index := Shared.Recovered_Lexer_Error (Current_Line);
+
+      if Lexer_Error_Token_Index = Invalid_Token_Index then
+         return;
+      end if;
+
+      Lexer_Error_Token := Shared.Token (Lexer_Error_Token_Index);
+
+      if Lexer_Error_Token.Byte_Region.First = Config.Error_Token.Byte_Region.First then
          --  The parse error is at the string literal; there is a missing
          --  quote before it.
          --
          --  There is no way to tell how many tokens to include in the string
          --  literal, so we just do one non-virtual. See
-         --  test_mckenzie_recover.adb String_Quote_0.
+         --  test_mckenzie_recover.adb String_Quote_0. So far we have not found
+         --  a test case for more than one token.
          declare
             New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-            Tok        : Recover_Token;
+            Token        : Recover_Token;
          begin
             loop
-               Tok := New_Config.Stack.Pop.Token;
-               if not Tok.Virtual then
-                  New_Config.Ops.Append ((Push_Back, Tok.ID, Tok.Min_Terminal_Index));
+               Token := New_Config.Stack.Pop.Token;
+               if not Token.Virtual then
+                  New_Config.Ops.Append ((Push_Back, Token.ID, Token.Min_Terminal_Index));
                   exit;
                end if;
             end loop;
 
-            Finish ("b", New_Config, Tok.Min_Terminal_Index, Config.Current_Shared_Token - 1);
+            Finish ("a", New_Config, Token.Min_Terminal_Index, Config.Current_Shared_Token - 1);
          end;
 
-      elsif Start_Error_Count > 0 and then Shared.Last_Lexer_Error.Line = Start_Line then
+      elsif Lexer_Error_Token.Byte_Region.First < Config.Error_Token.Byte_Region.First then
          --  The unbalanced quote is before the parse error token.
          --
-         --  The missing quote belongs after the unbalanced quote; try
+         --  The missing quote belongs after the parse error token; try
          --  inserting it before the end of the current line. This means all
-         --  tokens from the string literal to Error.Char_Pos are now part of a
+         --  tokens from the string literal to Error.Byte_Pos are now part of a
          --  string literal, so delete them, leaving just the string literal
          --  created by Lexer error recovery.
          --
-         --  The string literal may not be the current token; it may be in a
-         --  reduced token on the stack. See test_mckenzie_recover.adb
-         --  String_Quote_2.
+         --  The string literal may be in a reduced token on the stack. See
+         --  test_mckenzie_recover.adb String_Quote_2.
+
          declare
             use all type SAL.Base_Peek_Type;
-
-            Error                : Lexer.Error_Data renames Shared.Last_Lexer_Error;
-            New_Config           : constant Configuration_Access := Local_Config_Heap.Add (Config);
-            Tok                  : Recover_Token;
-            Matching             : SAL.Peek_Type                 := 1;
-            String_Literal_Index : Token_Index;
+            Matching : SAL.Peek_Type := 1;
          begin
-            if Error.Recover_ID = Shared.Token (Config.Current_Shared_Token).ID then
-               String_Literal_Index := Config.Current_Shared_Token;
-
-            else
-               Find_Descendant_ID (Super.Parser_State (Parser_Index).Tree, Config, Error.Recover_ID, Matching);
-               if Matching = Config.Stack.Depth then
-                  raise Programmer_Error;
+            Find_Descendant_ID (Super.Parser_State (Parser_Index).Tree, Config, Lexer_Error_Token.ID, Matching);
+            if Matching = Config.Stack.Depth then
+               --  String literal is in a virtual nonterm; give up. So far this only
+               --  happens in a high cost non critical config.
+               if Trace_McKenzie > Detail then
+                  Put_Line
+                    (Super.Trace.all, Super.Label (Parser_Index), "abandon missing quote b; string literal in virtual");
                end if;
-
-               for I in 1 .. Matching loop
-                  Tok := New_Config.Stack.Pop.Token;
-                  New_Config.Ops.Append ((Push_Back, Tok.ID, Tok.Min_Terminal_Index));
-               end loop;
-
-               --  Delete all pushed back terminals, except the string literal.
-               String_Literal_Index := Tok.Min_Terminal_Index;
-               loop
-                  exit when Shared.Token (String_Literal_Index).ID = Error.Recover_ID;
-                  New_Config.Ops.Append ((Delete, Shared.Token (String_Literal_Index).ID, String_Literal_Index + 1));
-               end loop;
-
-               New_Config.Ops.Append ((Fast_Forward, String_Literal_Index + 1));
+               return;
             end if;
 
-            loop
-               exit when Shared.Token (Token).Line > Start_Line or
-                 Shared.Token (Token).ID = EOF_ID;
+            declare
+               New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+            begin
+               String_Literal_In_Stack (New_Config, Matching, Lexer_Error_Token.ID);
 
-               Token := Shared.Get_Token (Token + 1);
-            end loop;
-
-            Finish ("a", New_Config, String_Literal_Index + 1, Token - 1);
+               Finish ("b", New_Config, Config.Current_Shared_Token, Shared.Next_Line_Token (Current_Line) - 1);
+            end;
          end;
 
       else
-         --  Check for an unbalanced quote later in the line.
-         loop
-            exit when Shared.Token (Token).Line > Start_Line or
-              Start_Error_Count /= Shared.Lexer_Error_Count or
-              Shared.Token (Token).ID = EOF_ID;
+         --  The unbalanced quote is after the parse error token.
 
-            Token := Shared.Get_Token (Token + 1);
-         end loop;
+         --  case 1: Assume a missing quote belongs before the current token.
+         --  This means all tokens from the current token to Error.Byte_Pos are
+         --  now part of a string literal, so delete them, leaving just the
+         --  string literal created by Lexer error recovery at Token. See
+         --  test_mckenzie_recover.adb String_Quote_3.
 
-         if Start_Error_Count /= Shared.Lexer_Error_Count then
-            --  There is an unbalanced quote is after the parse error token.
+         Finish ("c", Local_Config_Heap.Add (Config), Config.Current_Shared_Token, Lexer_Error_Token_Index - 1);
 
-            --  case 1: Assume a missing quote belongs before the current token.
-            --  This means all tokens from the current token to Error.Char_Pos are
-            --  now part of a string literal, so delete them, leaving just the
-            --  string literal created by Lexer error recovery at Token. See
-            --  test_mckenzie_recover.adb String_Quote_3.
+         --  case 2: Assume the actual error is an extra quote, in which case
+         --  there is a token on the stack containing the string literal that
+         --  should be extended to the found quote. See
+         --  test_mckenzie_recover.adb String_Quote_1.
+         declare
+            use all type SAL.Base_Peek_Type;
+            Matching : SAL.Peek_Type := 1;
+         begin
+            --  Lexer_Error_Token is a string literal; find a matching one.
+            Find_Descendant_ID (Super.Parser_State (Parser_Index).Tree, Config, Lexer_Error_Token.ID, Matching);
 
-            Finish ("c", Local_Config_Heap.Add (Config), Config.Current_Shared_Token, Token - 1);
+            if Matching < Config.Stack.Depth then
+               declare
+                  New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               begin
+                  String_Literal_In_Stack (New_Config, Matching, Lexer_Error_Token.ID);
 
-            --  case 2: Assume the actual error is an extra quote, in which case
-            --  there is a token on the stack containing the string literal that
-            --  should be extended to the found quote. See
-            --  test_mckenzie_recover.adb String_Quote_1.
-            declare
-               use all type SAL.Base_Peek_Type;
-               Matching : SAL.Peek_Type := 1;
-            begin
-               --  Token is a string literal; find a matching one.
-               Find_Descendant_ID (Super.Parser_State (Parser_Index).Tree, Config, Shared.Token (Token).ID, Matching);
-
-               if Matching < Config.Stack.Depth then
-                  declare
-                     New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
-                     Tok        : Recover_Token;
-                  begin
-                     for I in 1 .. Matching loop
-                        Tok := New_Config.Stack.Pop.Token;
-                        New_Config.Ops.Append ((Push_Back, Tok.ID, Tok.Min_Terminal_Index));
-                     end loop;
-
-                     for I in reverse New_Config.Ops.Last_Index - Matching + 1 .. New_Config.Ops.Last_Index loop
-                        New_Config.Ops.Append ((Delete, New_Config.Ops (I).ID, New_Config.Ops (I).Token_Index));
-                     end loop;
-
-                     Finish ("d", New_Config, Config.Current_Shared_Token, Token - 1);
-                  end;
-               end if;
-            end;
-         end if;
+                  Finish ("d", New_Config, Config.Current_Shared_Token, Shared.Next_Line_Token (Current_Line) - 1);
+               end;
+            end if;
+         end;
       end if;
-
-      Config.String_Quote_Checked := Shared.Token (Token).Line;
    end Try_Insert_Quote;
 
    procedure Try_Delete_Input
@@ -730,11 +744,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
       --  Try deleting (= skipping) the current shared input token.
-      Check_Limit       : Token_Index renames Shared.Shared_Parser.Table.McKenzie_Param.Check_Limit;
-      Resume_Token_Goal : Token_Index renames Shared.Shared_Parser.Resume_Token_Goal;
-
-      Trace  : WisiToken.Trace'Class renames Super.Trace.all;
-      EOF_ID : Token_ID renames Trace.Descriptor.EOF_ID;
+      Trace       : WisiToken.Trace'Class renames Super.Trace.all;
+      EOF_ID      : Token_ID renames Trace.Descriptor.EOF_ID;
+      Check_Limit : Token_Index renames Shared.Shared_Parser.Table.McKenzie_Param.Check_Limit;
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
 
@@ -757,8 +769,14 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             New_Config.Ops.Append ((Delete, ID, Config.Current_Shared_Token));
             New_Config.Current_Shared_Token := Shared.Get_Token (New_Config.Current_Shared_Token + 1);
 
-            if Resume_Token_Goal - Check_Limit < New_Config.Current_Shared_Token then
-               Resume_Token_Goal := New_Config.Current_Shared_Token + Check_Limit;
+            if New_Config.Resume_Token_Goal - Check_Limit < New_Config.Current_Shared_Token then
+               New_Config.Resume_Token_Goal := New_Config.Current_Shared_Token + Check_Limit;
+
+               if Trace_McKenzie > Detail then
+                  Put_Line
+                    (Super.Trace.all, Super.Label (Parser_Index), "resume_token_goal:" & Token_Index'Image
+                       (New_Config.Resume_Token_Goal));
+               end if;
             end if;
 
             if Trace_McKenzie > Detail then

@@ -37,8 +37,13 @@ package WisiToken.LR.Parser_No_Recover is
       Table     : Parse_Table_Ptr;
       User_Data : WisiToken.Syntax_Trees.User_Data_Access;
 
+      Lexer_Errors : WisiToken.Lexer.Error_Lists.List;
+
       Terminals : aliased Base_Token_Arrays.Vector;
       --  All terminal grammar tokens, in lexical order.
+
+      Line_Begin_Token : Line_Begin_Token_Vectors.Vector;
+      --  Index into Terminals of first grammar token on line.
 
       Shared_Tree : aliased Syntax_Trees.Base_Tree;
       --  Each parser (normal and recover) has its own branched syntax tree,

@@ -695,22 +695,22 @@ package body WisiToken.LR is
    end Image;
 
    function Next_Grammar_Token
-     (Terminals  : in out          Base_Token_Arrays.Vector;
-      Descriptor : in              WisiToken.Descriptor'Class;
-      Lexer      : not null access WisiToken.Lexer.Instance'Class;
-      User_Data  : in              WisiToken.Syntax_Trees.User_Data_Access)
+     (Terminals        : in out          Base_Token_Arrays.Vector;
+      Errors           : in out          WisiToken.Lexer.Error_Lists.List;
+      Line_Begin_Token : in out          Line_Begin_Token_Vectors.Vector;
+      Descriptor       : in              WisiToken.Descriptor'Class;
+      Lexer            : not null access WisiToken.Lexer.Instance'Class;
+      User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
      return Token_Index
    is
+      use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.User_Data_Access;
 
       Token : Base_Token;
+      Error : Boolean;
    begin
       loop
-         Token.ID          := Lexer.Find_Next;
-         Token.Byte_Region := Lexer.Byte_Region;
-         Token.Line        := Lexer.Line;
-         Token.Col         := Lexer.Column;
-         Token.Char_Region := Lexer.Char_Region;
+         Error := Lexer.Find_Next (Token, Errors);
 
          if User_Data /= null then
             User_Data.Lexer_To_Augmented (Token, Lexer);
@@ -719,6 +719,22 @@ package body WisiToken.LR is
          exit when Token.ID >= Descriptor.First_Terminal;
       end loop;
       Terminals.Append (Token);
+
+      if Lexer.First then
+         Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line));
+         Line_Begin_Token (Token.Line) := Terminals.Last_Index;
+      end if;
+
+      if Error then
+         declare
+            Error : WisiToken.Lexer.Error renames Errors.Reference (Errors.Last);
+         begin
+            if Error.Recover_Char (1) /= ASCII.NUL then
+               Error.Recover_Token := Terminals.Last_Index;
+            end if;
+         end;
+      end if;
+
       return Terminals.Last_Index;
    end Next_Grammar_Token;
 

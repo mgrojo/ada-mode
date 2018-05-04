@@ -394,7 +394,7 @@ package body WisiToken.LR.Parser_No_Recover is
 
    begin
       --  The user must call Lexer.Reset_* to set the input text.
-      Shared_Parser.Lexer.Errors.Clear;
+      Shared_Parser.Lexer_Errors.Clear;
 
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
@@ -432,8 +432,8 @@ package body WisiToken.LR.Parser_No_Recover is
                else
                   Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                     (Next_Grammar_Token
-                       (Shared_Parser.Terminals, Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer,
-                        Shared_Parser.User_Data),
+                       (Shared_Parser.Terminals, Shared_Parser.Lexer_Errors, Shared_Parser.Line_Begin_Token,
+                        Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer, Shared_Parser.User_Data),
                      Shared_Parser.Terminals);
                end if;
             end loop;
@@ -452,9 +452,13 @@ package body WisiToken.LR.Parser_No_Recover is
 
                else
                   --  More than one parser is active; ambiguous parse.
-                  raise WisiToken.Parse_Error with Error_Message
-                    ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
-                     "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
+                  declare
+                     Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
+                  begin
+                     raise WisiToken.Parse_Error with Error_Message
+                       ("", Token.Line, Token.Col,
+                        "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
+                  end;
                end if;
             end;
 
@@ -518,13 +522,16 @@ package body WisiToken.LR.Parser_No_Recover is
                   --  stack).
 
                   if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
-                     raise WisiToken.Parse_Error with Error_Message
-                       ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
-                        ": too many parallel parsers required in grammar state" &
-                          State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
-                          "; simplify grammar, or increase max-parallel (" &
-                          SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
-
+                     declare
+                        Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
+                     begin
+                        raise WisiToken.Parse_Error with Error_Message
+                          ("", Token.Line, Token.Col,
+                           ": too many parallel parsers required in grammar state" &
+                             State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
+                             "; simplify grammar, or increase max-parallel (" &
+                             SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                     end;
                   else
                      if Trace_Parse > Outline then
                         Trace.Put_Line
@@ -604,7 +611,7 @@ package body WisiToken.LR.Parser_No_Recover is
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;
       Descriptor   : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
    begin
-      for Item of Parser.Lexer.Errors loop
+      for Item of Parser.Lexer_Errors loop
          Put_Line
            (Current_Error,
             File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));

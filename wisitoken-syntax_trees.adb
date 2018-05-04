@@ -595,8 +595,6 @@ package body WisiToken.Syntax_Trees is
          Last_Shared_Node => Shared_Tree.Nodes.Last_Index,
          Branched_Nodes   => <>,
          Flush            => Flush);
-
-      Branched_Tree.Branched_Nodes.Set_First (Shared_Tree.Nodes.Last_Index + 1);
    end Initialize;
 
    function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
@@ -807,6 +805,15 @@ package body WisiToken.Syntax_Trees is
       Tree.Shared_Tree.Traversing := False;
       raise;
    end Process_Tree;
+
+   function Root (Tree : in Syntax_Trees.Tree) return Node_Index
+   is begin
+      if Tree.Flush then
+         return Tree.Shared_Tree.Nodes.Last_Index;
+      else
+         return Tree.Branched_Nodes.Last_Index;
+      end if;
+   end Root;
 
    function Same_Token
      (Tree_1  : in Syntax_Trees.Tree'Class;

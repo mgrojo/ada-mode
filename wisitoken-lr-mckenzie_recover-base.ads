@@ -149,8 +149,7 @@ private package WisiToken.LR.McKenzie_Recover.Base is
    protected type Shared_Lookahead (Shared_Parser : not null access LR.Parser.Parser)
    is
       --  There is only one object of this type, declared in Recover. It
-      --  controls access to Get_Next_Token and direct access to shared
-      --  Terminals.
+      --  controls access to Get_Next_Token and Shared_Parser components.
 
       function Get_Token (Index : in Token_Index) return Token_Index;
       --  Return Index, after assuring there is a token in shared Terminals
@@ -162,8 +161,17 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       function Last_Index return Token_Index;
       --  Return Shared_Parser.Terminals.Last_Index.
 
-      function Lexer_Error_Count return Ada.Containers.Count_Type;
-      function Last_Lexer_Error return WisiToken.Lexer.Error_Data;
+      procedure Find_Lexer_Error (Line : in Line_Number_Type);
+
+      function Recovered_Lexer_Error (Line : in Line_Number_Type) return Base_Token_Index;
+      --  Index in Shared_Parser.Terminals of the token returned by a
+      --  recoverd lexer error on Line; Invalid_Token_Index if none. There
+      --  can only be one such token, since it is caused by a missing string
+      --  quote, which is terminated by line end.
+
+      function Next_Line_Token (Line : in Line_Number_Type) return Token_Index;
+      --  Index in Shared_Parser.Terminals of first token after end of
+      --  current line; may be EOF.
 
    end Shared_Lookahead;
 

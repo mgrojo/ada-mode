@@ -169,12 +169,15 @@ package body WisiToken.LR.McKenzie_Recover is
       Config : constant Configuration_Access := Parser_State.Recover.Config_Heap.Add (Configuration'(others => <>));
       Error  : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
    begin
+      Config.Resume_Token_Goal := Parser_State.Shared_Token + Shared_Parser.Table.McKenzie_Param.Check_Limit;
+
       if Trace_McKenzie > Outline then
          Trace.New_Line;
          Trace.Put_Line
            ("parser" & Integer'Image (Parser_State.Label) &
               ": State" & State_Index'Image (Parser_State.Stack (1).State) &
-              " Current_Token" & Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all));
+              " Current_Token" & Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
+              " Resume_Token_Goal" & Token_Index'Image (Config.Resume_Token_Goal));
          Trace.Put_Line (Image (Error, Parser_State.Tree, Trace.Descriptor.all));
          if Trace_McKenzie > Extra then
             Put_Line
@@ -259,8 +262,6 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Worker_Tasks : array (1 .. Task_Count) of Worker_Task (Super'Access, Shared'Access);
 
-      Check_Limit : constant Token_Index := Shared_Parser.Table.McKenzie_Param.Check_Limit;
-
       procedure Cleanup
       is begin
          for I in Worker_Tasks'Range loop
@@ -278,12 +279,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Super.Initialize;
 
-      Shared_Parser.Resume_Token_Goal := Token_Index'First;
-
       for Parser_State of Parsers loop
-         Shared_Parser.Resume_Token_Goal := Token_Index'Max
-           (Shared_Parser.Resume_Token_Goal, Parser_State.Shared_Token + Check_Limit);
-
          Recover_Init (Shared_Parser, Parser_State);
       end loop;
 
@@ -344,12 +340,16 @@ package body WisiToken.LR.McKenzie_Recover is
 
                   if Data.Results.Count > 1 then
                      if Parsers.Count + Data.Results.Count > Shared_Parser.Max_Parallel then
-                        raise WisiToken.Parse_Error with Error_Message
-                          ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
-                           ": too many parallel parsers required in grammar state" &
-                             State_Index'Image (Cur.State_Ref.Stack.Peek.State) &
-                             "; simplify grammar, or increase max-parallel (" &
-                             SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                        declare
+                           Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
+                        begin
+                           raise WisiToken.Parse_Error with Error_Message
+                             ("", Token.Line, Token.Col,
+                              ": too many parallel parsers required in grammar state" &
+                                State_Index'Image (Cur.State_Ref.Stack.Peek.State) &
+                                "; simplify grammar, or increase max-parallel (" &
+                                SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                        end;
                      end if;
 
                      for I in 1 .. Data.Results.Count - 1 loop
@@ -390,6 +390,8 @@ package body WisiToken.LR.McKenzie_Recover is
 
       --  Edit Parser_State to apply solutions.
 
+      Shared_Parser.Resume_Token_Goal := Token_Index'First;
+
       for Parser_State of Parsers loop
          if Parser_State.Recover.Success then
             declare
@@ -410,6 +412,9 @@ package body WisiToken.LR.McKenzie_Recover is
                Last_Token_Index   : Base_Token_Index := 0;
             begin
                Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
+
+               Shared_Parser.Resume_Token_Goal := Token_Index'Max
+                 (Shared_Parser.Resume_Token_Goal, Result.Resume_Token_Goal);
 
                --  We apply Push_Back ops to Parser_State.Stack up to the first
                --  Fast_Forward, and enqueue Insert and Delete ops on

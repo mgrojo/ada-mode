@@ -65,7 +65,7 @@ package body WisiToken.Lexer.Regexp is
          Still_Matching := False;
 
          for I in Lexer.Syntax'Range loop
-            if State (Lexer.Syntax (I).Regexp) /= Error then
+            if State (Lexer.Syntax (I).Regexp) /= WisiToken.Regexp.Error then
                Current_State := Match
                  (Lexer.Syntax (I).Regexp,
                   Lexer.Source.Buffer (Lexer.Buffer_Head .. Lexer.Source.Buffer'Last),
@@ -85,7 +85,7 @@ package body WisiToken.Lexer.Regexp is
                      Best_Match_Length := Current_Match_Length;
                   end if;
 
-               when Error =>
+               when WisiToken.Regexp.Error =>
                   null;
                end case;
             end if;
@@ -201,8 +201,13 @@ package body WisiToken.Lexer.Regexp is
       Lexer.Buffer_Head := Lexer.Source.Buffer'First;
    end Reset;
 
-   overriding function Find_Next (Lexer : in out Instance) return Token_ID
+   overriding function Find_Next
+     (Lexer  : in out Instance;
+      Token  :    out Base_Token;
+      Errors : in out Error_Lists.List)
+     return Boolean
    is
+      pragma Unreferenced (Errors);
       use type Token_ID;
    begin
       loop
@@ -218,23 +223,15 @@ package body WisiToken.Lexer.Regexp is
 
       end loop;
 
-      return Lexer.ID;
+      Token :=
+        (ID          => Lexer.ID,
+         Byte_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)),
+         Line        => Invalid_Line_Number,
+         Col         => Ada.Text_IO.Count (Lexer.Lexeme_Head),
+         Char_Region => (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail)));
+
+      return False;
    end Find_Next;
-
-   overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
-   is begin
-      return Ada.Text_IO.Count (Lexer.Lexeme_Head);
-   end Column;
-
-   overriding function Char_Region (Lexer : in Instance) return Buffer_Region
-   is begin
-      return (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail));
-   end Char_Region;
-
-   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
-   is begin
-      return (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail));
-   end Byte_Region;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String
    is begin

@@ -19,6 +19,8 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+--  FIXME: move Resume_Token_Goal into Parser_State, use Pause to sync all parsers.
+
 review FIXME:
 
 change configure_access to persistent_ref record with container, node components;
