@@ -647,8 +647,8 @@ private
       Lexer            : not null access WisiToken.Lexer.Instance'Class;
       User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
      return Token_Index;
-   --  Get next token from Lexer, call User_Data.Lexer_To_Augmented.
-   --  If it is a grammar token, store in Terminals and return its ID.
+   --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
+   --  it is a grammar token, store in Terminals and return its index.
    --  Otherwise, repeat.
 
 end WisiToken.LR;

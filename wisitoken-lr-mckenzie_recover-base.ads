@@ -161,7 +161,9 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       function Last_Index return Token_Index;
       --  Return Shared_Parser.Terminals.Last_Index.
 
-      procedure Find_Lexer_Error (Line : in Line_Number_Type);
+      procedure Lex_Line (Line : in Line_Number_Type);
+      --  Ensure all terminals in Line, and one following (or EOF) are in
+      --  Shared_Parser.Terminals.
 
       function Recovered_Lexer_Error (Line : in Line_Number_Type) return Base_Token_Index;
       --  Index in Shared_Parser.Terminals of the token returned by a

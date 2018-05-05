@@ -390,7 +390,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          return Shared_Parser.Terminals.Last_Index;
       end Last_Index;
 
-      procedure Find_Lexer_Error (Line : in Line_Number_Type)
+      procedure Lex_Line (Line : in Line_Number_Type)
       is
          use Ada.Containers;
          EOF_ID            : constant Token_ID := Shared_Parser.Trace.Descriptor.EOF_ID;
@@ -415,7 +415,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
 
             Shared_Parser.String_Quote_Checked := Line;
          end if;
-      end Find_Lexer_Error;
+      end Lex_Line;
 
       function Recovered_Lexer_Error (Line : in Line_Number_Type) return Base_Token_Index
       is

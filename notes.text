@@ -19,7 +19,9 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
---  FIXME: move Resume_Token_Goal into Parser_State, use Pause to sync all parsers.
+move Resume_Token_Goal into Parser_State, use Pause to sync all parsers.
+
+add Try_Insert_Paren; see ada_mode-recover_string_quote_1
 
 review FIXME:
 

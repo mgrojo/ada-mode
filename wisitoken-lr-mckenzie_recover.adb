@@ -344,7 +344,7 @@ package body WisiToken.LR.McKenzie_Recover is
                            Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
                         begin
                            raise WisiToken.Parse_Error with Error_Message
-                             ("", Token.Line, Token.Col,
+                             ("", Token.Line, Token.Column,
                               ": too many parallel parsers required in grammar state" &
                                 State_Index'Image (Cur.State_Ref.Stack.Peek.State) &
                                 "; simplify grammar, or increase max-parallel (" &

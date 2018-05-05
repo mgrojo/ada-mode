@@ -818,7 +818,7 @@ package body WisiToken.LR.Parser is
                            Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
                         begin
                            raise WisiToken.Parse_Error with Error_Message
-                             ("", Token.Line, Token.Col,
+                             ("", Token.Line, Token.Column,
                               "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                         end;
                      end if;
@@ -996,7 +996,7 @@ package body WisiToken.LR.Parser is
                         Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
                      begin
                         raise WisiToken.Parse_Error with Error_Message
-                          ("", Token.Line, Token.Col,
+                          ("", Token.Line, Token.Column,
                            ": too many parallel parsers required in grammar state" &
                              State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
                              "; simplify grammar, or increase max-parallel (" &
@@ -1121,7 +1121,7 @@ package body WisiToken.LR.Parser is
                      Put_Line
                        (Current_Error,
                         Error_Message
-                          (File_Name, Token.Line, Token.Col,
+                          (File_Name, Token.Line, Token.Column,
                            "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                              ", found '" & Parser.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
                   end;

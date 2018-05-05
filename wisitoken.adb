@@ -305,13 +305,13 @@ package body WisiToken is
    function Error_Message
      (File_Name : in String;
       Line      : in Line_Number_Type;
-      Col       : in Ada.Text_IO.Count;
+      Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String
    is begin
       return File_Name & ":" &
         Int_Image (if Line = Invalid_Line_Number then Integer'(0) else Integer (Line)) & ":" &
-        Int_Image (Integer (Col)) & ": " &
+        Int_Image (Integer (Column)) & ": " &
         Message;
    end Error_Message;
 

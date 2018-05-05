@@ -236,8 +236,8 @@ package WisiToken is
       Byte_Region : Buffer_Region     := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
 
-      Line : Line_Number_Type  := Invalid_Line_Number;
-      Col  : Ada.Text_IO.Count := 0;
+      Line   : Line_Number_Type  := Invalid_Line_Number;
+      Column : Ada.Text_IO.Count := 0;
       --  At start of token.
 
       Char_Region : Buffer_Region := Null_Buffer_Region;
@@ -375,7 +375,7 @@ package WisiToken is
    function Error_Message
      (File_Name : in String;
       Line      : in Line_Number_Type;
-      Col       : in Ada.Text_IO.Count;
+      Column    : in Ada.Text_IO.Count;
       Message   : in String)
      return String;
    --  Return Gnu-formatted error message.

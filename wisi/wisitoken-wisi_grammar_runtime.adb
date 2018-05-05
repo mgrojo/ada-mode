@@ -457,7 +457,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
                          +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                   else
-                     Put_Error (Error_Message (-Data.Input_File_Name, Token.Line, Token.Col, "unexpected syntax"));
+                     Put_Error (Error_Message (-Data.Input_File_Name, Token.Line, Token.Column, "unexpected syntax"));
                      raise WisiToken.Syntax_Error;
 
                   end if;

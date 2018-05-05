@@ -59,12 +59,13 @@ OK test_mckenzie_recover.adb : Unfinished_Subprogram_Type_1
 OK test_mckenzie_recover.adb : String_Quote_1
 OK test_mckenzie_recover.adb : String_Quote_2
 OK test_mckenzie_recover.adb : String_Quote_3
+OK test_mckenzie_recover.adb : String_Quote_4
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   64
-Successful Tests:  64
+Total Tests Run:   65
+Successful Tests:  65
 Failed Assertions: 0
 Unexpected Errors: 0

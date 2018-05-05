@@ -716,14 +716,21 @@ package body WisiToken.LR is
             User_Data.Lexer_To_Augmented (Token, Lexer);
          end if;
 
+         if Token.Line /= Invalid_Line_Number then
+            --  Some lexers don't support line numbers.
+            if Lexer.First then
+               Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line));
+               Line_Begin_Token (Token.Line) := Terminals.Last_Index + 1;
+
+            elsif Token.ID = Descriptor.EOF_ID then
+               Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line + 1));
+               Line_Begin_Token (Token.Line + 1) := Terminals.Last_Index + 1;
+            end if;
+         end if;
+
          exit when Token.ID >= Descriptor.First_Terminal;
       end loop;
       Terminals.Append (Token);
-
-      if Lexer.First then
-         Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line));
-         Line_Begin_Token (Token.Line) := Terminals.Last_Index;
-      end if;
 
       if Error then
          declare

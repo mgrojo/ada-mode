@@ -147,7 +147,7 @@ package body WisiToken.Lexer.re2c is
 
             Line => Lexer.Line,
 
-            Col =>
+            Column =>
               (if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID or
                  Lexer.ID = Lexer.Trace.Descriptor.EOF_ID
                then 0

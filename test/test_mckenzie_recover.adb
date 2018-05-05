@@ -777,9 +777,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +Wisi_EOI_ID,
          Ops                     => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
          Enqueue_Low             => 57,
-         Enqueue_High            => 170,
+         Enqueue_High            => 189,
          Check_Low               => 16,
-         Check_High              => 31,
+         Check_High              => 36,
          Cost                    => 5);
    end Zombie_In_Resume;
 
@@ -817,7 +817,9 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  Test that syntax error recovery handles a missing string quote.
+      --  Test that syntax error recovery handles a missing string quote;
+      --  Try_Insert_Quote case a.
+      --
       --  See also String_Quote_*, ada_mode-recover_bad_char.adb,
       --  ada_mode-recover_string_quote_*.
 
@@ -1440,7 +1442,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  From ada_mode-recover_string_quote_2.adb
+      --  From ada_mode-recover_string_quote_2.adb. Try_Insert_Quote case e.
       Parse_Text
         ("procedure Handle_Search is begin if Is_Empty then return ""text/html""; else Response := " &
            --      |10       |20       |30       |40       |50        |60        |70       |80       |90
@@ -1459,8 +1461,7 @@ package body Test_McKenzie_Recover is
       --  existing ones; the later involves resetting the lexer, which we
       --  don't support.
       --
-      --  Before Lexer notices the missing quote, parser enters McKenzie
-      --  recover at '/' 99.
+      --  Recover entered at '/' 99, before the lexer error.
       --
       --  It inserts a virtual quote before '/' 98, succeeds.
 
@@ -1472,7 +1473,7 @@ package body Test_McKenzie_Recover is
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
          Enqueue_Low             => 40,
-         Enqueue_High            => 69,
+         Enqueue_High            => 82,
          Check_Low               => 7,
          Check_High              => 11,
          Cost                    => 1);
@@ -1482,6 +1483,8 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
+      --  Try_Insert_Quote case b.
+
       Parse_Text
         ("procedure Handle_Search is begin if Is_Empty then return ""text/html""; else Response := " &
            --      |10       |20       |30       |40       |50        |60        |70       |80       |90
@@ -1491,25 +1494,25 @@ package body Test_McKenzie_Recover is
       --     14                     27               28
       --      15
 
-      --  The error is a missing quote before ';' 110. Lexer detects the
-      --  missing quote at LF 112, inserts recover quote at 88.
+      --  The actual error is a missing quote before ';' 110. Lexer detects
+      --  the unbalanced quote at 88.
       --
-      --  Recover moves the inserted quote to just before LF 112, then
-      --  inserts ';'.
+      --  Recover entered at '/' 90, after the lexer error. It moves the
+      --  inserted quote to just before LF 112, then inserts ';'.
 
       Check_Recover
         (Errors_Length           => 1,
          Error_Token_ID          => +SLASH_ID,
          Error_Token_Byte_Region => (90, 90),
          Ops                     => +(Push_Back, +LESS_ID, 15) & (Push_Back, +simple_expression_ID, 14) &
-           (Fast_Forward, 14) & (Delete, +LESS_ID, 15) & (Delete, +SLASH_ID, 16) & (Delete, +IDENTIFIER_ID, 17) &
+           (Fast_Forward, 15) & (Delete, +LESS_ID, 15) & (Delete, +SLASH_ID, 16) & (Delete, +IDENTIFIER_ID, 17) &
            (Delete, +GREATER_ID, 18) & (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +BODY_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Delete, +LESS_ID, 23) & (Delete, +SLASH_ID, 24) & (Delete, +IDENTIFIER_ID, 25) &
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) & (Insert, +SEMICOLON_ID, 28),
          Enqueue_Low             => 58,
          Enqueue_High            => 136,
          Check_Low               => 10,
-         Check_High              => 18,
+         Check_High              => 20,
          Cost                    => 1);
    end String_Quote_2;
 
@@ -1517,6 +1520,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
+      --  Try_Insert_Quote case c
       Parse_Text
         ("procedure Handle_Search is begin if Is_Empty then return ""text/html""; else Response := " &
            --      |10       |20       |30       |40       |50        |60       |70       |80
@@ -1529,7 +1533,7 @@ package body Test_McKenzie_Recover is
 
       --  Actual error is missing quote at 102.
       --
-      --  Parser enters McKenzie --  recover at '<' 102.
+      --  Recover entered at '<' 101, before lexer error.
 
       Check_Recover
         (Errors_Length           => 1,
@@ -1545,6 +1549,43 @@ package body Test_McKenzie_Recover is
          Cost                    => 1);
 
    end String_Quote_3;
+
+   procedure String_Quote_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  From ada_mode-recover_string_quote_1, simplified to just missing
+      --  quote. Try_Insert_Quote case d.
+
+      Parse_Text
+        ("procedure Quote_Unquote is begin Put_Line (Test_File, ""8"" & Tab & ""nine""); " & ASCII.LF &
+           --      |10       |20       |30       |40       |50         |60        |70        |76
+           --  1    2             3  4     5        6 7       8  9    10 11 12 13     14
+           --                                                                          15
+           "Put_Line (ten"" & Tab & "" eleven""); Close (Test_File); end Quote_Unquote;");
+      --    |77 |81       |90        |100       |110      |120      |130      |140
+      --    16       17  19            20    21   24
+      --              18                       22
+      --                                        23
+
+      --  Actual error is missing '"' at 87.
+      --
+      --  Parser enters McKenzie recover at '".."' 90..100, before the lexer error
+      --  at 108.
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +STRING_LITERAL_ID,
+         Error_Token_Byte_Region => (90, 100),
+         Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
+           (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
+         Enqueue_Low             => 87,
+         Enqueue_High            => 127,
+         Check_Low               => 7,
+         Check_High              => 9,
+         Cost                    => 1);
+
+   end String_Quote_4;
 
    ----------
    --  Public subprograms
@@ -1589,6 +1630,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, String_Quote_1'Access, "String_Quote_1");
       Register_Routine (T, String_Quote_2'Access, "String_Quote_2");
       Register_Routine (T, String_Quote_3'Access, "String_Quote_3");
+      Register_Routine (T, String_Quote_4'Access, "String_Quote_4");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
