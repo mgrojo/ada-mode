@@ -71,10 +71,12 @@ private
      (Tree           : in     Syntax_Trees.Tree;
       Config         : in     Configuration;
       ID             : in     Token_ID;
+      ID_Set         : in     Token_ID_Set;
       Matching_Index : in out SAL.Peek_Type);
-   --  Search Config.Stack for a token with a descendant with ID,
-   --  starting at Matching_Index. If found, Matching_Index points to it.
-   --  If not found, Matching_Index = Config.Stack.Depth.
+   --  Search Config.Stack for a token with id in ID_Set, with a
+   --  descendant with id = ID, starting at Matching_Index. If found,
+   --  Matching_Index points to it. If not found, Matching_Index =
+   --  Config.Stack.Depth.
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;

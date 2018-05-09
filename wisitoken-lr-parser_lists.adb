@@ -105,6 +105,16 @@ package body WisiToken.LR.Parser_Lists is
       return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Label;
    end Label;
 
+   function Total_Recover_Cost (Cursor : in Parser_Lists.Cursor) return Integer
+   is
+      Result : Integer := 0;
+   begin
+      for Error of Parser_State_Lists.Constant_Reference (Cursor.Ptr).Errors loop
+         Result := Error.Recover.Cost;
+      end loop;
+      return Result;
+   end Total_Recover_Cost;
+
    function Max_Recover_Ops_Length (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type
    is
       use Ada.Containers;

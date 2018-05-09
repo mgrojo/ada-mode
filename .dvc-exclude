@@ -1,3 +1,4 @@
 Test/test_one_harness.adb
 build/Makefile
 build/prj.el
+build/wisitoken.prj

@@ -447,7 +447,9 @@ package body WisiToken.LR.Parser is
       if not Other.Is_Done then
          --  Both have the same number of errors, otherwise one would have been
          --  zombied or terminated earlier.
-         if Other.Max_Recover_Ops_Length > Current_Parser.Max_Recover_Ops_Length then
+         if Other.Total_Recover_Cost > Current_Parser.Total_Recover_Cost then
+            Terminate_Parser (Shared_Parser, "duplicate state", Other);
+         elsif Other.Max_Recover_Ops_Length > Current_Parser.Max_Recover_Ops_Length then
             Terminate_Parser (Shared_Parser, "duplicate state", Other);
          else
             Terminate_Parser (Shared_Parser, "duplicate state", Current_Parser);
@@ -508,6 +510,7 @@ package body WisiToken.LR.Parser is
       Table                        : in              Parse_Table_Ptr;
       Language_Fixes               : in              Language_Fixes_Access;
       Language_Constrain_Terminals : in              Language_Constrain_Terminals_Access;
+      Language_String_ID_Set       : in              Language_String_ID_Set_Access;
       User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
       Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label           : in              Integer            := 1;
@@ -520,6 +523,7 @@ package body WisiToken.LR.Parser is
       Parser.Table                        := Table;
       Parser.Language_Fixes               := Language_Fixes;
       Parser.Language_Constrain_Terminals := Language_Constrain_Terminals;
+      Parser.Language_String_ID_Set       := Language_String_ID_Set;
       Parser.User_Data                    := User_Data;
       Parser.Enable_McKenzie_Recover      :=
         Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
@@ -936,7 +940,8 @@ package body WisiToken.LR.Parser is
             exit when Current_Parser.Is_Done;
 
             if Shared_Parser.Terminate_Same_State and
-              Current_Verb in Shift | Shift_Recover
+              Current_Verb in Shift | Shift_Recover and
+              Current_Parser.State_Ref.Recover_Insert_Delete.Count = 0
             then
                Duplicate_State (Shared_Parser, Current_Parser);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now

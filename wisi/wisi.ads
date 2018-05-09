@@ -77,17 +77,18 @@ package Wisi is
    type Generate_Param_Type is record
       --  Set by grammar file declarations. Error recover parameters
       --  are elsewhere.
-      Case_Insensitive          : Boolean                  := False;
-      End_Names_Optional_Option : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      First_Parser_Label        : Integer                  := 0;
-      First_State_Index         : Integer                  := 0;
-      Interface_Kind            : Interface_Type           := None;
-      Lexer                     : Lexer_Type               := None;
-      Language_Runtime          : Boolean                  := True;
-      Error_Recover             : Boolean                  := False;
-      Output_Language           : Output_Language_Type     := None;
-      Generator_Algorithm       : Generator_Algorithm_Type := None;
-      Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Case_Insensitive              : Boolean                  := False;
+      Embedded_Quote_Escape_Doubled : Boolean                  := False;
+      End_Names_Optional_Option     : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      First_Parser_Label            : Integer                  := 0;
+      First_State_Index             : Integer                  := 0;
+      Interface_Kind                : Interface_Type           := None;
+      Lexer                         : Lexer_Type               := None;
+      Language_Runtime              : Boolean                  := True;
+      Error_Recover                 : Boolean                  := False;
+      Output_Language               : Output_Language_Type     := None;
+      Generator_Algorithm           : Generator_Algorithm_Type := None;
+      Start_Token                   : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    type Prologues is record

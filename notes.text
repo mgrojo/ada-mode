@@ -21,7 +21,10 @@ org.wisitoken.stephe-1 - available
  current work
 move Resume_Token_Goal into Parser_State, use Pause to sync all parsers.
 
-add Try_Insert_Paren; see ada_mode-recover_string_quote_1
+change mckenzie_recover.base.shared_lookahead.shared_parser to private component
+    add appropriate access functions/procedures
+
+    similarly for super
 
 review FIXME:
 

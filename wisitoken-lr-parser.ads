@@ -30,6 +30,50 @@ package WisiToken.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
 
+   type Language_Fixes_Access is access function
+     (Trace             : in out WisiToken.Trace'Class;
+      Lexer             : in     WisiToken.Lexer.Handle;
+      Parser_Label      : in     Natural;
+      Terminals         : in     Base_Token_Arrays.Vector;
+      Tree              : in     Syntax_Trees.Tree;
+      Local_Config_Heap : in out Config_Heaps.Heap_Type;
+      Config            : in     Configuration)
+     return Non_Success_Status;
+   --  Config encountered a parse table Error action, or failed a
+   --  semantic check; attempt to provide a language-specific fix,
+   --  enqueuing new configs on Local_Config_Heap.
+   --
+   --  For a failed semantic check, Config.Stack is in the pre-reduce
+   --  state, Config.Error_Token gives the nonterm token,
+   --  Config.Check_Token_Count the token count for the reduce. May be
+   --  called with Nonterm.Virtual = True or Tree.Valid_Indices (stack
+   --  top token_count items) false. Return Continue if ignoring the
+   --  error is a viable solution, Abandon otherwise.
+   --
+   --  For an Error action, Config.Error_Token gives the terminal that
+   --  caused the error. Return Abandon if a known good solution is
+   --  enqueued, Continue otherwise.
+
+   type Language_Constrain_Terminals_Access is access function
+     (Trace        : in out WisiToken.Trace'Class;
+      Parser_Label : in     Natural;
+      Table        : in     Parse_Table;
+      Config       : in     Configuration)
+     return Token_ID_Set;
+   --  Return a token ID set that constrains McKenzie explore.
+   --
+   --  For example, in some cases, the best strategy is to complete the
+   --  current production as quickly as possible; only insert terminals
+   --  that are in the minimal terminal sequence for each production.
+
+   type Language_String_ID_Set_Access is access function
+     (Descriptor        : in WisiToken.Descriptor;
+      String_Literal_ID : in Token_ID)
+     return Token_ID_Set;
+   --  Return a Token_ID_Set containing String_Literal_ID and
+   --  nonterminals that can contain String_Literal_ID as part of an
+   --  expression.
+
    type Post_Recover_Access is access procedure;
 
    type Parser is new Ada.Finalization.Limited_Controlled with record
@@ -41,6 +85,8 @@ package WisiToken.LR.Parser is
       Language_Fixes : Language_Fixes_Access;
 
       Language_Constrain_Terminals : Language_Constrain_Terminals_Access;
+
+      Language_String_ID_Set : Language_String_ID_Set_Access;
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
@@ -91,6 +137,7 @@ package WisiToken.LR.Parser is
       Table                        : in              Parse_Table_Ptr;
       Language_Fixes               : in              Language_Fixes_Access;
       Language_Constrain_Terminals : in              Language_Constrain_Terminals_Access;
+      Language_String_ID_Set       : in              Language_String_ID_Set_Access;
       User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
       Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label           : in              Integer            := 1;

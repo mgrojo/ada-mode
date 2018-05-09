@@ -118,21 +118,22 @@ package body Wisi.Gen_Output_Ada_Common is
       end case;
 
       Indent_Line ("Descriptor : aliased WisiToken.Descriptor :=");
-      Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Descriptor.First_Terminal) & ",");
+      Indent_Line ("  (First_Terminal                =>" & WisiToken.Token_ID'Image (Descriptor.First_Terminal) & ",");
       Indent := Indent + 3;
-      Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");
-      Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Descriptor.First_Nonterminal) & ",");
-      Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
-      Indent_Line ("EOF_ID            =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
-      Indent_Line ("Accept_ID         =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
-      Indent_Line ("Case_Insensitive  => " & Image (Params.Case_Insensitive) & ",");
-      Indent_Line ("New_Line_ID       =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
-      Indent_Line ("Comment_ID        =>" & WisiToken.Token_ID'Image (Descriptor.Comment_ID) & ",");
-      Indent_Line ("Left_Paren_ID     =>" & WisiToken.Token_ID'Image (Descriptor.Left_Paren_ID) & ",");
-      Indent_Line ("Right_Paren_ID    =>" & WisiToken.Token_ID'Image (Descriptor.Right_Paren_ID) & ",");
-      Indent_Line ("String_1_ID       =>" & WisiToken.Token_ID'Image (Descriptor.String_1_ID) & ",");
-      Indent_Line ("String_2_ID       =>" & WisiToken.Token_ID'Image (Descriptor.String_2_ID) & ",");
-      Indent_Line ("Image             =>");
+      Indent_Line ("Last_Terminal                 =>" & WisiToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");
+      Indent_Line ("First_Nonterminal             =>" & WisiToken.Token_ID'Image (Descriptor.First_Nonterminal) & ",");
+      Indent_Line ("Last_Nonterminal              =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
+      Indent_Line ("EOF_ID                        =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
+      Indent_Line ("Accept_ID                     =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
+      Indent_Line ("Case_Insensitive              => " & Image (Params.Case_Insensitive) & ",");
+      Indent_Line ("New_Line_ID                   =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
+      Indent_Line ("Comment_ID                    =>" & WisiToken.Token_ID'Image (Descriptor.Comment_ID) & ",");
+      Indent_Line ("Left_Paren_ID                 =>" & WisiToken.Token_ID'Image (Descriptor.Left_Paren_ID) & ",");
+      Indent_Line ("Right_Paren_ID                =>" & WisiToken.Token_ID'Image (Descriptor.Right_Paren_ID) & ",");
+      Indent_Line ("String_1_ID                   =>" & WisiToken.Token_ID'Image (Descriptor.String_1_ID) & ",");
+      Indent_Line ("String_2_ID                   =>" & WisiToken.Token_ID'Image (Descriptor.String_2_ID) & ",");
+      Indent_Line ("Embedded_Quote_Escape_Doubled => " & Image (Params.Embedded_Quote_Escape_Doubled) & ",");
+      Indent_Line ("Image                         =>");
       declare
          use Standard.Ada.Strings.Unbounded;
          Paren_Done : Boolean := False;
@@ -204,8 +205,11 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("procedure Create_Parser");
          if Params.Error_Recover then
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
-            Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;");
+            Indent_Line
+              ("   Language_Constrain_Terminals : in     WisiToken.LR.Parser.Language_Constrain_Terminals_Access;");
+            Indent_Line
+              ("   Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;");
          else
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
          end if;
@@ -223,9 +227,11 @@ package body Wisi.Gen_Output_Ada_Common is
             Indent_Line ("procedure Create_Parser");
             if Params.Error_Recover then
                Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-               Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
+               Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;");
                Indent_Line
-                 ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+                 ("   Language_Constrain_Terminals : in     WisiToken.LR.Parser.Language_Constrain_Terminals_Access;");
+               Indent_Line
+                 ("   Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;");
             else
                Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
             end if;
@@ -659,8 +665,11 @@ package body Wisi.Gen_Output_Ada_Common is
       when None | Process =>
          if Params.Error_Recover then
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;");
-            Indent_Line ("   Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;");
+            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;");
+            Indent_Line
+              ("   Language_Constrain_Terminals : in     WisiToken.LR.Parser.Language_Constrain_Terminals_Access;");
+               Indent_Line
+                 ("   Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;");
          else
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
          end if;
@@ -748,6 +757,7 @@ package body Wisi.Gen_Output_Ada_Common is
          if Params.Error_Recover then
             Indent_Line ("   Language_Fixes,");
             Indent_Line ("   Language_Constrain_Terminals,");
+            Indent_Line ("   Language_String_ID_Set,");
          end if;
          Indent_Line ("   User_Data,");
          Indent_Line ("   Max_Parallel         => 15,");

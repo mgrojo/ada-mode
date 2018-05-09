@@ -163,6 +163,7 @@ package body WisiToken.LR.McKenzie_Recover is
      (Shared_Parser : in out LR.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
+      use all type WisiToken.LR.Parser.Language_Fixes_Access;
       use all type SAL.Base_Peek_Type;
 
       Trace  : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
@@ -477,7 +478,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                   when Insert =>
                      Insert_Seen := True;
-                     if not (Virtual_Inserted or Fast_Forward_Seen) and Op.Token_Index = Parser_State.Shared_Token then
+                     if (not Virtual_Inserted) and Op.Token_Index = Parser_State.Shared_Token then
                         Parser_State.Current_Token := Parser_State.Tree.Add_Terminal (Op.ID);
                         Virtual_Inserted := True;
                      else
@@ -485,7 +486,7 @@ package body WisiToken.LR.McKenzie_Recover is
                      end if;
 
                   when Delete =>
-                     if not (Insert_Seen or Fast_Forward_Seen) and Op.Token_Index = Parser_State.Shared_Token then
+                     if (not Insert_Seen) and Op.Token_Index = Parser_State.Shared_Token then
                         Parser_State.Shared_Token := Op.Token_Index + 1;
                         Tokens_Deleted            := True;
                      else
@@ -620,6 +621,7 @@ package body WisiToken.LR.McKenzie_Recover is
      (Tree           : in     Syntax_Trees.Tree;
       Config         : in     Configuration;
       ID             : in     Token_ID;
+      ID_Set         : in     Token_ID_Set;
       Matching_Index : in out SAL.Peek_Type)
    is
       use Syntax_Trees;
@@ -627,8 +629,9 @@ package body WisiToken.LR.McKenzie_Recover is
    begin
       loop
          exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
-         exit when Config.Stack (Matching_Index).Tree_Index /= Invalid_Node_Index and then
-           Tree.Find_Descendant (Config.Stack (Matching_Index).Tree_Index, ID) /= Invalid_Node_Index;
+         exit when ID_Set (Config.Stack (Matching_Index).Token.ID) and
+           (Config.Stack (Matching_Index).Tree_Index /= Invalid_Node_Index and then
+              Tree.Find_Descendant (Config.Stack (Matching_Index).Tree_Index, ID) /= Invalid_Node_Index);
 
          Matching_Index := Matching_Index + 1;
       end loop;

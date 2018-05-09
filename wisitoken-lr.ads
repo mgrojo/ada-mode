@@ -537,42 +537,6 @@ package WisiToken.LR is
    type Check_Status is (Success, Abandon, Continue);
    subtype Non_Success_Status is Check_Status range Abandon .. Continue;
 
-   type Language_Fixes_Access is access function
-     (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : in     WisiToken.Lexer.Handle;
-      Parser_Label      : in     Natural;
-      Terminals         : in     Base_Token_Arrays.Vector;
-      Tree              : in     Syntax_Trees.Tree;
-      Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration)
-     return Non_Success_Status;
-   --  Config encountered a parse table Error action, or failed a
-   --  semantic check; attempt to provide a language-specific fix,
-   --  enqueuing new configs on Local_Config_Heap.
-   --
-   --  For a failed semantic check, Config.Stack is in the pre-reduce
-   --  state, Config.Error_Token gives the nonterm token,
-   --  Config.Check_Token_Count the token count for the reduce. May be
-   --  called with Nonterm.Virtual = True or Tree.Valid_Indices (stack
-   --  top token_count items) false. Return Continue if ignoring the
-   --  error is a viable solution, Abandon otherwise.
-   --
-   --  For an Error action, Config.Error_Token gives the terminal that
-   --  caused the error. Return Abandon if a known good solution is
-   --  enqueued, Continue otherwise.
-
-   type Language_Constrain_Terminals_Access is access function
-     (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Table        : in     Parse_Table;
-      Config       : in     Configuration)
-     return Token_ID_Set;
-   --  Return a token ID set that constrains McKenzie explore.
-   --
-   --  For example, in some cases, the best strategy is to complete the
-   --  current production as quickly as possible; only insert terminals
-   --  that are in the minimal terminal sequence for each production.
-
    type McKenzie_Data is tagged record
       Config_Heap   : Config_Heaps.Heap_Type;
       Enqueue_Count : Integer := 0;

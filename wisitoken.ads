@@ -102,9 +102,14 @@ package WisiToken is
       String_1_ID  : Token_ID; -- delimited by ', error if New_Line_ID
       String_2_ID  : Token_ID; -- delimited by ", error if New_Line_ID
       --
-      --  Support for lexer level missing quote error recovery. If the
-      --  language does not have two kinds of string literals, set one or
-      --  both of these to Invalid_Token_ID.
+      --  Support for missing quote error recovery. If the language does not
+      --  have two kinds of string literals, set one or both of these to
+      --  Invalid_Token_ID.
+
+      Embedded_Quote_Escape_Doubled : Boolean;
+      --  True if quote characters embedded in strings are escaped by
+      --  doubling (as in Ada); false if by preceding with backslash (as in
+      --  C).
 
       Image : Token_ID_Array_String (Token_ID'First .. Last_Nonterminal);
       --  User names for tokens.

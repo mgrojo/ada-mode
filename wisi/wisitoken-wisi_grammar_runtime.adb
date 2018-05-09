@@ -196,15 +196,16 @@ package body WisiToken.Wisi_Grammar_Runtime is
       Data.Prologues := (others => <>);
 
       --  Preserve Generate_Params items set by wisi-generate command line options
-      Data.Generate_Params.Case_Insensitive := False;
-      Data.Generate_Params.End_Names_Optional_Option := +"";
+      Data.Generate_Params.Case_Insensitive              := False;
+      Data.Generate_Params.Embedded_Quote_Escape_Doubled := False;
+      Data.Generate_Params.End_Names_Optional_Option     := +"";
       --  First_Parser_Label          := 0;
       --  First_State_Index          := 0;
       --  Interface_Kind             := None;
       --  Lexer                      := None;
       --  Output_Language            := None;
       --  Parser_Algorithm           := None;
-      Data.Generate_Params.Start_Token := +"";
+      Data.Generate_Params.Start_Token                   := +"";
 
       Data.Tokens           := (others => <>);
       Data.Elisp_Names      := (others => <>);
@@ -371,6 +372,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
                      Data.Elisp_Names.Regexps.Append
                        ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1),
                          Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+
+                  elsif Kind = "embedded_quote_escape_doubled" then
+                     Data.Generate_Params.Embedded_Quote_Escape_Doubled := True;
 
                   elsif Kind = "end_names_optional_option" then
                      Data.Generate_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tokens (3));

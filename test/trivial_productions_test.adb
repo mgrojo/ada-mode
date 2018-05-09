@@ -98,6 +98,7 @@ package body Trivial_Productions_Test is
             User_Data                    => null,
             Language_Fixes               => null,
             Language_Constrain_Terminals => null,
+            Language_String_ID_Set       => null,
             First_Parser_Label           => First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);
@@ -195,6 +196,7 @@ package body Trivial_Productions_Test is
             User_Data                    => null,
             Language_Fixes               => null,
             Language_Constrain_Terminals => null,
+            Language_String_ID_Set       => null,
             First_Parser_Label           => First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);

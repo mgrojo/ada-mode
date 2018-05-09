@@ -66,6 +66,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  not Ok, call Semantic_Check_Fixes (which may enqueue configs),
       --  return Abandon. Otherwise return Continue.
       use all type Semantic_Checks.Check_Status_Label;
+      use all type WisiToken.LR.Parser.Language_Fixes_Access;
 
       Table     : Parse_Table renames Shared.Shared_Parser.Table.all;
       Nonterm   : Recover_Token;
@@ -300,6 +301,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.Node_Index;
       use all type Semantic_Checks.Check_Status_Label;
+      use all type Parser.Language_Fixes_Access;
 
       Parse_Items : Parse.Parse_Item_Arrays.Vector;
    begin
@@ -426,6 +428,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
+      use all type Parser.Language_Constrain_Terminals_Access;
       use all type Ada.Containers.Count_Type;
 
       Table  : Parse_Table renames Shared.Shared_Parser.Table.all;
@@ -533,14 +536,24 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
+      use all type Parser.Language_String_ID_Set_Access;
       use all type Lexer.Error_Lists.Cursor;
       use all type Ada.Containers.Count_Type;
 
+      Descriptor  : WisiToken.Descriptor renames Shared.Shared_Parser.Trace.Descriptor.all;
       Check_Limit : Token_Index renames Shared.Shared_Parser.Table.McKenzie_Param.Check_Limit;
 
       Current_Line            : constant Line_Number_Type := Shared.Token (Config.Current_Shared_Token).Line;
       Lexer_Error_Token_Index : Base_Token_Index;
       Lexer_Error_Token       : Base_Token;
+
+      function String_ID_Set (String_ID : in Token_ID) return Token_ID_Set
+      is begin
+         return
+           (if Shared.Shared_Parser.Language_String_ID_Set = null
+            then (Descriptor.First_Terminal .. Descriptor.Last_Terminal => True)
+            else Shared.Shared_Parser.Language_String_ID_Set (Descriptor, String_ID));
+      end String_ID_Set;
 
       procedure String_Literal_In_Stack
         (New_Config        : in Configuration_Access;
@@ -563,8 +576,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
          New_Config.Current_Shared_Token := Tok.Min_Terminal_Index;
 
+         --  Find first terminal to delete.
          J := Tok.Min_Terminal_Index;
-
          loop
             exit when Shared.Token (J).ID = String_Literal_ID;
             J := J + 1;
@@ -575,7 +588,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             Shared_Token_Goal => J,
             Trace_Prefix      => "insert quote parse pushback")
          then
-            --  The ops and string literal parsed without error.
+            --  The non-deleted tokens parsed without error.
             if Parse_Items.Length = 1 then
                New_Config.all := Parse_Items (1).Config;
                New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
@@ -713,7 +726,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             use all type SAL.Base_Peek_Type;
             Matching : SAL.Peek_Type := 1;
          begin
-            Find_Descendant_ID (Super.Parser_State (Parser_Index).Tree, Config, Lexer_Error_Token.ID, Matching);
+            Find_Descendant_ID
+              (Super.Parser_State (Parser_Index).Tree, Config, Lexer_Error_Token.ID,
+               String_ID_Set (Lexer_Error_Token.ID), Matching);
+
             if Matching = Config.Stack.Depth then
                --  String literal is in a virtual nonterm; give up. So far this only
                --  happens in a high cost non critical config.
@@ -767,7 +783,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             Matching : SAL.Peek_Type := 1;
          begin
             --  Lexer_Error_Token is a string literal; find a matching one.
-            Find_Descendant_ID (Super.Parser_State (Parser_Index).Tree, Config, Lexer_Error_Token.ID, Matching);
+            Find_Descendant_ID
+              (Super.Parser_State (Parser_Index).Tree, Config, Lexer_Error_Token.ID, String_ID_Set
+                 (Lexer_Error_Token.ID), Matching);
 
             if Matching = Config.Stack.Depth then
                --  No matching string literal, so this case does not apply.
@@ -778,7 +796,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                begin
                   String_Literal_In_Stack (New_Config, Matching, Lexer_Error_Token.ID);
 
-                  Finish ("e", New_Config, Config.Current_Shared_Token, Shared.Next_Line_Token (Current_Line) - 1);
+                  Finish ("e", New_Config, Config.Current_Shared_Token, Lexer_Error_Token_Index);
                end;
             end if;
          end;
@@ -845,9 +863,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  solution. If not, enqueue variations to check.
 
       use all type Ada.Containers.Count_Type;
+      use all type Base.Config_Status;
+      use all type Parser.Language_Fixes_Access;
       use all type SAL.Base_Peek_Type;
       use all type Semantic_Checks.Check_Status_Label;
-      use all type Base.Config_Status;
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Descriptor : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
@@ -892,10 +911,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       if Config.Error_Token.ID /= Invalid_Token_ID then
          if Shared.Shared_Parser.Language_Fixes = null then
-            --  No fixes available, so abandon Config, but enqueue
-            --  Local_Config_Heap.
-            Super.Put (Parser_Index, Local_Config_Heap);
-            return;
+            null;
          else
             case Shared.Shared_Parser.Language_Fixes
               (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index),

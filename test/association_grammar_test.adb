@@ -155,6 +155,7 @@ package body Association_Grammar_Test is
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,
+         Language_String_ID_Set       => null,
          First_Parser_Label           => First_Parser_Label);
 
       WisiToken.Trace_Parse := WisiToken.Detail + 1;

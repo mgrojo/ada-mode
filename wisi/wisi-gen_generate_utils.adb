@@ -53,8 +53,9 @@ package body Wisi.Gen_Generate_Utils is
 
    procedure Set_Token_Images
    is begin
-      --  We don't set Descriptor.Case_Insensitive here, because we don't
-      --  have access to Generate_Params. It is set in the generated code in
+      --  We don't set Descriptor.Case_Insensitive,
+      --  Embedded_Quote_Escape_Doubled here, because we don't have access
+      --  to Generate_Params. They is set in the generated code in
       --  wisi-gen_output_ada_common.adb.
       LR1_Descriptor.New_Line_ID      := Find_Kind ("new-line");
       LR1_Descriptor.Comment_ID       := Find_Kind ("comment");

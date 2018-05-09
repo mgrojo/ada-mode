@@ -248,7 +248,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (63, 69),
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
-         Enqueue_Low             => 50,
+         Enqueue_Low             => 43,
          Enqueue_High            => 93,
          Check_Low               => 14,
          Check_High              => 27,
@@ -777,7 +777,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +Wisi_EOI_ID,
          Ops                     => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
          Enqueue_Low             => 57,
-         Enqueue_High            => 189,
+         Enqueue_High            => 205,
          Check_Low               => 16,
          Check_High              => 36,
          Cost                    => 5);
@@ -845,7 +845,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 50,
          Enqueue_High            => 88,
          Check_Low               => 7,
-         Check_High              => 13,
+         Check_High              => 15,
          Cost                    => 1);
    end String_Quote_0;
 
@@ -1473,7 +1473,7 @@ package body Test_McKenzie_Recover is
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
          Enqueue_Low             => 40,
-         Enqueue_High            => 82,
+         Enqueue_High            => 93,
          Check_Low               => 7,
          Check_High              => 11,
          Cost                    => 1);
@@ -1579,7 +1579,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (90, 100),
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
            (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
-         Enqueue_Low             => 87,
+         Enqueue_Low             => 77,
          Enqueue_High            => 127,
          Check_Low               => 7,
          Check_High              => 9,
@@ -1649,6 +1649,7 @@ package body Test_McKenzie_Recover is
         (Parser,
          Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access,
          Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada_Lite.Constrain_Terminals'Access,
+         Language_String_ID_Set       => WisiToken.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
          Algorithm                    => WisiToken.LALR,
          Trace                        => Ada_Lite.Trace'Access,
          User_Data                    => User_Data'Access);

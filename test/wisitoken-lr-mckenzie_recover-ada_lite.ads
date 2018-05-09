@@ -36,4 +36,9 @@ package WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Config       : in     Configuration)
      return WisiToken.Token_ID_Set;
 
+   function String_ID_Set
+     (Descriptor        : in WisiToken.Descriptor;
+      String_Literal_ID : in Token_ID)
+     return Token_ID_Set;
+
 end WisiToken.LR.McKenzie_Recover.Ada_Lite;
