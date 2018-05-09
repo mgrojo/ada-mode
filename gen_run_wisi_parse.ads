@@ -28,13 +28,15 @@ generic
 
    Name                         : in String; --  for Usage, error messages. "_wisi_parse" will be appended
    Descriptor                   : in WisiToken.Descriptor;
-   Language_Fixes               : in WisiToken.LR.Language_Fixes_Access;
-   Language_Constrain_Terminals : in WisiToken.LR.Language_Constrain_Terminals_Access;
+   Language_Fixes               : in WisiToken.LR.Parser.Language_Fixes_Access;
+   Language_Constrain_Terminals : in WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
+   Language_String_ID_Set       : in WisiToken.LR.Parser.Language_String_ID_Set_Access;
 
    with procedure Create_Parser
      (Parser                       :    out          WisiToken.LR.Parser.Parser;
-      Language_Fixes               : in              WisiToken.LR.Language_Fixes_Access;
-      Language_Constrain_Terminals : in              WisiToken.LR.Language_Constrain_Terminals_Access;
+      Language_Fixes               : in              WisiToken.LR.Parser.Language_Fixes_Access;
+      Language_Constrain_Terminals : in              WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
+      Language_String_ID_Set       : in              WisiToken.LR.Parser.Language_String_ID_Set_Access;
       Algorithm                    : in              WisiToken.Generator_Algorithm_Type;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access);

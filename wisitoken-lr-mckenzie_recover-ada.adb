@@ -903,4 +903,26 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       end if;
    end Constrain_Terminals;
 
+   function String_ID_Set
+     (Descriptor        : in WisiToken.Descriptor;
+      String_Literal_ID : in Token_ID)
+     return Token_ID_Set
+   is begin
+      --  Character literal can be part of a string primary, so the nonterms
+      --  are independent of String_Literal_ID.
+
+      return Result : Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal) := (others => False) do
+
+         Result (String_Literal_ID)     := True;
+         Result (+name_ID)              := True;
+         Result (+primary_ID)           := True;
+         Result (+factor_ID)            := True;
+         Result (+term_ID)              := True;
+         Result (+term_list_ID)         := True;
+         Result (+simple_expression_ID) := True;
+         Result (+relation_ID)          := True;
+         Result (+expression_ID)        := True;
+      end return;
+   end String_ID_Set;
+
 end WisiToken.LR.McKenzie_Recover.Ada;

@@ -29,9 +29,9 @@ package body Ada_Mode.Recover_End_1 is
 
    function Return_Example return Integer
    is begin
-         return A : Integer := 0 do
-               null;
-               -- end return;
-         end;
+      return A : Integer := 0 do
+         null;
+         -- end return;
+      end;
 
 end Ada_Mode.Recover_End_1;

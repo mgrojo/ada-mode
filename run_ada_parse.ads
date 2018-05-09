@@ -28,4 +28,5 @@ procedure Run_Ada_Parse is new Gen_Run_Wisi_Parse
    Ada_Process.Descriptor,
    WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
    WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,
+   WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
    Ada_Process.Create_Parser);

@@ -1,6 +1,8 @@
 --  Abstract :
 --
 --  An error from a real editing session; typed '"' instead of '?'.
+-- There are several unrecognized chars as well as an unbalanced
+-- string quote.
 --
 --  Lexer now reports bad characters, and recovers by skipping them or
 --  inserting a matching quote.

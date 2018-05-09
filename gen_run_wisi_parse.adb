@@ -58,7 +58,7 @@ is
                    else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Cost_Limit)));
       Put_Line ("--check_limit n  : set error recover token check limit" &
                   (if Parser.Table = null then ""
-                   else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Check_Limit)));
+                   else "; default" & Token_Index'Image (Parser.Table.McKenzie_Param.Check_Limit)));
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
                   Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
@@ -82,8 +82,8 @@ is
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
    Create_Parser
-     (Parser, Language_Fixes, Language_Constrain_Terminals, WisiToken.LALR, Trace'Unrestricted_Access,
-      Parse_Data'Unchecked_Access);
+     (Parser, Language_Fixes, Language_Constrain_Terminals, Language_String_ID_Set, WisiToken.LALR,
+      Trace'Unrestricted_Access, Parse_Data'Unchecked_Access);
 
    declare
       use Ada.Command_Line;
@@ -112,7 +112,7 @@ begin
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--check_limit" then
-            Parser.Table.McKenzie_Param.Check_Limit := Integer'Value (Argument (Arg + 1));
+            Parser.Table.McKenzie_Param.Check_Limit := Token_Index'Value (Argument (Arg + 1));
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--disable_recover" then
@@ -156,20 +156,28 @@ begin
       return;
    end;
 
-   loop
-      begin
-         exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
-      exception
-      when WisiToken.Syntax_Error =>
-         Parser.Lexer.Discard_Rest_Of_Input;
-         Parse_Data.Put
-           (Parser.Lexer.Errors,
-            Parser.Parsers.First.State_Ref.Errors,
-            Parser.Parsers.First.State_Ref.Tree);
-         Put_Line ("(lexer_error)");
-      end;
-   end loop;
-   Line_Count := Parser.Lexer.Line;
+   --  FIXME: parse_data does not need Line_Count; it can use intelligent vector growth.
+   declare
+      Token : Base_Token;
+      Lexer_Error : Boolean;
+      pragma Unreferenced (Lexer_Error);
+   begin
+      loop
+         begin
+            Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer_Errors);
+            exit when Token.ID = Descriptor.EOF_ID;
+         exception
+         when WisiToken.Syntax_Error =>
+            Parser.Lexer.Discard_Rest_Of_Input;
+            Parse_Data.Put
+              (Parser.Lexer_Errors,
+               Parser.Parsers.First.State_Ref.Errors,
+               Parser.Parsers.First.State_Ref.Tree);
+            Put_Line ("(lexer_error)");
+         end;
+      end loop;
+      Line_Count := Token.Line;
+   end;
 
    if WisiToken.Trace_Action > WisiToken.Outline then
       Put_Line ("line_count:" & Line_Number_Type'Image (Line_Count));
@@ -193,7 +201,7 @@ begin
             Parser.Lexer.Discard_Rest_Of_Input;
             if Repeat_Count = 1 then
                Parse_Data.Put
-                 (Parser.Lexer.Errors,
+                 (Parser.Lexer_Errors,
                   Parser.Parsers.First.State_Ref.Errors,
                   Parser.Parsers.First.State_Ref.Tree);
             end if;
@@ -205,12 +213,14 @@ begin
 
          if Lexer_Only then
             declare
-               ID : Token_ID := Invalid_Token_ID;
+               Token : Base_Token;
+               Lexer_Error : Boolean;
+               pragma Unreferenced (Lexer_Error);
             begin
                Parser.Lexer.Reset;
                loop
-                  exit when ID = Descriptor.EOF_ID;
-                  ID := Parser.Lexer.Find_Next;
+                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer_Errors);
+                  exit when Token.ID = Descriptor.EOF_ID;
                end loop;
                --  We don't handle errors here; that was done in the count lines loop
                --  above.
@@ -222,7 +232,7 @@ begin
             if Repeat_Count = 1 then
                Parse_Data.Put;
                Parse_Data.Put
-                 (Parser.Lexer.Errors,
+                 (Parser.Lexer_Errors,
                   Parser.Parsers.First.State_Ref.Errors,
                   Parser.Parsers.First.State_Ref.Tree);
             end if;

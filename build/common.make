@@ -17,7 +17,7 @@ GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
-.PRECIOUS : %-elisp.el %-process.el %.ads %.re2c %.tmp %_process.adb %_re2c.c
+.PRECIOUS : %-elisp.el %-process.el %.ads %.re2c %.tmp %_process.adb %_re2c.c *.diff
 
 .PHONY : all force one test test-clean
 
@@ -174,7 +174,6 @@ test-clean ::
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
 	cd ../test/wisi/; rm -f *-elisp.el *.*parse_table
-	cd ../test/wisi/; rm -f subprograms.ada_parse_table subprograms.re2c subprograms_re2c.c subprograms_re2c_c.ads subprograms-process.el subprograms_process.ad? subprograms_wisi_parse.exe
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete

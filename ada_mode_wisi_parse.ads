@@ -28,4 +28,5 @@ procedure Ada_Mode_Wisi_Parse is new Gen_Emacs_Wisi_Parse
    Descriptor                   => Ada_Process.Descriptor,
    Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
    Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,
+   Language_String_ID_Set       => WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
    Create_Parser                => Ada_Process.Create_Parser);

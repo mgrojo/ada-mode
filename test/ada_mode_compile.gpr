@@ -68,7 +68,6 @@ project Ada_Mode_Compile is
       -- it.
       -- "ada_mode-spec.adb",
 
-      "bad_error_recover_1.adb", -- deliberate error
       "bug_2016_11_21_01.adb", -- missing declarations
       "g-comlin.adb", -- copied from gnat runtime; gnat won't compile it!
       "gnatprep.adb", -- could run thru gnatprep, but it's not worth it.

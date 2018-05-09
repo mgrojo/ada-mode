@@ -165,7 +165,7 @@ is
 
 begin
    Create_Parser
-     (Parser, Language_Fixes, Language_Constrain_Terminals, LALR, Trace'Unrestricted_Access,
+     (Parser, Language_Fixes, Language_Constrain_Terminals, Language_String_ID_Set, LALR, Trace'Unrestricted_Access,
       Parse_Data'Unchecked_Access);
 
    declare
@@ -229,7 +229,7 @@ begin
                is begin
                   Parser.Lexer.Discard_Rest_Of_Input;
                   Parse_Data.Put
-                    (Parser.Lexer.Errors,
+                    (Parser.Lexer_Errors,
                      Parser.Parsers.First.State_Ref.Errors,
                      Parser.Parsers.First.State_Ref.Tree);
                   Ada.Strings.Unbounded.Free (Buffer);
@@ -259,7 +259,7 @@ begin
                   Parser.Table.McKenzie_Param.Cost_Limit := Cost_Limit;
                end if;
                if Check_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Check_Limit := Check_Limit;
+                  Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Check_Limit);
                end if;
 
                Buffer := new String (1 .. Byte_Count);
@@ -290,16 +290,19 @@ begin
             --  Input: <source text>
             --  Response: prompt
             declare
-               Byte_Count : constant Integer                             := Get_Integer (Command_Line, Last);
-               Buffer     : constant Ada.Strings.Unbounded.String_Access := new String (1 .. Byte_Count);
-               ID         : Token_ID                                     := Invalid_Token_ID;
+               Byte_Count  : constant Integer                             := Get_Integer (Command_Line, Last);
+               Buffer      : constant Ada.Strings.Unbounded.String_Access := new String (1 .. Byte_Count);
+               Token       : Base_Token;
+               Lexer_Error : Boolean;
+               pragma Unreferenced (Lexer_Error);
             begin
+               Token.ID := Invalid_Token_ID;
                Read_Input (Buffer (1)'Address, Byte_Count);
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                loop
-                  exit when ID = Parser.Trace.Descriptor.EOF_ID;
-                  ID := Parser.Lexer.Find_Next;
+                  exit when Token.ID = Parser.Trace.Descriptor.EOF_ID;
+                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer_Errors);
                end loop;
             exception
             when Syntax_Error =>

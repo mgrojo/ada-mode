@@ -27,4 +27,5 @@ procedure Gpr_Mode_Wisi_Parse is new Gen_Emacs_Wisi_Parse
    Descriptor                   => Gpr_Process.Descriptor,
    Language_Fixes               => null,
    Language_Constrain_Terminals => null,
+   Language_String_ID_Set       => null,
    Create_Parser                => Gpr_Process.Create_Parser);

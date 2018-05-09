@@ -498,7 +498,6 @@ private
       --  All terminal grammar tokens, in lexical order. Each contains any
       --  immediately following non-grammar tokens. Does not contain
       --  nonterminal or virtual tokens.
-      --  FIXME: all terminals are in syntax tree; still need this?
 
       Leading_Non_Grammar : Base_Token_Arrays.Vector;
       --  non-grammar tokens before first grammar token.

@@ -14,10 +14,10 @@
 --EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 procedure Slow_Recover_2 is
-  use Interfaces.C.Strings;
+   use Interfaces.C.Strings;
 
-  C_File_Name :
+   C_File_Name :
 begin
-  if 0 /= AV_Format_Open_Input (Context, Name
+   if 0 /= AV_Format_Open_Input (Context, Name
 
 end Slow_Recover_2;

@@ -1,4 +1,4 @@
--- FIXME: Error recovery gives up on this; it should do better.
+-- From a real editing session. Recover does a reasonable job.
 --EMACS_SKIP_UNLESS:(eq gpr-parser 'process)
 project gpr_recover_1 is
    package Linker is
@@ -13,4 +13,4 @@ project gpr_recover_1 is
             end case;
       end Linker;
 
-end gpr_recover_1;
+   end gpr_recover_1;

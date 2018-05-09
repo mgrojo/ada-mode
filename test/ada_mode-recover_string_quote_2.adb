@@ -14,7 +14,7 @@ package body Ada_Mode.Recover_String_Quote_2 is
 
       else
 
-            Response := Response & "</table>"</body></html>";
+         Response := Response & "</table>"</body></html>";
       end if;
    end Handle_Search;
 end Ada_Mode.Recover_String_Quote_2;

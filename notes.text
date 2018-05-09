@@ -52,14 +52,8 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
--- FIXME: check for lexer error in language_fixes, insert the quote where it belongs.
-    test/ada_mode-recover_string_quote_2.adb
-    o.e.a.s-4
-
-test/ada_mode-recover_3.adb
-test/ada_mode-recover_4.adb
-
-run all tests
+line_begin_token now in Shared_Parser
+    parse_data does not need Line_Count; it can use intelligent vector growth.
 
 emacs track parse-max, don't reparse just for different action; just execute action.
 

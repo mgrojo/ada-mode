@@ -359,8 +359,8 @@ package body WisiToken.Wisi_Runtime is
       use Ada.Strings.Unbounded;
       use WisiToken.LR;
 
-      Line    : Unbounded_String  := To_Unbounded_String ("[");
-      Last_Op : Config_Op_Label := Fast_Forward;
+      Line    : Unbounded_String := To_Unbounded_String ("[");
+      Last_Op : Config_Op        := (Fast_Forward, Token_Index'Last);
 
    begin
       if Trace_Action > Detail then
@@ -378,43 +378,69 @@ package body WisiToken.Wisi_Runtime is
             begin
                case Op.Op is
                when Fast_Forward =>
-                  if Last_Op in Insert then
+                  if Last_Op.Op in Insert then
                      Append (Line, "][]]");
-                  elsif Last_Op in Delete then
+                  elsif Last_Op.Op in Delete then
                      Append (Line, "]]");
                   end if;
 
-                  Last_Op := Op.Op;
+                  Last_Op := Op;
 
                when Undo_Reduce | Push_Back =>
                   null;
 
                when Insert =>
-                  if Last_Op /= Insert then
+                  if Last_Op.Op /= Insert then
                      Append (Line, "[");
                      Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
                      Append (Line, "[");
                   end if;
                   Append (Line, Token_ID'Image (Op.ID));
 
-                  Last_Op := Op.Op;
+                  Last_Op := Op;
 
                when Delete =>
-                  if Last_Op = Fast_Forward then
-                     Append (Line, "[");
-                     Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
-                     Append (Line, "[][");
-                  elsif Last_Op = Insert then
-                     Append (Line, "][");
-                  end if;
-                  Append (Line, Token_ID'Image (Op.ID));
+                  declare
+                     Skip : Boolean := False;
+                  begin
+                     if Last_Op.Op = Fast_Forward then
+                        Append (Line, "[");
+                        Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
+                        Append (Line, "[][");
+                     elsif Last_Op.Op = Insert then
+                        Append (Line, "][");
 
-                  Last_Op := Op.Op;
+                     elsif Last_Op.Op = Delete then
+                        if Descriptor.Embedded_Quote_Escape_Doubled and then
+                          ((Last_Op.ID = Descriptor.String_1_ID and Op.ID = Descriptor.String_1_ID) or
+                             (Last_Op.ID = Descriptor.String_2_ID and Op.ID = Descriptor.String_2_ID))
+                        then
+                           declare
+                              Tok_1 : Augmented_Token renames Terminals (Last_Op.Token_Index);
+                              Tok_2 : Augmented_Token renames Terminals (Op.Token_Index);
+                           begin
+                              if Tok_1.Char_Region.Last + 1 = Tok_2.Char_Region.First then
+                                 --  Buffer text was '"""', lexer repair changed it to '""""'. The
+                                 --  repaired text looks like a single string with an embedded quote.
+                                 --  But here, it is two STRING_LITERAL tokens. Don't send the second
+                                 --  delete to elisp. See test/ada_mode-recover_string_quote_1.adb
+                                 Skip := True;
+                              end if;
+                           end;
+                        end if;
 
+                     end if;
+
+                     if not Skip then
+                        Append (Line, Token_ID'Image (Op.ID));
+                     end if;
+                  end;
+                  Last_Op := Op;
                end case;
             end;
          end loop;
-         case Last_Op is
+
+         case Last_Op.Op is
          when Fast_Forward =>
             Append (Line, "]");
 
@@ -588,14 +614,14 @@ package body WisiToken.Wisi_Runtime is
 
    begin
       if Lexer.First then
-         Data.Line_Begin_Pos (Lexer.Line) := Lexer.Char_Region.First;
+         Data.Line_Begin_Pos (Token.Line) := Token.Char_Region.First;
       end if;
 
       if Token.ID < Data.Descriptor.First_Terminal then
          --  Non-grammar token
 
          if Token.ID = Data.Descriptor.New_Line_ID then
-            Data.Line_Paren_State (Lexer.Line + 1) := Data.Current_Paren_State;
+            Data.Line_Paren_State (Token.Line + 1) := Data.Current_Paren_State;
          end if;
 
          if Data.Terminals.Length = 0 then
@@ -614,15 +640,16 @@ package body WisiToken.Wisi_Runtime is
                   Containing_Token.First := True;
 
                   if Containing_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-                     Containing_Token.First_Trailing_Comment_Line := Lexer.Line;
+                     Containing_Token.First_Trailing_Comment_Line := Token.Line;
                   end if;
-                  Containing_Token.Last_Trailing_Comment_Line  := Lexer.Line;
+                  Containing_Token.Last_Trailing_Comment_Line  := Token.Line;
                end if;
 
-               Containing_Token.Non_Grammar.Append ((Token.ID, Lexer.Line, Lexer.Column, Lexer.First));
+               Containing_Token.Non_Grammar.Append ((Token.ID, Token.Line, Token.Column, Lexer.First));
 
                if Lexer.First then
-                  Data.Line_Begin_Token (Lexer.Line) := Data.Terminals.Last_Index;
+                  --  FIXME: line_begin_token now in Shared_Parser
+                  Data.Line_Begin_Token (Token.Line) := Data.Terminals.Last_Index;
                end if;
             end;
          end if;
@@ -632,16 +659,16 @@ package body WisiToken.Wisi_Runtime is
          declare
             Temp : constant Augmented_Token :=
               (Token.ID,
-               Byte_Region                 => Lexer.Byte_Region,
-               Line                        => Lexer.Line,
-               Col                         => Lexer.Column,
-               Char_Region                 => Lexer.Char_Region,
+               Byte_Region                 => Token.Byte_Region,
+               Line                        => Token.Line,
+               Column                      => Token.Column,
+               Char_Region                 => Token.Char_Region,
                First                       => Lexer.First,
                Paren_State                 => Data.Current_Paren_State,
                First_Terminals_Index       => Data.Terminals.Last_Index + 1,
                Last_Terminals_Index        => Data.Terminals.Last_Index + 1,
-               First_Indent_Line           => (if Lexer.First then Lexer.Line else Invalid_Line_Number),
-               Last_Indent_Line            => (if Lexer.First then Lexer.Line else Invalid_Line_Number),
+               First_Indent_Line           => (if Lexer.First then Token.Line else Invalid_Line_Number),
+               Last_Indent_Line            => (if Lexer.First then Token.Line else Invalid_Line_Number),
                First_Trailing_Comment_Line => Invalid_Line_Number, -- Set by Reduce
                Last_Trailing_Comment_Line  => Invalid_Line_Number,
                Non_Grammar                 => <>);
@@ -656,7 +683,7 @@ package body WisiToken.Wisi_Runtime is
             Data.Terminals.Append (Temp);
 
             if Lexer.First then
-               Data.Line_Begin_Token (Lexer.Line) := Data.Terminals.Last_Index;
+               Data.Line_Begin_Token (Token.Line) := Data.Terminals.Last_Index;
             end if;
          end;
       end if;
@@ -727,8 +754,8 @@ package body WisiToken.Wisi_Runtime is
                end if; --  Compute_Indent
 
                if Aug_Token.Line /= Invalid_Line_Number then
-                  Aug_Nonterm.Line := Aug_Token.Line;
-                  Aug_Nonterm.Col  := Aug_Token.Col;
+                  Aug_Nonterm.Line   := Aug_Token.Line;
+                  Aug_Nonterm.Column := Aug_Token.Column;
                end if;
 
                if Aug_Nonterm.Char_Region.First > Aug_Token.Char_Region.First then
@@ -819,76 +846,78 @@ package body WisiToken.Wisi_Runtime is
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type)
    is
+      use all type WisiToken.Syntax_Trees.Node_Label;
       pragma Unreferenced (Nonterm);
 
-      --  [2] wisi-containing-action
+      --  [2] wisi-containing-action.
+      --
+      --  Compute as much as possible with virtual tokens; see
+      --  test/format_paramlist.adb
    begin
-      if Tree.Is_Virtual (Tokens (Containing)) or
-        Tree.Is_Virtual (Tokens (Contained))
-      then
+      if Tree.Label (Tokens (Containing)) = Syntax_Trees.Virtual_Terminal then
          return;
-      else
-         declare
-            use Navigate_Cache_Trees;
-            Containing_Tok    : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Containing));
-            Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
-            Contained_Tok     : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Contained));
-            Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
-            Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
-            Cursor            : Navigate_Cache_Trees.Cursor;
-            Mark              : constant Buffer_Pos                    := Containing_Region.First;
-         begin
-            if Containing_Region = Null_Buffer_Region then
-               if Tree.Is_Virtual (Tokens (Containing)) then
-                  return;
-               else
-                  raise Fatal_Error with Error_Message
-                    (File_Name => -Data.Source_File_Name,
-                     Line      => Containing_Tok.Line,
-                     Col       => Containing_Tok.Col,
-                     Message   => "wisi-containing-action: containing-region " &
-                       Image (Containing_Tok.ID, Data.Descriptor.all) &
-                       " is empty. grammar error; bad action.");
-               end if;
-            end if;
+      end if;
 
-            if not Data.Navigate_Caches.Present (Containing_Region.First) then
+      declare
+         use Navigate_Cache_Trees;
+         Containing_Tok    : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Containing));
+         Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
+         Contained_Tok     : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Contained));
+         Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
+         Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
+         Cursor            : Navigate_Cache_Trees.Cursor;
+         Mark              : constant Buffer_Pos                    := Containing_Region.First;
+      begin
+         if Containing_Region = Null_Buffer_Region then
+            if Tree.Is_Virtual (Tokens (Containing)) then
+               return;
+            else
                raise Fatal_Error with Error_Message
                  (File_Name => -Data.Source_File_Name,
                   Line      => Containing_Tok.Line,
-                  Col       => Containing_Tok.Col,
-                  Message   => "wisi-containing-action: containing token " &
+                  Column    => Containing_Tok.Column,
+                  Message   => "wisi-containing-action: containing-region " &
                     Image (Containing_Tok.ID, Data.Descriptor.all) &
-                    " has no cache. grammar error; missing action.");
+                    " is empty. grammar error; bad action.");
             end if;
+         end if;
 
-            if Contained_Tok.Char_Region /= Null_Buffer_Region then
-               --  Contained region is nil in an empty production.
-               Cursor := Previous (Iterator, Contained_Tok.Char_Region.Last);
+         if not Data.Navigate_Caches.Present (Containing_Region.First) then
+            raise Fatal_Error with Error_Message
+              (File_Name => -Data.Source_File_Name,
+               Line      => Containing_Tok.Line,
+               Column    => Containing_Tok.Column,
+               Message   => "wisi-containing-action: containing token " &
+                 Image (Containing_Tok.ID, Data.Descriptor.all) &
+                 " has no cache. grammar error; missing action.");
+         end if;
 
-               while Has_Element (Cursor) loop
-                  declare
-                     Cache : Navigate_Cache_Type renames Variable_Ref (Data.Navigate_Caches, Cursor).Element.all;
-                  begin
+         if Contained_Tok.Char_Region /= Null_Buffer_Region then
+            --  Contained region is nil in an empty production.
+            Cursor := Previous (Iterator, Contained_Tok.Char_Region.Last);
 
-                     exit when Cache.Pos < Contained_Region.First or
-                       (Containing_Region.First = Contained_Region.First and
-                          Cache.Pos <= Contained_Region.First);
+            while Has_Element (Cursor) loop
+               declare
+                  Cache : Navigate_Cache_Type renames Variable_Ref (Data.Navigate_Caches, Cursor).Element.all;
+               begin
 
-                     --  Skip blocks that are already marked.
+                  exit when Cache.Pos < Contained_Region.First or
+                    (Containing_Region.First = Contained_Region.First and
+                       Cache.Pos <= Contained_Region.First);
 
-                     if Cache.Containing_Pos.Set then
-                        Cursor := Find (Iterator, Cache.Containing_Pos.Item, Direction => Descending);
-                     else
-                        Cache.Containing_Pos := (True, Mark);
-                        Cursor := Previous (Iterator, Cursor);
-                     end if;
+                  --  Skip blocks that are already marked.
 
-                  end;
-               end loop;
-            end if;
-         end;
-      end if;
+                  if Cache.Containing_Pos.Set then
+                     Cursor := Find (Iterator, Cache.Containing_Pos.Item, Direction => Descending);
+                  else
+                     Cache.Containing_Pos := (True, Mark);
+                     Cursor := Previous (Iterator, Cursor);
+                  end if;
+
+               end;
+            end loop;
+         end if;
+      end;
    end Containing_Action;
 
    function "+" (Item : in WisiToken.Token_ID) return Token_ID_Lists.List
@@ -969,7 +998,7 @@ package body WisiToken.Wisi_Runtime is
                      raise Fatal_Error with Error_Message
                        (File_Name => -Data.Source_File_Name,
                         Line      => Token.Line,
-                        Col       => Token.Col,
+                        Column    => Token.Column,
                         Message   => "wisi-motion-action: token " &
                           Token.Image (Data.Descriptor.all) &
                           " has no cache; add to statement-action.");
@@ -1417,13 +1446,13 @@ package body WisiToken.Wisi_Runtime is
          Put_Line
            ('[' & Lexer_Error_Code & Buffer_Pos'Image (Item.Char_Pos) &
               " ""lexer error" &
-              (if Item.Recover (1) = ASCII.NUL
+              (if Item.Recover_Char (1) = ASCII.NUL
                then """"
-               elsif Item.Recover (1) = '"'
+               elsif Item.Recover_Char (1) = '"'
                then """ ?\"""
-               else """ ?" & Item.Recover (1)) &
+               else """ ?" & Item.Recover_Char (1)) &
               "]");
-         if Item.Recover (2) /= ASCII.NUL then
+         if Item.Recover_Char (2) /= ASCII.NUL then
             raise Programmer_Error with "lexer error with non-ascii or multiple repair char";
          end if;
       end loop;
@@ -1535,7 +1564,7 @@ package body WisiToken.Wisi_Runtime is
       return
         (case Tree.Label (Tree_Index) is
          when Shared_Terminal => Data.Terminals.Variable_Reference (Tree.Terminal (Tree_Index)),
-         when Virtual_Terminal => raise Programmer_Error with "wisi_runtime.get_aug_token virtual",
+         when Virtual_Terminal => raise Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
          when Nonterm => (Element => Augmented_Token_Access (Tree.Augmented (Tree_Index))));
    end Get_Aug_Token;
 
@@ -1550,7 +1579,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
          return "(" & ID_Image &
-           Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
+           Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Column)) & ")";
 
       elsif Item.Char_Region = Null_Buffer_Region then
          return "(" & ID_Image & ")";

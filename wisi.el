@@ -1164,7 +1164,8 @@ Called with BEGIN END.")
 	  (setq tok-2 (wisi-forward-token))
 	  (if (eq tok-1 (wisi-tok-token tok-2))
 	      (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
-	    (error "mismatched tokens: parser %s, buffer %s" (wisi-tok-token tok-1) (wisi-tok-token tok-2))))
+	    (error "mismatched tokens: %d: parser %s, buffer %s %s"
+		   (point) tok-1 (wisi-tok-token tok-2) (wisi-tok-region tok-2))))
 
 	(dolist (id (wisi--parse-error-repair-inserted repair))
 	  (insert (cdr (assoc id (wisi-elisp-lexer-id-alist wisi--lexer))))
@@ -1175,39 +1176,42 @@ Called with BEGIN END.")
 (defun wisi-repair-error ()
   "Repair the current error."
   (interactive)
-  (if (= 1 (+ (length (wisi-parser-lexer-errors wisi--parser))
-	      (length (wisi-parser-parse-errors wisi--parser))))
-      (progn
-	(wisi-goto-error)
-	(wisi-repair-error-1 (or (car (wisi-parser-lexer-errors wisi--parser))
-				 (car (wisi-parser-parse-errors wisi--parser)))))
-    (if (buffer-live-p wisi-error-buffer)
-	(let ((err
-	       (with-current-buffer wisi-error-buffer
-		 ;; FIXME: ensure at beginning of error message line.
-		 (get-text-property (point) 'wisi-error-data))))
-	  (wisi-repair-error-1 err))
-      (error "no current error found")
-      )))
+  (let ((wisi-inhibit-parse t)) ;; don’t let the error list change while we are processing it.
+    (if (= 1 (+ (length (wisi-parser-lexer-errors wisi--parser))
+		(length (wisi-parser-parse-errors wisi--parser))))
+	(progn
+	  (wisi-goto-error)
+	  (wisi-repair-error-1 (or (car (wisi-parser-lexer-errors wisi--parser))
+				   (car (wisi-parser-parse-errors wisi--parser)))))
+      (if (buffer-live-p wisi-error-buffer)
+	  (let ((err
+		 (with-current-buffer wisi-error-buffer
+		   ;; FIXME: ensure at beginning of error message line.
+		   (get-text-property (point) 'wisi-error-data))))
+	    (wisi-repair-error-1 err))
+	(error "no current error found")
+	))))
 
 (defun wisi-repair-errors (&optional beg end)
   "Repair errors reported by last parse.
 If non-nil, only repair errors in BEG END region."
   (interactive)
-  (dolist (data (wisi-parser-lexer-errors wisi--parser))
-    (when (or (null beg)
-	      (and (not (= 0 (wisi--lexer-error-inserted data)))
-		   (wisi--lexer-error-pos data)
-		   (<= beg (wisi--lexer-error-pos data))
-		   (<= (wisi--lexer-error-pos data) end)))
-      (wisi-repair-error-1 data)))
+  (let ((wisi-inhibit-parse t)) ;; don’t let the error list change while we are processing it.
+    (dolist (data (wisi-parser-lexer-errors wisi--parser))
+      (when (or (null beg)
+		(and (not (= 0 (wisi--lexer-error-inserted data)))
+		     (wisi--lexer-error-pos data)
+		     (<= beg (wisi--lexer-error-pos data))
+		     (<= (wisi--lexer-error-pos data) end)))
+	(wisi-repair-error-1 data)))
 
-  (dolist (data (wisi-parser-parse-errors wisi--parser))
-    (when (or (null beg)
-	      (and (wisi--parse-error-pos data)
-		   (<= beg (wisi--parse-error-pos data))
-		   (<= (wisi--parse-error-pos data) end)))
-      (wisi-repair-error-1 data))))
+    (dolist (data (wisi-parser-parse-errors wisi--parser))
+      (when (or (null beg)
+		(and (wisi--parse-error-pos data)
+		     (<= beg (wisi--parse-error-pos data))
+		     (<= (wisi--parse-error-pos data) end)))
+	(wisi-repair-error-1 data)))
+    ))
 
 ;;;; debugging
 
