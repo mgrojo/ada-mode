@@ -122,7 +122,7 @@ For `compilation-filter-hook'."
 ;;;;; auto fix compilation errors
 
 (defconst ada-gnat-file-name-regexp
-  "\\([a-z-]+\\)"
+  "\\([a-z-_.]+\\)"
   "regexp to extract a file name, sans extension")
 
 (defconst ada-gnat-quoted-name-regexp
