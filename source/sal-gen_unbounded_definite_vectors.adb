@@ -39,12 +39,12 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       loop
          exit when New_First <= Index;
          New_Length := New_Length * 2;
-         New_First  := Peek_Type'Max (Peek_Type'First, Elements'Last - New_Length + 1);
+         New_First  := Peek_Type'Max (Peek_Type'First, Old_Last - New_Length + 1);
       end loop;
       loop
          exit when New_Last >= Index;
          New_Length := New_Length * 2;
-         New_Last   := Peek_Type'Min (Peek_Type'Last, Elements'First + New_Length - 1);
+         New_Last   := Peek_Type'Min (Peek_Type'Last, New_First + New_Length - 1);
       end loop;
 
       New_Array := new Array_Type (New_First .. New_Last);
@@ -76,7 +76,8 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    overriding procedure Finalize (Container : in out Vector)
    is begin
       Free (Container.Elements);
-      Container.Last := No_Index;
+      Container.First := No_Index;
+      Container.Last  := No_Index;
    end Finalize;
 
    overriding procedure Adjust (Container : in out Vector)
@@ -247,7 +248,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       use all type Ada.Containers.Count_Type;
    begin
       if Source.Length = 0 then
-         null;
+         Source.Clear;
 
       elsif Target.Length = 0 then
          Target := Source;
