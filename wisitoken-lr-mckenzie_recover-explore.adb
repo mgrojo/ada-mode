@@ -492,6 +492,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                         declare
                            New_Config : Configuration := Config;
                         begin
+                           New_Config.Error_Token.ID := Invalid_Token_ID;
+                           New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+
                            Cached_Status := Do_Reduce_1
                              (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action);
                            Cached_Config := New_Config;
@@ -621,6 +624,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  be a String_Literal. Leave Current_Shared_Token at Last + 1.
 
          New_Config.Error_Token.ID := Invalid_Token_ID;
+         New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
          --  This is a guess, so we give it a nominal cost
          New_Config.Cost := New_Config.Cost + 1;
@@ -824,6 +828,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          declare
             New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
          begin
+            New_Config.Error_Token.ID := Invalid_Token_ID;
+            New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+
             New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (ID);
 
             if Match_Since_FF (Config.Ops, (Push_Back, ID, Config.Current_Shared_Token))

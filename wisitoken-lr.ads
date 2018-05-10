@@ -510,8 +510,17 @@ package WisiToken.LR is
       Error_Token       : Recover_Token;
       Check_Token_Count : Ada.Containers.Count_Type;
       Check_Status      : Semantic_Checks.Check_Status;
-      --  If parsing this config ended on a semantic check fail,
-      --  Check_Action caused the fail, and Check_Status is the error.
+      --  If parsing this config ended with a parse error, Error_Token is
+      --  the token that failed to shift, Check_Status.Label is Ok.
+      --
+      --  If parsing this config ended with a semantic check fail,
+      --  Error_Token is the nonterm created by the reduction,
+      --  Check_Token_Count the number of tokens in the right hand side, and
+      --  Check_Status is the error.
+      --
+      --  Cleared when Config is parsed successfully, or modified so the
+      --  error is no longer meaningful (ie in explore when adding an op, or
+      --  in languag_fixes when adding a fix).
 
       Ops              : Config_Op_Arrays.Vector;
       Ops_Insert_Point : SAL.Base_Peek_Type := Config_Op_Arrays.No_Index;

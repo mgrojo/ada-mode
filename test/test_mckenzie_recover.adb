@@ -249,7 +249,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
          Enqueue_Low             => 43,
-         Enqueue_High            => 93,
+         Enqueue_High            => 113,
          Check_Low               => 14,
          Check_High              => 27,
          Cost                    => 1);
@@ -1373,7 +1373,6 @@ package body Test_McKenzie_Recover is
       --  Desired solution is ((insert ') then end if;') cost 10.
       --
       --  Previous version found that after enqueue 3291; now enqueues much less.
-      --  IMPROVME: apply the same logic in language_fixes.
 
       Check_Recover
         (Errors_Length           => 1,
@@ -1383,10 +1382,10 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 115,
-         Enqueue_High            => 228,
+         Enqueue_High            => 243,
          Check_Low               => 20,
          Check_High              => 45,
-         Cost                    => 5);
+         Cost                    => 6);
    end Actual_Parameter_Part_1;
 
    procedure Unfinished_Subprogram_Type_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1582,7 +1581,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 77,
          Enqueue_High            => 127,
          Check_Low               => 7,
-         Check_High              => 9,
+         Check_High              => 12,
          Cost                    => 1);
 
    end String_Quote_4;

@@ -66,13 +66,14 @@ package body WisiToken.LR.Parser.Gen_AUnit is
       Checking_Error          : in Ada.Containers.Count_Type                    := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
-      Ops                     : in WisiToken.LR.Config_Op_Arrays.Vector  := WisiToken.LR.Config_Op_Arrays.Empty_Vector;
+      Success                 : in Boolean                                      := True;
+      Ops                     : in WisiToken.LR.Config_Op_Arrays.Vector := WisiToken.LR.Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
-      Enqueue_Low             : in Integer;
-      Enqueue_High            : in Integer;
+      Enqueue_Low             : in Integer := 0;
+      Enqueue_High            : in Integer := 0;
       Check_Low               : in Integer;
       Check_High              : in Integer;
-      Cost                    : in Integer;
+      Cost                    : in Integer := 0;
       Expecting               : in WisiToken.Token_ID_Set                       := Empty_Token_ID_Set;
       Code                    : in WisiToken.Semantic_Checks.Check_Status_Label := WisiToken.Semantic_Checks.Ok)
    is
@@ -135,8 +136,12 @@ package body WisiToken.LR.Parser.Gen_AUnit is
             end if;
          end if;
 
-         if not Ops_Race_Condition then
-            Check (Label_I & ".recover.ops", Error.Recover.Ops, Ops);
+         Check (Label_I & ".success", Parser_State.Recover.Success, Success);
+
+         if Success then
+            if not Ops_Race_Condition then
+               Check (Label_I & ".recover.ops", Error.Recover.Ops, Ops);
+            end if;
          end if;
 
          --  The enqueue count depends on a race condition; configs with costs
@@ -147,9 +152,15 @@ package body WisiToken.LR.Parser.Gen_AUnit is
          --  Recover does not come from the same parser as Error if the
          --  succeeding parser was spawned after error recovery, but we copy
          --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
-         Check_Range (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
+         if not (Enqueue_Low = 0 and Enqueue_High = 0) then
+            Check_Range (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
+         end if;
+
          Check_Range (Label_I & ".check", Parser_State.Recover.Check_Count, Check_Low, Check_High);
-         Check (Label_I & ".cost", Error.Recover.Cost, Cost);
+
+         if Cost > 0 then
+            Check (Label_I & ".cost", Error.Recover.Cost, Cost);
+         end if;
       end;
    end Check_Recover;
 
