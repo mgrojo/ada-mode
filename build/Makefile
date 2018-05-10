@@ -108,7 +108,7 @@ define doc_year_build
   $(d)$(y).pdf: $(d)$(y).texinfo
 	texi2any --pdf $(TEXI_PDF_OPTS) $$< -o $$@
   clean::
-	rm -f $(d)$(y).log $(d)$(y).pdf $(d)$(y).toc
+	rm -f $(d)$(y).aux $(d)$(y).log $(d)$(y).pdf $(d)$(y).toc
 
 endef
 $(foreach d,$(AVAILABLE_DOCUMENTS),\
@@ -119,7 +119,7 @@ arm_form.exe : force
 	gnatmake -p $(BUILDER_OPTIONS) -P arm_info.gpr $(foreach var,ADAFLAGS LDFLAGS,"-X$(var)=$($(var))")
 clean::
 	rm -f arm_form.exe
-	rm -f -r objects
+	rm -f -r objects __pycache__
 
 trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
@@ -145,7 +145,7 @@ clean::
 ZIP_EXCLUDES := *~ *.dvi *.gz *.info *.log *.pdf *.ps *.texinfo *.toc \
   *.stamp *.zip arm_form.exe _MTN .mtn-ignore .dvc-exclude aarm2005.html \
   aarm2005.txt aarm2012.html aarm2012.txt arm2005.html arm2005.txt arm2012.html \
-  arm2012.txt objects
+  arm2012.txt objects __pycache__
 $(SOURCE_ARCHIVE):
 	tar cf - -C ../.. $(foreach e,$(ZIP_EXCLUDES),--exclude="$(e)") org.adaic.arm_form | gzip $(GZIP) -c > $@
 clean::
