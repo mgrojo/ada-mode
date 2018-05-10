@@ -1402,36 +1402,30 @@ package body WisiToken.Wisi_Runtime is
       is
          --  Return a reasonable position for the error at Node.
          --
-         --  In a successful parse with error recovery, Node be a terminal with
+         --  In a successful parse with error recovery, Node is a terminal with
          --  an augmented token in Data.Terminals, so that is the first
          --  choice.
          --
          --  If this is an error due to a bad recovery, Node may be a virtual
          --  token, with no position information, so we try to get information
          --  from its parent.
-         --
-         --  If the parse fails so that actions are not executed, there are no
-         --  augmented tokens, so we use the byte region. FIXME: this is a good
-         --  reason to have char_region in base_token.
          use Syntax_Trees;
 
          N : Node_Index := Node;
       begin
          loop
-            declare
-               Ref : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, N);
-            begin
-               if Ref.Element /= null and then Augmented_Token (Ref.Element.all).Char_Region /= Null_Buffer_Region then
-                  return Augmented_Token (Ref.Element.all).Char_Region.First;
+            if Tree.Label (N) /= Virtual_Terminal then
+               declare
+                  Ref : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, N);
+               begin
+                  if Ref.Char_Region /= Null_Buffer_Region then
+                     return Ref.Element.Char_Region.First;
+                  end if;
 
-               elsif Tree.Byte_Region (N) /= Null_Buffer_Region then
-                  return Tree.Byte_Region (N).First;
-
-               end if;
-
-               N := Tree.Parent (N);
-               exit when N = Invalid_Node_Index;
-            end;
+               end;
+            end if;
+            N := Tree.Parent (N);
+            exit when N = Invalid_Node_Index;
          end loop;
          return Buffer_Pos'First;
       end Safe_Pos;

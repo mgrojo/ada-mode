@@ -264,6 +264,12 @@ of the package or project point is in or just after, or nil.")
     (modify-syntax-entry ?\( "()" table)
     (modify-syntax-entry ?\) ")(" table)
 
+    ;; skeleton placeholder delimiters; see ada-skel.el. We use generic
+    ;; comment delimiter class, not comment starter/comment ender, so
+    ;; these can be distinguished from line end.
+    (modify-syntax-entry ?{ "!" table)
+    (modify-syntax-entry ?} "!" table)
+
     table
     )
   "Syntax table to be used for editing gpr source code.")

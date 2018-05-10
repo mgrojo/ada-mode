@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with Ada_Process; use Ada_Process;
-with AUnit.Checks;
 with WisiToken.LR.McKenzie_Recover.Ada;
 with WisiToken.LR.Parser.Gen_AUnit;
 with WisiToken.LR.Parser_Lists;
@@ -63,65 +62,9 @@ package body Test_Ada_Recover is
    ----------
    --  Test procedures
 
-   procedure Kill_Slow_Parser_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use Standard.AUnit.Checks;
-   begin
-      --  From ../test/slow_recover_1.adb; enters recovery with 3 parsers,
-      --  one succeeds, one fails quickly, the other used to take a long
-      --  time to fail. Now we kill that one sooner.
-      --
-      --  Parsing normally discards all recover data from the failed
-      --  parsers; here we preserve it via Post_Recover.
-      Parser.Post_Recover := Save_Recover'Access;
-      Saved_Data_Last := Saved_Data'First - 1;
-
-      Parse_Text
-        (Parser,
-         "procedure Slow_Recover_1 is begin if Indenting_Token.ID = -Expression_Opt_ID and (Prev_1 " &
-      --           |10       |20       |30       |40       |50       |60       |70       |80       |90
-           "= -With_ID and (Prev_3 = Invalid_Token_ID or Prev_3 /= Left_Paren_ID)) or  () then end Slow_Recover_1;");
-      --    |90       |100      |110      |120      |130      |140      |150      |160      |170
-
-      --  Missing paren around '... or ...' 132, and missing 'end if;' 173.
-
-      Check_Recover
-        (Saved_Data (1), "recover 1 parser 6",
-         Parser_Label => 6,
-         Error_Token_ID          => +RIGHT_PAREN_ID,
-         Error_Token_Byte_Region => (159, 159),
-         Ops                     => +(Push_Back, +expression_opt_ID, 14) & (Insert, +LEFT_PAREN_ID, 14) &
-           (Fast_Forward,  32) & (Insert, +RIGHT_PAREN_ID, 32),
-         Enqueue_Low             => 1000,
-         Enqueue_High            => 1200,
-         Check_Low               => 80,
-         Check_High              => 100,
-         Cost                    => 7);
-
-      Check ("recover 1 parser 5.label", Saved_Data (2).Label, 5);
-      Check ("recover 1 parser 5.success", Saved_Data (2).Recover.Success, False);
-      Check_Range ("recover 1 parser 5.Check_Count", Saved_Data (2).Recover.Check_Count, 247, 300);
-
-      Check_Recover
-        (Saved_Data (3), "recover 1 parser 1",
-         Parser_Label            => 1,
-         Error_Token_ID          => +OR_ID,
-         Error_Token_Byte_Region => (161, 162),
-         Ops                     => +(Push_Back, +expression_opt_ID, 6) & (Insert, +LEFT_PAREN_ID, 6) &
-           (Fast_Forward,  29) & (Insert, +RIGHT_PAREN_ID, 29),
-         Enqueue_Low             => 900,
-         Enqueue_High            => 1000,
-         Check_Low               => 80,
-         Check_High              => 100,
-         Cost                    => 7);
-
-   end Kill_Slow_Parser_1;
-
    procedure Kill_Slow_Parser_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use Standard.AUnit.Checks;
    begin
       --  Simplified from ../test/slow_recover_4.adb; used to be really
       --  slow, now we kill the slow parser sooner.
@@ -146,26 +89,67 @@ package body Test_Ada_Recover is
       --  Enters recovery 2 with 2 parsers:
       --  parser 3 at 'with' 192, expecting ',' | ')'
       --  parser 2 at ';' 204, expecting ',' | ')'
-      --  Parser 2 finds two solutions, fairly quickly:
-      --    2: succeed 2, enqueue 16001, check  1252, cost:  9
-      --    ((insert ') ) ;')(delete 'with')(fast_forward '""; end')(insert 'if')(delete 'case'))
-      --    ((insert ') ) ; end if ; end'))
+      --  Parser 2 finds one solution, fairly quickly:
       --
-      --  Parser 3 killed after checking 2209
+      --    2: succeed: enqueue 5689, check 432: 8, (1106 : (END))|
+      --  47:(CASE, (211 . 214))|((INSERT, RIGHT_PAREN, 45), (INSERT,
+      --  RIGHT_PAREN, 45), (FAST_FORWARD, 47), (INSERT, IF, 47), (INSERT,
+      --  SEMICOLON, 47), (INSERT, END, 47), (INSERT, SEMICOLON, 47),
+      --  (INSERT, END, 47))
+      --
+      --  Parser 3 had already checked 1048 when 2 finds a solution; killed
+      --  immediately.
 
       Check_Recover
-        (Saved_Data (1), "recover 1 parser 6",
-         Parser_Label => 6,
-         Error_Token_ID          => +RIGHT_PAREN_ID,
-         Error_Token_Byte_Region => (159, 159),
-         Ops                     => +(Push_Back, +expression_opt_ID, 14) & (Insert, +LEFT_PAREN_ID, 14) &
-           (Fast_Forward,  32) & (Insert, +RIGHT_PAREN_ID, 32),
-         Enqueue_Low             => 1000,
-         Enqueue_High            => 1200,
-         Check_Low               => 80,
-         Check_High              => 100,
-         Cost                    => 7);
+        (Saved_Data (1), "recover 1 parser 2",
+         Parser_Label            => 2,
+         Error_Token_ID          => +WHEN_ID,
+         Error_Token_Byte_Region => (153, 156),
+         Ops                     => +(Delete, +WHEN_ID, 36),
+         Enqueue_Low             => 210,
+         Enqueue_High            => 230,
+         Check_Low               => 30,
+         Check_High              => 40,
+         Cost                    => 4);
 
+      Check_Recover
+        (Saved_Data (2), "recover 1 parser 1",
+         Parser_Label            => 1,
+         Error_Token_ID          => +WHEN_ID,
+         Error_Token_Byte_Region => (153, 156),
+         Ops                     => +(Insert, +CASE_ID, 36) & (Insert, +IS_ID, 36),
+         Enqueue_Low             => 210,
+         Enqueue_High            => 230,
+         Check_Low               => 30,
+         Check_High              => 40,
+         Cost                    => 4);
+
+      Check_Recover
+        (Saved_Data (3), "recover 2 parser 3",
+         Parser_Label            => 3,
+         Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +WITH_ID,
+         Error_Token_Byte_Region => (192, 195),
+         Success                 => False,
+         Check_Low               => 1000,
+         Check_High              => 1200);
+
+      Check_Recover
+        (Saved_Data (4), "recover 2 parser 2",
+         Parser_Label            => 2,
+         Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +SEMICOLON_ID,
+         Error_Token_Byte_Region => (205, 205),
+         Ops                     => +(Insert, +RIGHT_PAREN_ID, 45) & (Insert, +RIGHT_PAREN_ID, 45) &
+           (Fast_Forward, 47) & (Insert, +IF_ID, 47) & (Insert, +SEMICOLON_ID, 47) & (Insert, +END_ID, 47) &
+           (Insert, +SEMICOLON_ID, 47) & (Insert, +END_ID, 47),
+         Enqueue_Low             => 6100,
+         Enqueue_High            => 6300,
+         Check_Low               => 450,
+         Check_High              => 470,
+         Cost                    => 8);
    end Kill_Slow_Parser_2;
 
    ----------
@@ -175,7 +159,6 @@ package body Test_Ada_Recover is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Kill_Slow_Parser_1'Access, "Kill_Slow_Parser_1");
       Register_Routine (T, Kill_Slow_Parser_2'Access, "Kill_Slow_Parser_2");
    end Register_Tests;
 
@@ -195,6 +178,7 @@ package body Test_Ada_Recover is
         (Parser,
          Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
          Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,
+         Language_String_ID_Set       => WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
          Algorithm                    => WisiToken.LALR,
          Trace                        => Trace'Access,
          User_Data                    => User_Data'Access);

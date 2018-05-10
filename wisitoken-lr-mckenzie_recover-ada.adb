@@ -478,9 +478,18 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          --  where the erroneous reduce matches the empty 'block_label_opt'
          --  with '<end_name_Token>'.
          --
+         --  or
+         --
+         --  "block_label_opt loop ... end loop <end_name_token> ;"
+         --
+         --  where the extra <end_name_token> is created by an attempted fix.
+         --  See test/ada_mode-recover_constant_as_statement.adb.
+         --
+         --
          --  0. If a matching <begin_name_token> is found, this is not a
          --  plausible user name error; return Abandon. If it is not found, the
-         --  user could be adding/deleting names; return Continue.
+         --  user could be adding/deleting names; return Continue. In either
+         --  case, enqueue other solutions.
          --
          --  1. There is at least one missing 'end' before 'begin'. See
          --  test_mckenzie_recover.adb Extra_Name_1, Extra_Name_2,
@@ -509,12 +518,15 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             Matching_Name_Index : SAL.Peek_Type := Token_Count;
             --  'block_label_opt' is empty; start on token before 'begin'.
 
+            Result : Non_Success_Status;
          begin
             Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
-            if Matching_Name_Index > Config.Stack.Depth then
-               --  case 0
-               return Continue;
+            if Matching_Name_Index = Config.Stack.Depth then
+               --  case 0, not found
+               Result := Continue;
+            else
+               Result := Abandon;
             end if;
 
             --  Case 1
@@ -522,7 +534,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
                Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
             begin
-               --  We don't increase the cost, because this is not a guess.
+               New_Config.Cost := New_Config.Cost + 1;
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
 
@@ -551,20 +563,24 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             declare
                New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
             begin
-               --  We don't increase the cost, because this is not a guess.
+               New_Config.Cost := New_Config.Cost + 1;
 
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
 
-               Push_Back_Check
-                 (New_Config,
-                  (+SEMICOLON_ID,
-                   (if Config.Error_Token.ID = +block_statement_ID
-                    then +identifier_opt_ID
-                    else +name_opt_ID),
-                   +END_ID));
+               case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+               when block_statement_ID =>
+                  Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
+                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
-               Insert (New_Config, (+END_ID, +SEMICOLON_ID));
+               when loop_statement_ID =>
+                  Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
+                  Insert (New_Config, (+END_ID, +LOOP_ID, +SEMICOLON_ID));
+
+               when others =>
+                  raise Programmer_Error with "Extra_Name_Error 2: unrecognized Error_Token.ID " & Image
+                    (Config.Error_Token.ID, Descriptor);
+               end case;
 
                if Trace_McKenzie > Detail then
                   Put ("Extra_Name_Error 2 " & Image
@@ -574,7 +590,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   end if;
                end if;
             end;
-            return Abandon;
+            return Result;
          end;
       end case;
    end Handle_Check_Fail;

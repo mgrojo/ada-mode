@@ -21,20 +21,21 @@ with WisiToken.LR.Parser;
 package Gpr_Process is
 
    Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal    => 3,
-      Last_Terminal     => 37,
-      First_Nonterminal => 38,
-      Last_Nonterminal  => 71,
-      EOF_ID            => 37,
-      Accept_ID         => 38,
-      Case_Insensitive  => True,
-      New_Line_ID       => 1,
-      Comment_ID        => 2,
-      Left_Paren_ID     => 2147483647,
-      Right_Paren_ID    => 2147483647,
-      String_1_ID       => 2147483647,
-      String_2_ID       => 36,
-      Image             =>
+     (First_Terminal                => 3,
+      Last_Terminal                 => 37,
+      First_Nonterminal             => 38,
+      Last_Nonterminal              => 71,
+      EOF_ID                        => 37,
+      Accept_ID                     => 38,
+      Case_Insensitive              => True,
+      New_Line_ID                   => 1,
+      Comment_ID                    => 2,
+      Left_Paren_ID                 => 2147483647,
+      Right_Paren_ID                => 2147483647,
+      String_1_ID                   => 2147483647,
+      String_2_ID                   => 36,
+      Embedded_Quote_Escape_Doubled => False,
+      Image                         =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
@@ -192,8 +193,9 @@ package Gpr_Process is
 
    procedure Create_Parser
      (Parser                       :    out WisiToken.LR.Parser.Parser;
-      Language_Fixes               : in     WisiToken.LR.Language_Fixes_Access;
-      Language_Constrain_Terminals : in     WisiToken.LR.Language_Constrain_Terminals_Access;
+      Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;
+      Language_Constrain_Terminals : in     WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
+      Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;
       Algorithm                    : in     WisiToken.Generator_Algorithm_Type;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);

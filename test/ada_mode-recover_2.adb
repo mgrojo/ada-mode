@@ -16,7 +16,7 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Queues;
 with WisiToken.Token;
-package body Ada_Mode.Recover_1 is
+package body Ada_Mode.Recover_2 is
 
    procedure Check_One
      (Parser_Label : Natural;
@@ -51,4 +51,4 @@ package body Ada_Mode.Recover_1 is
       --  Terminate; no more configs to check.
    end Check_Parser_Config;
 
-end Ada_Mode.Recover_1;
+end Ada_Mode.Recover_2;

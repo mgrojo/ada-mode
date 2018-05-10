@@ -42,6 +42,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_bad_char.adb",
       "ada_mode-recover_block_name_mismatch.adb",
+      "ada_mode-recover_constant_as_statement_1.adb",
       "ada_mode-recover_end_1.adb",
       "ada_mode-recover_end_2.adb",
       "ada_mode-recover_exception_1.adb",

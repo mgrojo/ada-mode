@@ -100,6 +100,7 @@ package body Test_Gpr_Recover is
         (Parser,
          Language_Fixes               => null, -- WisiToken.LR.McKenzie_Recover.Gpr.Language_Fixes'Access,
          Language_Constrain_Terminals => null,
+         Language_String_ID_Set       => null,
          Algorithm                    => WisiToken.LALR,
          Trace                        => Trace'Access,
          User_Data                    => User_Data'Access);
