@@ -155,7 +155,8 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
             else
                if Trace_McKenzie > Detail then
                   Put_Line
-                    (Trace, Super.Label (Parser_Index), Trace_Prefix & ": add conflict " &
+                    (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image
+                       (Config.Stack.Peek.State) & ": add conflict " &
                        Image (Action.Next.Item, Descriptor));
                end if;
 

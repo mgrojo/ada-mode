@@ -579,11 +579,11 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
          New_Config.Current_Shared_Token := Tok.Min_Terminal_Index;
 
-         --  Find first terminal to delete.
-         J := Tok.Min_Terminal_Index;
+         --  Find last string literal in pushed back terminals.
+         J := Saved_Shared_Token - 1;
          loop
             exit when Shared.Token (J).ID = String_Literal_ID;
-            J := J + 1;
+            J := J - 1;
          end loop;
 
          if Parse.Parse
@@ -591,20 +591,17 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             Shared_Token_Goal => J,
             Trace_Prefix      => "insert quote parse pushback")
          then
-            --  The non-deleted tokens parsed without error.
-            if Parse_Items.Length = 1 then
-               New_Config.all := Parse_Items (1).Config;
-               New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
+            --  The non-deleted tokens parsed without error. We don't care if any
+            --  conflicts were encountered.
+            New_Config.all := Parse_Items (1).Config;
+            New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
 
-               Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
-            else
-               raise Programmer_Error;
-            end if;
+            Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
          else
             raise Programmer_Error;
          end if;
 
-         J := New_Config.Current_Shared_Token;
+         J := New_Config.Current_Shared_Token; -- parse result
          loop
             exit when J = Saved_Shared_Token;
             New_Config.Ops.Append ((Delete, Shared.Token (J).ID, J));
