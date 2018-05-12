@@ -1,6 +1,4 @@
--- Real error of missing string quote. Used to violate a constraint, fails recovery gracefully.
---
--- FIXME: check for lexer error in language_fixes, insert the quote where it belongs.
+-- Real error of missing string quote. Used to violate a constraint, now succeeds.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)

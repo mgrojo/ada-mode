@@ -43,8 +43,8 @@ docs : info html
 update-elisp : autoloads
 update-elisp : ../ada-elisp.el
 update-elisp : ../gpr-elisp.el
-update-elisp : build_ada_executables
-#update-elisp : install_ada_executables
+#update-elisp : build_ada_executables
+update-elisp : install_ada_executables
 update-elisp : byte-compile
 
 # This updates everything after any source change, without running the
@@ -74,13 +74,14 @@ byte-compile-clean :
 # IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
 test : build_ada_executables
-#test : test-ada-elisp-gpr_query.stamp
+test : ada_unit_tests
+test : test-ada-elisp-gpr_query.stamp
 test : test-ada-process-gpr_query.stamp
-#test : test-ada-gps.stamp
-#test : gpr-skel.gpr.diff
-#test : test-gpr-elisp.stamp
+test : test-ada-gps.stamp
+test : gpr-skel.gpr.diff
+test : test-gpr-elisp.stamp
 test : test-gpr-process.stamp
-#test : test-elisp
+test : test-elisp
 test : summarize
 
 test-wisi :: ada-number-literal.wisi-test
@@ -95,20 +96,20 @@ test-wisi :: force
 	find . -name "*.diff" -not -size 0 >> test.log
 
 summarize :
-	cat *.log
+	cat test.log
 
-ONE_TEST_FILES += ada_mode-recover_indent_4.adb
-one : export Standard_Common_Build := Debug
+ONE_TEST_FILES += ada_mode-recover_navigate_1.adb
 one : build_ada_executables
-one : byte-compile
+#one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 #one : RUNTEST := run-indent-test-elisp-gpr_query.el
 one : RUNTEST := run-indent-test-process-gpr_query.el
+#one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= --verbosity 1 1 0
+#two : RUN_ARGS ?= --verbosity 2 2 > debug.log
 #two : RUN_ARGS ?= --repeat_count 5
 two : export Standard_Common_Build := Debug
 two : build_ada_executables
@@ -122,8 +123,8 @@ two_mem : build_ada_executables
 
 two_pro : export Standard_Common_Profile := On
 two_pro : build_ada_executables
-	../exec_pro/run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 2
-	gprof ../exec_pro/run_ada_parse.exe > gnatcoll-xref.adb.profile
+	../exec_pro/run_ada_parse.exe ../test/ada_mode-recover_bad_char.adb Indent --repeat_count 5
+	gprof ../exec_pro/run_ada_parse.exe > ada_mode-recover_bad_char.profile
 
 # WISI_WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -400,8 +401,14 @@ $(INSTALL_BIN)gpr_mode_wisi_parse$(EXE_EXT) install_gpr_mode_wisi_parse : gpr_mo
 $(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gpr_mode_parser$(EXE_EXT)
 	gprinstall -f -p -P ../run_ada_mode_parser.gpr --install-name=run_gpr_mode_parser
 
-# eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
-# eval: (unless dvc-doing-ediff-p (load-file "wisi_parse.el"))
+test_harness.exe : force
+	gprbuild -p ../ada_mode_unit_tests.gpr $(GPRBUILD_ARGS)
+
+ada_unit_tests : build_ada_executables test_harness.exe
+	../test_harness.exe $(RUN_ARGS)
+
+# only needed for editing, not compiling/running
+# (load-file "ada_mode_unit_tests.el")
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:

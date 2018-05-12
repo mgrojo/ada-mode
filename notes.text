@@ -55,6 +55,8 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
 ./ada_mode-recover_2.adb.diff
     bad indent
 
+teach font lock that line end terminates strings
+
 line_begin_token now in Shared_Parser
     parse_data does not need Line_Count; it can use intelligent vector growth.
 
@@ -71,11 +73,9 @@ test/slow_recover_4.adb
             to get that, need to handle  the "conflict" in the two different reductions to empty
 
 
-
-test/gpr/gpr-ske-test fails with 'undefined skeleton token'
-
-wisitoken-semantic_state.adb:281:27: operator for type "Base_Peek_Type" defined at sal.ads:70 is not directly visible
-    include package name in error message fix
+https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
+    export, incremental update of git mirror works
+    push my stuff to savannah
 
 make-subprogram-body should strip aspects.
 
