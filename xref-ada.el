@@ -103,6 +103,7 @@
 		  generic_instantiation
 		  null_procedure_declaration
 		  object_declaration
+		  object_renaming_declaration
 		  procedure_specification
 		  protected_declaration
 		  protected_type_declaration
