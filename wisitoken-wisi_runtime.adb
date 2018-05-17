@@ -1430,9 +1430,17 @@ package body WisiToken.Wisi_Runtime is
          return Buffer_Pos'First;
       end Safe_Pos;
 
-      function Safe_Pos (Pos : in Buffer_Pos) return Buffer_Pos
+      function Safe_Pos (Token : in Recover_Token) return Buffer_Pos
       is begin
-         return (if Pos = Buffer_Pos'Last then Buffer_Pos'First else Pos);
+         if Token.Name /= Null_Buffer_Region then
+            return Token.Name.First;
+
+         elsif Token.Byte_Region = Null_Buffer_Region then
+            return Buffer_Pos'First;
+
+         else
+            return Token.Byte_Region.First;
+         end if;
       end Safe_Pos;
 
    begin
@@ -1467,8 +1475,9 @@ package body WisiToken.Wisi_Runtime is
                  (case Item.Check_Status.Label is
                   when Ok => "",
                   when Error =>
-                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name.Byte_Region.First)) &
-                       " ""check error""]"));
+                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name)) &
+                     Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name)) &
+                       " ""block name error""]"));
          end case;
 
          if Item.Recover.Stack.Depth > 0 then

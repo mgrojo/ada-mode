@@ -300,23 +300,22 @@ complete."
     ))
 
 (defun wisi-process-parse--Check_Error (parser sexp)
-  ;; sexp is [Check_Error code char-position <string>]
+  ;; sexp is [Check_Error code name-1-pos name-2-pos <string>]
   ;; see ‘wisi-process-parse--execute’
-  (let ((pos (aref sexp 2))
-	err)
-
-    (goto-char pos);; for current-column
-
-    (setq err
-	  (make-wisi--parse-error
-	   :pos (copy-marker pos)
-	   :message
-	   (format "%s:%d:%d: %s"
-		   (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
-		   ;; file-name can be nil during vc-resolve-conflict
-		   (line-number-at-pos pos)
-		   (current-column)
-		   (aref sexp 3))))
+  (let* ((name-1-pos (aref sexp 2))
+	(name-1-col (1+ (progn (goto-char name-1-pos)(current-column)))) ;; gnat columns are 1 + emacs columns
+	(name-2-pos (aref sexp 3))
+	(name-2-col (1+ (progn (goto-char name-2-pos)(current-column))))
+	(file-name (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) ""))
+	;; file-name can be nil during vc-resolve-conflict
+	(err (make-wisi--parse-error
+	      :pos (copy-marker name-1-pos)
+	      :message
+	      (format "%s:%d:%d: %s %s:%d:%d"
+		      file-name (line-number-at-pos name-1-pos) name-1-col
+		      (aref sexp 4)
+		      file-name (line-number-at-pos name-2-pos) name-2-col)))
+	)
 
     (push err (wisi-parser-parse-errors parser))
     ))
@@ -370,7 +369,7 @@ complete."
   ;;    If error recovery is successful, there can be more than one
   ;;    error reported during a parse.
   ;;
-  ;; [Check_Error code char-position <string>]
+  ;; [Check_Error code name-1-pos name-2-pos <string>]
   ;;    The parser detected a semantic check error; save information
   ;;    for later reporting.
   ;;

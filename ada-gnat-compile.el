@@ -80,20 +80,24 @@ For `compilation-filter-hook'."
 
 	(skip-syntax-forward "^-"); space following primary reference
 
-	(while (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\)\\)"
+	(while (search-forward-regexp "\\s-\\(\\([^[:blank:]]+\\.[[:alpha:]]+\\):\\([0-9]+\\):?\\([0-9]+\\)?\\)"
 				      (line-end-position) t)
 
 	  (goto-char (match-end 0))
 	  (with-silent-modifications
 	    (compilation--put-prop 2 'font-lock-face compilation-info-face); file
 	    (compilation--put-prop 3 'font-lock-face compilation-line-face); line
+	    (compilation--put-prop 4 'font-lock-face compilation-line-face); col
 	    (put-text-property
 	     (match-beginning 0) (match-end 0)
 	     'ada-secondary-error
 	     (list
 	      (match-string-no-properties 2); file
 	      (string-to-number (match-string-no-properties 3)); line
-	      0)); Emacs column; zero indexed
+	      (if (match-string 4)
+		  (1- (string-to-number (match-string-no-properties 4)))
+		0); column
+	      ))
 	    ))
 
 	(when (search-forward-regexp "\\(at line \\)\\([0-9]+\\)" (line-end-position) t)
@@ -713,6 +717,8 @@ Prompt user if more than one."
    ;; gnu cc1: (gnatmake can invoke the C compiler)
    ;;   foo.c:2: `TRUE' undeclared here (not in a function)
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
+   ;;
+   ;; we can't handle secondary errors here, because a regexp can't distinquish "message" from "filename"
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
 (unless (default-value 'ada-compiler)

@@ -52,6 +52,10 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+test/ada_mode-recover_deleted_procedure_1.adb
+    recover fails
+        insert 'procedure IDENTIFIER is', not 'end ;'
+
 ./ada_mode-recover_2.adb.diff
     bad indent
 
