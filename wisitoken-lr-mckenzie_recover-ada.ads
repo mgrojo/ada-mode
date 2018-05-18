@@ -28,6 +28,7 @@ package WisiToken.LR.McKenzie_Recover.Ada is
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
      return Non_Success_Status;
+   --  See wisitoken-lr-parser.ads Language_Fixes_Access for description.
 
    function Constrain_Terminals
      (Trace        : in out WisiToken.Trace'Class;
@@ -35,10 +36,14 @@ package WisiToken.LR.McKenzie_Recover.Ada is
       Table        : in     Parse_Table;
       Config       : in     Configuration)
      return WisiToken.Token_ID_Set;
+   --  See wisitoken-lr-parser.ads Language_Constrain_Terminals_Access
+   --  for description.
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;
       String_Literal_ID : in Token_ID)
      return Token_ID_Set;
+   --  See wisitoken-lr-parser.ads Language_String_ID_Set_Access for
+   --  description.
 
 end WisiToken.LR.McKenzie_Recover.Ada;

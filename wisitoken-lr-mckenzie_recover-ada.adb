@@ -32,7 +32,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
    subtype Grammar_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal);
    subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
 
-   --  From ada.wy:
+   --  From ada.wy, all nonterms with a Match_Names check:
+   --
    --  nonterm                       <begin_name_token>        <end_name_token>
    --  |-----------------------------|-------------------------|-------------
    --  accept_statement              IDENTIFIER                identifier_opt
@@ -62,7 +63,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       +IF_ID & (+CASE_ID) & (+LOOP_ID) & (+RECORD_ID) & (+RETURN_ID) & (+SELECT_ID));
 
    Named_Nonterm_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
-     --  Nonterms that have a 'wisi-match-names' check.
      (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
       +accept_statement_ID & (+block_statement_ID) & (+entry_body_ID) & (+loop_statement_ID) & (+package_body_ID) &
         (+package_specification_ID) & (+protected_body_ID) & (+protected_type_declaration_ID) &
@@ -228,6 +228,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          raise Programmer_Error;
 
       when Match_Names_Error =>
+         --  There are several cases:
+         --
          --  0. User name error. The input looks like:
          --
          --  "<begin_name_token> ... <end_name_token> ;"
@@ -249,13 +251,24 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          --  The fix is to insert one or more 'end ;' before <end_name_token>.
          --  See test_mckenzie_recover.adb Block_Match_Names_1, Extra_Name_2.
          --
+         --  2. The mismatch indicates a missing block start. The input looks like:
+         --
+         --  "<bad_begin_name_token> ... begin ... end <end_name_token> ;"
+         --
+         --  where the matching begin name token has been deleted.
+         --
+         --  The fix is to insert a matching block start before the 'begin'.
+         --  See test/ada_mode-recover_deleted_procedure_1.adb
+         --
          --
          --  It is not possible for the mismatch to indicate an extra 'end';
          --  that would generate either a Missing_Name_Error, or a syntax
          --  error.
          --
          --  To distinguish between case 0 and 1, we search the stack for
-         --  <correct_begin_name_token>. If found, it's case 1, otherwise case 0.
+         --  <correct_begin_name_token>. If found, it's case 1, otherwise case
+         --  0 or 2. We cannot distinguish between 0 and 2 (without parsing
+         --  ahead).
          --
          --  If there is more than one missing 'end', a later recover operation
          --  will fix the others. For example, in test_mckenzie_recover
@@ -271,7 +284,84 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
 
             if Matching_Name_Index = Config.Stack.Depth then
-               --  case 0.
+               --  case 0 or 2.
+
+               if Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) in
+                 protected_type_declaration_ID | single_protected_declaration_ID | single_task_declaration_ID
+               then
+                  --  Not case 2
+                  return Continue;
+               end if;
+
+               declare
+                  New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               begin
+                  New_Config.Cost := New_Config.Cost + 1;
+
+                  New_Config.Error_Token.ID := Invalid_Token_ID;
+                  New_Config.Check_Status   := (Label => Ok);
+
+                  case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+                  when block_statement_ID =>
+                     Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
+                     Insert (New_Config, +BEGIN_ID);
+
+                  when entry_body_ID =>
+                     Push_Back_Check
+                       (New_Config, (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID));
+                     Insert (New_Config, +BEGIN_ID);
+
+                  when loop_statement_ID =>
+                     Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
+                     Insert (New_Config, +LOOP_ID);
+
+                  when package_body_ID =>
+                     Push_Back_Check (New_Config, (+SEMICOLON_ID, +name_opt_ID, +END_ID));
+                     if New_Config.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID then
+                        Push_Back_Check (New_Config, (+handled_sequence_of_statements_ID, +BEGIN_ID));
+                     end if;
+                     Push_Back_Check (New_Config, (1 => +declarative_part_opt_ID));
+                     Insert (New_Config, (+PACKAGE_ID, +BODY_ID, +IDENTIFIER_ID, +IS_ID));
+
+                  when package_specification_ID =>
+                     Push_Back_Check (New_Config, (+name_opt_ID, +END_ID, +declarative_part_opt_ID));
+                     if New_Config.Stack.Peek (1).Token.ID = +PRIVATE_ID then
+                        Push_Back_Check (New_Config, (+PRIVATE_ID, +declarative_part_opt_ID));
+                     end if;
+                     Insert (New_Config, (+PACKAGE_ID, +IDENTIFIER_ID, +IS_ID));
+
+                  when protected_type_declaration_ID | single_protected_declaration_ID | single_task_declaration_ID =>
+                     --  Not possible
+                     raise Programmer_Error;
+
+                  when subprogram_body_ID =>
+                     Push_Back_Check
+                       (New_Config,
+                        (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID, +BEGIN_ID,
+                         +declarative_part_opt_ID));
+                     Insert (New_Config, (+PROCEDURE_ID, +IDENTIFIER_ID, +IS_ID));
+
+                  when task_body_ID =>
+                     Push_Back_Check
+                       (New_Config, (+SEMICOLON_ID, +name_opt_ID, +END_ID, +handled_sequence_of_statements_ID));
+                     Insert (New_Config, +BEGIN_ID);
+
+                  when others =>
+                     raise Programmer_Error;
+                  end case;
+
+                  if Trace_McKenzie > Detail then
+                     Put ("Match_Names_Error 2 " & Image (Config.Error_Token.ID, Descriptor), New_Config.all);
+                     if Trace_McKenzie > Extra then
+                        Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
+                     end if;
+                  end if;
+               exception
+               when E : System.Assertions.Assert_Failure =>
+                  raise Programmer_Error with "Match_Names_Error 2 " &
+                    Standard.Ada.Exceptions.Exception_Message (E) & " " &
+                    Image (Config.Error_Token.ID, Descriptor);
+               end;
                return Continue;
 
             else
@@ -397,7 +487,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                New_Config.Check_Status   := (Label => Ok);
 
                case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
-               when block_statement_ID | subprogram_body_ID | task_body_ID =>
+               when block_statement_ID | package_body_ID | subprogram_body_ID | task_body_ID =>
                   End_Item := Stack.Peek (3);
 
                   Push_Back_Check
@@ -408,10 +498,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                        else +name_opt_ID),
                       +END_ID));
 
-                  Undo_Reduce_Check
-                    (New_Config, Tree,
-                     (+handled_sequence_of_statements_ID,
-                      +sequence_of_statements_opt_ID));
+                  if New_Config.Stack.Peek (1).Token.ID = +handled_sequence_of_statements_ID then
+                     Undo_Reduce_Check
+                       (New_Config, Tree,
+                        (+handled_sequence_of_statements_ID,
+                         +sequence_of_statements_opt_ID));
+                  end if;
 
                when package_specification_ID =>
                   End_Item := Stack.Peek (2);

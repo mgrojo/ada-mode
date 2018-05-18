@@ -1,12 +1,13 @@
---  From a real editing session. Fails recover.
+--  From a real editing session.
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 procedure Modify_Schema
 is
-   Server_Config : SAL.Config_Files.Configuration_Type;
+      Server_Config : Sal.Config_Files.Configuration_Type;
 
-   --  Deleted "procedure Get_Root is"
-      use SAL.Config_Files;
+      --  Deleted "procedure Get_Root is"
+      use Sal.Config_Files;
    begin
-      raise SAL.Not_Found with "no root key found";
+      raise Sal.Not_Found with "no root key found";
    end Get_Root;
 begin
    declare
@@ -14,6 +15,6 @@ begin
    begin
       if Argument_Count /= 2 then
          Usage;
-         end if;
-         end;
-         end Modify_Schema;
+      end if;
+   end;
+end Modify_Schema;

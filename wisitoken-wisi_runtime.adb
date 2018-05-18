@@ -854,7 +854,9 @@ package body WisiToken.Wisi_Runtime is
       --  Compute as much as possible with virtual tokens; see
       --  test/format_paramlist.adb
    begin
-      if Tree.Label (Tokens (Containing)) = Syntax_Trees.Virtual_Terminal then
+      if Tree.Label (Tokens (Containing)) = Syntax_Trees.Virtual_Terminal or
+        Tree.Label (Tokens (Contained)) = Syntax_Trees.Virtual_Terminal
+      then
          return;
       end if;
 
