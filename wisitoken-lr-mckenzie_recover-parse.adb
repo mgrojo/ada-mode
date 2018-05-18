@@ -265,6 +265,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Parse_Items       :    out          Parse_Item_Arrays.Vector;
       Config            : in              Configuration;
       Shared_Token_Goal : in              Base_Token_Index;
+      All_Conflicts     : in              Boolean;
       Trace_Prefix      : in              String)
      return Boolean
    is
@@ -289,8 +290,9 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
          Success := Parse_One_Item
            (Super, Shared, Parser_Index, Parse_Items, Last_Index, Shared_Token_Goal, Trace_Prefix);
 
-         --  FIXME: continue remaining conflict items?
-         exit when Success or Parse_Items.Last_Index = Last_Index;
+         exit when Parse_Items.Last_Index = Last_Index;
+
+         exit when Success and not All_Conflicts;
 
          if Trace_McKenzie > Detail then
             Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": parse conflict");

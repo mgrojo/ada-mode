@@ -59,6 +59,7 @@ private package WisiToken.LR.McKenzie_Recover.Parse is
       Parse_Items       :    out          Parse_Item_Arrays.Vector;
       Config            : in              Configuration;
       Shared_Token_Goal : in              Base_Token_Index;
+      All_Conflicts     : in              Boolean;
       Trace_Prefix      : in              String)
      return Boolean;
    --  Attempt to parse Config until Config.Inserted is all shifted, and

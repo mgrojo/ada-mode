@@ -1,4 +1,4 @@
---  Abstract :
+0--  Abstract :
 --
 --  Base utilities for McKenzie_Recover
 --
@@ -64,6 +64,9 @@ private package WisiToken.LR.McKenzie_Recover.Base is
    --  due to identical parser stacks, which in turn depends on the order
    --  they were delivered. See ada-mode/tests/ada_mode-interactive_2.adb
    --  for an example.
+   --
+   --  There is also a race condition on how many failed or higher cost
+   --  configurations are checked, before the final solutions are found.
 
    type Config_Status is (Valid, All_Done);
    type Parser_Status is (Active, Ready, Success, Fail);
