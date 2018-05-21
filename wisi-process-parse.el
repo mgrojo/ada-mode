@@ -293,7 +293,7 @@ complete."
 		   (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		   ;; file-name can be nil during vc-resolve-conflict
 		   (line-number-at-pos pos)
-		   (current-column)
+		   (1+ (current-column))
 		   (aref sexp 2))))
 
     (push err (wisi-parser-parse-errors parser))

@@ -234,10 +234,11 @@ Otherwise, indent by `ada-indent-broken' relative to the start of the expression
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-hanging-rel-exp)
 
-(defcustom ada-end-name-optional t
+(defcustom ada-end-name-optional nil
   "If t, names at ends of blocks/subprograms are optional (as in
 standard Ada). If nil, they are required; this helps in error
-recovery, and matches the gnat style option -gnatye."
+recovery, and matches the gnat style option -gnatye.
+Default is nil because it significantly improves error recovery."
   :type 'boolean
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-hanging-rel-exp)
