@@ -1,4 +1,4 @@
-0--  Abstract :
+--  Abstract :
 --
 --  Base utilities for McKenzie_Recover
 --
