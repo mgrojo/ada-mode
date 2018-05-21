@@ -38,7 +38,6 @@ package body WisiToken.LR.Parser is
       Action         : in     Reduce_Action_Rec;
       Nonterm        :    out WisiToken.Syntax_Trees.Valid_Node_Index;
       Lexer          : in     WisiToken.Lexer.Handle;
-      Resume_Active  : in     Boolean;
       Trace          : in out WisiToken.Trace'Class)
      return WisiToken.Semantic_Checks.Check_Status_Label
    is
@@ -50,7 +49,7 @@ package body WisiToken.LR.Parser is
       use all type Semantic_Checks.Check_Status_Label;
       use all type Semantic_Checks.Semantic_Check;
 
-      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+      Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Children_Tree : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
       --  for Set_Children.
    begin
@@ -96,7 +95,7 @@ package body WisiToken.LR.Parser is
                return Ok;
 
             when Semantic_Checks.Error =>
-               if Resume_Active then
+               if Parser_State.Resume_Active then
                   --  Ignore this error; that's how McKenzie_Recover decided to fix it
                   return Ok;
 
@@ -144,8 +143,7 @@ package body WisiToken.LR.Parser is
          Parser_State.Tree.Set_State (Parser_State.Current_Token, Action.State);
 
       when Reduce =>
-         Status := Reduce_Stack_1
-           (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Shared_Parser.Resume_Active, Trace);
+         Status := Reduce_Stack_1 (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace);
 
          --  Even when Reduce_Stack_1 returns Error, it did reduce the stack, so
          --  push Nonterm.
@@ -176,7 +174,7 @@ package body WisiToken.LR.Parser is
            (Current_Parser,
             (Reduce, Action.Productions, Action.LHS, Action.Action, Action.Check, Action.Token_Count,
              Action.Name_Index),
-            Nonterm, Shared_Parser.Lexer, Shared_Parser.Resume_Active, Trace)
+            Nonterm, Shared_Parser.Lexer, Trace)
          is
          when Ok =>
             Current_Parser.Set_Verb (Action.Verb);
@@ -270,13 +268,11 @@ package body WisiToken.LR.Parser is
       Shift_Virtual_Count : SAL.Base_Peek_Type := 0;
       Accept_Count        : SAL.Base_Peek_Type := 0;
       Error_Count         : SAL.Base_Peek_Type := 0;
-      Min_Shared_Token    : Base_Token_Index   := Base_Token_Index'Last;
+      Resume_Active       : Boolean            := False;
    begin
       Zombie_Count := 0;
 
       for Parser_State of Shared_Parser.Parsers loop
-         Min_Shared_Token := Token_Index'Min (Min_Shared_Token, Parser_State.Shared_Token);
-
          case Parser_State.Verb is
          when Pause | Shift_Recover | Shift =>
             Do_Deletes (Shared_Parser, Parser_State);
@@ -299,6 +295,17 @@ package body WisiToken.LR.Parser is
 
             else
                Shift_Count := Shift_Count + 1;
+            end if;
+
+            if Parser_State.Resume_Active then
+               if Parser_State.Resume_Token_Goal <= Parser_State.Shared_Token then
+                  Parser_State.Resume_Active := False;
+                  if Trace_Parse > Detail then
+                     Shared_Parser.Trace.Put_Line (Integer'Image (Parser_State.Label) & ": resume_active: False");
+                  end if;
+               else
+                  Resume_Active := True;
+               end if;
             end if;
 
          when Reduce =>
@@ -335,31 +342,13 @@ package body WisiToken.LR.Parser is
          raise Programmer_Error;
       end if;
 
-      if Shared_Parser.Resume_Active then
-         --  FIXME: move Resume_Token_Goal into Parser_State, use Pause to sync all parsers.
-         if Shift_Virtual_Count = 0 and Shared_Parser.Resume_Token_Goal <= Min_Shared_Token then
-            Shared_Parser.Resume_Active := False;
-            if Trace_Parse > Detail then
-               Shared_Parser.Trace.Put_Line ("resume_active: False");
-            end if;
-         end if;
-      end if;
-
-      if Shared_Parser.Resume_Active then
+      if Resume_Active then
          for Parser_State of Shared_Parser.Parsers loop
-            if Parser_State.Verb in Shift | Shift_Recover and
-              Parser_State.Shared_Token >= Shared_Parser.Resume_Token_Goal
-            then
+            if Parser_State.Verb in Shift | Shift_Recover and not Parser_State.Resume_Active then
                Parser_State.Set_Verb (Pause);
             end if;
          end loop;
       end if;
-
-      --  Verify that we don't create zombies when recover is active.
-      if Shared_Parser.Resume_Active and Zombie_Count > 0 then
-         raise Programmer_Error;
-      end if;
-
    end Parse_Verb;
 
    procedure Terminate_Parser
@@ -560,7 +549,7 @@ package body WisiToken.LR.Parser is
             --  all participate in error recovery.
 
             --  We do not create zombie parsers during resume.
-            if not Shared_Parser.Resume_Active then
+            if not Check_Parser.State_Ref.Resume_Active then
                --  Parser is now a zombie
                if Trace_Parse > Detail then
                   Trace.Put_Line (Integer'Image (Check_Parser.Label) & ": zombie");
@@ -598,8 +587,6 @@ package body WisiToken.LR.Parser is
       Shared_Parser.Parsers              := Parser_Lists.New_List
         (First_Parser_Label => Shared_Parser.First_Parser_Label,
          Shared_Tree        => Shared_Parser.Shared_Tree'Unchecked_Access);
-      Shared_Parser.Resume_Active        := False;
-      Shared_Parser.Resume_Token_Goal    := Token_Index'First;
 
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
@@ -876,14 +863,6 @@ package body WisiToken.LR.Parser is
                end if;
 
                if Recover_Result = Success then
-                  Shared_Parser.Resume_Active := Recover_Result = Success;
-                  if Trace_Parse > Detail then
-                     if Shared_Parser.Resume_Active then
-                        Shared_Parser.Trace.Put_Line
-                          ("resume_active: True, token goal" & Token_Index'Image (Shared_Parser.Resume_Token_Goal));
-                     end if;
-                  end if;
-
                   declare
                      Shift_Recover_Count : Integer := 0;
                   begin
@@ -897,7 +876,13 @@ package body WisiToken.LR.Parser is
                            Trace.New_Line;
                         end if;
 
+                        Parser_State.Resume_Active          := True;
                         Parser_State.Conflict_During_Resume := False;
+                        if Trace_Parse > Detail then
+                           Shared_Parser.Trace.Put_Line
+                             (Integer'Image (Parser_State.Label) & ": resume_active: True, token goal" &
+                                Token_Index'Image (Parser_State.Resume_Token_Goal));
+                        end if;
 
                         case Parser_State.Verb is
                         when Shift_Recover =>
@@ -1001,7 +986,7 @@ package body WisiToken.LR.Parser is
                   --  Conflict; spawn a new parser (before modifying Current_Parser
                   --  stack).
 
-                  Current_Parser.State_Ref.Conflict_During_Resume := Shared_Parser.Resume_Active;
+                  Current_Parser.State_Ref.Conflict_During_Resume := Current_Parser.State_Ref.Resume_Active;
 
                   if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
                      declare

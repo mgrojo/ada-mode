@@ -391,8 +391,6 @@ package body WisiToken.LR.McKenzie_Recover is
 
       --  Edit Parser_State to apply solutions.
 
-      Shared_Parser.Resume_Token_Goal := Token_Index'First;
-
       for Parser_State of Parsers loop
          if Parser_State.Recover.Success then
             declare
@@ -414,8 +412,7 @@ package body WisiToken.LR.McKenzie_Recover is
             begin
                Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
 
-               Shared_Parser.Resume_Token_Goal := Token_Index'Max
-                 (Shared_Parser.Resume_Token_Goal, Result.Resume_Token_Goal);
+               Parser_State.Resume_Token_Goal := Result.Resume_Token_Goal;
 
                --  We apply Push_Back ops to Parser_State.Stack up to the first
                --  Fast_Forward, and enqueue Insert and Delete ops on

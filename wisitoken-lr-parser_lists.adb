@@ -171,21 +171,23 @@ package body WisiToken.LR.Parser_Lists is
          --  override a few, to avoid copying large items like Recover.
          --  We copy Recover.Enqueue_Count, .Check_Count for unit tests.
          New_Item :=
-           (Shared_Token          => Item.Shared_Token,
-            Recover_Insert_Delete => Item.Recover_Insert_Delete,
-            Current_Token         => Item.Current_Token,
-            Inc_Shared_Token      => Item.Inc_Shared_Token,
-            Stack                 => Item.Stack,
-            Tree                  => Item.Tree,
-            Recover               =>
-              (Enqueue_Count      => Item.Recover.Enqueue_Count,
-               Check_Count        => Item.Recover.Check_Count,
-               others             => <>),
+           (Shared_Token           => Item.Shared_Token,
+            Recover_Insert_Delete  => Item.Recover_Insert_Delete,
+            Current_Token          => Item.Current_Token,
+            Inc_Shared_Token       => Item.Inc_Shared_Token,
+            Stack                  => Item.Stack,
+            Tree                   => Item.Tree,
+            Recover                =>
+              (Enqueue_Count       => Item.Recover.Enqueue_Count,
+               Check_Count         => Item.Recover.Check_Count,
+               others              => <>),
+            Resume_Active          => Item.Resume_Active,
+            Resume_Token_Goal      => Item.Resume_Token_Goal,
             Conflict_During_Resume => Item.Conflict_During_Resume,
-            Zombie_Token_Count    => 0,
-            Errors                => Item.Errors,
-            Label                 => List.Parser_Label,
-            Verb                  => Item.Verb);
+            Zombie_Token_Count     => 0,
+            Errors                 => Item.Errors,
+            Label                  => List.Parser_Label,
+            Verb                   => Item.Verb);
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
