@@ -773,10 +773,17 @@ package body WisiToken.LR.Parser is
                      Min_Recover_Ops_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
                      Min_Recover_Ops_Cur    : Parser_Lists.Cursor;
                   begin
-                     for Parser_State of Shared_Parser.Parsers loop
-                        if Parser_State.Errors.Length > 0 then
-                           Error_Parser_Count := Error_Parser_Count + 1;
+                     Current_Parser := Shared_Parser.Parsers.First;
+                     loop
+                        if Current_Parser.Verb = Accept_It then
+                           if Current_Parser.State_Ref.Errors.Length > 0 then
+                              Error_Parser_Count := Error_Parser_Count + 1;
+                           end if;
+                           Current_Parser.Next;
+                        else
+                           Terminate_Parser (Shared_Parser, "zombie", Current_Parser);
                         end if;
+                        exit when Current_Parser.Is_Done;
                      end loop;
 
                      if Error_Parser_Count > 0 then
