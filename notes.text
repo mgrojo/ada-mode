@@ -52,6 +52,8 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+--  FIXME: see if more tasks go faster or slower.
+
 --  FIXME: parse_data does not need Line_Count; it can use intelligent vector growth.
 
 teach font lock that line end terminates strings
