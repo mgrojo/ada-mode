@@ -141,7 +141,7 @@ package body Gpr_Process is
    end case_item_0;
 
    function identifier_opt_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -171,7 +171,7 @@ package body Gpr_Process is
    end package_spec_0;
 
    function package_spec_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -201,7 +201,7 @@ package body Gpr_Process is
    end package_extension_0;
 
    function package_extension_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -249,7 +249,7 @@ package body Gpr_Process is
    end project_extension_0;
 
    function project_extension_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -333,7 +333,7 @@ package body Gpr_Process is
    end simple_project_declaration_0;
 
    function simple_project_declaration_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status

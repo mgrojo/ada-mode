@@ -93,14 +93,14 @@ package body Ada_Mode.Nested_Packages is
             procedure Q is
             begin
                null;
-            end;
+            end Q;
          begin
             null;
-         end;
+         end P;
       begin  -- uncorrectly indented (based on procedure P)
          null;
       end;
-   end;
+   end F;
 
 
    --  identifiers that include 'end', 'begin', ...

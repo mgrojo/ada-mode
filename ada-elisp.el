@@ -325,7 +325,7 @@
        ((WHEN discrete_choice_list EQUAL_GREATER sequence_of_statements_opt )
         (progn
       (wisi-statement-action [1 motion])
-      ;; ada-indent-when added in case_statement_alternative
+      ;; ada-indent-when added in case_statement
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken [ada-indent ada-indent]]))))
       (case_statement_alternative_list
        ((case_statement_alternative ))

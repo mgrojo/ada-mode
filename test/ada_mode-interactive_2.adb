@@ -38,6 +38,8 @@ is
    -- Adding a body interactively leaves it properly indented, and caches
    -- updated. Start with invalid syntax (missing final ';'), automatic
    -- indent after syntax fixed should indent entire statement correctly.
+   -- Note that this requires the function name after 'end', since
+   -- ada-end-name-optional is nil by default.
    --
    -- Indentation of 'null;' before 'end;' is inserted is somewhat
    -- random, due to error correction. Error correction finds multiple
@@ -55,7 +57,7 @@ is
    -- possible indentation for 'null;'.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))
-   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro "is begin\nnull;\nend;\n")(current-indentation))
+   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro "is begin\nnull;\nend Function_Access_1;\n")(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)
@@ -69,7 +71,7 @@ is
    --EMACSRESULT:3
    --EMACSCMD:(progn (forward-line -8)(ada-goto-declaration-start)(looking-at "function Function_Access_1"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line -15)(forward-word 1)(ada-goto-declaration-end)(looking-back "end"))
+   --EMACSCMD:(progn (forward-line -15)(forward-word 1)(ada-goto-declaration-end)(looking-back "end Function_Access_1"))
    --EMACSRESULT:t
 
    -- calling ada-make-subprogram-body tested in ada_mode-interactive_common.adb
