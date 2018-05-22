@@ -264,7 +264,6 @@ package body WisiToken.LR.McKenzie_Recover is
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
          then System.Multiprocessors.Number_Of_CPUs - 1 --  Keep one CPU free for this main task, and the user.
          else Shared_Parser.Table.McKenzie_Param.Task_Count);
-      --  FIXME: see if more tasks go faster or slower.
 
       Worker_Tasks : array (1 .. Task_Count) of Worker_Task (Super'Access, Shared'Access);
 

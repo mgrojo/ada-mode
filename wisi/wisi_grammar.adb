@@ -130,9 +130,6 @@ package body Wisi_Grammar is
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0,
             0, 0),
-         Undo_Reduce =>
-           (0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0),
          Task_Count  => 0,
          Cost_Limit  => 2147483647,
          Check_Limit => 2147483647,

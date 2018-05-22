@@ -569,6 +569,50 @@ package body WisiToken.LR is
       end if;
    end Reductions;
 
+   procedure Free_Table (Table : in out Parse_Table_Ptr)
+   is
+
+      procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
+      Action            : Action_Node_Ptr;
+      Temp_Action       : Action_Node_Ptr;
+      Parse_Action      : Parse_Action_Node_Ptr;
+      Temp_Parse_Action : Parse_Action_Node_Ptr;
+      Got               : Goto_Node_Ptr;
+      Temp_Got          : Goto_Node_Ptr;
+   begin
+      if Table = null then
+         return;
+      end if;
+
+      for State of Table.States loop
+         Action := State.Action_List;
+         loop
+            exit when Action = null;
+            Parse_Action := Action.Action;
+            loop
+               exit when Parse_Action = null;
+               Temp_Parse_Action := Parse_Action;
+               Parse_Action := Parse_Action.Next;
+               Free (Temp_Parse_Action);
+            end loop;
+
+            Temp_Action := Action;
+            Action := Action.Next;
+            Free (Temp_Action);
+         end loop;
+
+         Got := State.Goto_List;
+         loop
+            exit when Got = null;
+            Temp_Got := Got;
+            Got := Got.Next;
+            Free (Temp_Got);
+         end loop;
+      end loop;
+
+      Free (Table);
+   end Free_Table;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
    is
       use Ada.Containers;

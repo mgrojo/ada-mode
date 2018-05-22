@@ -627,7 +627,6 @@ package body Wisi.Gen_Generate_Utils is
          Insert            => (others => Item.Default_Insert),
          Delete            => (others => Item.Default_Delete_Terminal),
          Push_Back         => (others => Item.Default_Push_Back),
-         Undo_Reduce       => (others => Item.Default_Undo_Reduce),
          Task_Count        => 0,
          Cost_Limit        => Item.Cost_Limit,
          Check_Limit       => Item.Check_Limit,

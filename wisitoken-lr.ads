@@ -235,10 +235,9 @@ package WisiToken.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert      : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      Delete      : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      Push_Back   : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      Undo_Reduce : Token_ID_Array_Natural (First_Nonterminal .. Last_Nonterminal);
+      Insert    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Delete    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
       --  FIXME: Undo_Reduce not used; delete?
 
@@ -259,7 +258,6 @@ package WisiToken.LR is
       Insert            => (others => 0),
       Delete            => (others => 0),
       Push_Back         => (others => 0),
-      Undo_Reduce       => (others => 0),
       Task_Count        => System.Multiprocessors.CPU_Range'Last,
       Cost_Limit        => Natural'Last,
       Check_Limit       => Token_Index'Last,
@@ -330,7 +328,7 @@ package WisiToken.LR is
      return Reduce_Action_Array;
 
    type Parse_Table_Ptr is access Parse_Table;
-   procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
+   procedure Free_Table (Table : in out Parse_Table_Ptr);
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);

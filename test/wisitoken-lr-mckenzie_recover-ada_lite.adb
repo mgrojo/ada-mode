@@ -749,7 +749,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
                         if One_LHS then
                            To_Set (Table.Minimal_Terminal_Sequences (LHS), Result);
-                           --  FIXME: merge multiple sequences?
                         else
                            loop
                               exit when Is_Done (I);
@@ -761,8 +760,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                                        if Member
                                          (I.Symbol, Table.Minimal_Terminal_Sequences (Table.Productions (J).LHS))
                                        then
-                                          --  FIXME: change terminal_sequences to set?
-                                          --  or find position in it?
+                                          --  FIXME: store 'dot' in Table.Productions
                                           Result (I.Symbol) := True;
                                        end if;
                                     end loop;

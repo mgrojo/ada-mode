@@ -828,7 +828,6 @@ package body Wisi.Gen_Output_Ada_Common is
          Put ("Insert", Table.McKenzie_Param.Insert);
          Put ("Delete", Table.McKenzie_Param.Delete);
          Put ("Push_Back", Table.McKenzie_Param.Push_Back);
-         Put ("Undo_Reduce", Table.McKenzie_Param.Undo_Reduce);
          Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
                         (Table.McKenzie_Param.Task_Count) & ",");
          Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");

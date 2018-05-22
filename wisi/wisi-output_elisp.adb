@@ -70,7 +70,7 @@ is
          end case;
       end case;
 
-      WisiToken.LR.Free (Parser);
+      WisiToken.LR.Free_Table (Parser);
 
       case Algorithm is
       when LALR                      =>

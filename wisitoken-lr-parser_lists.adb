@@ -138,6 +138,100 @@ package body WisiToken.LR.Parser_Lists is
    is begin
       return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Verb;
    end Verb;
+   procedure Terminate_Parser
+     (Parsers : in out List;
+      Current : in out Cursor'Class;
+      Message : in     String;
+      Trace   : in out WisiToken.Trace'Class)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Trace_Parse > Outline then
+         Trace.Put_Line
+           (Integer'Image (Current.Label) & ": terminate (" &
+              Int_Image (Integer (Parsers.Count) - 1) & " active)" &
+              (if Message'Length > 0 then ": " & Message else ""));
+      end if;
+
+      Current.Free;
+
+      if Parsers.Count = 1 then
+         Parsers.First.State_Ref.Tree.Flush;
+      end if;
+   end Terminate_Parser;
+
+   procedure Duplicate_State
+     (Parsers : in out List;
+      Current : in out Cursor'Class;
+      Trace   : in out WisiToken.Trace'Class)
+   is
+      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
+
+      function Compare
+        (Stack_1 : in Parser_Stacks.Stack;
+         Tree_1  : in Syntax_Trees.Tree;
+         Stack_2 : in Parser_Stacks.Stack;
+         Tree_2  : in Syntax_Trees.Tree)
+        return Boolean
+      is
+      begin
+         if Stack_1.Depth /= Stack_2.Depth then
+            return False;
+         else
+            for I in reverse 1 .. Stack_1.Depth - 1 loop
+               --  Assume they differ near the top; no point in comparing bottom
+               --  item. The syntax trees will differ even if the tokens on the stack
+               --  are the same, so compare the tokens.
+               declare
+                  Item_1 : Parser_Stack_Item renames Stack_1 (I);
+                  Item_2 : Parser_Stack_Item renames Stack_2 (I);
+               begin
+                  if Item_1.State /= Item_2.State then
+                     return False;
+                  else
+                     if not Syntax_Trees.Same_Token (Tree_1, Item_1.Token, Tree_2, Item_2.Token) then
+                        return False;
+                     end if;
+                  end if;
+               end;
+            end loop;
+            return True;
+         end if;
+      end Compare;
+
+      Other : Cursor := Parsers.First;
+   begin
+      loop
+         exit when Other.Is_Done;
+         declare
+            Other_Parser : Parser_State renames Other.State_Ref;
+         begin
+            if Other.Label /= Current.Label and then
+              Other.Verb /= Error and then
+              Compare
+                (Other_Parser.Stack, Other_Parser.Tree, Current.State_Ref.Stack, Current.State_Ref.Tree)
+            then
+               exit;
+            end if;
+         end;
+         Other.Next;
+      end loop;
+
+      if not Other.Is_Done then
+         --  Both have the same number of errors, otherwise one would have been
+         --  terminated earlier.
+         if Other.Total_Recover_Cost > Current.Total_Recover_Cost then
+            Parsers.Terminate_Parser (Other, "duplicate state: cost", Trace);
+         elsif Other.Max_Recover_Ops_Length > Current.Max_Recover_Ops_Length then
+            Parsers.Terminate_Parser (Other, "duplicate state: ops length", Trace);
+         else
+            Other := Cursor (Current);
+            Current.Next;
+            Parsers.Terminate_Parser (Other, "duplicate state", Trace);
+         end if;
+      end if;
+   end Duplicate_State;
 
    function State_Ref (Position : in Cursor) return State_Reference
    is begin

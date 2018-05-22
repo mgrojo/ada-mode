@@ -280,8 +280,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      Good_Item_Count := Good_Item_Count + 1;
 
                   elsif Config.Check_Status.Label /= Ok then
-                     --  The tokens inserted by Language_Fixes caused this, so we assume it
-                     --  can't fix it now.
+                     --  The inserted tokens caused a check fail, so abandon the config.
                      null;
 
                   else
@@ -324,8 +323,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                return Continue;
 
             else
-               --  FIXME: figure out how to deal with this; need a test case
-               raise Programmer_Error with "Fast_Forward returned multiple configs";
+               --  FIXME: enqueue all good configs; need a test case
+               raise Programmer_Error with "Fast_Forward fail with multiple good configs";
             end if;
          end;
       end if;
@@ -1067,12 +1066,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
            (Config.String_Quote_Checked = Invalid_Line_Number or else
               Config.String_Quote_Checked < Shared.Token (Config.Current_Shared_Token).Line)
          then
-            --  The solution is to delete tokens, replacing them with a string
-            --  literal. So we try this when it is ok to try delete.
-            --
-            --  FIXME: this always lexes ahead to current line end; is that a
-            --  problem? Can't wait until we see a lexer error; see
-            --  test_mckenzie_recover.adb String_Quote_1.
+            --  See if there is a mismatched quote. The solution is to delete
+            --  tokens, replacing them with a string literal. So we try this when
+            --  it is ok to try delete.
             Try_Insert_Quote (Super, Shared, Parser_Index, Config, Local_Config_Heap);
          end if;
 

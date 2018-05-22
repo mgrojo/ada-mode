@@ -1382,7 +1382,7 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 115,
-         Enqueue_High            => 243,
+         Enqueue_High            => 246,
          Check_Low               => 20,
          Check_High              => 45,
          Cost                    => 6);
@@ -1406,9 +1406,6 @@ package body Test_McKenzie_Recover is
       --  Missing 'end Function_Access_1;' 89 and '<identifier>' 124.
       --
       --  Reported 'error in resume' after both recoveries, now fixed.
-      --
-      --  FIXME: desired solution to first error is '(insert 'end ;'). Add
-      --  'type' and other keywords to Constrain_Terminals.
 
       Check_Recover
         (Errors_Length           => 2,

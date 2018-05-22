@@ -219,13 +219,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                   New_State := Config.Stack.Peek.State;
                   New_State := Goto_For (Table, New_State, Action.Item.LHS);
 
-                  if New_State = Unknown_State then
-                     --  FIXME: need to record this status in Parse_Item, but first we need to record how it happens.
-                     Success := False;
-                     raise Programmer_Error with "parse_one_item found test case for new_state = Unkown";
-                  else
-                     Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
-                  end if;
+                  Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
 
                when Semantic_Checks.Error =>
                   Config.Error_Token       := Nonterm;

@@ -202,140 +202,12 @@ package body WisiToken.LR.Parser_No_Recover is
       end if;
    end Parse_Verb;
 
-   procedure Terminate_Parser
-     (Shared_Parser : in out Parser;
-      Message       : in     String;
-      Cur           : in out Parser_Lists.Cursor)
-   is
-      use all type SAL.Base_Peek_Type;
-      Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
-   begin
-      --  FIXME: don't need message?
-      if Trace_Parse > Outline then
-         Trace.Put_Line
-           (Integer'Image (Cur.Label) & ": terminate (" &
-              Int_Image (Integer (Shared_Parser.Parsers.Count) - 1) & " active)" &
-              (if Message'Length > 0 then ": " & Message else ""));
-      end if;
-
-      Cur.Free;
-
-      if Shared_Parser.Parsers.Count = 1 then
-         Shared_Parser.Parsers.First.State_Ref.Tree.Flush;
-      end if;
-   end Terminate_Parser;
-
-   procedure Duplicate_State
-     (Shared_Parser  : in out Parser;
-      Current_Parser : in out Parser_Lists.Cursor)
-   is
-      --  If any other parser in Parsers has a stack equivalent to
-      --  Current_Parser, Terminate one of them.
-      --  FIXME: move to parser_lists, share with -lr-parser.adb
-
-      use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
-
-      function Compare
-        (Stack_1 : in Parser_Lists.Parser_Stacks.Stack;
-         Tree_1  : in Syntax_Trees.Tree;
-         Stack_2 : in Parser_Lists.Parser_Stacks.Stack;
-         Tree_2  : in Syntax_Trees.Tree)
-        return Boolean
-      is
-      begin
-         if Stack_1.Depth /= Stack_2.Depth then
-            return False;
-         else
-            for I in reverse 1 .. Stack_1.Depth - 1 loop
-               --  Assume they differ near the top; no point in comparing bottom
-               --  item. The syntax trees will differ even if the tokens on the stack
-               --  are the same, so compare the tokens.
-               declare
-                  Item_1 : Parser_Lists.Parser_Stack_Item renames Stack_1 (I);
-                  Item_2 : Parser_Lists.Parser_Stack_Item renames Stack_2 (I);
-               begin
-                  if Item_1.State /= Item_2.State then
-                     return False;
-                  else
-                     if not Syntax_Trees.Same_Token (Tree_1, Item_1.Token, Tree_2, Item_2.Token) then
-                        return False;
-                     end if;
-                  end if;
-               end;
-            end loop;
-            return True;
-         end if;
-      end Compare;
-
-      Other : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
-   begin
-      loop
-         exit when Other.Is_Done;
-         declare
-            Other_Parser : Parser_Lists.Parser_State renames Other.State_Ref;
-         begin
-            if Other.Label /= Current_Parser.Label and then
-              Compare
-                (Other_Parser.Stack, Other_Parser.Tree, Current_Parser.State_Ref.Stack, Current_Parser.State_Ref.Tree)
-            then
-               exit;
-            end if;
-         end;
-         Other.Next;
-      end loop;
-
-      if not Other.Is_Done then
-         Terminate_Parser (Shared_Parser, "duplicate state", Current_Parser);
-      end if;
-   end Duplicate_State;
-
    ----------
    --  Public subprograms, declaration order
 
    overriding procedure Finalize (Object : in out Parser)
-   is
-      Action : Action_Node_Ptr;
-      Temp_Action : Action_Node_Ptr;
-      Parse_Action : Parse_Action_Node_Ptr;
-      Temp_Parse_Action : Parse_Action_Node_Ptr;
-
-      Got : Goto_Node_Ptr;
-      Temp_Got : Goto_Node_Ptr;
-   begin
-      --  FIXME: move to lr.adb Free_Table
-
-      if Object.Table = null then
-         return;
-      end if;
-
-      for State of Object.Table.States loop
-         Action := State.Action_List;
-         loop
-            exit when Action = null;
-            Parse_Action := Action.Action;
-            loop
-               exit when Parse_Action = null;
-               Temp_Parse_Action := Parse_Action;
-               Parse_Action := Parse_Action.Next;
-               Free (Temp_Parse_Action);
-            end loop;
-
-            Temp_Action := Action;
-            Action := Action.Next;
-            Free (Temp_Action);
-         end loop;
-
-         Got := State.Goto_List;
-         loop
-            exit when Got = null;
-            Temp_Got := Got;
-            Got := Got.Next;
-            Free (Temp_Got);
-         end loop;
-      end loop;
-
-      Free (Object.Table);
+   is begin
+      Free_Table (Object.Table);
    end Finalize;
 
    procedure New_Parser
@@ -385,7 +257,7 @@ package body WisiToken.LR.Parser_No_Recover is
             if Shared_Parser.Parsers.Count = 1 then
                raise Syntax_Error;
             else
-               Terminate_Parser (Shared_Parser, "", Check_Parser);
+               Shared_Parser.Parsers.Terminate_Parser (Check_Parser, "", Shared_Parser.Trace.all);
             end if;
          else
             Check_Parser.Next;
@@ -486,7 +358,7 @@ package body WisiToken.LR.Parser_No_Recover is
             if Shared_Parser.Terminate_Same_State and
               Current_Verb = Shift
             then
-               Duplicate_State (Shared_Parser, Current_Parser);
+               Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Trace.all);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now
                --  points to the next parser. Otherwise it is unchanged.
             end if;
