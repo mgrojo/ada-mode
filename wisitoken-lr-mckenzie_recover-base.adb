@@ -83,10 +83,14 @@ package body WisiToken.LR.McKenzie_Recover.Base is
    protected body Supervisor is
 
       procedure Initialize
+        (Parsers   : not null access Parser_Lists.List;
+         Terminals : not null access constant Base_Token_Arrays.Vector)
       is
          use all type SAL.Base_Peek_Type;
          Index : SAL.Peek_Type := 1;
       begin
+         Supervisor.Parsers      := Parsers;
+         Supervisor.Terminals    := Terminals;
          All_Parsers_Done        := False;
          Active_Workers          := (others => 0);
          Success_Counter         := 0;
@@ -367,6 +371,11 @@ package body WisiToken.LR.McKenzie_Recover.Base is
 
    protected body Shared_Lookahead is
 
+      procedure Initialize  (Shared_Parser : not null access LR.Parser.Parser)
+      is begin
+         Shared_Lookahead.Shared_Parser := Shared_Parser;
+      end Initialize;
+
       function Get_Token (Index : in Token_Index) return Token_Index
       is
          Temp : Token_Index := Index;
@@ -448,7 +457,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
       Task_ID      : in              Boolean := True)
    is begin
       Put (Message, Super.Trace.all, Super.Parser_State (Parser_Index).Label,
-           Shared.Shared_Parser.Terminals, Config, Task_ID);
+           Shared.Terminals.all, Config, Task_ID);
    end Put;
 
 end WisiToken.LR.McKenzie_Recover.Base;

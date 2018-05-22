@@ -83,7 +83,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
          return (Label => Ok);
       else
          return Status : constant Semantic_Checks.Check_Status :=
-           Action.Check (Shared.Shared_Parser.Lexer, Nonterm, Tokens)
+           Action.Check (Shared.Lexer, Nonterm, Tokens)
          do
             if Status.Label = Ok then
                Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
@@ -118,7 +118,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Descriptor : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
-      Table      : Parse_Table renames Shared.Shared_Parser.Table.all;
+      Table      : Parse_Table renames Shared.Table.all;
 
       Item   : Parse_Item renames Parse_Items (Parse_Item_Index);
       Config : Configuration renames Item.Config;

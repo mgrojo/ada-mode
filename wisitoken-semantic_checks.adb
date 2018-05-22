@@ -33,12 +33,12 @@ package body WisiToken.Semantic_Checks is
    end Image;
 
    function Match_Names
-     (Lexer        : in WisiToken.Lexer.Handle;
-      Descriptor   : in WisiToken.Descriptor;
-      Tokens       : in Recover_Token_Array;
-      Start_Index  : in Positive_Index_Type;
-      End_Index    : in Positive_Index_Type;
-      End_Optional : in Boolean)
+     (Lexer        : access constant WisiToken.Lexer.Instance'Class;
+      Descriptor   : in     WisiToken.Descriptor;
+      Tokens       : in     Recover_Token_Array;
+      Start_Index  : in     Positive_Index_Type;
+      End_Index    : in     Positive_Index_Type;
+      End_Optional : in     Boolean)
      return Check_Status
    is
       use all type Recover_Token_Arrays.Vector;

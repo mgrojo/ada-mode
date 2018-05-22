@@ -87,7 +87,7 @@ package body Subprograms_Process is
    end name_0;
 
    function name_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -116,7 +116,7 @@ package body Subprograms_Process is
    end name_1;
 
    function name_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status

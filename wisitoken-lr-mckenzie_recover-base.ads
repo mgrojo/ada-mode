@@ -78,15 +78,15 @@ private package WisiToken.LR.McKenzie_Recover.Base is
 
    protected type Supervisor
      (Trace             : not null access WisiToken.Trace'Class;
-      Parsers           : not null access Parser_Lists.List;
-      Terminals         : not null access Base_Token_Arrays.Vector;
       Cost_Limit        : Natural;
       Check_Delta_Limit : Natural;
       Parser_Count      : SAL.Peek_Type)
    is
       --  There is only one object of this type, declared in Recover.
 
-      procedure Initialize;
+      procedure Initialize
+        (Parsers   : not null access Parser_Lists.List;
+         Terminals : not null access constant Base_Token_Arrays.Vector);
 
       entry Get
         (Parser_Index : out SAL.Base_Peek_Type;
@@ -133,6 +133,9 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       function Label (Parser_Index : in SAL.Peek_Type) return Natural;
 
    private
+      Parsers   : access Parser_Lists.List;
+      Terminals : access constant Base_Token_Arrays.Vector;
+
       Active_Workers : Parser_Natural_Array (1 .. Parser_Count);
       --  Worker_Tasks for each Parser that have done Get but not Put or
       --  Success.
@@ -149,10 +152,19 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       Parser_Labels           : Parser_Natural_Array (1 .. Parser_Count); -- For Trace
    end Supervisor;
 
-   protected type Shared_Lookahead (Shared_Parser : not null access LR.Parser.Parser)
+   protected type Shared_Lookahead
+     (Trace                        : access WisiToken.Trace'Class;
+      Lexer                        : access constant WisiToken.Lexer.Instance'Class;
+      Table                        : Parse_Table_Ptr;
+      Language_Fixes               : WisiToken.LR.Parser.Language_Fixes_Access;
+      Language_Constrain_Terminals : WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
+      Language_String_ID_Set       : WisiToken.LR.Parser.Language_String_ID_Set_Access;
+      Terminals                    : not null access constant Base_Token_Arrays.Vector)
    is
       --  There is only one object of this type, declared in Recover. It
       --  controls access to Get_Next_Token and Shared_Parser components.
+
+      procedure Initialize  (Shared_Parser : not null access LR.Parser.Parser);
 
       function Get_Token (Index : in Token_Index) return Token_Index;
       --  Return Index, after assuring there is a token in shared Terminals
@@ -178,6 +190,8 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       --  Index in Shared_Parser.Terminals of first token after end of
       --  current line; may be EOF.
 
+   private
+      Shared_Parser : access LR.Parser.Parser;
    end Shared_Lookahead;
 
    procedure Put

@@ -32,7 +32,7 @@ package WisiToken.LR.Parser is
 
    type Language_Fixes_Access is access function
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : in     WisiToken.Lexer.Handle;
+      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;

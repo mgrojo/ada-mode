@@ -640,7 +640,7 @@ package body WisiToken.LR.Parser is
                              " tokens remaining)");
                      end if;
                   end if;
-               else
+               elsif Parser_State.Verb = Shift then
                   if Parser_State.Inc_Shared_Token then
                      --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
                      --  for when/why.
@@ -1047,9 +1047,8 @@ package body WisiToken.LR.Parser is
          Node : in     Syntax_Trees.Valid_Node_Index)
       is
          use all type Syntax_Trees.Node_Label;
-         ID : Token_ID renames Tree.ID (Node);
       begin
-         if ID < Descriptor.First_Nonterminal or Tree.Label (Node) /= Nonterm then
+         if Tree.Label (Node) /= Nonterm then
             return;
          end if;
 
@@ -1068,6 +1067,12 @@ package body WisiToken.LR.Parser is
    begin
       if Parser.User_Data /= null then
          for Parser_State of Parser.Parsers loop
+            if Trace_Action > Outline then
+               Parser.Trace.Put_Line
+                 (Integer'Image (Parser_State.Label) & ": root node: " & Parser_State.Tree.Image
+                    (Parser_State.Tree.Root, Descriptor));
+            end if;
+
             Parser_State.Tree.Process_Tree (Process_Node'Access);
          end loop;
       end if;

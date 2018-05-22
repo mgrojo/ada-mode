@@ -80,7 +80,7 @@ private
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;
-      Lexer               : in     WisiToken.Lexer.Handle;
+      Lexer               : access constant WisiToken.Lexer.Instance'Class;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
       Case_Insensitive    : in     Boolean);
@@ -90,7 +90,7 @@ private
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;
-      Lexer               : in     WisiToken.Lexer.Handle;
+      Lexer               : access constant WisiToken.Lexer.Instance'Class;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
       Other_ID            : in     Token_ID;

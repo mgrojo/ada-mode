@@ -247,13 +247,18 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Super : aliased Base.Supervisor
         (Trace'Access,
-         Parsers'Access,
-         Shared_Parser.Terminals'Access,
          Cost_Limit        => Shared_Parser.Table.McKenzie_Param.Cost_Limit,
          Check_Delta_Limit => Shared_Parser.Table.McKenzie_Param.Check_Delta_Limit,
          Parser_Count      => Parsers.Count);
 
-      Shared : aliased Base.Shared_Lookahead (Shared_Parser'Access);
+      Shared : aliased Base.Shared_Lookahead
+        (Shared_Parser.Trace,
+         Shared_Parser.Lexer.all'Access,
+         Shared_Parser.Table,
+         Shared_Parser.Language_Fixes,
+         Shared_Parser.Language_Constrain_Terminals,
+         Shared_Parser.Language_String_ID_Set,
+         Shared_Parser.Terminals'Access);
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
@@ -278,7 +283,8 @@ package body WisiToken.LR.McKenzie_Recover is
          Trace.Put_Line (" McKenzie error recovery");
       end if;
 
-      Super.Initialize;
+      Super.Initialize (Parsers'Unrestricted_Access, Shared_Parser.Terminals'Unrestricted_Access);
+      Shared.Initialize (Shared_Parser'Unrestricted_Access);
 
       for Parser_State of Parsers loop
          Recover_Init (Shared_Parser, Parser_State);
@@ -636,7 +642,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;
-      Lexer               : in     WisiToken.Lexer.Handle;
+      Lexer               : access constant WisiToken.Lexer.Instance'Class;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
       Case_Insensitive    : in     Boolean)
@@ -667,7 +673,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;
-      Lexer               : in     WisiToken.Lexer.Handle;
+      Lexer               : access constant WisiToken.Lexer.Instance'Class;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
       Other_ID            : in     Token_ID;

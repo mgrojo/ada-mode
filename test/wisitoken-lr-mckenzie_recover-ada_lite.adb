@@ -55,7 +55,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
    procedure Find_Matching_Name
      (Config              : in     Configuration;
-      Lexer               : in     WisiToken.Lexer.Handle;
+      Lexer               : access constant WisiToken.Lexer.Instance'Class;
       Name                : in     String;
       Matching_Name_Index : in out SAL.Peek_Type;
       Other_IDs           : in     Grammar_Token_ID_Set_Array;
@@ -186,7 +186,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
    function Handle_Check_Fail
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : in     WisiToken.Lexer.Handle;
+      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
@@ -671,7 +671,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
    function Language_Fixes
      (Trace             : in out WisiToken.Trace'Class;
-      Lexer             : in     WisiToken.Lexer.Handle;
+      Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;

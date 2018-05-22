@@ -46,7 +46,7 @@ package WisiToken.Semantic_Checks is
    function Image (Item : in Check_Status; Descriptor : WisiToken.Descriptor) return String;
 
    type Semantic_Check is access function
-     (Lexer   : in     WisiToken.Lexer.Handle;
+     (Lexer   : access constant WisiToken.Lexer.Instance'Class;
       Nonterm : in out Recover_Token;
       Tokens  : in     Recover_Token_Array)
      return Check_Status;
@@ -56,12 +56,12 @@ package WisiToken.Semantic_Checks is
    Null_Check : constant Semantic_Check := null;
 
    function Match_Names
-     (Lexer        : in WisiToken.Lexer.Handle;
-      Descriptor   : in WisiToken.Descriptor;
-      Tokens       : in Recover_Token_Array;
-      Start_Index  : in Positive_Index_Type;
-      End_Index    : in Positive_Index_Type;
-      End_Optional : in Boolean)
+     (Lexer        : access constant WisiToken.Lexer.Instance'Class;
+      Descriptor   : in     WisiToken.Descriptor;
+      Tokens       : in     Recover_Token_Array;
+      Start_Index  : in     Positive_Index_Type;
+      End_Index    : in     Positive_Index_Type;
+      End_Optional : in     Boolean)
      return Check_Status;
    --  Check that buffer text at Tokens (Start_Index).Name matches buffer
    --  text at Tokens (End_Index).Name. Comparison is controlled by

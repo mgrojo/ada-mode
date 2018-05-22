@@ -249,7 +249,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
          Enqueue_Low             => 43,
-         Enqueue_High            => 113,
+         Enqueue_High            => 116,
          Check_Low               => 14,
          Check_High              => 27,
          Cost                    => 1);
@@ -414,7 +414,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Delete, +END_ID, 4),
          Enqueue_Low             => 10,
          Enqueue_High            => 38,
-         Check_Low               => 5,
+         Check_Low               => 4,
          Check_High              => 20,
          Cost                    => 1);
 
@@ -443,7 +443,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
-         Enqueue_Low             => 7,
+         Enqueue_Low             => 4,
          Enqueue_High            => 25,
          Check_Low               => 3,
          Check_High              => 7,
@@ -778,7 +778,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
          Enqueue_Low             => 52,
          Enqueue_High            => 205,
-         Check_Low               => 16,
+         Check_Low               => 14,
          Check_High              => 36,
          Cost                    => 5);
    end Zombie_In_Resume;

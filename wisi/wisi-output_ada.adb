@@ -260,7 +260,7 @@ is
 
                      Check_Names (Prod_Index) := new String'(Name & "_check'Access");
                      Indent_Line ("function " & Name & "_check");
-                     Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
+                     Indent_Line (" (Lexer   : access constant WisiToken.Lexer.Instance'Class;");
                      Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
                      Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
                      Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");

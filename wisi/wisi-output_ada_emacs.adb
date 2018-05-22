@@ -822,7 +822,7 @@ is
       if Check then
          --  in a check
          Indent_Line ("function " & Name);
-         Indent_Line (" (Lexer   : in     WisiToken.Lexer.Handle;");
+         Indent_Line (" (Lexer   : access constant WisiToken.Lexer.Instance'Class;");
          Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
          Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
          Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");

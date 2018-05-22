@@ -31,7 +31,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Cost_Delta        : in              Integer)
    is
       use all type SAL.Base_Peek_Type;
-      McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
+      McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
       Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token);
    begin
@@ -68,7 +68,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       use all type Semantic_Checks.Check_Status_Label;
       use all type WisiToken.LR.Parser.Language_Fixes_Access;
 
-      Table     : Parse_Table renames Shared.Shared_Parser.Table.all;
+      Table     : Parse_Table renames Shared.Table.all;
       Nonterm   : Recover_Token;
       New_State : State_Index;
    begin
@@ -81,13 +81,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Config.Error_Token       := Nonterm;
          Config.Check_Token_Count := Action.Token_Count;
 
-         if Shared.Shared_Parser.Language_Fixes = null then
+         if Shared.Language_Fixes = null then
             --  No fixes available; abandon Config.
             return Abandon;
          else
-            case Shared.Shared_Parser.Language_Fixes
-              (Super.Trace.all, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index),
-               Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
+            case Shared.Language_Fixes
+              (Super.Trace.all, Shared.Lexer, Super.Label (Parser_Index),
+               Shared.Terminals.all, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config)
             is
             when Continue =>
@@ -126,7 +126,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       use all type Semantic_Checks.Check_Status_Label;
 
-      Table       : Parse_Table renames Shared.Shared_Parser.Table.all;
+      Table       : Parse_Table renames Shared.Table.all;
       Next_Action : Parse_Action_Node_Ptr;
    begin
       Next_Action := Action_For (Table, Config.Stack (1).State, Inserted_ID);
@@ -404,7 +404,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             return Continue;
          else
             --  Failed due to Semantic_Check
-            if Shared.Shared_Parser.Language_Fixes = null then
+            if Shared.Language_Fixes = null then
                --  Only fix is to ignore the error
                return Continue;
             else
@@ -423,7 +423,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
    is
       Trace          : WisiToken.Trace'Class renames Super.Trace.all;
-      McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
+      McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
       Token : constant Recover_Token := Config.Stack (1).Token;
    begin
@@ -474,13 +474,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       use all type Parser.Language_Constrain_Terminals_Access;
       use all type Ada.Containers.Count_Type;
 
-      Table  : Parse_Table renames Shared.Shared_Parser.Table.all;
+      Table  : Parse_Table renames Shared.Table.all;
       EOF_ID : Token_ID renames Super.Trace.Descriptor.EOF_ID;
 
       Valid_Insert : constant Token_ID_Set (Table.First_Terminal .. Table.Last_Terminal) :=
-        (if Shared.Shared_Parser.Language_Constrain_Terminals = null
+        (if Shared.Language_Constrain_Terminals = null
          then (Table.First_Terminal .. Table.Last_Terminal => True)
-         else Shared.Shared_Parser.Language_Constrain_Terminals
+         else Shared.Language_Constrain_Terminals
            (Super.Trace.all, Super.Label (Parser_Index), Table, Config));
 
       Cost_Delta : constant Integer :=
@@ -586,8 +586,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       use all type Lexer.Error_Lists.Cursor;
       use all type Ada.Containers.Count_Type;
 
-      Descriptor  : WisiToken.Descriptor renames Shared.Shared_Parser.Trace.Descriptor.all;
-      Check_Limit : Token_Index renames Shared.Shared_Parser.Table.McKenzie_Param.Check_Limit;
+      Descriptor  : WisiToken.Descriptor renames Shared.Trace.Descriptor.all;
+      Check_Limit : Token_Index renames Shared.Table.McKenzie_Param.Check_Limit;
 
       Current_Line            : constant Line_Number_Type := Shared.Token (Config.Current_Shared_Token).Line;
       Lexer_Error_Token_Index : Base_Token_Index;
@@ -596,9 +596,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       function String_ID_Set (String_ID : in Token_ID) return Token_ID_Set
       is begin
          return
-           (if Shared.Shared_Parser.Language_String_ID_Set = null
+           (if Shared.Language_String_ID_Set = null
             then (Descriptor.First_Terminal .. Descriptor.Last_Terminal => True)
-            else Shared.Shared_Parser.Language_String_ID_Set (Descriptor, String_ID));
+            else Shared.Language_String_ID_Set (Descriptor, String_ID));
       end String_ID_Set;
 
       procedure String_Literal_In_Stack
@@ -858,9 +858,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  Try deleting (= skipping) the current shared input token.
       Trace       : WisiToken.Trace'Class renames Super.Trace.all;
       EOF_ID      : Token_ID renames Trace.Descriptor.EOF_ID;
-      Check_Limit : Token_Index renames Shared.Shared_Parser.Table.McKenzie_Param.Check_Limit;
+      Check_Limit : Token_Index renames Shared.Table.McKenzie_Param.Check_Limit;
 
-      McKenzie_Param : McKenzie_Param_Type renames Shared.Shared_Parser.Table.McKenzie_Param;
+      McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
       ID : constant Token_ID := Shared.Token (Config.Current_Shared_Token).ID;
    begin
@@ -918,7 +918,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       Trace      : WisiToken.Trace'Class renames Super.Trace.all;
       Descriptor : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
-      Table      : Parse_Table renames Shared.Shared_Parser.Table.all;
+      Table      : Parse_Table renames Shared.Table.all;
 
       Parser_Index : SAL.Base_Peek_Type;
       Config       : Configuration;
@@ -958,12 +958,12 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       end if;
 
       if Config.Error_Token.ID /= Invalid_Token_ID then
-         if Shared.Shared_Parser.Language_Fixes = null then
+         if Shared.Language_Fixes = null then
             null;
          else
-            case Shared.Shared_Parser.Language_Fixes
-              (Trace, Shared.Shared_Parser.Lexer, Super.Label (Parser_Index),
-               Shared.Shared_Parser.Terminals, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
+            case Shared.Language_Fixes
+              (Trace, Shared.Lexer, Super.Label (Parser_Index),
+               Shared.Terminals.all, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config)
             is
             when Continue =>
