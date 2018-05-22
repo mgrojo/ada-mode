@@ -21,12 +21,14 @@ is begin
                if (for some C of Content => C = Ascii.Nul) then
                   raise SAL.Not_Supported with "multiple strings";
 
+                  -- There's a race condition that determines the indent of the 'when'
+                  -- clauses here.
                   return
                     (Header, To_String_List (
                                                 when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
                                                    raise SAL.Not_Implemented with "UTF-16 string";
 
-         when others =>
-            raise SAL.Invalid_Format;
-      end case;
+                                                when others =>
+                                                   raise SAL.Invalid_Format;
+               end case;
 end Slow_Recover_4;

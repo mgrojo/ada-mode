@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada_Process; use Ada_Process;
+with SAL;
 with WisiToken.LR.McKenzie_Recover.Ada;
 with WisiToken.LR.Parser.Gen_AUnit;
 with WisiToken.LR.Parser_Lists;
@@ -65,6 +66,10 @@ package body Test_Ada_Recover is
    procedure Kill_Slow_Parser_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use all type SAL.Base_Peek_Type;
+
+      Delete_When_Index : Integer;
+      Insert_Case_Index : Integer;
    begin
       --  Simplified from ../test/slow_recover_4.adb; used to be really
       --  slow, now we kill the slow parser sooner.
@@ -100,8 +105,19 @@ package body Test_Ada_Recover is
       --  Parser 3 had already checked 1048 when 2 finds a solution; killed
       --  immediately.
 
+      --  It's a race condition which solution is found first in recover 1.
+      if WisiToken.LR.Parse_Error_Lists.Constant_Reference
+        (Saved_Data (1).Errors, Saved_Data (1).Errors.First).Recover.Ops.Last_Index = 1
+      then
+         Delete_When_Index := 1;
+         Insert_Case_Index := 2;
+      else
+         Delete_When_Index := 2;
+         Insert_Case_Index := 1;
+      end if;
+
       Check_Recover
-        (Saved_Data (1), "recover 1 parser 2",
+        (Saved_Data (Delete_When_Index), "recover 1 parser 2",
          Parser_Label            => 2,
          Error_Token_ID          => +WHEN_ID,
          Error_Token_Byte_Region => (153, 156),
@@ -113,7 +129,7 @@ package body Test_Ada_Recover is
          Cost                    => 4);
 
       Check_Recover
-        (Saved_Data (2), "recover 1 parser 1",
+        (Saved_Data (Insert_Case_Index), "recover 1 parser 1",
          Parser_Label            => 1,
          Error_Token_ID          => +WHEN_ID,
          Error_Token_Byte_Region => (153, 156),

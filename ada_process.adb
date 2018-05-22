@@ -59,7 +59,7 @@ package body Ada_Process is
    end accept_statement_0;
 
    function accept_statement_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -470,7 +470,7 @@ package body Ada_Process is
    end block_label_0;
 
    function block_label_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -481,7 +481,7 @@ package body Ada_Process is
    end block_label_0_check;
 
    function block_label_opt_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -513,7 +513,7 @@ package body Ada_Process is
    end block_statement_0;
 
    function block_statement_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -544,7 +544,7 @@ package body Ada_Process is
    end block_statement_1;
 
    function block_statement_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -908,7 +908,7 @@ package body Ada_Process is
    end entry_body_0;
 
    function entry_body_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -1502,7 +1502,7 @@ package body Ada_Process is
    end function_specification_0;
 
    function function_specification_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -1749,7 +1749,7 @@ package body Ada_Process is
    end identifier_list_1;
 
    function identifier_opt_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2110,7 +2110,7 @@ package body Ada_Process is
    end loop_statement_0;
 
    function loop_statement_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2140,7 +2140,7 @@ package body Ada_Process is
    end loop_statement_1;
 
    function loop_statement_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2169,7 +2169,7 @@ package body Ada_Process is
    end name_0;
 
    function name_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2198,7 +2198,7 @@ package body Ada_Process is
    end name_2;
 
    function name_3_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2228,7 +2228,7 @@ package body Ada_Process is
    end name_5;
 
    function name_7_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2239,7 +2239,7 @@ package body Ada_Process is
    end name_7_check;
 
    function name_opt_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2565,7 +2565,7 @@ package body Ada_Process is
    end package_body_0;
 
    function package_body_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2596,7 +2596,7 @@ package body Ada_Process is
    end package_body_1;
 
    function package_body_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2684,7 +2684,7 @@ package body Ada_Process is
    end package_specification_0;
 
    function package_specification_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -2716,7 +2716,7 @@ package body Ada_Process is
    end package_specification_1;
 
    function package_specification_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3070,7 +3070,7 @@ package body Ada_Process is
    end procedure_specification_0;
 
    function procedure_specification_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3101,7 +3101,7 @@ package body Ada_Process is
    end protected_body_0;
 
    function protected_body_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3148,7 +3148,7 @@ package body Ada_Process is
    end protected_definition_0;
 
    function protected_definition_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3177,7 +3177,7 @@ package body Ada_Process is
    end protected_definition_1;
 
    function protected_definition_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3208,7 +3208,7 @@ package body Ada_Process is
    end protected_type_declaration_0;
 
    function protected_type_declaration_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3239,7 +3239,7 @@ package body Ada_Process is
    end protected_type_declaration_1;
 
    function protected_type_declaration_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3503,7 +3503,7 @@ package body Ada_Process is
    end selected_component_0;
 
    function selected_component_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3550,7 +3550,7 @@ package body Ada_Process is
    end selected_component_2;
 
    function selected_component_2_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3820,7 +3820,7 @@ package body Ada_Process is
    end single_protected_declaration_0;
 
    function single_protected_declaration_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3851,7 +3851,7 @@ package body Ada_Process is
    end single_protected_declaration_1;
 
    function single_protected_declaration_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3882,7 +3882,7 @@ package body Ada_Process is
    end single_task_declaration_0;
 
    function single_task_declaration_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3913,7 +3913,7 @@ package body Ada_Process is
    end single_task_declaration_1;
 
    function single_task_declaration_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -3964,7 +3964,7 @@ package body Ada_Process is
    end subprogram_body_0;
 
    function subprogram_body_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -4047,7 +4047,7 @@ package body Ada_Process is
    end subprogram_renaming_declaration_0;
 
    function subprogram_specification_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -4058,7 +4058,7 @@ package body Ada_Process is
    end subprogram_specification_0_check;
 
    function subprogram_specification_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -4198,7 +4198,7 @@ package body Ada_Process is
    end task_body_0;
 
    function task_body_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -4284,7 +4284,7 @@ package body Ada_Process is
    end task_type_declaration_0;
 
    function task_type_declaration_0_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
@@ -4315,7 +4315,7 @@ package body Ada_Process is
    end task_type_declaration_1;
 
    function task_type_declaration_1_check
-    (Lexer   : in     WisiToken.Lexer.Handle;
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
      Nonterm : in out WisiToken.Recover_Token;
      Tokens  : in     WisiToken.Recover_Token_Array)
     return WisiToken.Semantic_Checks.Check_Status
