@@ -317,10 +317,16 @@ Used to ignore whitespace changes in before/after change hooks.")
     ;; We set wisi--change-beg, -end even if only inserting, so we
     ;; don't have to do it again in wisi-after-change.
     (setq wisi--change-beg (min wisi--change-beg begin))
-    (when (> end wisi--change-end)
+
+    (cond
+     ((null wisi--change-end)
+      (setq wisi--change-end (copy-marker end)))
+
+     ((> end wisi--change-end)
       ;; `buffer-base-buffer' deals with edits in indirect buffers
       ;; created by ediff-regions-*
-      (move-marker wisi--change-end end (buffer-base-buffer)))
+      (set-marker wisi--change-end end (buffer-base-buffer)))
+     )
 
     (unless (= begin end)
       (cond
@@ -654,7 +660,9 @@ Used to ignore whitespace changes in before/after change hooks.")
 (defun wisi--check-change ()
   "Process `wisi--change-beg', `wisi--change-end'.
 `wisi--parse-action' must be bound."
-  (when (<= wisi--change-beg wisi--change-end)
+  (when (and wisi--change-beg
+	     wisi--change-end
+	     (<= wisi--change-beg wisi--change-end))
     (wisi--post-change wisi--change-beg (marker-position wisi--change-end))
     (setq wisi--change-beg most-positive-fixnum)
     (move-marker wisi--change-end (point-min))
