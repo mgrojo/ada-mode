@@ -170,7 +170,8 @@ Ada 2020 features:
 benchmarks:
     update only in o.e.a.s-2
 
-    ada-mode/build/Makefile
+    build/Makefile
+        comment out 'export Standard_Common_Build := Debug'
         make recursive-clean build_ada_executables
 
 d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
@@ -186,6 +187,9 @@ wisi-generate
 
     12 Apr 2018
         o.e.a.s-4 16.136s
+
+    23 May 2018
+        11.967s, 12.035s
 
 mckenzie recover
     ./run_ada_parse.exe test/slow_recover_1.adb Indent --verbosity 1 1 0
@@ -329,6 +333,7 @@ mckenzie recover
 
     20 Apr 2018
         kill slow parser, fix bugs
+
         slow_recover_1.adb, debug: 0.044365563, release 0.041309647, 0.041447012
         parser 6: State 357 Current_Token 28:(RIGHT_PAREN, (159 . 159)) Action, expecting: WITH, found 28:(RIGHT_PAREN, (159 . 159))
         parser 5: State 357 Current_Token 27:(RIGHT_PAREN, (158 . 158)) Action, expecting: WITH, found 27:(RIGHT_PAREN, (158 . 158))
@@ -377,15 +382,48 @@ mckenzie recover
          5: succeed 1, enqueue 2, check  2, cost:  0
          5:  0, (1227 : (SEMICOLON))| 145:(END, (1187 . 1189))|((PUSH_BACK, END, 145), (INSERT, END, 145), (INSERT, IF, 145), (INSERT, SEMICOLON, 145), (FAST_FORWARD,  145))
 
-parse navigate
+    23 May 2018
+        add more cases
+
+        slow_recover_1.adb, release 0.041959739
+        parser 5: State 356 Current_Token 32:(THEN, (451 . 454)) expecting: WITH, RIGHT_PAREN, BAR, COMMA, EQUAL_GREATER, found 32:(THEN, (451 . 454))
+        parser 1: State 1112 Current_Token 34:(IDENTIFIER, (489 . 502)) expecting: IF, found 34:(IDENTIFIER, (489 . 502))
+         5: succeed 1, enqueue 375, check  32, cost:  3
+         5:  3, (1227 : (SEMICOLON))| 33:(END, (485 . 487))|((INSERT, RIGHT_PAREN, 32), (INSERT, RIGHT_PAREN, 32), (FAST_FORWARD,  34), (PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
+         1: succeed 1, enqueue 2, check  2, cost:  0
+         1:  0, (1227 : (SEMICOLON))| 33:(END, (485 . 487))|((PUSH_BACK, END, 33), (INSERT, END, 33), (INSERT, IF, 33), (INSERT, SEMICOLON, 33), (FAST_FORWARD,  33))
+        ambiguous with error
+
+        slow_recover_2.adb, release 0.018035865
+        parser 2: State 431 Current_Token 13:(BEGIN, (599 . 603)) expecting: ACCESS, ALIASED, ARRAY, CONSTANT, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (599 . 603))
+        parser 1: State 435 Current_Token 13:(BEGIN, (599 . 603)) expecting: ACCESS, EXCEPTION, NOT, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 13:(BEGIN, (599 . 603))
+         2: succeed 1, enqueue 10, check  5, cost:  3
+         2:  3, (716 : (SEMICOLON))| 13:(BEGIN, (599 . 603))|((INSERT, EXCEPTION, 13), (INSERT, SEMICOLON, 13))
+         1: succeed 1, enqueue 108, check  32, cost:  5
+         1:  5, (111 : (LEFT_PAREN))| 14:(IF, (608 . 609))|((INSERT, IDENTIFIER, 13), (INSERT, LEFT_PAREN, 13), (DELETE, BEGIN, 13))
+        parser 2: State 47 Current_Token 22:(END, (653 . 655)) expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (653 . 655))
+        parser 1: State 47 Current_Token 22:(END, (653 . 655)) expecting: ACCEPT, ABORT, AND, BEGIN, CASE, DECLARE, DELAY, DIGITS, DO, ELSE, ELSIF, EXIT, FOR, GOTO, IF, IN, IS, LOOP, MOD, NOT, NULL, OF, OR, PRAGMA, RAISE, RANGE, REM, RENAMES, REQUEUE, RETURN, SELECT, THEN, USE, WHILE, WITH, XOR, LEFT_PAREN, RIGHT_PAREN, AMPERSAND, BAR, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, LESS_LESS, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, STAR_STAR, TICK_1, TICK_2, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 22:(END, (653 . 655))
+         2: succeed 1, enqueue 157, check  22, cost:  3
+         2:  3, (1227 : (SEMICOLON))| 22:(END, (653 . 655))|((INSERT, RIGHT_PAREN, 22), (INSERT, THEN, 22), (FAST_FORWARD,  23), (PUSH_BACK, END, 22), (INSERT, END, 22), (INSERT, IF, 22), (INSERT, SEMICOLON, 22), (FAST_FORWARD,  22))
+         1: fail, enqueue 1351, check  222, cost_limit:  12, max shared_token  25
+
+navigate, face, indent
     make -r benchmark
+        uses gnatcoll-xref.adb
 
     27 Nov 2017 - compute actions in Ada
         1.377199 seconds 3 gcs 6560 responses 0.509915 wait
         1.523548 seconds 2 gcs 6560 responses 0.518090 wait
 
     12 Apr 2018 - syntax table
-        1.411872 seconds 4 gcs 6560 responses 0.352224 wait
+        navigate 1.411872 seconds 4 gcs 6560 responses 0.352224 wait
+        face     1.507372 seconds 5 gcs 2145 responses 0.319860 wait
+        indent   1.447788 seconds 1 gcs 7251 responses 0.350474 wait
+
+    23 May 2018
+        navigate 1.542892 seconds 4 gcs 6560 responses 0.473158 wait
+        face     1.645698 seconds 4 gcs 2145 responses 0.452539 wait
+        indent   1.603725 seconds 1 gcs 7251 responses 0.491922 wait
 
     wisi-motion-action
         in [] token-numbers, skip statements with wisi-goto-end
@@ -394,11 +432,6 @@ parse navigate
         faster to check for & modify existing?
 
 parse face
-    compare to o.e.a
-
-    noticeable delay when typing code
-        jit-lock-defer-time 1.5 helps
-
     wisitoken-parser-lr-lalr_generator.adb
     (wisi-time (lambda () (wisi-parse-buffer 'face)) 5 t); t for process stats
 
@@ -413,9 +446,6 @@ parse face
 
         wisitoken-parser-lr-lalr_generator.adb
             per iteration 0.175466 seconds 0 gcs 276 responses 0.082255 wait
-
-    12 Apr 2018 - syntax table
-        1.507372 seconds 5 gcs 2145 responses 0.319860 wait
 
     marking _every_ identifer as possible face prefix
         count face actions before/after delete that
@@ -485,10 +515,6 @@ parse indent
 
     10 Mar 2018:
         o.e.a.s-4: branched syntax_tree in main parse: 0.523269951, 0.508891395
-
-    12 Apr 2018 - more stuff in recover
-       benchmark.el       1.447788 seconds 1 gcs 7251 responses 0.350474 wait
-       run_ada_parse.exe  0.498962405
 
     future improvments:
         send more than one indent per output line, to reduce communication overhead

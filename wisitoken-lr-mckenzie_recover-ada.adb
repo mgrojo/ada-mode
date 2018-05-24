@@ -287,7 +287,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                --  case 0 or 2.
 
                if Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) in
-                 protected_type_declaration_ID | single_protected_declaration_ID | single_task_declaration_ID
+                 protected_body_ID | protected_type_declaration_ID |
+                 single_protected_declaration_ID | single_task_declaration_ID
                then
                   --  Not case 2
                   return Continue;
@@ -330,10 +331,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                      end if;
                      Insert (New_Config, (+PACKAGE_ID, +IDENTIFIER_ID, +IS_ID));
 
-                  when protected_type_declaration_ID | single_protected_declaration_ID | single_task_declaration_ID =>
-                     --  Not possible
-                     raise Programmer_Error;
-
                   when subprogram_body_ID =>
                      Push_Back_Check
                        (New_Config,
@@ -347,7 +344,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                      Insert (New_Config, +BEGIN_ID);
 
                   when others =>
-                     raise Programmer_Error;
+                     raise Programmer_Error with "Match_Names_Error 2 " & Image (Config.Error_Token.ID, Descriptor);
                   end case;
 
                   if Trace_McKenzie > Detail then
