@@ -1,4 +1,5 @@
 LALR_Parser parse:
+ 10 tokens lexed
  1: 1:  1:(ACCEPT, (1 . 6)) : shift and goto state 2
  1: 2:  2:(IDENTIFIER, (8 . 13)) : shift and goto state 6
  1: 6:  3:(LEFT_PAREN, (15 . 15)) : reduce 1 tokens to name

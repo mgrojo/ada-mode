@@ -1,4 +1,5 @@
 LALR_Parser parse:
+ 59 tokens lexed
  1: 1:  1:(FOO, (29 . 31)) : shift and goto state 2
  1: 2:  2:(SEMICOLON, (32 . 32)) : shift and goto state 13
  1: 13:  3:(FOO, (34 . 36)) : reduce 2 tokens to statement

@@ -96,10 +96,11 @@ package WisiToken.Lexer.re2c is
 
    overriding
    function Find_Next
-     (Lexer  : in out Instance;
-      Token  :    out Base_Token;
-      Errors : in out Error_Lists.List)
+     (Lexer : in out Instance;
+      Token :    out Base_Token)
      return Boolean;
+
+   overriding function File_Name (Lexer : in Instance) return String;
 
 private
 

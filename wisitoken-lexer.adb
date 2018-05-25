@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -47,5 +47,16 @@ package body WisiToken.Lexer is
       end case;
 
    end Buffer;
+
+   function File_Name (Source : in Lexer.Source) return String
+   is begin
+      case Source.Label is
+      when String_Label =>
+         return "";
+
+      when File_Label =>
+         return -Source.File_Name;
+      end case;
+   end File_Name;
 
 end WisiToken.Lexer;

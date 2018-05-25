@@ -21,7 +21,7 @@ with WisiToken.LR.McKenzie_Recover.Base;
 private package WisiToken.LR.McKenzie_Recover.Parse is
 
    function Reduce_Stack
-     (Shared          : not null access Base.Shared_Lookahead;
+     (Shared          : not null access Base.Shared;
       Stack           : in out          Recover_Stacks.Stack;
       Action          : in              Reduce_Action_Rec;
       Nonterm         :    out          Recover_Token;
@@ -54,7 +54,7 @@ private package WisiToken.LR.McKenzie_Recover.Parse is
 
    function Parse
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Peek_Type;
       Parse_Items       :    out          Parse_Item_Arrays.Vector;
       Config            : in              Configuration;

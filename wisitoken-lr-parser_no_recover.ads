@@ -74,11 +74,12 @@ package WisiToken.LR.Parser_No_Recover is
       Terminate_Same_State : in              Boolean            := True);
 
    procedure Parse (Shared_Parser : in out LR.Parser_No_Recover.Parser);
-   --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
-   --  allow continuing in the same input stream.
+   --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
+   --  input setting Shared_Parser.Terminals, then parses tokens.
    --
-   --  If an parse error is encountered, raises Syntax_Error.
-   --  Semantic_State contains information about the error.
+   --  If a parse error is encountered, raises Syntax_Error.
+   --  Parser.Lexer_Errors and Parsers(*).Errors contain information
+   --  about the errors.
    --
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.

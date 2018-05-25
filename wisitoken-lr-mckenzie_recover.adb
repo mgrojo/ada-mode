@@ -108,7 +108,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    task type Worker_Task
      (Super  : not null access Base.Supervisor;
-      Shared : not null access Base.Shared_Lookahead)
+      Shared : not null access Base.Shared)
    is
       entry Start;
       --  Start getting parser/configs to check from Config_Store.
@@ -251,14 +251,15 @@ package body WisiToken.LR.McKenzie_Recover is
          Check_Delta_Limit => Shared_Parser.Table.McKenzie_Param.Check_Delta_Limit,
          Parser_Count      => Parsers.Count);
 
-      Shared : aliased Base.Shared_Lookahead
+      Shared : aliased Base.Shared
         (Shared_Parser.Trace,
          Shared_Parser.Lexer.all'Access,
          Shared_Parser.Table,
          Shared_Parser.Language_Fixes,
          Shared_Parser.Language_Constrain_Terminals,
          Shared_Parser.Language_String_ID_Set,
-         Shared_Parser.Terminals'Access);
+         Shared_Parser.Terminals'Access,
+         Shared_Parser.Line_Begin_Token'Access);
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
@@ -283,7 +284,6 @@ package body WisiToken.LR.McKenzie_Recover is
       end if;
 
       Super.Initialize (Parsers'Unrestricted_Access, Shared_Parser.Terminals'Unrestricted_Access);
-      Shared.Initialize (Shared_Parser'Unrestricted_Access);
 
       for Parser_State of Parsers loop
          Recover_Init (Shared_Parser, Parser_State);

@@ -740,12 +740,11 @@ package body WisiToken.LR is
 
    function Next_Grammar_Token
      (Terminals        : in out          Base_Token_Arrays.Vector;
-      Errors           : in out          WisiToken.Lexer.Error_Lists.List;
       Line_Begin_Token : in out          Line_Begin_Token_Vectors.Vector;
       Descriptor       : in              WisiToken.Descriptor'Class;
       Lexer            : not null access WisiToken.Lexer.Instance'Class;
       User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
-     return Token_Index
+     return Token_ID
    is
       use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.User_Data_Access;
@@ -754,7 +753,7 @@ package body WisiToken.LR is
       Error : Boolean;
    begin
       loop
-         Error := Lexer.Find_Next (Token, Errors);
+         Error := Lexer.Find_Next (Token);
 
          if User_Data /= null then
             User_Data.Lexer_To_Augmented (Token, Lexer);
@@ -778,7 +777,7 @@ package body WisiToken.LR is
 
       if Error then
          declare
-            Error : WisiToken.Lexer.Error renames Errors.Reference (Errors.Last);
+            Error : WisiToken.Lexer.Error renames Lexer.Errors.Reference (Lexer.Errors.Last);
          begin
             if Error.Recover_Char (1) /= ASCII.NUL then
                Error.Recover_Token := Terminals.Last_Index;
@@ -786,7 +785,7 @@ package body WisiToken.LR is
          end;
       end if;
 
-      return Terminals.Last_Index;
+      return Token.ID;
    end Next_Grammar_Token;
 
 end WisiToken.LR;

@@ -267,11 +267,20 @@ package body WisiToken.LR.Parser_No_Recover is
    begin
       --  The user must call Lexer.Reset_* to set the input text.
       Shared_Parser.Lexer_Errors.Clear;
+      Shared_Parser.Terminals.Clear;
+      Shared_Parser.Line_Begin_Token.Clear;
+      loop
+         exit when Trace.Descriptor.EOF_ID = Next_Grammar_Token
+           (Shared_Parser.Terminals, Shared_Parser.Line_Begin_Token,
+            Trace.Descriptor.all, Shared_Parser.Lexer, Shared_Parser.User_Data);
+      end loop;
+      if Trace_Parse > Outline then
+         Trace.Put_Line (Token_Index'Image (Shared_Parser.Terminals.Last_Index) & " tokens lexed");
+      end if;
 
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
       end if;
-      Shared_Parser.Terminals.Clear;
       Shared_Parser.Shared_Tree.Clear;
 
       Shared_Parser.Parsers := Parser_Lists.New_List
@@ -286,28 +295,14 @@ package body WisiToken.LR.Parser_No_Recover is
 
          Parse_Verb (Shared_Parser, Current_Verb);
 
-         --  The current token for all parsers is at Shared_Parser.Terminals
-         --  (last_index).
-
          case Current_Verb is
          when Shift =>
             --  All parsers just shifted a token; get the next token
 
             for Parser_State of Shared_Parser.Parsers loop
-               Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-
-               if Parser_State.Shared_Token <= Shared_Parser.Terminals.Last_Index then
-                  --  Shared_Parser incremented by another parser earlier in this loop.
-
-                  Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                    (Parser_State.Shared_Token, Shared_Parser.Terminals);
-               else
-                  Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                    (Next_Grammar_Token
-                       (Shared_Parser.Terminals, Shared_Parser.Lexer_Errors, Shared_Parser.Line_Begin_Token,
-                        Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer, Shared_Parser.User_Data),
-                     Shared_Parser.Terminals);
-               end if;
+               Parser_State.Shared_Token  := Parser_State.Shared_Token + 1;
+               Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
+                 (Parser_State.Shared_Token, Shared_Parser.Terminals);
             end loop;
 
          when Accept_It =>
@@ -395,12 +390,13 @@ package body WisiToken.LR.Parser_No_Recover is
 
                   if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
                      declare
-                        Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
+                        Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                        Token : Base_Token renames Shared_Parser.Terminals (Parser_State.Shared_Token);
                      begin
                         raise WisiToken.Parse_Error with Error_Message
                           ("", Token.Line, Token.Column,
                            ": too many parallel parsers required in grammar state" &
-                             State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
+                             State_Index'Image (Parser_State.Stack.Peek.State) &
                              "; simplify grammar, or increase max-parallel (" &
                              SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
                      end;

@@ -54,7 +54,7 @@ is
    begin
       Create_Parser
         (Parser, WisiToken.LALR, Trace'Unchecked_Access,
-         User_Data                    => User_Data'Unchecked_Access);
+         User_Data => User_Data'Unchecked_Access);
       Put_Line ("LALR_Parser parse:");
 
       Parser.Lexer.Reset_With_File (-File_Name);

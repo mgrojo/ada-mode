@@ -1,4 +1,5 @@
 LALR_Parser parse:
+ 13 tokens lexed
  1: 1:  1:(OVERRIDING, (1 . 10)) : shift and goto state 2
  1: 2:  2:(OTHER, (12 . 16)) : reduce 1 tokens to overriding_indicator
 overriding_indicator_0: (overriding_indicator, (1 . 10)) <= ( 1:(OVERRIDING, (1 . 10)))

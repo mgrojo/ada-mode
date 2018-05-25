@@ -19,10 +19,12 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-do all lexing first
-    eliminates need for McKenzie_Recover.Base.Shared
-    counts lines so elisp doesn't have to
-    move line_end array from language to parser, for explore.try_insert_quote
+reorganize into three package hierarchies:
+    wisitoken.parse - parser runtime
+    wisitoken.generate - represent grammar as production list, generate parse table
+    wisitoken.wisi - translate .wy files into production list, source code
+
+add packrat
 
 constrain_terminals
     cache shift, reduce counts in table
@@ -44,16 +46,6 @@ Fixed size stack speed mckenzie?
 
 if full parse fails, go back to successful error recover and find more expensive solutions
     save full config_heap after successful error recover
-
-reorganize into three package hierarchies:
-    wisitoken.parse - parser runtime
-    wisitoken.generate - represent grammar as production list, generate parse table
-    wisitoken.wisi - translate.wy files into production list, source code
-
-    semantic_state.recover_data should be mckenzie configuration; no need for pointer
-        actually, only need pushed/popped etc in sem_state error
-
-    eliminate dependence of wisi-generate.exe on wisitoken-lr-mckenzie_recover.
 
 do multi-cpu parsing?
     benefit depends on density, duration of conflicts

@@ -61,7 +61,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
    end Compute_Nonterm;
 
    function Reduce_Stack
-     (Shared          : not null access Base.Shared_Lookahead;
+     (Shared          : not null access Base.Shared;
       Stack           : in out          Recover_Stacks.Stack;
       Action          : in              Reduce_Action_Rec;
       Nonterm         :    out          Recover_Token;
@@ -94,7 +94,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
 
    function Parse_One_Item
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Peek_Type;
       Parse_Items       : in out          Parse_Item_Arrays.Vector;
       Parse_Item_Index  : in              Positive;
@@ -127,7 +127,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Current_Token : Base_Token :=
         (if Config.Current_Inserted = No_Inserted
          then
-            Shared.Token (Config.Current_Shared_Token)
+            Shared.Terminals.all (Config.Current_Shared_Token)
          else
            (ID     => Config.Inserted (Config.Current_Inserted),
             others => <>));
@@ -191,7 +191,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                Config.Current_Inserted := No_Inserted;
                Config.Inserted.Clear;
 
-               Current_Token := Shared.Token (Config.Current_Shared_Token);
+               Current_Token := Shared.Terminals.all (Config.Current_Shared_Token);
 
             elsif Config.Current_Inserted /= No_Inserted then
                Config.Current_Inserted := Config.Current_Inserted + 1;
@@ -201,9 +201,9 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                   others => <>);
 
             else
-               Config.Current_Shared_Token := Shared.Get_Token (Config.Current_Shared_Token + 1);
+               Config.Current_Shared_Token := Config.Current_Shared_Token + 1;
 
-               Current_Token := Shared.Token (Config.Current_Shared_Token);
+               Current_Token := Shared.Terminals.all (Config.Current_Shared_Token);
             end if;
 
          when Reduce =>
@@ -254,7 +254,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
 
    function Parse
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Peek_Type;
       Parse_Items       :    out          Parse_Item_Arrays.Vector;
       Config            : in              Configuration;

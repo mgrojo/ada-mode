@@ -91,8 +91,6 @@ package WisiToken.LR.Parser is
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Lexer_Errors : WisiToken.Lexer.Error_Lists.List;
-
       Post_Recover : Post_Recover_Access;
       --  Gather data for tests.
 
@@ -100,8 +98,9 @@ package WisiToken.LR.Parser is
       --  All terminal grammar tokens, in lexical order. Does not contain
       --  virtual tokens. Tokens past Parser.Current_Token are lookahead.
 
-      Line_Begin_Token : Line_Begin_Token_Vectors.Vector;
-      --  Index into Terminals of first grammar token on line.
+      Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
+      --  Index into Terminals of first grammar token on line. Last entry is
+      --  index of EOF.
 
       Shared_Tree : aliased Syntax_Trees.Base_Tree;
       --  Each parser (normal and recover) has its own branched syntax tree,
@@ -140,20 +139,16 @@ package WisiToken.LR.Parser is
       Terminate_Same_State         : in              Boolean            := True);
 
    procedure Parse (Shared_Parser : in out LR.Parser.Parser);
-   --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
-   --  allow continuing in the same input stream.
+   --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
+   --  input setting Shared_Parser.Terminals, then parses tokens.
    --
-   --  If an error is encountered but a recover strategy succeeds, no
-   --  exception is raised. Semantic_State contains information about the
-   --  errors.
-   --
-   --  If recover does not succeed, raises Syntax_Error. Semantic_State
-   --  contains information about the error and any previous recovered
-   --  errors.
+   --  If an error is encountered, Parser.Lexer_Errors and
+   --  Parsers(*).Errors contain information about the errors. If a
+   --  recover strategy succeeds, no exception is raised. If recover does
+   --  not succeed, raises Syntax_Error.
    --
    --  For errors where no recovery is possible, raises Parse_Error with
-   --  an appropriate error message. Semantic_State contains information
-   --  about previous recovered errors.
+   --  an appropriate error message.
 
    procedure Execute_Actions (Parser : in out LR.Parser.Parser);
    --  Execute the grammar actions in Parser.

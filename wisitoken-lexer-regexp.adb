@@ -202,12 +202,10 @@ package body WisiToken.Lexer.Regexp is
    end Reset;
 
    overriding function Find_Next
-     (Lexer  : in out Instance;
-      Token  :    out Base_Token;
-      Errors : in out Error_Lists.List)
+     (Lexer : in out Instance;
+      Token :    out Base_Token)
      return Boolean
    is
-      pragma Unreferenced (Errors);
       use type Token_ID;
    begin
       loop

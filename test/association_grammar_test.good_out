@@ -1,4 +1,5 @@
 '(identifier)'
+ 4 tokens lexed
  1: 1:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 2
  1: 2:  2:(IDENTIFIER_ID, (2 . 11)) : shift and goto state 4
  1: 4:  3:(PAREN_RIGHT_ID, (12 . 12)) : reduce 1 tokens to ASSOCIATION_ID
@@ -17,6 +18,7 @@ statement_id_0: (STATEMENT_ID, (1 . 12)) <= ((AGGREGATE_ID, (1 . 12)))
 success
 
 '(identifier, identifier)'
+ 6 tokens lexed
  1: 1:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 2
  1: 2:  2:(IDENTIFIER_ID, (2 . 11)) : shift and goto state 4
  1: 4:  3:(COMMA_ID, (12 . 12)) : reduce 1 tokens to ASSOCIATION_ID
@@ -43,6 +45,7 @@ statement_id_0: (STATEMENT_ID, (1 . 24)) <= ((AGGREGATE_ID, (1 . 24)))
 success
 
 '(identifier => identifier)'
+ 6 tokens lexed
  1: 1:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 2
  1: 2:  2:(IDENTIFIER_ID, (2 . 11)) : shift and goto state 4
  1: 4:  3:(EQUAL_GREATER_ID, (13 . 14)) : shift and goto state 11
@@ -63,6 +66,7 @@ statement_id_0: (STATEMENT_ID, (1 . 26)) <= ((AGGREGATE_ID, (1 . 26)))
 success
 
 '(integer => identifier)'
+ 6 tokens lexed
  1: 1:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 2
  1: 2:  2:(IDENTIFIER_ID, (2 . 8)) : shift and goto state 4
  1: 4:  3:(EQUAL_GREATER_ID, (10 . 11)) : shift and goto state 11
@@ -83,6 +87,7 @@ statement_id_0: (STATEMENT_ID, (1 . 23)) <= ((AGGREGATE_ID, (1 . 23)))
 success
 
 '(identifier => identifier, integer => identifier)'
+ 10 tokens lexed
  1: 1:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 2
  1: 2:  2:(IDENTIFIER_ID, (2 . 11)) : shift and goto state 4
  1: 4:  3:(EQUAL_GREATER_ID, (13 . 14)) : shift and goto state 11

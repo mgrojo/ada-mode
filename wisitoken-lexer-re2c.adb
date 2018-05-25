@@ -97,7 +97,7 @@ package body WisiToken.Lexer.re2c is
       Finalize (Lexer);
 
       --  We assume the file is in UTF-8 encoding
-      Lexer.Source := (File_Label, Open_Read (File_Name), Invalid_Mapped_Region, 1);
+      Lexer.Source := (File_Label, +File_Name, Open_Read (File_Name), Invalid_Mapped_Region, 1);
 
       Lexer.Source.Region      := Read (Lexer.Source.File);
       Lexer.Source.Buffer_Last := Last (Lexer.Source.Region);
@@ -128,9 +128,8 @@ package body WisiToken.Lexer.re2c is
    end Reset;
 
    overriding function Find_Next
-     (Lexer  : in out Instance;
-      Token  :    out Base_Token;
-      Errors : in out Error_Lists.List)
+     (Lexer : in out Instance;
+      Token :    out Base_Token)
      return Boolean
    is
       use all type Ada.Text_IO.Count;
@@ -190,7 +189,7 @@ package body WisiToken.Lexer.re2c is
                   if Buffer (Lexer.Byte_Position) = ''' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after '.
-                     Errors.Append
+                     Lexer.Errors.Append
                        ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => ''', others => ASCII.NUL)));
 
                      Build_Token (Lexer.Trace.Descriptor.String_1_ID);
@@ -199,7 +198,7 @@ package body WisiToken.Lexer.re2c is
                   elsif Buffer (Lexer.Byte_Position) = '"' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after ".
-                     Errors.Append
+                     Lexer.Errors.Append
                        ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => '"', others => ASCII.NUL)));
 
                      Build_Token (Lexer.Trace.Descriptor.String_2_ID);
@@ -207,7 +206,7 @@ package body WisiToken.Lexer.re2c is
 
                   else
                      --  Just skip the character; call Next_Token again.
-                     Errors.Append
+                     Lexer.Errors.Append
                        ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (others => ASCII.NUL)));
                   end if;
                end;
@@ -229,5 +228,10 @@ package body WisiToken.Lexer.re2c is
    is begin
       return String (Buffer (Lexer.Source) (Integer (Byte_Bounds.First) .. Integer (Byte_Bounds.Last)));
    end Buffer_Text;
+
+   overriding function File_Name (Lexer : in Instance) return String
+   is begin
+      return File_Name (Lexer.Source);
+   end File_Name;
 
 end WisiToken.Lexer.re2c;

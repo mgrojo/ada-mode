@@ -1,4 +1,5 @@
 LALR_Parser parse:
+ 2 tokens lexed
  1: 1:  1:(IDENTIFIER, (1 . 3)) : shift and goto state 2
  1: 2:  2:(Wisi_EOI, (5 . 4)) : reduce 1 tokens to name
 name_0: (name, (1 . 3)) <= ( 1:(IDENTIFIER, (1 . 3)))

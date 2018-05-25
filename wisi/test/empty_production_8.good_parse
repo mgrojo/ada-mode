@@ -1,4 +1,5 @@
 LALR_Parser parse:
+ 20 tokens lexed
  1: 1:  1:(IDENTIFIER, (1 . 7)) : shift and goto state 2
  1: 2:  2:(SEMICOLON, (8 . 8)) : reduce 0 tokens to aliased_opt
 aliased_opt_0: (aliased_opt) <= ()

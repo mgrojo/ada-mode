@@ -70,14 +70,15 @@ package WisiToken.Lexer.Regexp is
    overriding procedure Discard_Rest_Of_Input (Lexer : in out Instance) is null;
 
    overriding function Find_Next
-     (Lexer  : in out Instance;
-      Token  :    out Base_Token;
-      Errors : in out Error_Lists.List)
+     (Lexer : in out Instance;
+      Token :    out Base_Token)
      return Boolean;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
 
    overriding function First (Lexer : in Instance) return Boolean is (False);
+
+   overriding function File_Name (Lexer : in Instance) return String is ("");
 
 private
 

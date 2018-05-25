@@ -369,89 +369,10 @@ package body WisiToken.LR.McKenzie_Recover.Base is
 
    end Supervisor;
 
-   protected body Shared_Lookahead is
-
-      procedure Initialize  (Shared_Parser : not null access LR.Parser.Parser)
-      is begin
-         Shared_Lookahead.Shared_Parser := Shared_Parser;
-      end Initialize;
-
-      function Get_Token (Index : in Token_Index) return Token_Index
-      is
-         Temp : Token_Index := Index;
-      begin
-         if Index > Shared_Parser.Terminals.Last_Index then
-            Temp := Next_Grammar_Token
-              (Shared_Parser.Terminals, Shared_Parser.Lexer_Errors, Shared_Parser.Line_Begin_Token,
-               Shared_Parser.Trace.Descriptor.all, Shared_Parser.Lexer, Shared_Parser.User_Data);
-            pragma Assert (Temp = Index);
-         end if;
-         return Temp;
-      end Get_Token;
-
-      function Token (Index : in Token_Index) return Base_Token
-      is begin
-         return Shared_Parser.Terminals.Element (Index);
-      end Token;
-
-      function Last_Index return Token_Index
-      is begin
-         return Shared_Parser.Terminals.Last_Index;
-      end Last_Index;
-
-      procedure Lex_Line (Line : in Line_Number_Type)
-      is
-         use Ada.Containers;
-         EOF_ID            : constant Token_ID := Shared_Parser.Trace.Descriptor.EOF_ID;
-         Line_Token        : Token_Index       := Shared_Parser.Terminals.Last_Index;
-      begin
-         if Shared_Parser.String_Quote_Checked /= Invalid_Line_Number and then
-           Shared_Parser.String_Quote_Checked >= Line
-         then
-            return;
-
-         elsif Shared_Parser.Terminals (Line_Token).Line > Line then
-            Shared_Parser.String_Quote_Checked := Line;
-            return;
-
-         else
-            loop
-               exit when Shared_Parser.Terminals (Line_Token).Line > Line or
-                 Shared_Parser.Terminals (Line_Token).ID = EOF_ID;
-
-               Line_Token := Get_Token (Line_Token + 1);
-            end loop;
-
-            Shared_Parser.String_Quote_Checked := Line;
-         end if;
-      end Lex_Line;
-
-      function Recovered_Lexer_Error (Line : in Line_Number_Type) return Base_Token_Index
-      is
-         use WisiToken.Lexer;
-         use WisiToken.Lexer.Error_Lists;
-      begin
-         for Err of reverse Shared_Parser.Lexer_Errors loop
-            if Err.Recover_Token /= Invalid_Token_Index and then
-              Shared_Parser.Terminals (Err.Recover_Token).Line = Line
-            then
-               return Err.Recover_Token;
-            end if;
-         end loop;
-         return Invalid_Token_Index;
-      end Recovered_Lexer_Error;
-
-      function Next_Line_Token (Line : in Line_Number_Type) return Token_Index
-      is begin
-         return Shared_Parser.Line_Begin_Token (Line + 1);
-      end Next_Line_Token;
-
-   end Shared_Lookahead;
-
    procedure Put
      (Message      : in              String;
       Super        : not null access Base.Supervisor;
-      Shared       : not null access Base.Shared_Lookahead;
+      Shared       : not null access Base.Shared;
       Parser_Index : in              SAL.Peek_Type;
       Config       : in              Configuration;
       Task_ID      : in              Boolean := True)

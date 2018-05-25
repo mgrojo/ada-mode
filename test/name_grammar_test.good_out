@@ -1,6 +1,7 @@
 
 Full Parser
 'Module.Symbol'
+ 4 tokens lexed
  1: 1:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 2
  1: 2:  2:(DOT_ID, (7 . 7)) : shift and goto state 9
  1: 9:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 10
@@ -16,6 +17,7 @@ statement_id_0: (STATEMENT_ID, (1 . 13)) <= ((NAME_ID, (1 . 13)))
 success
 
 'Module.Symbol (Index)'
+ 7 tokens lexed
  1: 1:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 2
  1: 2:  2:(DOT_ID, (7 . 7)) : shift and goto state 9
  1: 9:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 10
@@ -40,6 +42,7 @@ statement_id_0: (STATEMENT_ID, (1 . 21)) <= ((NAME_ID, (1 . 21)))
 success
 
 'Module.Symbol.Component'
+ 6 tokens lexed
  1: 1:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 2
  1: 2:  2:(DOT_ID, (7 . 7)) : shift and goto state 9
  1: 9:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 10
@@ -63,6 +66,7 @@ statement_id_0: (STATEMENT_ID, (1 . 23)) <= ((NAME_ID, (1 . 23)))
 success
 
 'Module.Symbol (Index).Component'
+ 9 tokens lexed
  1: 1:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 2
  1: 2:  2:(DOT_ID, (7 . 7)) : shift and goto state 9
  1: 9:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 10
@@ -95,6 +99,7 @@ statement_id_0: (STATEMENT_ID, (1 . 31)) <= ((NAME_ID, (1 . 31)))
 success
 
 'Module.Symbol.Component (Index)'
+ 9 tokens lexed
  1: 1:  1:(IDENTIFIER_ID, (1 . 6)) : shift and goto state 2
  1: 2:  2:(DOT_ID, (7 . 7)) : shift and goto state 9
  1: 9:  3:(IDENTIFIER_ID, (8 . 13)) : shift and goto state 10

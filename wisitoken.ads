@@ -275,6 +275,8 @@ package WisiToken is
 
    Invalid_Token_Index : constant Base_Token_Index := Base_Token_Arrays.No_Index;
 
+   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
+
    function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
    function Image

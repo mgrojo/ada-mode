@@ -22,7 +22,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    procedure Do_Shift
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Peek_Type;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in out          Configuration;
@@ -55,7 +55,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    function Do_Reduce_1
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Peek_Type;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in out          Configuration;
@@ -111,7 +111,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    procedure Do_Reduce_2
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Peek_Type;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type;
       Config            : in out          Configuration;
@@ -185,7 +185,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    function Fast_Forward
      (Super                  : not null access Base.Supervisor;
-      Shared                 : not null access Base.Shared_Lookahead;
+      Shared                 : not null access Base.Shared;
       Parser_Index           : in              SAL.Base_Peek_Type;
       Local_Config_Heap      : in out          Config_Heaps.Heap_Type;
       Config                 : in out          Configuration;
@@ -332,7 +332,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    function Check
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -416,7 +416,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    procedure Try_Push_Back
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -465,7 +465,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    procedure Try_Insert_Terminal
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in              Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -576,7 +576,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    procedure Try_Insert_Quote
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -588,9 +588,26 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Descriptor  : WisiToken.Descriptor renames Shared.Trace.Descriptor.all;
       Check_Limit : Token_Index renames Shared.Table.McKenzie_Param.Check_Limit;
 
-      Current_Line            : constant Line_Number_Type := Shared.Token (Config.Current_Shared_Token).Line;
+      Current_Line            : constant Line_Number_Type := Shared.Terminals.all (Config.Current_Shared_Token).Line;
       Lexer_Error_Token_Index : Base_Token_Index;
       Lexer_Error_Token       : Base_Token;
+
+      function Recovered_Lexer_Error (Line : in Line_Number_Type) return Base_Token_Index
+      is
+         use WisiToken.Lexer;
+         use WisiToken.Lexer.Error_Lists;
+      begin
+         --  We are assuming the list of lexer errors is short, so binary
+         --  search would not be significantly faster.
+         for Err of reverse Shared.Lexer.Errors loop
+            if Err.Recover_Token /= Invalid_Token_Index and then
+              Shared.Terminals.all (Err.Recover_Token).Line = Line
+            then
+               return Err.Recover_Token;
+            end if;
+         end loop;
+         return Invalid_Token_Index;
+      end Recovered_Lexer_Error;
 
       function String_ID_Set (String_ID : in Token_ID) return Token_ID_Set
       is begin
@@ -624,7 +641,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  Find last string literal in pushed back terminals.
          J := Saved_Shared_Token - 1;
          loop
-            exit when Shared.Token (J).ID = String_Literal_ID;
+            exit when Shared.Terminals.all (J).ID = String_Literal_ID;
             J := J - 1;
          end loop;
 
@@ -647,7 +664,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          J := New_Config.Current_Shared_Token; -- parse result
          loop
             exit when J = Saved_Shared_Token;
-            New_Config.Ops.Append ((Delete, Shared.Token (J).ID, J));
+            New_Config.Ops.Append ((Delete, Shared.Terminals.all (J).ID, J));
             J := J + 1;
          end loop;
 
@@ -670,9 +687,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          New_Config.Cost := New_Config.Cost + 1;
 
          for I in First .. Last loop
-            New_Config.Ops.Append ((Delete, Shared.Token (I).ID, I));
+            New_Config.Ops.Append ((Delete, Shared.Terminals.all (I).ID, I));
          end loop;
-         New_Config.Current_Shared_Token := Shared.Get_Token (Last + 1);
+         New_Config.Current_Shared_Token := Last + 1;
 
          --  Allow insert/delete tokens
          New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
@@ -712,17 +729,15 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  An alternate strategy is to treat the lexer error as a parse error
       --  immediately, but that complicates the parse logic.
 
-      Shared.Lex_Line (Current_Line);
-
       Config.String_Quote_Checked := Current_Line;
 
-      Lexer_Error_Token_Index := Shared.Recovered_Lexer_Error (Current_Line);
+      Lexer_Error_Token_Index := Recovered_Lexer_Error (Current_Line);
 
       if Lexer_Error_Token_Index = Invalid_Token_Index then
          return;
       end if;
 
-      Lexer_Error_Token := Shared.Token (Lexer_Error_Token_Index);
+      Lexer_Error_Token := Shared.Terminals.all (Lexer_Error_Token_Index);
 
       --  It is not possible to tell where the best place to put the
       --  balancing quote is, so we always try all reasonable places.
@@ -789,7 +804,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             begin
                String_Literal_In_Stack (New_Config, Matching, Lexer_Error_Token.ID);
 
-               Finish ("b", New_Config, Config.Current_Shared_Token, Shared.Next_Line_Token (Current_Line) - 1);
+               Finish
+                 ("b", New_Config, Config.Current_Shared_Token, Shared.Line_Begin_Token.all (Current_Line + 1) - 1);
             end;
          end;
 
@@ -849,7 +865,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    procedure Try_Delete_Input
      (Super             : not null access Base.Supervisor;
-      Shared            : not null access Base.Shared_Lookahead;
+      Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in out          Configuration;
       Local_Config_Heap : in out          Config_Heaps.Heap_Type)
@@ -861,7 +877,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
 
-      ID : constant Token_ID := Shared.Token (Config.Current_Shared_Token).ID;
+      ID : constant Token_ID := Shared.Terminals.all (Config.Current_Shared_Token).ID;
    begin
       if ID /= EOF_ID then
          --  can't delete EOF
@@ -881,7 +897,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             end if;
 
             New_Config.Ops.Append ((Delete, ID, Config.Current_Shared_Token));
-            New_Config.Current_Shared_Token := Shared.Get_Token (New_Config.Current_Shared_Token + 1);
+            New_Config.Current_Shared_Token := New_Config.Current_Shared_Token + 1;
 
             if New_Config.Resume_Token_Goal - Check_Limit < New_Config.Current_Shared_Token then
                New_Config.Resume_Token_Goal := New_Config.Current_Shared_Token + Check_Limit;
@@ -903,7 +919,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
    procedure Process_One
      (Super         : not null access Base.Supervisor;
-      Shared        : not null access Base.Shared_Lookahead;
+      Shared        : not null access Base.Shared;
       Config_Status : out             Base.Config_Status)
    is
       --  Get one config from Super, check to see if it is a viable
@@ -1064,7 +1080,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          if Config.Check_Status.Label = Ok and
            (Descriptor.String_1_ID /= Invalid_Token_ID or Descriptor.String_2_ID /= Invalid_Token_ID) and
            (Config.String_Quote_Checked = Invalid_Line_Number or else
-              Config.String_Quote_Checked < Shared.Token (Config.Current_Shared_Token).Line)
+              Config.String_Quote_Checked < Shared.Terminals.all (Config.Current_Shared_Token).Line)
          then
             --  See if there is a mismatched quote. The solution is to delete
             --  tokens, replacing them with a string literal. So we try this when

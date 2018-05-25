@@ -51,9 +51,10 @@ package WisiToken.Lexer is
 
    package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error);
 
-   type Instance
-     (Trace  : not null access WisiToken.Trace'Class)
-   is abstract new Ada.Finalization.Limited_Controlled with null record;
+   type Instance (Trace  : not null access WisiToken.Trace'Class)
+   is abstract new Ada.Finalization.Limited_Controlled with record
+      Errors : Error_Lists.List;
+   end record;
 
    subtype Class is Instance'Class;
 
@@ -87,9 +88,8 @@ package WisiToken.Lexer is
    --  True if most recent token is first on a line.
 
    function Find_Next
-     (Lexer  : in out Instance;
-      Token  :    out Base_Token;
-      Errors : in out Error_Lists.List)
+     (Lexer : in out Instance;
+      Token :    out Base_Token)
      return Boolean is abstract;
    --  Set Token to the next token from the input stream.
    --
@@ -119,6 +119,9 @@ package WisiToken.Lexer is
    --  indexed. If the underlying text feeder does not support the notion
    --  of 'line', returns byte position in internal buffer.
 
+   function File_Name (Lexer : in Instance) return String is abstract;
+   --  Return input file name; empty string if there is no file.
+
 private
 
    type Source_Labels is (String_Label, File_Label);
@@ -132,6 +135,8 @@ private
          --  it. Otherwise we must deallocate it.
 
       when File_Label =>
+         File_Name : Ada.Strings.Unbounded.Unbounded_String; -- not saved in Mapped_File
+
          --  The input is memory mapped from the following, which must be closed:
          File        : GNATCOLL.Mmap.Mapped_File;
          Region      : GNATCOLL.Mmap.Mapped_Region;
@@ -146,5 +151,7 @@ private
    --  reliable. If Source_Label is String_label, actual bounds are
    --  Source.Buffer'First, 'Last. Otherwise, actual bounds are 1 ..
    --  Source.Buffer_Last. Indexing is reliable.
+
+   function File_Name (Source : in Lexer.Source) return String;
 
 end WisiToken.Lexer;

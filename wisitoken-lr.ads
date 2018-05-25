@@ -581,8 +581,6 @@ package WisiToken.LR is
       Descriptor : in WisiToken.Descriptor)
      return String;
 
-   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
-
 private
 
    --  Private to enforce use of Add; doesn't succeed, since only
@@ -612,14 +610,15 @@ private
 
    function Next_Grammar_Token
      (Terminals        : in out          Base_Token_Arrays.Vector;
-      Errors           : in out          WisiToken.Lexer.Error_Lists.List;
       Line_Begin_Token : in out          Line_Begin_Token_Vectors.Vector;
       Descriptor       : in              WisiToken.Descriptor'Class;
       Lexer            : not null access WisiToken.Lexer.Instance'Class;
       User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
-     return Token_Index;
+     return Token_ID;
    --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
-   --  it is a grammar token, store in Terminals and return its index.
+   --  it is a grammar token, store in Terminals and return its id.
    --  Otherwise, repeat.
+   --
+   --  Propagates Fatal_Error from Lexer.
 
 end WisiToken.LR;

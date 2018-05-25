@@ -48,9 +48,8 @@ private package WisiToken.LR.McKenzie_Recover.Base is
    --  deliver their results before deciding we are done.
    --
    --  For 3a) we have one Supervisor protected object that controls
-   --  access to all Parse_States and configurations, and a
-   --  Shared_Lookahead protected object that controls access to the
-   --  Shared_Parser lookahead and lexer.
+   --  access to all Parse_States and configurations, and a Shared object
+   --  that provides appropriate access to the Shared_Parser components.
    --
    --  It is tempting to try to reduce contention for Supervisor by
    --  having one protected object per parser, but that requires the
@@ -152,52 +151,27 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       Parser_Labels           : Parser_Natural_Array (1 .. Parser_Count); -- For Trace
    end Supervisor;
 
-   protected type Shared_Lookahead
-     (Trace                        : access WisiToken.Trace'Class;
-      Lexer                        : access constant WisiToken.Lexer.Instance'Class;
-      Table                        : Parse_Table_Ptr;
+   type Shared
+     (Trace                        : not null access WisiToken.Trace'Class;
+      Lexer                        : not null access constant WisiToken.Lexer.Instance'Class;
+      Table                        : not null access constant Parse_Table;
       Language_Fixes               : WisiToken.LR.Parser.Language_Fixes_Access;
       Language_Constrain_Terminals : WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
       Language_String_ID_Set       : WisiToken.LR.Parser.Language_String_ID_Set_Access;
-      Terminals                    : not null access constant Base_Token_Arrays.Vector)
-   is
-      --  There is only one object of this type, declared in Recover. It
-      --  controls access to Get_Next_Token and Shared_Parser components.
-
-      procedure Initialize  (Shared_Parser : not null access LR.Parser.Parser);
-
-      function Get_Token (Index : in Token_Index) return Token_Index;
-      --  Return Index, after assuring there is a token in shared Terminals
-      --  there, reading from the lexer if necessary.
-
-      function Token (Index : in Token_Index) return Base_Token;
-      --  Return Shared_Parser.Terminals (Index).
-
-      function Last_Index return Token_Index;
-      --  Return Shared_Parser.Terminals.Last_Index.
-
-      procedure Lex_Line (Line : in Line_Number_Type);
-      --  Ensure all terminals in Line, and one following (or EOF) are in
-      --  Shared_Parser.Terminals.
-
-      function Recovered_Lexer_Error (Line : in Line_Number_Type) return Base_Token_Index;
-      --  Index in Shared_Parser.Terminals of the token returned by a
-      --  recoverd lexer error on Line; Invalid_Token_Index if none. There
-      --  can only be one such token, since it is caused by a missing string
-      --  quote, which is terminated by line end.
-
-      function Next_Line_Token (Line : in Line_Number_Type) return Token_Index;
-      --  Index in Shared_Parser.Terminals of first token after end of
-      --  current line; may be EOF.
-
-   private
-      Shared_Parser : access LR.Parser.Parser;
-   end Shared_Lookahead;
+      Terminals                    : not null access constant Base_Token_Arrays.Vector;
+      Line_Begin_Token             : not null access constant Line_Begin_Token_Vectors.Vector)
+     is null record;
+   --  There is only one object of this type, declared in Recover. It
+   --  provides appropriate access to Shared_Parser components.
+   --
+   --  Since all the accesible objects are read-only (except Trace),
+   --  there are no protected operations, and this is not a protected
+   --  type.
 
    procedure Put
      (Message      : in              String;
       Super        : not null access Base.Supervisor;
-      Shared       : not null access Base.Shared_Lookahead;
+      Shared       : not null access Base.Shared;
       Parser_Index : in              SAL.Peek_Type;
       Config       : in              Configuration;
       Task_ID      : in              Boolean := True);
