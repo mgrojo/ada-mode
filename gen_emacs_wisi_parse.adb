@@ -69,10 +69,9 @@ is
       Put_Line ("04quit");
    end Usage;
 
-   Parse_Data : aliased Parse_Data_Type;
-
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   Parser : aliased WisiToken.LR.Parser.Parser;
+   Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   Parser     : WisiToken.LR.Parser.Parser;
+   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
    procedure Read_Input (A : System.Address; N : Integer)
    is
@@ -229,7 +228,7 @@ begin
                is begin
                   Parser.Lexer.Discard_Rest_Of_Input;
                   Parse_Data.Put
-                    (Parser.Lexer_Errors,
+                    (Parser.Lexer.Errors,
                      Parser.Parsers.First.State_Ref.Errors,
                      Parser.Parsers.First.State_Ref.Tree);
                   Ada.Strings.Unbounded.Free (Buffer);
@@ -302,7 +301,7 @@ begin
                Parser.Lexer.Reset_With_String_Access (Buffer);
                loop
                   exit when Token.ID = Parser.Trace.Descriptor.EOF_ID;
-                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer_Errors);
+                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer.Errors);
                end loop;
             exception
             when Syntax_Error =>

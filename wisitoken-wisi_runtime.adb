@@ -550,8 +550,6 @@ package body WisiToken.Wisi_Runtime is
    begin
       --  + 1 for data on line following last line; see Lexer_To_Augmented.
       Data.Line_Begin_Pos.Set_Length (Ada.Containers.Count_Type (Line_Count + 1), Default => Invalid_Buffer_Pos);
-      Data.Line_Begin_Token.Set_Length
-        (Ada.Containers.Count_Type (Line_Count + 1), Default => Augmented_Token_Arrays.No_Index);
       Data.Line_Paren_State.Set_Length (Ada.Containers.Count_Type (Line_Count + 1));
 
       Data.Descriptor        := Descriptor;
@@ -646,11 +644,6 @@ package body WisiToken.Wisi_Runtime is
                end if;
 
                Containing_Token.Non_Grammar.Append ((Token.ID, Token.Line, Token.Column, Lexer.First));
-
-               if Lexer.First then
-                  --  FIXME: line_begin_token now in Shared_Parser
-                  Data.Line_Begin_Token (Token.Line) := Data.Terminals.Last_Index;
-               end if;
             end;
          end if;
 
@@ -681,10 +674,6 @@ package body WisiToken.Wisi_Runtime is
             end if;
 
             Data.Terminals.Append (Temp);
-
-            if Lexer.First then
-               Data.Line_Begin_Token (Token.Line) := Data.Terminals.Last_Index;
-            end if;
          end;
       end if;
    end Lexer_To_Augmented;
@@ -1784,8 +1773,8 @@ package body WisiToken.Wisi_Runtime is
                use all type Ada.Text_IO.Count;
                Indent : Boolean := True;
             begin
-               if Data.Line_Begin_Token (Line) /= Augmented_Token_Arrays.No_Index then
-                  for Tok of Data.Terminals (Data.Line_Begin_Token (Line)).Non_Grammar loop
+               if Data.Line_Begin_Token.all (Line) /= Augmented_Token_Arrays.No_Index then
+                  for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line)).Non_Grammar loop
                      if Tok.ID = Data.Descriptor.Comment_ID and Tok.Col = 0 then
                         Indent := False;
                         exit;

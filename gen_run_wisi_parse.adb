@@ -35,9 +35,9 @@ is
    use all type SAL.Base_Peek_Type;
    use all type WisiToken.Wisi_Runtime.Post_Parse_Action_Type;
 
-   Parse_Data : aliased Parse_Data_Type;
    Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   Parser     : aliased WisiToken.LR.Parser.Parser;
+   Parser     : WisiToken.LR.Parser.Parser;
+   Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
    procedure Put_Usage
    is
@@ -156,7 +156,7 @@ begin
       return;
    end;
 
-   --  FIXME: parse_data does not need Line_Count; it can use intelligent vector growth.
+   --  See comment in wisi-wisi_runtime.ads for why we still need this.
    declare
       Token : Base_Token;
       Lexer_Error : Boolean;
@@ -164,13 +164,13 @@ begin
    begin
       loop
          begin
-            Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer_Errors);
+            Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer.Errors);
             exit when Token.ID = Descriptor.EOF_ID;
          exception
          when WisiToken.Syntax_Error =>
             Parser.Lexer.Discard_Rest_Of_Input;
             Parse_Data.Put
-              (Parser.Lexer_Errors,
+              (Parser.Lexer.Errors,
                Parser.Parsers.First.State_Ref.Errors,
                Parser.Parsers.First.State_Ref.Tree);
             Put_Line ("(lexer_error)");
@@ -201,7 +201,7 @@ begin
             Parser.Lexer.Discard_Rest_Of_Input;
             if Repeat_Count = 1 then
                Parse_Data.Put
-                 (Parser.Lexer_Errors,
+                 (Parser.Lexer.Errors,
                   Parser.Parsers.First.State_Ref.Errors,
                   Parser.Parsers.First.State_Ref.Tree);
             end if;
@@ -219,7 +219,7 @@ begin
             begin
                Parser.Lexer.Reset;
                loop
-                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer_Errors);
+                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer.Errors);
                   exit when Token.ID = Descriptor.EOF_ID;
                end loop;
                --  We don't handle errors here; that was done in the count lines loop
@@ -232,7 +232,7 @@ begin
             if Repeat_Count = 1 then
                Parse_Data.Put;
                Parse_Data.Put
-                 (Parser.Lexer_Errors,
+                 (Parser.Lexer.Errors,
                   Parser.Parsers.First.State_Ref.Errors,
                   Parser.Parsers.First.State_Ref.Tree);
             end if;

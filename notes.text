@@ -54,12 +54,10 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
  current work
 --  FIXME: see if more tasks go faster or slower.
 
---  FIXME: parse_data does not need Line_Count; it can use intelligent vector growth.
+wisitoken-wisi_runtime.ads Find
+   --  FIXME: use tree instead?
 
 teach font lock that line end terminates strings
-
-line_begin_token now in Shared_Parser
-    parse_data does not need Line_Count; it can use intelligent vector growth.
 
 emacs track parse-max, don't reparse just for different action; just execute action.
 

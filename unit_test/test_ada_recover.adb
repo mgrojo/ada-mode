@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with AUnit.Checks;
 with Ada_Process; use Ada_Process;
 with SAL;
 with WisiToken.LR.McKenzie_Recover.Ada;
@@ -66,10 +67,9 @@ package body Test_Ada_Recover is
    procedure Kill_Slow_Parser_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use all type SAL.Base_Peek_Type;
 
-      Delete_When_Index : Integer;
-      Insert_Case_Index : Integer;
+      use AUnit.Checks;
+      use all type SAL.Base_Peek_Type;
    begin
       --  Simplified from ../test/slow_recover_4.adb; used to be really
       --  slow, now we kill the slow parser sooner.
@@ -86,86 +86,25 @@ package body Test_Ada_Recover is
            """UTF-16""; end case; end Slow_Recover_4;");
       --     |196     |204  |210      |220      |230
       --
-      --  Enters recovery 1 with 1 parser at 'when' 152, expecting ')'.
-      --  Finds two solutions quickly:
-      --  (delete 'when' 152)
+      --  Enters recovery 1 with 2 parsers, finds solutions quickly:
       --  (insert 'case is')
+      --  (delete 'when' 36)
+      --  (push_back 'is')
       --
-      --  Enters recovery 2 with 2 parsers:
-      --  parser 3 at 'with' 192, expecting ',' | ')'
-      --  parser 2 at ';' 204, expecting ',' | ')'
-      --  Parser 2 finds one solution, fairly quickly:
-      --
-      --    2: succeed: enqueue 5689, check 432: 8, (1106 : (END))|
-      --  47:(CASE, (211 . 214))|((INSERT, RIGHT_PAREN, 45), (INSERT,
-      --  RIGHT_PAREN, 45), (FAST_FORWARD, 47), (INSERT, IF, 47), (INSERT,
-      --  SEMICOLON, 47), (INSERT, END, 47), (INSERT, SEMICOLON, 47),
-      --  (INSERT, END, 47))
-      --
-      --  Parser 3 had already checked 1048 when 2 finds a solution; killed
-      --  immediately.
+      --  Enters recovery 2 with 5 parsers (1 .. 5). One finds a solution
+      --  very quickly (enqueue 219, check 34, cost: 4), one less quickly
+      --  (enqueue 3474, check 254, cost: 8), the others are killed with
+      --  ~222 checks.
 
-      --  It's a race condition which solution is found first in recover 1.
-      if WisiToken.LR.Parse_Error_Lists.Constant_Reference
-        (Saved_Data (1).Errors, Saved_Data (1).Errors.First).Recover.Ops.Last_Index = 1
-      then
-         Delete_When_Index := 1;
-         Insert_Case_Index := 2;
-      else
-         Delete_When_Index := 2;
-         Insert_Case_Index := 1;
-      end if;
+      --  It's tedious and error prone to fully check each solution; we just
+      --  verify the max checks in recover 2. Note that the max actual
+      --  checks can be larger than the McKenzie_Param Check_Delta_Limit;
+      --  the extra checks are done before the first solution is found (a
+      --  race condition).
 
-      Check_Recover
-        (Saved_Data (Delete_When_Index), "recover 1 parser 2",
-         Parser_Label            => 2,
-         Error_Token_ID          => +WHEN_ID,
-         Error_Token_Byte_Region => (153, 156),
-         Ops                     => +(Delete, +WHEN_ID, 36),
-         Enqueue_Low             => 210,
-         Enqueue_High            => 230,
-         Check_Low               => 30,
-         Check_High              => 40,
-         Cost                    => 4);
-
-      Check_Recover
-        (Saved_Data (Insert_Case_Index), "recover 1 parser 1",
-         Parser_Label            => 1,
-         Error_Token_ID          => +WHEN_ID,
-         Error_Token_Byte_Region => (153, 156),
-         Ops                     => +(Insert, +CASE_ID, 36) & (Insert, +IS_ID, 36),
-         Enqueue_Low             => 210,
-         Enqueue_High            => 230,
-         Check_Low               => 30,
-         Check_High              => 40,
-         Cost                    => 4);
-
-      Check_Recover
-        (Saved_Data (3), "recover 2 parser 3",
-         Parser_Label            => 3,
-         Errors_Length           => 2,
-         Checking_Error          => 2,
-         Error_Token_ID          => +WITH_ID,
-         Error_Token_Byte_Region => (192, 195),
-         Success                 => False,
-         Check_Low               => 1000,
-         Check_High              => 1200);
-
-      Check_Recover
-        (Saved_Data (4), "recover 2 parser 2",
-         Parser_Label            => 2,
-         Errors_Length           => 2,
-         Checking_Error          => 2,
-         Error_Token_ID          => +SEMICOLON_ID,
-         Error_Token_Byte_Region => (205, 205),
-         Ops                     => +(Insert, +RIGHT_PAREN_ID, 45) & (Insert, +RIGHT_PAREN_ID, 45) &
-           (Fast_Forward, 47) & (Insert, +IF_ID, 47) & (Insert, +SEMICOLON_ID, 47) & (Insert, +END_ID, 47) &
-           (Insert, +SEMICOLON_ID, 47) & (Insert, +END_ID, 47),
-         Enqueue_Low             => 6100,
-         Enqueue_High            => 6300,
-         Check_Low               => 450,
-         Check_High              => 470,
-         Cost                    => 8);
+      for I in Saved_Data'First .. Saved_Data_Last loop
+         Check_Range (Integer'Image (I), Saved_Data (I).Recover.Check_Count, 0, 1050);
+      end loop;
    end Kill_Slow_Parser_2;
 
    ----------

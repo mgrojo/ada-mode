@@ -36,7 +36,9 @@ package WisiToken.Wisi_Runtime is
 
    type Post_Parse_Action_Type is (Navigate, Face, Indent);
 
-   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
+   type Parse_Data_Type
+     (Line_Begin_Token : not null access constant WisiToken.Line_Begin_Token_Vectors.Vector)
+     is new WisiToken.Syntax_Trees.User_Data_Type with private;
 
    procedure Initialize
      (Data              : in out Parse_Data_Type;
@@ -47,6 +49,12 @@ package WisiToken.Wisi_Runtime is
       Params            : in     String);
    --  Line_Count only used for Indent. Params contains language-specific
    --  indent parameter values.
+   --
+   --  It is possible to do without the Line_Count parameter, and grow
+   --  the various vectors dynamically. However, doing that caused
+   --  intermittent problems with too many lines; the Ada code saw more
+   --  lines than the elisp code did. Using the elisp line count is more
+   --  reliable.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
    --  Reset for a new parse, with data from previous Initialize.
@@ -408,7 +416,6 @@ private
 
    package Line_Paren_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Integer);
    package Line_Begin_Pos_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Buffer_Pos);
-   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
 
    type Nil_Buffer_Pos (Set : Boolean := False) is record
       case Set is
@@ -490,7 +497,9 @@ private
    package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
      (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
-   type Parse_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
+   type Parse_Data_Type
+     (Line_Begin_Token : not null access constant WisiToken.Line_Begin_Token_Vectors.Vector)
+     is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       --  Data from parsing
 
@@ -504,10 +513,6 @@ private
 
       Line_Begin_Pos : Line_Begin_Pos_Vectors.Vector;
       --  Character position at the start of the first token on each line.
-
-      Line_Begin_Token : Line_Begin_Token_Vectors.Vector;
-      --  Index into Terminals of first token on line; may be a Non_Grammar
-      --  contained by the token.
 
       Line_Paren_State : Line_Paren_Vectors.Vector;
       --  Parenthesis nesting state at the start of each line; used by
