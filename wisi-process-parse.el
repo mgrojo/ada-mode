@@ -435,6 +435,10 @@ complete."
 	(error "%s parse abandoned; parser busy" wisi--parse-action)
 	)
 
+    ;; It is not possible for a background elisp function (ie
+    ;; font-lock) to interrupt this code between checking and setting
+    ;; parser-busy; background elisp can only run when we call
+    ;; accept-process-output below.
     (setf (wisi-process--parser-busy parser) t)
 
     (condition-case-unless-debug err

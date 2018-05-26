@@ -301,7 +301,7 @@ begin
                Parser.Lexer.Reset_With_String_Access (Buffer);
                loop
                   exit when Token.ID = Parser.Trace.Descriptor.EOF_ID;
-                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer.Errors);
+                  Lexer_Error := Parser.Lexer.Find_Next (Token);
                end loop;
             exception
             when Syntax_Error =>

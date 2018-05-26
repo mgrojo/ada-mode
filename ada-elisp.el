@@ -769,19 +769,19 @@
       (generic_instantiation
        ((PACKAGE name IS NEW name aspect_specification_opt SEMICOLON )
         (progn
-      (wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 7 statement-end])
       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
                                  5 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken 0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
        ((overriding_indicator_opt PROCEDURE name IS NEW name aspect_specification_opt SEMICOLON )
         (progn
-      (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
+      (wisi-statement-action [1 statement-start 2 motion 3 name 8 statement-end])
       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                  6 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
        ((overriding_indicator_opt FUNCTION name IS NEW name aspect_specification_opt SEMICOLON )
         (progn
-      (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
+      (wisi-statement-action [1 statement-start 2 motion 3 name 8 statement-end])
       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                  6 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 0 ada-indent-broken 0 ada-indent-broken ada-indent-broken ada-indent-broken 0]))))
@@ -1216,14 +1216,14 @@
       (private_extension_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_limited_synchronized_opt NEW subtype_indication and_interface_list_opt WITH PRIVATE aspect_specification_opt SEMICOLON )
         (progn
-      (wisi-statement-action [1 statement-start 12 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 12 statement-end])
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                              ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0 0]))))
       (private_type_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_tagged_limited_opt PRIVATE aspect_specification_opt SEMICOLON )
         (progn
-      (wisi-statement-action [1 statement-start 8 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 8 statement-end])
       (wisi-face-apply-action [2 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent-broken ada-indent-broken 0 0]))))
       (procedure_call_statement

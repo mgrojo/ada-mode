@@ -216,8 +216,8 @@
 
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
-;; Default insert, delete terminal, delete nonterminal, push_back, undo_reduce cost, .
-%mckenzie_cost_default 4 4 8 2 2
+;; Default insert, delete terminal, delete nonterminal, push_back cost.
+%mckenzie_cost_default 3 3 6 2
 
 ;; Prefer inserting important/common keywords over identifiers and
 ;; operators to take advantage of empty expressions.
@@ -233,19 +233,19 @@
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
-%mckenzie_cost_insert BEGIN 3
-%mckenzie_cost_insert CASE 3
-%mckenzie_cost_insert COMMA 3
-%mckenzie_cost_insert DECLARE 3
-%mckenzie_cost_insert ELSE 3
-%mckenzie_cost_insert EXIT 3
-%mckenzie_cost_insert IDENTIFIER 3
-%mckenzie_cost_insert IS 3
-%mckenzie_cost_insert LEFT_PAREN 3
-%mckenzie_cost_insert LOOP 3
-%mckenzie_cost_insert RETURN 3
-%mckenzie_cost_insert THEN 3
-%mckenzie_cost_insert WHEN 3
+%mckenzie_cost_insert BEGIN 2
+%mckenzie_cost_insert CASE 2
+%mckenzie_cost_insert COMMA 2
+%mckenzie_cost_insert DECLARE 2
+%mckenzie_cost_insert ELSE 2
+%mckenzie_cost_insert EXIT 2
+%mckenzie_cost_insert IDENTIFIER 2
+%mckenzie_cost_insert IS 2
+%mckenzie_cost_insert LEFT_PAREN 2
+%mckenzie_cost_insert LOOP 2
+%mckenzie_cost_insert RETURN 2
+%mckenzie_cost_insert THEN 2
+%mckenzie_cost_insert WHEN 2
 
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
@@ -259,22 +259,13 @@
 ;;
 ;; Similarly, we often have an extra 'end', or 'end loop' etc.
 %mckenzie_cost_delete BEGIN 1
-%mckenzie_cost_delete CASE 3
+%mckenzie_cost_delete CASE 2
 %mckenzie_cost_delete DECLARE 1
 %mckenzie_cost_delete END 1
-%mckenzie_cost_delete IDENTIFIER 3
-%mckenzie_cost_delete IF 3
-%mckenzie_cost_delete LOOP 3
+%mckenzie_cost_delete IDENTIFIER 2
+%mckenzie_cost_delete IF 2
+%mckenzie_cost_delete LOOP 2
 %mckenzie_cost_delete declarative_part_opt 1
-
-;; Recovering from a missing quote yields a STRING_LITERAL, but the
-;; editing that lead to the missing quote may also lead to a grammar
-;; syntax error where part of the best solution is to delete that
-;; STRING_LITERAL (see test/ada_mode-recover_string_quote.adb). So
-;; make that cheaper than inserting operators and keywords. A missing
-;; character literal quote looks like an attribute, so that's handled
-;; differently.
-%mckenzie_cost_delete STRING_LITERAL 2
 
 ;; Most common paren error is missing closing paren.
 %mckenzie_cost_insert RIGHT_PAREN 1
@@ -285,6 +276,7 @@
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
+;; test/ada_mode-recover_5.ads requires cost 12.
 %mckenzie_cost_limit 12
 
 ;; 4 required for test/ada_mode-recover_match_names.adb.

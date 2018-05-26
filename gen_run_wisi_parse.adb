@@ -164,7 +164,7 @@ begin
    begin
       loop
          begin
-            Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer.Errors);
+            Lexer_Error := Parser.Lexer.Find_Next (Token);
             exit when Token.ID = Descriptor.EOF_ID;
          exception
          when WisiToken.Syntax_Error =>
@@ -219,7 +219,7 @@ begin
             begin
                Parser.Lexer.Reset;
                loop
-                  Lexer_Error := Parser.Lexer.Find_Next (Token, Parser.Lexer.Errors);
+                  Lexer_Error := Parser.Lexer.Find_Next (Token);
                   exit when Token.ID = Descriptor.EOF_ID;
                end loop;
                --  We don't handle errors here; that was done in the count lines loop
