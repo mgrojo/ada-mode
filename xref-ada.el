@@ -104,6 +104,8 @@
 		  null_procedure_declaration
 		  object_declaration
 		  object_renaming_declaration
+		  private_extension_declaration
+		  private_type_declaration
 		  procedure_specification
 		  protected_declaration
 		  protected_type_declaration
