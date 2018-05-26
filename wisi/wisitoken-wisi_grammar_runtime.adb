@@ -418,8 +418,6 @@ package body WisiToken.Wisi_Grammar_Runtime is
                        (Get_Child_Text (Data, Tree, Tokens (3), 3));
                      Data.McKenzie_Recover.Default_Push_Back       := Natural'Value
                        (Get_Child_Text (Data, Tree, Tokens (3), 4));
-                     Data.McKenzie_Recover.Default_Undo_Reduce     := Natural'Value
-                       (Get_Child_Text (Data, Tree, Tokens (3), 5));
 
                   elsif Kind = "mckenzie_cost_delete" then
                      Data.Generate_Params.Error_Recover := True;

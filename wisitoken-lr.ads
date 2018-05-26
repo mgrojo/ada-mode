@@ -239,7 +239,6 @@ package WisiToken.LR is
       Delete    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
-      --  FIXME: Undo_Reduce not used; delete?
 
       Task_Count : System.Multiprocessors.CPU_Range;
       --  Number of parallel tasks during recovery. If 0, use
