@@ -19,12 +19,33 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-reorganize into three package hierarchies:
+wisitoken.packrat
+    .generate
+        read existing *.wy
+            rewrite left-recursion
+            add *, +, ?; closer to Ada appendix P
+
+    .parser
+        nothing here?
+        error correction?
+
+reorganize package hierarchy?
+    wisitoken - truly common stuff
     wisitoken.parse - parser runtime
+        .glr
+        .packrat
+            https://pdos.csail.mit.edu/~baford/packrat/thesis/
+            http://bford.info/packrat/
+
     wisitoken.generate - represent grammar as production list, generate parse table
+        .lalr
+        .lr1 (still need to make it faster)
+        .ll ?
     wisitoken.wisi - translate .wy files into production list, source code
 
-add packrat
+    wisitoken.lexer - as now
+
+    wisitoken.syntax_tree
 
 constrain_terminals
     cache shift, reduce counts in table

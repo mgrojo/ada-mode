@@ -1,13 +1,7 @@
-GNAT
 GNATCOLL
 WisiToken
-YYLex
-*1D
-*2D
 *CPU
 *CR
-*CSV
-*DFA
 *EOF
 *EOI
 *EOL
@@ -23,10 +17,8 @@ YYLex
 *LHS
 *LR
 *LR1
-*LRk
 *McKenzie
 *OS
 *RHS
 *WY
-*YY
 *re2c
