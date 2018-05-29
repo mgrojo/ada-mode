@@ -333,7 +333,7 @@ package body WisiToken.Wisi_Runtime is
       case Item.Label is
       when Not_Set =>
          Ada.Text_IO.Put_Line
-           ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & " 0]");
+           ('[' & Indent_Code & Trimmed_Image (Integer (Line_Number)) & " 0]");
 
       when Int =>
          declare
@@ -341,7 +341,7 @@ package body WisiToken.Wisi_Runtime is
             Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
          begin
             Ada.Text_IO.Put_Line
-              ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & Integer'Image (Ind) & ']');
+              ('[' & Indent_Code & Trimmed_Image (Integer (Line_Number)) & Integer'Image (Ind) & ']');
          end;
 
       when Anchor | Anchored | Anchor_Anchored =>
@@ -1573,7 +1573,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
          return "(" & ID_Image &
-           Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Column)) & ")";
+           Line_Number_Type'Image (Item.Line) & ":" & Trimmed_Image (Integer (Item.Column)) & ")";
 
       elsif Item.Char_Region = Null_Buffer_Region then
          return "(" & ID_Image & ")";

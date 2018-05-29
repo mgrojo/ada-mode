@@ -817,7 +817,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       return False;
    end Member;
 
-   function Member (ID : in Natural; Item : in Production_ID_Arrays.Vector) return Boolean
+   function Member (ID : in Production_ID; Item : in Production_ID_Arrays.Vector) return Boolean
    is begin
       for I of Item loop
          if I = ID then return True; end if;
@@ -825,7 +825,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       return False;
    end Member;
 
-   function Find (ID : in Natural; Reductions : in Reduce_Action_Array) return Natural
+   function Find (ID : in Production_ID; Reductions : in Reduce_Action_Array) return Natural
    is begin
       for I in Reductions'Range loop
          if Member (ID, Reductions (I).Productions) then
@@ -839,7 +839,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
      (Table   : in     Parse_Table;
       Config  : in out Configuration;
       Action  : in     Reduce_Action_Rec;
-      Prod_ID :    out Positive)
+      Prod_ID :    out Production_ID)
    is
       Goto_Node : Goto_Node_Ptr;
    begin
@@ -910,7 +910,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          declare
             Temp_Config : Configuration          := Config;
             Result      : WisiToken.Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => False);
-            Prod_ID     : Natural                := 0; -- production used in last reduce
+            Prod_ID     : Production_ID          := Production_ID'Last; -- production used in last reduce
          begin
             Reduce_To_Shift :
             loop
