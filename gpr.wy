@@ -117,7 +117,7 @@
 
 %end_names_optional_option End_Names_Optional
 
-%conflict SHIFT/REDUCE in state term, term  on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state term, aggregate_g  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state case_statement, case_statement  on token WHEN
 
 %%

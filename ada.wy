@@ -316,9 +316,9 @@
 %conflict SHIFT/REDUCE in state name, attribute_designator  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list  on token COLON
-%conflict SHIFT/REDUCE in state package_body, package_body  on token IS
+%conflict SHIFT/REDUCE in state package_body_stub, package_body  on token IS
 %conflict SHIFT/REDUCE in state parameter_specification, parameter_specification  on token NOT
-%conflict SHIFT/REDUCE in state protected_body, protected_body  on token IS
+%conflict SHIFT/REDUCE in state protected_body_stub, protected_body  on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
 %conflict SHIFT/REDUCE in state relation_and_list, expression  on token AND
 %conflict SHIFT/REDUCE in state relation_and_then_list, expression  on token AND
@@ -326,7 +326,7 @@
 %conflict SHIFT/REDUCE in state relation_or_list, expression  on token OR
 %conflict SHIFT/REDUCE in state relation_xor_list, expression  on token XOR
 %conflict SHIFT/REDUCE in state selected_component, attribute_designator  on token DOT
-%conflict SHIFT/REDUCE in state task_body, task_body  on token IS
+%conflict SHIFT/REDUCE in state task_body_stub, task_body  on token IS
 
 %if lexer = re2c
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator  on token TICK_2

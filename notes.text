@@ -52,6 +52,15 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+unit_test/test_ada_recover Kill_Slow_Parser_2
+    failing due to changed costs
+
+test/ada_mode-recover_type_1.ads
+    desired solution: (insert 'end case ; end record ;') cost (+ 1 1 1 1 2 1) => 7
+        found a cost 13 solution!?
+    constrain_terminal not returning 'end'
+        need to handle mixed shift/reduce better
+
 --  FIXME: see if more tasks go faster or slower.
 
 wisitoken-wisi_runtime.ads Find

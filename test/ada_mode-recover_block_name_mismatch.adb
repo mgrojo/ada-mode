@@ -1,3 +1,5 @@
+--  From a real editing session.
+
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 
 package body Ada_Mode.Recover_Block_Name_Mismatch is
@@ -14,6 +16,3 @@ package body Ada_Mode.Recover_Block_Name_Mismatch is
 
 begin
 end Ada_Mode.Recover_Block_Name_Mismatch;
---  Local Variables:
---  wisi-disable-face: t
---  End:
