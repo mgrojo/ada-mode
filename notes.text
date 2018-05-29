@@ -19,6 +19,13 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+rewrite wisitoken.production to use Ada container
+    split out Ada grammar operations to wisitoken-wisi_ada.ads
+    LR1 use Production_ID instead of Production
+
+replace wisitoken-token_id_lists with sal list
+    lr1 use permanent refs to lists rather than shallow copies
+
 wisitoken.packrat
     .generate
         read existing *.wy

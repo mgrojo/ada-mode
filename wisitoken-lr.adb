@@ -31,15 +31,6 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 package body WisiToken.LR is
 
-   function To_Vector (Item : in Production_ID_Array) return Production_ID_Arrays.Vector
-   is begin
-      return Result : Production_ID_Arrays.Vector do
-         for I of Item loop
-            Result.Append (I);
-         end loop;
-      end return;
-   end To_Vector;
-
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class)
    is
       use Ada.Text_IO;
@@ -72,7 +63,7 @@ package body WisiToken.LR is
       return List.Symbol;
    end Symbol;
 
-   function Prod_ID (List : in Goto_Node_Ptr) return Positive
+   function Prod_ID (List : in Goto_Node_Ptr) return Production_ID
    is begin
       return List.Production;
    end Prod_ID;
@@ -273,7 +264,7 @@ package body WisiToken.LR is
      (State           : in out LR.Parse_State;
       Symbol          : in     Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
-      Production      : in     Positive;
+      Production      : in     Production_ID;
       LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Name_Index      : in     Natural;
@@ -311,7 +302,7 @@ package body WisiToken.LR is
       Shift_Productions : in     Production_ID_Array;
       Symbol            : in     Token_ID;
       State_Index       : in     WisiToken.State_Index;
-      Reduce_Production : in     Positive;
+      Reduce_Production : in     Production_ID;
       LHS_ID            : in     Token_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Name_Index        : in     Natural;
@@ -331,13 +322,13 @@ package body WisiToken.LR is
      (State             : in out LR.Parse_State;
       Symbol            : in     Token_ID;
       Verb              : in     LR.Parse_Action_Verbs;
-      Production_1      : in     Positive;
+      Production_1      : in     Production_ID;
       LHS_ID_1          : in     Token_ID;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
       Name_Index_1      : in     Natural;
       Semantic_Action_1 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     Semantic_Checks.Semantic_Check;
-      Production_2      : in     Positive;
+      Production_2      : in     Production_ID;
       LHS_ID_2          : in     Token_ID;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
       Name_Index_2      : in     Natural;
@@ -376,7 +367,7 @@ package body WisiToken.LR is
 
    procedure Add_Goto
      (State      : in out LR.Parse_State;
-      Production : in     Positive;
+      Production : in     Production_ID;
       Symbol     : in     Token_ID;
       To_State   : in     State_Index)
    is
@@ -676,7 +667,7 @@ package body WisiToken.LR is
 
       while Goto_Ptr /= null loop
          Put_Line
-           ("  " & Image (Goto_Ptr.Production, Width => 4) & ": " & Image (Goto_Ptr.Symbol, Descriptor) &
+           ("  " & Padded_Image (Goto_Ptr.Production, Width => 4) & ": " & Image (Goto_Ptr.Symbol, Descriptor) &
               (Descriptor.Image_Width - Image (Goto_Ptr.Symbol, Descriptor)'Length) * ' ' &
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;

@@ -149,7 +149,7 @@ package body WisiToken.LR.Parser_Lists is
       if Trace_Parse > Outline then
          Trace.Put_Line
            (Integer'Image (Current.Label) & ": terminate (" &
-              Int_Image (Integer (Parsers.Count) - 1) & " active)" &
+              Trimmed_Image (Integer (Parsers.Count) - 1) & " active)" &
               (if Message'Length > 0 then ": " & Message else ""));
       end if;
 

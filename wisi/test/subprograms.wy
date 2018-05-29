@@ -47,6 +47,10 @@
 %output_language Ada_Emacs
 %lexer Elisp
 
+%mckenzie_cost_limit 10
+%mckenzie_check_limit 3
+%mckenzie_cost_default 4 4 8 2 2
+
 ;; elisp names in face actions
 %elisp_face font-lock-keyword-face
 %elisp_face font-lock-type-face

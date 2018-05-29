@@ -22,7 +22,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.Wisi_Generate_Elisp;
-with WisiToken.Production;
+with WisiToken.Productions;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Output_Elisp_Common;
 procedure Wisi.Output_Elisp
@@ -47,7 +47,7 @@ is
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
-   Grammar : constant WisiToken.Production.List.Instance := Generate_Utils.To_Grammar
+   Grammar : constant WisiToken.Productions.Arrays.Vector := Generate_Utils.To_Grammar
      (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
 
    Parser : WisiToken.LR.Parse_Table_Ptr;

@@ -148,7 +148,7 @@ is
 
             Action_Names     : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
             Check_Names      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Prod_Index       : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            Rule_Index       : Integer := 0;
             Action_All_Empty : Boolean := True;
             Check_All_Empty  : Boolean := True;
 
@@ -167,7 +167,7 @@ is
                      Line : constant String := -RHS.Action;
                      --  Actually multiple lines; we assume the formatting is adequate.
 
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (Rule_Index);
 
                      Unref_User_Data : Boolean := True;
                      Unref_Tree      : Boolean := True;
@@ -196,7 +196,7 @@ is
 
                      Action_All_Empty := False;
 
-                     Action_Names (Prod_Index) := new String'(Name & "'Access");
+                     Action_Names (Rule_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
                      Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
                      Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
@@ -240,7 +240,7 @@ is
                   declare
                      use Standard.Ada.Strings.Fixed;
                      Line : constant String := -RHS.Check;
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (Rule_Index);
 
                      Unref_Lexer   : Boolean := True;
                      Unref_Nonterm : Boolean := True;
@@ -258,7 +258,7 @@ is
 
                      Check_All_Empty := False;
 
-                     Check_Names (Prod_Index) := new String'(Name & "_check'Access");
+                     Check_Names (Rule_Index) := new String'(Name & "_check'Access");
                      Indent_Line ("function " & Name & "_check");
                      Indent_Line (" (Lexer   : access constant WisiToken.Lexer.Instance'Class;");
                      Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
@@ -285,7 +285,7 @@ is
                   end;
                end if;
 
-               Prod_Index := Prod_Index + 1;
+               Rule_Index := Rule_Index + 1;
             end loop;
 
             if not Action_All_Empty then

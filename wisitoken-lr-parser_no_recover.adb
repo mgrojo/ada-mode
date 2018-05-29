@@ -56,7 +56,7 @@ package body WisiToken.LR.Parser_No_Recover is
       if Trace_Parse > Detail then
          declare
             Action_Name : constant String := Ada.Characters.Handling.To_Lower
-              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Int_Image (Action.Name_Index);
+              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Trimmed_Image (Action.Name_Index);
          begin
             Trace.Put_Line
               (Action_Name & ": " &
@@ -403,8 +403,8 @@ package body WisiToken.LR.Parser_No_Recover is
                   else
                      if Trace_Parse > Outline then
                         Trace.Put_Line
-                          ("spawn parser from " & Int_Image (Current_Parser.Label) &
-                             " (" & Int_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                          ("spawn parser from " & Trimmed_Image (Current_Parser.Label) &
+                             " (" & Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                      end if;
 
                      Shared_Parser.Parsers.Prepend_Copy (Current_Parser);

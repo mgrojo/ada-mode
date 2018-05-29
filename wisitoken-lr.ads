@@ -44,20 +44,12 @@ with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
+with SAL.Gen_Unbounded_Definite_Vectors;
 with System.Multiprocessors;
 with WisiToken.Lexer;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR is
-
-   package Production_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Positive);
-   function Image is new Production_ID_Arrays.Gen_Image (Int_Image);
-
-   type Production_ID_Array is array (Natural range <>) of Positive;
-
-   function To_Vector (Item : in Production_ID_Array) return Production_ID_Arrays.Vector;
-   function "+" (Item : in Production_ID_Array) return Production_ID_Arrays.Vector renames To_Vector;
 
    ----------
    --  Following are the types used in the parse table. The parse
@@ -133,7 +125,7 @@ package WisiToken.LR is
    type Goto_Node_Ptr is access Goto_Node;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID;
-   function Prod_ID (List : in Goto_Node_Ptr) return Positive;
+   function Prod_ID (List : in Goto_Node_Ptr) return Production_ID;
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
@@ -180,7 +172,7 @@ package WisiToken.LR is
      (State           : in out Parse_State;
       Symbol          : in     Token_ID;
       Verb            : in     Parse_Action_Verbs;
-      Production      : in     Positive;
+      Production      : in     Production_ID;
       LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
       Name_Index      : in     Natural;
@@ -193,7 +185,7 @@ package WisiToken.LR is
       Shift_Productions : in     Production_ID_Array;
       Symbol            : in     Token_ID;
       State_Index       : in     WisiToken.State_Index;
-      Reduce_Production : in     Positive;
+      Reduce_Production : in     Production_ID;
       LHS_ID            : in     Token_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Name_Index        : in     Natural;
@@ -205,13 +197,13 @@ package WisiToken.LR is
      (State             : in out Parse_State;
       Symbol            : in     Token_ID;
       Verb              : in     Parse_Action_Verbs;
-      Production_1      : in     Positive;
+      Production_1      : in     Production_ID;
       LHS_ID_1          : in     Token_ID;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
       Name_Index_1      : in     Natural;
       Semantic_Action_1 : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     WisiToken.Semantic_Checks.Semantic_Check;
-      Production_2      : in     Positive;
+      Production_2      : in     Production_ID;
       LHS_ID_2          : in     Token_ID;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
       Name_Index_2      : in     Natural;
@@ -224,7 +216,7 @@ package WisiToken.LR is
 
    procedure Add_Goto
      (State      : in out Parse_State;
-      Production : in     Positive;
+      Production : in     Production_ID;
       Symbol     : in     Token_ID;
       To_State   : in     State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
@@ -267,11 +259,13 @@ package WisiToken.LR is
    --  Put Item to Ada.Text_IO.Current_Output
 
    type Production is record
+      --  Subset of info in wisitoken-productions.ads type; only what is
+      --  needed at runtime for error recovery.
       LHS : Token_ID;
       RHS : Token_ID_Arrays.Vector;
    end record;
 
-   package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Production);
+   package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Production_ID, Production);
 
    package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
 
@@ -586,7 +580,7 @@ private
    --  Private to enforce use of Add; doesn't succeed, since only
    --  children use it.
    type Goto_Node is record
-      Production : Natural := 0;
+      Production : Production_ID;
       Symbol     : Token_ID;
       State      : State_Index;
       Next       : Goto_Node_Ptr;

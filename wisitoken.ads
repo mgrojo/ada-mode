@@ -35,9 +35,12 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
+with SAL.Gen_Trimmed_Image;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux;
 package WisiToken is
 
@@ -139,8 +142,7 @@ package WisiToken is
    function Image (Item : in Token_ID; Desc : in Descriptor'Class) return String;
    --  Return Desc.Image (Item), or empty string for Invalid_Token_ID.
 
-   function Int_Image (Item : in Token_ID) return String;
-   --  Return Token_ID'Image, leading space stripped.
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Token_ID);
 
    function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
@@ -208,6 +210,28 @@ package WisiToken is
 
    overriding
    function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in LALR_Descriptor) return String;
+
+   ----------
+   --  Production IDs; see wisitoken-productions.ads for more
+
+   type Production_ID is range 1 .. Natural'Last;
+   --  Index into the production array. 1 origin for backward compatibility.
+
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Production_ID);
+
+   function Padded_Image (Item : in Production_ID; Width : in Integer) return String;
+   --  Padded with leading spaces to Width
+
+   package Production_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Production_ID);
+   function Image is new Production_ID_Arrays.Gen_Image (Trimmed_Image);
+
+   type Production_ID_Array is array (Natural range <>) of Production_ID;
+
+   function To_Vector (Item : in Production_ID_Array) return Production_ID_Arrays.Vector;
+   function "+" (Item : in Production_ID_Array) return Production_ID_Arrays.Vector renames To_Vector;
+
+   ----------
+   --  Tokens
 
    type Buffer_Pos is range 1 .. Integer'Last; -- match Emacs buffer origin.
    type Buffer_Region is record
@@ -373,11 +397,8 @@ package WisiToken is
    function "-" (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
      renames Standard.Ada.Strings.Unbounded.To_String;
 
-   function Int_Image (Item : in Integer) return String;
-   --  No leading space
-
-   function Image (Item : in Integer; Width : in Integer) return String;
-   --  Padded with leading spaces to Width
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Integer);
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Ada.Containers.Count_Type);
 
    function Error_Message
      (File_Name : in String;

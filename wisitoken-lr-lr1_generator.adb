@@ -30,7 +30,7 @@ package body WisiToken.LR.LR1_Generator is
       Symbol               : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Production.List.Instance;
+      Grammar              : in WisiToken.Productions.Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set
@@ -53,7 +53,8 @@ package body WisiToken.LR.LR1_Generator is
             then
                Add
                  (Goto_Set.Set,
-                  New_Item_Node (Prod (Item), Next (Dot (Item)), Unknown_State, Lookaheads (Item)));
+                  New_Item_Node (Prod_ID (Item), Next (Dot (Item)), Unknown_State, Lookaheads (Item)),
+                  Grammar);
             end if;
          end if;
 
@@ -63,7 +64,7 @@ package body WisiToken.LR.LR1_Generator is
       if Goto_Set.Set /= null then
          if Trace then
             Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Image (Symbol, Descriptor));
-            Put (Descriptor, Goto_Set, Show_Lookaheads => True);
+            Put (Grammar, Descriptor, Goto_Set, Show_Lookaheads => True);
          end if;
 
          return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Descriptor, Trace => False);
@@ -75,7 +76,7 @@ package body WisiToken.LR.LR1_Generator is
    function LR1_Item_Sets
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Production.List.Instance;
+      Grammar              : in WisiToken.Productions.Arrays.Vector;
       First_State_Index    : in State_Index;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
@@ -87,19 +88,19 @@ package body WisiToken.LR.LR1_Generator is
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
       C : Item_Set_List := -- result
-        (Head             => new Item_Set'
+        (Head                 => new Item_Set'
            (Closure
-              ((Set       => New_Item_Node
-                  (WisiToken.Production.List.Current (Grammar.First),
-                   WisiToken.Production.List.RHS (Grammar.First).Tokens.First,
-                   First_State_Index,
-                   To_Lookahead (Descriptor.EOF_ID, Descriptor)),
-                Goto_List => null,
-                State     => First_State_Index,
-                Next      => null),
+              ((Set           => New_Item_Node
+                  (Prod       => Grammar.First_Index,
+                   Dot        => Grammar (Grammar.First_Index).RHS.Tokens.First,
+                   State      => First_State_Index,
+                   Lookaheads => To_Lookahead (Descriptor.EOF_ID, Descriptor)),
+                Goto_List     => null,
+                State         => First_State_Index,
+                Next          => null),
                Has_Empty_Production, First, Grammar, Descriptor,
-               Trace      => False)),
-         Size             => 1);
+               Trace          => False)),
+         Size                 => 1);
 
       I          : Item_Set_Ptr;    -- iterator 'for each set of items I in C'
       Added_Item : Boolean := True; -- 'until no more items can be added'
@@ -115,7 +116,7 @@ package body WisiToken.LR.LR1_Generator is
          while I /= null loop
             if Trace then
                Ada.Text_IO.Put ("Checking ");
-               Put (Descriptor, I.all, Show_Lookaheads => True, Show_Goto_List => True);
+               Put (Grammar, Descriptor, I.all, Show_Lookaheads => True, Show_Goto_List => True);
             end if;
 
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
@@ -183,12 +184,13 @@ package body WisiToken.LR.LR1_Generator is
 
    procedure Add_Actions
      (Item_Sets            : in     LR1_Items.Item_Set_List;
+      Grammar              : in     WisiToken.Productions.Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in Token_Array_Token_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean;
-      Descriptor           : in WisiToken.Descriptor)
+      Descriptor           : in     WisiToken.Descriptor)
    is
       --  Add actions for all Item_Sets to Table.
 
@@ -196,7 +198,7 @@ package body WisiToken.LR.LR1_Generator is
       use type LR1_Items.Item_Set_Ptr;
    begin
       while Item_Set /= null loop
-         Add_Actions (Item_Set.all, Table, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
+         Add_Actions (Item_Set.all, Table, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
          Item_Set := Item_Set.Next;
       end loop;
 
@@ -208,7 +210,8 @@ package body WisiToken.LR.LR1_Generator is
    procedure Put_Parse_Table
      (Table      : in Parse_Table_Ptr;
       Item_Sets  : in LR1_Items.Item_Set_List;
-      Descriptor : in WisiToken.Descriptor)
+      Descriptor : in WisiToken.Descriptor;
+      Grammar    : in WisiToken.Productions.Arrays.Vector)
    is
       use Ada.Text_IO;
    begin
@@ -228,7 +231,7 @@ package body WisiToken.LR.LR1_Generator is
 
       for State in Table.States'Range loop
          LR1_Items.Put
-           (Descriptor, LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
+           (Grammar, Descriptor, LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
          New_Line;
          Put (Descriptor, Table.States (State));
 
@@ -238,26 +241,19 @@ package body WisiToken.LR.LR1_Generator is
 
    function Check_Unused_Tokens
      (Descriptor : in WisiToken.Descriptor;
-      Grammar    : in WisiToken.Production.List.Instance)
+      Grammar    : in WisiToken.Productions.Arrays.Vector)
      return Boolean
    is
-      use WisiToken.Production.List;
-
       Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 
       Unused_Tokens : Boolean := False;
-
-      I : List_Iterator := First (Grammar);
    begin
       Used_Tokens (Descriptor.Accept_ID) := True;
 
-      loop
-         exit when Is_Done (I);
+      for Prod of Grammar loop
          declare
-            use WisiToken.Production;
             use Token_ID_Lists;
-            Prod : constant WisiToken.Production.Instance := Current (I);
-            J    : Cursor                                 := Prod.RHS.Tokens.First;
+            J : Cursor := Prod.RHS.Tokens.First;
          begin
             loop
                exit when not Has_Element (J);
@@ -265,8 +261,6 @@ package body WisiToken.LR.LR1_Generator is
                Next (J);
             end loop;
          end;
-
-         Next (I);
       end loop;
 
       for I in Used_Tokens'Range loop
@@ -283,7 +277,7 @@ package body WisiToken.LR.LR1_Generator is
    end Check_Unused_Tokens;
 
    function Generate
-     (Grammar                  : in WisiToken.Production.List.Instance;
+     (Grammar                  : in WisiToken.Productions.Arrays.Vector;
       Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
@@ -313,7 +307,7 @@ package body WisiToken.LR.LR1_Generator is
       if Trace then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Item_Sets:");
-         LR1_Items.Put (Descriptor, Item_Sets);
+         LR1_Items.Put (Grammar, Descriptor, Item_Sets);
       end if;
 
       Table := new Parse_Table
@@ -344,10 +338,10 @@ package body WisiToken.LR.LR1_Generator is
 
       Generator_Utils.Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
 
-      Add_Actions (Item_Sets, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
+      Add_Actions (Item_Sets, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
 
       if Put_Parse_Table then
-         LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor);
+         LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);

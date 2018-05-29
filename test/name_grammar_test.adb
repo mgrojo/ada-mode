@@ -28,9 +28,10 @@ with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 package body Name_Grammar_Test is
 
    type Token_ID is
@@ -76,9 +77,6 @@ package body Name_Grammar_Test is
        EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   use all type WisiToken.Production.List.Instance;   --  "and"
-   use all type WisiToken.Production.Right_Hand_Side; --  "+"
-
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    --  valid names:
@@ -87,7 +85,7 @@ package body Name_Grammar_Test is
    --  Module.Symbol.Component
    --  Module.Symbol (Index).Component
    --  Module.Symbol.Component (Index) ...
-   Full_Grammar : constant WisiToken.Production.List.Instance :=
+   Full_Grammar : constant WisiToken.Productions.Arrays.Vector :=
      Statement_ID      <= Name_ID & EOF_ID + Null_Action and
      Name_ID           <= Symbol_Name_ID & Component_List_ID + Null_Action and
      Name_ID           <= Symbol_Name_ID + Null_Action and

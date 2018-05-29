@@ -61,7 +61,7 @@ package body WisiToken.Syntax_Trees is
      (Tree            : in out Syntax_Trees.Tree;
       Nonterm         : in     WisiToken.Token_ID;
       Action          : in     Semantic_Action;
-      Production      : in     Natural;
+      Production      : in     Production_ID;
       Name_Index      : in     Natural;
       Children        : in     Valid_Node_Index_Array;
       Default_Virtual : in     Boolean)

@@ -65,7 +65,7 @@ package body WisiToken.LR.Parser is
       if Trace_Parse > Detail then
          declare
             Action_Name : constant String := Ada.Characters.Handling.To_Lower
-              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Int_Image (Action.Name_Index);
+              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Trimmed_Image (Action.Name_Index);
          begin
             Trace.Put_Line
               (Action_Name & ": " &
@@ -880,7 +880,7 @@ package body WisiToken.LR.Parser is
                         Trace.Put_Line
                           (Integer'Image (Current_Parser.Label) & ": spawn" &
                              Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
-                             Int_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                             Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                      end if;
 
                      Shared_Parser.Parsers.Prepend_Copy (Current_Parser);

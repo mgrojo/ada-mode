@@ -27,13 +27,13 @@ pragma License (Modified_GPL);
 
 with WisiToken.LR.Generator_Utils;
 with WisiToken.LR.LR1_Items;
-with WisiToken.Production;
+with WisiToken.Productions;
 package WisiToken.LR.LR1_Generator is
 
    use Generator_Utils;
 
    function Generate
-     (Grammar                  : in WisiToken.Production.List.Instance;
+     (Grammar                  : in WisiToken.Productions.Arrays.Vector;
       Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
@@ -68,7 +68,7 @@ package WisiToken.LR.LR1_Generator is
       Symbol               : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Production.List.Instance;
+      Grammar              : in WisiToken.Productions.Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set;
@@ -77,7 +77,7 @@ package WisiToken.LR.LR1_Generator is
    function LR1_Item_Sets
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Production.List.Instance;
+      Grammar              : in WisiToken.Productions.Arrays.Vector;
       First_State_Index    : in State_Index;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)

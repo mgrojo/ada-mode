@@ -25,8 +25,9 @@ with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 package body Test_Follow is
 
    package Subprograms is
@@ -61,14 +62,11 @@ package body Test_Follow is
          Case_Insensitive  => False);
       use Token_Enum;
 
-      use all type WisiToken.Production.Right_Hand_Side;
-      use all type WisiToken.Production.List.Instance;
-
       Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
       --  This grammar has right recursion on Declarations_ID, and an
       --  empty production for Parameter_List_ID
-      Grammar : constant WisiToken.Production.List.Instance :=
+      Grammar : constant WisiToken.Productions.Arrays.Vector :=
         WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and                -- 1
         Declarations_ID     <= Declaration_ID + Null_Action and                          -- 2
         Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and        -- 3

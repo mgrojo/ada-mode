@@ -25,7 +25,7 @@ with Wisi.Gen_Generate_Utils;
 with WisiToken.AUnit;
 with WisiToken.LR.Generator_Utils;
 with WisiToken.LR.Parser_No_Recover;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
@@ -67,7 +67,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
            (Grammar_Parse_Data.Tokens, Grammar_Parse_Data.Conflicts, EOI_Name, WisiToken_Accept_Name);
          use Generate_Utils;
 
-         Grammar : constant WisiToken.Production.List.Instance := To_Grammar
+         Grammar : constant WisiToken.Productions.Arrays.Vector := To_Grammar
            (LALR_Descriptor, Input_File_Name, Start_Token => "compilation_unit");
 
          Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;

@@ -317,8 +317,8 @@ package body WisiToken.LR.McKenzie_Recover.Base is
               (Trace.all, Parser_Labels (Parser_Index),
                "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
                  "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
-                 "/" & Int_Image (Data.Enqueue_Count) &
-                 "/" & Int_Image (Data.Check_Count) &
+                 "/" & Trimmed_Image (Data.Enqueue_Count) &
+                 "/" & Trimmed_Image (Data.Check_Count) &
                  ", min cost:" &
                  (if Data.Config_Heap.Count > 0
                   then Integer'Image (Data.Config_Heap.Min_Key)

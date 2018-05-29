@@ -17,6 +17,7 @@
 
 pragma License (GPL);
 
+with WisiToken.Wisi_Ada;
 package body WisiToken.Gen_Token_Enum is
 
    function Token_Enum_Image return Token_ID_Array_String
@@ -60,17 +61,17 @@ package body WisiToken.Gen_Token_Enum is
    function "+"
      (Left  : in Token_Enum_ID;
       Right : in WisiToken.Syntax_Trees.Semantic_Action)
-     return WisiToken.Production.Right_Hand_Side
+     return WisiToken.Productions.Right_Hand_Side
    is begin
-      return WisiToken.Production."+" (+Left, Right);
+      return WisiToken.Wisi_Ada."+" (+Left, Right);
    end "+";
 
    function "<="
      (Left  : in Token_Enum_ID;
-      Right : in WisiToken.Production.Right_Hand_Side)
-     return WisiToken.Production.Instance
+      Right : in WisiToken.Productions.Right_Hand_Side)
+     return WisiToken.Productions.Instance
    is begin
-      return WisiToken.Production."<=" (+Left, Right);
+      return WisiToken.Wisi_Ada."<=" (+Left, Right);
    end "<=";
 
    function To_Nonterminal_Array_Token_Set

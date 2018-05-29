@@ -26,8 +26,9 @@ with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.LR1_Items;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
+with WisiToken.Wisi_Ada;
 with WisiToken_AUnit;
 package body Compare_Goto_Transitions is
 
@@ -65,15 +66,13 @@ package body Compare_Goto_Transitions is
          Accept_ID         => WisiToken_Accept_ID,
          Case_Insensitive  => False);
       use Token_Enum;
-
-      use all type WisiToken.Production.Right_Hand_Side;
-      use all type WisiToken.Production.List.Instance;
+      use WisiToken.Wisi_Ada;
 
       Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
       --  This grammar has an empty production (number 6); test that
       --  Closure and Goto_Transitions handle it properly.
-      Grammar : constant WisiToken.Production.List.Instance :=
+      Grammar : constant WisiToken.Productions.Arrays.Vector :=
         WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and                -- 1
         Declarations_ID     <= Declaration_ID + Null_Action and                          -- 2
         Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and        -- 3
@@ -87,7 +86,7 @@ package body Compare_Goto_Transitions is
       First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
         (Grammar, Token_Enum.LALR_Descriptor, Has_Empty_Production, Trace => False);
 
-      procedure Compare (Prod : in Integer; Symbol : in Token_Enum_ID; Trace : in Boolean)
+      procedure Compare (Prod : in WisiToken.Production_ID; Symbol : in Token_Enum_ID; Trace : in Boolean)
       is
          use Ada.Text_IO;
          use WisiToken;
@@ -110,13 +109,13 @@ package body Compare_Goto_Transitions is
          for ID in Token_Enum_ID loop
             declare
                Label : constant String :=
-                 Integer'Image (Prod) & "." &
+                 Production_ID'Image (Prod) & "." &
                  Token_Enum_ID'Image (Symbol) & "." &
                  Token_Enum_ID'Image (ID);
             begin
                LR1 := WisiToken.LR.LR1_Generator.LR1_Goto_Transitions
                     (Set, +ID, Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => False);
-               LR1_Filtered := Filter (LR1, LR1_Descriptor, In_Kernel'Access);
+               LR1_Filtered := Filter (LR1, Grammar, LR1_Descriptor, In_Kernel'Access);
                Free (LR1);
 
                LALR := WisiToken.LR.LALR_Generator.LALR_Goto_Transitions
@@ -131,10 +130,10 @@ package body Compare_Goto_Transitions is
                if Trace then
                   Put_Line (Label & " mismatch");
                   Put_Line ("  lr1:");
-                  Put (LR1_Descriptor, LR1_Filtered, Show_Goto_List => True);
+                  Put (Grammar, LR1_Descriptor, LR1_Filtered, Show_Goto_List => True);
                   New_Line;
                   Put_Line ("  lalr:");
-                  Put (Token_Enum.LALR_Descriptor, LALR, Show_Goto_List => True);
+                  Put (Grammar, Token_Enum.LALR_Descriptor, LALR, Show_Goto_List => True);
                   New_Line;
                   Free (LR1_Filtered);
                   Free (LALR);
@@ -146,8 +145,8 @@ package body Compare_Goto_Transitions is
             end;
          end loop;
          if Trace and Mismatch then
-            Put_Line (Integer'Image (Prod) & "." & Token_Enum_ID'Image (Symbol) & ".closure");
-            Put (LR1_Descriptor, Set);
+            Put_Line (Production_ID'Image (Prod) & "." & Token_Enum_ID'Image (Symbol) & ".closure");
+            Put (Grammar, LR1_Descriptor, Set);
             New_Line;
          end if;
 
@@ -157,7 +156,7 @@ package body Compare_Goto_Transitions is
       is
          Test : Test_Case renames Test_Case (T);
       begin
-         for Prod in 1 .. 7 loop
+         for Prod in WisiToken.Production_ID'(1) .. 7 loop
             for Symbol in LALR_Descriptor.First_Terminal .. LALR_Descriptor.Last_Terminal loop
                Compare (Prod, -Symbol, Test.Debug);
             end loop;

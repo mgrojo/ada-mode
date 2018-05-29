@@ -25,9 +25,10 @@ with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 package body Test_Accept_State is
 
    --  A simple grammar that WisiToken used to get wrong.
@@ -72,12 +73,9 @@ package body Test_Accept_State is
        EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   use all type WisiToken.Production.List.Instance;   --  "and"
-   use all type WisiToken.Production.Right_Hand_Side; --  "+"
-
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Productions.Arrays.Vector :=
      --  First production in Grammar must be the terminating
      --  production; it gets the accept action.
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and

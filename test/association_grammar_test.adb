@@ -28,9 +28,10 @@ with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Ada;
 package body Association_Grammar_Test is
 
    type Token_Enum_ID is
@@ -76,8 +77,7 @@ package body Association_Grammar_Test is
        EOF_ID           => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   use type WisiToken.Production.List.Instance;   --  "and"
-   use type WisiToken.Production.Right_Hand_Side; --  "+"
+   use WisiToken.Wisi_Ada;   --  "and", "+"
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
@@ -87,7 +87,7 @@ package body Association_Grammar_Test is
    --  (identifier => identifier)
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
-   Full_Grammar : constant WisiToken.Production.List.Instance :=
+   Full_Grammar : constant WisiToken.Productions.Arrays.Vector :=
      Statement_ID        <= Aggregate_ID & EOF_ID + Null_Action and
      Aggregate_ID        <= Paren_Left_ID & Association_List_ID & Paren_Right_ID + Null_Action and
      Association_List_ID <= Association_ID & Comma_ID & Association_List_ID + Null_Action and

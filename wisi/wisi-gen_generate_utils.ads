@@ -21,7 +21,7 @@ pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
 with WisiToken.LR.Generator_Utils;
-with WisiToken.Production;
+with WisiToken.Productions;
 generic
    Tokens                : in Wisi.Tokens;
    Conflicts             : in Wisi.Conflict_Lists.List;
@@ -147,7 +147,9 @@ package Wisi.Gen_Generate_Utils is
      (Descriptor       : in WisiToken.Descriptor'Class;
       Source_File_Name : in String;
       Start_Token      : in String)
-     return Production.List.Instance;
+     return WisiToken.Productions.Arrays.Vector;
+   --  Convert Tokens.Rules into a grammar.
+   --
    --  Descriptor, Source_File_Name used in error messages.
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set;

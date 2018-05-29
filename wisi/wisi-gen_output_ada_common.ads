@@ -18,7 +18,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.LR;
-with WisiToken.Production;
+with WisiToken.Productions;
 with Wisi.Gen_Generate_Utils;
 generic
    Prologues : in Wisi.Prologues;
@@ -49,7 +49,7 @@ package Wisi.Gen_Output_Ada_Common is
       Table_Entry_Count            : Integer := -1;
       Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
 
-      Grammar : WisiToken.Production.List.Instance;
+      Grammar : WisiToken.Productions.Arrays.Vector;
 
       Package_Name_Root       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Lower_Package_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;

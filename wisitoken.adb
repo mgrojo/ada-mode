@@ -49,14 +49,6 @@ package body WisiToken is
       return (if Item = Invalid_Token_ID then "" else Desc.Image (Item).all);
    end Image;
 
-   function Int_Image (Item : in Token_ID) return String
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-   begin
-      return Trim (Token_ID'Image (Item), Both);
-   end Int_Image;
-
    function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID
    is begin
       for I in Descriptor.Image'Range loop
@@ -199,6 +191,24 @@ package body WisiToken is
       return To_String (Result);
    end Lookahead_Image;
 
+   function Padded_Image (Item : in Production_ID; Width : in Integer) return String
+   is
+      use Ada.Strings.Fixed;
+   begin
+      return Result : String (1 .. Width) do
+         Move (Production_ID'Image (Item), Result, Justify => Ada.Strings.Right);
+      end return;
+   end Padded_Image;
+
+   function To_Vector (Item : in Production_ID_Array) return Production_ID_Arrays.Vector
+   is begin
+      return Result : Production_ID_Arrays.Vector do
+         for I of Item loop
+            Result.Append (I);
+         end loop;
+      end return;
+   end To_Vector;
+
    function Slice (Item : in Token_Array_Token_Set; I : in Token_ID) return Token_ID_Set
    is
       Result : Token_ID_Set := (Item'First (2) .. Item'Last (2) => False);
@@ -242,23 +252,6 @@ package body WisiToken is
    is begin
       Trace.Put (Image (Item, Trace.Descriptor.all));
    end Put;
-
-   function Int_Image (Item : in Integer) return String
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-   begin
-      return Trim (Integer'Image (Item), Both);
-   end Int_Image;
-
-   function Image (Item : in Integer; Width : in Integer) return String
-   is
-      use Ada.Strings.Fixed;
-   begin
-      return Result : String (1 .. Width) do
-         Move (Integer'Image (Item), Result, Justify => Ada.Strings.Right);
-      end return;
-   end Image;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_ID_Set)
    is begin
@@ -310,8 +303,8 @@ package body WisiToken is
      return String
    is begin
       return File_Name & ":" &
-        Int_Image (if Line = Invalid_Line_Number then Integer'(0) else Integer (Line)) & ":" &
-        Int_Image (Integer (Column)) & ": " &
+        Trimmed_Image (if Line = Invalid_Line_Number then Integer'(0) else Integer (Line)) & ":" &
+        Trimmed_Image (Integer (Column)) & ": " &
         Message;
    end Error_Message;
 
@@ -322,7 +315,7 @@ package body WisiToken is
 
    function Image (Item : in Buffer_Region) return String
    is begin
-      return "(" & Int_Image (Integer (Item.First)) & " ." & Buffer_Pos'Image (Item.Last) & ")";
+      return "(" & Trimmed_Image (Integer (Item.First)) & " ." & Buffer_Pos'Image (Item.Last) & ")";
    end Image;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region

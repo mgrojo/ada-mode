@@ -18,7 +18,6 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
-with WisiToken.Syntax_Trees;
 package WisiToken.Semantic_Checks is
 
    type Check_Status_Label is

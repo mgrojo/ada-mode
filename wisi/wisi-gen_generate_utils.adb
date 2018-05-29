@@ -17,11 +17,13 @@
 --  MA 02110-1335, USA.
 
 pragma License (GPL);
+
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Wisi.Utils;
 with WisiToken.Syntax_Trees;
 with WisiToken.Token_ID_Lists;
+with WisiToken.Wisi_Ada;
 package body Wisi.Gen_Generate_Utils is
 
    --  For Constant_Reference
@@ -553,16 +555,16 @@ package body Wisi.Gen_Generate_Utils is
      (Descriptor       : in WisiToken.Descriptor'Class;
       Source_File_Name : in String;
       Start_Token      : in String)
-     return Production.List.Instance
+     return WisiToken.Productions.Arrays.Vector
    is
-      use Production;
+      use WisiToken.Wisi_Ada;
       use all type Token_ID_Lists.List;
 
-      Grammar : Production.List.Instance;
+      Grammar : WisiToken.Productions.Arrays.Vector;
       Error   : Boolean := False;
    begin
       begin
-         Grammar := Production.List.Only
+         Grammar := Only
            (Descriptor.Accept_ID <= Find_Token_ID (Start_Token) & EOF_ID + WisiToken.Syntax_Trees.Null_Action);
       exception
       when Not_Found =>
@@ -577,8 +579,6 @@ package body Wisi.Gen_Generate_Utils is
          begin
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
-                  use Production.List;
-
                   Tokens : Token_ID_Lists.List;
                begin
                   for Token of Right_Hand_Side.Production loop

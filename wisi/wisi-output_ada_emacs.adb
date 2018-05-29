@@ -257,7 +257,7 @@ is
                   IDs_Count := IDs_Count + 1;
                   begin
                      IDs := IDs & (if Need_Comma_2 then " & " else "") &
-                       Int_Image (Find_Token_ID (Params (First .. Last - 1)));
+                       Trimmed_Image (Find_Token_ID (Params (First .. Last - 1)));
                      Need_Comma_2 := True;
                   exception
                   when E : Not_Found =>
@@ -518,7 +518,7 @@ is
 
             elsif Params (First) = ''' then
                Last := Index (Params, Delim, First);
-               return WisiToken.Int_Image (Find_Token_ID (Params (First + 1 .. Last - 1)));
+               return WisiToken.Trimmed_Image (Find_Token_ID (Params (First + 1 .. Last - 1)));
 
             elsif Params (First) = '(' then
                First  := First + 1;
@@ -1021,7 +1021,7 @@ is
                if Length (RHS.Action) > 0 then
                   Action_All_Empty := False;
                   declare
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (Prod_Index);
                   begin
                      Action_Names (Prod_Index) := new String'(Name & "'Access");
                      Create_Ada_Action (Name, RHS, RHS.Action, Check => False);
@@ -1031,7 +1031,8 @@ is
                if Length (RHS.Check) > 0 then
                   Check_All_Empty := False;
                   declare
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index) & "_check";
+                     Name : constant String := -Rule.Left_Hand_Side & '_' &
+                       WisiToken.Trimmed_Image (Prod_Index) & "_check";
                   begin
                      Check_Names (Prod_Index) := new String'(Name & "'Access");
                      Create_Ada_Action (Name, RHS, RHS.Check, Check => True);

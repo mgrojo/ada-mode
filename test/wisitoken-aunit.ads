@@ -22,6 +22,7 @@ with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_ID);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Production_ID);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Line_Number_Type);
 

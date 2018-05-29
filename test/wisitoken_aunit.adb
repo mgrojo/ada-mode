@@ -27,8 +27,8 @@ package body WisiToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in WisiToken.Production.Instance;
-      Expected : in WisiToken.Production.Instance)
+      Computed : in WisiToken.Productions.Instance;
+      Expected : in WisiToken.Productions.Instance)
    is
       use AUnit.Checks;
       use WisiToken.Token_ID_Lists.AUnit;
@@ -62,7 +62,7 @@ package body WisiToken_AUnit is
 
       loop
          Check (Label & Integer'Image (Index) & ".State", State (Computed_I), State (Expected_I));
-         Check (Label & Integer'Image (Index) & ".Prod", Prod (Computed_I), Prod (Expected_I));
+         Check (Label & Integer'Image (Index) & ".Prod", Prod_ID (Computed_I), Prod_ID (Expected_I));
          Check (Label & Integer'Image (Index) & ".Dot", Dot (Computed_I), Dot (Expected_I));
          if Match_Lookaheads then
             Check (Label & Integer'Image (Index) & ".Lookaheads", Lookaheads (Computed_I), Lookaheads (Expected_I));
@@ -164,55 +164,22 @@ package body WisiToken_AUnit is
       Check (Label & ".Head", Computed.Head, Expected.Head, Match_Lookaheads => True);
    end Check;
 
-   function Get_Production
-     (Grammar : in WisiToken.Production.List.Instance;
-      Prod    : in Positive)
-     return WisiToken.Production.List.List_Iterator
-   is
-      Grammar_I : WisiToken.Production.List.List_Iterator := Grammar.First;
-   begin
-      for I in 2 .. Prod loop
-         WisiToken.Production.List.Next (Grammar_I);
-      end loop;
-
-      return Grammar_I;
-   end Get_Production;
-
-   function Get_Production
-     (Grammar : in WisiToken.Production.List.Instance;
-      Prod    : in Positive)
-     return WisiToken.Production.Instance
-   is begin
-      return WisiToken.Production.List.Current (Get_Production (Grammar, Prod));
-   end Get_Production;
-
    function Get_Item_Node
-     (Grammar    : in WisiToken.Production.List.Instance;
-      Prod       : in Positive;
+     (Grammar    : in WisiToken.Productions.Arrays.Vector;
+      Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
      return WisiToken.LR.LR1_Items.Item_Ptr
    is
-      Grammar_I : WisiToken.Production.List.List_Iterator := Grammar.First;
-
       Dot_I : WisiToken.Token_ID_Lists.Cursor;
    begin
-      for I in 2 .. Prod loop
-         WisiToken.Production.List.Next (Grammar_I);
-      end loop;
-
-      if WisiToken.Production.List.Is_Done (Grammar_I) then
-         raise WisiToken.Programmer_Error with Integer'Image (Prod) & " > length (grammar)";
-      end if;
-
-      Dot_I := WisiToken.Production.First_Token (WisiToken.Production.List.Current (Grammar_I));
+      Dot_I := Grammar (Prod).RHS.Tokens.First;
       for I in 2 .. Dot loop
          WisiToken.Token_ID_Lists.Next (Dot_I);
       end loop;
 
-      return WisiToken.LR.LR1_Items.New_Item_Node
-        (WisiToken.Production.List.Current (Grammar_I), Dot_I, State, Lookaheads);
+      return WisiToken.LR.LR1_Items.New_Item_Node (Prod, Dot_I, State, Lookaheads);
    end Get_Item_Node;
 
    function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set
@@ -307,8 +274,8 @@ package body WisiToken_AUnit is
    end Add_Gotos;
 
    function Get_Item_Set
-     (Grammar   : in WisiToken.Production.List.Instance;
-      Prod      : in Positive;
+     (Grammar   : in WisiToken.Productions.Arrays.Vector;
+      Prod      : in WisiToken.Production_ID;
       Dot       : in Positive;
       Lookahead : in WisiToken.LR.LR1_Items.Lookahead)
      return WisiToken.LR.LR1_Items.Item_Set

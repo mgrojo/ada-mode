@@ -19,13 +19,13 @@
 pragma License (GPL);
 
 with WisiToken.LR.LR1_Items;
-with WisiToken.Production;
+with WisiToken.Productions;
 package WisiToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in WisiToken.Production.Instance;
-      Expected : in WisiToken.Production.Instance);
+      Computed : in WisiToken.Productions.Instance;
+      Expected : in WisiToken.Productions.Instance);
 
    procedure Check
      (Label            : in String;
@@ -55,19 +55,9 @@ package WisiToken_AUnit is
       Computed : in WisiToken.LR.LR1_Items.Item_Set_List;
       Expected : in WisiToken.LR.LR1_Items.Item_Set_List);
 
-   function Get_Production
-     (Grammar : in WisiToken.Production.List.Instance;
-      Prod    : in Positive)
-     return WisiToken.Production.List.List_Iterator;
-   function Get_Production
-     (Grammar : in WisiToken.Production.List.Instance;
-      Prod    : in Positive)
-     return WisiToken.Production.Instance;
-   --  Return Prod production in Grammar; 1 indexed.
-
    function Get_Item_Node
-     (Grammar    : in WisiToken.Production.List.Instance;
-      Prod       : in Positive;
+     (Grammar    : in WisiToken.Productions.Arrays.Vector;
+      Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
@@ -76,8 +66,8 @@ package WisiToken_AUnit is
    --  Dot (1 indexed; use last + 1 for after last).
 
    function Get_Item
-     (Grammar    : in WisiToken.Production.List.Instance;
-      Prod       : in Positive;
+     (Grammar    : in WisiToken.Productions.Arrays.Vector;
+      Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
@@ -118,8 +108,8 @@ package WisiToken_AUnit is
       Gotos : in WisiToken.LR.LR1_Items.Goto_Item_Ptr);
 
    function Get_Item_Set
-     (Grammar   : in WisiToken.Production.List.Instance;
-      Prod      : in Positive;
+     (Grammar   : in WisiToken.Productions.Arrays.Vector;
+      Prod      : in WisiToken.Production_ID;
       Dot       : in Positive;
       Lookahead : in WisiToken.LR.LR1_Items.Lookahead)
      return WisiToken.LR.LR1_Items.Item_Set;

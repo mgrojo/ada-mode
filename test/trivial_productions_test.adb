@@ -24,10 +24,11 @@ pragma License (GPL);
 with Ada.Characters.Latin_1;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Syntax_Trees;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 with WisiToken.Text_IO_Trace;
 package body Trivial_Productions_Test is
 
@@ -74,12 +75,9 @@ package body Trivial_Productions_Test is
            ((EOF_ID    => Lexer.Get ("" & Ada.Characters.Latin_1.EOT),
              Symbol_ID => Lexer.Get ("symbol")));
 
-         use type WisiToken.Production.Right_Hand_Side;
-         use type WisiToken.Production.List.Instance;
-
          Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-         Grammar : constant WisiToken.Production.List.Instance :=
+         Grammar : constant WisiToken.Productions.Arrays.Vector :=
            E_ID <= T_ID & EOF_ID + Null_Action and
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
@@ -167,12 +165,9 @@ package body Trivial_Productions_Test is
              EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
             ));
 
-         use type WisiToken.Production.Right_Hand_Side;
-         use type WisiToken.Production.List.Instance;
-
          Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-         Grammar : constant WisiToken.Production.List.Instance :=
+         Grammar : constant WisiToken.Productions.Arrays.Vector :=
            WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
            Declarations_ID     <= Declaration_ID + Null_Action and
            Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and

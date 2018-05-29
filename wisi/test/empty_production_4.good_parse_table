@@ -179,7 +179,7 @@ State 4:
      3: overriding_indicator   goto state 5
 
 State 5:
-     3:subprogram_declaration <= overriding_indicator ^ other_indicator PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE
+     3:subprogram_declaration <= overriding_indicator ^ other_indicator PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    OTHER                  => shift and goto state 6 (6)
    PROCEDURE              => reduce 0 tokens to other_indicator (7)
@@ -195,7 +195,7 @@ State 6:
 
 
 State 7:
-     3:subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE
+     3:subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    PROCEDURE              => shift and goto state 11 (3)
    default                => ERROR
@@ -229,14 +229,14 @@ State 10:
      3: other_indicator        goto state 13
 
 State 11:
-     3:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE ^ IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE
+     3:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE ^ IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    IDENTIFIER             => shift and goto state 12 (3)
    default                => ERROR
 
 
 State 12:
-     3:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON, OVERRIDING/OTHER/PROCEDURE
+     3:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    SEMICOLON              => shift and goto state 15 (3)
    default                => ERROR
@@ -257,11 +257,12 @@ State 14:
 
 
 State 15:
-     3:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON ^, OVERRIDING/OTHER/PROCEDURE
+     3:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON ^, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    OVERRIDING             => reduce 5 tokens to subprogram_declaration (3)
    OTHER                  => reduce 5 tokens to subprogram_declaration (3)
    PROCEDURE              => reduce 5 tokens to subprogram_declaration (3)
+   Wisi_EOI               => reduce 5 tokens to subprogram_declaration (3)
    default                => ERROR
 
 
@@ -279,5 +280,5 @@ State 17:
    default                => ERROR
 
 
- 4 rules, 0 actions, 0 checks, 17 states, 45 table entries
+ 4 rules, 0 actions, 0 checks, 17 states, 46 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

@@ -29,7 +29,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Token_ID_Lists;
 package WisiToken.LR.LR1_Items is
 
@@ -41,10 +41,7 @@ package WisiToken.LR.LR1_Items is
    type Item_Node is private;
    type Item_Ptr is access Item_Node;
 
-   function Prod (Item : in Item_Ptr) return WisiToken.Production.Instance;
-   function Prod_Index (Item : in Item_Ptr) return Positive;
-   function LHS (Item : in Item_Ptr) return Token_ID;
-   function RHS (Item : in Item_Ptr) return WisiToken.Production.Right_Hand_Side;
+   function Prod_ID (Item : in Item_Ptr) return WisiToken.Production_ID;
    function Dot (Item : in Item_Ptr) return Token_ID_Lists.Cursor;
    --  Token after Dot.
    function State (Item : in Item_Ptr) return Unknown_State_Index;
@@ -52,7 +49,7 @@ package WisiToken.LR.LR1_Items is
    function Next (Item : in Item_Ptr) return Item_Ptr;
 
    function New_Item_Node
-     (Prod       : in WisiToken.Production.Instance;
+     (Prod       : in Production_ID;
       Dot        : in Token_ID_Lists.Cursor;
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead)
@@ -60,15 +57,16 @@ package WisiToken.LR.LR1_Items is
 
    procedure Set
      (Item       : in out Item_Node;
-      Prod       : in     WisiToken.Production.Instance;
+      Prod       : in     Production_ID;
       Dot        : in     Token_ID_Lists.Cursor;
       State      : in     Unknown_State_Index;
       Lookaheads : in     Lookahead);
    --  Replace all values in Item.
 
    procedure Add
-     (List : in out Item_Ptr;
-      Item : in     Item_Ptr);
+     (List    : in out Item_Ptr;
+      Item    : in     Item_Ptr;
+      Grammar : in     WisiToken.Productions.Arrays.Vector);
    --  Add Item to List, in ascending order of Prod.LHS.
 
    procedure Set_State (List : in Item_Ptr; State : in Unknown_State_Index);
@@ -94,7 +92,7 @@ package WisiToken.LR.LR1_Items is
    type Goto_Item is private;
    type Goto_Item_Ptr is access Goto_Item;
 
-   function Prod_Index (List : in Goto_Item_Ptr) return Natural;
+   function Prod_ID (List : in Goto_Item_Ptr) return Production_ID;
    function Symbol (List : in Goto_Item_Ptr) return Token_ID;
    function State (List : in Goto_Item_Ptr) return Unknown_State_Index;
    function Next (List : in Goto_Item_Ptr) return Goto_Item_Ptr;
@@ -124,12 +122,21 @@ package WisiToken.LR.LR1_Items is
 
    function Filter
      (Set        : in     Item_Set;
+      Grammar    : in WisiToken.Productions.Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor'Class;
-      Include    : access function (Descriptor : in WisiToken.Descriptor'Class; Item : in Item_Ptr) return Boolean)
+      Include    : access function
+        (Grammar    : in WisiToken.Productions.Arrays.Vector;
+         Descriptor : in WisiToken.Descriptor'Class;
+         Item       : in Item_Ptr)
+        return Boolean)
      return Item_Set;
    --  Return a deep copy of Set, including only items for which Include returns True.
 
-   function In_Kernel (Descriptor : in WisiToken.Descriptor'Class; Item : in Item_Ptr) return Boolean;
+   function In_Kernel
+     (Grammar    : in WisiToken.Productions.Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class;
+      Item       : in Item_Ptr)
+     return Boolean;
    --  For use with Filter; [dragon] sec 4.7 pg 240
 
    type Item_Set_List is record
@@ -146,7 +153,7 @@ package WisiToken.LR.LR1_Items is
    --  Add New_Item to Target without checking to see if it is in there already.
 
    function Find
-     (Prod             : in     WisiToken.Production.Instance;
+     (Prod             : in     Production_ID;
       Dot              : in     Token_ID_Lists.Cursor;
       Right            : in     Item_Set;
       Lookaheads       : access Lookahead := null;
@@ -182,14 +189,14 @@ package WisiToken.LR.LR1_Items is
    --  Symbol; null if not found.
 
    function Has_Empty_Production
-     (Grammar    : in WisiToken.Production.List.Instance;
+     (Grammar    : in WisiToken.Productions.Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
      return Token_ID_Set;
    --  Result (ID) is True if any production for ID can be an empty
    --  production, recursively.
 
    function First
-     (Grammar              : in WisiToken.Production.List.Instance;
+     (Grammar              : in WisiToken.Productions.Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor'Class;
       Has_Empty_Production : in Token_ID_Set;
       Trace                : in Boolean)
@@ -200,7 +207,7 @@ package WisiToken.LR.LR1_Items is
    --  algorithm FIRST from [dragon], augmented with nonterminals.
 
    function Follow
-     (Grammar              : in WisiToken.Production.List.Instance;
+     (Grammar              : in WisiToken.Productions.Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor'Class;
       First                : in Token_Array_Token_Set;
       Has_Empty_Production : in Token_ID_Set)
@@ -213,7 +220,7 @@ package WisiToken.LR.LR1_Items is
      (Set                  : in Item_Set;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Production.List.Instance;
+      Grammar              : in WisiToken.Productions.Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor'Class;
       Trace                : in Boolean)
      return Item_Set;
@@ -225,13 +232,15 @@ package WisiToken.LR.LR1_Items is
    function Productions (Set : in Item_Set) return Production_ID_Arrays.Vector;
 
    procedure Put
-     (Descriptor      : in WisiToken.Descriptor'Class;
+     (Grammar         : in WisiToken.Productions.Arrays.Vector;
+      Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Ptr;
       Show_Lookaheads : in Boolean := True);
    --  Ignores Item.Next.
 
    procedure Put
-     (Descriptor      : in WisiToken.Descriptor'Class;
+     (Grammar         : in WisiToken.Productions.Arrays.Vector;
+      Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set;
       Show_Lookaheads : in Boolean := True;
       Kernel_Only     : in Boolean := False;
@@ -242,11 +251,13 @@ package WisiToken.LR.LR1_Items is
      (Descriptor : in WisiToken.Descriptor'Class;
       Item       : in Goto_Item_Ptr);
    procedure Put
-     (Descriptor      : in WisiToken.Descriptor'Class;
+     (Grammar         : in WisiToken.Productions.Arrays.Vector;
+      Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set_Ptr;
       Show_Lookaheads : in Boolean := True);
    procedure Put
-     (Descriptor      : in WisiToken.Descriptor'Class;
+     (Grammar         : in WisiToken.Productions.Arrays.Vector;
+      Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set_List;
       Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
@@ -267,11 +278,10 @@ private
    --  Private to force use of Add
 
    type Item_Node is record
-      --  Production.Instance, and Token_ID_Lists.List, are _not_
-      --  Controlled; the values stored here are shallow copies of the root
-      --  list pointers orignally stored in the Grammar structure; Dot
-      --  points into that token list.
-      Prod       : WisiToken.Production.Instance;
+      --  Token_ID_Lists.List is _not_ Controlled; the value stored here is
+      --  a shallow copy of the root list pointers orignally stored in the
+      --  Grammar structure; Dot points into that token list.
+      Prod       : Production_ID;
       Dot        : Token_ID_Lists.Cursor; -- token after item Dot
       State      : Unknown_State_Index;
       Lookaheads : access Lookahead;

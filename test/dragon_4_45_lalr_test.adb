@@ -29,9 +29,10 @@ with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 with WisiToken_AUnit; use WisiToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
@@ -63,13 +64,9 @@ package body Dragon_4_45_LALR_Test is
    First_State_Index  : constant := 0;
    First_Parser_Label : constant := 1;
 
-   --  Allow infix operators for building productions
-   use all type WisiToken.Production.Right_Hand_Side;
-   use all type WisiToken.Production.List.Instance;
-
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Productions.Arrays.Vector :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
      Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
@@ -178,10 +175,10 @@ package body Dragon_4_45_LALR_Test is
 
       if WisiToken.Trace_Generate > WisiToken.Detail then
          Ada.Text_IO.Put_Line ("computed:");
-         Put (LALR_Descriptor, Computed);
+         Put (Grammar, LALR_Descriptor, Computed);
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("expected:");
-         Put (LALR_Descriptor, Expected);
+         Put (Grammar, LALR_Descriptor, Expected);
       end if;
       Check ("", Computed, Expected);
    end Test_LALR_Kernels;

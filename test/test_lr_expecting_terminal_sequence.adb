@@ -28,8 +28,9 @@ with WisiToken.LR.Generator_Utils;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 with WisiToken.Text_IO_Trace;
 package body Test_LR_Expecting_Terminal_Sequence is
 
@@ -78,12 +79,9 @@ package body Test_LR_Expecting_Terminal_Sequence is
    First_State_Index  : constant := 1;
    First_Parser_Label : constant := 1;
 
-   use type WisiToken.Production.List.Instance;   --  "and"
-   use type WisiToken.Production.Right_Hand_Side; --  "+"
-
    package Set_Statement is
 
-      Grammar : constant WisiToken.Production.List.Instance :=
+      Grammar : constant WisiToken.Productions.Arrays.Vector :=
         --  set symbol = value
         +(Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Syntax_Trees.Null_Action);
 
@@ -91,7 +89,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
 
    package Verify_Statement is
 
-      Grammar : constant WisiToken.Production.List.Instance :=
+      Grammar : constant WisiToken.Productions.Arrays.Vector :=
         --  verify symbol = value +- tolerance
         +(Statement_ID  <= Verify_ID & Identifier_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID +
             WisiToken.Syntax_Trees.Null_Action);
@@ -112,7 +110,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
        EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Grammar : constant WisiToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Productions.Arrays.Vector :=
      +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action) and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;

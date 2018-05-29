@@ -363,7 +363,8 @@ package body WisiToken.LR.McKenzie_Recover is
                         if Trace_McKenzie > Outline then
                            Trace.Put_Line
                              ("spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
-                                Int_Image (Cur.Label) & " (" & Int_Image (Integer (Parsers.Count)) & " active)");
+                                Trimmed_Image (Cur.Label) & " (" & Trimmed_Image (Integer (Parsers.Count)) &
+                                " active)");
                            Put ("", Trace, Parsers.First.Label, Shared_Parser.Terminals,
                                 Data.Results.Peek, Task_ID => False);
                         end if;

@@ -125,7 +125,7 @@ package WisiToken.Syntax_Trees is
      (Tree            : in out Syntax_Trees.Tree;
       Nonterm         : in     WisiToken.Token_ID;
       Action          : in     Semantic_Action;
-      Production      : in     Natural;
+      Production      : in     Production_ID;
       Name_Index      : in     Natural;
       Children        : in     Valid_Node_Index_Array;
       Default_Virtual : in     Boolean)
@@ -339,7 +339,7 @@ private
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
          --  set. Used by Semantic_Check actions.
 
-         Production : Natural := 0;
+         Production : Production_ID := Production_ID'Last;
          --  Index into Parse_Table.Productions.
 
          Name_Index : Natural := 0;

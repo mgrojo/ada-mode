@@ -27,9 +27,10 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
-with WisiToken.Production;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 with WisiToken_AUnit;
 package body Grune_9_30 is
 
@@ -61,12 +62,9 @@ package body Grune_9_30 is
    First_State_Index  : constant := 1;
    First_Parser_Label : constant := 1;
 
-   use all type WisiToken.Production.Right_Hand_Side;
-   use all type WisiToken.Production.List.Instance;
-
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Productions.Arrays.Vector :=
      Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
      and
      Upper_A_ID <= Lower_A_ID + Null_Action                           -- 2
@@ -132,9 +130,9 @@ package body Grune_9_30 is
 
       if WisiToken.Trace_Generate > 0 then
          Put_Line ("computed:");
-         Put (LR1_Descriptor, Computed);
+         Put (Grammar, LR1_Descriptor, Computed);
          Put_Line ("expected:");
-         Put (LR1_Descriptor, Expected);
+         Put (Grammar, LR1_Descriptor, Expected);
       end if;
 
       Check ("", Computed, Expected);

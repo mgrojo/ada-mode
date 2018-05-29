@@ -21,7 +21,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with WisiToken.LR.LR1_Items;
-with WisiToken.Production;
+with WisiToken.Productions;
 package WisiToken.LR.Generator_Utils is
 
    Error : Boolean := False;
@@ -56,6 +56,7 @@ package WisiToken.LR.Generator_Utils is
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
+      Grammar              : in     WisiToken.Productions.Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -68,6 +69,7 @@ package WisiToken.LR.Generator_Utils is
    procedure Add_Actions
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
+      Grammar              : in     WisiToken.Productions.Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -79,6 +81,7 @@ package WisiToken.LR.Generator_Utils is
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
+      Grammar              : in     WisiToken.Productions.Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -103,8 +106,9 @@ package WisiToken.LR.Generator_Utils is
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;
+      Grammar              : in WisiToken.Productions.Arrays.Vector;
       Has_Empty_Production : in Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First                : in Token_Array_Token_Set;
       Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID;
    --  Return the LHS of a production in kernel of Closure, for an Action
@@ -122,7 +126,7 @@ package WisiToken.LR.Generator_Utils is
       Descriptor : in WisiToken.Descriptor'Class);
 
    procedure Compute_Minimal_Terminal_Sequences
-     (Grammar    : in     WisiToken.Production.List.Instance;
+     (Grammar    : in     WisiToken.Productions.Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector);
 

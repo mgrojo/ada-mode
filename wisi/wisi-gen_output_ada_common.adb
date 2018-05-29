@@ -761,7 +761,7 @@ package body Wisi.Gen_Output_Ada_Common is
          end if;
          Indent_Line ("   User_Data,");
          Indent_Line ("   Max_Parallel         => 15,");
-         Indent_Line ("   First_Parser_Label   => " & WisiToken.Int_Image (First_Parser_Label) & ",");
+         Indent_Line ("   First_Parser_Label   => " & WisiToken.Trimmed_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");
 
       when Module =>
@@ -839,72 +839,82 @@ package body Wisi.Gen_Output_Ada_Common is
       end if;
       New_Line;
 
-      Indent_Line ("Table.Productions.Set_Length (" & WisiToken.Int_Image (Integer (Data.Grammar.Length)) & ");");
+      if Params.Error_Recover then
+         Indent_Line ("Table.Productions.Set_Length (" & WisiToken.Trimmed_Image (Data.Grammar.Length) & ");");
 
-      for P of Data.Grammar loop
-         Indent_Start
-           ("Set_Production (Table.Productions (" & WisiToken.Int_Image (P.Index) & "), " &
-              WisiToken.Int_Image (P.LHS) & ", (");
-         declare
-            use WisiToken.Token_ID_Lists;
-            Token_I : Cursor := P.RHS.Tokens.First;
-         begin
-            if P.RHS.Tokens.Length = 0 then
-               Put ("1 .. 0 => <>");
-            elsif P.RHS.Tokens.Length = 1 then
-               Put ("1 => " & Int_Image (Element (Token_I)));
-            else
-               loop
-                  exit when not Has_Element (Token_I);
-                  Put (Int_Image (Element (Token_I)));
-                  Next (Token_I);
-                  if Has_Element (Token_I) then
-                     Put (", ");
+         for I in Data.Grammar.First_Index .. Data.Grammar.Last_Index loop
+            declare
+               P : WisiToken.Productions.Instance renames Data.Grammar (I);
+            begin
+               Indent_Start
+                 ("Set_Production (Table.Productions (" & WisiToken.Trimmed_Image (I) & "), " &
+                    WisiToken.Trimmed_Image (P.LHS) & ", (");
+               declare
+                  use WisiToken.Token_ID_Lists;
+                  Token_I : Cursor := P.RHS.Tokens.First;
+               begin
+                  if P.RHS.Tokens.Length = 0 then
+                     Put ("1 .. 0 => <>");
+                  elsif P.RHS.Tokens.Length = 1 then
+                     Put ("1 => " & Trimmed_Image (Element (Token_I)));
+                  else
+                     loop
+                        exit when not Has_Element (Token_I);
+                        Put (Trimmed_Image (Element (Token_I)));
+                        Next (Token_I);
+                        if Has_Element (Token_I) then
+                           Put (", ");
+                        end if;
+                     end loop;
                   end if;
-               end loop;
-            end if;
-         end;
-         Put_Line ("));");
-      end loop;
-      New_Line;
+               end;
+               Put_Line ("));");
+            end;
+         end loop;
+         New_Line;
 
-      Indent_Line
-        ("Table.Minimal_Terminal_Sequences.Set_First (" & WisiToken.Int_Image
-           (Integer (Table.Minimal_Terminal_Sequences.First_Index)) & ");");
+         Indent_Line
+           ("Table.Minimal_Terminal_Sequences.Set_First (" & WisiToken.Trimmed_Image
+              (Table.Minimal_Terminal_Sequences.First_Index) & ");");
 
-      Indent_Line
-        ("Table.Minimal_Terminal_Sequences.Set_Last (" & WisiToken.Int_Image
-           (Integer (Table.Minimal_Terminal_Sequences.Last_Index)) & ");");
+         Indent_Line
+           ("Table.Minimal_Terminal_Sequences.Set_Last (" & WisiToken.Trimmed_Image
+              (Table.Minimal_Terminal_Sequences.Last_Index) & ");");
 
-      for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
-         Indent_Start ("Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & WisiToken.Int_Image (I) & "), (");
+         for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
+            Indent_Start
+              ("Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & WisiToken.Trimmed_Image (I) & "), (");
 
-         declare
-            S : WisiToken.Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
-         begin
-            if S.Length = 0 then
-               Put ("1 .. 0 => <>");
-            elsif S.Length = 1 then
-               Put ("1 =>" & WisiToken.Token_ID'Image (S (S.First_Index)));
-            else
-               for J in S.First_Index .. S.Last_Index loop
-                  Put (Int_Image (S (J)));
-                  if J /= S.Last_Index then
-                     Put (", ");
-                  end if;
-               end loop;
-            end if;
-         end;
-         Put_Line ("));");
-      end loop;
-      New_Line;
+            declare
+               S : WisiToken.Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
+            begin
+               if S.Length = 0 then
+                  Put ("1 .. 0 => <>");
+               elsif S.Length = 1 then
+                  Put ("1 =>" & WisiToken.Token_ID'Image (S (S.First_Index)));
+               else
+                  for J in S.First_Index .. S.Last_Index loop
+                     Put (Trimmed_Image (S (J)));
+                     if J /= S.Last_Index then
+                        Put (", ");
+                     end if;
+                  end loop;
+               end if;
+            end;
+            Put_Line ("));");
+         end loop;
+         New_Line;
+      end if;
 
       Data.Table_Entry_Count := 0;
 
       for State_Index in Table.States'Range loop
-         Indent_Line
-           ("Table.States (" & WisiToken.Image (State_Index) & ").Productions := WisiToken.LR.To_Vector (" &
-              WisiToken.LR.Image (Table.States (State_Index).Productions, Strict => True) & ");");
+
+         if Params.Error_Recover then
+            Indent_Line
+              ("Table.States (" & WisiToken.Image (State_Index) & ").Productions := WisiToken.To_Vector (" &
+                 WisiToken.Image (Table.States (State_Index).Productions, Strict => True) & ");");
+         end if;
 
          Actions :
          declare
@@ -942,21 +952,21 @@ package body Wisi.Gen_Output_Ada_Common is
                   case Action_Node.Item.Verb is
                   when Shift =>
                      Line := +"Add_Action (Table.States (" & WisiToken.Image (State_Index) & "), " &
-                       WisiToken.LR.Image (Action_Node.Item.Productions, Strict => True) & ", " &
-                       WisiToken.Int_Image (Node.Symbol);
+                       WisiToken.Image (Action_Node.Item.Productions, Strict => True) & ", " &
+                       WisiToken.Trimmed_Image (Node.Symbol);
                      Append (", ");
                      Append (WisiToken.Image (Action_Node.Item.State));
 
                   when Reduce | Accept_It =>
                      Line := +"Add_Action (Table.States (" & WisiToken.Image (State_Index) & "), " &
-                       WisiToken.Int_Image (Node.Symbol);
+                       WisiToken.Trimmed_Image (Node.Symbol);
                      if Action_Node.Item.Verb = Reduce then
                         Append (", Reduce");
                      else
                         Append (", Accept_It");
                      end if;
                      Append (",");
-                     Append (Integer'Image (Action_Node.Item.Productions (1)) & ",");
+                     Append (WisiToken.Production_ID'Image (Action_Node.Item.Productions (1)) & ",");
                      Append (WisiToken.Token_ID'Image (Action_Node.Item.LHS) & ",");
                      Append (Count_Type'Image (Action_Node.Item.Token_Count) & ",");
                      Append (Integer'Image (Action_Node.Item.Name_Index) & ", ");
@@ -981,7 +991,7 @@ package body Wisi.Gen_Output_Ada_Common is
                      case Action_Node.Item.Verb is
                      when Reduce | Accept_It =>
                         Append (",");
-                        Append (Integer'Image (Action_Node.Item.Productions (1)) & ",");
+                        Append (WisiToken.Production_ID'Image (Action_Node.Item.Productions (1)) & ",");
                         Append (WisiToken.Token_ID'Image (Action_Node.Item.LHS) & ",");
                         Append (Count_Type'Image (Action_Node.Item.Token_Count) & ",");
                         Append (Integer'Image (Action_Node.Item.Name_Index) & ", ");
@@ -1018,8 +1028,8 @@ package body Wisi.Gen_Output_Ada_Common is
                exit when Node = null;
                Set_Col (Indent);
                Put ("Add_Goto (Table.States (" & WisiToken.Image (State_Index) & "),");
-               Put (Integer'Image (WisiToken.LR.Prod_ID (Node)) & ", ");
-               Put_Line (WisiToken.Int_Image (Symbol (Node)) & ", " & WisiToken.Image (State (Node)) & ");");
+               Put (WisiToken.Production_ID'Image (WisiToken.LR.Prod_ID (Node)) & ", ");
+               Put_Line (WisiToken.Trimmed_Image (Symbol (Node)) & ", " & WisiToken.Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;
          end Gotos;
