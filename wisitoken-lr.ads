@@ -69,7 +69,10 @@ package WisiToken.LR is
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       Productions : Production_ID_Arrays.Vector;
-      --  Index into Parse_Table.Productions, for McKenzie_Recover.
+      --  Index into Parse_Table.Productions, for McKenzie_Recover. The same
+      --  Shift action may occur in several productions in one state (ie
+      --  push the first token in a statement that has several variants).
+      --  Only one production occurs for Reduce.
 
       case Verb is
       when Shift =>
