@@ -371,7 +371,8 @@ package body WisiToken.LR.Generator_Utils is
    begin
       case Action.Verb is
       when Reduce | Accept_It =>
-         --  Check for prefered name first
+         --  If the nonterm produced by the reduce is the LHS of the state
+         --  production, use it.
          loop
             Item := Current.Set;
             loop
@@ -387,6 +388,8 @@ package body WisiToken.LR.Generator_Utils is
             Current := Current.Next.all;
          end loop;
 
+         --  The reduce nonterm is after Dot in a state production; find which
+         --  one, use that.
          Current := Closure;
          loop
             Item := Current.Set;
@@ -429,6 +432,26 @@ package body WisiToken.LR.Generator_Utils is
             Item := Current.Set;
             loop
                exit when Item = null;
+               if In_Kernel (Grammar, Descriptor, Item) and then
+                 Prod_ID (Item) = Action.Productions (1)
+               then
+                  --  The action production is one of the state productions, use that
+                  --  LHS.
+                  return Grammar (Prod_ID (Item)).LHS;
+               end if;
+               Item := Next (Item);
+            end loop;
+            exit when Current.Next = null;
+            Current := Current.Next.all;
+         end loop;
+
+         Current := Closure;
+         loop
+            Item := Current.Set;
+            loop
+               exit when Item = null;
+               --  Lookahead (the token shifted) is starting a nonterm in a state
+               --  production; it is in First of that nonterm.
                if In_Kernel (Grammar, Descriptor, Item) then
                   ID_I := Dot (Item);
                   loop
