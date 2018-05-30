@@ -116,6 +116,15 @@ file."
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-check-limit)
 
+(defcustom wisi-mckenzie-enqueue-limit nil
+  "If integer, sets McKenzie recover algorithm limit.
+Higher value has more recover power, but will be slower to fail.
+If nil, uses value from grammar file."
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
+(make-variable-buffer-local 'wisi-mckenzie-enqueue-limit)
+
 (defvar wisi-parse-max-parallel 15
   "Maximum number of parallel parsers for acceptable performance.
 If a file needs more than this, it's probably an indication that

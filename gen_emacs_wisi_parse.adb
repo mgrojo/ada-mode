@@ -54,7 +54,8 @@ is
       New_Line;
       Put_Line
       ("NNNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_disable> <mckenzie_cost_limit>" &
-       " <mckenzie_check_limit> <source_byte_count> <language-specific params> <source bytes>");
+           " <mckenzie_check_limit> <mckenzie_enqueue_limit> <source_byte_count> <language-specific params>" &
+           " <source bytes>");
       Put_Line ("  NNN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
@@ -221,6 +222,7 @@ begin
                McKenzie_Disable : constant Integer          := Get_Integer (Command_Line, Last);
                Cost_Limit       : constant Integer          := Get_Integer (Command_Line, Last);
                Check_Limit      : constant Integer          := Get_Integer (Command_Line, Last);
+               Enqueue_Limit    : constant Integer          := Get_Integer (Command_Line, Last);
                Byte_Count       : constant Integer          := Get_Integer (Command_Line, Last);
                Buffer           : Ada.Strings.Unbounded.String_Access;
 
@@ -259,6 +261,9 @@ begin
                end if;
                if Check_Limit > 0 then
                   Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Check_Limit);
+               end if;
+               if Enqueue_Limit > 0 then
+                  Parser.Table.McKenzie_Param.Enqueue_Limit := Enqueue_Limit;
                end if;
 
                Buffer := new String (1 .. Byte_Count);
