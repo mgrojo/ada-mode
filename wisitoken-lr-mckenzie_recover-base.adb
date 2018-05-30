@@ -28,7 +28,8 @@ package body WisiToken.LR.McKenzie_Recover.Base is
       Active_Workers          : in              Parser_Natural_Array;
       Cost_Limit              : in              Natural;
       Min_Success_Check_Count : in              Natural;
-      Check_Delta_Limit       : in              Natural)
+      Check_Delta_Limit       : in              Natural;
+      Enqueue_Limit           : in              Natural)
      return Boolean
    is
       use all type SAL.Base_Peek_Type;
@@ -41,6 +42,10 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          when Active =>
             if Parser_States (I).Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
                --  fail; another parser succeeded, this one taking too long.
+               Done_Count := Done_Count + 1;
+
+            elsif Parser_States (I).Recover.Enqueue_Count >= Enqueue_Limit then
+               --  fail
                Done_Count := Done_Count + 1;
 
             elsif Parser_States (I).Recover.Config_Heap.Count > 0 then
@@ -62,6 +67,9 @@ package body WisiToken.LR.McKenzie_Recover.Base is
             end if;
 
          when Ready =>
+            --  We don't check Enqueue_Limit here; there will only be a few more
+            --  to find all the same-cost solutions.
+
             if Parser_States (I).Recover.Config_Heap.Count > 0 and then
               Parser_States (I).Recover.Config_Heap.Min_Key <= Parser_States (I).Recover.Results.Min_Key
             then
@@ -131,7 +139,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
         when (Fatal_Called or All_Parsers_Done) or else
           Get_Barrier
             (Parsers, Parser_Status, Parser_States, Active_Workers, Cost_Limit, Min_Success_Check_Count,
-             Check_Delta_Limit)
+             Check_Delta_Limit, Enqueue_Limit)
       is
          use all type SAL.Base_Peek_Type;
          Done_Count     : SAL.Base_Peek_Type := 0;
@@ -169,8 +177,16 @@ package body WisiToken.LR.McKenzie_Recover.Base is
                if Parser_States (I).Recover.Config_Heap.Count > 0 then
                   if Parser_States (I).Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
                      if Trace_McKenzie > Detail then
-                        Put_Line (Trace.all, Parser_Labels (I), "fail; too slow (limit" &
+                        Put_Line (Trace.all, Parser_Labels (I), "fail; check delta (limit" &
                                     Integer'Image (Min_Success_Check_Count + Check_Delta_Limit) & ")");
+                     end if;
+                     Parser_Status (I) := Fail;
+                     Done_Count        := Done_Count + 1;
+
+                  elsif Parser_States (I).Recover.Enqueue_Count >= Enqueue_Limit then
+                     if Trace_McKenzie > Detail then
+                        Put_Line (Trace.all, Parser_Labels (I), "fail; enqueue limit (" &
+                                    Integer'Image (Enqueue_Limit) & ")");
                      end if;
                      Parser_Status (I) := Fail;
                      Done_Count        := Done_Count + 1;

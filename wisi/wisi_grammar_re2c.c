@@ -638,21 +638,22 @@ yy19:
 	case '6':
 	case '7':
 	case '8':
-	case '9':	goto yy19;
+	case '9':
+	case '_':	goto yy19;
 	default:	goto yy21;
 	}
 yy21:
 	YYDEBUG(21, YYPEEK ());
 #line 204 "../wisi/wisi_grammar.re2c"
 	{*id =  21; continue;}
-#line 649 "../wisi/wisi_grammar_re2c.c"
+#line 650 "../wisi/wisi_grammar_re2c.c"
 yy22:
 	YYDEBUG(22, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(23, YYPEEK ());
 #line 195 "../wisi/wisi_grammar.re2c"
 	{*id =  12; continue;}
-#line 656 "../wisi/wisi_grammar_re2c.c"
+#line 657 "../wisi/wisi_grammar_re2c.c"
 yy24:
 	YYDEBUG(24, YYPEEK ());
 	YYSKIP ();
@@ -665,28 +666,28 @@ yy25:
 	YYDEBUG(25, YYPEEK ());
 #line 202 "../wisi/wisi_grammar.re2c"
 	{*id =  19; continue;}
-#line 669 "../wisi/wisi_grammar_re2c.c"
+#line 670 "../wisi/wisi_grammar_re2c.c"
 yy26:
 	YYDEBUG(26, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(27, YYPEEK ());
 #line 199 "../wisi/wisi_grammar.re2c"
 	{*id =  16; continue;}
-#line 676 "../wisi/wisi_grammar_re2c.c"
+#line 677 "../wisi/wisi_grammar_re2c.c"
 yy28:
 	YYDEBUG(28, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(29, YYPEEK ());
 #line 197 "../wisi/wisi_grammar.re2c"
 	{*id =  14; continue;}
-#line 683 "../wisi/wisi_grammar_re2c.c"
+#line 684 "../wisi/wisi_grammar_re2c.c"
 yy30:
 	YYDEBUG(30, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(31, YYPEEK ());
 #line 198 "../wisi/wisi_grammar.re2c"
 	{*id =  15; continue;}
-#line 690 "../wisi/wisi_grammar_re2c.c"
+#line 691 "../wisi/wisi_grammar_re2c.c"
 yy32:
 	YYDEBUG(32, YYPEEK ());
 	YYSKIP ();
@@ -764,7 +765,7 @@ yy34:
 	YYDEBUG(34, YYPEEK ());
 #line 205 "../wisi/wisi_grammar.re2c"
 	{*id =  22; continue;}
-#line 768 "../wisi/wisi_grammar_re2c.c"
+#line 769 "../wisi/wisi_grammar_re2c.c"
 yy35:
 	YYDEBUG(35, YYPEEK ());
 	YYSKIP ();
@@ -811,7 +812,7 @@ yy40:
 	YYDEBUG(41, YYPEEK ());
 #line 194 "../wisi/wisi_grammar.re2c"
 	{*id =  11; continue;}
-#line 815 "../wisi/wisi_grammar_re2c.c"
+#line 816 "../wisi/wisi_grammar_re2c.c"
 yy42:
 	YYDEBUG(42, YYPEEK ());
 	YYSKIP ();
@@ -991,7 +992,7 @@ yy46:
 	YYDEBUG(46, YYPEEK ());
 #line 206 "../wisi/wisi_grammar.re2c"
 	{*id =  23; continue;}
-#line 995 "../wisi/wisi_grammar_re2c.c"
+#line 996 "../wisi/wisi_grammar_re2c.c"
 yy47:
 	YYDEBUG(47, YYPEEK ());
 	YYSKIP ();
@@ -1328,28 +1329,28 @@ yy53:
 	YYDEBUG(54, YYPEEK ());
 #line 201 "../wisi/wisi_grammar.re2c"
 	{*id =  18; continue;}
-#line 1332 "../wisi/wisi_grammar_re2c.c"
+#line 1333 "../wisi/wisi_grammar_re2c.c"
 yy55:
 	YYDEBUG(55, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(56, YYPEEK ());
 #line 193 "../wisi/wisi_grammar.re2c"
 	{*id =  10; skip_to(lexer, ")%"); continue;}
-#line 1339 "../wisi/wisi_grammar_re2c.c"
+#line 1340 "../wisi/wisi_grammar_re2c.c"
 yy57:
 	YYDEBUG(57, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(58, YYPEEK ());
 #line 192 "../wisi/wisi_grammar.re2c"
 	{*id =  9; skip_to(lexer, "]%"); continue;}
-#line 1346 "../wisi/wisi_grammar_re2c.c"
+#line 1347 "../wisi/wisi_grammar_re2c.c"
 yy59:
 	YYDEBUG(59, YYPEEK ());
 	YYSKIP ();
 	YYDEBUG(60, YYPEEK ());
 #line 191 "../wisi/wisi_grammar.re2c"
 	{*id =  8; skip_to(lexer, "%}"); continue;}
-#line 1353 "../wisi/wisi_grammar_re2c.c"
+#line 1354 "../wisi/wisi_grammar_re2c.c"
 yy61:
 	YYDEBUG(61, YYPEEK ());
 	YYSKIP ();
@@ -1520,7 +1521,7 @@ yy64:
 	YYDEBUG(64, YYPEEK ());
 #line 207 "../wisi/wisi_grammar.re2c"
 	{*id =  24; continue;}
-#line 1524 "../wisi/wisi_grammar_re2c.c"
+#line 1525 "../wisi/wisi_grammar_re2c.c"
 yy65:
 	YYDEBUG(65, YYPEEK ());
 	YYSKIP ();
@@ -2042,7 +2043,7 @@ yy73:
 	YYDEBUG(73, YYPEEK ());
 #line 185 "../wisi/wisi_grammar.re2c"
 	{*id =  2; continue;}
-#line 2046 "../wisi/wisi_grammar_re2c.c"
+#line 2047 "../wisi/wisi_grammar_re2c.c"
 yy74:
 	YYDEBUG(74, YYPEEK ());
 	YYSKIP ();
@@ -2126,7 +2127,7 @@ yy76:
 	YYDEBUG(76, YYPEEK ());
 #line 187 "../wisi/wisi_grammar.re2c"
 	{*id =  4; continue;}
-#line 2130 "../wisi/wisi_grammar_re2c.c"
+#line 2131 "../wisi/wisi_grammar_re2c.c"
 yy77:
 	YYDEBUG(77, YYPEEK ());
 	YYSKIP ();
@@ -2556,7 +2557,7 @@ yy87:
 	YYDEBUG(87, YYPEEK ());
 #line 186 "../wisi/wisi_grammar.re2c"
 	{*id =  3; continue;}
-#line 2560 "../wisi/wisi_grammar_re2c.c"
+#line 2561 "../wisi/wisi_grammar_re2c.c"
 yy88:
 	YYDEBUG(88, YYPEEK ());
 	YYSKIP ();
@@ -2696,7 +2697,7 @@ yy97:
 	YYDEBUG(97, YYPEEK ());
 #line 190 "../wisi/wisi_grammar.re2c"
 	{*id =  7; continue;}
-#line 2700 "../wisi/wisi_grammar_re2c.c"
+#line 2701 "../wisi/wisi_grammar_re2c.c"
 yy98:
 	YYDEBUG(98, YYPEEK ());
 	YYSKIP ();
@@ -2788,7 +2789,7 @@ yy101:
 	YYDEBUG(101, YYPEEK ());
 #line 188 "../wisi/wisi_grammar.re2c"
 	{*id =  5; continue;}
-#line 2792 "../wisi/wisi_grammar_re2c.c"
+#line 2793 "../wisi/wisi_grammar_re2c.c"
 yy102:
 	YYDEBUG(102, YYPEEK ());
 	YYSKIP ();
@@ -2896,7 +2897,7 @@ yy107:
 	YYDEBUG(107, YYPEEK ());
 #line 189 "../wisi/wisi_grammar.re2c"
 	{*id =  6; continue;}
-#line 2900 "../wisi/wisi_grammar_re2c.c"
+#line 2901 "../wisi/wisi_grammar_re2c.c"
 }
 #line 211 "../wisi/wisi_grammar.re2c"
 

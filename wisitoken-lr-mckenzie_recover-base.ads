@@ -79,6 +79,7 @@ private package WisiToken.LR.McKenzie_Recover.Base is
      (Trace             : not null access WisiToken.Trace'Class;
       Cost_Limit        : Natural;
       Check_Delta_Limit : Natural;
+      Enqueue_Limit     : Natural;
       Parser_Count      : SAL.Peek_Type)
    is
       --  There is only one object of this type, declared in Recover.

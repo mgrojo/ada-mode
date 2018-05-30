@@ -330,7 +330,8 @@ package body WisiToken.LR.LR1_Generator is
             Task_Count        => Default_McKenzie_Param.Task_Count,
             Cost_Limit        => Default_McKenzie_Param.Cost_Limit,
             Check_Limit       => Default_McKenzie_Param.Check_Limit,
-            Check_Delta_Limit => Default_McKenzie_Param.Check_Delta_Limit);
+            Check_Delta_Limit => Default_McKenzie_Param.Check_Delta_Limit,
+            Enqueue_Limit     => Default_McKenzie_Param.Enqueue_Limit);
       else
          Table.McKenzie_Param := McKenzie_Param;
       end if;

@@ -249,6 +249,7 @@ package body WisiToken.LR.McKenzie_Recover is
         (Trace'Access,
          Cost_Limit        => Shared_Parser.Table.McKenzie_Param.Cost_Limit,
          Check_Delta_Limit => Shared_Parser.Table.McKenzie_Param.Check_Delta_Limit,
+         Enqueue_Limit     => Shared_Parser.Table.McKenzie_Param.Enqueue_Limit,
          Parser_Count      => Parsers.Count);
 
       Shared : aliased Base.Shared

@@ -133,7 +133,8 @@ package body Wisi_Grammar is
          Task_Count  => 0,
          Cost_Limit  => 2147483647,
          Check_Limit => 2147483647,
-         Check_Delta_Limit => 2147483647);
+         Check_Delta_Limit => 2147483647,
+         Enqueue_Limit => 2147483647);
 
 
       Add_Action (Table.States (0), (1 => 32), 8, 1);

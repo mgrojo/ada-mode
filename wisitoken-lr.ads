@@ -242,6 +242,7 @@ package WisiToken.LR is
       Cost_Limit        : Natural;     -- max cost of configurations to look at
       Check_Limit       : Token_Index; -- max tokens to parse ahead when checking a configuration.
       Check_Delta_Limit : Natural;     -- max configs checked, delta over successful parser.
+      Enqueue_Limit     : Natural;     -- max configs enqueued.
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
@@ -255,7 +256,8 @@ package WisiToken.LR is
       Task_Count        => System.Multiprocessors.CPU_Range'Last,
       Cost_Limit        => Natural'Last,
       Check_Limit       => Token_Index'Last,
-      Check_Delta_Limit => Natural'Last);
+      Check_Delta_Limit => Natural'Last,
+      Enqueue_Limit     => Natural'Last);
 
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class);
    --  Put Item to Ada.Text_IO.Current_Output

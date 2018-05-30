@@ -249,7 +249,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
          Enqueue_Low             => 43,
-         Enqueue_High            => 118,
+         Enqueue_High            => 123,
          Check_Low               => 14,
          Check_High              => 29,
          Cost                    => 1);
@@ -1582,6 +1582,40 @@ package body Test_McKenzie_Recover is
          Cost                    => 1);
    end String_Quote_4;
 
+   procedure Enqueue_Limit (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test fail on Enqueue_Limit. Same input as Loop_Bounds above.
+      --
+      --  When Enqueue_Limit is hit, worker tasks stop dequeing configs, but
+      --  any active workers will finish enqueuing new ones. There are six
+      --  active workers, they typically enqueue about 10 configs per cycle.
+
+      Parser.Table.McKenzie_Param.Enqueue_Limit := 100;
+
+      begin
+         Parse_Text
+           ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;",
+            Expect_Exception => True);
+         AUnit.Assertions.Assert (False, "did not get Syntax_Error");
+      exception
+      when WisiToken.Syntax_Error =>
+         null;
+      end;
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +IDENTIFIER_ID,
+         Error_Token_Byte_Region => (35, 36),
+         Ops_Race_Condition      => True,
+         Enqueue_Low             => 100,
+         Enqueue_High            => 160,
+         Check_Low               => 15,
+         Check_High              => 25,
+         Cost                    => 0);
+   end Enqueue_Limit;
+
    ----------
    --  Public subprograms
 
@@ -1626,6 +1660,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, String_Quote_2'Access, "String_Quote_2");
       Register_Routine (T, String_Quote_3'Access, "String_Quote_3");
       Register_Routine (T, String_Quote_4'Access, "String_Quote_4");
+      Register_Routine (T, Enqueue_Limit'Access, "Enqueue_Limit");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

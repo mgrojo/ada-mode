@@ -153,6 +153,7 @@ package Wisi is
       Cost_Limit                 : Natural               := Integer'Last;
       Check_Limit                : WisiToken.Token_Index := WisiToken.Token_Index'Last;
       Check_Delta_Limit          : Natural               := Integer'Last;
+      Enqueue_Limit              : Natural               := Integer'Last;
    end record;
 
    type Token_Kind_Type is record

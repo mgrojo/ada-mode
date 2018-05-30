@@ -632,7 +632,8 @@ package body Wisi.Gen_Generate_Utils is
          Task_Count        => 0,
          Cost_Limit        => Item.Cost_Limit,
          Check_Limit       => Item.Check_Limit,
-         Check_Delta_Limit => Item.Check_Delta_Limit);
+         Check_Delta_Limit => Item.Check_Delta_Limit,
+         Enqueue_Limit     => Item.Enqueue_Limit);
    begin
       Result.Delete (Result.First_Nonterminal .. Result.Last_Nonterminal) :=
         (others => Item.Default_Delete_Nonterminal);
