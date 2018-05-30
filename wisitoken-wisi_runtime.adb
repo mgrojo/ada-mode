@@ -1764,7 +1764,8 @@ package body WisiToken.Wisi_Runtime is
       if Trace_Action > Detail then
          Ada.Text_IO.Put_Line
            ("indent_token_1: " & Indenting_Token.Image (Data.Descriptor.all) & " " & Image (Delta_Indent) &
-           (if Indenting_Comment then " comment" else ""));
+              Line_Number_Type'Image (First_Line) & " .." & Line_Number_Type'Image (Last_Line) &
+              (if Indenting_Comment then " comment" else ""));
       end if;
 
       for Line in First_Line .. Last_Line loop
@@ -1774,8 +1775,11 @@ package body WisiToken.Wisi_Runtime is
                Indent : Boolean := True;
             begin
                if Data.Line_Begin_Token.all (Line) /= Augmented_Token_Arrays.No_Index then
-                  for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line)).Non_Grammar loop
-                     if Tok.ID = Data.Descriptor.Comment_ID and Tok.Col = 0 then
+                  for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line - 1)).Non_Grammar loop
+                     if Tok.Line = Line and then
+                       Tok.ID = Data.Descriptor.Comment_ID and then
+                       Tok.Col = 0
+                     then
                         Indent := False;
                         exit;
                      end if;
