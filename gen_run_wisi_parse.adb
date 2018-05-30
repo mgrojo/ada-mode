@@ -59,6 +59,9 @@ is
       Put_Line ("--check_limit n  : set error recover token check limit" &
                   (if Parser.Table = null then ""
                    else "; default" & Token_Index'Image (Parser.Table.McKenzie_Param.Check_Limit)));
+      Put_Line ("--enqueue_limit n  : set error recover token enqueue limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Enqueue_Limit)));
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
                   Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
@@ -118,6 +121,10 @@ begin
          elsif Argument (Arg) = "--disable_recover" then
             Parser.Enable_McKenzie_Recover := False;
             Arg := Arg + 1;
+
+         elsif Argument (Arg) = "--enqueue_limit" then
+            Parser.Table.McKenzie_Param.Enqueue_Limit := Integer'Value (Argument (Arg + 1));
+            Arg := Arg + 2;
 
          elsif Argument (Arg) = "--lang_params" then
             Lang_Params := +Argument (Arg + 1);
