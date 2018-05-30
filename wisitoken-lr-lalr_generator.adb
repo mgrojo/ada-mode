@@ -24,7 +24,6 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-with WisiToken.Token_ID_Lists;
 package body WisiToken.LR.LALR_Generator is
 
    --  The following types are used for computing lookahead
@@ -151,7 +150,7 @@ package body WisiToken.LR.LALR_Generator is
             Put (Trimmed_Image (I) & ": " & Image (P.LHS, Descriptor) & " <= (");
 
             declare
-               use WisiToken.Token_ID_Lists;
+               use WisiToken.Productions.Token_ID_Lists;
                Token_I : Cursor := P.RHS.Tokens.First;
             begin
                loop
@@ -193,7 +192,7 @@ package body WisiToken.LR.LALR_Generator is
       Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
       use LR1_Items;
 
       Goto_Set : Item_Set;
@@ -241,7 +240,7 @@ package body WisiToken.LR.LALR_Generator is
                --  In_Kernel), but more efficient, because it does not
                --  generate non-kernel items. See Test/compare_goto_transitions.adb.
                declare
-                  RHS_I : Token_ID_Lists.Cursor;
+                  RHS_I : Cursor;
                begin
                   for Prod_ID in Grammar.First_Index .. Grammar.Last_Index loop
                      declare
@@ -290,7 +289,7 @@ package body WisiToken.LR.LALR_Generator is
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
-      use type Token_ID_Lists.Cursor;
+      use type WisiToken.Productions.Token_ID_Lists.Cursor;
 
       Kernel_List : Item_Set_List :=
         (Head             => new Item_Set'
@@ -390,11 +389,11 @@ package body WisiToken.LR.LALR_Generator is
      (From         : in     LR1_Items.Item_Ptr;
       From_Set     : in     LR1_Items.Item_Set;
       To_Prod      : in     Production_ID;
-      To_Dot       : in     Token_ID_Lists.Cursor;
+      To_Dot       : in     WisiToken.Productions.Token_ID_Lists.Cursor;
       For_Token    : in     Token_ID;
       Propagations : in out Item_Item_List_Mapping_Ptr)
    is
-      use all type Token_ID_Lists.Cursor;
+      use all type WisiToken.Productions.Token_ID_Lists.Cursor;
       use all type LR1_Items.Item_Set_Ptr;
       use all type LR1_Items.Item_Ptr;
 
@@ -467,7 +466,7 @@ package body WisiToken.LR.LALR_Generator is
       Descriptor   : aliased in     LALR_Descriptor;
       Grammar      :         in     WisiToken.Productions.Arrays.Vector)
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
       use all type LR1_Items.Item_Ptr;
       use all type LR1_Items.Item_Set_Ptr;
 
@@ -485,7 +484,7 @@ package body WisiToken.LR.LALR_Generator is
 
       declare
          ID          : constant Token_ID               := Element (Dot (Closure_Item));
-         Next_Dot    : constant Token_ID_Lists.Cursor  := Next (Dot (Closure_Item));
+         Next_Dot    : constant Cursor                 := Next (Dot (Closure_Item));
          Goto_Set    : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (Source_Set, ID);
          Next_Kernel : constant LR1_Items.Item_Ptr     :=
            (if Goto_Set = null then null

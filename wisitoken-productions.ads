@@ -22,13 +22,15 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Vectors;
-with WisiToken.Syntax_Trees;
+with SAL.Gen_Definite_Doubly_Linked_Lists;
 with WisiToken.Semantic_Checks;
-with WisiToken.Token_ID_Lists;
+with WisiToken.Syntax_Trees;
 package WisiToken.Productions is
 
+   package Token_ID_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Token_ID);
+
    type Right_Hand_Side is record
-      Tokens     : WisiToken.Token_ID_Lists.List;
+      Tokens     : Token_ID_Lists.List;
       Action     : WisiToken.Syntax_Trees.Semantic_Action;
       Check      : WisiToken.Semantic_Checks.Semantic_Check;
       Name_Index : Integer;

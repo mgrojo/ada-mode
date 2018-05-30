@@ -18,7 +18,6 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with WisiToken.Token_ID_Lists;
 package body WisiToken.LR.Generator_Utils is
 
    procedure Add_Action
@@ -124,7 +123,7 @@ package body WisiToken.LR.Generator_Utils is
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
       use all type LR1_Items.Item_Ptr;
 
       State : constant State_Index := Closure.State;
@@ -143,7 +142,7 @@ package body WisiToken.LR.Generator_Utils is
               (Item, Table.States (State).Action_List,
                Grammar, Has_Empty_Production, First, Conflicts, Closure, Trace, Descriptor);
 
-         elsif Token_ID_Lists.Element (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+         elsif Element (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
             declare
                use Production_ID_Arrays;
@@ -160,6 +159,7 @@ package body WisiToken.LR.Generator_Utils is
                   --  semantic_check is null; we only support semantic checks in Wisi
                   --  source files, not grammars defined in Ada code.
                   declare
+                     use all type SAL.Base_Peek_Type;
                      Prod : Productions.Instance renames Grammar (Prod_ID (Item));
                   begin
                      Add_Action
@@ -360,14 +360,14 @@ package body WisiToken.LR.Generator_Utils is
       Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
       use all type LR1_Items.Item_Set;
       use all type LR1_Items.Item_Ptr;
       use all type LR1_Items.Item_Set_Ptr;
 
       Current : LR1_Items.Item_Set := Closure;
       Item    : LR1_Items.Item_Ptr;
-      ID_I    : Token_ID_Lists.Cursor;
+      ID_I    : Cursor;
    begin
       case Action.Verb is
       when Reduce | Accept_It =>
@@ -549,7 +549,7 @@ package body WisiToken.LR.Generator_Utils is
             return;
          end if;
 
-         if Token_ID_Lists.Element (Grammar (L).RHS.Tokens.First) = Nonterm then
+         if WisiToken.Productions.Token_ID_Lists.Element (Grammar (L).RHS.Tokens.First) = Nonterm then
             --  The first RHS token = LHS; a recursive list. This will never be
             --  the shortest production, so just skip it.
             null;

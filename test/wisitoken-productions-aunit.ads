@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent package.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,11 +18,15 @@
 
 pragma License (GPL);
 
-package WisiToken.Token_ID_Lists.AUnit is
+with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_AUnit;
+with WisiToken.AUnit;
+package WisiToken.Productions.AUnit is
+
+   package Token_ID_Lists_AUnit is new Token_ID_Lists.Gen_AUnit (WisiToken.AUnit.Check);
 
    procedure Check
      (Label    : in String;
-      Computed : in Cursor;
-      Expected : in Cursor);
+      Computed : in Instance;
+      Expected : in Instance);
 
-end WisiToken.Token_ID_Lists.AUnit;
+end WisiToken.Productions.AUnit;

@@ -114,7 +114,7 @@ package body WisiToken.LR.LR1_Items is
       Trace                : in Boolean)
      return Token_ID_Set
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
 
       Token_Iterator : Cursor;
       Derived_Token  : Token_ID;
@@ -220,11 +220,11 @@ package body WisiToken.LR.LR1_Items is
       Descriptor : in WisiToken.Descriptor'Class)
      return Token_ID_Set
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
       subtype Nonterminal is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
 
       Result  : Token_ID_Set := (Nonterminal => False);
-      RHS_I   : Token_ID_Lists.Cursor;
+      RHS_I   : Cursor;
       Changed : Boolean      := True;
    begin
       loop
@@ -253,7 +253,7 @@ package body WisiToken.LR.LR1_Items is
       Has_Empty_Production : in Token_ID_Set)
      return Token_Array_Token_Set
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
 
       Prev_Result : Token_Array_Token_Set :=
         (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
@@ -263,7 +263,7 @@ package body WisiToken.LR.LR1_Items is
         (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
            (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
 
-      RHS_I : Token_ID_Lists.Cursor;
+      RHS_I : Cursor;
       ID    : Token_ID;
    begin
       --  [dragon] pgp 189:
@@ -331,7 +331,7 @@ package body WisiToken.LR.LR1_Items is
       return Item.Prod;
    end Prod_ID;
 
-   function Dot (Item : in Item_Ptr) return Token_ID_Lists.Cursor
+   function Dot (Item : in Item_Ptr) return WisiToken.Productions.Token_ID_Lists.Cursor
    is begin
       return Item.Dot;
    end Dot;
@@ -353,7 +353,7 @@ package body WisiToken.LR.LR1_Items is
 
    function New_Item_Node
      (Prod       : in Production_ID;
-      Dot        : in Token_ID_Lists.Cursor;
+      Dot        : in WisiToken.Productions.Token_ID_Lists.Cursor;
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead)
      return Item_Ptr
@@ -365,7 +365,7 @@ package body WisiToken.LR.LR1_Items is
    procedure Set
      (Item       : in out Item_Node;
       Prod       : in     Production_ID;
-      Dot        : in     Token_ID_Lists.Cursor;
+      Dot        : in     WisiToken.Productions.Token_ID_Lists.Cursor;
       State      : in     Unknown_State_Index;
       Lookaheads : in     Lookahead)
    is begin
@@ -572,13 +572,13 @@ package body WisiToken.LR.LR1_Items is
 
    function Find
      (Prod             : in     Production_ID;
-      Dot              : in     Token_ID_Lists.Cursor;
+      Dot              : in     WisiToken.Productions.Token_ID_Lists.Cursor;
       Right            : in     Item_Set;
       Lookaheads       : access Lookahead := null;
       Match_Lookaheads : in     Boolean)
      return Item_Ptr
    is
-      use all type Token_ID_Lists.Cursor;
+      use all type WisiToken.Productions.Token_ID_Lists.Cursor;
       Current : Item_Ptr := Right.Set;
    begin
       while Current /= null loop
@@ -694,7 +694,7 @@ package body WisiToken.LR.LR1_Items is
 
    function Merge
      (Prod         : in     Production_ID;
-      Dot          : in     Token_ID_Lists.Cursor;
+      Dot          : in     WisiToken.Productions.Token_ID_Lists.Cursor;
       State        : in     Unknown_State_Index;
       Lookaheads   : in     Lookahead;
       Existing_Set : in out Item_Set;
@@ -731,7 +731,7 @@ package body WisiToken.LR.LR1_Items is
      return Item_Set
    is
       use all type Token_ID;
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "closure"
       --
@@ -743,7 +743,7 @@ package body WisiToken.LR.LR1_Items is
       Item       : Item_Ptr := Set.Set; -- iterator 'for each item in I'
       Added_Item : Boolean  := False;   -- 'until no more items can be added'
 
-      Beta : Token_ID_Lists.Cursor;
+      Beta : Cursor;
    begin
       --  Copy Set into I
       I.State     := Set.State;
@@ -885,7 +885,7 @@ package body WisiToken.LR.LR1_Items is
       Item       : in Item_Ptr)
      return Boolean
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
       Prod : WisiToken.Productions.Instance renames Grammar (Item.Prod);
    begin
       return
@@ -950,7 +950,7 @@ package body WisiToken.LR.LR1_Items is
       Show_Lookaheads : in Boolean)
      return String
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
 
       I : Cursor;
 

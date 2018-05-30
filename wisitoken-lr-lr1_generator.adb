@@ -22,7 +22,6 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Text_IO;
-with WisiToken.Token_ID_Lists;
 package body WisiToken.LR.LR1_Generator is
 
    function LR1_Goto_Transitions
@@ -35,7 +34,7 @@ package body WisiToken.LR.LR1_Generator is
       Trace                : in Boolean)
      return LR1_Items.Item_Set
    is
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
       use LR1_Items;
 
       Goto_Set : Item_Set;
@@ -83,7 +82,7 @@ package body WisiToken.LR.LR1_Generator is
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
-      use Token_ID_Lists;
+      use WisiToken.Productions.Token_ID_Lists;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
@@ -252,7 +251,7 @@ package body WisiToken.LR.LR1_Generator is
 
       for Prod of Grammar loop
          declare
-            use Token_ID_Lists;
+            use WisiToken.Productions.Token_ID_Lists;
             J : Cursor := Prod.RHS.Tokens.First;
          begin
             loop

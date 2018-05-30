@@ -100,7 +100,8 @@ package WisiToken.LR.Parser is
 
       Line_Begin_Token : aliased Line_Begin_Token_Vectors.Vector;
       --  Index into Terminals of first grammar token on line. Last entry is
-      --  index of EOF.
+      --  index of EOF. If line contains no grammar token, index of previous
+      --  grammar token.
 
       Shared_Tree : aliased Syntax_Trees.Base_Tree;
       --  Each parser (normal and recover) has its own branched syntax tree,

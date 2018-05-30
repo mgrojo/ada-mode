@@ -31,16 +31,16 @@ pragma License (Modified_GPL);
 package body WisiToken.Wisi_Ada is
    use WisiToken.Productions;
 
-   function Only (Item : in Token_ID) return WisiToken.Token_ID_Lists.List
+   function Only (Item : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List
    is begin
-      return List : WisiToken.Token_ID_Lists.List do
+      return List : WisiToken.Productions.Token_ID_Lists.List do
          List.Append (Item);
       end return;
    end Only;
 
-   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Token_ID_Lists.List
+   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List
    is begin
-      return Result : WisiToken.Token_ID_Lists.List do
+      return Result : WisiToken.Productions.Token_ID_Lists.List do
          Result.Append (Left);
          Result.Append (Right);
       end return;

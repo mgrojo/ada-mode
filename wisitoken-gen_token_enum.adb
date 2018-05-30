@@ -40,20 +40,20 @@ package body WisiToken.Gen_Token_Enum is
       return Result;
    end To_Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return Token_ID_Lists.List
+   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Productions.Token_ID_Lists.List
    is begin
-      return Result : Token_ID_Lists.List do
+      return Result : WisiToken.Productions.Token_ID_Lists.List do
          Result.Append (+Left);
          Result.Append (+Right);
       end return;
    end "&";
 
    function "&"
-     (Left  : in Token_ID_Lists.List;
+     (Left  : in WisiToken.Productions.Token_ID_Lists.List;
       Right : in Token_Enum_ID)
-     return Token_ID_Lists.List
+     return WisiToken.Productions.Token_ID_Lists.List
    is begin
-      return Result : Token_ID_Lists.List := Left do
+      return Result : WisiToken.Productions.Token_ID_Lists.List := Left do
          Result.Append (+Right);
       end return;
    end "&";

@@ -30,14 +30,13 @@ pragma License (Modified_GPL);
 
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
-with WisiToken.Token_ID_Lists;
 package WisiToken.Wisi_Ada is
 
-   function Only (Item : in Token_ID) return WisiToken.Token_ID_Lists.List;
-   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Token_ID_Lists.List;
+   function Only (Item : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List;
+   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List;
 
    function "+"
-     (Tokens : in Token_ID_Lists.List;
+     (Tokens : in WisiToken.Productions.Token_ID_Lists.List;
       Action : in WisiToken.Syntax_Trees.Semantic_Action)
      return WisiToken.Productions.Right_Hand_Side;
    function "+"
@@ -45,7 +44,10 @@ package WisiToken.Wisi_Ada is
       Action : in WisiToken.Syntax_Trees.Semantic_Action)
      return WisiToken.Productions.Right_Hand_Side;
    function "+" (Action : in WisiToken.Syntax_Trees.Semantic_Action) return WisiToken.Productions.Right_Hand_Side;
-   function "+" (Tokens : in Token_ID_Lists.List; Index  : in Integer) return WisiToken.Productions.Right_Hand_Side;
+   function "+"
+     (Tokens : in WisiToken.Productions.Token_ID_Lists.List;
+      Index  : in Integer)
+     return WisiToken.Productions.Right_Hand_Side;
    function "+" (Tokens : in Token_ID; Index  : in Integer) return WisiToken.Productions.Right_Hand_Side;
    function "+" (Index  : in Integer) return WisiToken.Productions.Right_Hand_Side;
    --  Create the right hand side of a production.

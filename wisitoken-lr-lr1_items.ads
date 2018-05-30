@@ -30,7 +30,6 @@ pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 with WisiToken.Productions;
-with WisiToken.Token_ID_Lists;
 package WisiToken.LR.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in
@@ -42,7 +41,7 @@ package WisiToken.LR.LR1_Items is
    type Item_Ptr is access Item_Node;
 
    function Prod_ID (Item : in Item_Ptr) return WisiToken.Production_ID;
-   function Dot (Item : in Item_Ptr) return Token_ID_Lists.Cursor;
+   function Dot (Item : in Item_Ptr) return WisiToken.Productions.Token_ID_Lists.Cursor;
    --  Token after Dot.
    function State (Item : in Item_Ptr) return Unknown_State_Index;
    function Lookaheads (Item : in Item_Ptr) return Lookahead;
@@ -50,7 +49,7 @@ package WisiToken.LR.LR1_Items is
 
    function New_Item_Node
      (Prod       : in Production_ID;
-      Dot        : in Token_ID_Lists.Cursor;
+      Dot        : in WisiToken.Productions.Token_ID_Lists.Cursor;
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead)
      return Item_Ptr;
@@ -58,7 +57,7 @@ package WisiToken.LR.LR1_Items is
    procedure Set
      (Item       : in out Item_Node;
       Prod       : in     Production_ID;
-      Dot        : in     Token_ID_Lists.Cursor;
+      Dot        : in     WisiToken.Productions.Token_ID_Lists.Cursor;
       State      : in     Unknown_State_Index;
       Lookaheads : in     Lookahead);
    --  Replace all values in Item.
@@ -154,7 +153,7 @@ package WisiToken.LR.LR1_Items is
 
    function Find
      (Prod             : in     Production_ID;
-      Dot              : in     Token_ID_Lists.Cursor;
+      Dot              : in     WisiToken.Productions.Token_ID_Lists.Cursor;
       Right            : in     Item_Set;
       Lookaheads       : access Lookahead := null;
       Match_Lookaheads : in     Boolean)
@@ -282,7 +281,7 @@ private
       --  a shallow copy of the root list pointers orignally stored in the
       --  Grammar structure; Dot points into that token list.
       Prod       : Production_ID;
-      Dot        : Token_ID_Lists.Cursor; -- token after item Dot
+      Dot        : WisiToken.Productions.Token_ID_Lists.Cursor; -- token after item Dot
       State      : Unknown_State_Index;
       Lookaheads : access Lookahead;
       Next       : Item_Ptr;

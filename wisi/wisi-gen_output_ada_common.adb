@@ -19,9 +19,9 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
+with SAL;
 with System.Multiprocessors;
 with Wisi.Utils;
-with WisiToken.Token_ID_Lists;
 package body Wisi.Gen_Output_Ada_Common is
 
    --  Public subprograms in alphabetical order
@@ -850,7 +850,8 @@ package body Wisi.Gen_Output_Ada_Common is
                  ("Set_Production (Table.Productions (" & WisiToken.Trimmed_Image (I) & "), " &
                     WisiToken.Trimmed_Image (P.LHS) & ", (");
                declare
-                  use WisiToken.Token_ID_Lists;
+                  use all type SAL.Base_Peek_Type;
+                  use WisiToken.Productions.Token_ID_Lists;
                   Token_I : Cursor := P.RHS.Tokens.First;
                begin
                   if P.RHS.Tokens.Length = 0 then

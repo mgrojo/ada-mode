@@ -22,7 +22,6 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with Wisi.Utils;
 with WisiToken.Syntax_Trees;
-with WisiToken.Token_ID_Lists;
 with WisiToken.Wisi_Ada;
 package body Wisi.Gen_Generate_Utils is
 
@@ -544,9 +543,12 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    end To_Conflicts;
 
-   function "&" (Tokens : in Token_ID_Lists.List; Token : in String) return Token_ID_Lists.List
+   function "&"
+     (Tokens : in WisiToken.Productions.Token_ID_Lists.List;
+      Token  : in String)
+     return WisiToken.Productions.Token_ID_Lists.List
    is begin
-      return Result : Token_ID_Lists.List := Tokens do
+      return Result : WisiToken.Productions.Token_ID_Lists.List := Tokens do
          Result.Append (Find_Token_ID (Token));
       end return;
    end "&";
@@ -558,7 +560,7 @@ package body Wisi.Gen_Generate_Utils is
      return WisiToken.Productions.Arrays.Vector
    is
       use WisiToken.Wisi_Ada;
-      use all type Token_ID_Lists.List;
+      use all type WisiToken.Productions.Token_ID_Lists.List;
 
       Grammar : WisiToken.Productions.Arrays.Vector;
       Error   : Boolean := False;
@@ -579,7 +581,7 @@ package body Wisi.Gen_Generate_Utils is
          begin
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
-                  Tokens : Token_ID_Lists.List;
+                  Tokens : WisiToken.Productions.Token_ID_Lists.List;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;

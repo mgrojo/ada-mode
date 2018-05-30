@@ -20,7 +20,6 @@ pragma License (GPL);
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
-with WisiToken.Token_ID_Lists;
 generic
    type Token_Enum_ID is (<>);
    First_Terminal    : Token_Enum_ID;
@@ -86,9 +85,12 @@ package WisiToken.Gen_Token_Enum is
 
    function To_Syntax (Item : in Enum_Syntax) return WisiToken.Lexer.Regexp.Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return Token_ID_Lists.List;
+   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Productions.Token_ID_Lists.List;
 
-   function "&" (Left  : in Token_ID_Lists.List; Right : in Token_Enum_ID) return Token_ID_Lists.List;
+   function "&"
+     (Left  : in WisiToken.Productions.Token_ID_Lists.List;
+      Right : in Token_Enum_ID)
+     return WisiToken.Productions.Token_ID_Lists.List;
 
    function "+" (Left : in Token_Enum_ID; Right : in Syntax_Trees.Semantic_Action) return Productions.Right_Hand_Side;
 

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,30 +19,20 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-with WisiToken.AUnit;
-package body WisiToken.Token_ID_Lists.AUnit is
+package body WisiToken.Productions.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Cursor;
-      Expected : in Cursor)
+      Computed : in Instance;
+      Expected : in Instance)
    is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
-      Computed_I : Cursor  := Computed;
-      Expected_I : Cursor  := Expected;
-      Index      : Integer := 1;
+      use Token_ID_Lists_AUnit;
    begin
-      loop
-         if Computed_I = No_Element or Expected_I = No_Element then
-            Check (Label & " = null", Computed_I = No_Element and Expected_I = No_Element, True);
-            exit;
-         end if;
-         Check (Label & Integer'Image (Index), Element (Computed_I), Element (Expected_I));
-         Next (Computed_I);
-         Next (Expected_I);
-         Index := Index + 1;
-      end loop;
+      Check (Label & ".Name_Index", Computed.RHS.Name_Index, Expected.RHS.Name_Index);
+      Check (Label & ".LHS", Computed.LHS, Expected.LHS);
+      Check (Label & ".RHS", Computed.RHS.Tokens, Expected.RHS.Tokens);
    end Check;
 
-end WisiToken.Token_ID_Lists.AUnit;
+end WisiToken.Productions.AUnit;

@@ -754,7 +754,8 @@ package body WisiToken.LR is
             --  Some lexers don't support line numbers.
             if Lexer.First then
                Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line));
-               Line_Begin_Token (Token.Line) := Terminals.Last_Index + 1;
+               Line_Begin_Token (Token.Line) := Terminals.Last_Index +
+                 (if Token.ID >= Descriptor.First_Terminal then 1 else 0);
 
             elsif Token.ID = Descriptor.EOF_ID then
                Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line + 1));

@@ -23,11 +23,6 @@ with WisiToken.Productions;
 package WisiToken_AUnit is
 
    procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Productions.Instance;
-      Expected : in WisiToken.Productions.Instance);
-
-   procedure Check
      (Label            : in String;
       Computed         : in WisiToken.LR.LR1_Items.Item_Ptr;
       Expected         : in WisiToken.LR.LR1_Items.Item_Ptr;

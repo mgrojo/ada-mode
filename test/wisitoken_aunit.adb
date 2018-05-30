@@ -22,21 +22,8 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with WisiToken.AUnit; use WisiToken.AUnit;
 with WisiToken.LR.AUnit;
-with WisiToken.Token_ID_Lists.AUnit;
+with WisiToken.Productions.AUnit;
 package body WisiToken_AUnit is
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Productions.Instance;
-      Expected : in WisiToken.Productions.Instance)
-   is
-      use AUnit.Checks;
-      use WisiToken.Token_ID_Lists.AUnit;
-   begin
-      Check (Label & ".Name_Index", Computed.RHS.Name_Index, Expected.RHS.Name_Index);
-      Check (Label & ".LHS", Computed.LHS, Expected.LHS);
-      Check (Label & ".RHS", Computed.RHS.Tokens.First, Expected.RHS.Tokens.First);
-   end Check;
 
    procedure Check
      (Label            : in String;
@@ -47,7 +34,8 @@ package body WisiToken_AUnit is
       use AUnit.Checks;
       use WisiToken.LR.AUnit;
       use WisiToken.LR.LR1_Items;
-      use WisiToken.Token_ID_Lists.AUnit;
+      use WisiToken.Productions.AUnit;
+      use WisiToken.Productions.AUnit.Token_ID_Lists_AUnit;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -172,11 +160,11 @@ package body WisiToken_AUnit is
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
      return WisiToken.LR.LR1_Items.Item_Ptr
    is
-      Dot_I : WisiToken.Token_ID_Lists.Cursor;
+      Dot_I : WisiToken.Productions.Token_ID_Lists.Cursor;
    begin
       Dot_I := Grammar (Prod).RHS.Tokens.First;
       for I in 2 .. Dot loop
-         WisiToken.Token_ID_Lists.Next (Dot_I);
+         WisiToken.Productions.Token_ID_Lists.Next (Dot_I);
       end loop;
 
       return WisiToken.LR.LR1_Items.New_Item_Node (Prod, Dot_I, State, Lookaheads);
