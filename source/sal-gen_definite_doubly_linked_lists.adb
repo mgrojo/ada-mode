@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -70,14 +70,14 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       Container.Tail := null;
    end Finalize;
 
-   function Length (Container : in List) return SAL.Base_Peek_Type
+   function Length (Container : in List) return Ada.Containers.Count_Type
    is begin
       return Container.Count;
    end Length;
 
    procedure Append (Container : in out List; Element : in Element_Type)
    is
-      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
       New_Node : constant Node_Access := new Node_Type'
         (Element => Element,
          Prev    => Container.Tail,
@@ -95,7 +95,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Prepend (Container : in out List; Element : in Element_Type)
    is
-      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
       New_Node : constant Node_Access := new Node_Type'
         (Element => Element,
          Prev    => null,
@@ -125,6 +125,15 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       end if;
    end First;
 
+   function Last (Container : in List) return Cursor
+   is begin
+      if Container.Tail = null then
+         return No_Element;
+      else
+         return (Container'Unrestricted_Access, Container.Tail);
+      end if;
+   end Last;
+
    procedure Next (Position : in out Cursor)
    is begin
       if Position.Ptr /= null then
@@ -149,6 +158,19 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       end if;
    end Next;
 
+   function Previous (Position : in Cursor) return Cursor
+   is begin
+      if Position.Ptr = null then
+         return Position;
+      else
+         if Position.Ptr.Prev = null then
+            return No_Element;
+         else
+            return (Position.Container, Position.Ptr.Prev);
+         end if;
+      end if;
+   end Previous;
+
    function Element (Position : in Cursor) return Element_Type
    is begin
       return Position.Ptr.Element;
@@ -156,7 +178,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Delete (Container : in out List; Position : in out Cursor)
    is
-      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
       Node : Node_Access renames Position.Ptr;
    begin
       if Node.Next = null then
@@ -179,14 +201,57 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       return Position.Ptr.Element'Access;
    end Persistent_Ref;
 
-   function Constant_Reference (Position : in Cursor) return Constant_Reference_Type
-   is begin
+   function Constant_Reference (Container : in List; Position : in Cursor) return Constant_Reference_Type
+   is
+      pragma Unreferenced (Container);
+   begin
       return (Element => Position.Ptr.all.Element'Access);
    end Constant_Reference;
 
-   function Reference (Position : in Cursor) return Reference_Type
+   function Constant_Ref (Position : in Cursor) return Constant_Reference_Type
    is begin
       return (Element => Position.Ptr.all.Element'Access);
+   end Constant_Ref;
+
+   function Reference (Container : in List; Position : in Cursor) return Reference_Type
+   is
+      pragma Unreferenced (Container);
+   begin
+      return (Element => Position.Ptr.all.Element'Access);
    end Reference;
+
+   function Ref (Position : in Cursor) return Reference_Type
+   is begin
+      return (Element => Position.Ptr.all.Element'Access);
+   end Ref;
+
+   function Iterate (Container : aliased in List) return Iterator_Interfaces.Reversible_Iterator'Class
+   is begin
+      return Iterator'(Container => Container'Unrestricted_Access);
+   end Iterate;
+
+   overriding function First (Object : Iterator) return Cursor
+   is begin
+      return First (Object.Container.all);
+   end First;
+
+   overriding function Last  (Object : Iterator) return Cursor
+   is begin
+      return Last (Object.Container.all);
+   end Last;
+
+   overriding function Next (Object : in Iterator; Position : in Cursor) return Cursor
+   is
+      pragma Unreferenced (Object);
+   begin
+      return Next (Position);
+   end Next;
+
+   overriding function Previous (Object : in Iterator; Position : in Cursor) return Cursor
+   is
+      pragma Unreferenced (Object);
+   begin
+      return Previous (Position);
+   end Previous;
 
 end SAL.Gen_Definite_Doubly_Linked_Lists;

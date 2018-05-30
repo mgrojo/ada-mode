@@ -149,9 +149,9 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    function Has_Element (Position : Cursor) return Boolean;
 
-   package Vector_Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
+   package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   function Iterate (Container : aliased in Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class;
+   function Iterate (Container : aliased in Vector) return Iterator_Interfaces.Reversible_Iterator'Class;
 
    function Constant_Reference (Container : aliased in Vector; Position : in Cursor) return Constant_Reference_Type
    with Pre => Has_Element (Position);
@@ -176,7 +176,7 @@ private
       Index     : Base_Peek_Type;
    end record;
 
-   type Iterator is new Vector_Iterator_Interfaces.Reversible_Iterator with
+   type Iterator is new Iterator_Interfaces.Reversible_Iterator with
    record
       Container : Vector_Access;
    end record;

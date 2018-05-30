@@ -452,7 +452,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Previous;
 
-   function Iterate (Container : aliased in Vector) return Vector_Iterator_Interfaces.Reversible_Iterator'Class
+   function Iterate (Container : aliased in Vector) return Iterator_Interfaces.Reversible_Iterator'Class
    is begin
       return Iterator'(Container => Container'Unrestricted_Access);
    end Iterate;

@@ -2,7 +2,7 @@
 --
 --  Test Sal.Gen_Definite_Doubly_Linked_Lists
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,8 +18,7 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
-with SAL.AUnit;
+with AUnit.Checks.Containers;
 with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate;
 package body Test_Definite_Doubly_Linked_Lists is
 
@@ -36,7 +35,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       pragma Unreferenced (T);
 
       use AUnit.Checks;
-      use SAL.AUnit;
+      use AUnit.Checks.Containers;
 
       List : Integer_Lists.List;
       Cur : Cursor;
@@ -49,11 +48,11 @@ package body Test_Definite_Doubly_Linked_Lists is
 
       Val.Validate (List);
       Cur := List.First;
-      Check ("1a", Constant_Reference (Cur), 1);
+      Check ("1a", Constant_Ref (Cur), 1);
       Next (Cur);
-      Check ("1b", Constant_Reference (Cur), 3);
+      Check ("1b", Constant_Ref (Cur), 3);
       Next (Cur);
-      Check ("1c", Constant_Reference (Cur), 5);
+      Check ("1c", Constant_Ref (Cur), 5);
       Next (Cur);
       Check ("1d", Has_Element (Cur), False);
       Check ("1e", Cur = No_Element, True);
@@ -61,13 +60,13 @@ package body Test_Definite_Doubly_Linked_Lists is
       List.Prepend (0);
       Val.Validate (List);
       Cur := List.First;
-      Check ("2a", Constant_Reference (Cur), 0);
+      Check ("2a", Constant_Ref (Cur), 0);
       Next (Cur);
-      Check ("2b", Constant_Reference (Cur), 1);
+      Check ("2b", Constant_Ref (Cur), 1);
       Next (Cur);
-      Check ("2c", Constant_Reference (Cur), 3);
+      Check ("2c", Constant_Ref (Cur), 3);
       Next (Cur);
-      Check ("2d", Constant_Reference (Cur), 5);
+      Check ("2d", Constant_Ref (Cur), 5);
       Check ("2e", List.Length, 4);
 
       Delete (List, Cur);
@@ -75,11 +74,11 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("3a", Cur = No_Element, True);
       Check ("3b", List.Length, 3);
       Cur := List.First;
-      Check ("3c", Constant_Reference (Cur), 0);
+      Check ("3c", Constant_Ref (Cur), 0);
       Next (Cur);
-      Check ("3d", Constant_Reference (Cur), 1);
+      Check ("3d", Constant_Ref (Cur), 1);
       Next (Cur);
-      Check ("3e", Constant_Reference (Cur), 3);
+      Check ("3e", Constant_Ref (Cur), 3);
       Next (Cur);
       Check ("3f", Cur = No_Element, True);
 
@@ -89,9 +88,9 @@ package body Test_Definite_Doubly_Linked_Lists is
       Val.Validate (List);
       Check ("4a", List.Length, 2);
       Cur := List.First;
-      Check ("4b", Constant_Reference (Cur), 0);
+      Check ("4b", Constant_Ref (Cur), 0);
       Next (Cur);
-      Check ("4c", Constant_Reference (Cur), 3);
+      Check ("4c", Constant_Ref (Cur), 3);
       Next (Cur);
       Check ("4d", Cur = No_Element, True);
 
@@ -100,18 +99,18 @@ package body Test_Definite_Doubly_Linked_Lists is
       begin
          Check ("4a", B.Length, 2);
          Cur := B.First;
-         Check ("4b", Constant_Reference (Cur), 0);
+         Check ("4b", Constant_Ref (Cur), 0);
          Next (Cur);
-         Check ("4c", Constant_Reference (Cur), 3);
+         Check ("4c", Constant_Ref (Cur), 3);
          Next (Cur);
          Check ("4d", Cur = No_Element, True);
       end;
 
       Check ("5a", List.Length, 2);
       Cur := List.First;
-      Check ("5b", Constant_Reference (Cur), 0);
+      Check ("5b", Constant_Ref (Cur), 0);
       Next (Cur);
-      Check ("5c", Constant_Reference (Cur), 3);
+      Check ("5c", Constant_Ref (Cur), 3);
       Next (Cur);
       Check ("5d", Cur = No_Element, True);
 
