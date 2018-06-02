@@ -1,11 +1,10 @@
 ;; Wisent grammar with unused tokens, to test unused token reporting
 
-%{
-with WisiToken.Token_Region;
-%%
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
-%}
-;; ' terminate quote
+%code actions spec context %{with WisiToken.Token_Region;}%
+
+%code actions spec post %{
+State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+}%
 
 %keyword FUNCTION "function"
 %keyword LEFT_PAREN "("
@@ -20,8 +19,6 @@ with WisiToken.Token_Region;
 %start compilation_unit
 %output_language Ada
 %lexer re2c
-
-%%
 
 unused_nonterm_1
   : unused_nonterm_2 UNUSED_TERMINAL_1
@@ -52,7 +49,5 @@ parameter_list
 unused_nonterm_2
   : LEFT_PAREN RIGHT_PAREN
   ;
-
-%%
 
 ;; end of file

@@ -21,13 +21,14 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with Skip_To_Grammar;
+with Skip_To_Grammar_Actions;
+with Skip_To_Grammar_Main;
 with Test_Skip_To_Aux;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 package body Test_Skip_To is
 
-   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar.Descriptor'Access);
+   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar_Actions.Descriptor'Access);
    Parser : WisiToken.LR.Parser_No_Recover.Parser;
 
    ----------
@@ -72,5 +73,5 @@ package body Test_Skip_To is
    end Register_Tests;
 
 begin
-   Skip_To_Grammar.Create_Parser (Parser, WisiToken.LALR, Trace'Access, null);
+   Skip_To_Grammar_Main.Create_Parser (Parser, WisiToken.LALR, Trace'Access, null);
 end Test_Skip_To;

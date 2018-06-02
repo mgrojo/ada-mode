@@ -18,14 +18,14 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
-with Ada_Lite;
+with Ada_Lite_Actions;
 with System.Assertions;
 package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
-   use all type Standard.Ada_Lite.Token_Enum_ID; -- token names
+   use all type Standard.Ada_Lite_Actions.Token_Enum_ID; -- token names
    use all type Semantic_Checks.Check_Status_Label;
 
-   Descriptor : WisiToken.Descriptor renames Standard.Ada_Lite.Descriptor;
+   Descriptor : WisiToken.Descriptor renames Standard.Ada_Lite_Actions.Descriptor;
 
    subtype Grammar_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal);
 
@@ -585,7 +585,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       end Put;
    begin
       --  This is simple enough to use 'case'; full Ada needs 'if'.
-      case Standard.Ada_Lite.Token_Enum_ID'(-Config.Error_Token.ID) is
+      case Ada_Lite_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
       when DOT_ID =>
          --  We've encountered a Selected_Component when we were expecting a
          --  simple IDENTIFIER or a name. If the name is preceded by 'end', then
@@ -707,7 +707,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          return All_Ok;
       end if;
 
-      case Standard.Ada_Lite.Token_Enum_ID'(-Config.Error_Token.ID) is
+      case Ada_Lite_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
       when END_ID =>
          declare
             Temp_Config : Configuration := Config;

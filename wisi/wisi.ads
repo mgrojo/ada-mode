@@ -91,12 +91,14 @@ package Wisi is
       Start_Token                   : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
-   type Prologues is record
-      Spec_Context_Clause : String_Lists.List;
-      Spec_Declarations   : String_Lists.List;
-      Body_Context_Clause : String_Lists.List;
-      Body_Declarations   : String_Lists.List;
-   end record;
+   type Raw_Code_Location is
+     (Copyright_License,
+      Actions_Spec_Context, Actions_Spec_Pre, Actions_Spec_Post,
+      Actions_Body_Context, Actions_Body_Pre, Actions_Body_Post);
+   --  So far we have not needed raw code other than license in the main
+   --  package.
+
+   type Raw_Code is array (Raw_Code_Location) of String_Lists.List;
 
    subtype String_2 is String (1 .. 2);
 
@@ -110,28 +112,28 @@ package Wisi is
    --  From each element, delete trailing comments starting with
    --  Comment_Start; delete leading and trailing spaces.
 
-   procedure Put_Prologue
+   procedure Put_Raw_Code
      (Comment_Syntax : in String_2;
-      Prologue       : in String_Lists.List;
+      Code           : in String_Lists.List;
       Comment_Only   : in Boolean := False);
-   --  Output Prologue to Ada.Text_IO.Current_Output.
+   --  Output Code to Ada.Text_IO.Current_Output.
    --
    --  If first two characters of a line are the same and not ' ', it is
    --  assumed to be a comment; ensure the output line has
    --  Comment_Syntax.
    --
-   --  If Comment_Only is True, or if the comment syntax used in Prologue
+   --  If Comment_Only is True, or if the comment syntax used in Code
    --  does not equal Comment_Syntax, only output comment lines.
    --
    --  If Comment_Syntax is Elisp_Comment, only output lines that are
    --  valid elisp comments or forms (ie start with ';;' or '(').
    --
    --  Otherwise output all lines.
-   --
-   --  Comments in prologues usually give a copyright and license, which
-   --  should be present in all output files. However, any code is only
-   --  intended for the primary output files (implementing the parser),
-   --  not auxiliary files (implement the lexer or other utilities).
+
+   procedure Put_File_Header
+     (Comment_Syntax : in String_2;
+      Emacs_Mode     : in String := "");
+   --  Output "parser support file <emacs_mode> /n command line: " comment to Ada.Text_IO.Current_Output.
 
    type String_Pair_Type is record
       Name  : aliased Standard.Ada.Strings.Unbounded.Unbounded_String;

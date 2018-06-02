@@ -4,7 +4,7 @@
 ;;
 ;; Also tests wisi rules parser
 
-%{
+%code copyright_license %{
 ;; Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
@@ -19,11 +19,13 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-with WisiToken.Token_Region;
-%%
+}%
+
+%code actions spec context %{with WisiToken.Token_Region;}%
+
+%code actions spec post %{
    State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
-%}
-;; ' terminate quote
+}%
 
 %keyword BEGIN "begin"
 %keyword END "end"
@@ -46,8 +48,6 @@ with WisiToken.Token_Region;
 %output_language Elisp
 
 %conflict SHIFT/REDUCE in state generic_instantiation, subprogram_specification on token IS
-
-%%
 
 compilation_unit
   : library_item library_item
@@ -74,7 +74,5 @@ generic_instantiation
   : PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON
     %((wisi-statement-action [1 statement-start 9 statement-end]))%
   ;
-
-%%
 
 ;;; end of file

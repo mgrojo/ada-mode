@@ -47,9 +47,7 @@ package body Wisi is
       loop
          exit when I > Item'Last;
          if Item (I) = LF then
-            if Last_Char /= CR then
-               Result.Append (Item (First .. I - 1));
-            end if;
+            Result.Append (Item (First .. I - (if Last_Char = CR then 2 else 1)));
             First := I + 1;
 
          elsif I = Item'Last then
@@ -89,15 +87,15 @@ package body Wisi is
       return Result;
    end Trim;
 
-   procedure Put_Prologue
+   procedure Put_Raw_Code
      (Comment_Syntax : in String_2;
-      Prologue       : in String_Lists.List;
+      Code           : in String_Lists.List;
       Comment_Only   : in Boolean := False)
    is
       use Standard.Ada.Text_IO;
       Real_Comment_Only : Boolean := Comment_Only;
    begin
-      for Line of Prologue loop
+      for Line of Code loop
          if Line'Length >= 2 and then
            ((Line (Line'First) = Line (Line'First + 1)) and
               Line (Line'First) /= ' ')
@@ -114,7 +112,18 @@ package body Wisi is
             Put_Line (Line);
          end if;
       end loop;
-   end Put_Prologue;
+   end Put_Raw_Code;
+
+   procedure Put_File_Header
+     (Comment_Syntax : in String_2;
+      Emacs_Mode     : in String := "")
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Put_Line (Comment_Syntax & "  generated parser support file." & Emacs_Mode);
+      Put_Command_Line  (Comment_Syntax & "  ");
+      Put_Line (Comment_Syntax);
+   end Put_File_Header;
 
    function Is_Present (List : in Wisi.String_Pair_Lists.List; Name : in String) return Boolean
    is
@@ -259,7 +268,7 @@ package body Wisi is
          Put (Item);
       end Put;
    begin
-      Put (Comment_Prefix & "with command line:", False);
+      Put (Comment_Prefix & "command line:", False);
       Put (Standard.Ada.Directories.Simple_Name (Command_Name), True);
       for I in 1 .. Argument_Count loop
          Put (Argument (I), True);

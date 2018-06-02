@@ -3,38 +3,38 @@
 ;;
 ;; This file was produced by copying the full Ada grammar from Emacs
 ;; Ada mode (https://savannah.nongnu.org/projects/ada-mode/), and
-;; deleting stuff. That was the simplest way to get all the
-;; productions required.
+;; deleting stuff.
+
+%code copyright_license %{
+;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 ;;
-;; Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
-;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;;  This file is part of WisiToken.
 ;;
-;; This file is part of WisiToken.
+;;  WisiToken is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
+;;  (at your option) any later version.
 ;;
-;; WisiToken is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;;  WisiToken is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
 ;;
-;; WisiToken is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
-;;
-%{
-with WisiToken.Text_IO_Trace;
-%%
+;;  You should have received a copy of the GNU General Public License
+;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%code actions spec context %{with WisiToken.Text_IO_Trace;}%
+
+%code actions spec post %{
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
    End_Name_Optional : Boolean := True;
 
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
-%}
-;; ' terminate quote
+}%
 
 %keyword AND "and"
 %keyword BEGIN "begin"
@@ -164,7 +164,6 @@ with WisiToken.Text_IO_Trace;
 %conflict SHIFT/REDUCE in state simple_return_statement, simple_return_statement  on token SEMICOLON
 %conflict SHIFT/REDUCE in state subprogram_body_stub, subprogram_body  on token IS
 
-%%
 ;;;; grammar rules
 
 actual_parameter_part
@@ -604,5 +603,4 @@ type_definition
 
 unary_adding_operator : PLUS | MINUS ; ;; + | -
 
-%%
 ;;; end of file

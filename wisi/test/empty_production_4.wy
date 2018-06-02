@@ -1,9 +1,5 @@
 ;;; finding bug in parse table generator; 2 nonterms at start of production can be empty
 
-%{
-%%
-%}
-
 %token <punctuation> SEMICOLON ";"
 
 %keyword OVERRIDING "overriding"
@@ -20,8 +16,6 @@
 %generator_algorithm LALR_LR1
 %output_language Ada
 %lexer re2c
-
-%%
 
 compilation_unit
   : subprogram_declaration subprogram_declaration subprogram_declaration
@@ -41,6 +35,4 @@ other_indicator
   | ;; empty
   ;
 
-
-%%
 ;;; end of file

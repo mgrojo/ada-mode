@@ -29,7 +29,8 @@ with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
-with Wisi_Grammar;
+with Wisi_Grammar_Actions;
+with Wisi_Grammar_Main;
 package body Test_Ada_Lite_Terminal_Sequence is
 
    ----------
@@ -44,7 +45,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
       use Ada.Text_IO;
       Input_File_Name  : constant String := "../wisi/test/ada_lite.wy";
 
-      Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar.Descriptor'Access);
+      Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
       Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Grammar_Parser     : WisiToken.LR.Parser_No_Recover.Parser;
 
@@ -54,7 +55,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
         Ada.Strings.Unbounded.To_Unbounded_String ("wisitoken_accept");
 
    begin
-      Wisi_Grammar.Create_Parser
+      Wisi_Grammar_Main.Create_Parser
         (Grammar_Parser, WisiToken.LALR, Trace'Unchecked_Access,
          User_Data => Grammar_Parse_Data'Unchecked_Access);
 

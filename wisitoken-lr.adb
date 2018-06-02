@@ -297,6 +297,95 @@ package body WisiToken.LR is
       end if;
    end Add_Action;
 
+   function Duplicate_Reduce (State : in Parse_State) return Boolean
+   is
+      Node        : Action_Node_Ptr       := State.Action_List;
+      Action_Node : Parse_Action_Node_Ptr := Node.Action;
+      First       : Boolean               := True;
+      Action      : Reduce_Action_Rec;
+   begin
+      loop
+         Action_Node := Node.Action;
+         if Action_Node.Next /= null then
+            --  conflict
+            return False;
+         elsif Action_Node.Item.Verb /= Reduce then
+            return False;
+         end if;
+
+         if First then
+            Action := Action_Node.Item;
+            First  := False;
+         else
+            if not Equal (Action, Action_Node.Item) then
+               return False;
+            end if;
+         end if;
+         Node := Node.Next;
+         exit when Node.Next = null; --  Last entry is Error.
+      end loop;
+      return True;
+   end Duplicate_Reduce;
+
+   function Actions_Length (State : in Parse_State) return Integer
+   is
+      Node : Action_Node_Ptr := State.Action_List;
+   begin
+      return Result : Integer := 0
+      do
+         loop
+            exit when Node = null;
+            Result := Result + 1;
+            Node := Node.Next;
+            exit when Node.Next = null; -- don't count Error
+         end loop;
+      end return;
+   end Actions_Length;
+
+   function Symbols_Image (State : in Parse_State) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String;
+      Need_Comma : Boolean          := False;
+      Node       : Action_Node_Ptr  := State.Action_List;
+   begin
+      if Actions_Length (State) = 1 then
+         return "(1 => " & Token_ID'Image (Node.Symbol) & ")";
+      else
+         Result := +"(";
+         loop
+            Result := Result &
+              (if Need_Comma then ", " else "") &
+              Trimmed_Image (Node.Symbol);
+            Need_Comma := True;
+            Node := Node.Next;
+            exit when Node.Next = null; -- last is Error
+         end loop;
+         Result := Result & ")";
+         return -Result;
+      end if;
+   end Symbols_Image;
+
+   procedure Add_Action
+     (State           : in out Parse_State;
+      Symbols         : in     Token_ID_Array;
+      Production      : in     Production_ID;
+      LHS_ID          : in     Token_ID;
+      RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Name_Index      : in     Natural;
+      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
+      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check)
+   is begin
+      --  We assume Duplicate_Reduce is True for this state; no
+      --  conflicts, all the same action.
+      for Symbol of Symbols loop
+         Add_Action
+           (State, Symbol, Reduce, Production, LHS_ID, RHS_Token_Count, Name_Index,
+            Semantic_Action, Semantic_Check);
+      end loop;
+      Add_Error (State);
+   end Add_Action;
+
    procedure Add_Action
      (State             : in out LR.Parse_State;
       Shift_Productions : in     Production_ID_Array;

@@ -79,7 +79,7 @@ tests : empty_production_8-parse.diff
 tests : identifier_list_name_conflict_re2c.c
 tests : identifier_list_name_conflict-parse.diff
 tests : subprograms-process.el.diff
-tests : subprograms_process.adb.diff
+tests : subprograms_process_actions.adb.diff
 
 # we don't run subprograms-parse because subprograms is used in a real
 # Emacs Ada mode test, so it relies on the wisi Ada Emacs runtime,
@@ -120,7 +120,7 @@ source-clean ::
 
 wisi_grammar-clean :
 	rm -rf wisi_grammar*
-	cd ../wisi/; rm -rf wisi_grammar.ad? wisi_grammar.parse_table wisi_grammar.re2c wisi_grammar_re2c.c wisi_grammar_re2c_c.ads
+	cd ../wisi/; rm -rf wisi_grammar*.ad? wisi_grammar.parse_table wisi_grammar.re2c wisi_grammar_re2c.c wisi_grammar_re2c_c.ads
 
 update-wisi_grammar : wisi_grammar-clean ../wisi/wisi_grammar_re2c.c
 
@@ -140,8 +140,9 @@ DIFF_OPT := -u -w
 
 %.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
 
-%_process.adb.diff : %_process.adb.good %_process.adb
+%_process_actions.adb.diff : %_process_actions.adb.good %_process_actions.adb
 	diff $(DIFF_OPT) $^ > $@
+	diff $(DIFF_OPT) ../wisi/test/$*_process_main.adb.good $*_process_main.adb >> $@
 	diff $(DIFF_OPT) ../wisi/test/$*.good_re2c $*.re2c >> $@
 	diff $(DIFF_OPT) ../wisi/test/$*-process.good_el $*-process.el >> $@
 
@@ -150,10 +151,11 @@ DIFF_OPT := -u -w
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
 
-%-process.el %_process.adb : %.wy wisi-generate.exe
+%-process.el %_process_actions.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $< > $*.parse_table
 	dos2unix $*.parse_table
-	dos2unix $*_process.adb
+	dos2unix $*_process_actions.adb
+	dos2unix $*_process_main.adb
 	dos2unix $*.re2c
 	dos2unix $*-process.el
 

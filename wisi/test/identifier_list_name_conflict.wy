@@ -6,9 +6,6 @@
 ;; in the the compiled grammar as several reduce/reduce conflicts, and
 ;; in the parser as two parsers reaching an identical state.
 
-%{
-%}
-
 %keyword LEFT_PAREN "("
 %keyword RIGHT_PAREN ")"
 
@@ -33,8 +30,6 @@
 %conflict REDUCE/REDUCE in state identifier_list, name on token IDENTIFIER
 %conflict REDUCE/REDUCE in state identifier_list, name on token STRING_LITERAL
 %conflict REDUCE/REDUCE in state identifier_list, name on token Wisi_EOI
-
-%%
 
 association
   : selector_name EQUAL_GREATER name
@@ -75,7 +70,5 @@ selector_name
   : IDENTIFIER
   | STRING_LITERAL  ;; operator_symbol
   ;
-
-%%
 
 ;;; end of file

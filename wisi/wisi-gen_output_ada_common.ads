@@ -21,7 +21,7 @@ with WisiToken.LR;
 with WisiToken.Productions;
 with Wisi.Gen_Generate_Utils;
 generic
-   Prologues : in Wisi.Prologues;
+   Raw_Code  : in Wisi.Raw_Code;
    Tokens    : in Wisi.Tokens;
    Conflicts : in Wisi.Conflict_Lists.List;
    Params    : in Wisi.Generate_Param_Type;
@@ -69,33 +69,38 @@ package Wisi.Gen_Output_Ada_Common is
    type Action_Name_List is array (Integer range <>) of access String;
    type Action_Name_List_Access is access Action_Name_List;
    type Nonterminal_Array_Action_Names is array (Generate_Utils.Nonterminal_ID) of Action_Name_List_Access;
-   Ada_Action_Names : Nonterminal_Array_Action_Names;
-   Ada_Check_Names : Nonterminal_Array_Action_Names;
    --  Ada names of subprograms for each grammar semantic action and check;
    --  non-null only if there is an action or check in the grammar.
 
    Parsers : array (Single_Generator_Algorithm) of WisiToken.LR.Parse_Table_Ptr;
 
-   procedure Create_Ada_Spec
-     (Input_File_Name  : in String;
-      Output_File_Name : in String;
+   procedure Create_Ada_Actions_Spec
+     (Output_File_Name : in String;
       Package_Name     : in String;
-      Output_Language  : in Ada_Output_Language;
       Descriptor       : in WisiToken.Descriptor'Class;
-      Interface_Kind   : in Interface_Type;
-      Declare_Enum     : in Boolean);
+      Declare_Enum     : in Boolean;
+      Ada_Action_Names : in Nonterminal_Array_Action_Names;
+      Ada_Check_Names  : in Nonterminal_Array_Action_Names;
+      Actions_Present  : in Boolean;
+      Checks_Present   : in Boolean);
+
+   procedure Create_Ada_Main_Spec
+     (Input_File_Name   : in String;
+      Output_File_Name  : in String;
+      Main_Package_Name : in String;
+      Output_Language   : in Ada_Output_Language;
+      Interface_Kind    : in Interface_Type);
 
    procedure Create_Create_Parser
      (Generator_Algorithm : in Valid_Generator_Algorithm;
       Interface_Kind      : in Interface_Type;
       First_State_Index   : in Integer;
-      First_Parser_Label  : in Integer);
-
-   procedure Create_Parser_Core (Table : in WisiToken.LR.Parse_Table_Ptr);
+      First_Parser_Label  : in Integer;
+      Ada_Action_Names    : in Nonterminal_Array_Action_Names;
+      Ada_Check_Names     : in Nonterminal_Array_Action_Names);
 
    procedure Create_re2c
-     (Input_File_Name       : in String;
-      Output_File_Name_Root : in String;
+     (Output_File_Name_Root : in String;
       Elisp_Regexps         : in Wisi.String_Pair_Lists.List);
 
 end Wisi.Gen_Output_Ada_Common;

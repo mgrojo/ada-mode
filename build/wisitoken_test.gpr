@@ -43,6 +43,7 @@ project WisiToken_Test is
 
       --  User actions are not properly indented; leave out style 'il' layout
       --  redundant with clauses; add -gnatwR
+      --  *_main.adb: some lines too long
       Generated_Debug_Switches := ("-gnaty3abcefhknOprtx") & Standard_Common.Compiler.Debug_Switches & ("-gnatwR");
       Generated_Release_Switches := ("-gnaty3abcefhknOprtx") & Standard_Common.Compiler.Release_Switches & ("-gnatwR");
 
@@ -50,14 +51,18 @@ project WisiToken_Test is
       when "Debug" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C_Non_Pedantic;
 
-         for Switches ("character_literal.adb") use Generated_Debug_Switches;
+         for Switches ("character_literal_actions.adb") use Generated_Debug_Switches;
+         for Switches ("character_literal_main.adb") use Generated_Debug_Switches;
+
+         for Switches ("ada_lite_main.adb") use Generated_Debug_Switches;
 
       when "Normal" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C_Non_Pedantic;
 
-         --  User actions are not properly indented; leave out 'i' layout
-         for Switches ("character_literal.adb") use Generated_Release_Switches;
+         for Switches ("character_literal_actions.adb") use Generated_Release_Switches;
+         for Switches ("character_literal_main.adb") use Generated_Release_Switches;
 
+         for Switches ("ada_lite_main.adb") use Generated_Release_Switches;
       end case;
 
    end Compiler;

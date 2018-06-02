@@ -1,8 +1,6 @@
 ;;; character_literal-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe --generator_algorithm LALR_LR1 --output_language Elisp --lexer Elisp
-;;; ../wisi/test/character_literal.wy
-
-;;  spec context clause
+;;  command line: wisi-generate.exe --generator_algorithm LALR_LR1 --output_language Elisp --lexer Elisp
+;;  ../wisi/test/character_literal.wy
 
 ;;  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 ;;
@@ -18,7 +16,6 @@
 ;;
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
 
 (require 'wisi)
 (require 'wisi-compile)

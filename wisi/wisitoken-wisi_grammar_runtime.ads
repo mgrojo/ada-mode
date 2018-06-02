@@ -26,14 +26,13 @@ package WisiToken.Wisi_Grammar_Runtime is
    record
       Lexer            : WisiToken.Lexer.Handle;
       Terminals        : Base_Token_Array_Access;
-      Prologues        : Wisi.Prologues;
+      Raw_Code         : Wisi.Raw_Code;
       Generate_Params  : Wisi.Generate_Param_Type;
       Tokens           : Wisi.Tokens;
       Elisp_Names      : Wisi.Elisp_Names;
       Conflicts        : Wisi.Conflict_Lists.List;
       McKenzie_Recover : Wisi.McKenzie_Recover_Param_Type;
 
-      Input_File_Name : Ada.Strings.Unbounded.Unbounded_String; --  for error messages.
       Rule_Count      : Integer := 0;
       Action_Count    : Integer := 0;
       Check_Count     : Integer := 0;
@@ -49,11 +48,6 @@ package WisiToken.Wisi_Grammar_Runtime is
       Terminals : in     Base_Token_Array_Access);
 
    overriding procedure Reset (Data : in out User_Data_Type);
-
-   procedure Add_Preamble
-     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-      Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

@@ -6,40 +6,33 @@
 ;;
 ;; This file is part of GNU Emacs.
 ;;
-;; GNU Emacs is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+%code copyright_license %{
+;;  GNU Emacs is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
+;;  (at your option) any later version.
 ;;
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;;  GNU Emacs is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-;;
-;;; Discussion:
-;;
-;; The main goal is to provide indentation and navigation, which does
-;; not require a full semantic understanding of the contents of the
-;; file. We do not support generating grammars by parsing the source
-;; file with this grammar - that's what the Ada package WisiToken is
-;; for.
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+}%
 
-%{
-%%
-%%
+%code actions body context %{
 with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
-%}
+}%
 
+%keyword CODE "code"
 %keyword END "end"
 %keyword IF "if"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
 %keyword TOKEN "token"
 
-%token <delimited-text> PREAMBLE "%{" "%}"
+%token <delimited-text> RAW_CODE "%{" "}%"
 %token <delimited-text> REGEXP "%[" "]%"
 %token <delimited-text> ACTION "%(" ")%"
 
@@ -50,7 +43,6 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 %token <punctuation> GREATER ">"
 %token <punctuation> LESS "<"
 %token <punctuation> PERCENT "%"
-%token <punctuation> PERCENT_PERCENT "%%"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 
@@ -79,16 +71,18 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 %generator_algorithm LALR
 %start compilation_unit_list
 
-;; no error recovery, so wisi-generate is independent of mckenzie_recover.
+;; No error recovery, so wisi-generate is independent of
+;; mckenzie_recover, to simplify working on mckenzie_recover.
 
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
 
-%%
-;;;; grammar rules
+;;;; grammar rules, no particular order
 
 declaration
   : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
+    %(Add_Declaration (User_Data, Tree, Tokens);)%
+  | PERCENT CODE identifier_list RAW_CODE
     %(Add_Declaration (User_Data, Tree, Tokens);)%
   | PERCENT IDENTIFIER declaration_item_list
     %(Add_Declaration (User_Data, Tree, Tokens);)%
@@ -104,6 +98,11 @@ token_keyword_non_grammar
   : KEYWORD
   | NON_GRAMMAR LESS IDENTIFIER GREATER
   | TOKEN LESS IDENTIFIER GREATER
+  ;
+
+identifier_list
+  : IDENTIFIER
+  | identifier_list IDENTIFIER
   ;
 
 declaration_item_list
@@ -151,10 +150,7 @@ token_list
 ;; We don't enforce a complete order, nor require all parts, so
 ;; partial files can still be parsed successfully.
 compilation_unit
-  : PREAMBLE
-    %(Add_Preamble (User_Data, Tree, Tokens);)%
-  | declaration
-  | PERCENT_PERCENT
+  : declaration
   | nonterminal
   ;
 

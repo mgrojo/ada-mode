@@ -37,26 +37,19 @@ with Wisi.Output_Elisp_Common; use Wisi.Output_Elisp_Common;
 with Wisi.Utils;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
+with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Ada_Emacs
-  (Input_File_Name       : in String;
+  (Input_Data            : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
    Output_File_Name_Root : in String;
-   Language_Name         : in String;
-   Generate_Params       : in Generate_Param_Type;
-   Prologues             : in Wisi.Prologues;
-   Tokens                : in Wisi.Tokens;
-   Conflicts             : in Conflict_Lists.List;
-   McKenzie_Recover      : in McKenzie_Recover_Param_Type;
-   Elisp_Names           : in Wisi.Elisp_Names;
-   Rule_Count            : in Integer;
-   Action_Count          : in Integer;
-   Check_Count           : in Integer;
-   Declare_Enum          : in Boolean)
+   Language_Name         : in String)
 is
+   use all type WisiToken.Unknown_State_Index;
    use all type Standard.Ada.Containers.Count_Type;
 
    Language_Runtime_Package : constant String := "WisiToken.Wisi_Runtime." & Language_Name;
 
-   package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Generate_Params);
+   package Common is new Wisi.Gen_Output_Ada_Common
+     (Input_Data.Raw_Code, Input_Data.Tokens, Input_Data.Conflicts, Input_Data.Generate_Params);
    use Common;
 
    function Split_Sexp
@@ -160,7 +153,7 @@ is
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
 
-      Sexps : constant String_Lists.List := Split_Sexp (-Unsplit_Lines, Input_File_Name, RHS.Source_Line);
+      Sexps : constant String_Lists.List := Split_Sexp (-Unsplit_Lines, Input_Data.Lexer.File_Name, RHS.Source_Line);
 
       use all type Standard.Ada.Strings.Maps.Character_Set;
 
@@ -199,9 +192,9 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       end Statement_Params;
 
@@ -211,7 +204,7 @@ is
          First  : constant Integer := Index_Non_Blank (Params);
          Second : constant Integer := Index (Params, Blank_Set, First);
       begin
-         return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, " &
+         return " (Parse_Data, Tree, Nonterm, Tokens, " &
            Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
       end Containing_Params;
 
@@ -228,7 +221,7 @@ is
          Last   : Integer          := Index_Non_Blank (Params); -- skip [
          First  : Integer;
          Vector : Boolean;
-         Result : Unbounded_String := +" (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (";
+         Result : Unbounded_String := +" (Parse_Data, Tree, Nonterm, Tokens, (";
 
          Index_First  : Integer;
          Index_Last   : Integer;
@@ -261,7 +254,8 @@ is
                      Need_Comma_2 := True;
                   exception
                   when E : Not_Found =>
-                     Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+                     Put_Error
+                       (Input_Data.Lexer.File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
                   end;
                end loop;
 
@@ -303,35 +297,37 @@ is
             Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
 
             if Params (Last) = ']' then
-               Put_Error (Input_File_Name, RHS.Source_Line, "invalid wisi-face-apply argument");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-apply argument");
                exit;
             end if;
 
             First  := Index_Non_Blank (Params, Last + 1);
             Last   := Index (Params, Delim, First);
-            Result := Result & ',' & Integer'Image (Find_Elisp_ID (Elisp_Names.Faces, Params (First .. Last - 1)));
+            Result := Result & ',' & Integer'Image
+              (Find_Elisp_ID (Input_Data.Elisp_Names.Faces, Params (First .. Last - 1)));
 
             if Params (Last) = ']' then
-               Put_Error (Input_File_Name, RHS.Source_Line, "invalid wisi-face-apply argument");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-apply argument");
                exit;
             end if;
 
             First  := Index_Non_Blank (Params, Last + 1);
             Last   := Index (Params, Delim, First);
-            Result := Result & ',' & Integer'Image (Find_Elisp_ID (Elisp_Names.Faces, Params (First .. Last - 1))) &
-              ")";
+            Result := Result & ',' &
+              Integer'Image (Find_Elisp_ID (Input_Data.Elisp_Names.Faces, Params (First .. Last - 1))) & ")";
 
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
          Put_Error
-           (Input_File_Name, RHS.Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+           (Input_Data.Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
+              Standard.Ada.Exceptions.Exception_Message (E));
          return "";
       end Face_Apply_Params;
 
@@ -359,7 +355,7 @@ is
             Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
 
             if Params (Last) = ']' then
-               Put_Error (Input_File_Name, RHS.Source_Line, "invalid wisi-face-mark argument");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-mark argument");
                exit;
             end if;
 
@@ -370,14 +366,15 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
          Put_Error
-           (Input_File_Name, RHS.Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+           (Input_Data.Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
+              Standard.Ada.Exceptions.Exception_Message (E));
          return "";
       end Face_Mark_Params;
 
@@ -407,14 +404,15 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, (" & (-Result) & "))";
+            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
          Put_Error
-           (Input_File_Name, RHS.Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+           (Input_Data.Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
+              Standard.Ada.Exceptions.Exception_Message (E));
          return "";
       end Face_Remove_Params;
 
@@ -440,7 +438,7 @@ is
          subtype Digit is Character range '0' .. '9';
 
          Last          : Integer         := Index_Non_Blank (Params); -- skip [
-         Prefix        : constant String := " (Parse_Data, Tree, Tree_Nonterm, Tree_Tokens, " & N & "(";
+         Prefix        : constant String := " (Parse_Data, Tree, Nonterm, Tokens, " & N & "(";
          Result        : Unbounded_String;
          Need_Comma    : Boolean         := False;
          Param_Count   : Count_Type      := 0;            -- in Params
@@ -456,7 +454,9 @@ is
             elsif Elisp_Name = "wisi-hanging%"   then return "Hanging_1";
             elsif Elisp_Name = "wisi-hanging%-"  then return "Hanging_2";
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
+               Put_Error
+                 (Input_Data.Lexer.File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" &
+                    Elisp_Name & "'");
                return "";
             end if;
          end Indent_Label;
@@ -549,9 +549,9 @@ is
                   Last := Last + 1; -- get past ')'
                   return -Args;
 
-               elsif Is_Present (Elisp_Names.Indents, -Function_Name) then
+               elsif Is_Present (Input_Data.Elisp_Names.Indents, -Function_Name) then
                   --  Language-specific function call
-                  Function_Name := +Value (Elisp_Names.Indents, -Function_Name);
+                  Function_Name := +Value (Input_Data.Elisp_Names.Indents, -Function_Name);
                   Arg_Count     := 0;
                   loop
                      exit when Params (Last) = ')';
@@ -604,7 +604,7 @@ is
             end if;
          exception
          when E : others =>
-            Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
             return "";
          end Expression;
 
@@ -652,7 +652,7 @@ is
                Result := Result & "(True, " & Ensure_Indent_Param (Expression (Last + 1));
                Result := Result & ", " & Ensure_Indent_Param (Expression (Last + 1)) & ')';
                if Params (Last) /= ']' then
-                  Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent syntax");
+                  Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "invalid indent syntax");
                end if;
                Last := Last + 1;
 
@@ -666,8 +666,8 @@ is
 
          if Param_Count /= RHS.Production.Length then
             Put_Error
-              (Input_File_Name, RHS.Source_Line, "indent parameters count of" & Count_Type'Image (Param_Count) &
-                 " /= production token count of" & Count_Type'Image (RHS.Production.Length));
+              (Input_Data.Lexer.File_Name, RHS.Source_Line, "indent parameters count of" & Count_Type'Image
+                 (Param_Count) & " /= production token count of" & Count_Type'Image (RHS.Production.Length));
          end if;
 
          if Param_Count = 1 then
@@ -698,8 +698,8 @@ is
          return " (Lexer, Descriptor, Tokens, " &
            Params (First .. Second - 1) & ',' &
            Params (Second .. Params'Last - 1) & ", " &
-           (if Length (Generate_Params.End_Names_Optional_Option) > 0
-            then -Generate_Params.End_Names_Optional_Option
+           (if Length (Input_Data.Generate_Params.End_Names_Optional_Option) > 0
+            then -Input_Data.Generate_Params.End_Names_Optional_Option
             else "False") & ")";
       end Match_Names_Params;
 
@@ -730,7 +730,7 @@ is
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "multiple face actions");
             end if;
 
          elsif Elisp_Name = "wisi-face-apply-list-action" then
@@ -738,7 +738,7 @@ is
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "multiple face actions");
             end if;
 
          elsif Elisp_Name = "wisi-face-mark-action" then
@@ -746,7 +746,7 @@ is
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Mark_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "multiple face actions");
             end if;
 
          elsif Elisp_Name = "wisi-face-remove-action" then
@@ -754,7 +754,7 @@ is
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Remove_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "multiple face actions");
             end if;
 
          elsif Elisp_Name = "wisi-indent-action" then
@@ -762,7 +762,7 @@ is
                Indent_Action_Line := +"Indent_Action_0" &
                  Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "multiple indent actions");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "multiple indent actions");
             end if;
 
          elsif Elisp_Name = "wisi-indent-action*" then
@@ -774,12 +774,12 @@ is
                     Indent_Params (Line (Temp + 1 .. Line'Last), Line (Last + 1 .. Temp - 1) & ", ") & ";";
                end;
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "multiple indent actions");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "multiple indent actions");
             end if;
 
          elsif Elisp_Name = "wisi-propagate-name" then
             if not Check then
-               Put_Error (Input_File_Name, RHS.Source_Line, Elisp_Name & " used in action");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, Elisp_Name & " used in action");
                return;
             end if;
             Check_Lines.Append
@@ -788,7 +788,7 @@ is
 
          elsif Elisp_Name = "wisi-merge-names" then
             if not Check then
-               Put_Error (Input_File_Name, RHS.Source_Line, Elisp_Name & " used in action");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, Elisp_Name & " used in action");
                return;
             end if;
             Check_Lines.Append
@@ -797,7 +797,7 @@ is
 
          elsif Elisp_Name = "wisi-match-names" then
             if not Check then
-               Put_Error (Input_File_Name, RHS.Source_Line, Elisp_Name & " used in action");
+               Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, Elisp_Name & " used in action");
                return;
             end if;
             Check_Lines.Append
@@ -805,7 +805,7 @@ is
                  Match_Names_Params (Line (Last + 1 .. Line'Last)) & ";");
 
          else
-            Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized elisp action: '" & Elisp_Name & "'");
+            Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, "unrecognized elisp action: '" & Elisp_Name & "'");
          end if;
       end Translate_Line;
 
@@ -815,7 +815,7 @@ is
             Translate_Line (Sexp);
          exception
          when E : Not_Found =>
-            Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            Put_Error (Input_Data.Lexer.File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
          end;
       end loop;
 
@@ -851,10 +851,10 @@ is
       else
          --  In an action
          Indent_Line ("procedure " & Name);
-         Indent_Line (" (User_Data    : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
-         Indent_Line ("  Tree         : in out WisiToken.Syntax_Trees.Tree;");
-         Indent_Line ("  Tree_Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
-         Indent_Line ("  Tree_Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
+         Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
+         Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
+         Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
+         Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
          Indent_Line ("is");
          Indent_Start ("   Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames");
          Put_Line (" WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);");
@@ -899,84 +899,36 @@ is
 
    end Create_Ada_Action;
 
-   procedure Create_Ada_Body
+   procedure Create_Ada_Actions_Body
+     (Ada_Action_Names : out Nonterminal_Array_Action_Names;
+      Ada_Check_Names  : out Nonterminal_Array_Action_Names;
+      Package_Name     : in     String)
    is
-      use all type WisiToken.Unknown_State_Index;
       use Standard.Ada.Strings.Unbounded;
       use Generate_Utils;
       use Wisi.Utils;
 
       File_Name : constant String := Output_File_Name_Root &
         (case Data.Interface_Kind is
-         when Process => "_process",
-         when Module  => "_module") &
+         when Process => "_process_actions",
+         when Module  => "_module_actions") &
         ".adb";
-
-      Package_Name : constant String := -Data.Package_Name_Root &
-        (case Data.Interface_Kind is
-         when Process => "_Process",
-         when Module  => "_Module");
 
       Body_File : File_Type;
 
    begin
-      if Data.Generator_Algorithm in LALR | LALR_LR1 then
-         Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
-           (Data.Grammar,
-            LALR_Descriptor,
-            WisiToken.State_Index (Generate_Params.First_State_Index),
-            Generate_Utils.To_Conflicts
-              (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
-               Data.Reduce_Reduce_Conflict_Count),
-            Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
-            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
-            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
-
-         Data.Parser_State_Count := Parsers (LALR).State_Last - Parsers (LALR).State_First + 1;
-      end if;
-
-      if Data.Generator_Algorithm in LR1 | LALR_LR1 then
-         Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
-           (Data.Grammar,
-            LR1_Descriptor,
-            WisiToken.State_Index (Generate_Params.First_State_Index),
-            Generate_Utils.To_Conflicts
-              (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
-               Data.Reduce_Reduce_Conflict_Count),
-            Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
-            Trace                    => WisiToken.Trace_Generate > 1,
-            Put_Parse_Table          => WisiToken.Trace_Generate > 0,
-            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
-            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
-
-         Data.Parser_State_Count := WisiToken.Unknown_State_Index'Max
-           (Data.Parser_State_Count,
-            Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
-      end if;
-
       Create (Body_File, Out_File, File_Name);
       Set_Output (Body_File);
       Indent := 1;
-      Put_Line ("--  generated by WisiToken Wisi from " & Input_File_Name);
-      Put_Command_Line  ("--  ");
-      Put_Line ("--");
-      Put_Prologue
-        (Ada_Comment,
-         (if Prologues.Body_Context_Clause.Length > 0
-          then Prologues.Body_Context_Clause
-          else Prologues.Spec_Context_Clause));
+      Put_File_Header (Ada_Comment);
+      Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      Put_Line ("with WisiToken.Lexer.re2c;");
-      if Check_Count > 0 then
-         Put_Line ("with WisiToken.Semantic_Checks; use WisiToken.Semantic_Checks;");
-      end if;
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
-      if Generate_Params.Language_Runtime then
+      if Input_Data.Generate_Params.Language_Runtime then
          Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
+         --  For language-specific names in actions, checks.
       end if;
-
-      Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
 
       case Data.Interface_Kind is
       when Process =>
@@ -992,20 +944,16 @@ is
       Indent := Indent + 3;
       New_Line;
 
+      if Input_Data.Check_Count > 0 then
+         Indent_Line ("use WisiToken.Semantic_Checks;");
+      end if;
       Indent_Line ("use all type Motion_Param_Array;");
-      New_Line;
-
-      Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-      Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
-      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
-      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
-      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
       New_Line;
 
       --  generate Action and Check subprograms, populate Ada_Action_Names,
       --  Ada_Check_Names.
 
-      for Rule of Tokens.Rules loop
+      for Rule of Input_Data.Tokens.Rules loop
          --  No need for a Token_Cursor here, since we only need the
          --  nonterminals.
          declare
@@ -1023,7 +971,7 @@ is
                   declare
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (Prod_Index);
                   begin
-                     Action_Names (Prod_Index) := new String'(Name & "'Access");
+                     Action_Names (Prod_Index) := new String'(Name);
                      Create_Ada_Action (Name, RHS, RHS.Action, Check => False);
                   end;
                end if;
@@ -1034,7 +982,7 @@ is
                      Name : constant String := -Rule.Left_Hand_Side & '_' &
                        WisiToken.Trimmed_Image (Prod_Index) & "_check";
                   begin
-                     Check_Names (Prod_Index) := new String'(Name & "'Access");
+                     Check_Names (Prod_Index) := new String'(Name);
                      Create_Ada_Action (Name, RHS, RHS.Check, Check => True);
                   end;
                end if;
@@ -1050,9 +998,57 @@ is
          end;
       end loop;
 
+      Put_Line ("end " & Package_Name & ";");
+      Close (Body_File);
+
+      Set_Output (Standard_Output);
+
+   end Create_Ada_Actions_Body;
+
+   procedure Create_Ada_Main_Body
+     (Ada_Action_Names     : in Nonterminal_Array_Action_Names;
+      Ada_Check_Names      : in Nonterminal_Array_Action_Names;
+      Actions_Package_Name : in String;
+      Main_Package_Name    : in String)
+   is
+      use Standard.Ada.Strings.Unbounded;
+      use Generate_Utils;
+      use Wisi.Utils;
+
+      File_Name : constant String := Output_File_Name_Root &
+        (case Data.Interface_Kind is
+         when Process => "_process_main",
+         when Module  => "_module_main") &
+        ".adb";
+
+      Body_File : File_Type;
+
+   begin
+      Create (Body_File, Out_File, File_Name);
+      Set_Output (Body_File);
+      Indent := 1;
+      Put_File_Header (Ada_Comment);
+      Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
+      New_Line;
+
+      Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
+      Put_Line ("with WisiToken.Lexer.re2c;");
+      Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
+
+      Put_Line ("package body " & Main_Package_Name & " is");
+      Indent := Indent + 3;
+      New_Line;
+
+      Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
+      Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
+      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
+      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
+      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
+      New_Line;
+
       Create_Create_Parser
-        (Data.Generator_Algorithm, Data.Interface_Kind, Generate_Params.First_State_Index,
-         Generate_Params.First_Parser_Label);
+        (Data.Generator_Algorithm, Data.Interface_Kind, Input_Data.Generate_Params.First_State_Index,
+         Input_Data.Generate_Params.First_Parser_Label, Ada_Action_Names, Ada_Check_Names);
 
       case Data.Interface_Kind is
       when Process =>
@@ -1086,7 +1082,7 @@ is
          Indent_Line ("is");
          Indent_Line ("   Lexer_Elisp_Symbols : Lexers.Elisp_Array_Emacs_Value;");
          Indent_Line ("begin");
-         Indent_Line ("   " & Package_Name & ".Env := Env;");
+         Indent_Line ("   " & Main_Package_Name & ".Env := Env;");
          Indent_Line ("   Emacs_Module_Aux.Init (Env);");
          Indent_Line ("   for I in Token_Symbols'Range loop");
          Indent_Line ("      Token_Symbols (I) := Intern_Soft (Env, Token_Images (I).all);");
@@ -1112,26 +1108,12 @@ is
          New_Line;
       end case;
 
-      Put_Line ("end " & Package_Name & ";");
+      Put_Line ("end " & Main_Package_Name & ";");
       Close (Body_File);
 
       Set_Output (Standard_Output);
 
-      if WisiToken.Trace_Generate > 0 then
-         --  Match wisi-output_elisp, wisi-output_ada format
-         Put_Line
-           (Integer'Image (Rule_Count) & " rules," &
-              Integer'Image (Action_Count) & " actions," &
-              Integer'Image (Check_Count) & " checks," &
-              WisiToken.State_Index'Image (Data.Parser_State_Count) & " states," &
-              Integer'Image (Data.Table_Entry_Count) & " table entries");
-         Put_Line
-           (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
-              Integer'Image (Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-              Integer'Image (Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
-
-      end if;
-   end Create_Ada_Body;
+   end Create_Ada_Main_Body;
 
    procedure Create_Process_Elisp
    is
@@ -1147,10 +1129,10 @@ is
       Set_Output (File);
       Indent := 1;
 
-      Put_Line (";; generated by WisiToken Wisi from " & Input_File_Name);
-      Put_Command_Line (";; ");
-      Put_Line (";;");
-      Put_Prologue (Elisp_Comment, Prologues.Spec_Context_Clause);
+      Put_Line
+        (";;; " & Output_File_Name_Root & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
+      Put_Command_Line (Elisp_Comment & "  ");
+      Put_Raw_Code (Elisp_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
       Put_Line ("(require 'wisi-process-parse)");
       New_Line;
@@ -1171,7 +1153,7 @@ is
       Indent := Indent - 3;
       New_Line;
 
-      Output_Elisp_Common.Indent_Name_Table (Output_File_Name_Root, "process-face-table", Elisp_Names.Faces);
+      Output_Elisp_Common.Indent_Name_Table (Output_File_Name_Root, "process-face-table", Input_Data.Elisp_Names.Faces);
 
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);
@@ -1201,7 +1183,7 @@ is
       Set_Output (File);
       Indent := 1;
 
-      Put_Line (";; generated by WisiToken Wisi from " & Input_File_Name);
+      Put_Line (";; generated by WisiToken Wisi from " & Input_Data.Lexer.File_Name);
       Put_Command_Line (";; ");
       Put_Line (";;");
 
@@ -1211,10 +1193,10 @@ is
       New_Line;
 
       --  Lexer tables; also contain terminals for wisi-tokens
-      Indent_Keyword_Table (Output_File_Name_Root, "elisp", Tokens.Keywords, To_String'Access);
-      Indent_Keyword_Table (Output_File_Name_Root, "module", Tokens.Keywords, To_ID_Image'Access);
-      Indent_Token_Table (Output_File_Name_Root, "elisp", Tokens.Tokens, To_String'Access);
-      Indent_Token_Table (Output_File_Name_Root, "module", Tokens.Tokens, To_ID_Image'Access);
+      Indent_Keyword_Table (Output_File_Name_Root, "elisp", Input_Data.Tokens.Keywords, To_String'Access);
+      Indent_Keyword_Table (Output_File_Name_Root, "module", Input_Data.Tokens.Keywords, To_ID_Image'Access);
+      Indent_Token_Table (Output_File_Name_Root, "elisp", Input_Data.Tokens.Tokens, To_String'Access);
+      Indent_Token_Table (Output_File_Name_Root, "module", Input_Data.Tokens.Tokens, To_ID_Image'Access);
 
       --  non-terminals. We only need the ones that actually have
       --  actions, and thus will appear in a call to To_Emacs. But
@@ -1224,7 +1206,7 @@ is
       Indent_Line (" '(");
       Indent := Indent + 3;
       Indent_Line (-WisiToken_Accept_Name);
-      for Rule of Tokens.Rules loop
+      for Rule of Input_Data.Tokens.Rules loop
          Indent_Line (-Rule.Left_Hand_Side);
       end loop;
       Indent_Line ("))");
@@ -1282,7 +1264,7 @@ is
       Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse.gpr");
       Set_Output (File);
       Indent := 1;
-      Put_Line ("-- generated by WisiToken Wisi from " & Input_File_Name);
+      Put_Line ("-- generated by WisiToken Wisi from " & Input_Data.Lexer.File_Name);
       Put_Command_Line ("-- ");
       Indent_Line ("with ""wisi_module_parse_common"";");
       Indent_Line ("library project " & Package_Name_Root & "_Wisi_Module_Parse is");
@@ -1348,7 +1330,7 @@ is
       Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse_agg.gpr");
       Set_Output (File);
       Indent := 1;
-      Put_Line ("-- generated by WisiToken Wisi from " & Input_File_Name);
+      Put_Line ("-- generated by WisiToken Wisi from " & Input_Data.Lexer.File_Name);
       Put_Command_Line ("-- ");
       Indent_Line ("aggregate project " & Package_Name_Root & "_Wisi_Module_Parse_Agg is");
       Indent_Line ("   for Project_Path use (external (""WISI_FASTTOKEN""));");
@@ -1360,7 +1342,7 @@ is
       Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse_wrapper.c");
       Set_Output (File);
       Indent := 1;
-      Put_Line ("// generated by WisiToken Wisi from " & Input_File_Name);
+      Put_Line ("// generated by WisiToken Wisi from " & Input_Data.Lexer.File_Name);
       Put_Command_Line ("// ");
       Indent_Line ("//  This file is just a wrapper around the Ada code in");
       Indent_Line ("//  *_wisi_module_parse.adb; it is needed to call adainit.");
@@ -1388,8 +1370,11 @@ is
       Close (File);
    end Create_Module_Aux;
 
+   Ada_Action_Names : Nonterminal_Array_Action_Names;
+   Ada_Check_Names  : Nonterminal_Array_Action_Names;
+
 begin
-   Common.Initialize (Input_File_Name, Output_File_Name_Root, Check_Interface => True);
+   Common.Initialize (Input_Data.Lexer.File_Name, Output_File_Name_Root, Check_Interface => True);
    Wisi.Utils.Error := False;
 
    case Data.Lexer is
@@ -1400,25 +1385,80 @@ begin
       raise Programmer_Error with "Ada_Emacs requires re2c lexer";
    end case;
 
-   Create_Ada_Spec
-     (Input_File_Name,
-      Output_File_Name => Output_File_Name_Root &
-        (case Data.Interface_Kind is
-         when Process => "_process",
-         when Module  => "_module") &
-        ".ads",
-      Package_Name => -Data.Package_Name_Root &
-        (case Data.Interface_Kind is
-         when Process => "_Process",
-         when Module  => "_Module"),
-      Output_Language => Ada_Emacs,
-      Descriptor      => Generate_Utils.LALR_Descriptor,
-      Interface_Kind  => Generate_Params.Interface_Kind,
-      Declare_Enum    => Declare_Enum);
+   if Data.Generator_Algorithm in LALR | LALR_LR1 then
+      Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
+        (Data.Grammar,
+         Generate_Utils.LALR_Descriptor,
+         WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
+         Generate_Utils.To_Conflicts
+           (Input_Data.Lexer.File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
+            Data.Reduce_Reduce_Conflict_Count),
+         Generate_Utils.To_McKenzie_Param (Input_Data.McKenzie_Recover),
+         Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
+         Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
-   Create_Ada_Body;
+      Data.Parser_State_Count := Parsers (LALR).State_Last - Parsers (LALR).State_First + 1;
+   end if;
 
-   Create_re2c (Input_File_Name, Output_File_Name_Root, Elisp_Names.Regexps);
+   if Data.Generator_Algorithm in LR1 | LALR_LR1 then
+      Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
+        (Data.Grammar,
+         Generate_Utils.LR1_Descriptor,
+         WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
+         Generate_Utils.To_Conflicts
+           (Input_Data.Lexer.File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
+            Data.Reduce_Reduce_Conflict_Count),
+         Generate_Utils.To_McKenzie_Param (Input_Data.McKenzie_Recover),
+         Trace                    => WisiToken.Trace_Generate > 1,
+         Put_Parse_Table          => WisiToken.Trace_Generate > 0,
+         Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
+         Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
+
+      Data.Parser_State_Count := WisiToken.Unknown_State_Index'Max
+        (Data.Parser_State_Count,
+         Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
+   end if;
+
+   declare
+      Actions_Package_Name : constant String := -Data.Package_Name_Root &
+        (case Data.Interface_Kind is
+         when Process => "_Process_Actions",
+         when Module   => "_Module_Actions");
+
+      Main_Package_Name : constant String := -Data.Package_Name_Root &
+        (case Data.Interface_Kind is
+         when Process => "_Process_Main",
+         when Module  => "_Module_Main");
+   begin
+      Create_Ada_Actions_Body (Ada_Action_Names, Ada_Check_Names, Actions_Package_Name);
+
+      Create_Ada_Actions_Spec
+        (Output_File_Name => Output_File_Name_Root &
+           (case Data.Interface_Kind is
+            when Process  => "_process_actions.ads",
+            when Module   => "_module_actions.ads"),
+         Package_Name     => Actions_Package_Name,
+         Descriptor       => Generate_Utils.LALR_Descriptor,
+         Declare_Enum     => Input_Data.Generate_Params.Language_Runtime,
+         Ada_Action_Names => Ada_Action_Names,
+         Ada_Check_Names  => Ada_Check_Names,
+         Actions_Present  => Input_Data.Action_Count > 0,
+         Checks_Present   => Input_Data.Check_Count > 0);
+
+      Create_Ada_Main_Body (Ada_Action_Names, Ada_Check_Names, Actions_Package_Name, Main_Package_Name);
+
+      Create_Ada_Main_Spec
+        (Input_Data.Lexer.File_Name,
+         Output_File_Name => Output_File_Name_Root &
+           (case Data.Interface_Kind is
+            when Process      => "_process_main.ads",
+            when Module       => "_module_main.ads"),
+         Main_Package_Name    => Main_Package_Name,
+         Output_Language      => Ada_Emacs,
+         Interface_Kind       => Input_Data.Generate_Params.Interface_Kind);
+   end;
+
+   Create_re2c (Output_File_Name_Root, Input_Data.Elisp_Names.Regexps);
 
    case Data.Interface_Kind is
    when Process =>
@@ -1429,8 +1469,23 @@ begin
       Create_Module_Aux;
    end case;
 
+   if WisiToken.Trace_Generate > 0 then
+      --  Match wisi-output_elisp, wisi-output_ada format
+      Put_Line
+        (Integer'Image (Input_Data.Rule_Count) & " rules," &
+           Integer'Image (Input_Data.Action_Count) & " actions," &
+           Integer'Image (Input_Data.Check_Count) & " checks," &
+           WisiToken.State_Index'Image (Data.Parser_State_Count) & " states," &
+           Integer'Image (Data.Table_Entry_Count) & " table entries");
+      Put_Line
+        (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+           Integer'Image (Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+           Integer'Image (Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+
+   end if;
+
    if Wisi.Utils.Error then
-      Wisi.Utils.Put_Error (Input_File_Name, 1, "Errors: aborting");
+      Wisi.Utils.Put_Error (Input_Data.Lexer.File_Name, 1, "Errors: aborting");
       raise WisiToken.Syntax_Error;
    end if;
 exception

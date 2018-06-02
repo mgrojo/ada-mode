@@ -2,11 +2,7 @@
 ;;
 ;; Tests run by test_skip_to.ads
 
-%{
-%%
-%%
-with Test_Skip_To_Aux; use Test_Skip_To_Aux;
-%}
+%code actions body context %{with Test_Skip_To_Aux; use Test_Skip_To_Aux;}%
 
 %keyword PERCENT "%"
 %token <delimited-text> PREAMBLE "%{" "%}"
@@ -20,8 +16,6 @@ with Test_Skip_To_Aux; use Test_Skip_To_Aux;
 %generator_algorithm LALR
 
 %start compilation_unit_list
-
-%%
 
 declaration
   : PERCENT IDENTIFIER declaration_item_list
@@ -46,5 +40,4 @@ compilation_unit_list
   : compilation_unit
   | compilation_unit_list compilation_unit
 ;
-%%
 ;; end of file

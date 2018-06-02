@@ -1,9 +1,5 @@
 ;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
 
-%{
-%%
-%}
-
 %token <punctuation> SEMICOLON ";"
 
 %keyword ACCEPT "accept"
@@ -20,8 +16,6 @@
 %generator_algorithm LALR_LR1
 %output_language Ada
 %lexer re2c
-
-%%
 
 compilation_unit
   : accept_statement accept_statement
@@ -41,5 +35,4 @@ parameter_profile
   | LEFT_PAREN IDENTIFIER RIGHT_PAREN
   ;
 
-
-%%
+;; end of file

@@ -4,10 +4,6 @@
 ;;; also testing pending actions; object_declaration action is not
 ;;; output until after conflict is resolved.
 
-%{
-%%
-%}
-
 %keyword ALIASED "aliased"
 %keyword CONSTANT "constant"
 
@@ -27,8 +23,6 @@
 %lexer re2c
 
 %conflict SHIFT/REDUCE in state object_declaration, object_declaration  on token CONSTANT
-
-%%
 
 object_declaration_list
   : object_declaration
@@ -50,5 +44,4 @@ constant_opt
   | CONSTANT
   ;
 
-%%
 ;;; end of file

@@ -1,9 +1,5 @@
 ;;; finding bug in parse table generator; 2 consecutive nonterms can be empty
 
-%{
-%%
-%}
-
 %keyword ALIASED "aliased"
 %keyword CONSTANT "constant"
 
@@ -18,8 +14,6 @@
 %generator_algorithm LALR_LR1
 %output_language Ada
 %lexer re2c
-
-%%
 
 object_declaration_list
   : object_declaration
@@ -40,5 +34,4 @@ constant_opt
   | CONSTANT
   ;
 
-%%
 ;;; end of file

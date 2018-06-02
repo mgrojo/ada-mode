@@ -183,6 +183,28 @@ package WisiToken.LR is
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
+   function Duplicate_Reduce (State : in Parse_State) return Boolean;
+   --  True if all actions are the same reduce; can use Add_Action (symbols).
+
+   function Actions_Length (State : in Parse_State) return Integer;
+   --  Not including Error.
+
+   function Symbols_Image (State : in Parse_State) return String;
+   --  Return image of symbols in State actions (assumed to be a
+   --  Duplicate_Reduce state), in Ada aggregate syntax.
+
+   procedure Add_Action
+     (State           : in out Parse_State;
+      Symbols         : in     Token_ID_Array;
+      Production      : in     Production_ID;
+      LHS_ID          : in     Token_ID;
+      RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Name_Index      : in     Natural;
+      Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
+      Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
+   --  Add duplicate Reduce actions, and final Error action, to tail of
+   --  State action list.
+
    procedure Add_Action
      (State             : in out Parse_State;
       Shift_Productions : in     Production_ID_Array;

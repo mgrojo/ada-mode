@@ -19,10 +19,6 @@
 ;;  7 - two consecutive empty productions not first
 ;;  8 - two consecutive empty productions, confused with a similar production
 
-%{
-%%
-%}
-
 %keyword BEGIN "begin"
 %keyword IS "is"
 
@@ -38,8 +34,6 @@
 %output_language Ada
 %lexer re2c
 
-%%
-
 declarations
   : body
   | declarations body
@@ -54,6 +48,4 @@ body
   : IS declarative_part BEGIN SEMICOLON
     %(null; -- wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])%
   ;
-
-%%
 ;;; end of file

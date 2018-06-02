@@ -34,7 +34,8 @@ with Wisi.Output_Elisp_Common;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
-with Wisi_Grammar;
+with Wisi_Grammar_Actions;
+with Wisi_Grammar_Main;
 procedure Wisi.Generate
 is
    use all type Standard.Ada.Containers.Count_Type;
@@ -67,19 +68,17 @@ is
       Put_Line (Standard_Error, "     0 - only error messages to standard error");
       Put_Line (Standard_Error, "     1 - add compiled grammar output to standard out");
       Put_Line (Standard_Error, "     2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
-      Put_Line (Standard_Error, "  --enum; declare enumeration token type");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error,
                 "  --<directive_name> <value>; same as directive in grammar file; override grammar file");
 
    end Put_Usage;
 
-   Language_Name      : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Output_File_Root   : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Declare_Enum       : Boolean := False;
-   Suffix             : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Language_Name    : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Suffix           : Standard.Ada.Strings.Unbounded.Unbounded_String;
 
-   Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar.Descriptor'Access);
+   Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
    Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
    Grammar_Parser     : WisiToken.LR.Parser_No_Recover.Parser;
 
@@ -88,11 +87,9 @@ is
       use Standard.Ada.Strings.Unbounded;
       use Standard.Ada.Text_IO;
    begin
-      Grammar_Parse_Data.Input_File_Name := +File_Name;
-
       Output_File_Root := +Standard.Ada.Directories.Base_Name (File_Name) & Suffix;
 
-      Wisi_Grammar.Create_Parser
+      Wisi_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Algorithm => WisiToken.LALR,
          Trace     => Trace'Unchecked_Access,
@@ -133,10 +130,6 @@ begin
             Arg_Next  := Arg_Next + 1;
             WisiToken.Trace_Generate := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "--enum" then
-            Declare_Enum := True;
-            Arg_Next     := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--first_state_index" then
             Arg_Next  := Arg_Next + 1;
@@ -211,7 +204,7 @@ begin
       Grammar_Parser.Execute_Actions;
    exception
    when WisiToken.Syntax_Error =>
-      Grammar_Parser.Put_Errors (-Grammar_Parse_Data.Input_File_Name);
+      Grammar_Parser.Put_Errors (Grammar_Parse_Data.Lexer.File_Name);
       raise;
    end;
 
@@ -224,26 +217,15 @@ begin
       raise Programmer_Error; -- checked in wisi.declarations
 
    when Ada =>
-      Wisi.Output_Ada
-        (-Grammar_Parse_Data.Input_File_Name, -Output_File_Root, Grammar_Parse_Data.Generate_Params,
-         Grammar_Parse_Data.Prologues, Grammar_Parse_Data.Tokens, Grammar_Parse_Data.Conflicts,
-         Grammar_Parse_Data.McKenzie_Recover, Grammar_Parse_Data.Elisp_Names, Grammar_Parse_Data.Rule_Count,
-         Grammar_Parse_Data.Action_Count, Grammar_Parse_Data.Check_Count, Declare_Enum);
+      Wisi.Output_Ada (Grammar_Parse_Data, -Output_File_Root);
 
    when Ada_Emacs =>
-      Wisi.Output_Ada_Emacs
-        (-Grammar_Parse_Data.Input_File_Name, -Output_File_Root, -Language_Name, Grammar_Parse_Data.Generate_Params,
-         Grammar_Parse_Data.Prologues, Grammar_Parse_Data.Tokens, Grammar_Parse_Data.Conflicts,
-         Grammar_Parse_Data.McKenzie_Recover, Grammar_Parse_Data.Elisp_Names, Grammar_Parse_Data.Rule_Count,
-         Grammar_Parse_Data.Action_Count, Grammar_Parse_Data.Check_Count, Declare_Enum);
+      Wisi.Output_Ada_Emacs (Grammar_Parse_Data, -Output_File_Root, -Language_Name);
 
    when Elisp =>
       --  The Elisp parser does not support any error recover algorithms,
       --  thus no semantic checks.
-      Wisi.Output_Elisp
-        (-Grammar_Parse_Data.Input_File_Name, -Output_File_Root, Grammar_Parse_Data.Generate_Params,
-         Grammar_Parse_Data.Prologues, Grammar_Parse_Data.Tokens, Grammar_Parse_Data.Conflicts,
-         Grammar_Parse_Data.Rule_Count, Grammar_Parse_Data.Action_Count);
+      Wisi.Output_Elisp (Grammar_Parse_Data, -Output_File_Root);
 
    end case;
 
