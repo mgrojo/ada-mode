@@ -33,8 +33,7 @@
 ;; extra productions. Optional constructs are implemented by repeated
 ;; productions
 
-;;; Prologue
-%{
+%code copyright_license %{
 ;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
@@ -49,7 +48,7 @@
 ;;
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-%}
+}%
 
 ;; Declarations
 
@@ -122,7 +121,6 @@
 %conflict SHIFT/REDUCE in state term, aggregate_g  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state case_statement, case_statement  on token WHEN
 
-%%
 ;; grammar rules, non-terminal alphabetical order
 
 aggregate_g
@@ -370,5 +368,4 @@ with_clause
   : WITH string_list SEMICOLON
   ;
 
-%%
 ;;; end of file

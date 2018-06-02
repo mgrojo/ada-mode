@@ -1,9 +1,8 @@
 ;; test ada-wisi number-literal lexer
 
-%{
+%code actions spec context %{
 (require 'ada-wisi) ;; for ada-wisi-number-p
-%}
-;; ' terminate quote
+}%
 
 ;; This defines comment syntax for the Ada parser. Comment syntax for
 ;; the elisp parser is defined by run-wisi-test
@@ -20,8 +19,6 @@
 %generator_algorithm LALR
 %output_language Elisp
 
-%%
-
 compilation_unit
   : number_list
     %((setq wisi-test-success t))%
@@ -37,9 +34,4 @@ number_list
   | number_list number
   ;
 
-%%
-
-;; Local Variables:
-;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-;; End:
 ;;; end of file

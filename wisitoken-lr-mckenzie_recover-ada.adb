@@ -20,14 +20,14 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 with Ada.Containers;
 with Ada.Exceptions;
-with Ada_Process;
+with Ada_Process_Actions;
 with System.Assertions;
 package body WisiToken.LR.McKenzie_Recover.Ada is
 
-   use all type Standard.Ada_Process.Token_Enum_ID; -- token names
+   use all type Ada_Process_Actions.Token_Enum_ID; -- token names
    use all type Semantic_Checks.Check_Status_Label;
 
-   Descriptor : WisiToken.Descriptor renames Standard.Ada_Process.Descriptor;
+   Descriptor : WisiToken.Descriptor renames Ada_Process_Actions.Descriptor;
 
    subtype Grammar_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal);
    subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
@@ -286,7 +286,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             if Matching_Name_Index = Config.Stack.Depth then
                --  case 0 or 2.
 
-               if Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) in
+               if Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) in
                  protected_body_ID | protected_type_declaration_ID |
                  single_protected_declaration_ID | single_task_declaration_ID
                then
@@ -302,7 +302,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
-                  case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+                  case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                   when block_statement_ID =>
                      Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
                      Insert (New_Config, +BEGIN_ID);
@@ -376,7 +376,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   Push_Back_Check
                     (New_Config,
                      (+SEMICOLON_ID,
-                     (case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+                     (case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                        when package_body_ID | package_specification_ID | subprogram_body_ID => +name_opt_ID,
                        when protected_type_declaration_ID | single_protected_declaration_ID => +protected_definition_ID,
                        when others =>  +identifier_opt_ID)));
@@ -483,7 +483,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
 
-               case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+               case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                when block_statement_ID | package_body_ID | subprogram_body_ID | task_body_ID =>
                   End_Item := Stack.Peek (3);
 
@@ -657,7 +657,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
 
-               case Ada_Process.Token_Enum_ID'(-Config.Error_Token.ID) is
+               case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                when block_statement_ID =>
                   Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
                   Insert (New_Config, (+END_ID, +SEMICOLON_ID));

@@ -52,6 +52,34 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+compiling ada_process on Debian VM fails
+    need it to browse langkit sources
+    split into multiple files
+    actions/main; not much help
+
+    compact duplicate reductions
+        just in process_main for now
+        add_action (state, (symbol, ...), Reduce ..., );
+
+    time gprbuild -p ada_mode_wisi_parse.gpr -c ada_process_actions.adb
+        4,522 lines, 0m5.238s
+
+    time gprbuild -p ada_mode_wisi_parse.gpr -c ada_process_main.adb
+    baseline: 20,829 lines, 1m38.732s
+
+    delete set Table.McKenzie_Param, table.productions, table.minimal_terminal_sequences (by hand as test):
+        19,857 lines, 1m33.050s
+
+    compact duplicate reductions: 13,298 lines, 1m26.983s
+
+    running wisitoken tests
+        fix prologues; need copyright/license in every file
+
+    test on Debian
+
+create_parser supposed to respect line limits
+    fix it
+
 unit_test/test_ada_recover Kill_Slow_Parser_2
     failing due to changed costs
 

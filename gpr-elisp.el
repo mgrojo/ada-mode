@@ -1,5 +1,5 @@
 ;;; gpr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp gpr.wy
+;;  command line: wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp gpr.wy
 
 ;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 

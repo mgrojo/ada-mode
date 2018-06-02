@@ -3,10 +3,10 @@
 ;;
 ;; This is a subset of the syntax for an Ada 2012 case expression
 ;;
-;; (ediff "case_expression.wy" "../../../org.wisitoken/wisi/test/case_expression.wy")
+;; (ediff "case_expression.wy" "../../../org.wisitoken.stephe-1/wisi/test/case_expression.wy")
 
-%{
-;; Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+%code copyright_license %{
+;;  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -20,17 +20,17 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;  requires added by wisi-generate
-%}
+}%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n]*[\n] ]%
+%non_grammar <non-reporting> COMMENT %[ "--"[^\n]*[\n] ]%
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
+
+%elisp_regexp wisi-number-p %[ ([0-9][0-9.]*) ]%
 
 %token <number> NUMBER_LITERAL wisi-number-p
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
@@ -39,11 +39,12 @@
 %keyword WHEN "when"
 
 %start case_expression
+
+;; match elisp grammar compiler, parser
 %first_state_index 0
 %first_parser_label 0
 %generator_algorithm LALR
 %output_language Elisp
-%%
 
 case_expression
   : WHEN discrete_choice EQUAL_GREATER factor
@@ -77,6 +78,4 @@ range_nt
   : IDENTIFIER TICK RANGE ;; range_attribute_reference
   | factor_list DOT_DOT factor_list
   ;
-
-%%
 ;;; end of file

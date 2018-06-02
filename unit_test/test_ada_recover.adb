@@ -19,7 +19,8 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-with Ada_Process; use Ada_Process;
+with Ada_Process_Actions; use Ada_Process_Actions;
+with Ada_Process_Main;
 with SAL;
 with WisiToken.LR.McKenzie_Recover.Ada;
 with WisiToken.LR.Parser.Gen_AUnit;
@@ -35,10 +36,10 @@ package body Test_Ada_Recover is
    Parser    : WisiToken.LR.Parser.Parser;
 
    Orig_Params : WisiToken.LR.McKenzie_Param_Type
-     (First_Terminal    => Ada_Process.Descriptor.First_Terminal,
-      Last_Terminal     => Ada_Process.Descriptor.Last_Terminal,
-      First_Nonterminal => Ada_Process.Descriptor.First_Nonterminal,
-      Last_Nonterminal  => Ada_Process.Descriptor.Last_Nonterminal);
+     (First_Terminal    => Descriptor.First_Terminal,
+      Last_Terminal     => Descriptor.Last_Terminal,
+      First_Nonterminal => Descriptor.First_Nonterminal,
+      Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
    Empty_Token_ID_Set : constant WisiToken.Token_ID_Set :=
      WisiToken.To_Token_ID_Set
@@ -103,7 +104,7 @@ package body Test_Ada_Recover is
       --  race condition).
 
       for I in Saved_Data'First .. Saved_Data_Last loop
-         Check_Range (Integer'Image (I), Saved_Data (I).Recover.Check_Count, 0, 1050);
+         Check_Range (Integer'Image (I), Saved_Data (I).Recover.Check_Count, 0, 1500);
       end loop;
    end Kill_Slow_Parser_2;
 
@@ -129,7 +130,7 @@ package body Test_Ada_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Create_Parser
+      Ada_Process_Main.Create_Parser
         (Parser,
          Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
          Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,

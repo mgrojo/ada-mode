@@ -1,7 +1,5 @@
 ;; test number-literal lexer
 
-%{
-%}
 %keyword NUMBER "number"
 
 %token <number> NUMERIC_LITERAL wisi-number-p
@@ -9,8 +7,6 @@
 %start compilation_unit
 %generator_algorithm LALR
 %output_language Elisp
-
-%%
 
 compilation_unit
   : number_list
@@ -22,5 +18,4 @@ number_list
   | number_list NUMBER NUMERIC_LITERAL
   ;
 
-%%
 ;;; end of file

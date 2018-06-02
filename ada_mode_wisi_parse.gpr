@@ -50,13 +50,23 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
 
-         for Switches ("ada_process.adb") use
+         --  Generated files; lines too long, don't need debug
+         for Switches ("ada_process_actions.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-         --  Debug_Switches dies with 'out of memory'; don't need debug in this file
 
-         for Switches ("gpr_process.adb") use
+         for Switches ("ada_process_main.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+
+         for Switches ("gpr_process_actions.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+
+         for Switches ("gpr_process_main.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
@@ -69,11 +79,15 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler.Release_Switches;
 
-         for Switches ("ada_process.adb") use
+         for Switches ("ada_process_actions.adb") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
-         -- With GNAT GPL 2016: gnatn hangs; 01 slow; 02 out of memory
+
+         for Switches ("ada_process_main.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
 
          for Switches ("gpr_process.adb") use
            Standard_Common.Compiler.Common_Switches &

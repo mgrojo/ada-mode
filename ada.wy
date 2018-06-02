@@ -33,8 +33,7 @@
 ;; see wisi.el for discussion of using the wisi parser for an
 ;; indentation engine.
 
-;;; Prologue
-%{
+%code copyright_license %{
 ;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
@@ -49,7 +48,7 @@
 ;;
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-%}
+}%
 
 ;; Declarations
 
@@ -335,7 +334,6 @@
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator  on token TICK_2
 %end if
 
-%%
 ;;;; grammar rules
 ;;
 ;; The actions cache information in keywords that are significant for
@@ -2669,5 +2667,4 @@ with_clause
       (wisi-indent-action [0 ada-indent-with 0])))%
   ;
 
-%%
 ;;; end of file

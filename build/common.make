@@ -72,9 +72,10 @@ elisp-clean :
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
-%_process.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum $(<F) > $(*F).ada_parse_table
-	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
+%_process_main.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
+	cd ./$(<D); dos2unix $(*F)_process_main.ads $(*F)_process_main.adb $(*F)-process.el $(*F).re2c
+	cd ./$(<D); dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
@@ -108,7 +109,7 @@ COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
 COMPILE_FILES := $(sort $(COMPILE_FILES))
 
 compile-ada-test : force
-	gprbuild -v -p ../test/ada_mode_compile.gpr
+	gprbuild -p ../test/ada_mode_compile.gpr
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's
 # check. We don't check any other style requirements; not needed for

@@ -3,9 +3,6 @@
 ;; also testing pending actions during conflict resolution; label_opt
 ;; action is not output until one parser terminates.
 
-%{
-%}
-
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
 %token <punctuation> SEMICOLON ";"
@@ -21,8 +18,6 @@
 
 %conflict SHIFT/REDUCE in state compilation_unit, compilation_unit  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state sequence_of_statements, sequence_of_statements  on token IDENTIFIER
-
-%%
 
 compilation_unit
   : BEGIN sequence_of_statements END SEMICOLON
@@ -44,5 +39,4 @@ label_opt
     %((wisi-statement-action [1 statement-start]))%
   ;
 
-%%
 ;;; end of file

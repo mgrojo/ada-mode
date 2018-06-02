@@ -18,7 +18,8 @@
 
 pragma License (GPL);
 
-with Gpr_Process; use Gpr_Process;
+with Gpr_Process_Actions; use Gpr_Process_Actions;
+with Gpr_Process_Main;
 with WisiToken.LR.Parser.Gen_AUnit;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
@@ -32,10 +33,10 @@ package body Test_Gpr_Recover is
    Parser    : WisiToken.LR.Parser.Parser;
 
    Orig_Params : WisiToken.LR.McKenzie_Param_Type
-     (First_Terminal    => Gpr_Process.Descriptor.First_Terminal,
-      Last_Terminal     => Gpr_Process.Descriptor.Last_Terminal,
-      First_Nonterminal => Gpr_Process.Descriptor.First_Nonterminal,
-      Last_Nonterminal  => Gpr_Process.Descriptor.Last_Nonterminal);
+     (First_Terminal    => Descriptor.First_Terminal,
+      Last_Terminal     => Descriptor.Last_Terminal,
+      First_Nonterminal => Descriptor.First_Nonterminal,
+      Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
    Empty_Token_ID_Set : constant WisiToken.Token_ID_Set :=
      WisiToken.To_Token_ID_Set
@@ -96,7 +97,7 @@ package body Test_Gpr_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Create_Parser
+      Gpr_Process_Main.Create_Parser
         (Parser,
          Language_Fixes               => null, -- WisiToken.LR.McKenzie_Recover.Gpr.Language_Fixes'Access,
          Language_Constrain_Terminals => null,

@@ -32,7 +32,7 @@ ADA_MODE_DIR ?= -L .. -l autoloads.el
 # compile with debug to get assertions for testing new code
 export Standard_Common_Build := Debug
 
-elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test autoloads test-clean test
+elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test test-clean test
 
 pub : docs pub-ada pub-wisi pub-ada-ref-man build-elpa uninstall-elpa
 
@@ -385,8 +385,8 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 $(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
 	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
-build_ada_executables : ../gpr_re2c.c gpr_process.ads force
-build_ada_executables : ../ada_re2c.c ada_process.ads force
+build_ada_executables : ../gpr_re2c.c gpr_process_main.ads force
+build_ada_executables : ../ada_re2c.c ada_process_main.ads force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_ada_executables : build_ada_executables
@@ -407,8 +407,10 @@ test_harness.exe : force
 ada_unit_tests : build_ada_executables test_harness.exe
 	../test_harness.exe $(RUN_ARGS)
 
-# only needed for editing, not compiling/running
+# only needed for editing, not compiling/running.
 # (load-file "ada_mode_unit_tests.el")
+# (project-menu-select-by-name "ada_mode_wisi_parse stephe-1")
+# (project-menu-select-by-name "ada_mode_unit_tests stephe-1")
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:

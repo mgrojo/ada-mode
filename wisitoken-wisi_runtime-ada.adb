@@ -18,7 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Fixed;
-with Ada_Process; -- FIXME: module? move token_enum_id (and more?) to separate package?
+with Ada_Process_Actions; --  token_enum_id
 package body WisiToken.Wisi_Runtime.Ada is
 
    function Indent_Record
@@ -30,7 +30,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       Offset            : in     Integer)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      use Ada_Process;
+      use Ada_Process_Actions;
    begin
       --  [1] ada-wisi-elisp-parse--indent-record-1.
 
@@ -202,7 +202,7 @@ package body WisiToken.Wisi_Runtime.Ada is
            (Data, Tree, Tokens, (Simple, D), Tree_Indenting, Indenting_Comment => False);
       end Comment_Result;
 
-      use Ada_Process;
+      use Ada_Process_Actions;
    begin
       if Tree.ID (Tree.Parent (Tree_Indenting)) = +association_opt_ID and then
         Syntax_Trees.Invalid_Node_Index /= Tree.Find_Ancestor (Tree_Indenting, +aspect_specification_opt_ID)
@@ -309,7 +309,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       pragma Unreferenced (Tokens);
 
       use all type Syntax_Trees.Node_Index;
-      use Ada_Process;
+      use Ada_Process_Actions;
 
       --  In our grammar, 'aggregate' can be an Ada aggregate, or a
       --  parenthesized expression.
@@ -398,7 +398,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      use all type Ada_Process.Token_Enum_ID;
+      use all type Ada_Process_Actions.Token_Enum_ID;
       --  Tokens (Args (1)) = 'formal_part'
       --  Indenting = 'result_profile'
       --  Args (2) = delta (= 0!)
@@ -475,7 +475,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       --
       --  Args (1) is the token ID of the anchor (= TYPE); it appears as a
       --  direct child in an ancestor 'full_type_declaration'.
-      use Ada_Process;
+      use Ada_Process_Actions;
 
       Full_Type_Declaration : constant Syntax_Trees.Valid_Node_Index := Tree.Find_Ancestor
         (Tree_Indenting, +full_type_declaration_ID);

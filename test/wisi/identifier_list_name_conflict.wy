@@ -8,7 +8,7 @@
 ;;
 ;; (ediff "identifier_list_name_conflict.wy" "../../../org.opentoken.stephe/wisi/test/identifier_list_name_conflict.wy")
 
-%{
+%code copyright_license %{
 ;; Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-%}
+}%
 
 %keyword LEFT_PAREN "("
 %keyword RIGHT_PAREN ")"
@@ -46,8 +46,6 @@
 %conflict REDUCE/REDUCE in state identifier_list, name on token IDENTIFIER
 %conflict REDUCE/REDUCE in state identifier_list, name on token STRING_LITERAL
 %conflict REDUCE/REDUCE in state identifier_list, name on token Wisi_EOI
-
-%%
 
 association
   : selector_name EQUAL_GREATER name
@@ -88,7 +86,5 @@ selector_name
   : IDENTIFIER
   | STRING_LITERAL  ;; operator_symbol
   ;
-
-%%
 
 ;;; end of file
