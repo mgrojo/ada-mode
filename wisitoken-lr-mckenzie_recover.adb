@@ -264,7 +264,8 @@ package body WisiToken.LR.McKenzie_Recover is
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
-         then System.Multiprocessors.Number_Of_CPUs - 1 --  Keep one CPU free for this main task, and the user.
+         then System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs - 1)
+         --  Keep one CPU free for this main task, and the user.
          else Shared_Parser.Table.McKenzie_Param.Task_Count);
 
       Worker_Tasks : array (1 .. Task_Count) of Worker_Task (Super'Access, Shared'Access);
