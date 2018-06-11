@@ -35,9 +35,10 @@ two : build_ada_executables
 two : force
 	./run_wisi_grammar_1_parse.exe wisi_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
-%_process.ads %.re2c : %.wy $(WISITOKEN)/wisi-generate.exe
-	$(WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum $(<F) > $(*F).ada_parse_table
-	dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
+%.re2c : %.wy $(WISITOKEN)/wisi-generate.exe
+	$(WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
+	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el $(*F).re2c
+	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
@@ -47,7 +48,7 @@ two : force
 # monotone update. Doing byte-compile-clean first avoids errors caused
 # by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L . -L $(WISI) --eval "(progn (add-to-list 'load-path \"c:/Projects/mmm-mode\")(package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(WISI) --eval "(progn (add-to-list 'load-path \"/Projects/mmm-mode\")(package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -103,7 +104,7 @@ test-wisi_grammar.stamp : test-clean
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-build_ada_executables : wisi_grammar_1_re2c.c wisi_grammar_1_process.ads force
+build_ada_executables : wisi_grammar_1_re2c.c force
 	gprbuild -p wisi_grammar.gpr
 
 install_ada_executables : build_ada_executables
@@ -118,7 +119,7 @@ exe-clean :
 
 # delete all files created by wisi-generate
 generate-clean :
-	rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-process.el *_process.ad?
+	rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-process.el *_process*.ad?
 
 # delete all files created by Emacs as backups
 source-clean :
@@ -143,7 +144,7 @@ zip :
 	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" -C $(TAR_DIR) $(TAR_PAT)
 
 .PHONY : all force one one-clean
-.PRECIOUS : %-process.el %.ads %.diff %.re2c %.tmp %_process.adb %_re2c.c
+.PRECIOUS : %-process.el %.ads %.diff %.re2c %.tmp %_re2c.c
 
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "wisi_grammar.el"))

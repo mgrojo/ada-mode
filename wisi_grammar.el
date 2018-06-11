@@ -8,8 +8,15 @@
 (let* ((prj-file "wisi_grammar.prj")
        (prj-name "wisi_grammar main")
        (prj (make-ada-project
-	     :env-vars '(("WISITOKEN" . "c:/Projects/org.wisitoken/build")
-			 ("WISI" . "c:/Projects/org.emacs.ada-mode.stephe-2"))
+	     :env-vars
+	     (cl-ecase system-type
+	       (gnu/linux
+		'(("WISITOKEN" . "/Projects/org.wisitoken/build")
+		  ("WISI" . "/Projects/org.emacs.ada-mode.stephe-2")))
+	       (windows-nt
+		'(("WISITOKEN" . "c:/Projects/org.wisitoken/build")
+		  ("WISI" . "c:/Projects/org.emacs.ada-mode.stephe-2")))
+	       )
 	     :ada-prj-file prj-file)))
 
   (project-menu-add-project prj prj-name default-directory)

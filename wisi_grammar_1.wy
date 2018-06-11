@@ -4,43 +4,37 @@
 ;;  different actions.
 ;;  (ediff "wisi_grammar_1.wy" "../org.wisitoken/wisi/wisi_grammar.wy")
 
-;; Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+%code copyright_license %{
+;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 ;;
-;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
-;; This file is part of GNU Emacs.
+;;  This file is part of GNU Emacs.
 ;;
-;; GNU Emacs is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;;  GNU Emacs is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
+;;  (at your option) any later version.
 ;;
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;;  GNU Emacs is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-;;
-;;; Discussion:
-;;
-;; The main goal is to provide indentation and navigation, which does
-;; not require a full semantic understanding of the contents of the
-;; file. We do not support generating grammars by parsing the source
-;; file with this grammar - that's what the Ada package WisiToken is
-;; for.
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+}%
 
-%{
-%}
+%no_language_runtime
 
+%keyword CODE "code"
 %keyword END "end"
 %keyword IF "if"
 %keyword KEYWORD "keyword"
 %keyword NON_GRAMMAR "non_grammar"
 %keyword TOKEN "token"
 
-%token <delimited-text> PREAMBLE "%{" "%}"
+%token <delimited-text> RAW_CODE "%{" "}%"
 %token <delimited-text> REGEXP "%[" "]%"
 %token <delimited-text> ACTION "%(" ")%"
 
@@ -51,11 +45,10 @@
 %token <punctuation> GREATER ">"
 %token <punctuation> LESS "<"
 %token <punctuation> PERCENT "%"
-%token <punctuation> PERCENT_PERCENT "%%"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 
-%elisp_regexp wisi-number-p %[ [0-9][0-9]* ]%
+%elisp_regexp wisi-number-p %[ [0-9][0-9_]* ]%
 %token <number> NUMERIC_LITERAL wisi-number-p
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
 
@@ -79,7 +72,6 @@
 %lexer re2c
 %generator_algorithm LALR
 %start compilation_unit_list
-%no_language_runtime
 
 %mckenzie_cost_default 2 2 4 1 1
 %mckenzie_cost_insert SEMICOLON 1
@@ -89,8 +81,7 @@
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
 
-%%
-;;;; grammar rules
+;;;; grammar rules, no particular order
 
 ;;EMACSCMD:indent-line-function
 ;;EMACSRESULT:'mmm-indent-line
@@ -106,6 +97,7 @@ declaration
           [1 nil font-lock-constant-face
              2 nil font-lock-keyword-face
              3 nil font-lock-function-name-face])) )%
+  | PERCENT CODE identifier_list RAW_CODE
   | PERCENT IDENTIFIER declaration_item_list
     %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER
@@ -123,6 +115,11 @@ token_keyword_non_grammar
     %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
   | TOKEN LESS IDENTIFIER GREATER
     %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
+  ;
+
+identifier_list
+  : IDENTIFIER
+  | identifier_list IDENTIFIER
   ;
 
 declaration_item_list
@@ -178,9 +175,7 @@ token_list
 ;; We don't enforce a complete order, nor require all parts, so
 ;; partial files can still be parsed successfully.
 compilation_unit
-  : PREAMBLE
-  | declaration
-  | PERCENT_PERCENT
+  : declaration
   | nonterminal
   ;
 
@@ -189,5 +184,4 @@ compilation_unit_list
   | compilation_unit_list compilation_unit
   ;
 
-%%
 ;; end of file

@@ -18,13 +18,15 @@
 
 pragma License (GPL);
 
-with Wisi_Grammar_1_Process;
+with Wisi_Grammar_1_Process_Actions;
+with Wisi_Grammar_1_Process_Main;
 with Gen_Emacs_Wisi_Parse;
 with WisiToken.Wisi_Runtime;
 procedure Wisi_Grammar_Mode_Parse is new Gen_Emacs_Wisi_Parse
   (Parse_Data_Type              => WisiToken.Wisi_Runtime.Parse_Data_Type,
    Name                         => "wisi_grammar_mode",
-   Descriptor                   => Wisi_Grammar_1_Process.Descriptor,
+   Descriptor                   => Wisi_Grammar_1_Process_Actions.Descriptor,
    Language_Fixes               => null,
    Language_Constrain_Terminals => null,
-   Create_Parser                => Wisi_Grammar_1_Process.Create_Parser);
+   Language_String_ID_Set       => null,
+   Create_Parser                => Wisi_Grammar_1_Process_Main.Create_Parser);

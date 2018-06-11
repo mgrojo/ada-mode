@@ -34,7 +34,7 @@
   "Major mode for editing Wisi grammar files in Emacs."
   :group 'languages)
 
-(defcustom wisi-grammar-process-parse-exec "wisi_grammar_mode_parse"
+(defcustom wisi-grammar-process-parse-exec "wisi_grammar_mode_parse.exe"
   "Name of executable to use for external process wisi-grammar parser,"
   :type 'string
   :group 'wisi-grammar)
