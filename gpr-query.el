@@ -89,8 +89,10 @@
 	  (progn
 	    (goto-char (point-min))
 	    (when (search-forward "warning:" nil t)
-	      (beep)
-	      (message "gpr_query warnings")))
+	      (if debug-on-error
+		  (error "gpr_query warnings")
+		(beep)
+		(message "gpr_query warnings"))))
 
 	(error "gpr-query process failed to start"))
       )))

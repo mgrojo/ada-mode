@@ -410,7 +410,8 @@ complete."
     (sit-for 1.0)
     (when (process-live-p (wisi-process--parser-process parser))
       (kill-process (wisi-process--parser-process parser)))
-    ))
+    )
+  (setf (wisi-process--parser-busy parser) nil))
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser))
   "Run the external parser on the current buffer."

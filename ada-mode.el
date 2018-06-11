@@ -318,7 +318,7 @@ nil, only the file name."
   :type 'string
   :group 'ada-indentation)
 
-(defcustom ada-process-parse-exec "ada_mode_wisi_parse"
+(defcustom ada-process-parse-exec "ada_mode_wisi_parse.exe"
   "Name of executable to use for external process Ada parser,"
   :type 'string
   :group 'ada-indentation)
@@ -1733,7 +1733,8 @@ Indexed by project variable xref_tool.")
 Indexed by project variable xref_tool.")
 
 (defun ada-select-prj-file (prj-file &optional no-force)
-  "Select PRJ-FILE as the current project file, parsing it if necessary."
+  "Select PRJ-FILE as the current project file, parsing it if necessary.
+Deselects the current project first."
   (interactive)
   (setq prj-file (expand-file-name prj-file))
 
@@ -1777,6 +1778,20 @@ Indexed by project variable xref_tool.")
 
     ;; return 't', for decent display in message buffer when called interactively
     t))
+
+(defun ada-deselect-prj (prj)
+  "Deselect the project file PRJ, if current."
+  ;; For use as ’project-deselect’ (experimental). Duplicates part of
+  ;; ’ada-select-prj-file’; should delete that, use this.
+  (when (string-equal prj ada-prj-current-file)
+    (let ((func (cdr (assq (ada-prj-get 'ada_compiler) ada-deselect-prj-compiler))))
+      (when func (funcall func)))
+
+    (let ((func (cdr (assq (ada-prj-get 'xref_tool) ada-deselect-prj-xref-tool))))
+      (when func (funcall func)))
+
+    (setq ada-prj-current-project nil)
+    ))
 
 (defun ada-create-select-default-prj (&optional directory)
   "Create a default project with src_dir set to DIRECTORY (default current directory), select it."

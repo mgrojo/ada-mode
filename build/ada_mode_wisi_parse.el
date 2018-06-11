@@ -8,7 +8,11 @@
 (let* ((prj-file (expand-file-name "ada_mode_wisi_parse.prj"))
        (prj-name "ada_mode_wisi_parse main")
        (prj (make-ada-project
-	     :env-vars '(("WISI_WISITOKEN" . "c:/Projects/org.wisitoken/build"))
+	     :env-vars
+	     (cl-ecase system-type
+	       (gnu/linux  '(("WISI_WISITOKEN" . "/Projects/org.wisitoken/build")))
+	       (windows-nt '(("WISI_WISITOKEN" . "c:/Projects/org.wisitoken/build")))
+	       )
 	     :ada-prj-file prj-file)))
 
   (project-menu-add-project prj prj-name default-directory)
