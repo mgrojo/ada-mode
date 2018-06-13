@@ -9,7 +9,7 @@
 --  [1] http://aa.usno.navy.mil/faq/docs/TT.html
 --  [2] http://hpiers.obspm.fr/eoppc/bul/bulc/UTC-TAI.history
 --
---  Copyright (C) 2001, 2004 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2001, 2004 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -256,7 +256,8 @@ package SAL.Time_Conversions is
    --  absolute, result is seconds since TAI origin.
 
    function Image is new SAL.Generic_Decimal_Image (Integer);
-   pragma Warnings (Off, "instance does not use primitive operation ""mod"" at line 97");
+   pragma Warnings (Off, "instance does not use primitive operation ""mod"" at line 97"); -- gnat 2017
+   pragma Warnings (Off, "instance uses predefined operation, not primitive operation ""mod"" at line 97"); -- gnat 2018
    function Image is new SAL.Generic_Fixed_Image (Time_Type);
    pragma Warnings (On);
 

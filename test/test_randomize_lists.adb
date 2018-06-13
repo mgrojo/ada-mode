@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2012, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2012, 2015, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -62,7 +62,6 @@ package body Test_Randomize_Lists is
       pragma Unreferenced (T);
 
       use Lists;
-      use AUnit.Checks;
 
       procedure Randomize is new SAL.Gen_Randomize_Doubly_Linked_Lists (Lists);
 

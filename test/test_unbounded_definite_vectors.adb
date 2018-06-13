@@ -93,8 +93,6 @@ is
    procedure Test_Set_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Checks;
-      use AUnit.Checks.Containers;
 
       Test_Item   : Vector;
       Test_Item_2 : Vector;
@@ -126,7 +124,6 @@ is
    is
       pragma Unreferenced (T);
       use AUnit.Checks;
-      use AUnit.Checks.Containers;
 
       Test_Item : Vector;
    begin
@@ -155,8 +152,6 @@ is
    procedure Prepend (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Checks;
-      use AUnit.Checks.Containers;
 
       Shared_Nodes   : Vector;
       Branched_Nodes : Vector;
@@ -179,8 +174,6 @@ is
    procedure Test_Grow_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Checks;
-      use AUnit.Checks.Containers;
 
       Nodes : Vector;
    begin
@@ -197,7 +190,6 @@ is
    is
       pragma Unreferenced (T);
       use AUnit.Checks;
-      use AUnit.Checks.Containers;
 
       Nodes : constant Vector := To_Vector (1, 1);
    begin

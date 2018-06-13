@@ -122,8 +122,6 @@ package body Test_Stacks is
       pragma Unreferenced (T);
 
       use AUnit.Assertions;
-      use AUnit.Checks;
-      use SAL.AUnit;
 
       Stack_1 : Unbounded_Definite_Stacks.Stack;
       Stack_2 : Unbounded_Definite_Stacks.Stack;

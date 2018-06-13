@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2004 - 2006, 2008, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2006, 2008, 2009, 2015, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -281,7 +281,6 @@ package body Test.Config_Files.Extra_Key is
    procedure Test_Iterator_String (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -322,7 +321,6 @@ package body Test.Config_Files.Extra_Key is
    procedure Test_Iterator_Enum (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -350,7 +348,6 @@ package body Test.Config_Files.Extra_Key is
    procedure Test_Iterator_Integer (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -378,7 +375,6 @@ package body Test.Config_Files.Extra_Key is
    procedure Test_Iterator_Modular (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -406,7 +402,6 @@ package body Test.Config_Files.Extra_Key is
    procedure Test_Iterator_Float (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -434,7 +429,6 @@ package body Test.Config_Files.Extra_Key is
    procedure Test_Iterator_Fixed (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
 
       procedure Create_Config
       is

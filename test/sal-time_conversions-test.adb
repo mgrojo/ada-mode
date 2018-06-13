@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2001, 2004 - 2009, 2011 - 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2001, 2004 - 2009, 2011 - 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -646,7 +646,6 @@ package body SAL.Time_Conversions.Test is
          Seconds      : in Time_Type;
          Expected_TAI : in Time_Type)
       is
-         use Standard.AUnit.Checks;
          use SAL.Interfaces_More.AUnit;
          GPS_Time : GPS_Time_Type;
          TAI_Time : constant Time_Type := To_TAI_Time (GPS_Time_Type'(Weeks, Seconds));

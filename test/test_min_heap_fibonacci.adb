@@ -66,7 +66,6 @@ package body Test_Min_Heap_Fibonacci is
    is
       pragma Unreferenced (T);
 
-      use AUnit.Assertions;
       use AUnit.Checks;
       use Heap_Test;
       use SAL.AUnit;
@@ -154,10 +153,7 @@ package body Test_Min_Heap_Fibonacci is
    is
       pragma Unreferenced (T);
 
-      use AUnit.Assertions;
-      use AUnit.Checks;
       use Heap_Test;
-      use SAL.AUnit;
 
       A : Heaps.Heap_Type;
       B : Heaps.Heap_Type;

@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2004, 2005, 2008, 2009, 2011, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2005, 2008, 2009, 2011, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -47,7 +47,6 @@ is
       Exp_Item : in Integer)
    is
       use AUnit.Checks;
-      use Integer_Queues_Test;
    begin
       Check (Label & ".Item", Item, Exp_Item);
       Check_Head_Tail (Label, Exp_Head, Exp_Tail);

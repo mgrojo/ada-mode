@@ -2,7 +2,7 @@
 --
 --  AUnit test suite for all Config_Files tests.
 --
---  Copyright (C) 2002 - 2005, 2007, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002 - 2005, 2007, 2009, 2015, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,10 +33,7 @@ with Test.Config_Files.No_File;
 with Test.Config_Files.Time_Tests;
 function Test.Config_Files.All_Suite return AUnit.Test_Suites.Access_Test_Suite
 is
-   use Test.Config_Files;
-
    Suite : constant Access_Test_Suite := new Test_Suite;
-
 begin
    Add_Test (Suite, new Abs_File.Test_Case);
    Add_Test (Suite, new Append_File.Test_Case);

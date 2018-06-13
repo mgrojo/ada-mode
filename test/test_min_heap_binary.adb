@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -65,7 +65,6 @@ package body Test_Min_Heap_Binary is
       Computed : in Heaps.Heap_Type;
       Expected : in Element_Array_Type)
    is
-      use AUnit.Checks;
       use SAL.AUnit;
    begin
       Check (Label & ".count", Computed.Count, Expected'Length);
@@ -82,8 +81,6 @@ package body Test_Min_Heap_Binary is
    is
       pragma Unreferenced (T);
 
-      use AUnit.Assertions;
-      use AUnit.Checks;
       use SAL.AUnit;
 
       Min_Heap : Heaps.Heap_Type;

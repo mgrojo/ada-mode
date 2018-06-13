@@ -582,7 +582,6 @@ package body SAL.Config_Files is
       Column : in Ada.Text_IO.Count)
      return String
    is
-      use Ada.Text_IO;
       Line_Image   : constant String := Trim (Ada.Text_IO.Count'Image (Line));
       Column_Image : constant String := Trim (Ada.Text_IO.Count'Image (Column));
    begin
@@ -960,7 +959,6 @@ package body SAL.Config_Files is
 
    function Is_Present (Config : in Configuration_Type; Key : in String) return Boolean
    is
-      use type GNAT.OS_Lib.String_Access;
       Node : constant Node_Access_Type := Find_Node (Config, Key);
    begin
       if Node /= null then
@@ -1262,7 +1260,6 @@ package body SAL.Config_Files is
       Default     : in     String             := "";
       Missing_Key : in     Missing_Key_Type   := Ignore)
    is
-      use type GNAT.Strings.String_Access;
       Temp : constant String := Read (Config, Key, Default, Missing_Key);
    begin
       if Temp'Length > Result'Length then
@@ -1483,7 +1480,6 @@ package body SAL.Config_Files is
 
    function Is_Present (Config : in Configuration_Type; Iterator : in Iterator_Type; Leaf : in String) return Boolean
    is
-      use type GNAT.OS_Lib.String_Access;
       Node : constant Node_Access_Type := Find_Key (Iterator.Child, Leaf, Config.Case_Insensitive_Keys);
    begin
       if Node /= null then
@@ -1505,7 +1501,6 @@ package body SAL.Config_Files is
 
    function Line_Column (Iterator : in Iterator_Type) return String
    is
-      use Ada.Text_IO;
       Line_Image   : constant String := Trim (Ada.Text_IO.Count'Image (Iterator.Line));
       Column_Image : constant String := Trim (Ada.Text_IO.Count'Image (Iterator.Column));
    begin

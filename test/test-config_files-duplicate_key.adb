@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2004, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2009, 2015, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -34,8 +34,6 @@ package body Test.Config_Files.Duplicate_Key is
    procedure Keep_Last_Duplicate (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Assertions;
-
    begin
       Open (Config, File_Name, Duplicate_Key => Keep_Last);
       AUnit.Checks.Check ("", Read (Config, "duplicate_key", ""), "Last");
