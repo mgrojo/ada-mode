@@ -24,7 +24,6 @@ function SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux
    Depth : in SAL.Base_Peek_Type := 0)
   return String
 is
-   use all type SAL.Base_Peek_Type;
    use Ada.Strings.Unbounded;
    Result : Unbounded_String        := To_Unbounded_String ("(");
    Last   : constant Base_Peek_Type :=

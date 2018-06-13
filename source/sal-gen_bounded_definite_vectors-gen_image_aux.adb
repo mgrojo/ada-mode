@@ -20,7 +20,6 @@ pragma License (Modified_GPL);
 with Ada.Strings.Unbounded;
 function SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux (Item : in Vector; Aux : in Aux_Data) return String
 is
-   use all type SAL.Base_Peek_Type;
    use Ada.Strings.Unbounded;
    Result : Unbounded_String        := To_Unbounded_String ("(");
    Last   : constant Base_Peek_Type := To_Peek_Index (Item.Last);

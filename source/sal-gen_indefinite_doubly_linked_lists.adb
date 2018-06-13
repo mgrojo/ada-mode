@@ -78,7 +78,6 @@ package body SAL.Gen_Indefinite_Doubly_Linked_Lists is
 
    procedure Append (Container : in out List; Element : in Element_Type)
    is
-      use all type SAL.Base_Peek_Type;
       New_Node : constant Node_Access := new Node_Type'
         (Element => new Element_Type'(Element),
          Prev    => Container.Tail,
@@ -96,7 +95,6 @@ package body SAL.Gen_Indefinite_Doubly_Linked_Lists is
 
    procedure Prepend (Container : in out List; Element : in Element_Type)
    is
-      use all type SAL.Base_Peek_Type;
       New_Node : constant Node_Access := new Node_Type'
         (Element => new Element_Type'(Element),
          Prev    => null,
@@ -157,7 +155,6 @@ package body SAL.Gen_Indefinite_Doubly_Linked_Lists is
 
    procedure Delete (Container : in out List; Position : in out Cursor)
    is
-      use all type SAL.Base_Peek_Type;
       Node : Node_Access renames Position.Ptr;
    begin
       if Node.Next = null then

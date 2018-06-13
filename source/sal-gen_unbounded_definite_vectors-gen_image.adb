@@ -22,7 +22,6 @@ with Ada.Strings.Unbounded;
 function SAL.Gen_Unbounded_Definite_Vectors.Gen_Image (Item : in Vector; Strict : in Boolean := False) return String
 is
    use all type Ada.Containers.Count_Type;
-   use all type SAL.Base_Peek_Type;
    use Ada.Strings;
    use Ada.Strings.Fixed;
    use Ada.Strings.Unbounded;
