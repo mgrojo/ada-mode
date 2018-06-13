@@ -82,10 +82,6 @@ package body WisiToken.LR.Parser.Gen_AUnit is
       use WisiToken.AUnit;
       use WisiToken.LR.AUnit;
       use WisiToken.Semantic_Checks.AUnit;
-      use all type WisiToken.Buffer_Region;
-      use all type WisiToken.Token_ID;
-      use all type WisiToken.Token_ID_Set;
-      use all type WisiToken.LR.Parse_Error_Label;
 
       Label_I : constant String := Label & "." & Ada.Containers.Count_Type'Image (Checking_Error);
 

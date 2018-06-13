@@ -48,6 +48,8 @@ is
 
    Language_Runtime_Package : constant String := "WisiToken.Wisi_Runtime." & Language_Name;
 
+   Blank_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ");
+
    package Common is new Wisi.Gen_Output_Ada_Common
      (Input_Data.Raw_Code, Input_Data.Tokens, Input_Data.Conflicts, Input_Data.Generate_Params);
    use Common;
@@ -156,8 +158,6 @@ is
       Sexps : constant String_Lists.List := Split_Sexp (-Unsplit_Lines, Input_Data.Lexer.File_Name, RHS.Source_Line);
 
       use all type Standard.Ada.Strings.Maps.Character_Set;
-
-      Blank_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ");
 
       Space_Paren_Set : constant Standard.Ada.Strings.Maps.Character_Set :=
         Standard.Ada.Strings.Maps.To_Set ("])") or Blank_Set;
@@ -899,6 +899,25 @@ is
 
    end Create_Ada_Action;
 
+   function Any_Motion_Actions return Boolean
+   is begin
+      for Rule of Input_Data.Tokens.Rules loop
+         for RHS of Rule.Right_Hand_Sides loop
+            for Sexp of Split_Sexp (-RHS.Action, Input_Data.Lexer.File_Name, RHS.Source_Line) loop
+               declare
+                  Last       : constant Integer := Standard.Ada.Strings.Fixed.Index (Sexp, Blank_Set);
+                  Elisp_Name : constant String  := Sexp (Sexp'First + 1 .. Last - 1);
+               begin
+                  if Elisp_Name = "wisi-motion-action" then
+                     return True;
+                  end if;
+               end;
+            end loop;
+         end loop;
+      end loop;
+      return False;
+   end Any_Motion_Actions;
+
    procedure Create_Ada_Actions_Body
      (Ada_Action_Names : out Nonterminal_Array_Action_Names;
       Ada_Check_Names  : out Nonterminal_Array_Action_Names;
@@ -913,6 +932,8 @@ is
          when Process => "_process_actions",
          when Module  => "_module_actions") &
         ".adb";
+
+      Motion_Actions : constant Boolean := Any_Motion_Actions;
 
       Body_File : File_Type;
 
@@ -947,7 +968,9 @@ is
       if Input_Data.Check_Count > 0 then
          Indent_Line ("use WisiToken.Semantic_Checks;");
       end if;
-      Indent_Line ("use all type Motion_Param_Array;");
+      if Motion_Actions then
+         Indent_Line ("use all type Motion_Param_Array;");
+      end if;
       New_Line;
 
       --  generate Action and Check subprograms, populate Ada_Action_Names,
