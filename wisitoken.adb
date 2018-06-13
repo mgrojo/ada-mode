@@ -328,7 +328,6 @@ package body WisiToken is
       Descriptor : in WisiToken.Descriptor'Class)
      return String
    is
-      use all type Ada.Text_IO.Count;
       ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
    begin
       if Item.Char_Region = Null_Buffer_Region then

@@ -124,8 +124,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  check fails, enqueue possible solutions. For parse table error
       --  actions, just return.
 
-      use all type Semantic_Checks.Check_Status_Label;
-
       Table       : Parse_Table renames Shared.Table.all;
       Next_Action : Parse_Action_Node_Ptr;
    begin
@@ -339,7 +337,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
      return Check_Status
    is
       use all type Ada.Containers.Count_Type;
-      use all type Syntax_Trees.Node_Index;
       use all type Semantic_Checks.Check_Status_Label;
       use all type Parser.Language_Fixes_Access;
 
@@ -583,7 +580,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
    is
       use all type Parser.Language_String_ID_Set_Access;
       use all type Lexer.Error_Lists.Cursor;
-      use all type Ada.Containers.Count_Type;
 
       Descriptor  : WisiToken.Descriptor renames Shared.Trace.Descriptor.all;
       Check_Limit : Token_Index renames Shared.Table.McKenzie_Param.Check_Limit;
@@ -925,7 +921,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  Get one config from Super, check to see if it is a viable
       --  solution. If not, enqueue variations to check.
 
-      use all type Ada.Containers.Count_Type;
       use all type Base.Config_Status;
       use all type Parser.Language_Fixes_Access;
       use all type SAL.Base_Peek_Type;
@@ -995,8 +990,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                   --  "ignore check error" is a viable solution, so continue with Config;
 
                   declare
-                     use all type Semantic_Checks.Semantic_Check;
-                     use all type Semantic_Checks.Check_Status;
                      New_State : Unknown_State_Index;
                   begin
                      --  finish reduce.

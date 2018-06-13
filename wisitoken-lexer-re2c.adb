@@ -43,13 +43,13 @@ package body WisiToken.Lexer.re2c is
       Finalize (Object.Source);
    end Finalize;
 
+   type Instance_Access is access Instance; --  silence compiler warning
+
    function New_Lexer
      (Trace  : not null access WisiToken.Trace'Class)
      return Handle
-   is
-      New_Lexer : constant access Instance := new Instance (Trace);
-   begin
-      return Handle (New_Lexer);
+   is begin
+      return Handle (Instance_Access'(new Instance (Trace)));
    end New_Lexer;
 
    overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
@@ -132,7 +132,6 @@ package body WisiToken.Lexer.re2c is
       Token :    out Base_Token)
      return Boolean
    is
-      use all type Ada.Text_IO.Count;
       use Interfaces.C;
 
       procedure Build_Token (ID : in Token_ID)

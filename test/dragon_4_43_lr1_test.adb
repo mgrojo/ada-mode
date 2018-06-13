@@ -127,7 +127,7 @@ package body Dragon_4_43_LR1_Test is
       Expected_Follow : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Terminal_Set
         ((Accept_ID  => (others => False),
           Upper_S_ID => (EOF_ID => True, others => False),
-          Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True, others => False)));
+          Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True)));
 
       Computed_Follow : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.Follow
         (Grammar, LR1_Descriptor, First, Has_Empty_Production);

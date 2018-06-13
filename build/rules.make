@@ -116,7 +116,7 @@ source-clean ::
 	cd ../wisi; $(CURDIR)/wisi-generate.exe -v 1 wisi_grammar.wy > wisi_grammar.parse_table
 
 ../wisi/wisi_grammar_re2c.c : ../wisi/wisi_grammar.re2c
-	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 wisi_grammar-clean :
 	rm -rf wisi_grammar*
@@ -165,7 +165,7 @@ DIFF_OPT := -u -w
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
 # We assume lexer is specified in the .wy file. wisi-generate also generates other files.
-%.re2c %.qx %.l : %.wy wisi-generate.exe
+%.re2c %.l : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 $< > $*.parse_table
 	dos2unix $*.parse_table
 
@@ -183,7 +183,7 @@ wisi-clean :
 
 # Re2c rules; wisi-generate outputs %.qx
 %_re2c.c : %.re2c
-	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	$(RE2C_HOME)/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 re2c-clean :
 	rm -f *.c *.re2c

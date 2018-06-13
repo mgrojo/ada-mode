@@ -121,4 +121,7 @@ package body WisiToken.Gen_Token_Enum is
       return +Token_Array'(1 => Item);
    end "+";
 
+begin
+   LR1_Descriptor.Image := Token_Enum_Image;
+   LALR_Descriptor.Image := LR1_Descriptor.Image;
 end WisiToken.Gen_Token_Enum;

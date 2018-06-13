@@ -143,7 +143,6 @@ package body Test_LR_Expecting_Terminal_Sequence is
    procedure Test_Expecting (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use WisiToken.AUnit;
       First : WisiToken.Token_ID renames LR1_Descriptor.First_Terminal;
       Last  : WisiToken.Token_ID renames LR1_Descriptor.Last_Terminal;
    begin

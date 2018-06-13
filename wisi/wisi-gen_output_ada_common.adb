@@ -19,7 +19,6 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with SAL;
 with System.Multiprocessors;
 with Wisi.Utils;
 package body Wisi.Gen_Output_Ada_Common is
@@ -36,7 +35,6 @@ package body Wisi.Gen_Output_Ada_Common is
       Actions_Present  : in Boolean;
       Checks_Present   : in Boolean)
    is
-      use Standard.Ada.Strings.Unbounded;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -190,7 +188,6 @@ package body Wisi.Gen_Output_Ada_Common is
       Output_Language      : in Ada_Output_Language;
       Interface_Kind       : in Interface_Type)
    is
-      use Generate_Utils;
       use Wisi.Utils;
 
       Lower_Package_Name : constant String := To_Lower (Main_Package_Name);
@@ -685,7 +682,6 @@ package body Wisi.Gen_Output_Ada_Common is
       use all type Standard.Ada.Containers.Count_Type;
       use all type WisiToken.Token_ID;
       use all type WisiToken.LR.McKenzie_Param_Type;
-      use Generate_Utils;
       use Wisi.Utils;
 
       Count          : Integer;
@@ -758,7 +754,6 @@ package body Wisi.Gen_Output_Ada_Common is
                  ("Set_Production (Table.Productions (" & WisiToken.Trimmed_Image (I) & "), " &
                     WisiToken.Trimmed_Image (P.LHS) & ", (");
                declare
-                  use all type SAL.Base_Peek_Type;
                   use WisiToken.Productions.Token_ID_Lists;
                   Token_I : Cursor := P.RHS.Tokens.First;
                begin
@@ -987,9 +982,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Ada_Action_Names    : in Nonterminal_Array_Action_Names;
       Ada_Check_Names     : in Nonterminal_Array_Action_Names)
    is
-      use Generate_Utils;
       use Wisi.Utils;
-      use all type WisiToken.Unknown_State_Index;
    begin
       Indent_Line ("procedure Create_Parser");
       case Interface_Kind is
@@ -1018,7 +1011,11 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
 
       Indent_Line ("use WisiToken.LR;");
-      Indent_Line ("use all type WisiToken.Generator_Algorithm_Type;");
+
+      if Generator_Algorithm = LALR_LR1 then
+         Indent_Line ("use all type WisiToken.Generator_Algorithm_Type;");
+      end if;
+
       Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
       Indent_Line ("  (State_First       =>" & Integer'Image (First_State_Index) & ",");
       Indent := Indent + 3;

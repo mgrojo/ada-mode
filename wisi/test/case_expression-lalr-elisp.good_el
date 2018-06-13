@@ -35,7 +35,7 @@
     (TICK . "'")
     )
    ("number"
-    (NUMBER_LITERAL ada-wisi-number-p)
+    (NUMBER_LITERAL wisi-number-p)
     )
    ("symbol"
     (IDENTIFIER . "")

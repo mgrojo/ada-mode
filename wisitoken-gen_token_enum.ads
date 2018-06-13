@@ -56,7 +56,7 @@ package WisiToken.Gen_Token_Enum is
       String_1_ID                   => Invalid_Token_ID,
       String_2_ID                   => Invalid_Token_ID,
       Embedded_Quote_Escape_Doubled => False,
-      Image                         => Token_Enum_Image,
+      Image                         => (others => null), --  set in body elaboration time code
       Terminal_Image_Width          => Terminal_Enum_ID'Width,
       Image_Width                   => Token_Enum_ID'Width);
 
@@ -76,7 +76,7 @@ package WisiToken.Gen_Token_Enum is
       String_2_ID                   => Invalid_Token_ID,
       Embedded_Quote_Escape_Doubled => False,
       Propagate_ID                  => +First_Nonterminal,
-      Image                         => Token_Enum_Image,
+      Image                         => (others => null),
       Terminal_Image_Width          => Terminal_Enum_ID'Width,
       Image_Width                   => Token_Enum_ID'Width);
 

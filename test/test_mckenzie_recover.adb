@@ -296,7 +296,6 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
       use AUnit.Assertions;
-      use AUnit.Checks;
    begin
       Parse_Text ("else then ", Expect_Exception => True);
       --  Bogus syntax; test no exceptions due to empty stack etc.
@@ -415,7 +414,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Delete, +END_ID, 4),
          Enqueue_Low             => 6,
          Enqueue_High            => 40,
-         Check_Low               => 4,
+         Check_Low               => 3,
          Check_High              => 20,
          Cost                    => 1);
 
@@ -503,7 +502,6 @@ package body Test_McKenzie_Recover is
    procedure Loop_Bounds (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Checks;
       use WisiToken.AUnit;
    begin
       Check ("Check_Limit", Parser.Table.McKenzie_Param.Check_Limit, 3);

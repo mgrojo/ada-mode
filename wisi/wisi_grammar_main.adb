@@ -20,7 +20,6 @@ package body Wisi_Grammar_Main is
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
       use WisiToken.LR;
-      use all type WisiToken.Generator_Algorithm_Type;
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
          State_Last        => 61,

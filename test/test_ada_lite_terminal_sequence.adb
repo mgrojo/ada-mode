@@ -42,7 +42,6 @@ package body Test_Ada_Lite_Terminal_Sequence is
       use WisiToken.AUnit;
       use AUnit.Checks.Containers;
 
-      use Ada.Text_IO;
       Input_File_Name  : constant String := "../wisi/test/ada_lite.wy";
 
       Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);

@@ -695,7 +695,6 @@ package body WisiToken.LR.LALR_Generator is
    is
       use all type Ada.Containers.Count_Type;
       use all type LR1_Items.Item_Set_Ptr;
-      use all type LR1_Items.Item_Ptr;
 
       Table : Parse_Table_Ptr;
 

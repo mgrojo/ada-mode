@@ -1011,8 +1011,6 @@ is
       Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
-      use Standard.Ada.Strings.Unbounded;
-      use Generate_Utils;
       use Wisi.Utils;
 
       File_Name : constant String := Output_File_Name_Root &
@@ -1118,7 +1116,6 @@ is
    procedure Create_Process_Elisp
    is
       use Generate_Utils;
-      use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
 
       File : File_Type;
@@ -1253,7 +1250,6 @@ is
 
    procedure Create_Module_Aux
    is
-      use Generate_Utils;
       use Wisi.Utils;
 
       Package_Name_Root       : constant String := -Data.Package_Name_Root;

@@ -94,7 +94,6 @@ is
          --  nonterminals.
          declare
             use Standard.Ada.Strings.Unbounded;
-            use all type Standard.Ada.Containers.Count_Type;
 
             LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
 
@@ -115,7 +114,6 @@ is
             for RHS of Rule.Right_Hand_Sides loop
                if Length (RHS.Action) > 0 and then not Is_Elisp (RHS.Action) then
                   declare
-                     use Standard.Ada.Strings.Fixed;
                      Line : constant String := -RHS.Action;
                      --  Actually multiple lines; we assume the formatting is adequate.
 
@@ -254,8 +252,6 @@ is
       Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
-      use Generate_Utils;
-      use GNAT.Regexp;
       use Wisi.Utils;
 
       File_Name            : constant String := Output_File_Name_Root & "_main.adb";

@@ -64,7 +64,6 @@ package body Wisi.Utils is
       use Standard.Ada.Directories;
       use Standard.Ada.Strings.Fixed;
       use Standard.Ada.Strings;
-      use Standard.Ada.Text_IO;
    begin
       return Simple_Name (File_Name) & ":" &
         Trim (WisiToken.Line_Number_Type'Image (File_Line), Left) & ":0: " & Message;

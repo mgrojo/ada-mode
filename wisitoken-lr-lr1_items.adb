@@ -377,7 +377,6 @@ package body WisiToken.LR.LR1_Items is
       Item    : in     Item_Ptr;
       Grammar : in     WisiToken.Productions.Arrays.Vector)
    is
-      use all type Token_ID;
       New_Item : Item_Ptr renames Item;
       I        : Item_Ptr;
    begin
@@ -532,7 +531,6 @@ package body WisiToken.LR.LR1_Items is
       Symbol : in     Token_ID;
       Set    : in     Item_Set_Ptr)
    is
-      use all type Token_ID;
       New_Item : constant Goto_Item_Ptr := new Goto_Item'(Symbol, Set, null);
       I        : Goto_Item_Ptr;
    begin
@@ -660,7 +658,6 @@ package body WisiToken.LR.LR1_Items is
      return Boolean
    is
       Goto_Ptr : Goto_Item_Ptr := Goto_List;
-      use type Token_ID;
    begin
       while Goto_Ptr /= null loop
          if Goto_Ptr.Set = Set and Goto_Ptr.Symbol = Symbol then
@@ -679,7 +676,6 @@ package body WisiToken.LR.LR1_Items is
      return Item_Set_Ptr
    is
       Goto_Ptr : Goto_Item_Ptr := From.Goto_List;
-      use type Token_ID;
    begin
       while Goto_Ptr /= null loop
          if Goto_Ptr.Symbol = Symbol then
@@ -730,7 +726,6 @@ package body WisiToken.LR.LR1_Items is
       Trace                : in Boolean)
      return Item_Set
    is
-      use all type Token_ID;
       use WisiToken.Productions.Token_ID_Lists;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "closure"

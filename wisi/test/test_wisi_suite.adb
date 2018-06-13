@@ -18,27 +18,33 @@
 
 pragma License (GPL);
 
+with Ada.Strings.Unbounded;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_Generate_Errors;
 with Wisi_WY_Test;
 function Test_Wisi_Suite return Access_Test_Suite
 is
+   function "+" (Item : in String) return Ada.Strings.Unbounded.String_Access
+   is begin
+      return Ada.Strings.Unbounded.String_Access'(new String'(Item));
+   end "+";
+
    Suite : constant Access_Test_Suite := new Test_Suite;
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
-   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/unused_tokens"), LR1 => True));
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case (+"../wisi/test/unused_tokens", LR1 => True));
 
    --  elisp grammar generate tests; grammar file name order
 
    --  In body_instantiation_conflict, LALR and LR1 generate different
    --  names for the conflict. In the other files, the conflict names are
    --  the same.
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/body_instantiation_conflict"), False));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/case_expression"), True));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/character_literal"), True));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/identifier_list_name_conflict"), True));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/range_conflict"), True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/body_instantiation_conflict", False));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/case_expression", True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/character_literal", True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/identifier_list_name_conflict", True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/range_conflict", True));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.
