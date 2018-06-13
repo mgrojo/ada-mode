@@ -52,36 +52,13 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
-compiling ada_process on Debian VM fails
-    need it to browse langkit sources
-    split into multiple files
-    actions/main; not much help
+ada-gps-size-threshold not safe local variable
+    use in some tests
 
-    compact duplicate reductions
-        just in process_main for now
-        add_action (state, (symbol, ...), Reduce ..., );
-
-    time gprbuild -p ada_mode_wisi_parse.gpr -c ada_process_actions.adb
-        4,522 lines, 0m5.238s
-
-    time gprbuild -p ada_mode_wisi_parse.gpr -c ada_process_main.adb
-    baseline: 20,829 lines, 1m38.732s
-
-    delete set Table.McKenzie_Param, table.productions, table.minimal_terminal_sequences (by hand as test):
-        19,857 lines, 1m33.050s
-
-    compact duplicate reductions: 13,298 lines, 1m26.983s
-
-    running wisitoken tests
-        fix prologues; need copyright/license in every file
-
-    test on Debian
+allow set task count from Emacs
 
 create_parser supposed to respect line limits
     fix it
-
-unit_test/test_ada_recover Kill_Slow_Parser_2
-    failing due to changed costs
 
 test/ada_mode-recover_type_1.ads
     desired solution: (insert 'end case ; end record ;') cost (+ 1 1 1 1 2 1) => 7
@@ -95,6 +72,7 @@ wisitoken-wisi_runtime.ads Find
    --  FIXME: use tree instead?
 
 teach font lock that line end terminates strings
+    cc-mode does this somehow
 
 emacs track parse-max, don't reparse just for different action; just execute action.
 
@@ -618,13 +596,6 @@ plain parse, no actions:
             0.346936964, 0.341999256
 
         add byte_region in base_token: 0.339586284, 0.341083772, 0.340257321
-
-compile ada_process.adb is slow
-    27,000 lines total, 4000 follow, 4000 action
-    split into 3 files?
-    move table into text file loaded at run time?
-
-    try gprbuild -jnum 8
 
 history
     ada-mode 5.2
