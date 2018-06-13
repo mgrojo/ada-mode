@@ -78,7 +78,7 @@ elisp-clean :
 	cd ./$(<D); dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb
 
 %_re2c.c : %.re2c
-	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'

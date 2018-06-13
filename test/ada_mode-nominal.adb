@@ -715,6 +715,7 @@ is -- target 0
      tagged null record;
    -- rest of newline placement covered in spec
 
+   pragma Warnings (Off, "coextension will not be deallocated when its associated owner is deallocated");
    --EMACSCMD:(test-face "new" 'font-lock-keyword-face)
    --EMACSCMD:(test-face-1 ", 1," "new" 'font-lock-keyword-face))
    --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
