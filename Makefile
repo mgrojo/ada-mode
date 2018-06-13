@@ -41,7 +41,7 @@ two : force
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 
 %_re2c.c : %.re2c
-	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 
 # wisi-grammar-elisp.el is in monotone, so this is all we need after a
