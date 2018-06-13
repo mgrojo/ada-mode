@@ -42,7 +42,6 @@ package body AUnit.Checks.Text_IO is
      (Computed : in String;
       Expected : in Ada.Text_IO.File_Type)
    is
-      use Ada.Strings;
       Read_Line : String (1 .. 400);
       Last      : Natural;
    begin
