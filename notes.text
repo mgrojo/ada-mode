@@ -33,32 +33,28 @@ Makefile
   (xmtn . "c:/Projects/org.wisitoken.grammar_mode.stephe-1")))
 
 (dvc-propagate-multiple
+ '(("../org.stephe_leake.sal"        . "../org.stephe_leake.sal.stephe-1")
+   ("../org.wisitoken"               . "../org.wisitoken.stephe-1")
+   ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-4")
+   ("../org.wisitoken.grammar_mode"  . "../org.wisitoken.grammar_mode.stephe-1")))
+
+(dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1"       . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"              . "../org.wisitoken")
    ("../org.emacs.ada-mode.stephe-4"         . "../org.emacs.ada-mode.stephe-2")
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
-add multi-mode for regexp, actions
-    wisi-grammar-mmm.el
+indent test failing with elisp action
+    posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
 
-    indent test failing with elisp action
-        posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
+    wisitoken uses indent-region, mmm-mode overrides indent-line
+    write mmm-indent-region
+        should only call wisi-process-parse once, then use indent caches
 
-        wisitoken uses indent-region, mmm-mode overrides indent-line
-        write mmm-indent-region
-            should only call wisi-process-parse once, then use indent caches
+test indent ada
+    should fail with syntax error
+    or not; don't have any multi-line Ada actions (sigh).
 
-
-    test indent ada
-        should fail with syntax error
-        or not; don't have any multi-line Ada actions (sigh).
-
-page up/down stop at %%?
-
-move parse_table_mode to o.w.g_m?
-
-use ( for elisp, { for other language?
-    set 'wisi-grammar-action-language' in file-local-var, use multi-major-mode
     change Ada parser to allow 'statement' as compilation_unit
         don't widen in wisi-indent-region
