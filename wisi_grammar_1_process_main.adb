@@ -42,7 +42,6 @@ package body Wisi_Grammar_1_Process_Main is
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
       use WisiToken.LR;
-      use all type WisiToken.Generator_Algorithm_Type;
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
          State_Last        => 61,
@@ -76,10 +75,10 @@ package body Wisi_Grammar_1_Process_Main is
             1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1),
          Task_Count  => 0,
-         Cost_Limit  => 5,
+         Cost_Limit  => 2147483647,
          Check_Limit => 4,
          Check_Delta_Limit => 2147483647,
-         Enqueue_Limit => 2147483647);
+         Enqueue_Limit => 10000);
 
 
       Table.Productions.Set_Length (38);

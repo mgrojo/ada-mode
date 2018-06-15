@@ -24,7 +24,6 @@
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 package body Wisi_Grammar_1_Process_Actions is
 
-   use all type Motion_Param_Array;
 
    procedure declaration_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
