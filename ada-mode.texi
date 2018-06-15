@@ -3,7 +3,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2017  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2018  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -71,7 +71,8 @@ Installation
 
 gpr_query
 
-* Building GNATCOLL::
+* Building GNATCOLL 2017::
+* Building GNATCOLL 2018::
 * Building @file{gpr_query}::
 
 ada_mode_gps_indent
@@ -210,7 +211,7 @@ not available in FSF GCC.
 must be built. Its source code is in the @code{ada-mode} Gnu ELPA package.
 
 @file{gpr_query} requires the @code{GNATCOLL} library provided by
-AdaCore, distributed with GNAT GPL 2016 or 2017, and also available at
+AdaCore, distributed with GNAT GPL 2016 or later, and also available at
 Github (@url{https://github.com/AdaCore/gnatcoll}). (The
 @code{GNATCOLL} distributed with GNAT GPL 2015 does not compile
 cleanly). The notes below assume that the compiler is installed at
@@ -225,18 +226,21 @@ version. @file{gpr_query} creates a database of cross reference
 information; that database must be deleted if the compiler version
 changes, to force a complete rebuild.
 
+The default binary gnatcoll distributed with GNAT GPL 2017 and 2018
+does not include the xref package, which is required by
+@file{gpr_query}. So we must build gnatcoll from sources. The process
+for doing that changed significantly between GPL 2017 and GPL 2018.
+
 @menu
-* Building GNATCOLL::
+* Building GNATCOLL 2017::
+* Building GNATCOLL 2018::
 * Building @file{gpr_query}::
 @end menu
 
-@node Building GNATCOLL
-@subsection Building GNATCOLL
+@node Building GNATCOLL 2017
+@subsection Building GNATCOLL 2017
 
-@code{GNATCOLL} may already be installed on your system: if it is,
-@file{$prefix/lib/gnat} will contain @file{gnatcoll} GPR files. If
-not, and you are using GNAT GPL 2017, first install the
-@code{libiconv} library.
+First install the @code{libiconv} library, as follows.
 
 On Linux, use the package manager to install the development version
 of @code{libiconv} (usually named @code{libiconv-dev}).
@@ -251,7 +255,7 @@ cp d:/msys64/mingw32/include/iconv.h d:/Apps/GNAT-gpl_2017/include/
 cp d:/msys64/mingw32/lib/libiconv.a  d:/Apps/GNAT-gpl_2017/lib/gcc/i686-pc-mingw32/6.3.1/
 @end example
 
-Then configure (assuming the GPL 2017 version) by:
+Then configure by:
 
 @example
 tar zxf ~/Downloads/gnatcoll-gpl-2017-src.tar.gz
@@ -286,6 +290,65 @@ sqlite3 executable that is compatible with the database it creates:
 @example
 cd gnatcoll-gpl-2017-src/src/sqlite/amalgamation/
 gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
+@end example
+
+@node Building GNATCOLL 2018
+@subsection Building GNATCOLL 2018
+
+The default gnatcoll distributed with GNAT GPL 2018 does not include
+the xref package, which is required by @file{gpr_query}. So we must
+build gnatcoll from sources. Here we assume you are using the 64 bit
+GNAT.
+
+Download three gnatcoll source files from
+@url{https://libre.adacore.com/}; click on ``More packages, platforms,
+versions and sources'' below the main components list. Select your
+target, click on ``Sources'' under the GNAT Community
+component. Search for 'gnatcoll'; the three files are:
+
+@example
+gnatcoll-bindings-gpl-2018-20180523-src.tar.gz
+gnatcoll-core-gpl-2018-20180523-src.tar.gz
+gnatcoll-db-gpl-2018-20180523-src.tar.gz
+@end example
+
+Install the @code{libiconv} library, as follows:
+
+On Linux, use the package manager to install the development version
+of @code{libiconv} (usually named @code{libiconv-dev}).
+
+On Windows, one way to get the library is to install MingW64 from the
+MSYS2 project (@url{http://www.msys2.org/}), use its package manger
+@code{pacman} to install @code{libiconv}, then copy the
+@code{libiconv} files to the GNAT installation:
+
+@example
+cp d:/msys64/mingw64/include/iconv.h d:/Apps/GNAT-gpl_2018/include/
+cp d:/msys64/mingw64/lib/libiconv.a  d:/Apps/GNAT-gpl_2018/lib/gcc/x86_64-pc-mingw32/7.3.1/
+@end example
+
+Then unpack, build, and install the required components:
+
+@example
+tar zxf ~/Downloads/gnatcoll-core-gpl-2018-20180523-src.tar.gz
+cd gnatcoll-core-gpl-2018-src
+make
+make install
+
+tar zxf ~/Downloads/gnatcoll-bindings-gpl-2018-20180523-src.tar.gz
+cd gnatcoll-bindings-gpl-2018-src
+cd iconv
+./setup.py build
+./setup.py install
+
+tar zxf ~/Downloads/gnatcoll-db-gpl-2018-20180523-src.tar.gz
+cd gnatcoll-db-gpl-2018-src
+make -C sql
+make -C sql install
+make -C sqlite
+make -C sqlite install
+make -C xref
+make -C xref install
 @end example
 
 @node Building @file{gpr_query}
@@ -332,7 +395,7 @@ To install @code{ada_mode_gps_indent}, assuming the
 @code{ada-mode-5.3.xx} GNU ELPA package is installed:
 @itemize
 @item
-Install @file{gnatcoll} (@ref{Building GNATCOLL}).
+Install @file{gnatcoll} (@ref{Building GNATCOLL 2018}).
 
 @item
 Compile and install @file{ada_mode_gps_indent}:

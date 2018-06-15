@@ -32,8 +32,6 @@ with WisiToken.Text_IO_Trace;
 procedure Gen_Run_Wisi_Parse
 is
    use WisiToken; -- Token_ID, "+", "-" Unbounded_string
-   use all type SAL.Base_Peek_Type;
-   use all type WisiToken.Wisi_Runtime.Post_Parse_Action_Type;
 
    Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    Parser     : WisiToken.LR.Parser.Parser;

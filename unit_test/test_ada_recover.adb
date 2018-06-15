@@ -21,7 +21,6 @@ pragma License (GPL);
 with AUnit.Checks;
 with Ada_Process_Actions; use Ada_Process_Actions;
 with Ada_Process_Main;
-with SAL;
 with WisiToken.LR.McKenzie_Recover.Ada;
 with WisiToken.LR.Parser.Gen_AUnit;
 with WisiToken.LR.Parser_Lists;
@@ -70,7 +69,6 @@ package body Test_Ada_Recover is
       pragma Unreferenced (T);
 
       use AUnit.Checks;
-      use all type SAL.Base_Peek_Type;
    begin
       --  Simplified from ../test/slow_recover_4.adb; used to be really
       --  slow, now we kill the slow parser sooner.

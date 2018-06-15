@@ -117,7 +117,6 @@ is
       Last   : in out Integer)
      return String
    is
-      use Ada.Exceptions;
       use Ada.Strings.Fixed;
       First : constant Integer := Index
         (Source  => Source,
@@ -141,7 +140,6 @@ is
       Last   : in out Integer)
      return Integer
    is
-      use Ada.Exceptions;
       use Ada.Strings.Fixed;
       First : constant Integer := Last + 2; -- final char of previous item, space
    begin
@@ -188,7 +186,6 @@ begin
    loop
       Put (Prompt); Flush;
       declare
-         use Ada.Strings.Fixed;
          Command_Length : constant Integer := Get_Command_Length;
          Command_Line   : aliased String (1 .. Command_Length);
          Last           : Integer;

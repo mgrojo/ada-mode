@@ -235,9 +235,6 @@ package body WisiToken.Wisi_Runtime is
       Offset       : in     Integer)
      return Integer
    is
-      use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
-
       Left_Paren_ID  : WisiToken.Token_ID renames Data.Descriptor.Left_Paren_ID;
       Right_Paren_ID : WisiToken.Token_ID renames Data.Descriptor.Right_Paren_ID;
 
@@ -354,7 +351,6 @@ package body WisiToken.Wisi_Runtime is
       Terminals  : in Augmented_Token_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor)
    is
-      use all type SAL.Base_Peek_Type;
       use Ada.Containers;
       use Ada.Strings.Unbounded;
       use WisiToken.LR;
@@ -608,8 +604,6 @@ package body WisiToken.Wisi_Runtime is
       Lexer : not null access WisiToken.Lexer.Instance'Class)
    is
       use all type Ada.Containers.Count_Type;
-      use all type SAL.Base_Peek_Type;
-
    begin
       if Lexer.First then
          Data.Line_Begin_Pos (Token.Line) := Token.Char_Region.First;
@@ -685,10 +679,6 @@ package body WisiToken.Wisi_Runtime is
       Nonterm : in     Syntax_Trees.Valid_Node_Index;
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array)
    is
-      use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
-      use all type Augmented_Token_Arrays.Cursor;
-
       Aug_Nonterm : constant Augmented_Token_Access := new Augmented_Token'
         (ID          => Tree.ID (Nonterm),
          Byte_Region => Tree.Byte_Region (Nonterm),
@@ -1568,7 +1558,6 @@ package body WisiToken.Wisi_Runtime is
       Descriptor : in WisiToken.Descriptor'Class)
      return String
    is
-      use all type Ada.Text_IO.Count;
       ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
    begin
       if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
