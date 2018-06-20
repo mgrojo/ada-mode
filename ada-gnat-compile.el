@@ -127,7 +127,7 @@ For `compilation-filter-hook'."
 
 (defconst ada-gnat-file-name-regexp
   "\\([a-z-_.]+\\)"
-  "regexp to extract a file name, sans extension")
+  "regexp to extract a file name")
 
 (defconst ada-gnat-quoted-name-regexp
   "\"\\([a-zA-Z0-9_.']+\\)\""
@@ -538,6 +538,13 @@ Prompt user if more than one."
 
 	  ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced"))
 	   ;; just delete the 'with'; assume it's on a line by itself.
+	   (pop-to-buffer source-buffer)
+	   (beginning-of-line)
+	   (delete-region (point) (progn (forward-line 1) (point)))
+	   t)
+
+	  ((looking-at (concat "warning: use clause for \\(package\\|type\\|private type\\) " ada-gnat-quoted-name-regexp " \\(defined at\\|has no effect\\)"))
+	   ;; delete the 'use'; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)
 	   (delete-region (point) (progn (forward-line 1) (point)))

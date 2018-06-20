@@ -319,6 +319,7 @@ nil, only the file name."
   :group 'ada-indentation)
 
 (defcustom ada-process-parse-exec "ada_mode_wisi_parse.exe"
+  ;; We use .exe even on Linux to simplify the Makefile
   "Name of executable to use for external process Ada parser,"
   :type 'string
   :group 'ada-indentation)
@@ -1731,6 +1732,18 @@ Indexed by project variable xref_tool.")
 (defvar ada-deselect-prj-xref-tool nil
   "Alist of functions to call for xref-tool specific project file deselection.
 Indexed by project variable xref_tool.")
+
+(defun ada-refresh-prj-file ()
+  "Reparse, reselect current project file.
+Useful when project has been edited."
+  (interactive)
+  (let* ((prj-file ada-prj-current-file)
+   	 (parsed (assoc prj-file ada-prj-alist)))
+    (setq ada-prj-current-file nil)
+    (setq ada-prj-current-project nil)
+    (when parsed
+      (setq ada-prj-alist (delq parsed ada-prj-alist)))
+    (ada-select-prj-file prj-file nil)))
 
 (defun ada-select-prj-file (prj-file &optional no-force)
   "Select PRJ-FILE as the current project file, parsing it if necessary.

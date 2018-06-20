@@ -255,9 +255,15 @@ src_dir will include compiler runtime."
     (setq project (plist-put project 'gpr_file gpr-file))
     )
 
-  (setq project (gnat-get-paths project))
+  (condition-case-unless-debug nil
+      ;; Can fail due to gpr_query not installed, or bad gpr file
+      ;; syntax; allow .prj file settings to still work.
+      (setq project (gnat-get-paths project))
+    (message "Parsing %s ... done" gpr-file)
+    (error
+       (message "Parsing %s ... error" gpr-file))
+    )
 
-  (message "Parsing %s ... done" gpr-file)
   project)
 
 ;;;; command line tool interface
