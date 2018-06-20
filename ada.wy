@@ -307,6 +307,8 @@
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator  on token TICK_1
+%conflict SHIFT/REDUCE in state block_label, identifier_list  on token COLON
+%conflict SHIFT/REDUCE in state compilation_unit_list, compilation_unit_list  on token FOR
 %conflict SHIFT/REDUCE in state declaration, declaration  on token CONSTANT
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
@@ -329,6 +331,7 @@
 %conflict SHIFT/REDUCE in state relation_xor_list, expression  on token XOR
 %conflict SHIFT/REDUCE in state selected_component, attribute_designator  on token DOT
 %conflict SHIFT/REDUCE in state task_body_stub, task_body  on token IS
+%conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token FOR
 
 %if lexer = re2c
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator  on token TICK_2
@@ -669,15 +672,20 @@ case_statement_alternative_list
 
 ;; choice_relation* - use 'relation*', to avoid conflicts
 
-;; since we allow multiple compilation units in one parse, and don't
+;; Since we allow multiple compilation units in one parse, and don't
 ;; require a library_item in order to be user friendly, we don't need
 ;; a context_clause, since a list of context_items is just a
 ;; compilation_unit_list. Since context_item includes pragma, this
 ;; also allows a pragma following a compilation_unit.
+;;
+;; We allow additional items here for partial syntax in mako-ada
+;; templates and grammar actions.
 compilation_unit
-  : context_item
-  | library_item
+  : with_clause
   | subunit
+  | PRIVATE declaration
+  | declaration
+  | statement
   ;
 
 compilation_unit_list
@@ -780,7 +788,7 @@ constraint_opt
   | constraint
   ;
 
-context_item : pragma_g | with_clause | use_clause;
+;; context_item not needed; see compilation_unit
 
 declaration
   : abstract_subprogram_declaration
@@ -800,7 +808,6 @@ declaration
                            (wisi-anchored% 4 ada-indent-broken) 0])))%
   | object_declaration
   | package_declaration
-  | pragma_g ;; not a 'declaration' in ARM, but it must be in the grammar
   | renaming_declaration
   | subprogram_declaration
   | subtype_declaration
@@ -808,9 +815,14 @@ declaration
   | use_clause
   ;
 
+;; pragma_g is not a 'declaration' in ARM, but it must be in the
+;; grammar. We don't include it in 'declaration', to avoid conflicts
+;; with 'pragma_g' in statements via compilation_unit.
 declarations
   : declaration
+  | pragma_g
   | declarations declaration
+  | declarations pragma_g
   ;
 
 declarative_part_opt
@@ -1530,27 +1542,7 @@ iterator_specification_opt
   | iterator_specification
   ;
 
-library_item
-  : PRIVATE library_unit_declaration
-  | library_unit_declaration
-  | subprogram_body ;; library_unit_body
-  | package_body ;; library_unit_body
- ;; | PRIVATE library_unit_renaming_declaration
-  | library_unit_renaming_declaration
-  ;
-
-library_unit_declaration
-  : subprogram_declaration
-  | package_declaration
-  | generic_declaration
-  | generic_instantiation
-  ;
-
-library_unit_renaming_declaration
-  : package_renaming_declaration
-  | generic_renaming_declaration
-  | subprogram_renaming_declaration
-  ;
+;; library_*  not needed; 'declaration' in compilation_unit
 
 loop_statement
   : block_label_opt iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON

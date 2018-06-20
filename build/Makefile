@@ -38,20 +38,19 @@ pub : docs pub-ada pub-wisi pub-ada-ref-man build-elpa uninstall-elpa
 
 docs : info html
 
-# this updates elisp and related executables after any source change,
+# This updates elisp and related executables after any source change,
 # without running the tests.
 update-elisp : autoloads
 update-elisp : ../ada-elisp.el
 update-elisp : ../gpr-elisp.el
-#update-elisp : build_ada_executables
-update-elisp : install_ada_executables
+update-elisp : build_ada_executables
 update-elisp : byte-compile
 
-# This updates everything after any source change, without running the
+# This updates and installs everything after any source change, without running the
 # tests or publishing to elpa
-update-all : update-elisp
-update-all : install
-update-all : docs
+update-install : update-elisp
+update-install : install
+update-install : docs
 
 install : install_gpr_query
 install : install_ada_executables

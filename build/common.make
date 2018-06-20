@@ -1,9 +1,4 @@
 # common rules for Emacs Ada and gpr mode tests
-#
-# We run gprbuild -c to make sure the Ada is syntactically
-# correct; in general, we don't care if the indentation does the wrong
-# thing on incorrect code, as long as it doesn't hang or crash.
-# Exceptions noted below in COMPILE_FILES.
 
 ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])

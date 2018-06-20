@@ -176,7 +176,6 @@
    constant_opt
    constraint
    constraint_opt
-   context_item
    declaration
    declarations
    declarative_part_opt
@@ -252,9 +251,6 @@
    iteration_scheme
    iterator_specification
    iterator_specification_opt
-   library_item
-   library_unit_declaration
-   library_unit_renaming_declaration
    loop_statement
    membership_choice_list
    membership_choice

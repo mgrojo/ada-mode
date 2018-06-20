@@ -109,6 +109,7 @@ project Ada_Mode_Compile is
       for Switches ("ada_mode-options-indent_return_1.ads") use ("-gnats");
       for Switches ("ada_mode-options-indent_return_2.ads") use ("-gnats");
       for Switches ("ada_mode-options-indent_return_3.ads") use ("-gnats");
+      for Switches ("ada_mode-separate_protected_body.adb") use ("-gnats");
       for Switches ("ada_mode-spec.ads") use ("-gnats");
 
       -- These files set Ada mode indentation options that violate gnat's check
