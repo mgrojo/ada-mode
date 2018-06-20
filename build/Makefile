@@ -132,7 +132,7 @@ two_pro : build_ada_executables
 # ADA_PROJECT_PATH is used by the ../test/*.ad? files to test Ada mode
 # interaction with gpr project files.
 ifeq ($(shell uname),Linux)
-export WISI_WISITOKEN ?= c:/Projects/org.wisitoken/build
+export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else ifeq ($(shell uname),Darwin)
