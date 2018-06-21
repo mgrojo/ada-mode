@@ -387,14 +387,14 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Delete;
 
-   function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
+   function Constant_Ref (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
    is
       J : constant Peek_Type := To_Peek_Type (Index);
    begin
       return (Element => Container.Elements (J)'Access);
-   end Constant_Reference;
+   end Constant_Ref;
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Vector;
       Index     :         in Index_Type)
      return Variable_Reference_Type
@@ -402,13 +402,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       J : constant Peek_Type := To_Peek_Type (Index);
    begin
       return (Element => Container.Elements (J)'Access);
-   end Variable_Reference;
-
-   function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Element_Access_Type
-   is
-      J : constant Peek_Type := To_Peek_Type (Index);
-   begin
-      return Container.Elements (J)'Access;
    end Variable_Ref;
 
    function Has_Element (Position : Cursor) return Boolean is
@@ -457,17 +450,17 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       return Iterator'(Container => Container'Unrestricted_Access);
    end Iterate;
 
-   function Constant_Reference (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
+   function Constant_Ref (Container : aliased Vector; Position : in Cursor) return Constant_Reference_Type
    is begin
       return (Element => Container.Elements (Position.Index)'Access);
-   end Constant_Reference;
+   end Constant_Ref;
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Vector;
       Position  :         in Cursor)
      return Variable_Reference_Type
    is begin
       return (Element => Container.Elements (Position.Index)'Access);
-   end Variable_Reference;
+   end Variable_Ref;
 
 end SAL.Gen_Unbounded_Definite_Vectors;

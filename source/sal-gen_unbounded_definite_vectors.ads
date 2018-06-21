@@ -31,8 +31,6 @@ generic
    type Element_Type is private;
 package SAL.Gen_Unbounded_Definite_Vectors is
 
-   type Element_Access_Type is access all Element_Type;
-
    subtype Extended_Index is Index_Type'Base
      range Index_Type'First - 1 ..
            Index_Type'Min (Index_Type'Base'Last - 1, Index_Type'Last) + 1;
@@ -40,8 +38,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    No_Index : constant Extended_Index := Extended_Index'First;
 
    type Vector is new Ada.Finalization.Controlled with private with
-      Constant_Indexing => Constant_Reference,
-      Variable_Indexing => Variable_Reference,
+      Constant_Indexing => Constant_Ref,
+      Variable_Indexing => Variable_Ref,
       Default_Iterator  => Iterate,
       Iterator_Element  => Element_Type;
 
@@ -134,16 +132,14 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Constant_Reference (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
+   function Constant_Ref (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
    with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
 
    type Variable_Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Variable_Reference (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
+   function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
    with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
-
-   function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Element_Access_Type;
 
    type Cursor is private;
 
@@ -153,11 +149,12 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    function Iterate (Container : aliased in Vector) return Iterator_Interfaces.Reversible_Iterator'Class;
 
-   function Constant_Reference (Container : aliased in Vector; Position : in Cursor) return Constant_Reference_Type
+   function Constant_Ref (Container : aliased in Vector; Position : in Cursor) return Constant_Reference_Type
    with Pre => Has_Element (Position);
 
-   function Variable_Reference (Container : aliased in Vector; Position  : in Cursor) return Variable_Reference_Type
+   function Variable_Ref (Container : aliased in Vector; Position  : in Cursor) return Variable_Reference_Type
    with Pre => Has_Element (Position);
+
 private
 
    type Array_Type is array (SAL.Peek_Type range <>) of aliased Element_Type;
