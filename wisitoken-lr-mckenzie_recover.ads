@@ -27,6 +27,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.LR.Parser;
+with WisiToken.Lexer;
 package WisiToken.LR.McKenzie_Recover is
 
    type Recover_Status is

@@ -262,7 +262,7 @@ package WisiToken is
       --  Char_Region are included for error messages.
       ID : Token_ID := Invalid_Token_ID;
 
-      Byte_Region : Buffer_Region     := Null_Buffer_Region;
+      Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
 
       Line   : Line_Number_Type  := Invalid_Line_Number;

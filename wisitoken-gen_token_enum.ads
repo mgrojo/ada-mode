@@ -40,6 +40,7 @@ package WisiToken.Gen_Token_Enum is
    function Token_Enum_Image return Token_ID_Array_String;
 
    subtype Terminal_Enum_ID is Token_Enum_ID range First_Terminal .. Last_Terminal;
+   subtype Nonterminal_Enum_ID is Token_Enum_ID range First_Nonterminal .. Last_Nonterminal;
 
    LR1_Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal                => +First_Terminal,

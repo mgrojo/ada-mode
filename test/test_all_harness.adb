@@ -29,6 +29,7 @@ with Association_Grammar_Test;
 with Compare_Goto_Transitions;
 with Dragon_4_43_LR1_Test;
 with Dragon_4_45_LALR_Test;
+with Dragon_4_43_Packrat_Hand;
 with GNAT.Traceback.Symbolic;
 with Grune_9_30;
 with Name_Grammar_Test;
@@ -109,6 +110,7 @@ begin
    Add_Test (Suite, new Compare_Goto_Transitions.Test_Case (Debug => False));
    Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug => 0));
    Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case);
+   Add_Test (Suite, new Dragon_4_43_Packrat_Hand.Test_Case);
    Add_Test (Suite, new Grune_9_30.Test_Case);
    Add_Test (Suite, new Name_Grammar_Test.Test_Case);
    Add_Test (Suite, new Test_Accept_State.Test_Case);

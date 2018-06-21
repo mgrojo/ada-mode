@@ -85,9 +85,6 @@ package WisiToken.Syntax_Trees is
      is null;
    --  Read auxiliary data from Lexer, create an Augmented_Token, store
    --  it in User_Data.
-   --
-   --  Does not have a Tree argument, because this is called from
-   --  recover, which does not maintain a tree.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;

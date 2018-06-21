@@ -5,10 +5,10 @@ org.wisitoken          - working, used by o.e.a.s-2
 org.wisitoken.stephe-1 - available
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
+'((xmtn . "/Projects/org.stephe_leake.makerules")
+  (xmtn . "/Projects/org.stephe_leake.aunit_ext")
+  (xmtn . "/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "/Projects/org.wisitoken.stephe-1")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -19,6 +19,9 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+Test/dragon_4_43_packrat_gen.adb
+
+
 wisitoken.packrat
     .generate
         read existing *.wy

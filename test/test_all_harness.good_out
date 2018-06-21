@@ -15,6 +15,7 @@ OK dragon_4_45_lalr_test.adb : Test_First
 OK dragon_4_45_lalr_test.adb : Test_LALR_Kernels
 OK dragon_4_45_lalr_test.adb : Parser_Table
 OK dragon_4_45_lalr_test.adb : Test_Parse
+OK dragon_4_43_packrat_hand.adb : Test_Parse
 OK grune_9_30.adb : Test_Item_Sets
 OK grune_9_30.adb : Test_Parse
 OK name_grammar_test.adb : Nominal
@@ -66,7 +67,7 @@ OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 
-Total Tests Run:   66
-Successful Tests:  66
+Total Tests Run:   67
+Successful Tests:  67
 Failed Assertions: 0
 Unexpected Errors: 0

@@ -30,6 +30,7 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 with Ada.Characters;
+with WisiToken.Parse;
 package body WisiToken.LR.Parser_No_Recover is
 
    procedure Reduce_Stack_1
@@ -263,16 +264,10 @@ package body WisiToken.LR.Parser_No_Recover is
    begin
       --  The user must call Lexer.Reset_* to set the input text.
       Shared_Parser.Lexer_Errors.Clear;
-      Shared_Parser.Terminals.Clear;
-      Shared_Parser.Line_Begin_Token.Clear;
-      loop
-         exit when Trace.Descriptor.EOF_ID = Next_Grammar_Token
-           (Shared_Parser.Terminals, Shared_Parser.Line_Begin_Token,
-            Trace.Descriptor.all, Shared_Parser.Lexer, Shared_Parser.User_Data);
-      end loop;
-      if Trace_Parse > Outline then
-         Trace.Put_Line (Token_Index'Image (Shared_Parser.Terminals.Last_Index) & " tokens lexed");
-      end if;
+
+      WisiToken.Parse.Lex_All
+        (Shared_Parser.Lexer, Shared_Parser.Terminals, Shared_Parser.Line_Begin_Token, Shared_Parser.User_Data,
+         Shared_Parser.Trace);
 
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;

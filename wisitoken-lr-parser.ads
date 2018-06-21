@@ -26,6 +26,7 @@ pragma License (Modified_GPL);
 
 with Ada.Finalization;
 with WisiToken.LR.Parser_Lists;
+with WisiToken.Lexer;
 package WisiToken.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
