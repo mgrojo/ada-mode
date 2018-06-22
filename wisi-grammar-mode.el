@@ -155,7 +155,7 @@ Otherwise insert a plain new line."
 ;;; xref integration
 (defun wisi-grammar--xref-backend ()
   (cl-case major-mode
-    (wisi-grammar-mode 'wisi-grammar)
+    (wisi-grammar-mode 'wisi-grammar-mode)
     (emacs-lisp-mode 'elisp)
     (t nil)))
 
