@@ -191,12 +191,22 @@ package body WisiToken is
       return To_String (Result);
    end Lookahead_Image;
 
+   function Image (Item : in Production_ID) return String
+   is begin
+      return '(' & Trimmed_Image (Item.Nonterm) & ',' & Natural'Image (Item.RHS) & ')';
+   end Image;
+
+   function Trimmed_Image (Item : in Production_ID) return String
+   is begin
+      return Trimmed_Image (Item.Nonterm) & '.' & Trimmed_Image (Item.RHS);
+   end Trimmed_Image;
+
    function Padded_Image (Item : in Production_ID; Width : in Integer) return String
    is
       use Ada.Strings.Fixed;
    begin
       return Result : String (1 .. Width) do
-         Move (Production_ID'Image (Item), Result, Justify => Ada.Strings.Right);
+         Move (Trimmed_Image (Item), Result, Justify => Ada.Strings.Right);
       end return;
    end Padded_Image;
 

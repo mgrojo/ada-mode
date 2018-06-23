@@ -59,11 +59,9 @@ package body WisiToken.Syntax_Trees is
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
-      Nonterm         : in     WisiToken.Token_ID;
-      Action          : in     Semantic_Action;
       Production      : in     Production_ID;
-      Name_Index      : in     Natural;
       Children        : in     Valid_Node_Index_Array;
+      Action          : in     Semantic_Action;
       Default_Virtual : in     Boolean)
      return Valid_Node_Index
    is
@@ -72,23 +70,21 @@ package body WisiToken.Syntax_Trees is
       if Tree.Flush then
          Tree.Shared_Tree.Nodes.Append
            ((Label      => Syntax_Trees.Nonterm,
-             ID         => Nonterm,
+             ID         => Production.Nonterm,
              Action     => Action,
-             Production => Production,
-             Name_Index => Name_Index,
+             RHS_Index  => Production.RHS,
              Virtual    => (if Children'Length = 0 then Default_Virtual else False),
              others     => <>));
          Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
          Nonterm_Node          := Tree.Last_Shared_Node;
       else
          Tree.Branched_Nodes.Append
-           ((Label      => Syntax_Trees.Nonterm,
-             ID         => Nonterm,
-             Action     => Action,
-             Production => Production,
-             Name_Index => Name_Index,
-             Virtual    => (if Children'Length = 0 then Default_Virtual else False),
-             others     => <>));
+           ((Label     => Syntax_Trees.Nonterm,
+             ID        => Production.Nonterm,
+             Action    => Action,
+             RHS_Index => Production.RHS,
+             Virtual   => (if Children'Length = 0 then Default_Virtual else False),
+             others    => <>));
          Nonterm_Node := Tree.Branched_Nodes.Last_Index;
       end if;
 
@@ -697,17 +693,6 @@ package body WisiToken.Syntax_Trees is
       Tree.Branched_Nodes.Prepend (Tree.Shared_Tree.Nodes, Required_Node, Tree.Last_Shared_Node);
       Tree.Last_Shared_Node := Required_Node - 1;
    end Move_Branch_Point;
-
-   function Name_Index
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Natural
-   is begin
-      return
-        (if Node <= Tree.Last_Shared_Node
-         then Tree.Shared_Tree.Nodes (Node).Name_Index
-         else Tree.Branched_Nodes (Node).Name_Index);
-   end Name_Index;
 
    function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
    is begin

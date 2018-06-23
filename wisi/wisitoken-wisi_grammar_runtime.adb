@@ -113,7 +113,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
 
       return RHS : Wisi.RHS_Type do
          for I of Tree.Get_Terminals (Tokens (1)) loop
-            RHS.Production.Append (Get_Text (Data, Tree, I));
+            RHS.Tokens.Append (Get_Text (Data, Tree, I));
          end loop;
 
          if Tokens'Last >= 2 then
@@ -548,7 +548,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
 
       Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Tokens (3));
 
-      Data.Tokens.Rules.Append ((+Get_Text (Data, Tree, Tokens (1)), Right_Hand_Sides));
+      Data.Tokens.Rules.Append
+        ((+Get_Text (Data, Tree, Tokens (1)), Right_Hand_Sides,
+          Source_Line => Data.Terminals.all (Tree.Min_Terminal_Index (Tokens (1))).Line));
    end Add_Nonterminal;
 
 end WisiToken.Wisi_Grammar_Runtime;

@@ -62,15 +62,15 @@ package body Test_LR_Expecting_Terminal_Sequence is
       EOF_ID,
 
       --  non-terminals
-      Statement_ID,       -- 9
-      Parse_Sequence_ID); -- 10
+      Parse_Sequence_ID,
+      Statement_ID);
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Equals_ID,
       Last_Terminal     => EOF_ID,
-      First_Nonterminal => Statement_ID,
-      Last_Nonterminal  => Parse_Sequence_ID,
+      First_Nonterminal => Parse_Sequence_ID,
+      Last_Nonterminal  => Statement_ID,
       EOF_ID            => EOF_ID,
       Accept_ID         => Parse_Sequence_ID,
       Case_Insensitive  => False);
@@ -81,7 +81,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
 
    package Set_Statement is
 
-      Grammar : constant WisiToken.Productions.Arrays.Vector :=
+      Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
         --  set symbol = value
         +(Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Syntax_Trees.Null_Action);
 
@@ -89,7 +89,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
 
    package Verify_Statement is
 
-      Grammar : constant WisiToken.Productions.Arrays.Vector :=
+      Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
         --  verify symbol = value +- tolerance
         +(Statement_ID  <= Verify_ID & Identifier_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID +
             WisiToken.Syntax_Trees.Null_Action);
@@ -110,7 +110,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
        EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Grammar : constant WisiToken.Productions.Arrays.Vector :=
+   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
      +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action) and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
@@ -184,14 +184,15 @@ package body Test_LR_Expecting_Terminal_Sequence is
    is
       pragma Unreferenced (T);
       use WisiToken.LR.AUnit;
+      use WisiToken.LR.AUnit.Token_Sequence_Arrays_AUnit;
       Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;
       Expected : WisiToken.LR.Token_Sequence_Arrays.Vector;
       Sequence : WisiToken.Token_ID_Arrays.Vector;
    begin
       WisiToken.LR.Generator_Utils.Compute_Minimal_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
 
-      Expected.Set_First (+Statement_ID);
-      Expected.Set_Last (+Parse_Sequence_ID);
+      Expected.Set_First (+Parse_Sequence_ID);
+      Expected.Set_Last (+Statement_ID);
 
       Sequence.Append (+Set_ID);
       Sequence.Append (+Identifier_ID);

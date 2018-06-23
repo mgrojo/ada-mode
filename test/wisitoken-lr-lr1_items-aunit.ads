@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
-package WisiToken_AUnit is
+package WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
@@ -51,7 +51,7 @@ package WisiToken_AUnit is
       Expected : in WisiToken.LR.LR1_Items.Item_Set_List);
 
    function Get_Item_Node
-     (Grammar    : in WisiToken.Productions.Arrays.Vector;
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
@@ -61,7 +61,7 @@ package WisiToken_AUnit is
    --  Dot (1 indexed; use last + 1 for after last).
 
    function Get_Item
-     (Grammar    : in WisiToken.Productions.Arrays.Vector;
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
@@ -103,10 +103,10 @@ package WisiToken_AUnit is
       Gotos : in WisiToken.LR.LR1_Items.Goto_Item_Ptr);
 
    function Get_Item_Set
-     (Grammar   : in WisiToken.Productions.Arrays.Vector;
+     (Grammar   : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod      : in WisiToken.Production_ID;
       Dot       : in Positive;
       Lookahead : in WisiToken.LR.LR1_Items.Lookahead)
      return WisiToken.LR.LR1_Items.Item_Set;
 
-end WisiToken_AUnit;
+end WisiToken.LR.LR1_Items.AUnit;

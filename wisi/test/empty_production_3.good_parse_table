@@ -18,81 +18,81 @@ name => (IDENTIFIER)
 parameter_specification => (IDENTIFIER, IDENTIFIER)
 
 Productions:
-1: wisitoken_accept <= (compilation_unit, Wisi_EOI)
-2: compilation_unit <= (parameter_specification, parameter_specification)
-3: mode <= ()
-4: mode <= (IN)
-5: name <= (IDENTIFIER)
-6: parameter_specification <= (IDENTIFIER, mode, name)
+4.0: wisitoken_accept <= (compilation_unit, Wisi_EOI)
+5.0: compilation_unit <= (parameter_specification, parameter_specification)
+6.0: mode <= ()
+6.1: mode <= (IN)
+7.0: name <= (IDENTIFIER)
+8.0: parameter_specification <= (IDENTIFIER, mode, name)
 
 State 1:
-     1:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+      4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
-   IDENTIFIER              => shift and goto state 2 (6)
+   IDENTIFIER              => shift and goto state 2 (8.0)
    default                 => ERROR
 
-     1: compilation_unit        goto state 3
-     2: parameter_specification goto state 4
+      4.0: compilation_unit        goto state 3
+      5.0: parameter_specification goto state 4
 
 State 2:
-     6:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER/Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER/Wisi_EOI
 
-   IN                      => shift and goto state 6 (4)
-   IDENTIFIER              => reduce 0 tokens to mode (3)
+   IN                      => shift and goto state 6 (6.1)
+   IDENTIFIER              => reduce 0 tokens to mode 6.0
    default                 => ERROR
 
-     6: mode                    goto state 7
+      8.0: mode                    goto state 7
 
 State 3:
-     1:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
+      4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
 
-   Wisi_EOI                => accept it (1)
+   Wisi_EOI                => accept it 4.0
    default                 => ERROR
 
 
 State 4:
-     2:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
+      5.0:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 2 (6)
+   IDENTIFIER              => shift and goto state 2 (8.0)
    default                 => ERROR
 
-     2: parameter_specification goto state 5
+      5.0: parameter_specification goto state 5
 
 State 5:
-     2:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
+      5.0:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
 
-   Wisi_EOI                => reduce 2 tokens to compilation_unit (2)
+   Wisi_EOI                => reduce 2 tokens to compilation_unit 5.0
    default                 => ERROR
 
 
 State 6:
-     4:mode <= IN ^, IDENTIFIER
+      6.1:mode <= IN ^, IDENTIFIER
 
-   IDENTIFIER              => reduce 1 tokens to mode (4)
+   IDENTIFIER              => reduce 1 tokens to mode 6.1
    default                 => ERROR
 
 
 State 7:
-     6:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER/Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 8 (5)
+   IDENTIFIER              => shift and goto state 8 (7.0)
    default                 => ERROR
 
-     6: name                    goto state 9
+      8.0: name                    goto state 9
 
 State 8:
-     5:name <= IDENTIFIER ^, IDENTIFIER/Wisi_EOI
+      7.0:name <= IDENTIFIER ^, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => reduce 1 tokens to name (5)
-   Wisi_EOI                => reduce 1 tokens to name (5)
+   IDENTIFIER              => reduce 1 tokens to name 7.0
+   Wisi_EOI                => reduce 1 tokens to name 7.0
    default                 => ERROR
 
 
 State 9:
-     6:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER/Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => reduce 3 tokens to parameter_specification (6)
-   Wisi_EOI                => reduce 3 tokens to parameter_specification (6)
+   IDENTIFIER              => reduce 3 tokens to parameter_specification 8.0
+   Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
 
@@ -105,102 +105,102 @@ name => (IDENTIFIER)
 parameter_specification => (IDENTIFIER, IDENTIFIER)
 
 State 1:
-     1:wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
+      4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 2 (6)
+   IDENTIFIER              => shift and goto state 2 (8.0)
    default                 => ERROR
 
-     1: compilation_unit        goto state 3
-     2: parameter_specification goto state 4
+      4.0: compilation_unit        goto state 3
+      5.0: parameter_specification goto state 4
 
 State 2:
-     6:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER
+      8.0:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER
 
-   IN                      => shift and goto state 7 (4)
-   IDENTIFIER              => reduce 0 tokens to mode (3)
+   IN                      => shift and goto state 7 (6.1)
+   IDENTIFIER              => reduce 0 tokens to mode 6.0
    default                 => ERROR
 
-     5: mode                    goto state 8
+      7.0: mode                    goto state 8
 
 State 3:
-     1:wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
+      4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
-   Wisi_EOI                => accept it (1)
+   Wisi_EOI                => accept it 4.0
    default                 => ERROR
 
 
 State 4:
-     2:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
+      5.0:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 5 (6)
+   IDENTIFIER              => shift and goto state 5 (8.0)
    default                 => ERROR
 
-     2: parameter_specification goto state 6
+      5.0: parameter_specification goto state 6
 
 State 5:
-     6:parameter_specification <= IDENTIFIER ^ mode name, Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER ^ mode name, Wisi_EOI
 
-   IN                      => shift and goto state 7 (4)
-   IDENTIFIER              => reduce 0 tokens to mode (3)
+   IN                      => shift and goto state 7 (6.1)
+   IDENTIFIER              => reduce 0 tokens to mode 6.0
    default                 => ERROR
 
-     5: mode                    goto state 11
+      7.0: mode                    goto state 11
 
 State 6:
-     2:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
+      5.0:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
 
-   Wisi_EOI                => reduce 2 tokens to compilation_unit (2)
+   Wisi_EOI                => reduce 2 tokens to compilation_unit 5.0
    default                 => ERROR
 
 
 State 7:
-     4:mode <= IN ^, IDENTIFIER
+      6.1:mode <= IN ^, IDENTIFIER
 
-   IDENTIFIER              => reduce 1 tokens to mode (4)
+   IDENTIFIER              => reduce 1 tokens to mode 6.1
    default                 => ERROR
 
 
 State 8:
-     6:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER
+      8.0:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER
 
-   IDENTIFIER              => shift and goto state 9 (5)
+   IDENTIFIER              => shift and goto state 9 (7.0)
    default                 => ERROR
 
-     6: name                    goto state 10
+      8.0: name                    goto state 10
 
 State 9:
-     5:name <= IDENTIFIER ^, IDENTIFIER
+      7.0:name <= IDENTIFIER ^, IDENTIFIER
 
-   IDENTIFIER              => reduce 1 tokens to name (5)
+   IDENTIFIER              => reduce 1 tokens to name 7.0
    default                 => ERROR
 
 
 State 10:
-     6:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER
+      8.0:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER
 
-   IDENTIFIER              => reduce 3 tokens to parameter_specification (6)
+   IDENTIFIER              => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
 
 State 11:
-     6:parameter_specification <= IDENTIFIER mode ^ name, Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER mode ^ name, Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 12 (5)
+   IDENTIFIER              => shift and goto state 12 (7.0)
    default                 => ERROR
 
-     6: name                    goto state 13
+      8.0: name                    goto state 13
 
 State 12:
-     5:name <= IDENTIFIER ^, Wisi_EOI
+      7.0:name <= IDENTIFIER ^, Wisi_EOI
 
-   Wisi_EOI                => reduce 1 tokens to name (5)
+   Wisi_EOI                => reduce 1 tokens to name 7.0
    default                 => ERROR
 
 
 State 13:
-     6:parameter_specification <= IDENTIFIER mode name ^, Wisi_EOI
+      8.0:parameter_specification <= IDENTIFIER mode name ^, Wisi_EOI
 
-   Wisi_EOI                => reduce 3 tokens to parameter_specification (6)
+   Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
 

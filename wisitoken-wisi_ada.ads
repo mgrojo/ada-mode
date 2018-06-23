@@ -32,11 +32,11 @@ with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 package WisiToken.Wisi_Ada is
 
-   function Only (Item : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List;
-   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List;
+   function Only (Item : in Token_ID) return WisiToken.Token_ID_Arrays.Vector;
+   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Token_ID_Arrays.Vector;
 
    function "+"
-     (Tokens : in WisiToken.Productions.Token_ID_Lists.List;
+     (Tokens : in WisiToken.Token_ID_Arrays.Vector;
       Action : in WisiToken.Syntax_Trees.Semantic_Action)
      return WisiToken.Productions.Right_Hand_Side;
    function "+"
@@ -44,35 +44,39 @@ package WisiToken.Wisi_Ada is
       Action : in WisiToken.Syntax_Trees.Semantic_Action)
      return WisiToken.Productions.Right_Hand_Side;
    function "+" (Action : in WisiToken.Syntax_Trees.Semantic_Action) return WisiToken.Productions.Right_Hand_Side;
-   function "+"
-     (Tokens : in WisiToken.Productions.Token_ID_Lists.List;
-      Index  : in Integer)
-     return WisiToken.Productions.Right_Hand_Side;
-   function "+" (Tokens : in Token_ID; Index  : in Integer) return WisiToken.Productions.Right_Hand_Side;
-   function "+" (Index  : in Integer) return WisiToken.Productions.Right_Hand_Side;
    --  Create the right hand side of a production.
 
-   function "<="
-     (LHS : in Token_ID;
-      RHS : in WisiToken.Productions.Right_Hand_Side)
+   function Only (Item : in WisiToken.Productions.Right_Hand_Side) return WisiToken.Productions.RHS_Arrays.Vector;
+   function "+" (Item : in WisiToken.Productions.Right_Hand_Side) return WisiToken.Productions.RHS_Arrays.Vector
+     renames Only;
+
+   function "or"
+     (Left  : in WisiToken.Productions.Instance;
+      Right : in WisiToken.Productions.Right_Hand_Side)
      return WisiToken.Productions.Instance;
-   function Only (Subject : in WisiToken.Productions.Instance) return WisiToken.Productions.Arrays.Vector;
-   function "+" (Subject : in WisiToken.Productions.Instance) return WisiToken.Productions.Arrays.Vector
+
+   function "<="
+     (LHS  : in Token_ID;
+      RHSs : in WisiToken.Productions.RHS_Arrays.Vector)
+     return WisiToken.Productions.Instance;
+
+   function Only (Subject : in WisiToken.Productions.Instance) return WisiToken.Productions.Prod_Arrays.Vector;
+   function "+" (Subject : in WisiToken.Productions.Instance) return WisiToken.Productions.Prod_Arrays.Vector
      renames Only;
    --  First production in a grammar.
 
    function "and"
      (Left  : in WisiToken.Productions.Instance;
       Right : in WisiToken.Productions.Instance)
-     return WisiToken.Productions.Arrays.Vector;
+     return WisiToken.Productions.Prod_Arrays.Vector;
    function "and"
-     (Left  : in WisiToken.Productions.Arrays.Vector;
+     (Left  : in WisiToken.Productions.Prod_Arrays.Vector;
       Right : in WisiToken.Productions.Instance)
-     return WisiToken.Productions.Arrays.Vector;
+     return WisiToken.Productions.Prod_Arrays.Vector;
    function "and"
-     (Left : in WisiToken.Productions.Arrays.Vector;
-      Right : in WisiToken.Productions.Arrays.Vector)
-     return WisiToken.Productions.Arrays.Vector;
+     (Left : in WisiToken.Productions.Prod_Arrays.Vector;
+      Right : in WisiToken.Productions.Prod_Arrays.Vector)
+     return WisiToken.Productions.Prod_Arrays.Vector;
    --  Create a grammar
 
 end WisiToken.Wisi_Ada;

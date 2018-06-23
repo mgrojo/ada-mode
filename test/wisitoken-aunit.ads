@@ -22,7 +22,12 @@ with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_ID);
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Production_ID);
+
+   procedure Check (Label : in String; Computed, Expected : in Production_ID);
+
+   package Production_ID_Arrays_AUnit is new Production_ID_Arrays.Gen_AUnit
+     (Check_Index   => Standard.AUnit.Checks.Check,
+      Check_Element => Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Line_Number_Type);
 
@@ -35,7 +40,7 @@ package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Base_Token_Index);
 
-   procedure Check is new Base_Token_Arrays.Gen_AUnit
+   package Base_Token_Arrays_Aunit is new Base_Token_Arrays.Gen_AUnit
      (Check_Index   => Check,
       Check_Element => Check);
 
@@ -55,7 +60,7 @@ package WisiToken.AUnit is
       Check_Index_2 => WisiToken.AUnit.Check,
       Check_Item    => Standard.AUnit.Checks.Check);
 
-   procedure Check is new Token_ID_Arrays.Gen_AUnit
+   package Token_ID_Arrays_AUnit is new Token_ID_Arrays.Gen_AUnit
      (Check_Index   => Standard.AUnit.Checks.Check,
       Check_Element => Check);
 

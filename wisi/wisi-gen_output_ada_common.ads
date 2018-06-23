@@ -49,55 +49,59 @@ package Wisi.Gen_Output_Ada_Common is
       Table_Entry_Count            : Integer := -1;
       Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
 
-      Grammar : WisiToken.Productions.Arrays.Vector;
+      Grammar : WisiToken.Productions.Prod_Arrays.Vector;
 
       Package_Name_Root       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Lower_Package_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
 
    end record;
 
-   Data : Data_Type;
+   type LR_Parser_Array is array (Generator_Algorithm_Type range LALR .. LR1) of WisiToken.LR.Parse_Table_Ptr;
 
    procedure Initialize
-     (Input_File_Name  : in String;
-      Output_File_Root : in String;
-      Check_Interface  : in Boolean);
+     (Data             : in out Data_Type;
+      Input_File_Name  : in     String;
+      Output_File_Root : in     String;
+      Check_Interface  : in     Boolean);
    --  set Data
 
    function File_Name_To_Ada (File_Name : in String) return String;
 
-   type Action_Name_List is array (Integer range <>) of access String;
-   type Action_Name_List_Access is access Action_Name_List;
-   type Nonterminal_Array_Action_Names is array (Generate_Utils.Nonterminal_ID) of Action_Name_List_Access;
+   subtype Nonterminal_Names_Array is Names_Array_Array (Generate_Utils.Nonterminal_ID);
    --  Ada names of subprograms for each grammar semantic action and check;
    --  non-null only if there is an action or check in the grammar.
-
-   Parsers : array (Single_Generator_Algorithm) of WisiToken.LR.Parse_Table_Ptr;
 
    procedure Create_Ada_Actions_Spec
      (Output_File_Name : in String;
       Package_Name     : in String;
       Descriptor       : in WisiToken.Descriptor'Class;
       Declare_Enum     : in Boolean;
-      Ada_Action_Names : in Nonterminal_Array_Action_Names;
-      Ada_Check_Names  : in Nonterminal_Array_Action_Names;
+      Ada_Action_Names : in Nonterminal_Names_Array;
+      Ada_Check_Names  : in Nonterminal_Names_Array;
       Actions_Present  : in Boolean;
       Checks_Present   : in Boolean);
 
    procedure Create_Ada_Main_Spec
-     (Input_File_Name   : in String;
-      Output_File_Name  : in String;
-      Main_Package_Name : in String;
-      Output_Language   : in Ada_Output_Language;
-      Interface_Kind    : in Interface_Type);
+     (Output_File_Name    : in String;
+      Main_Package_Name   : in String;
+      Generator_Algorithm : in Valid_Generator_Algorithm;
+      Output_Language     : in Ada_Output_Language;
+      Interface_Kind      : in Interface_Type);
 
    procedure Create_Create_Parser
-     (Generator_Algorithm : in Valid_Generator_Algorithm;
-      Interface_Kind      : in Interface_Type;
-      First_State_Index   : in Integer;
-      First_Parser_Label  : in Integer;
-      Ada_Action_Names    : in Nonterminal_Array_Action_Names;
-      Ada_Check_Names     : in Nonterminal_Array_Action_Names);
+     (Data                : in out Data_Type;
+      Parsers             : in     LR_Parser_Array;
+      Generator_Algorithm : in     LR_Generator_Algorithm;
+      Interface_Kind      : in     Interface_Type;
+      First_State_Index   : in     Integer;
+      First_Parser_Label  : in     Integer;
+      Action_Names        : in     Nonterminal_Names_Array;
+      Check_Names         : in     Nonterminal_Names_Array);
+
+   procedure Create_Packrat_Parser
+     (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
+      Action_Names : in Nonterminal_Names_Array;
+      Check_Names  : in Nonterminal_Names_Array);
 
    procedure Create_re2c
      (Output_File_Name_Root : in String;

@@ -30,7 +30,7 @@ private package WisiToken.Syntax_Trees.AUnit_Private is
       Computed : in Node;
       Expected : in Node);
 
-   procedure Check is new Node_Arrays.Gen_AUnit (AUnit_Public.Check, Check);
+   package Node_Arrays_AUnit is new Node_Arrays.Gen_AUnit (AUnit_Public.Check, Check);
 
    procedure Check
      (Label    : in String;

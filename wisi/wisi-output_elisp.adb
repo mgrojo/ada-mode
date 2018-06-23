@@ -43,28 +43,27 @@ is
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
-   Grammar : constant WisiToken.Productions.Arrays.Vector := Generate_Utils.To_Grammar
+   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector := Generate_Utils.To_Grammar
      (Generate_Utils.LR1_Descriptor, Input_Data.Lexer.File_Name, -Input_Data.Generate_Params.Start_Token);
 
    Parser : WisiToken.LR.Parse_Table_Ptr;
 
-   procedure Create_Elisp (Algorithm : in Single_Generator_Algorithm)
+   procedure Create_Elisp (Algorithm : in LR_Single_Generator_Algorithm; Both : in Boolean)
    is
       use Standard.Ada.Strings.Unbounded;
       File            : File_Type;
       Elisp_Package_1 : Unbounded_String;
    begin
-      case Valid_Generator_Algorithm (Input_Data.Generate_Params.Generator_Algorithm) is
-      when LALR | LR1 =>
-            Elisp_Package_1 := +Elisp_Package;
-      when LALR_LR1 =>
+      if Both then
          case Algorithm is
          when LALR =>
             Elisp_Package_1 := +Elisp_Package & "-lalr";
          when LR1 =>
             Elisp_Package_1 := +Elisp_Package & "-lr1";
          end case;
-      end case;
+      else
+         Elisp_Package_1 := +Elisp_Package;
+      end if;
 
       WisiToken.LR.Free_Table (Parser);
 
@@ -88,8 +87,6 @@ is
             Generate_Utils.To_Conflicts
               (Input_Data.Lexer.File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
                Reduce_Reduce_Conflict_Count),
-            Trace                    => WisiToken.Trace_Generate > 1,
-            Put_Parse_Table          => WisiToken.Trace_Generate > 0,
             Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
             Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
       end case;
@@ -124,12 +121,12 @@ is
 
    use all type WisiToken.Unknown_State_Index;
 begin
-   case Valid_Generator_Algorithm (Input_Data.Generate_Params.Generator_Algorithm) is
+   case LR_Generator_Algorithm (Input_Data.Generate_Params.Generator_Algorithm) is
    when LALR | LR1 =>
-      Create_Elisp (Input_Data.Generate_Params.Generator_Algorithm);
+      Create_Elisp (Input_Data.Generate_Params.Generator_Algorithm, Both => False);
    when LALR_LR1 =>
-      Create_Elisp (LALR);
-      Create_Elisp (LR1);
+      Create_Elisp (LALR, Both => True);
+      Create_Elisp (LR1, Both => True);
    end case;
 
    if WisiToken.Trace_Generate > 0 then

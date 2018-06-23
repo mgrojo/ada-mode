@@ -40,20 +40,20 @@ package body WisiToken.Gen_Token_Enum is
       return Result;
    end To_Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Productions.Token_ID_Lists.List
+   function "&" (Left, Right : in Token_Enum_ID) return Token_ID_Arrays.Vector
    is begin
-      return Result : WisiToken.Productions.Token_ID_Lists.List do
+      return Result : Token_ID_Arrays.Vector do
          Result.Append (+Left);
          Result.Append (+Right);
       end return;
    end "&";
 
    function "&"
-     (Left  : in WisiToken.Productions.Token_ID_Lists.List;
+     (Left  : in Token_ID_Arrays.Vector;
       Right : in Token_Enum_ID)
-     return WisiToken.Productions.Token_ID_Lists.List
+     return Token_ID_Arrays.Vector
    is begin
-      return Result : WisiToken.Productions.Token_ID_Lists.List := Left do
+      return Result : Token_ID_Arrays.Vector := Left do
          Result.Append (+Right);
       end return;
    end "&";
@@ -71,7 +71,7 @@ package body WisiToken.Gen_Token_Enum is
       Right : in WisiToken.Productions.Right_Hand_Side)
      return WisiToken.Productions.Instance
    is begin
-      return WisiToken.Wisi_Ada."<=" (+Left, Right);
+      return WisiToken.Wisi_Ada."<=" (+Left, Productions.RHS_Arrays.To_Vector (Right, 1));
    end "<=";
 
    function To_Nonterminal_Array_Token_Set

@@ -22,8 +22,7 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with WisiToken.AUnit; use WisiToken.AUnit;
 with WisiToken.LR.AUnit;
-with WisiToken.Productions.AUnit;
-package body WisiToken_AUnit is
+package body WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
@@ -31,18 +30,16 @@ package body WisiToken_AUnit is
       Expected         : in WisiToken.LR.LR1_Items.Item_Ptr;
       Match_Lookaheads : in Boolean)
    is
-      use AUnit.Checks;
+      use Standard.AUnit.Checks;
       use WisiToken.LR.AUnit;
-      use WisiToken.LR.LR1_Items;
-      use WisiToken.Productions.AUnit;
-      use WisiToken.Productions.AUnit.Token_ID_Lists_AUnit;
+      use WisiToken.AUnit.Token_ID_Arrays_AUnit;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
    begin
       if Computed /= null or Expected /= null then
-         AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
-         AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+         Standard.AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
+         Standard.AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
       else
          --  both are null
          return;
@@ -69,7 +66,7 @@ package body WisiToken_AUnit is
       Expected         : in WisiToken.LR.LR1_Items.Item_Set;
       Match_Lookaheads : in Boolean := True)
    is
-      use AUnit.Checks;
+      use Standard.AUnit.Checks;
       use WisiToken.LR.AUnit;
       use type WisiToken.LR.LR1_Items.Goto_Item_Ptr;
       use type WisiToken.LR.LR1_Items.Item_Set_Ptr;
@@ -85,7 +82,7 @@ package body WisiToken_AUnit is
       Computed : in WisiToken.LR.LR1_Items.Goto_Item_Ptr;
       Expected : in WisiToken.LR.LR1_Items.Goto_Item_Ptr)
    is
-      use AUnit.Checks;
+      use Standard.AUnit.Checks;
       use WisiToken.LR.AUnit;
       use WisiToken.LR.LR1_Items;
       Computed_I : Goto_Item_Ptr := Computed;
@@ -93,8 +90,8 @@ package body WisiToken_AUnit is
       Index      : Integer  := 1;
    begin
       if Computed /= null or Expected /= null then
-         AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
-         AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+         Standard.AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
+         Standard.AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
       else
          --  both are null
          return;
@@ -125,7 +122,7 @@ package body WisiToken_AUnit is
       I          : Integer                           := 1;
    begin
       if Computed_1 = null then
-         AUnit.Assertions.Assert (Expected_1 = null, Label & "expected non-null, got null");
+         Standard.AUnit.Assertions.Assert (Expected_1 = null, Label & "expected non-null, got null");
       end if;
 
       loop
@@ -138,7 +135,7 @@ package body WisiToken_AUnit is
          I := I + 1;
       end loop;
 
-      AUnit.Assertions.Assert (Expected_1 = null, Label & "expected more items, got" & Integer'Image (I));
+      Standard.AUnit.Assertions.Assert (Expected_1 = null, Label & "expected more items, got" & Integer'Image (I));
    end Check;
 
    procedure Check
@@ -153,20 +150,15 @@ package body WisiToken_AUnit is
    end Check;
 
    function Get_Item_Node
-     (Grammar    : in WisiToken.Productions.Arrays.Vector;
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
       Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
      return WisiToken.LR.LR1_Items.Item_Ptr
    is
-      Dot_I : WisiToken.Productions.Token_ID_Lists.Cursor;
+      Dot_I : constant Token_ID_Arrays.Cursor := Grammar (Prod.Nonterm).RHSs (Prod.RHS).Tokens.To_Cursor (Dot);
    begin
-      Dot_I := Grammar (Prod).RHS.Tokens.First;
-      for I in 2 .. Dot loop
-         WisiToken.Productions.Token_ID_Lists.Next (Dot_I);
-      end loop;
-
       return WisiToken.LR.LR1_Items.New_Item_Node (Prod, Dot_I, State, Lookaheads);
    end Get_Item_Node;
 
@@ -262,7 +254,7 @@ package body WisiToken_AUnit is
    end Add_Gotos;
 
    function Get_Item_Set
-     (Grammar   : in WisiToken.Productions.Arrays.Vector;
+     (Grammar   : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod      : in WisiToken.Production_ID;
       Dot       : in Positive;
       Lookahead : in WisiToken.LR.LR1_Items.Lookahead)
@@ -279,4 +271,4 @@ package body WisiToken_AUnit is
          Next            => null);
    end Get_Item_Set;
 
-end WisiToken_AUnit;
+end WisiToken.LR.LR1_Items.AUnit;

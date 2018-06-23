@@ -727,9 +727,9 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                      begin
                         Temp_Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
                         Temp_Config.Stack.Push
-                          ((Goto_For (Table, Temp_Config.Stack (1).State, Action.LHS),
+                          ((Goto_For (Table, Temp_Config.Stack (1).State, Action.Production.Nonterm),
                             Syntax_Trees.Invalid_Node_Index,
-                            (Action.LHS, others => <>)));
+                            (Action.Production.Nonterm, others => <>)));
                      end;
 
                   elsif Shift_Count > 0 then
@@ -738,11 +738,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                         Table_Entry : Parse_State renames Table.States (Item.State);
                         I           : Action_List_Iterator                 := First (Table_Entry);
                         Prods       : constant Production_ID_Arrays.Vector := Table.States (Item.State).Productions;
-                        LHS         : constant Token_ID                    := Table.Productions (Prods (1)).LHS;
+                        LHS         : constant Token_ID                    := Prods (1).Nonterm;
                         One_LHS     : Boolean                              := True;
                      begin
                         for P of Prods loop
-                           if LHS /= Table.Productions (P).LHS then
+                           if LHS /= P.Nonterm then
                               One_LHS := False;
                            end if;
                         end loop;
@@ -757,10 +757,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                                     Action : Parse_Action_Rec renames I.Action;
                                  begin
                                     for J of Action.Productions loop
-                                       if Member
-                                         (I.Symbol, Table.Minimal_Terminal_Sequences (Table.Productions (J).LHS))
-                                       then
-                                          --  FIXME: store 'dot' in Table.Productions
+                                       if Member (I.Symbol, Table.Minimal_Terminal_Sequences (J.Nonterm)) then
+                                          --  FIXME: store 'dot' in Table.Productions; ie kernels
                                           Result (I.Symbol) := True;
                                        end if;
                                     end loop;

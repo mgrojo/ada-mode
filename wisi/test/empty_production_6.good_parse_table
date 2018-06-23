@@ -22,129 +22,129 @@ sequence_of_statements => (IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)
 label_opt => ()
 
 Productions:
-1: wisitoken_accept <= (compilation_unit, Wisi_EOI)
-2: compilation_unit <= (BEGIN, sequence_of_statements, END, SEMICOLON)
-3: statement <= (label_opt, IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)
-4: sequence_of_statements <= (statement)
-5: sequence_of_statements <= (sequence_of_statements, statement)
-6: label_opt <= ()
-7: label_opt <= (IDENTIFIER, COLON)
+8.0: wisitoken_accept <= (compilation_unit, Wisi_EOI)
+9.0: compilation_unit <= (BEGIN, sequence_of_statements, END, SEMICOLON)
+10.0: statement <= (label_opt, IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)
+11.0: sequence_of_statements <= (statement)
+11.1: sequence_of_statements <= (sequence_of_statements, statement)
+12.0: label_opt <= ()
+12.1: label_opt <= (IDENTIFIER, COLON)
 
 State 1:
-     1:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+      8.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
-   BEGIN                  => shift and goto state 2 (2)
+   BEGIN                  => shift and goto state 2 (9.0)
    default                => ERROR
 
-     1: compilation_unit       goto state 3
+      8.0: compilation_unit       goto state 3
 
 State 2:
-     2:compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, Wisi_EOI
+      9.0:compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, Wisi_EOI
 
-   IDENTIFIER             => shift and goto state 4 (7),
-                             reduce 0 tokens to label_opt (6)
+   IDENTIFIER             => shift and goto state 4 (12.1),
+                             reduce 0 tokens to label_opt 12.0
    default                => ERROR
 
-     4: statement              goto state 5
-     2: sequence_of_statements goto state 6
-     3: label_opt              goto state 7
+     11.0: statement              goto state 5
+      9.0: sequence_of_statements goto state 6
+     10.0: label_opt              goto state 7
 
 State 3:
-     1:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
+      8.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
 
-   Wisi_EOI               => accept it (1)
+   Wisi_EOI               => accept it 8.0
    default                => ERROR
 
 
 State 4:
-     7:label_opt <= IDENTIFIER ^ COLON, IDENTIFIER
+     12.1:label_opt <= IDENTIFIER ^ COLON, IDENTIFIER
 
-   COLON                  => shift and goto state 11 (7)
+   COLON                  => shift and goto state 11 (12.1)
    default                => ERROR
 
 
 State 5:
-     4:sequence_of_statements <= statement ^, END/IDENTIFIER
+     11.0:sequence_of_statements <= statement ^, END/IDENTIFIER
 
-   END                    => reduce 1 tokens to sequence_of_statements (4)
-   IDENTIFIER             => reduce 1 tokens to sequence_of_statements (4)
+   END                    => reduce 1 tokens to sequence_of_statements 11.0
+   IDENTIFIER             => reduce 1 tokens to sequence_of_statements 11.0
    default                => ERROR
 
 
 State 6:
-     2:compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, Wisi_EOI
-     5:sequence_of_statements <= sequence_of_statements ^ statement, END/IDENTIFIER
+      9.0:compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, Wisi_EOI
+     11.1:sequence_of_statements <= sequence_of_statements ^ statement, END/IDENTIFIER
 
-   END                    => shift and goto state 9 (2)
-   IDENTIFIER             => shift and goto state 4 (7),
-                             reduce 0 tokens to label_opt (6)
+   END                    => shift and goto state 9 (9.0)
+   IDENTIFIER             => shift and goto state 4 (12.1),
+                             reduce 0 tokens to label_opt 12.0
    default                => ERROR
 
-     5: statement              goto state 10
-     3: label_opt              goto state 7
+     11.1: statement              goto state 10
+     10.0: label_opt              goto state 7
 
 State 7:
-     3:statement <= label_opt ^ IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
+     10.0:statement <= label_opt ^ IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   IDENTIFIER             => shift and goto state 8 (3)
+   IDENTIFIER             => shift and goto state 8 (10.0)
    default                => ERROR
 
 
 State 8:
-     3:statement <= label_opt IDENTIFIER ^ COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
+     10.0:statement <= label_opt IDENTIFIER ^ COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   COLON_EQUAL            => shift and goto state 13 (3)
+   COLON_EQUAL            => shift and goto state 13 (10.0)
    default                => ERROR
 
 
 State 9:
-     2:compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, Wisi_EOI
+      9.0:compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, Wisi_EOI
 
-   SEMICOLON              => shift and goto state 12 (2)
+   SEMICOLON              => shift and goto state 12 (9.0)
    default                => ERROR
 
 
 State 10:
-     5:sequence_of_statements <= sequence_of_statements statement ^, END/IDENTIFIER
+     11.1:sequence_of_statements <= sequence_of_statements statement ^, END/IDENTIFIER
 
-   END                    => reduce 2 tokens to sequence_of_statements (5)
-   IDENTIFIER             => reduce 2 tokens to sequence_of_statements (5)
+   END                    => reduce 2 tokens to sequence_of_statements 11.1
+   IDENTIFIER             => reduce 2 tokens to sequence_of_statements 11.1
    default                => ERROR
 
 
 State 11:
-     7:label_opt <= IDENTIFIER COLON ^, IDENTIFIER
+     12.1:label_opt <= IDENTIFIER COLON ^, IDENTIFIER
 
-   IDENTIFIER             => reduce 2 tokens to label_opt (7)
+   IDENTIFIER             => reduce 2 tokens to label_opt 12.1
    default                => ERROR
 
 
 State 12:
-     2:compilation_unit <= BEGIN sequence_of_statements END SEMICOLON ^, Wisi_EOI
+      9.0:compilation_unit <= BEGIN sequence_of_statements END SEMICOLON ^, Wisi_EOI
 
-   Wisi_EOI               => reduce 4 tokens to compilation_unit (2)
+   Wisi_EOI               => reduce 4 tokens to compilation_unit 9.0
    default                => ERROR
 
 
 State 13:
-     3:statement <= label_opt IDENTIFIER COLON_EQUAL ^ IDENTIFIER SEMICOLON, END/IDENTIFIER
+     10.0:statement <= label_opt IDENTIFIER COLON_EQUAL ^ IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   IDENTIFIER             => shift and goto state 14 (3)
+   IDENTIFIER             => shift and goto state 14 (10.0)
    default                => ERROR
 
 
 State 14:
-     3:statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER ^ SEMICOLON, END/IDENTIFIER
+     10.0:statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER ^ SEMICOLON, END/IDENTIFIER
 
-   SEMICOLON              => shift and goto state 15 (3)
+   SEMICOLON              => shift and goto state 15 (10.0)
    default                => ERROR
 
 
 State 15:
-     3:statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON ^, END/IDENTIFIER
+     10.0:statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON ^, END/IDENTIFIER
 
-   END                    => reduce 5 tokens to statement (3)
-   IDENTIFIER             => reduce 5 tokens to statement (3)
+   END                    => reduce 5 tokens to statement 10.0
+   IDENTIFIER             => reduce 5 tokens to statement 10.0
    default                => ERROR
 
 

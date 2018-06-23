@@ -54,6 +54,9 @@ is
      (Input_Data.Raw_Code, Input_Data.Tokens, Input_Data.Conflicts, Input_Data.Generate_Params);
    use Common;
 
+   Data       : Common.Data_Type;
+   LR_Parsers : LR_Parser_Array;
+
    function Split_Sexp
      (Item            : in String;
       Input_File_Name : in String;
@@ -664,10 +667,10 @@ is
             Param_Count := Param_Count + 1;
          end loop;
 
-         if Param_Count /= RHS.Production.Length then
+         if Param_Count /= RHS.Tokens.Length then
             Put_Error
               (Input_Data.Lexer.File_Name, RHS.Source_Line, "indent parameters count of" & Count_Type'Image
-                 (Param_Count) & " /= production token count of" & Count_Type'Image (RHS.Production.Length));
+                 (Param_Count) & " /= production token count of" & Count_Type'Image (RHS.Tokens.Length));
          end if;
 
          if Param_Count = 1 then
@@ -919,8 +922,8 @@ is
    end Any_Motion_Actions;
 
    procedure Create_Ada_Actions_Body
-     (Ada_Action_Names : out Nonterminal_Array_Action_Names;
-      Ada_Check_Names  : out Nonterminal_Array_Action_Names;
+     (Ada_Action_Names : out Nonterminal_Names_Array;
+      Ada_Check_Names  : out Nonterminal_Names_Array;
       Package_Name     : in     String)
    is
       use Standard.Ada.Strings.Unbounded;
@@ -982,8 +985,8 @@ is
          declare
             LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
 
-            Action_Names     : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Check_Names      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Check_Names      : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
             Prod_Index       : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
             Action_All_Empty : Boolean := True;
             Check_All_Empty  : Boolean := True;
@@ -1013,10 +1016,10 @@ is
             end loop;
 
             if not Action_All_Empty then
-               Ada_Action_Names (LHS_ID) := new Action_Name_List'(Action_Names);
+               Ada_Action_Names (LHS_ID) := new Names_Array'(Action_Names);
             end if;
             if not Check_All_Empty then
-               Ada_Check_Names (LHS_ID) := new Action_Name_List'(Check_Names);
+               Ada_Check_Names (LHS_ID) := new Names_Array'(Check_Names);
             end if;
          end;
       end loop;
@@ -1029,8 +1032,8 @@ is
    end Create_Ada_Actions_Body;
 
    procedure Create_Ada_Main_Body
-     (Ada_Action_Names     : in Nonterminal_Array_Action_Names;
-      Ada_Check_Names      : in Nonterminal_Array_Action_Names;
+     (Ada_Action_Names     : in Nonterminal_Names_Array;
+      Ada_Check_Names      : in Nonterminal_Names_Array;
       Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
@@ -1068,7 +1071,7 @@ is
       New_Line;
 
       Create_Create_Parser
-        (Data.Generator_Algorithm, Data.Interface_Kind, Input_Data.Generate_Params.First_State_Index,
+        (Data, LR_Parsers, Data.Generator_Algorithm, Data.Interface_Kind, Input_Data.Generate_Params.First_State_Index,
          Input_Data.Generate_Params.First_Parser_Label, Ada_Action_Names, Ada_Check_Names);
 
       case Data.Interface_Kind is
@@ -1389,11 +1392,11 @@ is
       Close (File);
    end Create_Module_Aux;
 
-   Ada_Action_Names : Nonterminal_Array_Action_Names;
-   Ada_Check_Names  : Nonterminal_Array_Action_Names;
+   Ada_Action_Names : Nonterminal_Names_Array;
+   Ada_Check_Names  : Nonterminal_Names_Array;
 
 begin
-   Common.Initialize (Input_Data.Lexer.File_Name, Output_File_Name_Root, Check_Interface => True);
+   Common.Initialize (Data, Input_Data.Lexer.File_Name, Output_File_Name_Root, Check_Interface => True);
    Wisi.Utils.Error := False;
 
    case Data.Lexer is
@@ -1405,7 +1408,7 @@ begin
    end case;
 
    if Data.Generator_Algorithm in LALR | LALR_LR1 then
-      Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
+      LR_Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
         (Data.Grammar,
          Generate_Utils.LALR_Descriptor,
          WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
@@ -1416,11 +1419,11 @@ begin
          Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
          Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
-      Data.Parser_State_Count := Parsers (LALR).State_Last - Parsers (LALR).State_First + 1;
+      Data.Parser_State_Count := LR_Parsers (LALR).State_Last - LR_Parsers (LALR).State_First + 1;
    end if;
 
    if Data.Generator_Algorithm in LR1 | LALR_LR1 then
-      Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
+      LR_Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
         (Data.Grammar,
          Generate_Utils.LR1_Descriptor,
          WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
@@ -1428,14 +1431,12 @@ begin
            (Input_Data.Lexer.File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
             Data.Reduce_Reduce_Conflict_Count),
          Generate_Utils.To_McKenzie_Param (Input_Data.McKenzie_Recover),
-         Trace                    => WisiToken.Trace_Generate > 1,
-         Put_Parse_Table          => WisiToken.Trace_Generate > 0,
          Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
          Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
       Data.Parser_State_Count := WisiToken.Unknown_State_Index'Max
         (Data.Parser_State_Count,
-         Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
+         LR_Parsers (LR1).State_Last - LR_Parsers (LR1).State_First + 1);
    end if;
 
    declare
@@ -1467,14 +1468,14 @@ begin
       Create_Ada_Main_Body (Ada_Action_Names, Ada_Check_Names, Actions_Package_Name, Main_Package_Name);
 
       Create_Ada_Main_Spec
-        (Input_Data.Lexer.File_Name,
-         Output_File_Name => Output_File_Name_Root &
+        (Output_File_Name => Output_File_Name_Root &
            (case Data.Interface_Kind is
-            when Process      => "_process_main.ads",
-            when Module       => "_module_main.ads"),
-         Main_Package_Name    => Main_Package_Name,
-         Output_Language      => Ada_Emacs,
-         Interface_Kind       => Input_Data.Generate_Params.Interface_Kind);
+            when Process => "_process_main.ads",
+            when Module  => "_module_main.ads"),
+         Main_Package_Name   => Main_Package_Name,
+         Generator_Algorithm => Data.Generator_Algorithm,
+         Output_Language     => Ada_Emacs,
+         Interface_Kind      => Input_Data.Generate_Params.Interface_Kind);
    end;
 
    Create_re2c (Output_File_Name_Root, Input_Data.Elisp_Names.Regexps);

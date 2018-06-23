@@ -2,7 +2,7 @@
 --
 --  Compare LALR_Goto_Transitions, LR1_Goto_Transitions on various grammars.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,7 +19,7 @@
 with AUnit.Test_Cases;
 package Compare_Goto_Transitions is
 
-   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 

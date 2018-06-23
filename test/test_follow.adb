@@ -66,14 +66,14 @@ package body Test_Follow is
 
       --  This grammar has right recursion on Declarations_ID, and an
       --  empty production for Parameter_List_ID
-      Grammar : constant WisiToken.Productions.Arrays.Vector :=
+      Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
         WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and                -- 1
-        Declarations_ID     <= Declaration_ID + Null_Action and                          -- 2
-        Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and        -- 3
+        (Declarations_ID    <= Declaration_ID + Null_Action or                           -- 2
+                               Declarations_ID & Declaration_ID + Null_Action) and       -- 3
         Declaration_ID      <= Subprogram_ID + Null_Action and                           -- 4
         Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and        -- 5
-        Parameter_List_ID   <= +Null_Action and                                          -- 6
-        Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
+        (Parameter_List_ID  <= +Null_Action or                                           -- 6
+                               Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action); -- 7
 
       Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.LR.LR1_Items.Has_Empty_Production
         (Grammar, LALR_Descriptor);

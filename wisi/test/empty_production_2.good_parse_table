@@ -18,103 +18,103 @@ declarations => ()
 body => (IS, BEGIN, SEMICOLON)
 
 Productions:
-1: wisitoken_accept <= (declarations, Wisi_EOI)
-2: declaration <= ()
-3: declaration <= (body)
-4: declarations <= (declaration)
-5: declarations <= (declarations, declaration)
-6: body <= (IS, declarations, BEGIN, SEMICOLON)
+6.0: wisitoken_accept <= (declarations, Wisi_EOI)
+7.0: declaration <= ()
+7.1: declaration <= (body)
+8.0: declarations <= (declaration)
+8.1: declarations <= (declarations, declaration)
+9.0: body <= (IS, declarations, BEGIN, SEMICOLON)
 
 State 1:
-     1:wisitoken_accept <= ^ declarations Wisi_EOI, 
+      6.0:wisitoken_accept <= ^ declarations Wisi_EOI, 
 
-   IS               => shift and goto state 2 (6),
-                       reduce 0 tokens to declaration (2)
-   Wisi_EOI         => reduce 0 tokens to declaration (2)
+   IS               => shift and goto state 2 (9.0),
+                       reduce 0 tokens to declaration 7.0
+   Wisi_EOI         => reduce 0 tokens to declaration 7.0
    default          => ERROR
 
-     4: declaration      goto state 3
-     1: declarations     goto state 4
-     3: body             goto state 5
+      8.0: declaration      goto state 3
+      6.0: declarations     goto state 4
+      7.1: body             goto state 5
 
 State 2:
-     6:body <= IS ^ declarations BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS ^ declarations BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 0 tokens to declaration (2)
-   IS               => shift and goto state 2 (6),
-                       reduce 0 tokens to declaration (2)
+   BEGIN            => reduce 0 tokens to declaration 7.0
+   IS               => shift and goto state 2 (9.0),
+                       reduce 0 tokens to declaration 7.0
    default          => ERROR
 
-     4: declaration      goto state 3
-     5: declarations     goto state 7
-     3: body             goto state 5
+      8.0: declaration      goto state 3
+      8.1: declarations     goto state 7
+      7.1: body             goto state 5
 
 State 3:
-     4:declarations <= declaration ^, BEGIN/IS/Wisi_EOI
+      8.0:declarations <= declaration ^, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 1 tokens to declarations (4)
-   IS               => reduce 1 tokens to declarations (4)
-   Wisi_EOI         => reduce 1 tokens to declarations (4)
+   BEGIN            => reduce 1 tokens to declarations 8.0
+   IS               => reduce 1 tokens to declarations 8.0
+   Wisi_EOI         => reduce 1 tokens to declarations 8.0
    default          => ERROR
 
 
 State 4:
-     1:wisitoken_accept <= declarations ^ Wisi_EOI, 
-     5:declarations <= declarations ^ declaration, IS/Wisi_EOI
+      6.0:wisitoken_accept <= declarations ^ Wisi_EOI, 
+      8.1:declarations <= declarations ^ declaration, IS/Wisi_EOI
 
-   IS               => shift and goto state 2 (6),
-                       reduce 0 tokens to declaration (2)
-   Wisi_EOI         => accept it (1),
-                       reduce 0 tokens to declaration (2)
+   IS               => shift and goto state 2 (9.0),
+                       reduce 0 tokens to declaration 7.0
+   Wisi_EOI         => accept it 6.0,
+                       reduce 0 tokens to declaration 7.0
    default          => ERROR
 
-     5: declaration      goto state 6
-     3: body             goto state 5
+      8.1: declaration      goto state 6
+      7.1: body             goto state 5
 
 State 5:
-     3:declaration <= body ^, BEGIN/IS/Wisi_EOI
+      7.1:declaration <= body ^, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 1 tokens to declaration (3)
-   IS               => reduce 1 tokens to declaration (3)
-   Wisi_EOI         => reduce 1 tokens to declaration (3)
+   BEGIN            => reduce 1 tokens to declaration 7.1
+   IS               => reduce 1 tokens to declaration 7.1
+   Wisi_EOI         => reduce 1 tokens to declaration 7.1
    default          => ERROR
 
 
 State 6:
-     5:declarations <= declarations declaration ^, BEGIN/IS/Wisi_EOI
+      8.1:declarations <= declarations declaration ^, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 2 tokens to declarations (5)
-   IS               => reduce 2 tokens to declarations (5)
-   Wisi_EOI         => reduce 2 tokens to declarations (5)
+   BEGIN            => reduce 2 tokens to declarations 8.1
+   IS               => reduce 2 tokens to declarations 8.1
+   Wisi_EOI         => reduce 2 tokens to declarations 8.1
    default          => ERROR
 
 
 State 7:
-     5:declarations <= declarations ^ declaration, BEGIN/IS
-     6:body <= IS declarations ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+      8.1:declarations <= declarations ^ declaration, BEGIN/IS
+      9.0:body <= IS declarations ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => shift and goto state 8 (6),
-                       reduce 0 tokens to declaration (2)
-   IS               => shift and goto state 2 (6),
-                       reduce 0 tokens to declaration (2)
+   BEGIN            => shift and goto state 8 (9.0),
+                       reduce 0 tokens to declaration 7.0
+   IS               => shift and goto state 2 (9.0),
+                       reduce 0 tokens to declaration 7.0
    default          => ERROR
 
-     5: declaration      goto state 6
-     3: body             goto state 5
+      8.1: declaration      goto state 6
+      7.1: body             goto state 5
 
 State 8:
-     6:body <= IS declarations BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarations BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   SEMICOLON        => shift and goto state 9 (6)
+   SEMICOLON        => shift and goto state 9 (9.0)
    default          => ERROR
 
 
 State 9:
-     6:body <= IS declarations BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarations BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 4 tokens to body (6)
-   IS               => reduce 4 tokens to body (6)
-   Wisi_EOI         => reduce 4 tokens to body (6)
+   BEGIN            => reduce 4 tokens to body 9.0
+   IS               => reduce 4 tokens to body 9.0
+   Wisi_EOI         => reduce 4 tokens to body 9.0
    default          => ERROR
 
 

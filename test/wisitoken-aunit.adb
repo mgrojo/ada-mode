@@ -19,6 +19,12 @@ pragma License (Modified_GPL);
 
 package body WisiToken.AUnit is
 
+   procedure Check (Label : in String; Computed, Expected : in Production_ID)
+   is begin
+      Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
+      Standard.AUnit.Checks.Check (Label & ".rhs", Computed.RHS, Expected.RHS);
+   end Check;
+
    function To_Base_Token_Array (Item : in Token_ID_Array) return Base_Token_Arrays.Vector
    is begin
       return

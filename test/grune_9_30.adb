@@ -31,7 +31,7 @@ with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
-with WisiToken_AUnit;
+with WisiToken.LR.LR1_Items.AUnit;
 package body Grune_9_30 is
 
    type Token_ID is
@@ -64,14 +64,14 @@ package body Grune_9_30 is
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Productions.Arrays.Vector :=
+   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
      Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
      and
      Upper_A_ID <= Lower_A_ID + Null_Action                           -- 2
      and
-     Upper_B_ID <= Lower_B_ID + Null_Action                           -- 3
-     and
-     Upper_B_ID <= +Null_Action                                       -- 4
+     (Upper_B_ID <= Lower_B_ID + Null_Action                           -- 3
+      or
+                   +Null_Action)                                       -- 4
    ;
 
    package Lexer renames WisiToken.Lexer.Regexp;
@@ -99,7 +99,7 @@ package body Grune_9_30 is
    is
       pragma Unreferenced (T);
       use Ada.Text_IO;
-      use WisiToken_AUnit;
+      use WisiToken.LR.LR1_Items.AUnit;
       use WisiToken.LR.LR1_Items;
 
       Computed : Item_Set_List := WisiToken.LR.LR1_Generator.LR1_Item_Sets
@@ -111,15 +111,15 @@ package body Grune_9_30 is
         --  [Grune], but added to the list in the order we compute.
         --
         --  Our Item_Sets also include the gotos.
-        (1 + (Get_Item (Grammar, 1, 1, +EOF_ID) &
-                Get_Item (Grammar, 2, 1, +(Lower_B_ID, Lower_C_ID)))) &
-        (2 + Get_Item (Grammar, 2, 2, +(Lower_B_ID, Lower_C_ID))) &
-        (3 + (Get_Item (Grammar, 1, 2, +EOF_ID) &
-                Get_Item (Grammar, 3, 1, +Lower_C_ID) &
-                Get_Item (Grammar, 4, 1, +Lower_C_ID))) &
-        (4 + Get_Item (Grammar, 3, 2, +Lower_C_ID)) &
-        (5 + Get_Item (Grammar, 1, 3, +EOF_ID)) &
-        (6 + Get_Item (Grammar, 1, 4, +EOF_ID));
+        (1 + (Get_Item (Grammar, (+Upper_S_ID, 0), 1, +EOF_ID) &
+                Get_Item (Grammar, (+Upper_A_ID, 0), 1, +(Lower_B_ID, Lower_C_ID)))) &
+        (2 + Get_Item (Grammar, (+Upper_A_ID, 0), 2, +(Lower_B_ID, Lower_C_ID))) &
+        (3 + (Get_Item (Grammar, (+Upper_S_ID, 0), 2, +EOF_ID) &
+                Get_Item (Grammar, (+Upper_B_ID, 0), 1, +Lower_C_ID) &
+                Get_Item (Grammar, (+Upper_B_ID, 1), 1, +Lower_C_ID))) &
+        (4 + Get_Item (Grammar, (+Upper_B_ID, 0), 2, +Lower_C_ID)) &
+        (5 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, +EOF_ID)) &
+        (6 + Get_Item (Grammar, (+Upper_S_ID, 0), 4, +EOF_ID));
 
    begin
       Add_Gotos (Expected, 1, +(+Lower_A_ID, Get_Set (2, Expected)) & (+Upper_A_ID, Get_Set (3, Expected)));
@@ -161,8 +161,7 @@ package body Grune_9_30 is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LR1_Generator.Generate
-           (Grammar, LR1_Descriptor, First_State_Index, Trace => WisiToken.Trace_Generate > WisiToken.Outline),
+         WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index),
 
          User_Data                    => null,
          Language_Fixes               => null,

@@ -50,14 +50,13 @@ package body WisiToken.LR.Parser_No_Recover is
       end loop;
 
       Nonterm := Parser_State.Tree.Add_Nonterm
-        (Action.LHS, Action.Action, Action.Productions (1), Action.Name_Index, Children_Tree,
-         Default_Virtual => False);
+        (Action.Production, Children_Tree, Action.Action, Default_Virtual => False);
       --  Computes Nonterm.Byte_Region
 
       if Trace_Parse > Detail then
          declare
             Action_Name : constant String := Ada.Characters.Handling.To_Lower
-              (Image (Action.LHS, Trace.Descriptor.all)) & "_" & Trimmed_Image (Action.Name_Index);
+              (Image (Action.Production.Nonterm, Trace.Descriptor.all)) & "_" & Trimmed_Image (Action.Production.RHS);
          begin
             Trace.Put_Line
               (Action_Name & ": " &
@@ -100,7 +99,7 @@ package body WisiToken.LR.Parser_No_Recover is
            ((State    => Goto_For
                (Table => Shared_Parser.Table.all,
                 State => Parser_State.Stack (1).State,
-                ID    => Action.LHS),
+                ID    => Action.Production.Nonterm),
              Token    => Nonterm));
 
          Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);
@@ -113,8 +112,7 @@ package body WisiToken.LR.Parser_No_Recover is
          Current_Parser.Set_Verb (Accept_It);
          Reduce_Stack_1
            (Current_Parser,
-            (Reduce, Action.Productions, Action.LHS, Action.Action, Action.Check, Action.Token_Count,
-             Action.Name_Index),
+            (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
             Nonterm, Trace);
 
       when Error =>

@@ -543,31 +543,23 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    end To_Conflicts;
 
-   function "&"
-     (Tokens : in WisiToken.Productions.Token_ID_Lists.List;
-      Token  : in String)
-     return WisiToken.Productions.Token_ID_Lists.List
-   is begin
-      return Result : WisiToken.Productions.Token_ID_Lists.List := Tokens do
-         Result.Append (Find_Token_ID (Token));
-      end return;
-   end "&";
-
    function To_Grammar
      (Descriptor       : in WisiToken.Descriptor'Class;
       Source_File_Name : in String;
       Start_Token      : in String)
-     return WisiToken.Productions.Arrays.Vector
+     return WisiToken.Productions.Prod_Arrays.Vector
    is
       use WisiToken.Wisi_Ada;
-      use all type WisiToken.Productions.Token_ID_Lists.List;
 
-      Grammar : WisiToken.Productions.Arrays.Vector;
+      Grammar : WisiToken.Productions.Prod_Arrays.Vector;
       Error   : Boolean := False;
    begin
+      Grammar.Set_First (Descriptor.First_Nonterminal);
+      Grammar.Set_Last (Descriptor.Last_Nonterminal);
+      pragma Assert (Descriptor.Accept_ID = Descriptor.First_Nonterminal);
       begin
-         Grammar := Only
-           (Descriptor.Accept_ID <= Find_Token_ID (Start_Token) & EOF_ID + WisiToken.Syntax_Trees.Null_Action);
+         Grammar (Descriptor.Accept_ID) :=
+           Descriptor.Accept_ID <= Only (Find_Token_ID (Start_Token) & EOF_ID + WisiToken.Syntax_Trees.Null_Action);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error
@@ -577,24 +569,47 @@ package body Wisi.Gen_Generate_Utils is
 
       for Rule of Tokens.Rules loop
          declare
-            Name_Index : Natural := 0; -- Semantic_Action defines Name_Index as zero-origin
+            RHS_Index : Natural := 0; -- Semantic_Action defines Rhs_index as zero-origin
+            RHSs      : WisiToken.Productions.RHS_Arrays.Vector;
+            LHS       : Token_ID; -- not initialized for exception handler
          begin
+            LHS := Find_Token_ID (-Rule.Left_Hand_Side);
+
+            RHSs.Set_First (RHS_Index);
+            RHSs.Set_Last (Natural (Rule.Right_Hand_Sides.Length) - 1);
+
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
-                  Tokens : WisiToken.Productions.Token_ID_Lists.List;
+                  use all type Standard.Ada.Containers.Count_Type;
+                  Tokens : WisiToken.Token_ID_Arrays.Vector;
+                  I      : Integer := 1;
                begin
-                  for Token of Right_Hand_Side.Production loop
-                     Tokens := Tokens & Token;
-                  end loop;
-                  Grammar := Grammar and Find_Token_ID (-Rule.Left_Hand_Side) <= Tokens + Name_Index;
+                  if Right_Hand_Side.Tokens.Length > 0 then
+                     Tokens.Set_First (I);
+                     Tokens.Set_Last (Integer (Right_Hand_Side.Tokens.Length));
+                     for Token of Right_Hand_Side.Tokens loop
+                        Tokens (I) := Find_Token_ID (Token);
+                        I := I + 1;
+                     end loop;
+                  end if;
+                  RHSs (RHS_Index) := (Tokens => Tokens, Action => null, Check => null);
                exception
                when E : Not_Found =>
+                  --  From "&"
                   Wisi.Utils.Put_Error
                     (Source_File_Name, Right_Hand_Side.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
                   Error := True;
                end;
-               Name_Index := Name_Index + 1;
+               RHS_Index := RHS_Index + 1;
             end loop;
+
+            Grammar (LHS) := LHS <= RHSs;
+         exception
+         when E : Not_Found =>
+            --  From Find_Token_ID (left_hand_side)
+            Wisi.Utils.Put_Error
+              (Source_File_Name, Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            Error := True;
          end;
       end loop;
 

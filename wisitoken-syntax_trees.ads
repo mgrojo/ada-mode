@@ -120,11 +120,9 @@ package WisiToken.Syntax_Trees is
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
-      Nonterm         : in     WisiToken.Token_ID;
-      Action          : in     Semantic_Action;
       Production      : in     Production_ID;
-      Name_Index      : in     Natural;
       Children        : in     Valid_Node_Index_Array;
+      Action          : in     Semantic_Action;
       Default_Virtual : in     Boolean)
      return Valid_Node_Index
    with
@@ -231,12 +229,6 @@ package WisiToken.Syntax_Trees is
      return Semantic_Action
    with Pre => Tree.Is_Nonterm (Node);
 
-   function Name_Index
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Natural
-   with Pre => Tree.Is_Nonterm (Node);
-
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
@@ -336,12 +328,9 @@ private
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
          --  set. Used by Semantic_Check actions.
 
-         Production : Production_ID := Production_ID'Last;
-         --  Index into Parse_Table.Productions.
-
-         Name_Index : Natural := 0;
-         --  Production for nonterm_id used to produce this element, for debug
-         --  messages.
+         RHS_Index : Natural;
+         --  With ID, index into Parse_Table.Productions.
+         --  FIXME: delete if not used
 
          Action : Semantic_Action := null;
 

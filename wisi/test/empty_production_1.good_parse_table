@@ -18,91 +18,91 @@ declarative_part => ()
 body => (IS, BEGIN, SEMICOLON)
 
 Productions:
-1: wisitoken_accept <= (declarative_part, Wisi_EOI)
-2: declarations <= (body)
-3: declarations <= (declarations, body)
-4: declarative_part <= ()
-5: declarative_part <= (declarations)
-6: body <= (IS, declarative_part, BEGIN, SEMICOLON)
+6.0: wisitoken_accept <= (declarative_part, Wisi_EOI)
+7.0: declarations <= (body)
+7.1: declarations <= (declarations, body)
+8.0: declarative_part <= ()
+8.1: declarative_part <= (declarations)
+9.0: body <= (IS, declarative_part, BEGIN, SEMICOLON)
 
 State 1:
-     1:wisitoken_accept <= ^ declarative_part Wisi_EOI, 
+      6.0:wisitoken_accept <= ^ declarative_part Wisi_EOI, 
 
-   IS               => shift and goto state 2 (6)
-   Wisi_EOI         => reduce 0 tokens to declarative_part (4)
+   IS               => shift and goto state 2 (9.0)
+   Wisi_EOI         => reduce 0 tokens to declarative_part 8.0
    default          => ERROR
 
-     3: declarations     goto state 3
-     1: declarative_part goto state 4
-     2: body             goto state 5
+      7.1: declarations     goto state 3
+      6.0: declarative_part goto state 4
+      7.0: body             goto state 5
 
 State 2:
-     6:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 0 tokens to declarative_part (4)
-   IS               => shift and goto state 2 (6)
+   BEGIN            => reduce 0 tokens to declarative_part 8.0
+   IS               => shift and goto state 2 (9.0)
    default          => ERROR
 
-     3: declarations     goto state 3
-     6: declarative_part goto state 7
-     2: body             goto state 5
+      7.1: declarations     goto state 3
+      9.0: declarative_part goto state 7
+      7.0: body             goto state 5
 
 State 3:
-     3:declarations <= declarations ^ body, BEGIN/IS/Wisi_EOI
-     5:declarative_part <= declarations ^, BEGIN/Wisi_EOI
+      7.1:declarations <= declarations ^ body, BEGIN/IS/Wisi_EOI
+      8.1:declarative_part <= declarations ^, BEGIN/Wisi_EOI
 
-   BEGIN            => reduce 1 tokens to declarative_part (5)
-   IS               => shift and goto state 2 (6)
-   Wisi_EOI         => reduce 1 tokens to declarative_part (5)
+   BEGIN            => reduce 1 tokens to declarative_part 8.1
+   IS               => shift and goto state 2 (9.0)
+   Wisi_EOI         => reduce 1 tokens to declarative_part 8.1
    default          => ERROR
 
-     3: body             goto state 6
+      7.1: body             goto state 6
 
 State 4:
-     1:wisitoken_accept <= declarative_part ^ Wisi_EOI, 
+      6.0:wisitoken_accept <= declarative_part ^ Wisi_EOI, 
 
-   Wisi_EOI         => accept it (1)
+   Wisi_EOI         => accept it 6.0
    default          => ERROR
 
 
 State 5:
-     2:declarations <= body ^, BEGIN/IS/Wisi_EOI
+      7.0:declarations <= body ^, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 1 tokens to declarations (2)
-   IS               => reduce 1 tokens to declarations (2)
-   Wisi_EOI         => reduce 1 tokens to declarations (2)
+   BEGIN            => reduce 1 tokens to declarations 7.0
+   IS               => reduce 1 tokens to declarations 7.0
+   Wisi_EOI         => reduce 1 tokens to declarations 7.0
    default          => ERROR
 
 
 State 6:
-     3:declarations <= declarations body ^, BEGIN/IS/Wisi_EOI
+      7.1:declarations <= declarations body ^, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 2 tokens to declarations (3)
-   IS               => reduce 2 tokens to declarations (3)
-   Wisi_EOI         => reduce 2 tokens to declarations (3)
+   BEGIN            => reduce 2 tokens to declarations 7.1
+   IS               => reduce 2 tokens to declarations 7.1
+   Wisi_EOI         => reduce 2 tokens to declarations 7.1
    default          => ERROR
 
 
 State 7:
-     6:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => shift and goto state 8 (6)
+   BEGIN            => shift and goto state 8 (9.0)
    default          => ERROR
 
 
 State 8:
-     6:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   SEMICOLON        => shift and goto state 9 (6)
+   SEMICOLON        => shift and goto state 9 (9.0)
    default          => ERROR
 
 
 State 9:
-     6:body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
+      9.0:body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => reduce 4 tokens to body (6)
-   IS               => reduce 4 tokens to body (6)
-   Wisi_EOI         => reduce 4 tokens to body (6)
+   BEGIN            => reduce 4 tokens to body 9.0
+   IS               => reduce 4 tokens to body 9.0
+   Wisi_EOI         => reduce 4 tokens to body 9.0
    default          => ERROR
 
 
@@ -114,138 +114,138 @@ declarative_part => ()
 body => (IS, BEGIN, SEMICOLON)
 
 State 1:
-     1:wisitoken_accept <= ^ declarative_part Wisi_EOI, Wisi_EOI
+      6.0:wisitoken_accept <= ^ declarative_part Wisi_EOI, Wisi_EOI
 
-   IS               => shift and goto state 2 (6)
-   Wisi_EOI         => reduce 0 tokens to declarative_part (4)
+   IS               => shift and goto state 2 (9.0)
+   Wisi_EOI         => reduce 0 tokens to declarative_part 8.0
    default          => ERROR
 
-     3: declarations     goto state 3
-     1: declarative_part goto state 4
-     2: body             goto state 5
+      7.1: declarations     goto state 3
+      6.0: declarative_part goto state 4
+      7.0: body             goto state 5
 
 State 2:
-     6:body <= IS ^ declarative_part BEGIN SEMICOLON, IS/Wisi_EOI
+      9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, IS/Wisi_EOI
 
-   BEGIN            => reduce 0 tokens to declarative_part (4)
-   IS               => shift and goto state 7 (6)
+   BEGIN            => reduce 0 tokens to declarative_part 8.0
+   IS               => shift and goto state 7 (9.0)
    default          => ERROR
 
-     3: declarations     goto state 8
-     6: declarative_part goto state 9
-     2: body             goto state 10
+      7.1: declarations     goto state 8
+      9.0: declarative_part goto state 9
+      7.0: body             goto state 10
 
 State 3:
-     3:declarations <= declarations ^ body, IS/Wisi_EOI
-     5:declarative_part <= declarations ^, Wisi_EOI
+      7.1:declarations <= declarations ^ body, IS/Wisi_EOI
+      8.1:declarative_part <= declarations ^, Wisi_EOI
 
-   IS               => shift and goto state 2 (6)
-   Wisi_EOI         => reduce 1 tokens to declarative_part (5)
+   IS               => shift and goto state 2 (9.0)
+   Wisi_EOI         => reduce 1 tokens to declarative_part 8.1
    default          => ERROR
 
-     3: body             goto state 6
+      7.1: body             goto state 6
 
 State 4:
-     1:wisitoken_accept <= declarative_part ^ Wisi_EOI, Wisi_EOI
+      6.0:wisitoken_accept <= declarative_part ^ Wisi_EOI, Wisi_EOI
 
-   Wisi_EOI         => accept it (1)
+   Wisi_EOI         => accept it 6.0
    default          => ERROR
 
 
 State 5:
-     2:declarations <= body ^, IS/Wisi_EOI
+      7.0:declarations <= body ^, IS/Wisi_EOI
 
-   IS               => reduce 1 tokens to declarations (2)
-   Wisi_EOI         => reduce 1 tokens to declarations (2)
+   IS               => reduce 1 tokens to declarations 7.0
+   Wisi_EOI         => reduce 1 tokens to declarations 7.0
    default          => ERROR
 
 
 State 6:
-     3:declarations <= declarations body ^, IS/Wisi_EOI
+      7.1:declarations <= declarations body ^, IS/Wisi_EOI
 
-   IS               => reduce 2 tokens to declarations (3)
-   Wisi_EOI         => reduce 2 tokens to declarations (3)
+   IS               => reduce 2 tokens to declarations 7.1
+   Wisi_EOI         => reduce 2 tokens to declarations 7.1
    default          => ERROR
 
 
 State 7:
-     6:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS
+      9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS
 
-   BEGIN            => reduce 0 tokens to declarative_part (4)
-   IS               => shift and goto state 7 (6)
+   BEGIN            => reduce 0 tokens to declarative_part 8.0
+   IS               => shift and goto state 7 (9.0)
    default          => ERROR
 
-     3: declarations     goto state 8
-     6: declarative_part goto state 13
-     2: body             goto state 10
+      7.1: declarations     goto state 8
+      9.0: declarative_part goto state 13
+      7.0: body             goto state 10
 
 State 8:
-     3:declarations <= declarations ^ body, BEGIN/IS
-     5:declarative_part <= declarations ^, BEGIN
+      7.1:declarations <= declarations ^ body, BEGIN/IS
+      8.1:declarative_part <= declarations ^, BEGIN
 
-   BEGIN            => reduce 1 tokens to declarative_part (5)
-   IS               => shift and goto state 7 (6)
+   BEGIN            => reduce 1 tokens to declarative_part 8.1
+   IS               => shift and goto state 7 (9.0)
    default          => ERROR
 
-     3: body             goto state 12
+      7.1: body             goto state 12
 
 State 9:
-     6:body <= IS declarative_part ^ BEGIN SEMICOLON, IS/Wisi_EOI
+      9.0:body <= IS declarative_part ^ BEGIN SEMICOLON, IS/Wisi_EOI
 
-   BEGIN            => shift and goto state 11 (6)
+   BEGIN            => shift and goto state 11 (9.0)
    default          => ERROR
 
 
 State 10:
-     2:declarations <= body ^, BEGIN/IS
+      7.0:declarations <= body ^, BEGIN/IS
 
-   BEGIN            => reduce 1 tokens to declarations (2)
-   IS               => reduce 1 tokens to declarations (2)
+   BEGIN            => reduce 1 tokens to declarations 7.0
+   IS               => reduce 1 tokens to declarations 7.0
    default          => ERROR
 
 
 State 11:
-     6:body <= IS declarative_part BEGIN ^ SEMICOLON, IS/Wisi_EOI
+      9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, IS/Wisi_EOI
 
-   SEMICOLON        => shift and goto state 15 (6)
+   SEMICOLON        => shift and goto state 15 (9.0)
    default          => ERROR
 
 
 State 12:
-     3:declarations <= declarations body ^, BEGIN/IS
+      7.1:declarations <= declarations body ^, BEGIN/IS
 
-   BEGIN            => reduce 2 tokens to declarations (3)
-   IS               => reduce 2 tokens to declarations (3)
+   BEGIN            => reduce 2 tokens to declarations 7.1
+   IS               => reduce 2 tokens to declarations 7.1
    default          => ERROR
 
 
 State 13:
-     6:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS
+      9.0:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS
 
-   BEGIN            => shift and goto state 14 (6)
+   BEGIN            => shift and goto state 14 (9.0)
    default          => ERROR
 
 
 State 14:
-     6:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS
+      9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS
 
-   SEMICOLON        => shift and goto state 16 (6)
+   SEMICOLON        => shift and goto state 16 (9.0)
    default          => ERROR
 
 
 State 15:
-     6:body <= IS declarative_part BEGIN SEMICOLON ^, IS/Wisi_EOI
+      9.0:body <= IS declarative_part BEGIN SEMICOLON ^, IS/Wisi_EOI
 
-   IS               => reduce 4 tokens to body (6)
-   Wisi_EOI         => reduce 4 tokens to body (6)
+   IS               => reduce 4 tokens to body 9.0
+   Wisi_EOI         => reduce 4 tokens to body 9.0
    default          => ERROR
 
 
 State 16:
-     6:body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS
+      9.0:body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS
 
-   BEGIN            => reduce 4 tokens to body (6)
-   IS               => reduce 4 tokens to body (6)
+   BEGIN            => reduce 4 tokens to body 9.0
+   IS               => reduce 4 tokens to body 9.0
    default          => ERROR
 
 

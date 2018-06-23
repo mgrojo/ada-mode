@@ -95,9 +95,6 @@ package body Dragon_4_43_Packrat_Hand is
       User_Data        : Syntax_Trees.User_Data_Access := null;
    end record;
 
-   subtype Result_Type is Memos.Constant_Reference_Type
-   with Dynamic_Predicate =>  Result_Type.Element.State in Result_States;
-
    function Parse_Upper_S (Parser : in out Parser_Type; Pos : in Token_Index) return Result_Type;
    function Parse_Upper_C (Parser : in out Parser_Type; Pos : in Token_Index) return Result_Type;
 
@@ -121,10 +118,8 @@ package body Dragon_4_43_Packrat_Hand is
                  (Pos,
                   (State              => Success,
                    Result             => Parser.Tree.Add_Nonterm
-                     (Nonterm         => +Accept_ID,
-                      Production      => 1,
+                     (Production      => (+Accept_ID, 0),
                       Action          => Null_Action,
-                      Name_Index      => 0,
                       Children        =>
                         (1            => Memo_1.Result,
                          2            => Syntax_Trees.Valid_Node_Index (Memo_1.Last_Token + 1)),
@@ -166,10 +161,8 @@ package body Dragon_4_43_Packrat_Hand is
                     (Pos,
                      (State              => Success,
                       Result             => Parser.Tree.Add_Nonterm
-                        (Nonterm         => +Upper_S_ID,
-                         Production      => 2,
+                        (Production      => (+Upper_S_ID, 0),
                          Action          => Null_Action,
-                         Name_Index      => 0,
                          Children        => (Memo_1.Result, Memo_2.Result),
                          Default_Virtual => False),
                       Last_Token         => Memo_2.Last_Token));
@@ -212,10 +205,8 @@ package body Dragon_4_43_Packrat_Hand is
                   Memo_Or_1 :=
                     (State              => Success,
                      Result             => Parser.Tree.Add_Nonterm
-                       (Nonterm         => +Upper_C_ID,
-                        Production      => 3,
+                       (Production      => (+Upper_C_ID, 0),
                         Action          => Null_Action,
-                        Name_Index      => 0,
                         Children        => (Tree_Index_1, Memo_2.Result),
                         Default_Virtual => False),
                      Last_Token         => Memo_2.Last_Token);
@@ -238,10 +229,8 @@ package body Dragon_4_43_Packrat_Hand is
               (Pos,
                (State              => Success,
                 Result             => Parser.Tree.Add_Nonterm
-                  (Nonterm         => +Upper_C_ID,
-                   Production      => 4,
+                  (Production      => (+Upper_C_ID, 1),
                    Action          => Null_Action,
-                   Name_Index      => 1,
                    Children        => (1 => Syntax_Trees.Valid_Node_Index (Pos + 1)),
                    Default_Virtual => False),
                 Last_Token         => Pos + 1));

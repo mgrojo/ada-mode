@@ -146,7 +146,7 @@ package Wisi.Gen_Generate_Utils is
      (Descriptor       : in WisiToken.Descriptor'Class;
       Source_File_Name : in String;
       Start_Token      : in String)
-     return WisiToken.Productions.Arrays.Vector;
+     return WisiToken.Productions.Prod_Arrays.Vector;
    --  Convert Tokens.Rules into a grammar.
    --
    --  Descriptor, Source_File_Name used in error messages.

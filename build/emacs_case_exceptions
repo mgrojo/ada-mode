@@ -1,5 +1,3 @@
-GNATCOLL
-WisiToken
 *CPU
 *CR
 *EOF
@@ -22,3 +20,6 @@ WisiToken
 *RHS
 *WY
 *re2c
+GNATCOLL
+RHSs
+WisiToken

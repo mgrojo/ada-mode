@@ -25,7 +25,7 @@ package body WisiToken.LR.Generator_Utils is
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
-      Grammar              : in     WisiToken.Productions.Arrays.Vector;
+      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -116,14 +116,14 @@ package body WisiToken.LR.Generator_Utils is
    procedure Add_Actions
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
-      Grammar              : in     WisiToken.Productions.Arrays.Vector;
+      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
-      use WisiToken.Productions.Token_ID_Lists;
+      use WisiToken.Token_ID_Arrays;
       use all type LR1_Items.Item_Ptr;
 
       State : constant State_Index := Closure.State;
@@ -145,7 +145,6 @@ package body WisiToken.LR.Generator_Utils is
          elsif Element (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
             declare
-               use Production_ID_Arrays;
                use all type Ada.Containers.Count_Type;
                use all type LR1_Items.Item_Set_Ptr;
 
@@ -155,18 +154,15 @@ package body WisiToken.LR.Generator_Utils is
                Goto_Set : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (Closure, Dot_ID);
             begin
                if Dot_ID = Descriptor.EOF_ID then
-                  --  This is the start symbol production with dot before EOF. Note that
-                  --  semantic_check is null; we only support semantic checks in Wisi
-                  --  source files, not grammars defined in Ada code.
+                  --  This is the start symbol production with dot before EOF.
                   declare
-                     Prod : Productions.Instance renames Grammar (Prod_ID (Item));
+                     P_ID : constant Production_ID := Prod_ID (Item);
+                     RHS  : Productions.Right_Hand_Side renames Grammar (P_ID.Nonterm).RHSs (P_ID.RHS);
                   begin
                      Add_Action
                        (Dot_ID,
-                        (Accept_It, +Prod_ID (Item),
-                         Prod.LHS, Prod.RHS.Action, null,
-                         Prod.RHS.Tokens.Length - 1, -- EOF is not pushed on stack
-                         Prod.RHS.Name_Index),
+                        (Accept_It, P_ID, RHS.Action, RHS.Check,
+                         RHS.Tokens.Length - 1), -- EOF is not pushed on stack. FIXME: why not?
                         Table.States (State).Action_List,
                         Closure, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                   end;
@@ -202,8 +198,7 @@ package body WisiToken.LR.Generator_Utils is
            --  it the default. The various Put routines replace
            --  this with 'default'.
            (Symbol => Invalid_Token_ID,
-            Action => new Parse_Action_Node'
-              (Parse_Action_Rec'(Verb => LR.Error, Productions => Production_ID_Arrays.Empty_Vector), null),
+            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => LR.Error), null),
             Next   => null);
 
          Last_Action : Action_Node_Ptr := Table.States (State).Action_List;
@@ -258,7 +253,7 @@ package body WisiToken.LR.Generator_Utils is
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
-      Grammar              : in     WisiToken.Productions.Arrays.Vector;
+      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -266,13 +261,11 @@ package body WisiToken.LR.Generator_Utils is
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
-      use Production_ID_Arrays;
       use all type LR1_Items.Item_Ptr;
 
-      Prod   : Productions.Instance renames Grammar (Prod_ID (Item));
-      Action : constant Parse_Action_Rec :=
-        (Reduce, +Prod_ID (Item), Prod.LHS, Prod.RHS.Action, Prod.RHS.Check, Prod.RHS.Tokens.Length,
-         Prod.RHS.Name_Index);
+      Prod   : Productions.Instance renames Grammar (Prod_ID (Item).Nonterm);
+      RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Prod_ID (Item).RHS);
+      Action : constant Parse_Action_Rec := (Reduce, Prod_ID (Item), RHS.Action, RHS.Check, RHS.Tokens.Length);
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("processing lookaheads");
@@ -352,13 +345,13 @@ package body WisiToken.LR.Generator_Utils is
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;
-      Grammar              : in WisiToken.Productions.Arrays.Vector;
+      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID
    is
-      use WisiToken.Productions.Token_ID_Lists;
+      use WisiToken.Token_ID_Arrays;
       use all type LR1_Items.Item_Ptr;
       use all type LR1_Items.Item_Set_Ptr;
 
@@ -375,9 +368,9 @@ package body WisiToken.LR.Generator_Utils is
             loop
                exit when Item = null;
                if In_Kernel (Grammar, Descriptor, Item) and
-                 Action.LHS = Grammar (Prod_ID (Item)).LHS
+                 Action.Production.Nonterm = Prod_ID (Item).Nonterm
                then
-                  return Action.LHS;
+                  return Prod_ID (Item).Nonterm;
                end if;
                Item := Next (Item);
             end loop;
@@ -397,7 +390,7 @@ package body WisiToken.LR.Generator_Utils is
                   loop
                      if ID_I = No_Element then
                         if Lookaheads (Item) (Lookahead) then
-                           return Grammar (Prod_ID (Item)).LHS;
+                           return Prod_ID (Item).Nonterm;
                         end if;
                      else
                         declare
@@ -407,7 +400,7 @@ package body WisiToken.LR.Generator_Utils is
                              (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
                                 First (Dot_ID, Lookahead))
                            then
-                              return Grammar (Prod_ID (Item)).LHS;
+                              return Prod_ID (Item).Nonterm;
                            end if;
                            exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
                              not Has_Empty_Production (Dot_ID);
@@ -432,9 +425,7 @@ package body WisiToken.LR.Generator_Utils is
                if In_Kernel (Grammar, Descriptor, Item) and then
                  Prod_ID (Item) = Action.Productions (1)
                then
-                  --  The action production is one of the state productions, use that
-                  --  LHS.
-                  return Grammar (Prod_ID (Item)).LHS;
+                  return Prod_ID (Item).Nonterm;
                end if;
                Item := Next (Item);
             end loop;
@@ -460,7 +451,7 @@ package body WisiToken.LR.Generator_Utils is
                           (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
                              First (Dot_ID, Lookahead))
                         then
-                           return Grammar (Prod_ID (Item)).LHS;
+                           return Prod_ID (Item).Nonterm;
                         end if;
 
                         exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
@@ -537,29 +528,28 @@ package body WisiToken.LR.Generator_Utils is
    end Put;
 
    procedure Terminal_Sequence
-     (Grammar       : in     WisiToken.Productions.Arrays.Vector;
+     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor    : in     WisiToken.Descriptor'Class;
       All_Sequences : in out Token_Sequence_Arrays.Vector;
       All_Set       : in out Token_ID_Set;
       Recursing     : in out Token_ID_Set;
       Nonterm       : in     Token_ID)
    is
-      use WisiToken.Productions.Arrays;
       use Ada.Containers;
-      Prods : constant Productions.Production_ID_Range := WisiToken.Productions.Find (Grammar, Nonterm);
+      Prod : Productions.Instance renames Grammar (Nonterm);
 
       Temp              : Token_Sequence_Arrays.Vector;
       Min_Length        : Count_Type := Count_Type'Last;
       Skipped_Recursive : Boolean    := False;
    begin
       --  We get here because All_Sequences (Nonterm) has not been comptued
-      --  yet. Attempt to compute All_Sequences (Nonterm); if succesful, set
+      --  yet. Attempt to compute All_Sequences (Nonterm); if successful, set
       --  All_Set (Nonterm) True.
 
       --  First fill Temp with terminals from each production for Nonterm.
-      for L in Prods.First .. Prods.Last loop
+      for L in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
 
-         if Grammar (L).RHS.Tokens.Length = 0 then
+         if Prod.RHSs (L).Tokens.Length = 0 then
             All_Set (Nonterm) := True;
 
             if Trace_Generate > Detail then
@@ -569,7 +559,7 @@ package body WisiToken.LR.Generator_Utils is
             return;
          end if;
 
-         if WisiToken.Productions.Token_ID_Lists.Element (Grammar (L).RHS.Tokens.First) = Nonterm then
+         if Prod.RHSs (L).Tokens (1) = Nonterm then
             --  The first RHS token = LHS; a recursive list. This will never be
             --  the shortest production, so just skip it.
             null;
@@ -578,7 +568,7 @@ package body WisiToken.LR.Generator_Utils is
             declare
                Sequence : Token_ID_Arrays.Vector;
             begin
-               for ID of Grammar (L).RHS.Tokens loop
+               for ID of Prod.RHSs (L).Tokens loop
                   if ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
                      Sequence.Append (ID);
 
@@ -645,7 +635,7 @@ package body WisiToken.LR.Generator_Utils is
    end Terminal_Sequence;
 
    procedure Compute_Minimal_Terminal_Sequences
-     (Grammar    : in     WisiToken.Productions.Arrays.Vector;
+     (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector)
    is

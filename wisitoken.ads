@@ -214,21 +214,34 @@ package WisiToken is
    ----------
    --  Production IDs; see wisitoken-productions.ads for more
 
-   type Production_ID is range 1 .. Natural'Last;
-   --  Index into the production array. 1 origin for backward compatibility.
+   type Production_ID is record
+      Nonterm : Token_ID := Invalid_Token_ID;
+      RHS     : Natural  := 0;
+      --  Index into the production table.
+   end record;
 
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Production_ID);
+   function Image (Item : in Production_ID) return String;
+   --  Ada positional aggregate syntax, for code generation.
+
+   function Trimmed_Image (Item : in Production_ID) return String;
+   --  Nonterm.rhs_index, both integers, no leading or trailing space;
+   --  for parse table output and diagnostics.
+
+   Prod_ID_Image_Width : constant Integer := 7;
+   --  Max width of Trimmed_Image
 
    function Padded_Image (Item : in Production_ID; Width : in Integer) return String;
-   --  Padded with leading spaces to Width
+   --  Trimmed_Image padded with leading spaces to Width
 
    package Production_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Production_ID);
-   function Image is new Production_ID_Arrays.Gen_Image (Trimmed_Image);
+   function Image is new Production_ID_Arrays.Gen_Image (Image);
+   function Trimmed_Image is new Production_ID_Arrays.Gen_Image (Trimmed_Image);
 
    type Production_ID_Array is array (Natural range <>) of Production_ID;
 
    function To_Vector (Item : in Production_ID_Array) return Production_ID_Arrays.Vector;
    function "+" (Item : in Production_ID_Array) return Production_ID_Arrays.Vector renames To_Vector;
+   function "+" (Item : in Production_ID) return Production_ID_Arrays.Vector is (To_Vector ((1 => Item)));
 
    ----------
    --  Tokens
@@ -367,7 +380,7 @@ package WisiToken is
    --  Extra   - add error recovery parse actions
 
    Trace_Action : Integer := 0;
-   --  Output during Execute_Action.
+   --  Output during Execute_Action, and unit tests.
 
    Trace_Generate : Integer := 0;
    --  Output during grammar generation.

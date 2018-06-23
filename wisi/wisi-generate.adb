@@ -53,7 +53,7 @@ is
       Put_Line (Standard_Error, "The following grammar file directives control parser generation:");
       Put_Line (Standard_Error, "%first_state_index <n> - default 0");
       Put_Line (Standard_Error, "%first_parser_label <n> -  default 0");
-      Put_Line (Standard_Error, "%generator_algorithm {LALR | LR1 | LALR_LR1}");
+      Put_Line (Standard_Error, "%generator_algorithm {LALR_LR1 | LALR | LR1 | Packrat}");
       Put_Line (Standard_Error, "   LALR_LR1 generates both parsers; choice is made at parser run-time.");
       Put_Line (Standard_Error, "%output_language' {Ada | Ada_Emacs | Elisp}");
       Put_Line (Standard_Error, "%lexer {re2c | Elisp | Regexp}");

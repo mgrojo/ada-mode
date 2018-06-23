@@ -75,7 +75,7 @@ package body Test_Accept_State is
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Productions.Arrays.Vector :=
+   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
      --  First production in Grammar must be the terminating
      --  production; it gets the accept action.
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and

@@ -107,7 +107,7 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, new Association_Grammar_Test.Test_Case);
-   Add_Test (Suite, new Compare_Goto_Transitions.Test_Case (Debug => False));
+   Add_Test (Suite, new Compare_Goto_Transitions.Test_Case);
    Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug => 0));
    Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case);
    Add_Test (Suite, new Dragon_4_43_Packrat_Hand.Test_Case);

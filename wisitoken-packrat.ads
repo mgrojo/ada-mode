@@ -58,4 +58,7 @@ package WisiToken.Packrat is
 
    package Memos is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Memo_Entry);
 
+   subtype Result_Type is Memos.Constant_Reference_Type
+   with Dynamic_Predicate => Result_Type.Element.State in Result_States;
+
 end WisiToken.Packrat;
