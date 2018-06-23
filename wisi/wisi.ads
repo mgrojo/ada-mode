@@ -209,6 +209,8 @@ package Wisi is
 
    package Rule_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Rule_Type);
 
+   function Is_Present (Rules : in Rule_Lists.List; LHS : in String) return Boolean;
+
    type Tokens is record
       Non_Grammar      : Token_Lists.List;
       Keywords         : String_Pair_Lists.List;
