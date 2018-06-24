@@ -384,8 +384,8 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 $(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
 	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
-build_ada_executables : ../gpr_re2c.c gpr_process_main.ads force
-build_ada_executables : ../ada_re2c.c ada_process_main.ads force
+build_ada_executables : ../gpr_re2c.c force
+build_ada_executables : ../ada_re2c.c force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
 install_ada_executables : build_ada_executables

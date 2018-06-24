@@ -2,7 +2,7 @@
 --  command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process gpr.wy
 --
 
---  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
+--  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -38,7 +38,6 @@ package body Gpr_Process_Main is
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
       use WisiToken.LR;
-      use all type WisiToken.Generator_Algorithm_Type;
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
          State_Last        => 144,

@@ -67,13 +67,15 @@ elisp-clean :
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
-%_process_main.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+%.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
-	cd ./$(<D); dos2unix $(*F)_process_main.ads $(*F)_process_main.adb $(*F)-process.el $(*F).re2c
+	cd ./$(<D); dos2unix $(*F)-process.el $(*F).re2c
+	cd ./$(<D); dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 	cd ./$(<D); dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	cd ./$(<D); dos2unix $(*F)_re2c.c
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
@@ -161,7 +163,7 @@ profile-clean ::
 
 # delete all files created by wisi-generate for main programs
 build-ada-exec-clean :
-	cd ..; rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-elisp.el *-process.el *_process.ad?
+	cd ..; rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-elisp.el *-process.el *_process*.ad?
 
 test-clean ::
 	rm -f *.diff *.tmp

@@ -1,40 +1,12 @@
 ;;; Wisi grammar for Ada
 ;;
-;; Copyright (C) 2012 - 2018 Free Software Foundation, Inc.
-;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Created: Sept 2012
 ;; Keywords: syntax
 ;;
-;; This file is part of GNU Emacs.
-;;
-;; GNU Emacs is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-;;
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-;;
-;;; Commentary:
-;;
-;; This is a wisi grammar file for the Ada language. It is derived
-;; from the 2012 Ada Reference Manual (ARM) with Technical Corrigendum
-;; 1, which is available as (info "(aarm2012)") or at
-;; http://www.ada-auth.org/standards/ada12.html, under the license in
-;; ada_license.text.
-;;
-;; see wisi.el for discussion of using the wisi parser for an
-;; indentation engine.
-
 %code copyright_license %{
-;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -50,11 +22,16 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-;; Declarations
-
-;; token declarations
-
-;; Ada keywords (ARM 2.9) and operators (info "(aarm2012)2.9" "*info AARM*")
+;;; Commentary:
+;;
+;; This is a wisi grammar file for the Ada language. It is derived
+;; from the 2012 Ada Reference Manual (ARM) with Technical Corrigendum
+;; 1, which is available as (info "(aarm2012)") or at
+;; http://www.ada-auth.org/standards/ada12.html, under the license in
+;; ada_license.text.
+;;
+;; see wisi.el for discussion of using the wisi parser for an
+;; indentation engine.
 
 %case_insensitive
 
@@ -135,7 +112,6 @@
 %token <left-paren> LEFT_PAREN "("
 %token <right-paren> RIGHT_PAREN ")"
 
-;; all tokens that consist of characters with punctuation syntax
 %token <punctuation> AMPERSAND "&"
 %token <punctuation> BAR "|"
 %token <punctuation> BOX "<>"

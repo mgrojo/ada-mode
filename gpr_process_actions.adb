@@ -2,7 +2,7 @@
 --  command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process gpr.wy
 --
 
---  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
+--  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -22,7 +22,6 @@ with WisiToken.Wisi_Runtime.Gpr; use WisiToken.Wisi_Runtime.Gpr;
 package body Gpr_Process_Actions is
 
    use WisiToken.Semantic_Checks;
-   use all type Motion_Param_Array;
 
    procedure aggregate_g_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

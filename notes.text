@@ -66,6 +66,8 @@ test/ada_mode-recover_type_1.ads
     constrain_terminal not returning 'end'
         need to handle mixed shift/reduce better
 
+Contact ada cubesat lab, see if they will beta test indentation engine.
+
 --  FIXME: see if more tasks go faster or slower.
 
 wisitoken-wisi_runtime.ads Find
@@ -1023,6 +1025,8 @@ read/write access requires a public key:
 	merge = refs/heads/master
 
  release process
+adding lots of Ada code; move to elpa external
+
 do wisitoken release, if needed
 
 (dvc-status ".")
