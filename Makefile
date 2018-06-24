@@ -48,7 +48,7 @@ two : force
 # monotone update. Doing byte-compile-clean first avoids errors caused
 # by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L . -L $(WISI) --eval "(progn (add-to-list 'load-path \"/Projects/mmm-mode\")(package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) --eval "(progn (add-to-list 'load-path \"/Projects/mmm-mode\")(package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -62,15 +62,15 @@ autoloads : force
 # external environment variable.
 ifeq ($(shell uname),Linux)
 export WISITOKEN ?= /Projects/org.wisitoken/build
-export WISI ?= /Projects/org.emacs.ada-mode.stephe-2
+export EMACS_WISI ?= /Projects/org.emacs.ada-mode.stephe-2
 
 else ifeq ($(shell uname),Darwin)
 export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken/build
-export WISI ?= /Projects/org.emacs.ada-mode.stephe-2
+export EMACS_WISI ?= /Projects/org.emacs.ada-mode.stephe-2
 else
 # windows
 export WISITOKEN ?= c:/Projects/org.wisitoken/build
-export WISI ?= c:/Projects/org.emacs.ada-mode.stephe-2
+export EMACS_WISI ?= c:/Projects/org.emacs.ada-mode.stephe-2
 
 endif
 
@@ -91,7 +91,7 @@ TEST_FILES += identifier_list_name_conflict.wy
 	diff -u $< $*.tmp > $*.diff
 
 %.tmp : %
-	$(EMACS_EXE) -Q -L . -L $(WISI) -L $(WISI)/build -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) -L $(EMACS_WISI)/build -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 test-wisi_grammar : RUNTEST := run-indent-test-grammar.el
 test-wisi_grammar : $(addsuffix .diff, $(TEST_FILES))
