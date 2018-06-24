@@ -893,7 +893,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             then
                --  We are deleting a push_back; cancel the push_back cost, to make
                --  this the same as plain deleting.
-               New_Config.Cost := New_Config.Cost - McKenzie_Param.Push_Back (ID);
+               New_Config.Cost := Natural'Max (Natural'First, New_Config.Cost - McKenzie_Param.Push_Back (ID));
             end if;
 
             New_Config.Ops.Append ((Delete, ID, Config.Current_Shared_Token));

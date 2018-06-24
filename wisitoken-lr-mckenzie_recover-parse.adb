@@ -219,6 +219,8 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                   New_State := Config.Stack.Peek.State;
                   New_State := Goto_For (Table, New_State, Action.Item.LHS);
 
+                  pragma Assert (New_State /= Unknown_State);
+
                   Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
 
                when Semantic_Checks.Error =>
