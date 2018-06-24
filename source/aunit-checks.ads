@@ -38,7 +38,15 @@ package AUnit.Checks is
    generic
       type Item_Type (<>) is limited private;
       type Item_Access_Type is access all Item_Type;
-   procedure Gen_Check_All_Access
+   procedure Gen_Check_Access_All
+     (Label    : in String;
+      Computed : in Item_Access_Type;
+      Expected : in Item_Access_Type);
+
+   generic
+      type Item_Type (<>) is limited private;
+      type Item_Access_Type is access constant Item_Type;
+   procedure Gen_Check_Access_Constant
      (Label    : in String;
       Computed : in Item_Access_Type;
       Expected : in Item_Access_Type);

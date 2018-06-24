@@ -33,13 +33,21 @@ package body AUnit.Checks is
       AUnit.Assertions.Assert (Computed.all'Valid, Label & ": object value not valid");
    end Gen_Check_Valid;
 
-   procedure Gen_Check_All_Access
+   procedure Gen_Check_Access_All
      (Label    : in String;
       Computed : in Item_Access_Type;
       Expected : in Item_Access_Type)
    is begin
       AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
-   end Gen_Check_All_Access;
+   end Gen_Check_Access_All;
+
+   procedure Gen_Check_Access_Constant
+     (Label    : in String;
+      Computed : in Item_Access_Type;
+      Expected : in Item_Access_Type)
+   is begin
+      AUnit.Assertions.Assert (Computed = Expected, Label & ": access type mismatch");
+   end Gen_Check_Access_Constant;
 
    procedure Gen_Check_Access
      (Label    : in String;
