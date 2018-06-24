@@ -20,7 +20,16 @@ pragma License (Modified_GPL);
 generic
    with procedure Check_Index (Label : in String; Computed, Expected : in Index_Type);
    with procedure Check_Element (Label : in String; Computed, Expected : in Element_Type);
-procedure SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit
-  (Label    : in String;
-   Computed : in Vector;
-   Expected : in Vector);
+package SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit is
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Vector;
+      Expected : in Vector);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Cursor;
+      Expected : in Cursor);
+
+end SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;

@@ -43,12 +43,6 @@ package SAL.Gen_Unbounded_Definite_Vectors is
       Default_Iterator  => Iterate,
       Iterator_Element  => Element_Type;
 
-   type Vector_Access_Constant is access constant Vector;
-   for Vector_Access_Constant'Storage_Size use 0;
-
-   type Vector_Access is access all Vector;
-   for Vector_Access'Storage_Size use 0;
-
    Empty_Vector : constant Vector;
 
    overriding procedure Finalize (Container : in out Vector);
@@ -143,7 +137,18 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    type Cursor is private;
 
+   No_Element : constant Cursor;
+
    function Has_Element (Position : Cursor) return Boolean;
+   function Element (Position : Cursor) return Element_Type;
+   function First (Container : aliased in Vector) return Cursor;
+   function Next (Position : in Cursor) return Cursor;
+   procedure Next (Position : in out Cursor);
+
+   function To_Cursor
+     (Container : aliased in Vector;
+      Index     :         in Extended_Index)
+     return Cursor;
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
@@ -168,9 +173,12 @@ private
       Last     : Extended_Index := No_Index;
    end record;
 
+   type Vector_Access is access constant Vector;
+   for Vector_Access'Storage_Size use 0;
+
    type Cursor is record
-      Container : Vector_Access;
-      Index     : Base_Peek_Type;
+      Container : Vector_Access  := null;
+      Index     : Base_Peek_Type := Invalid_Peek_Index;
    end record;
 
    type Iterator is new Iterator_Interfaces.Reversible_Iterator with
@@ -190,6 +198,8 @@ private
       Position : Cursor) return Cursor;
 
    Empty_Vector : constant Vector := (Ada.Finalization.Controlled with others => <>);
+
+   No_Element : constant Cursor := (others => <>);
 
    ----------
    --  Visible for child package

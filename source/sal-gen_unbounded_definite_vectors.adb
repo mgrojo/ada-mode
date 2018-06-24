@@ -387,6 +387,61 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Delete;
 
+   function Has_Element (Position : Cursor) return Boolean is
+   begin
+      return Position.Index /= Invalid_Peek_Index;
+   end Has_Element;
+
+   function Element (Position : Cursor) return Element_Type
+   is begin
+      return Position.Container.Elements (Position.Index);
+   end Element;
+
+   function First (Container : aliased in Vector) return Cursor
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Container.Length = 0 then
+         return No_Element;
+      else
+         return (Container'Access, To_Peek_Type (Container.First));
+      end if;
+   end First;
+
+   function Next (Position : in Cursor) return Cursor
+   is begin
+      if Position = No_Element then
+         return No_Element;
+      elsif Position.Index < To_Peek_Type (Position.Container.Last) then
+         return (Position.Container, Position.Index + 1);
+      else
+         return No_Element;
+      end if;
+   end Next;
+
+   procedure Next (Position : in out Cursor)
+   is begin
+      if Position = No_Element then
+         null;
+      elsif Position.Index < To_Peek_Type (Position.Container.Last) then
+         Position.Index := Position.Index + 1;
+      else
+         Position := No_Element;
+      end if;
+   end Next;
+
+   function To_Cursor
+     (Container : aliased in Vector;
+      Index     :         in Extended_Index)
+     return Cursor
+   is begin
+      if Index not in Container.First .. Container.Last then
+         return No_Element;
+      else
+         return (Container'Access, To_Peek_Type (Index));
+      end if;
+   end To_Cursor;
+
    function Constant_Ref (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
    is
       J : constant Peek_Type := To_Peek_Type (Index);
@@ -403,11 +458,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
    begin
       return (Element => Container.Elements (J)'Access);
    end Variable_Ref;
-
-   function Has_Element (Position : Cursor) return Boolean is
-   begin
-      return Position.Index /= Invalid_Peek_Index;
-   end Has_Element;
 
    overriding function First (Object : Iterator) return Cursor
    is begin
