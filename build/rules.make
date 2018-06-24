@@ -184,7 +184,7 @@ wisi-clean :
 
 # Re2c rules; wisi-generate outputs %.qx
 %_re2c.c : %.re2c
-	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	$(RE2C_HOME)/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
 re2c-clean :

@@ -71,9 +71,6 @@ package body WisiToken.LR.Parser_No_Recover is
       Current_Parser : in Parser_Lists.Cursor;
       Shared_Parser  : in Parser)
    is
-      use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
-
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
       Trace        : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Nonterm      : WisiToken.Syntax_Trees.Valid_Node_Index;
@@ -238,7 +235,6 @@ package body WisiToken.LR.Parser_No_Recover is
    procedure Parse (Shared_Parser : in out Parser)
    is
       use all type Syntax_Trees.User_Data_Access;
-      use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
@@ -472,8 +468,6 @@ package body WisiToken.LR.Parser_No_Recover is
 
    procedure Put_Errors (Parser : in out LR.Parser_No_Recover.Parser; File_Name : in String)
    is
-      use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
 
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;

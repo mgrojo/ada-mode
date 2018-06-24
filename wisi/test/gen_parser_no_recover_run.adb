@@ -49,7 +49,6 @@ is
 
    procedure Parse
    is
-      use all type WisiToken.Token_ID;
       Parser : WisiToken.LR.Parser_No_Recover.Parser;
    begin
       Create_Parser

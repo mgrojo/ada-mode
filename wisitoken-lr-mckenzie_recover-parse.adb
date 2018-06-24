@@ -26,7 +26,6 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Nonterm         :    out Recover_Token;
       Default_Virtual : in     Boolean)
    is
-      use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
       Min_Terminal_Index_Set : Boolean := False;
@@ -265,8 +264,6 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Trace_Prefix      : in              String)
      return Boolean
    is
-      use all type Ada.Containers.Count_Type;
-
       Trace : WisiToken.Trace'Class renames Super.Trace.all;
 
       Last_Index : Positive;

@@ -39,7 +39,6 @@ package body WisiToken.Lexer.Regexp is
       --  Return True if a token is matched, False if not.
 
       use WisiToken.Regexp;
-      use type Token_ID;
 
       Current_Char         : Integer := Lexer.Buffer_Head;
       Current_State        : Match_State;
@@ -139,13 +138,14 @@ package body WisiToken.Lexer.Regexp is
       return (WisiToken.Regexp.Compile (Regexp, Case_Sensitive), Report);
    end Get;
 
+   type Instance_Access is access Instance; --  silence compiler warning
+
    function New_Lexer
      (Trace  : not null access WisiToken.Trace'Class;
       Syntax : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle
    is
-      use type Token_ID;
-      New_Lexer : constant access Instance := new Instance (Trace, Syntax'Last);
+      New_Lexer : constant Instance_Access := new Instance (Trace, Syntax'Last);
    begin
       New_Lexer.Syntax := Syntax;
 
@@ -205,9 +205,7 @@ package body WisiToken.Lexer.Regexp is
      (Lexer : in out Instance;
       Token :    out Base_Token)
      return Boolean
-   is
-      use type Token_ID;
-   begin
+   is begin
       loop
          if not Find_Best_Match (Lexer) then
             if Lexer.Buffer_Head > Lexer.Source.Buffer'Last then

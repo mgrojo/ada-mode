@@ -118,8 +118,6 @@ package body WisiToken.LR.Parser is
       Current_Parser : in Parser_Lists.Cursor;
       Shared_Parser  : in LR.Parser.Parser)
    is
-      use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
       use all type Semantic_Checks.Check_Status_Label;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
@@ -965,7 +963,6 @@ package body WisiToken.LR.Parser is
    procedure Put_Errors (Parser : in out LR.Parser.Parser; File_Name : in String)
    is
       use all type SAL.Base_Peek_Type;
-      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
 
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;

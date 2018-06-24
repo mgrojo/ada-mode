@@ -159,7 +159,6 @@ package body WisiToken.LR.Generator_Utils is
                   --  semantic_check is null; we only support semantic checks in Wisi
                   --  source files, not grammars defined in Ada code.
                   declare
-                     use all type SAL.Base_Peek_Type;
                      Prod : Productions.Instance renames Grammar (Prod_ID (Item));
                   begin
                      Add_Action
@@ -245,7 +244,6 @@ package body WisiToken.LR.Generator_Utils is
       --  Fill in this state's Goto transitions
       declare
          use all type LR1_Items.Goto_Item_Ptr;
-         use all type LR.Goto_Node_Ptr;
          Goto_Ptr : LR1_Items.Goto_Item_Ptr := Closure.Goto_List;
       begin
          while Goto_Ptr /= null loop
@@ -361,7 +359,6 @@ package body WisiToken.LR.Generator_Utils is
      return Token_ID
    is
       use WisiToken.Productions.Token_ID_Lists;
-      use all type LR1_Items.Item_Set;
       use all type LR1_Items.Item_Ptr;
       use all type LR1_Items.Item_Set_Ptr;
 

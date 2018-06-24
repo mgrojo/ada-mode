@@ -41,7 +41,6 @@ package body WisiToken.Semantic_Checks is
       End_Optional : in     Boolean)
      return Check_Status
    is
-      use all type Recover_Token_Arrays.Vector;
       Start_Name_Region : constant Buffer_Region :=
         (if Tokens (Start_Index).Name = Null_Buffer_Region
          then Tokens (Start_Index).Byte_Region

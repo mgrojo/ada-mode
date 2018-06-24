@@ -31,7 +31,6 @@ package body WisiToken.LR.AUnit is
       use Standard.AUnit.Checks.Containers;
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
-      use all type Parse_Action_Verbs;
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
@@ -53,7 +52,6 @@ package body WisiToken.LR.AUnit is
    is
       use Standard.AUnit.Checks;
       use Standard.AUnit.Assertions;
-      use type Parse_Action_Node_Ptr;
       Computed_I : Parse_Action_Node_Ptr := Computed;
       Expected_I : Parse_Action_Node_Ptr := Expected;
       Index      : Integer  := 1;
@@ -84,7 +82,6 @@ package body WisiToken.LR.AUnit is
       use Standard.AUnit.Checks;
       use Standard.AUnit.Assertions;
       use WisiToken.AUnit;
-      use type Action_Node_Ptr;
       Computed_I : Action_Node_Ptr := Computed;
       Expected_I : Action_Node_Ptr := Expected;
       Index      : Integer  := 1;
@@ -116,7 +113,6 @@ package body WisiToken.LR.AUnit is
       use Standard.AUnit.Checks;
       use Standard.AUnit.Assertions;
       use WisiToken.AUnit;
-      use all type Goto_Node_Ptr;
       Computed_I : Goto_Node_Ptr := Computed;
       Expected_I : Goto_Node_Ptr := Expected;
       Index      : Integer  := 1;
@@ -153,9 +149,7 @@ package body WisiToken.LR.AUnit is
      (Label    : in String;
       Computed : in Parse_Table;
       Expected : in Parse_Table)
-   is
-      use WisiToken.AUnit;
-   begin
+   is begin
       Check (Label & ".States'first", Computed.States'First, Expected.States'First);
       Check (Label & ".States'last", Computed.States'Last, Expected.States'Last);
       for I in Computed.States'Range loop

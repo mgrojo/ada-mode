@@ -178,7 +178,6 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
    is
       use Ada.Strings.Unbounded;
       use Ada.Containers; -- count_type
-      use Wisi; -- "-" unbounded_string
 
       Rule_Length : constant Count_Type := Tokens.Rules.Length;
       Rule_Count  : Count_Type := 1;

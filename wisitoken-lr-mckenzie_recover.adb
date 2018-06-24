@@ -38,7 +38,6 @@ package body WisiToken.LR.McKenzie_Recover is
 
       --  Build a string, call trace.put_line once, so output from multiple
       --  tasks is not interleaved (mostly).
-      use all type Ada.Containers.Count_Type;
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type SAL.Base_Peek_Type;
       use all type WisiToken.Semantic_Checks.Check_Status_Label;
@@ -73,9 +72,7 @@ package body WisiToken.LR.McKenzie_Recover is
       Parser_Label : in     Natural;
       Message      : in     String;
       Task_ID      : in     Boolean := True)
-   is
-      use all type Ada.Strings.Unbounded.Unbounded_String;
-   begin
+   is begin
       Trace.Put_Line
         ((if Task_ID then Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else "") &
            Integer'Image (Parser_Label) & ": " & Message);
@@ -164,7 +161,6 @@ package body WisiToken.LR.McKenzie_Recover is
       Parser_State  : in out Parser_Lists.Parser_State)
    is
       use all type WisiToken.LR.Parser.Language_Fixes_Access;
-      use all type SAL.Base_Peek_Type;
 
       Trace  : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Config : constant Configuration_Access := Parser_State.Recover.Config_Heap.Add (Configuration'(others => <>));
@@ -402,7 +398,6 @@ package body WisiToken.LR.McKenzie_Recover is
       for Parser_State of Parsers loop
          if Parser_State.Recover.Success then
             declare
-               use all type Ada.Containers.Count_Type;
                use all type Syntax_Trees.Node_Index;
                use Parser_Lists;
 

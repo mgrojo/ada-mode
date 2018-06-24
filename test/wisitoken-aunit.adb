@@ -31,9 +31,7 @@ package body WisiToken.AUnit is
    end To_Base_Token_Array;
 
    procedure Check (Label : in String; Computed, Expected : in Base_Token)
-   is
-      use Standard.AUnit.Checks;
-   begin
+   is begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
       Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
    end Check;
@@ -48,9 +46,7 @@ package body WisiToken.AUnit is
      (Label    : in String;
       Computed : in WisiToken.Buffer_Region;
       Expected : in WisiToken.Buffer_Region)
-   is
-      use Standard.AUnit.Checks;
-   begin
+   is begin
       Check_Valid (Label & ".First valid", Computed.First'Unrestricted_Access);
       Check_Valid (Label & ".Last valid", Computed.Last'Unrestricted_Access);
       Check (Label & ".First", Computed.First, Expected.First);

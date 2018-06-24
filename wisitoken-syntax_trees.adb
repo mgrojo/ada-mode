@@ -208,9 +208,7 @@ package body WisiToken.Syntax_Trees is
    end Children;
 
    function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
+   is begin
       if Node <= Tree.Last_Shared_Node then
          return Children (Tree.Shared_Tree.Nodes (Node));
       else
@@ -242,8 +240,6 @@ package body WisiToken.Syntax_Trees is
       Node   : in     Valid_Node_Index)
      return Natural
    is
-      use all type SAL.Base_Peek_Type;
-
       function Compute (N : in Syntax_Trees.Node) return Natural
       is begin
          case N.Label is
@@ -449,8 +445,6 @@ package body WisiToken.Syntax_Trees is
       Result : in out Token_ID_Array;
       Last   : in out Natural)
    is
-      use all type SAL.Base_Peek_Type;
-
       procedure Compute (N : in Syntax_Trees.Node)
       is begin
          case N.Label is
@@ -503,7 +497,6 @@ package body WisiToken.Syntax_Trees is
    function Has_Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
    is
       use all type Ada.Containers.Count_Type;
-      use all type Positive_Index_Type;
    begin
       if Node <= Tree.Last_Shared_Node then
          return Tree.Shared_Tree.Nodes (Node).Children.Length > 0;
@@ -855,7 +848,6 @@ package body WisiToken.Syntax_Trees is
       Parent   : in     Valid_Node_Index;
       Children : in     Valid_Node_Index_Array)
    is
-      use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
       N : Nonterm_Node renames Nodes (Parent);

@@ -240,7 +240,6 @@ package body WisiToken.LR.Parser_Lists is
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
-      use all type SAL.Base_Peek_Type;
       Parser_State : Parser_Lists.Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Ptr);
    begin
       Trace.Put (Natural'Image (Parser_State.Label) & " stack: ");

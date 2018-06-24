@@ -34,7 +34,6 @@ package body WisiToken.LR is
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class)
    is
       use Ada.Text_IO;
-      use Ada.Strings.Fixed;
    begin
       Put_Line ("(Insert =>");
       for I in Item.Insert'Range loop
@@ -212,7 +211,6 @@ package body WisiToken.LR is
       Symbol : in     Token_ID;
       Action : in     Parse_Action_Rec)
    is
-      use all type Token_ID;
       New_Item : constant Action_Node_Ptr := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
       I        : Action_Node_Ptr          := List;
    begin
@@ -460,7 +458,6 @@ package body WisiToken.LR is
       Symbol     : in     Token_ID;
       To_State   : in     State_Index)
    is
-      use all type Token_ID;
       List     : Goto_Node_Ptr renames State.Goto_List;
       New_Item : constant Goto_Node_Ptr := new Goto_Node'(Production, Symbol, To_State, null);
       I        : Goto_Node_Ptr := List;
@@ -515,7 +512,6 @@ package body WisiToken.LR is
       ID    : in Token_ID)
      return Parse_Action_Node_Ptr
    is
-      use type Token_ID;
       Action_Node : Action_Node_Ptr := Table.States (State).Action_List;
    begin
       if Action_Node = null then
@@ -535,7 +531,6 @@ package body WisiToken.LR is
       ID    : in Token_ID)
      return Unknown_State_Index
    is
-      use type Token_ID;
       Goto_Node : constant Goto_Node_Ptr := Goto_For (Table, State, ID);
    begin
       if Goto_Node = null then
@@ -552,7 +547,6 @@ package body WisiToken.LR is
       ID    : in Token_ID)
      return Goto_Node_Ptr
    is
-      use type Token_ID;
       Goto_Node : Goto_Node_Ptr := Table.States (State).Goto_List;
    begin
       while Goto_Node /= null and then Goto_Node.Symbol /= ID loop
@@ -826,7 +820,6 @@ package body WisiToken.LR is
       User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
      return Token_ID
    is
-      use all type Ada.Containers.Count_Type;
       use all type Syntax_Trees.User_Data_Access;
 
       Token : Base_Token;

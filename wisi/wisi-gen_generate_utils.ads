@@ -29,7 +29,6 @@ generic
    WisiToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
 package Wisi.Gen_Generate_Utils is
    use WisiToken;
-   use all type Standard.Ada.Containers.Count_Type;
 
    EOF_ID : constant Token_ID := Token_ID
      (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + Token_ID'First;
