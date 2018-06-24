@@ -217,7 +217,7 @@ package body Wisi.Gen_Output_Ada_Common is
       procedure Packrat_Process
       is begin
          Indent_Line
-           ("type Derivs_Type is array (Token_ID range" &
+           ("type Derivs_Type is array (WisiToken.Token_ID range" &
               WisiToken.Token_ID'Image (Generate_Utils.Nonterminal_ID'First) & " .." &
               WisiToken.Token_ID'Image (Generate_Utils.Nonterminal_ID'Last) &
               ") of WisiToken.Packrat.Memos.Vector;");
@@ -225,18 +225,30 @@ package body Wisi.Gen_Output_Ada_Common is
 
          Indent_Line ("type Parser_Type is record");
          Indent := Indent + 3;
+         Indent_Line ("Trace            : access WisiToken.Trace'Class;");
+         Indent_Line ("Lexer            : WisiToken.Lexer.Handle;");
+         Indent_Line ("User_Data        : WisiToken.Syntax_Trees.User_Data_Access;");
          Indent_Line ("Derivs           : Derivs_Type;");
          Indent_Line ("Terminals        : WisiToken.Base_Token_Arrays.Vector;");
          Indent_Line ("Line_Begin_Token : WisiToken.Line_Begin_Token_Vectors.Vector;");
          Indent_Line ("Base_Tree        : aliased WisiToken.Syntax_Trees.Base_Tree;");
          --  FIXME: only need Base_Tree, unless for error handling?
          Indent_Line ("Tree             : WisiToken.Syntax_Trees.Tree;");
-         Indent_Line ("User_Data        : WisiToken.Syntax_Trees.User_Data_Access;");
          Indent := Indent - 3;
          Indent_Line ("end record;");
          New_Line;
 
-         Indent_Line ("function Parse (Parser : in out Parser_Type; Pos : in Token_Index) return Result_Type;");
+         Indent_Line ("procedure Create_Parser");
+         Indent_Line ("  (Parser    :    out Parser_Type;");
+         Indent_Line ("   Trace     : not null access WisiToken.Trace'Class;");
+         Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access);");
+         New_Line;
+
+         Indent_Line ("function Parse");
+         Indent_Line ("  (Parser : aliased in out Parser_Type;");
+         Indent_Line ("   Pos    : in     WisiToken.Token_Index)");
+         Indent_Line ("  return WisiToken.Packrat.Result_Type;");
+         New_Line;
       end Packrat_Process;
 
    begin
@@ -277,6 +289,7 @@ package body Wisi.Gen_Output_Ada_Common is
          end if;
 
       when Packrat =>
+         Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.Packrat;");
       end case;
 
@@ -762,8 +775,61 @@ package body Wisi.Gen_Output_Ada_Common is
      (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
       Action_Names : in Nonterminal_Names_Array;
       Check_Names  : in Nonterminal_Names_Array)
-   is begin
+   is
+      use Wisi.Utils;
+   begin
       Wisi.Generate_Packrat_Parser (Grammar, Action_Names, Check_Names);
+
+      Indent_Line ("procedure Create_Parser");
+      Indent_Line ("  (Parser    :    out Parser_Type;");
+      Indent_Line ("   Trace     : not null access WisiToken.Trace'Class;");
+      Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)");
+      Indent_Line ("is begin");
+      Indent := Indent + 3;
+
+      Indent_Line ("Parser.Trace := Trace;");
+      Indent_Line ("Parser.Lexer := Lexer.New_Lexer (Trace);");
+      Indent_Line ("Parser.User_Data := User_Data;");
+
+      Indent := Indent - 3;
+      Indent_Line ("end Create_Parser;");
+      New_Line;
+
+      Indent_Line ("function Parse");
+      Indent_Line ("  (Parser : aliased in out Parser_Type;");
+      Indent_Line ("   Pos    : in     WisiToken.Token_Index)");
+      Indent_Line ("  return WisiToken.Packrat.Result_Type");
+      Indent_Line ("is");
+      Indent := Indent + 3;
+      Indent_Line ("Junk : WisiToken.Syntax_Trees.Valid_Node_Index;");
+      Indent_Line ("pragma Unreferenced (Junk);");
+      Indent := Indent - 3;
+      Indent_Line ("begin");
+      Indent := Indent + 3;
+      Indent_Line ("Parser.Tree.Initialize (Parser.Base_Tree'Access, Flush => True);");
+      Indent_Line ("WisiToken.Parse.Lex_All");
+      Indent_Line ("  (Parser.Lexer, Parser.Terminals, Parser.Line_Begin_Token, Parser.User_Data, Parser.Trace);");
+      New_Line;
+
+      Indent_Line ("for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop");
+      Indent := Indent + 3;
+      Indent_Line ("Parser.Derivs (Nonterm).Set_First (Parser.Terminals.First_Index);");
+      Indent_Line ("Parser.Derivs (Nonterm).Set_Last (Parser.Terminals.Last_Index);");
+      Indent := Indent - 3;
+      Indent_Line ("end loop;");
+      New_Line;
+
+      Indent_Line ("for Token_Index in Parser.Terminals.First_Index .. Parser.Terminals.Last_Index loop");
+      Indent := Indent + 3;
+      Indent_Line ("Junk := Parser.Tree.Add_Terminal (Token_Index, Parser.Terminals);");
+      --  FIXME: move this into Lex_All, delete Terminals, just use Syntax_Tree
+      Indent := Indent - 3;
+      Indent_Line ("end loop;");
+
+      Indent_Line ("return Parse_Accept (Parser, Parser.Terminals.First_Index);");
+      Indent := Indent - 3;
+      Indent_Line ("end Parse;");
+      New_Line;
    end Create_Packrat_Parser;
 
    procedure Create_re2c

@@ -289,6 +289,7 @@ package body Dragon_4_43_Packrat_Hand is
 
    begin
       Execute_Parse ("cdcd", Success);
+      Execute_Parse ("ccd", Failure);
    end Test_Parse;
 
    ----------

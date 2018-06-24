@@ -19,9 +19,10 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-wisi-generate error if two lhs have the same name
-
 Test/dragon_4_43_packrat_gen.adb
+    dragon_4_43_main.adb
+        needs parsers
+        try mako?
 
 
 wisitoken.packrat

@@ -273,6 +273,7 @@ is
 
       Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
       Put_Line ("with WisiToken.Lexer.re2c;");
+      Put_Line ("with WisiToken.Parse;");
       Put_Line ("with " & re2c_Package_Name & ";");
       Put_Line ("package body " & Main_Package_Name & " is");
       Indent := Indent + 3;

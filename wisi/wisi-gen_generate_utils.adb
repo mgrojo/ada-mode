@@ -277,13 +277,17 @@ package body Wisi.Gen_Generate_Utils is
          end if;
 
          --  no Terminals_Others; on to EOI
-         Cursor :=
-           (Kind        => EOI,
-            ID          => Cursor.ID,
-            Token_Kind  => Wisi.Token_Lists.No_Element,
-            Token_Item  => String_Pair_Lists.No_Element,
-            Keyword     => String_Pair_Lists.No_Element,
-            Nonterminal => Rule_Lists.No_Element);
+         if not Other_Tokens then
+            Cursor.Kind := Done;
+         else
+            Cursor :=
+              (Kind        => EOI,
+               ID          => Cursor.ID,
+               Token_Kind  => Wisi.Token_Lists.No_Element,
+               Token_Item  => String_Pair_Lists.No_Element,
+               Keyword     => String_Pair_Lists.No_Element,
+               Nonterminal => Rule_Lists.No_Element);
+         end if;
 
       when Terminals_Others =>
          Wisi.String_Pair_Lists.Next (Cursor.Token_Item);
