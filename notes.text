@@ -19,14 +19,29 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+compile ada_process_main still very slow on Debian
+    compare to libadalang; larger files!
+    one subprogram per state?w
+
 wisitoken.packrat
+    http://bford.info/packrat/
     .generate
         read existing *.wy
-            rewrite left-recursion
+        use https://web.cs.ucla.edu/~todd/research/pepm08.pdf
+            AdaCore just uses a "List" rule for direct recursion
+            'expr' is indirect left recursive; uses variant of this paper's technique
+
 
     .parser
         nothing here?
         error correction?
+
+    adacore langkit_support.packrat implements one row of the derivs table
+        it only stores 16 most recently computed items; enough to compute a typical subroutine?
+            slows down error recovery if have to go back more than 16 (not likely)
+            clearly adequate given fast performance
+            compare performance to a sparse vector
+        libadalang.analysis.parsers Parser_Private_Part_Type stores all the rows
 
 add *, +, ? to wisi_grammar?
     more re-writes
@@ -56,6 +71,8 @@ constrain_terminals
         store dot with productions in parse_state; lr1_item
     handle conflicts
 
+    derive from LALR formalism?
+
 update-wisi_grammar
 
 change configure_access to persistent_ref record with container, node components;
@@ -64,6 +81,9 @@ change configure_access to persistent_ref record with container, node components
 use wisi-gen_output_ada_common.adb Append in wisi-output_ada, _emacs.
 
 update NEWS.text
+
+do google search for "ada parser generator"
+    add wisitoken to those sites
 
 Fixed size stack speed mckenzie?
     init current to 50 was slightly slower
@@ -173,45 +193,8 @@ some tokens don't count towards check_limit, because we should always check the 
     END, DOT
     covers 'end if/loop/case/return/name', name.name
 
-want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle it
-    so can't use run_ada_parser to debug indent/parse issues
-    emacs lexer can't handle Π π either?
-
 if hit enqueue_limit, use config that has highest check_token_count
     save in config
-
-debug_kim_choe
-    paper does _not_ actually build graph; searches it implicitly
-        with a breadth-first search.
-        it's not clear how it determines it has reached the goal
-        not clear how to go back and insert terminals when find path
-        we use a graph to store the multiple paths, since the goal is a token, not a state
-
-    uses only reduction edges?
-        that's what Definition 3.5 for Lookback, 3.14 for 'right context graph' says
-        but there are states with no reduction edges
-
-    uses kernels to compute edges
-        in my output, some kernels have no gotos (added later)
-        all kernel gotos are equivalent to table gotos/actions
-
-    advantages over mckenzie:
-        it can insert nonterms?
-            not much help when most can be empty.
-
-        it only follows least cost edge
-            so does mckenzie
-
-        more efficient storage managment?
-            totally up to me
-
-debug_kim_choe.adb
-    use sal.gen_graph
-        write test_graphs in sal, with example from CLRS 22.2
-        c:/Projects/org.stephe_leake.sal/build/Makefile
-        add nonterm weights = shortest terminal count (+ 1 for empty?)
-
-    generate graph from action_for, goto_for
 
 Emacs_ada does not need descriptor.image?
 
@@ -500,16 +483,5 @@ File: C:\Projects\org.wisitoken.stephe-1\build\case_expression_lexer.c:430
     see if it has options/rules/hooks to fix wisi/test/character_literal.wy
         how does libadalang handle this?
         last_token_id?
-
-
- aflex
-    /Projects/aflex/build/Makefile
-    /Projects/aflex/aflex.adb
-    source from http://sourceforge.net/projects/p2ada/
-
-    better error messages; gnu syntax
-
-    regenerate aflex.l
-        start with flex.l?
 
 # end of file

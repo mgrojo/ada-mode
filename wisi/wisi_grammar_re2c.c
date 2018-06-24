@@ -4,11 +4,11 @@
 //  command line: wisi-generate.exe -v 1 wisi_grammar.wy
 //
 
-// Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+//  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 //
-// Author: Stephen Leake <stephe-leake@stephe-leake.org>
+//  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 //
-// This file is part of GNU Emacs.
+//  This file is part of GNU Emacs.
 //
 //  GNU Emacs is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by

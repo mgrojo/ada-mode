@@ -114,9 +114,11 @@ source-clean ::
 # We don't include wisi-generate.exe in the dependencies here, to allow bootstrapping.
 ../wisi/wisi_grammar.re2c : wisi_grammar.wy
 	cd ../wisi; $(CURDIR)/wisi-generate.exe -v 1 wisi_grammar.wy > wisi_grammar.parse_table
+	dos2unix ../wisi/wisi_grammar*
 
 ../wisi/wisi_grammar_re2c.c : ../wisi/wisi_grammar.re2c
 	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	dos2unix ../wisi/wisi_grammar_re2c.c
 
 wisi_grammar-clean :
 	rm -rf wisi_grammar*
