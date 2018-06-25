@@ -58,7 +58,12 @@ package WisiToken.Packrat is
 
    package Memos is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Memo_Entry);
 
-   subtype Result_Type is Memos.Constant_Reference_Type
-   with Dynamic_Predicate => Result_Type.Element.State in Result_States;
+   subtype Result_Type is Memo_Entry
+   with Dynamic_Predicate => Result_Type.State in Result_States;
+
+   function Tree_Index (Terminal_Index : in Token_Index) return Syntax_Trees.Valid_Node_Index
+     is (Syntax_Trees.Valid_Node_Index (Terminal_Index));
+   --  All tokens are read and entered into the syntax tree before any
+   --  nonterms are reduced, so there is a one-to-one mapping.
 
 end WisiToken.Packrat;

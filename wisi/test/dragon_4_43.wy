@@ -25,22 +25,15 @@
 
 %no_language_runtime
 
-%start accept
+%start upper_s
 %generator_algorithm Packrat
 %output_language Ada
 %lexer re2c
 
-accept
-    : upper_s
-    ;
+;; wisi-generate adds accept production
 
-upper_s
-    : upper_c upper_c
-    ;
+upper_s : upper_c upper_c ;
 
-upper_c
-    : LOWER_C upper_c
-    | LOWER_D
-    ;
+upper_c : LOWER_C upper_c | LOWER_D ;
 
 ;; end of file

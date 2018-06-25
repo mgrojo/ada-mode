@@ -50,15 +50,20 @@ package body Dragon_4_43_Packrat_Gen is
       begin
          Parser.Lexer.Reset_With_String (Input);
          declare
-            Result : constant Result_Type := Dragon_4_43_Main.Parse (Parser, Parser.Terminals.First_Index);
+            Result : constant Result_Type := Dragon_4_43_Main.Parse (Parser);
          begin
             Check (Input, Result.State, Expected);
             --  FIXME: check syntax_tree, actions?
          end;
       exception
+      when AUnit.Assertions.Assertion_Error =>
+         raise;
       when E : others =>
+         Ada.Text_IO.Put_Line
+           ("'" & Input & "': exception " & Ada.Exceptions.Exception_Name (E) & " : " &
+              Ada.Exceptions.Exception_Message (E));
          Ada.Text_IO.Put (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-         AUnit.Assertions.Assert (False, "'" & Input & "': " & Ada.Exceptions.Exception_Message (E));
+         AUnit.Assertions.Assert (False, "'" & Input & "': " & Ada.Exceptions.Exception_Name (E));
       end Execute_Parse;
 
    begin

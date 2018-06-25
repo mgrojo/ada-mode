@@ -21,4 +21,7 @@ with WisiToken.Productions;
 procedure Wisi.Generate_Packrat_Parser
   (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
    Action_Names : in Names_Array_Array;
-   Check_Names  : in Names_Array_Array);
+   Check_Names  : in Names_Array_Array;
+   Descriptor   : in WisiToken.Descriptor);
+--  Generate the nonterminal parse procedures. Package level done in
+--  wisi-output_ada.adb and wisi-gen_output_ada_common.adb.

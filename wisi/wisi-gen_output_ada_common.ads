@@ -101,7 +101,8 @@ package Wisi.Gen_Output_Ada_Common is
    procedure Create_Packrat_Parser
      (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
       Action_Names : in Nonterminal_Names_Array;
-      Check_Names  : in Nonterminal_Names_Array);
+      Check_Names  : in Nonterminal_Names_Array;
+      Descriptor   : in WisiToken.Descriptor);
 
    procedure Create_re2c
      (Output_File_Name_Root : in String;

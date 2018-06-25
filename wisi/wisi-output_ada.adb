@@ -271,10 +271,16 @@ is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
       Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with WisiToken.Parse;");
       Put_Line ("with " & re2c_Package_Name & ";");
+      case Data.Generator_Algorithm is
+      when LR_Generator_Algorithm =>
+         Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
+
+      when Packrat =>
+         Put_Line ("with WisiToken.Parse;");
+      end case;
+
       Put_Line ("package body " & Main_Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
@@ -293,7 +299,7 @@ is
             Input_Data.Generate_Params.First_Parser_Label, Ada_Action_Names, Ada_Check_Names);
 
       when Packrat =>
-         Create_Packrat_Parser (Data.Grammar, Ada_Action_Names, Ada_Check_Names);
+         Create_Packrat_Parser (Data.Grammar, Ada_Action_Names, Ada_Check_Names, Generate_Utils.LR1_Descriptor);
       end case;
 
       Put_Line ("end " & Main_Package_Name & ";");

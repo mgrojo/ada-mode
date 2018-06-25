@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Type and operations for building grammar productions.
+--  See spec.
 --
 --  Copyright (C) 2018 Stephe Leake
 --
@@ -20,32 +20,17 @@
 
 pragma License (Modified_GPL);
 
-with SAL.Gen_Unbounded_Definite_Vectors;
-with WisiToken.Semantic_Checks;
-with WisiToken.Syntax_Trees;
-package WisiToken.Productions is
-
-   type Right_Hand_Side is record
-      Tokens : Token_ID_Arrays.Vector;
-      Action : WisiToken.Syntax_Trees.Semantic_Action;
-      Check  : WisiToken.Semantic_Checks.Semantic_Check;
-   end record;
-
-   package RHS_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Natural, Right_Hand_Side);
-
-   type Instance is record
-      LHS  : Token_ID := Invalid_Token_ID;
-      RHSs : RHS_Arrays.Vector;
-   end record;
-
-   package Prod_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Instance);
+package body WisiToken.Productions is
 
    function Image
      (LHS        : in Token_ID;
       RHS_Index  : in Natural;
       RHS        : in Token_ID_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
-     return String;
-   --  For comments in generated code, diagnostic messages.
+     return String
+   is begin
+      return Trimmed_Image ((LHS, RHS_Index)) & ": " & Image (LHS, Descriptor) & " <= " &
+        Image (RHS, Descriptor);
+   end Image;
 
 end WisiToken.Productions;

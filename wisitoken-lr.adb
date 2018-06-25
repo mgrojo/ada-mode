@@ -267,7 +267,6 @@ package body WisiToken.LR is
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
-      use Production_ID_Arrays;
       Action   : Parse_Action_Rec;
       New_Node : Action_Node_Ptr;
       Node     : Action_Node_Ptr;
@@ -412,7 +411,6 @@ package body WisiToken.LR is
       Semantic_Action_2 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_2  : in     Semantic_Checks.Semantic_Check)
    is
-      use Production_ID_Arrays;
       Action_1 : constant Parse_Action_Rec :=
         (case Verb is
          when Reduce    =>

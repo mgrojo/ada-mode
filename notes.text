@@ -20,9 +20,7 @@ org.wisitoken.stephe-1 - available
 
  current work
 Test/dragon_4_43_packrat_gen.adb
-    dragon_4_43_main.adb
-        needs parsers
-        try mako?
+    compiles, failing; need trace
 
 
 wisitoken.packrat

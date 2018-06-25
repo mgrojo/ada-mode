@@ -245,8 +245,7 @@ package body Wisi.Gen_Output_Ada_Common is
          New_Line;
 
          Indent_Line ("function Parse");
-         Indent_Line ("  (Parser : aliased in out Parser_Type;");
-         Indent_Line ("   Pos    : in     WisiToken.Token_Index)");
+         Indent_Line ("  (Parser : aliased in out Parser_Type)");
          Indent_Line ("  return WisiToken.Packrat.Result_Type;");
          New_Line;
       end Packrat_Process;
@@ -774,11 +773,12 @@ package body Wisi.Gen_Output_Ada_Common is
    procedure Create_Packrat_Parser
      (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
       Action_Names : in Nonterminal_Names_Array;
-      Check_Names  : in Nonterminal_Names_Array)
+      Check_Names  : in Nonterminal_Names_Array;
+      Descriptor   : in WisiToken.Descriptor)
    is
       use Wisi.Utils;
    begin
-      Wisi.Generate_Packrat_Parser (Grammar, Action_Names, Check_Names);
+      Wisi.Generate_Packrat_Parser (Grammar, Action_Names, Check_Names, Descriptor);
 
       Indent_Line ("procedure Create_Parser");
       Indent_Line ("  (Parser    :    out Parser_Type;");
@@ -796,8 +796,7 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
 
       Indent_Line ("function Parse");
-      Indent_Line ("  (Parser : aliased in out Parser_Type;");
-      Indent_Line ("   Pos    : in     WisiToken.Token_Index)");
+      Indent_Line ("  (Parser : aliased in out Parser_Type)");
       Indent_Line ("  return WisiToken.Packrat.Result_Type");
       Indent_Line ("is");
       Indent := Indent + 3;
@@ -811,8 +810,10 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("  (Parser.Lexer, Parser.Terminals, Parser.Line_Begin_Token, Parser.User_Data, Parser.Trace);");
       New_Line;
 
-      Indent_Line ("for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop");
+      Indent_Line
+        ("for Nonterm in Parser.Trace.Descriptor.First_Nonterminal .. Parser.Trace.Descriptor.Last_Nonterminal loop");
       Indent := Indent + 3;
+      Indent_Line ("Parser.Derivs (Nonterm).Clear;");
       Indent_Line ("Parser.Derivs (Nonterm).Set_First (Parser.Terminals.First_Index);");
       Indent_Line ("Parser.Derivs (Nonterm).Set_Last (Parser.Terminals.Last_Index);");
       Indent := Indent - 3;
@@ -826,7 +827,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("end loop;");
 
-      Indent_Line ("return Parse_Accept (Parser, Parser.Terminals.First_Index);");
+      Indent_Line ("return Parse_wisitoken_accept (Parser, Parser.Terminals.First_Index);");
       Indent := Indent - 3;
       Indent_Line ("end Parse;");
       New_Line;

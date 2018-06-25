@@ -10,7 +10,7 @@
 --
 --     Decimal   <= '0' / ... / '9'
 --
---  [1] Bryan Ford MIT thesis
+--  [1] Bryan Ford MIT thesis http://bford.info/pub/lang/thesis
 --
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --

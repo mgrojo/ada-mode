@@ -68,8 +68,6 @@ package body WisiToken.LR.LR1_Items.AUnit is
    is
       use Standard.AUnit.Checks;
       use WisiToken.LR.AUnit;
-      use type WisiToken.LR.LR1_Items.Goto_Item_Ptr;
-      use type WisiToken.LR.LR1_Items.Item_Set_Ptr;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Set", Computed.Set, Expected.Set, Match_Lookaheads);
@@ -84,7 +82,6 @@ package body WisiToken.LR.LR1_Items.AUnit is
    is
       use Standard.AUnit.Checks;
       use WisiToken.LR.AUnit;
-      use WisiToken.LR.LR1_Items;
       Computed_I : Goto_Item_Ptr := Computed;
       Expected_I : Goto_Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -116,7 +113,6 @@ package body WisiToken.LR.LR1_Items.AUnit is
       Match_Lookaheads : in Boolean := True)
    is
       use WisiToken.LR.AUnit;
-      use type WisiToken.LR.LR1_Items.Item_Set_Ptr;
       Computed_1 : WisiToken.LR.LR1_Items.Item_Set_Ptr := Computed;
       Expected_1 : WisiToken.LR.LR1_Items.Item_Set_Ptr := Expected;
       I          : Integer                           := 1;
@@ -187,9 +183,6 @@ package body WisiToken.LR.LR1_Items.AUnit is
      (Left, Right : in WisiToken.LR.LR1_Items.Item_Set_List)
      return WisiToken.LR.LR1_Items.Item_Set_List
    is
-      use WisiToken.LR.LR1_Items;
-      use all type WisiToken.Unknown_State_Index;
-
       I : Item_Set_Ptr;
    begin
       if Left.Head.Next = null then
@@ -209,9 +202,6 @@ package body WisiToken.LR.LR1_Items.AUnit is
       Set_List : in WisiToken.LR.LR1_Items.Item_Set_List)
      return WisiToken.LR.LR1_Items.Item_Set_Ptr
    is
-      use WisiToken.LR.LR1_Items;
-      use all type WisiToken.Unknown_State_Index;
-
       I : Item_Set_Ptr := Set_List.Head;
    begin
       loop
@@ -242,8 +232,6 @@ package body WisiToken.LR.LR1_Items.AUnit is
       State : in WisiToken.Unknown_State_Index;
       Gotos : in WisiToken.LR.LR1_Items.Goto_Item_Ptr)
    is
-      use WisiToken.LR.LR1_Items;
-      use all type WisiToken.Unknown_State_Index;
       I : Item_Set_Ptr := List.Head;
    begin
       loop

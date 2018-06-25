@@ -145,9 +145,7 @@ package body WisiToken.LR.LALR_Generator is
       --  Table.productions is not set yet.
       for P of Grammar loop
          for R in P.RHSs.First_Index .. P.RHSs.Last_Index loop
-            Put_Line
-              (Trimmed_Image ((P.LHS, R)) & ": " & Image (P.LHS, Descriptor) & " <= " &
-                 Image (P.RHSs (R).Tokens, Descriptor));
+            Put_Line (Productions.Image (P.LHS, R, P.RHSs (R).Tokens, Descriptor));
          end loop;
       end loop;
       New_Line;
@@ -179,7 +177,6 @@ package body WisiToken.LR.LALR_Generator is
    is
       use Token_ID_Arrays;
       use LR1_Items;
-      use all type Ada.Containers.Count_Type;
 
       Goto_Set : Item_Set;
 

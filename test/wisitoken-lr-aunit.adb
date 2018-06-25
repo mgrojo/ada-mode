@@ -31,7 +31,6 @@ package body WisiToken.LR.AUnit is
       use Standard.AUnit.Checks.Containers;
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
-      use WisiToken.AUnit.Production_ID_Arrays_AUnit;
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
