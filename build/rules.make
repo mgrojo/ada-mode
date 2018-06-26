@@ -30,11 +30,14 @@ else
    $(error "Don't know dynamic lib file extension for $(GPRBUILD_TARGET)")
 endif
 
-tests : wisi-generate.exe
-tests : ada_lite_re2c.c
-tests : character_literal_re2c.c
-tests : skip_to_grammar_re2c.c
-tests : test_all_harness.diff
+tests :: wisi-generate.exe
+tests :: ada_lite_re2c.c
+tests :: character_literal_re2c.c
+tests :: skip_to_grammar_re2c.c
+tests :: dragon_4_43_re2c.c
+tests :: warth_left_recurse_expr_1_re2c.c
+
+tests :: test_all_harness.diff
 
 # from ../wisi/test
 #
@@ -53,33 +56,33 @@ tests : test_all_harness.diff
 # We only diff %-process.el on a couple tests, because it doesn't
 # depend on the grammar much
 
-#tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
-tests : case_expression_re2c.c
-tests : case_expression-parse.diff
-tests : character_literal_re2c.c
-tests : character_literal-parse.diff
-tests : conflict_name_re2c.c
-tests : conflict_name-parse.diff
-tests : empty_production_1_re2c.c
-tests : empty_production_1-parse.diff
-tests : empty_production_2_re2c.c
-tests : empty_production_2-parse.diff
-tests : empty_production_3_re2c.c
-tests : empty_production_3-parse.diff
-tests : empty_production_4_re2c.c
-tests : empty_production_4-parse.diff
-tests : empty_production_5_re2c.c
-tests : empty_production_5-parse.diff
-tests : empty_production_6_re2c.c
-tests : empty_production_6-parse.diff
-tests : empty_production_7_re2c.c
-tests : empty_production_7-parse.diff
-tests : empty_production_8_re2c.c
-tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict_re2c.c
-tests : identifier_list_name_conflict-parse.diff
-tests : subprograms-process.el.diff
-tests : subprograms_process_actions.adb.diff
+# case_expression-elisp.el.diff done in wisi_wy_test.adb
+tests :: case_expression_re2c.c
+tests :: case_expression-parse.diff
+tests :: character_literal_re2c.c
+tests :: character_literal-parse.diff
+tests :: conflict_name_re2c.c
+tests :: conflict_name-parse.diff
+tests :: empty_production_1_re2c.c
+tests :: empty_production_1-parse.diff
+tests :: empty_production_2_re2c.c
+tests :: empty_production_2-parse.diff
+tests :: empty_production_3_re2c.c
+tests :: empty_production_3-parse.diff
+tests :: empty_production_4_re2c.c
+tests :: empty_production_4-parse.diff
+tests :: empty_production_5_re2c.c
+tests :: empty_production_5-parse.diff
+tests :: empty_production_6_re2c.c
+tests :: empty_production_6-parse.diff
+tests :: empty_production_7_re2c.c
+tests :: empty_production_7-parse.diff
+tests :: empty_production_8_re2c.c
+tests :: empty_production_8-parse.diff
+tests :: identifier_list_name_conflict_re2c.c
+tests :: identifier_list_name_conflict-parse.diff
+tests :: subprograms-process.el.diff
+tests :: subprograms_process_actions.adb.diff
 
 # we don't run subprograms-parse because subprograms is used in a real
 # Emacs Ada mode test, so it relies on the wisi Ada Emacs runtime,
@@ -133,7 +136,7 @@ wisi-generate.exe : force
 
 %.out : %.exe
 	./$*.exe $(RUN_ARGS) > $*.out 2>&1
-	dos2unix $*.out
+	dos2unix -q $*.out
 
 DIFF_OPT := -u -w
 %.diff : %.good_out %.out ; diff $(DIFF_OPT) $^ > $@
@@ -153,11 +156,7 @@ DIFF_OPT := -u -w
 
 %-process.el %_process_actions.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $< > $*.parse_table
-	dos2unix $*.parse_table
-	dos2unix $*_process_actions.adb
-	dos2unix $*_process_main.adb
-	dos2unix $*.re2c
-	dos2unix $*-process.el
+	dos2unix -q $**
 
 %-process.el.diff : %-process.good_el %-process.el
 	diff $(DIFF_OPT) $< $*-process.el > $@
@@ -167,7 +166,7 @@ DIFF_OPT := -u -w
 # We assume all generator parameters are specified in the .wy file.
 %.re2c : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 $< > $*.parse_table
-	dos2unix $**
+	dos2unix -q $**
 
 # delete files created by wisi-generate
 # don't delete prj.el
@@ -177,7 +176,7 @@ wisi-clean :
 # -v 2 gives stack trace
 %.parse : %.input %_run.exe
 	./$*_run.exe -v 2 $< > $*.parse
-	dos2unix $*.parse
+	dos2unix -q $*.parse
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 

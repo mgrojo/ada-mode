@@ -104,11 +104,14 @@ package Wisi.Gen_Generate_Utils is
    function Iterate
      (Container    : aliased    Token_Container;
       Non_Grammar  :         in Boolean := True;
-      Other_Tokens :         in Boolean := True)
+      Nonterminals :         in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class;
 
-   function First (Non_Grammar : in Boolean) return Token_Cursor;
-   procedure Next (Cursor : in out Token_Cursor; Other_Tokens : in Boolean);
+   function First
+     (Non_Grammar  : in Boolean;
+      Nonterminals : in Boolean)
+     return Token_Cursor;
+   procedure Next (Cursor : in out Token_Cursor; Nonterminals : in Boolean);
 
    function ID (Cursor : in Token_Cursor) return Token_ID;
 

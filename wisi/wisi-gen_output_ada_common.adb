@@ -41,7 +41,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       Spec_File  : File_Type;
       Paren_Done : Boolean      := False;
-      Cursor     : Token_Cursor := First (Non_Grammar => True);
+      Cursor     : Token_Cursor := First (Non_Grammar => True, Nonterminals => True);
    begin
       Create (Spec_File, Out_File, Output_File_Name);
       Set_Output (Spec_File);
@@ -95,7 +95,7 @@ package body Wisi.Gen_Output_Ada_Common is
             Put ("new String'(""" & (Name (Cursor)));
             Paren_Done := True;
          end if;
-         Next (Cursor, Other_Tokens => True);
+         Next (Cursor, Nonterminals => True);
          if Is_Done (Cursor) then
             Put_Line (""")),");
          else
@@ -112,7 +112,7 @@ package body Wisi.Gen_Output_Ada_Common is
       if Declare_Enum then
          Paren_Done := False;
 
-         Cursor := First (Non_Grammar => True);
+         Cursor := First (Non_Grammar => True, Nonterminals => True);
          Indent_Line ("type Token_Enum_ID is");
          Indent_Start ("  (");
          Indent := Indent + 3;
@@ -124,7 +124,7 @@ package body Wisi.Gen_Output_Ada_Common is
                Put (To_Token_Ada_Name (Name (Cursor)));
                Paren_Done := True;
             end if;
-            Next (Cursor, Other_Tokens => True);
+            Next (Cursor, Nonterminals => True);
             if Is_Done (Cursor) then
                Put_Line (");");
             else
@@ -1067,7 +1067,7 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
 
       --  definitions
-      for I in All_Tokens.Iterate (Non_Grammar => True, Other_Tokens => False) loop
+      for I in All_Tokens.Iterate (Non_Grammar => True, Nonterminals => False) loop
 
          declare
             Val : constant String :=
@@ -1078,6 +1078,9 @@ package body Wisi.Gen_Output_Ada_Common is
             if 0 /= Index (Source => Val, Pattern => "/") then
                --  trailing context syntax; forbidden in definitions
                null;
+
+            elsif Kind (I) = "EOI" then
+               Indent_Line (Name (I) & " = [\x04];");
 
             elsif Kind (I) = "delimited-text" then
                --  not declared in definitions
@@ -1094,8 +1097,8 @@ package body Wisi.Gen_Output_Ada_Common is
       end loop;
       New_Line;
 
-      --  rules
-      for I in All_Tokens.Iterate (Non_Grammar => True, Other_Tokens => False) loop
+      --  lexer rules
+      for I in All_Tokens.Iterate (Non_Grammar => True, Nonterminals => False) loop
          declare
             Val : constant String :=
               (if Is_Present (Elisp_Regexps, Value (I))
@@ -1131,9 +1134,6 @@ package body Wisi.Gen_Output_Ada_Common is
          end;
       end loop;
       New_Line;
-
-      --  end of text
-      Indent_Line ("[\x04] {*id = " & WisiToken.Token_ID'Image (LR1_Descriptor.EOF_ID) & "; continue;}");
 
       --  Default action
       Indent_Line ("* {status = ERROR_unrecognized_character; continue;}");

@@ -63,9 +63,7 @@ is
          Indent_Line
            ("  (""" & Image (Prod.LHS, Descriptor) & ": " &
               (if Memo then "memo " else "") & """ & Parser.Tree.Image");
-         Indent_Line
-           ("(Parser.Derivs (" & Result_ID &
-              ")(Start_Pos).Result, Parser.Trace.Descriptor.all, Include_Children => True));");
+         Indent_Line ("(Parser.Derivs (" & Result_ID & ")(Start_Pos).Result, Descriptor, Include_Children => True));");
          Indent := Indent - 3;
          Indent_Line ("end if;");
          if Memo then
@@ -97,6 +95,7 @@ is
       Indent_Line ("is");
       Indent := Indent + 3;
 
+      Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;");
       Indent_Line ("Pos : Token_Index := Start_Pos;");
 
       for RHS_Index in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
@@ -120,16 +119,26 @@ is
       Indent_Line ("if Pos > Parser.Terminals.Last_Index then");
       Indent_Line ("   return (State => Failure);");
       Indent_Line ("end if;");
-      Indent_Line ("case Parser.Derivs (" & Result_ID & ")(Pos).State is");
+      Indent_Line ("declare");
+      Indent_Line ("   Memo : Memo_Entry renames Parser.Derivs (" & Result_ID & ")(Pos);");
+      Indent_Line ("begin");
+      Indent := Indent + 3;
+      Indent_Line ("case Memo.State is");
       Indent_Line ("when Success =>");
       Trace_Success (True);
-      Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Pos);");
+      Indent_Line ("   return Memo;");
       Indent_Line ("when Failure =>");
       Trace_Fail (True);
-      Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Pos);");
+      Indent_Line ("   return Memo;");
       Indent_Line ("when No_Result =>");
-      Indent_Line ("   null;");
+      Indent_Line ("   if Memo.Recursive then");
+      Indent_Start ("      raise Recursive with Image (" & Result_ID & ", Descriptor) &");
+      Put_Line (" Token_Index'Image (Start_Pos) & "": recursive"";");
+      Indent_Line ("   end if;");
+      Indent_Line ("   Memo.Recursive := True;");
       Indent_Line ("end case;");
+      Indent := Indent - 3;
+      Indent_Line ("end;");
       New_Line;
 
       for RHS_Index in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop

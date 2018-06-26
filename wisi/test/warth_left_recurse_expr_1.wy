@@ -1,0 +1,41 @@
+;; wisi grammar for Warth, Douglass, Millstein 2008 left recursive example 1
+
+;; References:
+;;
+;; [1] Warth, A., Douglass, J.R. and Millstein, T.D., 2008. Packrat
+;;     parsers can support left recursion. PEPM, 8, pp.103-110.
+
+%code copyright_license %{
+;;  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
+;;
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%token <punctuation> MINUS "-"
+%token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+;; no newline, comment.
+;; no mckenzie
+
+%no_language_runtime
+
+%start expr
+%generator_algorithm Packrat
+%output_language Ada
+%lexer re2c
+
+expr : expr MINUS NUMERIC_LITERAL | NUMERIC_LITERAL ;
+
+;; end of file

@@ -156,7 +156,7 @@ package body Wisi.Gen_Generate_Utils is
    type Iterator is new Iterator_Interfaces.Forward_Iterator with record
       Container    : Token_Access_Constant;
       Non_Grammar  : Boolean;
-      Other_Tokens : Boolean; -- Stop after user-defined terminals.
+      Nonterminals : Boolean;
    end record;
 
    overriding function First (Object : Iterator) return Token_Cursor;
@@ -164,42 +164,129 @@ package body Wisi.Gen_Generate_Utils is
 
    overriding function First (Object : Iterator) return Token_Cursor
    is begin
-      return First (Object.Non_Grammar);
+      return First (Object.Non_Grammar, Object.Nonterminals);
    end First;
 
    overriding function Next (Object  : Iterator; Position : Token_Cursor) return Token_Cursor
    is
       Next_Position : Token_Cursor := Position;
    begin
-      Next (Next_Position, Object.Other_Tokens);
+      Next (Next_Position, Object.Nonterminals);
       return Next_Position;
    end Next;
 
    function Iterate
      (Container    : aliased    Token_Container;
       Non_Grammar  :         in Boolean := True;
-      Other_Tokens :         in Boolean := True)
+      Nonterminals :         in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class
    is begin
-      return Iterator'(Container'Access, Non_Grammar, Other_Tokens);
+      return Iterator'(Container'Access, Non_Grammar, Nonterminals);
    end Iterate;
 
-   function First (Non_Grammar : in Boolean) return Token_Cursor
+   function Next_Kind_Internal
+     (Cursor       : in out Token_Cursor;
+      Nonterminals : in     Boolean)
+     return Boolean
+   is begin
+      --  Advance Cursor to the next kind; return True if any of that
+      --  kind exist, or kind is Done; False otherwise.
+      case Cursor.Kind is
+      when Non_Grammar_Kind =>
+         Cursor :=
+           (Kind        => Terminals_Keywords,
+            ID          => LR1_Descriptor.First_Terminal,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => Tokens.Keywords.First,
+            Nonterminal => Rule_Lists.No_Element);
+
+         return String_Pair_Lists.Has_Element (Cursor.Keyword);
+
+      when Terminals_Keywords =>
+         Cursor :=
+           (Kind        => Terminals_Others,
+            ID          => Cursor.ID,
+            Token_Kind  => Tokens.Tokens.First,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => String_Pair_Lists.No_Element,
+            Nonterminal => Rule_Lists.No_Element);
+
+         if Wisi.Token_Lists.Has_Element (Cursor.Token_Kind) then
+            Cursor.Token_Item := Tokens.Tokens (Cursor.Token_Kind).Tokens.First;
+            return Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item);
+         else
+            return False;
+         end if;
+
+      when Terminals_Others =>
+         Cursor :=
+           (Kind        => EOI,
+            ID          => Cursor.ID,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => String_Pair_Lists.No_Element,
+            Nonterminal => Rule_Lists.No_Element);
+
+         return True;
+
+      when EOI =>
+         if Nonterminals then
+            if Rule_Lists.Has_Element (Tokens.Rules.First) then
+               Cursor :=
+                 (Kind        => WisiToken_Accept,
+                  ID          => Cursor.ID,
+                  Token_Kind  => Wisi.Token_Lists.No_Element,
+                  Token_Item  => String_Pair_Lists.No_Element,
+                  Keyword     => String_Pair_Lists.No_Element,
+                  Nonterminal => Rule_Lists.No_Element);
+            else
+               Cursor.Kind := Done;
+            end if;
+            return True;
+         else
+            Cursor.Kind := Done;
+            return True;
+         end if;
+
+      when WisiToken_Accept =>
+         Cursor :=
+           (Kind        => Nonterminal,
+            ID          => Cursor.ID,
+            Token_Kind  => Wisi.Token_Lists.No_Element,
+            Token_Item  => String_Pair_Lists.No_Element,
+            Keyword     => String_Pair_Lists.No_Element,
+            Nonterminal => Tokens.Rules.First);
+
+         --  Can't get here with no rules
+         return True;
+
+      when Nonterminal =>
+         Cursor.Kind := Done;
+
+         return True;
+
+      when Done =>
+         return True;
+      end case;
+   end Next_Kind_Internal;
+
+   function First
+     (Non_Grammar  : in Boolean;
+      Nonterminals : in Boolean)
+     return Token_Cursor
    is
       Cursor : Token_Cursor :=
-        (Kind        => Gen_Generate_Utils.Non_Grammar_Kind,
+        (Kind        => Non_Grammar_Kind,
          ID          => Token_ID'First,
-         Token_Kind  => Wisi.Token_Lists.No_Element,
+         Token_Kind  => Tokens.Non_Grammar.First,
          Token_Item  => String_Pair_Lists.No_Element,
          Keyword     => String_Pair_Lists.No_Element,
          Nonterminal => Rule_Lists.No_Element);
    begin
       if Non_Grammar then
-         Cursor.Token_Kind := Gen_Generate_Utils.Tokens.Non_Grammar.First;
-
          if Wisi.Token_Lists.Has_Element (Cursor.Token_Kind) then
-            Cursor.Token_Item := Token_Lists.Constant_Reference
-              (Gen_Generate_Utils.Tokens.Non_Grammar, Cursor.Token_Kind).Tokens.First;
+            Cursor.Token_Item := Tokens.Non_Grammar (Cursor.Token_Kind).Tokens.First;
             if Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
                return Cursor;
             end if;
@@ -207,22 +294,13 @@ package body Wisi.Gen_Generate_Utils is
       end if;
 
       --  There are no non_grammar tokens, or Non_Grammar false
-      Cursor :=
-        (Kind        => Terminals_Keywords,
-         ID          => LR1_Descriptor.First_Terminal,
-         Token_Kind  => Wisi.Token_Lists.No_Element,
-         Token_Item  => String_Pair_Lists.No_Element,
-         Keyword     => Tokens.Keywords.First,
-         Nonterminal => Rule_Lists.No_Element);
-
-      if not String_Pair_Lists.Has_Element (Cursor.Keyword) then
-         raise Programmer_Error with "no keyword tokens";
-      end if;
-
+      loop
+         exit when Next_Kind_Internal (Cursor, Nonterminals);
+      end loop;
       return Cursor;
    end First;
 
-   procedure Next (Cursor : in out Token_Cursor; Other_Tokens : in Boolean)
+   procedure Next (Cursor : in out Token_Cursor; Nonterminals : in Boolean)
    is begin
       Cursor.ID := Cursor.ID + 1;
 
@@ -235,24 +313,17 @@ package body Wisi.Gen_Generate_Utils is
             Wisi.Token_Lists.Next (Cursor.Token_Kind);
 
             if Wisi.Token_Lists.Has_Element (Cursor.Token_Kind) then
-               Cursor.Token_Item := Token_Lists.Constant_Reference (Tokens.Non_Grammar, Cursor.Token_Kind).Tokens.First;
+               Cursor.Token_Item := Tokens.Non_Grammar (Cursor.Token_Kind).Tokens.First;
                if String_Pair_Lists.Has_Element (Cursor.Token_Item) then
                   return;
                end if;
             end if;
          end if;
 
-         Cursor :=
-           (Kind        => Terminals_Keywords,
-            ID          => Cursor.ID,
-            Token_Kind  => Wisi.Token_Lists.No_Element,
-            Token_Item  => String_Pair_Lists.No_Element,
-            Keyword     => Tokens.Keywords.First,
-            Nonterminal => Rule_Lists.No_Element);
-
-         if not String_Pair_Lists.Has_Element (Cursor.Keyword) then
-            raise Programmer_Error with "no keyword tokens";
-         end if;
+         loop
+            exit when Next_Kind_Internal (Cursor, Nonterminals);
+         end loop;
+         return;
 
       when Terminals_Keywords =>
          --  Keywords before other terminals, so they have precedence over Identifiers
@@ -262,32 +333,10 @@ package body Wisi.Gen_Generate_Utils is
             return;
          end if;
 
-         --  Done with keywords; on to Terminals_Others
-         Cursor :=
-           (Kind        => Terminals_Others,
-            ID          => Cursor.ID,
-            Token_Kind  => Tokens.Tokens.First,
-            Token_Item  => String_Pair_Lists.No_Element,
-            Keyword     => String_Pair_Lists.No_Element,
-            Nonterminal => Rule_Lists.No_Element);
-
-         if Wisi.Token_Lists.Has_Element (Cursor.Token_Kind) then
-            Cursor.Token_Item := Token_Lists.Constant_Reference (Tokens.Tokens, Cursor.Token_Kind).Tokens.First;
-            return;
-         end if;
-
-         --  no Terminals_Others; on to EOI
-         if not Other_Tokens then
-            Cursor.Kind := Done;
-         else
-            Cursor :=
-              (Kind        => EOI,
-               ID          => Cursor.ID,
-               Token_Kind  => Wisi.Token_Lists.No_Element,
-               Token_Item  => String_Pair_Lists.No_Element,
-               Keyword     => String_Pair_Lists.No_Element,
-               Nonterminal => Rule_Lists.No_Element);
-         end if;
+         loop
+            exit when Next_Kind_Internal (Cursor, Nonterminals);
+         end loop;
+         return;
 
       when Terminals_Others =>
          Wisi.String_Pair_Lists.Next (Cursor.Token_Item);
@@ -296,49 +345,30 @@ package body Wisi.Gen_Generate_Utils is
          else
             Wisi.Token_Lists.Next (Cursor.Token_Kind);
             if Wisi.Token_Lists.Has_Element (Cursor.Token_Kind) then
-               Cursor.Token_Item := Token_Lists.Constant_Reference (Tokens.Tokens, Cursor.Token_Kind).Tokens.First;
+               Cursor.Token_Item := Tokens.Tokens (Cursor.Token_Kind).Tokens.First;
                if Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
                   return;
                end if;
             end if;
          end if;
 
-         if not Other_Tokens then
-            Cursor.Kind := Done;
-         else
-            Cursor :=
-              (Kind        => EOI,
-               ID          => Cursor.ID,
-               Token_Kind  => Wisi.Token_Lists.No_Element,
-               Token_Item  => String_Pair_Lists.No_Element,
-               Keyword     => String_Pair_Lists.No_Element,
-               Nonterminal => Rule_Lists.No_Element);
-         end if;
+         loop
+            exit when Next_Kind_Internal (Cursor, Nonterminals);
+         end loop;
+         return;
 
       when EOI =>
-         if not Rule_Lists.Has_Element (Tokens.Rules.First) then
-            Cursor.Kind := Done;
+         if Next_Kind_Internal (Cursor, Nonterminals) then
+            return;
          else
-            Cursor :=
-              (Kind        => WisiToken_Accept,
-               ID          => Cursor.ID,
-               Token_Kind  => Wisi.Token_Lists.No_Element,
-               Token_Item  => String_Pair_Lists.No_Element,
-               Keyword     => String_Pair_Lists.No_Element,
-               Nonterminal => Rule_Lists.No_Element);
+            raise Programmer_Error;
          end if;
 
       when WisiToken_Accept =>
-         Cursor :=
-           (Kind        => Nonterminal,
-            ID          => Cursor.ID,
-            Token_Kind  => Wisi.Token_Lists.No_Element,
-            Token_Item  => String_Pair_Lists.No_Element,
-            Keyword     => String_Pair_Lists.No_Element,
-            Nonterminal => Tokens.Rules.First);
-
-         if not Rule_Lists.Has_Element (Cursor.Nonterminal) then
-            Cursor.Kind := Done;
+         if Next_Kind_Internal (Cursor, Nonterminals) then
+            return;
+         else
+            raise Programmer_Error;
          end if;
 
       when Nonterminal =>

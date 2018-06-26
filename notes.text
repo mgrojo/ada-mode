@@ -19,7 +19,13 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+rewrote wisi-gen_generate_utils.adb token cursor
+    run all tests
+
 packrat add left recursion
+
+dragon_4_43_packrat_gen.adb
+    --  FIXME: why does Trace need a Descriptor?
 
 delete action from tree.node?
     use table.productions.action

@@ -41,12 +41,19 @@ pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
 package WisiToken.Packrat is
 
+   Recursive : exception;
+   --  Raised when parser detects recursion at runtime.
+
    type Memo_State is (No_Result, Failure, Success);
    subtype Result_States is Memo_State range Failure .. Success;
 
    type Memo_Entry (State : Memo_State := No_Result) is record
       case State is
-      when No_Result | Failure =>
+      when No_Result =>
+         Recursive : Boolean := False;
+         --  Set True on first access; used to detect recursion.
+
+      when Failure =>
          null;
 
       when Success =>
