@@ -164,10 +164,10 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-# We assume lexer is specified in the .wy file. wisi-generate also generates other files.
-%.re2c %.l : %.wy wisi-generate.exe
+# We assume all generator parameters are specified in the .wy file.
+%.re2c : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 $< > $*.parse_table
-	dos2unix $*.parse_table
+	dos2unix $**
 
 # delete files created by wisi-generate
 # don't delete prj.el

@@ -28,8 +28,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Characters.Handling;
-with Ada.Characters;
 with WisiToken.LR.McKenzie_Recover;
 with WisiToken.Parse;
 package body WisiToken.LR.Parser is
@@ -65,14 +63,12 @@ package body WisiToken.LR.Parser is
 
       if Trace_Parse > Detail then
          declare
-            Action_Name : constant String := Ada.Characters.Handling.To_Lower
-              (Image (Action.Production.Nonterm, Trace.Descriptor.all)) & "_" &
+            Action_Name : constant String :=
+              Image (Action.Production.Nonterm, Trace.Descriptor.all) & "_" &
               Trimmed_Image (Action.Production.RHS);
          begin
             Trace.Put_Line
-              (Action_Name & ": " &
-                 Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all) & " <= " &
-                 Parser_State.Tree.Image (Children_Tree, Trace.Descriptor.all));
+              (Action_Name & ": " & Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
          end;
       end if;
 

@@ -22,6 +22,13 @@ package body WisiToken.Syntax_Trees is
 
    --  Body specs, alphabetical, as needed
 
+   function Image
+     (Tree             : in Syntax_Trees.Tree;
+      N                : in Syntax_Trees.Node;
+      Descriptor       : in WisiToken.Descriptor'Class;
+      Include_Children : in Boolean)
+     return String;
+
    function Min (Item : in Valid_Node_Index_Array) return Valid_Node_Index;
 
    procedure Move_Branch_Point (Tree : in out Syntax_Trees.Tree; Required_Node : in Valid_Node_Index);
@@ -530,29 +537,60 @@ package body WisiToken.Syntax_Trees is
    end ID;
 
    function Image
-     (N          : in Syntax_Trees.Node;
+     (Tree       : in Syntax_Trees.Tree;
+      Children   : in Valid_Node_Index_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
      return String
-   is begin
-      return
-        (case N.Label is
-         when Shared_Terminal => Token_Index'Image (N.Terminal) & ":",
-         when Virtual_Terminal | Nonterm => "") &
-        "(" & Image (N.ID, Descriptor) &
-        (if N.Byte_Region = Null_Buffer_Region then "" else ", " & Image (N.Byte_Region)) & ")";
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String := +"(";
+      Need_Comma : Boolean := False;
+   begin
+      for I of Children loop
+         Result := Result & (if Need_Comma then ", " else "") &
+           Tree.Image (I, Descriptor, Include_Children => False);
+         Need_Comma := True;
+      end loop;
+      Result := Result & ")";
+      return -Result;
    end Image;
 
    function Image
-     (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Index;
-      Descriptor : in WisiToken.Descriptor'Class)
+     (Tree             : in Syntax_Trees.Tree;
+      N                : in Syntax_Trees.Node;
+      Descriptor       : in WisiToken.Descriptor'Class;
+      Include_Children : in Boolean)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+   begin
+      if N.Label = Shared_Terminal then
+         Result := +Token_Index'Image (N.Terminal) & ":";
+      end if;
+
+      Result := Result & "(" & Image (N.ID, Descriptor) &
+        (if N.Byte_Region = Null_Buffer_Region then "" else ", " & Image (N.Byte_Region)) & ")";
+
+      if Include_Children and N.Label = Nonterm then
+         Result := Result & " <= " & Image (Tree, N.Children, Descriptor);
+      end if;
+
+      return -Result;
+   end Image;
+
+   function Image
+     (Tree             : in Syntax_Trees.Tree;
+      Node             : in Valid_Node_Index;
+      Descriptor       : in WisiToken.Descriptor'Class;
+      Include_Children : in Boolean := False)
      return String
    is begin
-      return Image
+      return Tree.Image
         ((if Node <= Tree.Last_Shared_Node
           then Tree.Shared_Tree.Nodes (Node)
           else Tree.Branched_Nodes (Node)),
-         Descriptor);
+         Descriptor, Include_Children);
    end Image;
 
    function Image
@@ -567,7 +605,7 @@ package body WisiToken.Syntax_Trees is
    begin
       for I in Nodes'Range loop
          Result := Result & (if Need_Comma then ", " else "") &
-           Tree.Image (Nodes (I), Descriptor);
+           Tree.Image (Nodes (I), Descriptor, Include_Children => False);
          Need_Comma := True;
       end loop;
       Result := Result & ")";

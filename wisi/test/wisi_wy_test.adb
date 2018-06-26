@@ -24,15 +24,25 @@ with AUnit.Assertions;
 with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with GNAT.OS_Lib;
-with SAL;
 package body Wisi_WY_Test is
 
    procedure Dos2unix (File_Name : in String)
    is
-      pragma Unreferenced (File_Name);
+      use GNAT.OS_Lib;
    begin
       if GNAT.OS_Lib.Directory_Separator = '\' then
-         raise SAL.Not_Implemented with "implement dos2unix";
+         declare
+            Exe : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
+            Success : Boolean;
+            pragma Unreferenced (Success);
+         begin
+            Spawn
+              (Program_Name => Exe.all,
+               Args         =>
+                 (1         => new String'("-q"),
+                  2         => new String'(File_Name)),
+               Success      => Success);
+         end;
       end if;
    end Dos2unix;
 

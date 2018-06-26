@@ -69,6 +69,8 @@ package body Dragon_4_43_Packrat_Gen is
    begin
       Execute_Parse ("cdcd", Success);
       Execute_Parse ("ccd", Failure);
+      Execute_Parse ("ccdccd", Success);
+      Execute_Parse ("d", Failure);
    end Test_Parse;
 
    ----------

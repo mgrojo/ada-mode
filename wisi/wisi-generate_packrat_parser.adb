@@ -51,6 +51,44 @@ is
    procedure Generate_Parser_Body (Prod : in Productions.Instance)
    is
       Result_ID : constant String := Trimmed_Image (Prod.LHS);
+
+      procedure Trace_Success (Memo : in Boolean)
+      is begin
+         if Memo then
+            Indent := Indent + 3;
+         end if;
+         Indent_Line ("if WisiToken.Trace_Parse > Detail then");
+         Indent := Indent + 3;
+         Indent_Line ("Parser.Trace.Put_Line");
+         Indent_Line
+           ("  (""" & Image (Prod.LHS, Descriptor) & ": " &
+              (if Memo then "memo " else "") & """ & Parser.Tree.Image");
+         Indent_Line
+           ("(Parser.Derivs (" & Result_ID &
+              ")(Start_Pos).Result, Parser.Trace.Descriptor.all, Include_Children => True));");
+         Indent := Indent - 3;
+         Indent_Line ("end if;");
+         if Memo then
+            Indent := Indent - 3;
+         end if;
+      end Trace_Success;
+
+      procedure Trace_Fail (Memo : in Boolean)
+      is begin
+         if Memo then
+            Indent := Indent + 3;
+         end if;
+         Indent_Line ("if WisiToken.Trace_Parse > Detail then");
+         Indent_Line
+           ("   Parser.Trace.Put_Line (""" & Image (Prod.LHS, Descriptor) &
+              """ & Token_Index'Image (Start_Pos) & "": " &
+              (if Memo then "memo " else "") & "fail"");");
+         Indent_Line ("end if;");
+         if Memo then
+            Indent := Indent - 3;
+         end if;
+      end Trace_Fail;
+
    begin
       --  We use gotos and function scope vars rather than nested if/declare
       --  to avoid excessive indenting for long productions.
@@ -83,7 +121,11 @@ is
       Indent_Line ("   return (State => Failure);");
       Indent_Line ("end if;");
       Indent_Line ("case Parser.Derivs (" & Result_ID & ")(Pos).State is");
-      Indent_Line ("when Success | Failure =>");
+      Indent_Line ("when Success =>");
+      Trace_Success (True);
+      Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Pos);");
+      Indent_Line ("when Failure =>");
+      Trace_Fail (True);
       Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Pos);");
       Indent_Line ("when No_Result =>");
       Indent_Line ("   null;");
@@ -130,6 +172,7 @@ is
 
                Indent_Line ("       Default_Virtual => False),");
                Indent_Line ("    Last_Token         => Pos));");
+               Trace_Success (False);
                Indent_Line ("return Parser.Derivs (" & Result_ID & ")(Start_Pos);");
             end Finish;
          begin
@@ -145,7 +188,6 @@ is
                      Indent_Line ("if Parser.Terminals (Pos).ID = " & ID & " then");
                      Indent := Indent + 3;
                      Indent_Line ("Pos_" & Var_Suf & " := Pos;");
-                     Indent_Line ("Pos := Pos + 1;");
                      if Token_Index = RHS.Tokens.Last_Index then
                         Finish;
                      else
@@ -165,11 +207,11 @@ is
                      Indent_Line ("case Result_States'(Memo_" & Var_Suf & ".State) is");
                      Indent_Line ("when Success =>");
                      Indent := Indent + 3;
-                     Indent_Line ("Pos := Memo_" & Var_Suf & ".Last_Token + 1;");
                      if Token_Index = RHS.Tokens.Last_Index then
+                        Indent_Line ("Pos := Memo_" & Var_Suf & ".Last_Token;");
                         Finish;
                      else
-                        Indent_Line ("Pos := Pos + 1;");
+                        Indent_Line ("Pos := Memo_" & Var_Suf & ".Last_Token + 1;");
                      end if;
                      Indent := Indent - 3;
                      New_Line;
@@ -186,6 +228,7 @@ is
          end;
       end loop;
 
+      Trace_Fail (False);
       Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos, (State => Failure));");
       Indent_Line ("return Parser.Derivs (" & Result_ID & ")(Start_Pos);");
 

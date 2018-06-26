@@ -30,6 +30,7 @@ with Compare_Goto_Transitions;
 with Dragon_4_43_LR1_Test;
 with Dragon_4_45_LALR_Test;
 with Dragon_4_43_Packrat_Hand;
+with Dragon_4_43_Packrat_Gen;
 with GNAT.Traceback.Symbolic;
 with Grune_9_30;
 with Name_Grammar_Test;
@@ -49,7 +50,7 @@ is
    --  [<verbose> [test_name [routine_name [trace_parse [trace_mckenzie [task_count cost_limit trace_action]]]]]
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
-   --  test_name, routine_name can be '' to set trace for all routines.
+   --  routine_name can be '' to set trace for all routines. test_name cannot be ''.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -110,6 +111,7 @@ begin
    Add_Test (Suite, new Compare_Goto_Transitions.Test_Case);
    Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug => 0));
    Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case);
+   Add_Test (Suite, new Dragon_4_43_Packrat_Gen.Test_Case);
    Add_Test (Suite, new Dragon_4_43_Packrat_Hand.Test_Case);
    Add_Test (Suite, new Grune_9_30.Test_Case);
    Add_Test (Suite, new Name_Grammar_Test.Test_Case);

@@ -114,7 +114,7 @@ int subprograms_next_token
    int*    line_start)
 {
    int status = NO_ERROR;
-   *id = 0;
+   *id = -1;
    if (lexer->cursor > lexer->buffer_last)
    {
       *id            = 19;
@@ -136,7 +136,7 @@ int subprograms_next_token
    else
       lexer->line_token_start = lexer->line;
 
-   while (*id == 0 && status == 0)
+   while (*id == -1 && status == 0)
    {
 /*!re2c
       re2c:yyfill:enable   = 0;

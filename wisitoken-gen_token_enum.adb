@@ -17,15 +17,21 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Handling;
 with WisiToken.Wisi_Ada;
 package body WisiToken.Gen_Token_Enum is
 
    function Token_Enum_Image return Token_ID_Array_String
    is
+      use Ada.Characters.Handling;
       Result : Token_ID_Array_String (Token_ID'First .. +Last_Nonterminal);
    begin
       for I in Token_Enum_ID loop
-         Result (+I) := new String'(Token_Enum_ID'Image (I));
+         if I <= Last_Terminal then
+            Result (+I) := new String'(Token_Enum_ID'Image (I));
+         else
+            Result (+I) := new String'(To_Lower (Token_Enum_ID'Image (I)));
+         end if;
       end loop;
       return Result;
    end Token_Enum_Image;

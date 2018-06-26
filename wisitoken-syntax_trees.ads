@@ -287,9 +287,10 @@ package WisiToken.Syntax_Trees is
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
 
    function Image
-     (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Index;
-      Descriptor : in WisiToken.Descriptor'Class)
+     (Tree             : in Syntax_Trees.Tree;
+      Node             : in Valid_Node_Index;
+      Descriptor       : in WisiToken.Descriptor'Class;
+      Include_Children : in Boolean := False)
      return String;
    function Image
      (Tree       : in Syntax_Trees.Tree;
@@ -330,7 +331,7 @@ private
 
          RHS_Index : Natural;
          --  With ID, index into Parse_Table.Productions.
-         --  FIXME: delete if not used
+         --  FIXME: delete if not used. or delete Action.
 
          Action : Semantic_Action := null;
 

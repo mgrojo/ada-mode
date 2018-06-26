@@ -246,10 +246,11 @@ package WisiToken is
    ----------
    --  Tokens
 
-   type Buffer_Pos is range 1 .. Integer'Last; -- match Emacs buffer origin.
+   type Base_Buffer_Pos is range 0 .. Integer'Last;
+   subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
    type Buffer_Region is record
       First : Buffer_Pos;
-      Last  : Buffer_Pos;
+      Last  : Base_Buffer_Pos; --  allow representing null range.
    end record;
 
    Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;

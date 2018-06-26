@@ -134,14 +134,14 @@ package body WisiToken.Lexer.re2c is
    is
       use Interfaces.C;
 
-      procedure Build_Token (ID : in Token_ID)
+      procedure Build_Token
       is begin
          Token :=
-           (ID => ID,
+           (ID => Lexer.ID,
 
             Byte_Region =>
               (Buffer_Pos (Lexer.Byte_Position),
-               Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1)),
+               Base_Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1)),
 
             Line => Lexer.Line,
 
@@ -152,9 +152,8 @@ package body WisiToken.Lexer.re2c is
                else Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start)),
 
             Char_Region =>
-            --  In an empty buffer, char_position = 0 and char_length = 0.
               (Buffer_Pos (Lexer.Char_Position),
-               Buffer_Pos (Integer'Max (1, Lexer.Char_Position + Lexer.Char_Length - 1))));
+               Base_Buffer_Pos (Lexer.Char_Position + Lexer.Char_Length - 1)));
       end Build_Token;
 
    begin
@@ -175,7 +174,7 @@ package body WisiToken.Lexer.re2c is
                   Lexer.Char_Line_Start := Lexer.Char_Position + 1;
                end if;
 
-               Build_Token (Lexer.ID);
+               Build_Token;
                return False;
 
             when 1 =>
@@ -191,7 +190,8 @@ package body WisiToken.Lexer.re2c is
                      Lexer.Errors.Append
                        ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => ''', others => ASCII.NUL)));
 
-                     Build_Token (Lexer.Trace.Descriptor.String_1_ID);
+                     Lexer.ID := Lexer.Trace.Descriptor.String_1_ID;
+                     Build_Token;
                      return True;
 
                   elsif Buffer (Lexer.Byte_Position) = '"' then
@@ -200,7 +200,8 @@ package body WisiToken.Lexer.re2c is
                      Lexer.Errors.Append
                        ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => '"', others => ASCII.NUL)));
 
-                     Build_Token (Lexer.Trace.Descriptor.String_2_ID);
+                     Lexer.ID := Lexer.Trace.Descriptor.String_2_ID;
+                     Build_Token;
                      return True;
 
                   else

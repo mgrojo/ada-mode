@@ -19,9 +19,15 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-Test/dragon_4_43_packrat_gen.adb
-    compiles, failing; need trace
+packrat add left recursion
 
+delete action from tree.node?
+    use table.productions.action
+        currently not present in no_recover, packrat
+        may change to kernels in recover?
+
+    decouples actions from tree
+        action params are tree nodes, but action can be declared in wisitoken.parse.
 
 wisitoken.packrat
     .generate

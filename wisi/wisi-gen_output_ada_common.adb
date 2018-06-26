@@ -805,6 +805,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("begin");
       Indent := Indent + 3;
+      Indent_Line ("Parser.Base_Tree.Clear;");
       Indent_Line ("Parser.Tree.Initialize (Parser.Base_Tree'Access, Flush => True);");
       Indent_Line ("WisiToken.Parse.Lex_All");
       Indent_Line ("  (Parser.Lexer, Parser.Terminals, Parser.Line_Begin_Token, Parser.User_Data, Parser.Trace);");
@@ -1024,7 +1025,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
 
       Indent_Line ("int status = NO_ERROR;");
-      Indent_Line ("*id = 0;");
+      Indent_Line ("*id = -1;"); --  Token_ID'First = 0; see dragon_4_43.wy
 
       Indent_Line ("if (lexer->cursor > lexer->buffer_last)");
       Indent_Line ("{");
@@ -1051,7 +1052,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("   lexer->line_token_start = lexer->line;");
       New_Line;
 
-      Indent_Line ("while (*id == 0 && status == 0)");
+      Indent_Line ("while (*id == -1 && status == 0)");
       Indent_Line ("{");
       Indent := Indent + 3;
 

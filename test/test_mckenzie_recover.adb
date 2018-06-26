@@ -1612,7 +1612,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (35, 36),
          Ops_Race_Condition      => True,
          Enqueue_Low             => 100,
-         Enqueue_High            => 164,
+         Enqueue_High            => 167,
          Check_Low               => 15,
          Check_High              => 25,
          Cost                    => 0);

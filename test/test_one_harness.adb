@@ -28,8 +28,8 @@ with Dragon_4_43_Packrat_Hand;
 with WisiToken;
 procedure Test_One_Harness
 is
-   --  command line arguments:
-   --  [<verbose> [routine_name [trace_generate trace_parse trace_mckenzie [task_count cost_limit]]]]
+   --  command line arguments (all optional, order matters):
+   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie task_count cost_limit
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace or cost for all routines.
@@ -59,13 +59,27 @@ begin
    when 0 | 1 =>
       null;
 
+   when 2 =>
+      Filter.Set_Name (Argument (2)); -- test name only
+
    when others =>
-      Filter.Set_Name (Argument (2));
+      declare
+         Test_Name    : String renames Argument (2);
+         Routine_Name : String renames Argument (3);
+      begin
+         if Test_Name = "" then
+            Filter.Set_Name (Routine_Name);
+         elsif Routine_Name = "" then
+            Filter.Set_Name (Test_Name);
+         else
+            Filter.Set_Name (Test_Name & " : " & Routine_Name);
+         end if;
+      end;
    end case;
 
-   WisiToken.Trace_Generate := (if Argument_Count >= 3 then Integer'Value (Argument (3)) else 0);
-   WisiToken.Trace_Parse    := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-   WisiToken.Trace_McKenzie := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
+   WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
+   WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
+   WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
    Add_Test (Suite, new Dragon_4_43_Packrat_Gen.Test_Case);
    Add_Test (Suite, new Dragon_4_43_Packrat_Hand.Test_Case);
