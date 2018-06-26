@@ -19,18 +19,20 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-rewrote wisi-gen_generate_utils.adb token cursor
-    run all tests
-
 packrat add left recursion
+    warth_left_recurse_expr_1.adb
+    compiles, fails; need execute_action.
+    move execute_action to wisitoken.parse
 
 dragon_4_43_packrat_gen.adb
     --  FIXME: why does Trace need a Descriptor?
+    if it's just a convenient place to put it, move up to Parser
+        check mckenzie first
 
 delete action from tree.node?
     use table.productions.action
-        currently not present in no_recover, packrat
-        may change to kernels in recover?
+        table.productions not present in lalr no_recover, packrat
+        may change to kernels in lalr recover?
 
     decouples actions from tree
         action params are tree nodes, but action can be declared in wisitoken.parse.

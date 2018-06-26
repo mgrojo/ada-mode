@@ -20,7 +20,7 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Multiprocessors;
-with Wisi.Generate_Packrat_Parser;
+with Wisi.Generate_Packrat;
 with Wisi.Utils;
 package body Wisi.Gen_Output_Ada_Common is
 
@@ -220,7 +220,7 @@ package body Wisi.Gen_Output_Ada_Common is
            ("type Derivs_Type is array (WisiToken.Token_ID range" &
               WisiToken.Token_ID'Image (Generate_Utils.Nonterminal_ID'First) & " .." &
               WisiToken.Token_ID'Image (Generate_Utils.Nonterminal_ID'Last) &
-              ") of WisiToken.Packrat.Memos.Vector;");
+              ") of WisiToken.Parse.Packrat.Memos.Vector;");
          New_Line;
 
          Indent_Line ("type Parser_Type is record");
@@ -246,7 +246,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
          Indent_Line ("function Parse");
          Indent_Line ("  (Parser : aliased in out Parser_Type)");
-         Indent_Line ("  return WisiToken.Packrat.Result_Type;");
+         Indent_Line ("  return WisiToken.Parse.Packrat.Result_Type;");
          New_Line;
       end Packrat_Process;
 
@@ -289,7 +289,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       when Packrat =>
          Put_Line ("with WisiToken.Lexer;");
-         Put_Line ("with WisiToken.Packrat;");
+         Put_Line ("with WisiToken.Parse.Packrat;");
       end case;
 
       Put_Line ("package " & Main_Package_Name & " is");
@@ -778,7 +778,7 @@ package body Wisi.Gen_Output_Ada_Common is
    is
       use Wisi.Utils;
    begin
-      Wisi.Generate_Packrat_Parser (Grammar, Action_Names, Check_Names, Descriptor);
+      Wisi.Generate_Packrat (Grammar, Action_Names, Check_Names, Descriptor);
 
       Indent_Line ("procedure Create_Parser");
       Indent_Line ("  (Parser    :    out Parser_Type;");
@@ -797,7 +797,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       Indent_Line ("function Parse");
       Indent_Line ("  (Parser : aliased in out Parser_Type)");
-      Indent_Line ("  return WisiToken.Packrat.Result_Type");
+      Indent_Line ("  return WisiToken.Parse.Packrat.Result_Type");
       Indent_Line ("is");
       Indent := Indent + 3;
       Indent_Line ("Junk : WisiToken.Syntax_Trees.Valid_Node_Index;");

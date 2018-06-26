@@ -1,9 +1,8 @@
-;; wisi grammar for Warth, Douglass, Millstein 2008 left recursive example 1
+;; wisi grammar for [warth 2008] left recursive example 1
 
 ;; References:
 ;;
-;; [1] Warth, A., Douglass, J.R. and Millstein, T.D., 2008. Packrat
-;;     parsers can support left recursion. PEPM, 8, pp.103-110.
+;; see wisitoken-parse-packrat.ads
 
 %code copyright_license %{
 ;;  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.

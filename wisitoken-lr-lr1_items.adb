@@ -203,56 +203,6 @@ package body WisiToken.LR.LR1_Items is
       return Matrix;
    end First;
 
-   function Has_Empty_Production
-     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return Token_ID_Set
-   is
-      use all type Ada.Containers.Count_Type;
-
-      subtype Nonterminal is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
-
-      Result  : Token_ID_Set := (Nonterminal => False);
-      Changed : Boolean      := True;
-   begin
-      --  First check consistency; Has_Empty_Production is the first
-      --  subprogram to process a grammar.
-      if Descriptor.Accept_ID /= Descriptor.First_Nonterminal then
-         raise Grammar_Error with "Descriptor.Accept_ID /= Descriptor.First_Nonterminal";
-      end if;
-      if Grammar.First_Index /= Descriptor.First_Nonterminal then
-         raise Grammar_Error with "Grammar.First_Index /= Descriptor.First_Nonterminal";
-      end if;
-      if Grammar.Last_Index /= Descriptor.Last_Nonterminal then
-         raise Grammar_Error with "Grammar.Last_Index /= Descriptor.Last_Nonterminal";
-      end if;
-
-      for Nonterm in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         if Grammar (Nonterm).LHS /= Nonterm then
-            raise Grammar_Error with "Grammar (" & Image (Nonterm, Descriptor) & ").LHS /= " &
-              Image (Nonterm, Descriptor);
-         end if;
-      end loop;
-
-      loop
-         exit when not Changed;
-         Changed := False;
-
-         for Prod of Grammar loop
-            for RHS of Prod.RHSs loop
-               if (RHS.Tokens.Length = 0 or else
-                     (RHS.Tokens (1) in Nonterminal and then Result (RHS.Tokens (1)))) and
-                 not Result (Prod.LHS)
-               then
-                  Result (Prod.LHS) := True;
-                  Changed := True;
-               end if;
-            end loop;
-         end loop;
-      end loop;
-      return Result;
-   end Has_Empty_Production;
-
    function Follow
      (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor'Class;
@@ -261,6 +211,7 @@ package body WisiToken.LR.LR1_Items is
      return Token_Array_Token_Set
    is
       Prev_Result : Token_Array_Token_Set :=
+        --  FIXME: use grammar.first_index .., declare local subtypes
         (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
            (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
 

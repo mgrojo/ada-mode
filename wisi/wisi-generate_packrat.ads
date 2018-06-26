@@ -2,6 +2,17 @@
 --
 --  Generate Ada code for a Packrat parser.
 --
+--  References:
+--
+--  See wisitoken-parse-packrat.ads.
+--
+--  Design:
+--
+--  We only support two parser types; sequence and "or"; those are the
+--  only types supported by the .wy grammar file syntax. This allows
+--  producing both an LALR and packrat parser from the same grammar
+--  file.
+--
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
@@ -18,7 +29,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Productions;
-procedure Wisi.Generate_Packrat_Parser
+procedure Wisi.Generate_Packrat
   (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
    Action_Names : in Names_Array_Array;
    Check_Names  : in Names_Array_Array;

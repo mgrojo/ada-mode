@@ -22,6 +22,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Text_IO;
+with WisiToken.Generate;
 package body WisiToken.LR.LR1_Generator is
 
    function LR1_Goto_Transitions
@@ -284,7 +285,8 @@ package body WisiToken.LR.LR1_Generator is
 
       Table : Parse_Table_Ptr;
 
-      Has_Empty_Production : constant Token_ID_Set          := LR1_Items.Has_Empty_Production (Grammar, Descriptor);
+      Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar, Descriptor);
+
       First                : constant Token_Array_Token_Set := LR1_Items.First
         (Grammar, Descriptor, Has_Empty_Production, Trace_Generate > Detail);
 

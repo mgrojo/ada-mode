@@ -1,12 +1,18 @@
 --  Abstract :
 --
---  Types and operations for a packrat parser.
+--  Types and operations for a packrat parser runtime.
 --
 --  References:
 --
---  [1] Bryan Ford thesis http://bford.info/pub/lang/thesis
+--  [ford thesis] Bryan Ford thesis http://bford.info/pub/lang/thesis
 --
---  [2] AdaCore langkit   https://github.com/adacore/langkit
+--  [langkit]     AdaCore langkit   https://github.com/adacore/langkit
+--
+--  [tratt 2010]  http://tratt.net/laurie/research/pubs/papers/
+--                tratt__direct_left_recursive_parsing_expression_grammars.pdf
+--
+--  [warth 2008]  Warth, A., Douglass, J.R. and Millstein, T.D., 2008. Packrat
+--                parsers can support left recursion. PEPM, 8, pp.103-110.
 --
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
@@ -23,23 +29,23 @@
 
 --  Design:
 --
---  [1] uses Haskell lazy evaluation, and does not use a lexer. We use
---  a lexer to reduce the memory requirement. Although eliminating the
---  lexer would make it easier to support additional syntax for a
---  preprocessor or template generator.
+--  [ford thesis] uses Haskell lazy evaluation, and does not use a
+--  lexer. We use a lexer to reduce the memory requirement. Although
+--  eliminating the lexer would make it easier to support additional
+--  syntax for a preprocessor or template generator.
 --
---  [2] uses a lexer, and implements lazy evaluation via Memo_State,
---  Memo_Entry as we do here, except that their result type is a
---  specific AST type provided by a generic parameter; we use the
---  general purpose Syntax_Tree.Tree type.
+--  [langkit] uses a lexer, and implements lazy evaluation via
+--  Memo_State, Memo_Entry as we do here, except that their result
+--  type is a specific AST type provided by a generic parameter; we
+--  use the general purpose Syntax_Tree.Tree type.
 --
---  [2] also applies a memory optimization; it only saves the last 16
---  results for each nonterminal. We don't do that yet, so we can get
---  some data on how well that works.
+--  [langkit] also applies a memory optimization; it only saves the
+--  last 16 results for each nonterminal. We don't do that yet, so we
+--  can get some data on how well that works.
 
 pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
-package WisiToken.Packrat is
+package WisiToken.Parse.Packrat is
 
    Recursive : exception;
    --  Raised when parser detects recursion at runtime.
@@ -71,6 +77,7 @@ package WisiToken.Packrat is
    function Tree_Index (Terminal_Index : in Token_Index) return Syntax_Trees.Valid_Node_Index
      is (Syntax_Trees.Valid_Node_Index (Terminal_Index));
    --  All tokens are read and entered into the syntax tree before any
-   --  nonterms are reduced, so there is a one-to-one mapping.
+   --  nonterms are reduced, so the mapping from token_index to
+   --  tree node_index is identity.
 
-end WisiToken.Packrat;
+end WisiToken.Parse.Packrat;

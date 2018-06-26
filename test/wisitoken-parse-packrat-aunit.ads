@@ -19,8 +19,8 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-package WisiToken.Packrat.AUnit is
+package WisiToken.Parse.Packrat.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Memo_State);
 
-end WisiToken.Packrat.AUnit;
+end WisiToken.Parse.Packrat.AUnit;

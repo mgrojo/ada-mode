@@ -24,7 +24,7 @@ with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Warth_Left_Recurse_Expr_1_Actions;
 with Warth_Left_Recurse_Expr_1_Main;
-with WisiToken.Packrat.AUnit;
+with WisiToken.Parse.Packrat.AUnit;
 with WisiToken.Text_IO_Trace;
 package body Warth_Left_Recurse_Expr_1 is
 
@@ -39,19 +39,25 @@ package body Warth_Left_Recurse_Expr_1 is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Packrat;
+      use WisiToken.Parse.Packrat;
 
       procedure Execute_Parse
         (Input    : in String;
-         Expected : in WisiToken.Packrat.Result_States)
+         Expected : in WisiToken.Parse.Packrat.Result_States)
       is
-         use WisiToken.Packrat.AUnit;
+         use WisiToken.Parse.Packrat.AUnit;
       begin
          Parser.Lexer.Reset_With_String (Input);
+         if WisiToken.Trace_Parse then
+            Ada.Text_IO.Put_Line (Input);
+         end if;
+
          declare
             Result : constant Result_Type := Warth_Left_Recurse_Expr_1_Main.Parse (Parser);
          begin
             Check (Input, Result.State, Expected);
+            --  FIXME: need execute_actions; parse "1 - 3" returns Success, but
+            --  tree is wrong.
          end;
       exception
       when AUnit.Assertions.Assertion_Error =>
