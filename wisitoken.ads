@@ -144,6 +144,10 @@ package WisiToken is
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Token_ID);
 
+   procedure Put_Tokens (Descriptor : in WisiToken.Descriptor'Class);
+   --  Put user readable token list (token_id'first ..
+   --  descriptor.last_nonterminal) to Ada.Text_IO.Current_Output
+
    function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
 

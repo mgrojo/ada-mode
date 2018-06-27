@@ -213,6 +213,10 @@ package body WisiToken.LR.LR1_Generator is
    is
       use Ada.Text_IO;
    begin
+      Put_Line ("Tokens:");
+      Put_Tokens (Descriptor);
+      New_Line;
+
       Put_Line ("LR1 Parse Table:");
 
       if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
@@ -225,6 +229,11 @@ package body WisiToken.LR.LR1_Generator is
       for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
          Put_Line (Image (I, Descriptor) & " => " & Image (Table.Minimal_Terminal_Sequences (I), Descriptor));
       end loop;
+      New_Line;
+
+      Put_Line ("Productions:");
+      --  Table.productions is not set yet.
+      Productions.Put (Grammar, Descriptor);
       New_Line;
 
       for State in Table.States'Range loop

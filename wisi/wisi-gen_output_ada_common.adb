@@ -229,7 +229,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("Lexer            : WisiToken.Lexer.Handle;");
          Indent_Line ("User_Data        : WisiToken.Syntax_Trees.User_Data_Access;");
          Indent_Line ("Derivs           : Derivs_Type;");
-         Indent_Line ("Terminals        : WisiToken.Base_Token_Arrays.Vector;");
+         Indent_Line ("Terminals        : aliased WisiToken.Base_Token_Arrays.Vector;");
          Indent_Line ("Line_Begin_Token : WisiToken.Line_Begin_Token_Vectors.Vector;");
          Indent_Line ("Base_Tree        : aliased WisiToken.Syntax_Trees.Base_Tree;");
          --  FIXME: only need Base_Tree, unless for error handling?
@@ -828,7 +828,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("end loop;");
 
-      Indent_Line ("return Parse_wisitoken_accept (Parser, Parser.Terminals.First_Index);");
+      Indent_Line ("return Parse_wisitoken_accept (Parser, Parser.Terminals.First_Index - 1);");
       Indent := Indent - 3;
       Indent_Line ("end Parse;");
       New_Line;

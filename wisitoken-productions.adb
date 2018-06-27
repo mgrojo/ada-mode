@@ -20,6 +20,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Text_IO;
 package body WisiToken.Productions is
 
    function Image
@@ -28,9 +29,26 @@ package body WisiToken.Productions is
       RHS        : in Token_ID_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
      return String
-   is begin
-      return Trimmed_Image ((LHS, RHS_Index)) & ": " & Image (LHS, Descriptor) & " <= " &
-        Image (RHS, Descriptor);
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := +Trimmed_Image ((LHS, RHS_Index)) & ": " & Image (LHS, Descriptor) & " <= ";
+   begin
+      for I in RHS.First_Index .. RHS.Last_Index loop
+         Result := Result & Image (RHS (I), Descriptor);
+         if I /= RHS.Last_Index then
+            Result := Result & ' ';
+         end if;
+      end loop;
+      return To_String (Result);
    end Image;
+
+   procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class)
+   is begin
+      for P of Grammar loop
+         for R in P.RHSs.First_Index .. P.RHSs.Last_Index loop
+            Ada.Text_IO.Put_Line (Image (P.LHS, R, P.RHSs (R).Tokens, Descriptor));
+         end loop;
+      end loop;
+   end Put;
 
 end WisiToken.Productions;

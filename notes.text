@@ -19,10 +19,9 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-packrat add left recursion
-    warth_left_recurse_expr_1.adb
-    compiles, fails; need execute_action.
-    move execute_action to wisitoken.parse
+add packrat to all .wy tests
+
+add packrat to ada_lite tests?
 
 dragon_4_43_packrat_gen.adb
     --  FIXME: why does Trace need a Descriptor?

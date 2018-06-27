@@ -27,7 +27,7 @@ procedure Wisi.Generate_Packrat
    Check_Names  : in Names_Array_Array;
    Descriptor   : in WisiToken.Descriptor)
 is
-   pragma Unreferenced (Action_Names, Check_Names);
+   pragma Unreferenced (Check_Names);
 
    use WisiToken;
 
@@ -40,6 +40,9 @@ is
      (Grammar, Empty);
    Right_Recursive : constant Token_ID_Set (Nonterminal) := WisiToken.Generate.Packrat.Potential_Direct_Right_Recursive
      (Grammar, Empty);
+
+   --  FIXME: optimize memoizing? small productions not worth the memory cost?
+   --  or just use langkit space optimization.
 
    function Parser_Name (Nonterm : in Token_ID) return String
    is begin
@@ -70,7 +73,7 @@ is
 
       Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;");
       Indent_Line ("Start_Pos  : constant Token_Index := Last_Pos + 1;"); --  first token in current nonterm
-      Indent_Line ("Pos        : Token_Index := Last_Pos;"); --  last token parsed.
+      Indent_Line ("Pos        : Base_Token_Index := Last_Pos;"); --  last token parsed.
 
       for RHS_Index in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
          declare
@@ -87,7 +90,7 @@ is
       end loop;
 
       if Left_Recursive (Prod.LHS) then
-         Indent_Line ("Pos_Recurse_Last : Token_Index := Last_Pos;");
+         Indent_Line ("Pos_Recurse_Last : Base_Token_Index := Last_Pos;");
          Indent_Line ("Result_Recurse   : Memo_Entry;");
       end if;
 
@@ -104,7 +107,7 @@ is
       Indent := Indent + 3;
       Indent_Line ("case Memo.State is");
       Indent_Line ("when Success =>");
-      Indent_Line ("   goto Succeed;");
+      Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos);");
       Indent_Line ("when Failure =>");
       Indent_Line ("   goto RHS_" & Trimmed_Image (Prod.RHSs.Last_Index) & "_Fail;");
       Indent_Line ("when No_Result =>");
@@ -143,7 +146,12 @@ is
                Indent_Line ("(State              => Success,");
                Indent_Line (" Result             => Parser.Tree.Add_Nonterm");
                Indent_Line ("   (Production      => (" & Result_ID & ", " & Trimmed_Image (RHS_Index) & "),");
-               Indent_Line ("    Action          => null,"); --  FIXME: Action_Names
+               Indent_Line
+                 ("    Action          => " &
+                    (if Action_Names (Prod.LHS) = null or else Action_Names (Prod.LHS)(RHS_Index) = null
+                     then "null,"
+                     else Action_Names (Prod.LHS)(RHS_Index).all & "'Access,"));
+
                Indent_Start ("    Children        => (");
 
                if RHS.Tokens.Length = 1 then
@@ -207,7 +215,7 @@ is
                   else -- nonterminal
                      Indent_Line
                        ("Memo_" & Var_Suf & " := Parse_" & Image (RHS.Tokens (Token_Index), Descriptor) &
-                          " (Parser, Pos + 1);");
+                          " (Parser, Pos);");
                      Indent_Line ("case Result_States'(Memo_" & Var_Suf & ".State) is");
                      Indent_Line ("when Success =>");
                      Indent_Line ("   Pos := Memo_" & Var_Suf & ".Last_Token;");
@@ -251,7 +259,8 @@ is
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
          Indent_Line
            ("   Parser.Trace.Put_Line (""" & Image (Prod.LHS, Descriptor) &
-              """ & Token_Index'Image (Start_Pos) & "": recurse"");");
+              """ & Token_Index'Image (Start_Pos) & "": recurse "" &");
+         Indent_Line ("     Parser.Tree.Image (Result_Recurse.Result, Descriptor, Include_Children => True));");
          Indent_Line ("end if;");
          Indent_Line ("goto Recurse_Start;");
          Indent := Indent - 3;
@@ -259,7 +268,9 @@ is
       end if;
       New_Line;
 
-      Indent_Line ("<<Succeed>>");
+      if not Left_Recursive (Prod.LHS) then
+         Indent_Line ("<<Succeed>>");
+      end if;
 
       Indent_Line ("if WisiToken.Trace_Parse > Detail then");
       Indent := Indent + 3;
@@ -268,20 +279,24 @@ is
          Indent_Line
            ("   Parser.Trace.Put_Line (""" & Image (Prod.LHS, Descriptor) &
               """ & Token_Index'Image (Start_Pos) & "": fail"");");
+
          Indent_Line ("else");
          Indent := Indent + 3;
+
          Indent_Line ("Parser.Trace.Put_Line");
          Indent_Line
-           ("  (""" & Image (Prod.LHS, Descriptor) & ": "" & Parser.Tree.Image");
-         Indent_Line ("(Parser.Derivs (" & Result_ID & ")(Start_Pos).Result, Descriptor, Include_Children => True));");
+           ("  (""" & Image (Prod.LHS, Descriptor) & """ & Token_Index'Image (Start_Pos) & "": "" & Parser.Tree.Image");
+         Indent_Line
+           ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos).Result, Descriptor, Include_Children => True));");
+
          Indent := Indent - 3;
          Indent_Line ("end if;");
       else
          Indent_Line ("Parser.Trace.Put_Line");
          Indent_Line
-           ("  (""" & Image (Prod.LHS, Descriptor) & ": "" & Parser.Tree.Image");
+           ("  (""" & Image (Prod.LHS, Descriptor) & """ & Token_Index'Image (Start_Pos) & "": "" & Parser.Tree.Image");
          Indent_Line
-           ("   (Parser.Derivs (" & Result_ID & ")(Start_Pos).Result, Descriptor, Include_Children => True));");
+           ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos).Result, Descriptor, Include_Children => True));");
       end if;
       Indent := Indent - 3;
       Indent_Line ("end if;");

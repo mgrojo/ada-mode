@@ -49,6 +49,15 @@ package body WisiToken is
       return (if Item = Invalid_Token_ID then "" else Desc.Image (Item).all);
    end Image;
 
+   procedure Put_Tokens (Descriptor : in WisiToken.Descriptor'Class)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      for I in Token_ID'First .. Descriptor.Last_Nonterminal loop
+         Put_Line (Token_ID'Image (I) & " => " & Descriptor.Image (I).all);
+      end loop;
+   end Put_Tokens;
+
    function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID
    is begin
       for I in Descriptor.Image'Range loop

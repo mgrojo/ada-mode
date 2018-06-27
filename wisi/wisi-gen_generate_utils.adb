@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with Ada.Exceptions;
-with Ada.Text_IO;
 with Wisi.Utils;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada;
@@ -517,17 +516,6 @@ package body Wisi.Gen_Generate_Utils is
       end case;
    end Value;
 
-   procedure Put_Tokens
-   is
-      use Standard.Ada.Text_IO;
-   begin
-      Put_Line ("Tokens:");
-      for I in Token_ID'First .. LR1_Descriptor.Last_Nonterminal loop
-         Put_Line (Token_ID'Image (I) & " => " & Token_WY_Image (I));
-      end loop;
-      New_Line;
-   end Put_Tokens;
-
    function To_Conflicts
      (Source_File_Name             : in     String;
       Accept_Reduce_Conflict_Count :    out Integer;
@@ -699,9 +687,4 @@ package body Wisi.Gen_Generate_Utils is
 
 begin
    Set_Token_Images;
-
-   if WisiToken.Trace_Generate > 0 then
-      Put_Tokens;
-   end if;
-
 end Wisi.Gen_Generate_Utils;

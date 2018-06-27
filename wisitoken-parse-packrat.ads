@@ -80,4 +80,9 @@ package WisiToken.Parse.Packrat is
    --  nonterms are reduced, so the mapping from token_index to
    --  tree node_index is identity.
 
+   procedure Execute_Actions
+     (Tree      : in out Syntax_Trees.Tree;
+      User_Data : in     WisiToken.Syntax_Trees.User_Data_Access;
+      Trace     : access WisiToken.Trace'Class);
+
 end WisiToken.Parse.Packrat;

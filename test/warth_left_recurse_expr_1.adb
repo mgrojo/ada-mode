@@ -19,14 +19,18 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with AUnit.Checks;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Warth_Left_Recurse_Expr_1_Actions;
 with Warth_Left_Recurse_Expr_1_Main;
+with Warth_Left_Recurse_Expr_1_Runtime;
 with WisiToken.Parse.Packrat.AUnit;
 with WisiToken.Text_IO_Trace;
 package body Warth_Left_Recurse_Expr_1 is
+
+   User_Data : aliased Warth_Left_Recurse_Expr_1_Runtime.User_Data_Type;
 
    Parser : aliased Warth_Left_Recurse_Expr_1_Main.Parser_Type;
 
@@ -42,22 +46,26 @@ package body Warth_Left_Recurse_Expr_1 is
       use WisiToken.Parse.Packrat;
 
       procedure Execute_Parse
-        (Input    : in String;
-         Expected : in WisiToken.Parse.Packrat.Result_States)
+        (Input           : in String;
+         Expected_State  : in WisiToken.Parse.Packrat.Result_States;
+         Expected_Result : in Integer)
       is
+         use AUnit.Checks;
          use WisiToken.Parse.Packrat.AUnit;
       begin
          Parser.Lexer.Reset_With_String (Input);
-         if WisiToken.Trace_Parse then
-            Ada.Text_IO.Put_Line (Input);
+         if WisiToken.Trace_Parse > WisiToken.Outline then
+            Ada.Text_IO.Put_Line ("input: '" & Input & "'");
          end if;
 
          declare
             Result : constant Result_Type := Warth_Left_Recurse_Expr_1_Main.Parse (Parser);
          begin
-            Check (Input, Result.State, Expected);
-            --  FIXME: need execute_actions; parse "1 - 3" returns Success, but
-            --  tree is wrong.
+            Check (Input, Result.State, Expected_State);
+            if Expected_State = Success then
+               Execute_Actions (Parser.Tree, Parser.User_Data, Parser.Trace);
+               Check ("result", User_Data.Stack.Pop, Expected_Result);
+            end if;
          end;
       exception
       when AUnit.Assertions.Assertion_Error =>
@@ -71,10 +79,10 @@ package body Warth_Left_Recurse_Expr_1 is
       end Execute_Parse;
 
    begin
-      Execute_Parse ("1 - 3", Success);
-      Execute_Parse ("1", Success);
-      Execute_Parse ("3 - 2 - 1", Success);
-      Execute_Parse ("3 -", Failure);
+      Execute_Parse ("1 - 3", Success, -2);
+      Execute_Parse ("1", Success, 1);
+      Execute_Parse ("3 - 2 - 1", Success, 0);
+      Execute_Parse ("3 -", Failure, 0);
    end Test_Parse;
 
    ----------
@@ -102,7 +110,9 @@ package body Warth_Left_Recurse_Expr_1 is
       Warth_Left_Recurse_Expr_1_Main.Create_Parser
         (Parser,
          Trace     => Trace'Access,
-         User_Data => null);
+         User_Data => User_Data'Access);
+
+      User_Data.Set_Lexer_Terminals (Parser.Lexer, Parser.Terminals'Access);
    end Set_Up_Case;
 
 end Warth_Left_Recurse_Expr_1;

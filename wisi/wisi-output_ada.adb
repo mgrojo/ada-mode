@@ -27,6 +27,7 @@ with Wisi.Gen_Output_Ada_Common;
 with Wisi.Utils;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
+with WisiToken.Productions;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Ada
   (Input_Data            : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
@@ -273,10 +274,13 @@ is
 
       Put_Line ("with WisiToken.Lexer.re2c;");
       Put_Line ("with " & re2c_Package_Name & ";");
+      if Input_Data.Action_Count + Input_Data.Check_Count > 0 then
+         Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
+      end if;
+
       case Data.Generator_Algorithm is
       when LR_Generator_Algorithm =>
-         Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
-
+         null;
       when Packrat =>
          Put_Line ("with WisiToken.Parse;");
       end case;
@@ -378,7 +382,15 @@ begin
       Data.Parser_State_Count := LR_Parsers (LR1).State_Last - LR_Parsers (LR1).State_First + 1;
 
    when Packrat =>
-      --  FIXME: check for left recursive, optimize memoizing, etc.
+      if WisiToken.Trace_Generate > 0 then
+         Put_Line ("Tokens:");
+         WisiToken.Put_Tokens (Generate_Utils.LR1_Descriptor);
+         New_Line;
+         Put_Line ("Productions:");
+         WisiToken.Productions.Put (Data.Grammar, Generate_Utils.LR1_Descriptor);
+      end if;
+      New_Line;
+
       Data.Parser_State_Count := 0;
    end case;
 

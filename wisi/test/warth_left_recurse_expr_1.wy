@@ -21,6 +21,8 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%code actions body context %{with Warth_Left_Recurse_Expr_1_Runtime; use Warth_Left_Recurse_Expr_1_Runtime;}%
+
 %token <punctuation> MINUS "-"
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 
@@ -28,13 +30,17 @@
 ;; no newline, comment.
 ;; no mckenzie
 
-%no_language_runtime
-
 %start expr
 %generator_algorithm Packrat
 %output_language Ada
 %lexer re2c
 
-expr : expr MINUS NUMERIC_LITERAL | NUMERIC_LITERAL ;
+expr
+  : expr MINUS NUMERIC_LITERAL
+    %(Push (User_Data, Tree, Tokens, 3);
+      Subtract (User_Data, Tree, Tokens);)%
+  | NUMERIC_LITERAL
+    %(Push (User_Data, Tree, Tokens, 1);)%
+  ;
 
 ;; end of file

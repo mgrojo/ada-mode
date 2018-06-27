@@ -128,6 +128,10 @@ package body WisiToken.LR.LALR_Generator is
       use Ada.Text_IO;
       Kernel : WisiToken.LR.LR1_Items.Item_Set_Ptr;
    begin
+      Put_Line ("Tokens:");
+      Put_Tokens (Descriptor);
+      New_Line;
+
       Put_Line ("LALR Parse Table:");
 
       if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
@@ -144,11 +148,7 @@ package body WisiToken.LR.LALR_Generator is
 
       Put_Line ("Productions:");
       --  Table.productions is not set yet.
-      for P of Grammar loop
-         for R in P.RHSs.First_Index .. P.RHSs.Last_Index loop
-            Put_Line (Productions.Image (P.LHS, R, P.RHSs (R).Tokens, Descriptor));
-         end loop;
-      end loop;
+      Productions.Put (Grammar, Descriptor);
       New_Line;
 
       for State in Table.States'Range loop

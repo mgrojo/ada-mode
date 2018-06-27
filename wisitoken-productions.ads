@@ -48,4 +48,7 @@ package WisiToken.Productions is
      return String;
    --  For comments in generated code, diagnostic messages.
 
+   procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class);
+   --  Put Image of each production to Ada.Text_IO.Current_Output.
+
 end WisiToken.Productions;

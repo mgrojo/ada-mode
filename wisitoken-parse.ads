@@ -38,7 +38,7 @@ package WisiToken.Parse is
      (Lexer            : in     WisiToken.Lexer.Handle;
       Terminals        : in out Base_Token_Arrays.Vector;
       Line_Begin_Token : in out Line_Begin_Token_Vectors.Vector;
-      User_Data        :        WisiToken.Syntax_Trees.User_Data_Access;
+      User_Data        : in     WisiToken.Syntax_Trees.User_Data_Access;
       Trace            : access WisiToken.Trace'Class);
    --  Clear Terminals, Line_Begin_Token; reset User_Data. Then call
    --  Next_Grammar_Token repeatedly until EOF_ID is returned.

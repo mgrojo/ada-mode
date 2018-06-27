@@ -56,9 +56,6 @@ package Wisi.Gen_Generate_Utils is
 
    subtype Nonterminal_ID is Token_ID range LR1_Descriptor.Last_Terminal + 1 .. LR1_Descriptor.Last_Nonterminal;
 
-   function Token_WY_Image (ID : in Token_ID) return String is (LR1_Descriptor.Image (ID).all);
-   --  The token name as given in the grammar (.wy) file.
-
    function Find_Token_ID (Token : in String) return Token_ID;
 
    function Find_Kind (Target_Kind : in String) return Token_ID;
@@ -134,9 +131,6 @@ package Wisi.Gen_Generate_Utils is
    --  Rules   : "" - they have no Value
 
    All_Tokens : constant Token_Container := (Bogus_Content => 1);
-
-   procedure Put_Tokens;
-   --  Put user readable token list to Standard_Output
 
    function To_Conflicts
      (Source_File_Name             : in     String;

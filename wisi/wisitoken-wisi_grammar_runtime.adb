@@ -362,7 +362,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   Location :=
                     (if Get_Loc (2) = "spec" then
                        (if Get_Loc (3) = "context" then Wisi.Actions_Spec_Context
-                        elsif Get_Loc (3) = "context" then Wisi.Actions_Spec_Pre
+                        elsif Get_Loc (3) = "pre" then Wisi.Actions_Spec_Pre
                         elsif Get_Loc (3) = "post" then Wisi.Actions_Spec_Post
                         else raise Grammar_Error)
 
@@ -385,8 +385,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
             exception
             when Grammar_Error =>
                Put_Error
-                 (Error_Message (Data.Lexer.File_Name, Token (2).Line, Token (2).Column, "invalid raw code location"));
-
+                 (Error_Message
+                    (Data.Lexer.File_Name, Token (2).Line, Token (2).Column,
+                     "invalid raw code location; actions {spec | body} {context | pre | post}"));
             end;
 
          when IDENTIFIER_ID =>
