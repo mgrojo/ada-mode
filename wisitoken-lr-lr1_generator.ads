@@ -50,8 +50,6 @@ package WisiToken.LR.LR1_Generator is
    --  see a trace of the parser execution without the parser
    --  generation.
    --
-   --  If Put_Parse_Table, output the parse table to Standard_Output
-   --
    --  Unless Ignore_Unused_Tokens is True, raise Grammar_Error if
    --  there are unused tokens.
    --

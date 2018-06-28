@@ -20,6 +20,7 @@ org.wisitoken.stephe-1 - available
 
  current work
 add packrat to all .wy tests
+    case_expression done, passing
 
 add packrat to ada_lite tests?
 
@@ -46,7 +47,7 @@ wisitoken.packrat
         error correction?
 
 add *, +, ? to wisi_grammar?
-    more re-writes
+    re-write to current syntax?
     closer to Ada appendix P
 
 reorganize package hierarchy?
@@ -528,5 +529,7 @@ File: C:\Projects\org.wisitoken.stephe-1\build\case_expression_lexer.c:430
 
     regenerate aflex.l
         start with flex.l?
+
+ build/release_process.text
 
 # end of file

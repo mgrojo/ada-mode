@@ -565,8 +565,12 @@ package body WisiToken.Syntax_Trees is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String;
    begin
+      if Include_Children and N.Label = Nonterm then
+         Result := +Image (N.ID, Descriptor) & '_' & Trimmed_Image (N.RHS_Index) & ": ";
+      end if;
+
       if N.Label = Shared_Terminal then
-         Result := +Token_Index'Image (N.Terminal) & ":";
+         Result := Result & (+Token_Index'Image (N.Terminal)) & ":";
       end if;
 
       Result := Result & "(" & Image (N.ID, Descriptor) &
@@ -621,7 +625,8 @@ package body WisiToken.Syntax_Trees is
         (Shared_Tree      => Shared_Tree,
          Last_Shared_Node => Shared_Tree.Nodes.Last_Index,
          Branched_Nodes   => <>,
-         Flush            => Flush);
+         Flush            => Flush,
+         Root             => <>);
    end Initialize;
 
    function Is_Empty (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
@@ -822,12 +827,21 @@ package body WisiToken.Syntax_Trees is
       raise;
    end Process_Tree;
 
+   procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index)
+   is begin
+      Tree.Root := Root;
+   end Set_Root;
+
    function Root (Tree : in Syntax_Trees.Tree) return Node_Index
    is begin
-      if Tree.Flush then
-         return Tree.Shared_Tree.Nodes.Last_Index;
+      if Tree.Root /= Invalid_Node_Index then
+         return Tree.Root;
       else
-         return Tree.Branched_Nodes.Last_Index;
+         if Tree.Flush then
+            return Tree.Shared_Tree.Nodes.Last_Index;
+         else
+            return Tree.Branched_Nodes.Last_Index;
+         end if;
       end if;
    end Root;
 
@@ -944,6 +958,11 @@ package body WisiToken.Syntax_Trees is
       Tree.Flush := False;
       Tree.Branched_Nodes.Set_First (Tree.Last_Shared_Node + 1);
    end Set_Flush_False;
+
+   function Flushed (Tree : in Syntax_Trees.Tree) return Boolean
+   is begin
+      return Tree.Flush;
+   end Flushed;
 
    procedure Set_Name_Region
      (Tree   : in out Syntax_Trees.Tree;

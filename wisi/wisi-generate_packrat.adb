@@ -52,7 +52,8 @@ is
    function Parser_Spec (Name : in String) return String
    is
    begin
-      return "function " & Name & " (Parser : in out Parser_Type; Last_Pos : in Base_Token_Index) return Result_Type";
+      return
+        "function " & Name & " (Parser : in out Packrat.Parser; Last_Pos : in Base_Token_Index) return Result_Type";
    end Parser_Spec;
 
    function Var_Suffix (I, J : in Integer) return String
@@ -72,8 +73,8 @@ is
       Indent := Indent + 3;
 
       Indent_Line ("Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;");
-      Indent_Line ("Start_Pos  : constant Token_Index := Last_Pos + 1;"); --  first token in current nonterm
-      Indent_Line ("Pos        : Base_Token_Index := Last_Pos;"); --  last token parsed.
+      Indent_Line ("Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm");
+      Indent_Line ("Pos        : Base_Token_Index := Last_Pos; --  last token parsed.");
 
       for RHS_Index in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
          declare
@@ -218,10 +219,12 @@ is
                           " (Parser, Pos);");
                      Indent_Line ("case Result_States'(Memo_" & Var_Suf & ".State) is");
                      Indent_Line ("when Success =>");
-                     Indent_Line ("   Pos := Memo_" & Var_Suf & ".Last_Token;");
+                        Indent := Indent + 3;
+                     Indent_Line ("Pos := Memo_" & Var_Suf & ".Last_Token;");
                      if Token_Index = RHS.Tokens.Last_Index then
                         Finish;
                      end if;
+                     Indent := Indent - 3;
                      Indent_Line ("when Failure =>");
                      Indent_Line ("   goto RHS_" & Trimmed_Image (RHS_Index) & "_Fail;");
                      Indent_Line ("end case;");
@@ -257,10 +260,9 @@ is
          Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos, Result_Recurse);");
          Indent_Line ("Pos_Recurse_Last := Pos;");
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
+         Indent_Line ("   Parser.Trace.Put_Line ");
          Indent_Line
-           ("   Parser.Trace.Put_Line (""" & Image (Prod.LHS, Descriptor) &
-              """ & Token_Index'Image (Start_Pos) & "": recurse "" &");
-         Indent_Line ("     Parser.Tree.Image (Result_Recurse.Result, Descriptor, Include_Children => True));");
+           ("     (""recurse "" & Parser.Tree.Image (Result_Recurse.Result, Descriptor, Include_Children => True));");
          Indent_Line ("end if;");
          Indent_Line ("goto Recurse_Start;");
          Indent := Indent - 3;
@@ -284,8 +286,7 @@ is
          Indent := Indent + 3;
 
          Indent_Line ("Parser.Trace.Put_Line");
-         Indent_Line
-           ("  (""" & Image (Prod.LHS, Descriptor) & """ & Token_Index'Image (Start_Pos) & "": "" & Parser.Tree.Image");
+         Indent_Line ("  (Parser.Tree.Image");
          Indent_Line
            ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos).Result, Descriptor, Include_Children => True));");
 
@@ -293,8 +294,7 @@ is
          Indent_Line ("end if;");
       else
          Indent_Line ("Parser.Trace.Put_Line");
-         Indent_Line
-           ("  (""" & Image (Prod.LHS, Descriptor) & """ & Token_Index'Image (Start_Pos) & "": "" & Parser.Tree.Image");
+         Indent_Line ("  (Parser.Tree.Image");
          Indent_Line
            ("    (Parser.Derivs (" & Result_ID & ")(Start_Pos).Result, Descriptor, Include_Children => True));");
       end if;
@@ -309,6 +309,7 @@ is
 
 begin
    Indent_Line ("use WisiToken;");
+   Indent_Line ("use WisiToken.Parse;");
    Indent_Line ("use WisiToken.Parse.Packrat;");
 
    for Prod of Grammar loop
@@ -326,4 +327,11 @@ begin
    for Prod of Grammar loop
       Generate_Parser_Body (Prod);
    end loop;
+
+   Indent_Line ("function Parse_wisitoken_accept_1");
+   Indent_Line ("  (Parser : in out Base_Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type");
+   Indent_Line ("is begin");
+   Indent_Line ("   return Parse_wisitoken_accept (Packrat.Parser (Parser), Last_Pos);");
+   Indent_Line ("end Parse_wisitoken_accept_1;");
+   New_Line;
 end Wisi.Generate_Packrat;

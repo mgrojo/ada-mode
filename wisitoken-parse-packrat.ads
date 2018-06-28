@@ -80,9 +80,28 @@ package WisiToken.Parse.Packrat is
    --  nonterms are reduced, so the mapping from token_index to
    --  tree node_index is identity.
 
-   procedure Execute_Actions
-     (Tree      : in out Syntax_Trees.Tree;
-      User_Data : in     WisiToken.Syntax_Trees.User_Data_Access;
-      Trace     : access WisiToken.Trace'Class);
+   package Derivs is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Memos.Vector);
+
+   type Parse_WisiToken_Accept is access
+     function (Parser : in out Base_Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type;
+
+   type Parser is new Base_Parser with record
+      Base_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
+      Tree      : WisiToken.Syntax_Trees.Tree;
+      --  FIXME: Current we only need Base_Tree for Execute_Actions, except
+      --  that Syntax_Trees only declares the needed operations on Tree. But
+      --  we may need more trees for error recovery; if not, fix
+      --  Syntax_Trees, move Base_Tree and Execute_Actions up to
+      --  base_parser.
+
+      Derivs : Packrat.Derivs.Vector;
+
+      Parse_WisiToken_Accept : Packrat.Parse_WisiToken_Accept;
+   end record;
+
+   overriding procedure Parse (Parser : aliased in out Packrat.Parser);
+   overriding function Any_Errors (Parser : in Packrat.Parser) return Boolean;
+   overriding procedure Put_Errors (Parser : in Packrat.Parser; Input_File_Name : in String);
+   overriding procedure Execute_Actions (Parser : in out Packrat.Parser);
 
 end WisiToken.Parse.Packrat;

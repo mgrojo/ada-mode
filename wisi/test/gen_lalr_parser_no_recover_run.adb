@@ -28,7 +28,7 @@ with GNAT.Traceback.Symbolic;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-procedure Gen_Parser_No_Recover_Run
+procedure Gen_LALR_Parser_No_Recover_Run
 is
    procedure Put_Usage
    is begin
@@ -45,20 +45,20 @@ is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
-   User_Data : aliased User_Data_Type;
-
    procedure Parse
    is
       Parser : WisiToken.LR.Parser_No_Recover.Parser;
    begin
       Create_Parser
         (Parser, WisiToken.LALR, Trace'Unchecked_Access,
-         User_Data => User_Data'Unchecked_Access);
-      Put_Line ("LALR_Parser parse:");
+         User_Data => null);
+      Put_Line ("LALR Parser parse:");
 
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;
-      Parser.Execute_Actions;
+
+      --  No user data, so no point in calling Execute_Actions
+
       Parser.Put_Errors (-File_Name);
 
    exception
@@ -112,4 +112,4 @@ when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Parser_No_Recover_Run;
+end Gen_LALR_Parser_No_Recover_Run;

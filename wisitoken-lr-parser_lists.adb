@@ -238,6 +238,11 @@ package body WisiToken.LR.Parser_Lists is
       return (Element => Parser_State_Lists.Constant_Reference (Position.Ptr).Element);
    end State_Ref;
 
+   function First_Constant_State_Ref (List : in Parser_Lists.List'Class) return Constant_State_Reference
+   is begin
+      return (Element => Parser_State_Lists.Constant_Reference (List.Elements.First).Element);
+   end First_Constant_State_Ref;
+
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       Parser_State : Parser_Lists.Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Ptr);

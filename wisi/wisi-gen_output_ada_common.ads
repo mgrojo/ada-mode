@@ -88,7 +88,7 @@ package Wisi.Gen_Output_Ada_Common is
       Output_Language     : in Ada_Output_Language;
       Interface_Kind      : in Interface_Type);
 
-   procedure Create_Create_Parser
+   procedure LR_Create_Create_Parser
      (Data                : in out Data_Type;
       Parsers             : in     LR_Parser_Array;
       Generator_Algorithm : in     LR_Generator_Algorithm;
@@ -98,11 +98,7 @@ package Wisi.Gen_Output_Ada_Common is
       Action_Names        : in     Nonterminal_Names_Array;
       Check_Names         : in     Nonterminal_Names_Array);
 
-   procedure Create_Packrat_Parser
-     (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
-      Action_Names : in Nonterminal_Names_Array;
-      Check_Names  : in Nonterminal_Names_Array;
-      Descriptor   : in WisiToken.Descriptor);
+   procedure Packrat_Create_Create_Parser;
 
    procedure Create_re2c
      (Output_File_Name_Root : in String;

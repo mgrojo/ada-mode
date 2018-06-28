@@ -149,7 +149,7 @@ DIFF_OPT := -u -w
 	diff $(DIFF_OPT) ../wisi/test/$*.good_re2c $*.re2c >> $@
 	diff $(DIFF_OPT) ../wisi/test/$*-process.good_el $*-process.el >> $@
 
-# the parse_table and the state trace of the parse is the known good output
+# the parse_table and the trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
@@ -168,14 +168,20 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe -v 1 $< > $*.parse_table
 	dos2unix -q $**
 
+%_packrat.re2c : %.wy wisi-generate.exe
+	./wisi-generate.exe -v 1 --generator_algorithm Packrat --suffix "_packrat" $< > $*.packrat_parse_table
+	dos2unix -q $**
+
 # delete files created by wisi-generate
 # don't delete prj.el
 wisi-clean :
-	rm -f *-elisp.el *-process.el *.parse_table *.ads *.adb  *.l *.qx
+	rm -f *-elisp.el *-process.el *.*parse_table *.ads *.adb
 
-# -v 2 gives stack trace
-%.parse : %.input %_run.exe
-	./$*_run.exe -v 2 $< > $*.parse
+# -v 2 gives parse trace.
+%.parse : %.input %_lalr_run.exe %_packrat_run.exe
+	./$*_lalr_run.exe -v 2 $< > $*.parse
+	echo "" >> $*.parse
+	./$*_packrat_run.exe -v 2 $< >> $*.parse
 	dos2unix -q $*.parse
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
@@ -206,6 +212,6 @@ zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
 	cd ../..; zip -q -r $(CURDIR)/wisitoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
-.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %_process.adb %.qx %.re2c %-wy.el
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %_process.adb %.re2c %_packrat.re2c %-wy.el
 
 # end of file

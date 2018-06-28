@@ -154,6 +154,12 @@ package WisiToken.LR.Parser_Lists is
    function State_Ref (Position : in Cursor) return State_Reference;
    --  Direct access to visible components of Parser_State
 
+   type Constant_State_Reference (Element : not null access constant Parser_State) is null record
+   with Implicit_Dereference => Element;
+
+   function First_Constant_State_Ref (List : in Parser_Lists.List'Class) return Constant_State_Reference;
+   --  Direct access to visible components of first parser's Parser_State
+
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Trace.
 

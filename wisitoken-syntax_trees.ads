@@ -118,6 +118,8 @@ package WisiToken.Syntax_Trees is
    procedure Set_Flush_False (Tree : in out Syntax_Trees.Tree);
    --  Set Flush mode False; use Flush to set True.
 
+   function Flushed (Tree : in Syntax_Trees.Tree) return Boolean;
+
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     Production_ID;
@@ -263,9 +265,11 @@ package WisiToken.Syntax_Trees is
    --  Return the child of Node that contains ID (may be Node), or
    --  Invalid_Node_Index if none match.
 
+   procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index);
+
    function Root (Tree : in Syntax_Trees.Tree) return Node_Index;
-   --  The last node added; normally the final nonterm.
-   --  Invalid_Node_Index if Tree is empty.
+   --  Return value set by Set_Root; defaults to the last node added.
+   --  returns Invalid_Node_Index if Tree is empty.
 
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
@@ -352,22 +356,17 @@ private
    package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
 
    type Base_Tree is new Ada.Finalization.Controlled with record
-      --  It is tempting to store an access to Shared_Parser.Terminals here,
-      --  and use that to represent some data. However, during
-      --  McKenzie_Recover, the tree is read by parallel tasks, and
-      --  Shared_Parser.Terminals is written (when reading new terminals
-      --  from the Lexer), also by parallel tasks. So we would need a
-      --  protected object to control access to Terminals, and that would
-      --  largely eliminate the advantage of parallel tasks. So we copy data
-      --  from Terminals into Tree nodes.
+      --  FIXME: Store Shared_Parser.Terminals here (or just in Terminal
+      --  tree nodes). There used to be a good reason not to, but since we
+      --  now call Lex_All before Parse, there isn't.
 
       Nodes : Node_Arrays.Vector;
       --  During normal parsing, tokens are added to Nodes by "parallel"
-      --  parsers, but they are all run from one Ada task, so there's no
-      --  need for Nodes to be Protected.
+      --  LALR parsers, but they are all run from one Ada task, so there's
+      --  no need for Nodes to be Protected. Packrat parsing also has a
+      --  single Ada task.
       --
-      --  During McKenzie_Recover, tokens are added to Terminals by parallel
-      --  tasks, but not to the shared syntax_tree.
+      --  During McKenzie_Recover, the syntax tree is not modified.
 
       Augmented_Present : Boolean := False;
       --  True if Set_Augmented has been called on any node.
@@ -389,6 +388,8 @@ private
       Flush            : Boolean    := False;
       --  We maintain Last_Shared_Node when Flush is True, so subprograms
       --  that have no reason to check Flush can rely on Last_Shared_Node.
+
+      Root : Node_Index := Invalid_Node_Index;
    end record with
      Type_Invariant => (if Tree.Flush then not Tree.Has_Branched_Nodes);
 

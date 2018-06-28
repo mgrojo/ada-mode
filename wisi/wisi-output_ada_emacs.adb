@@ -1070,7 +1070,7 @@ is
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
       New_Line;
 
-      Create_Create_Parser
+      LR_Create_Create_Parser
         (Data, LR_Parsers, Data.Generator_Algorithm, Data.Interface_Kind, Input_Data.Generate_Params.First_State_Index,
          Input_Data.Generate_Params.First_Parser_Label, Ada_Action_Names, Ada_Check_Names);
 

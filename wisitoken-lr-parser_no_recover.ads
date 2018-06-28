@@ -25,31 +25,18 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Finalization;
 with WisiToken.LR.Parser_Lists;
 with WisiToken.Lexer;
+with WisiToken.Parse;
 package WisiToken.LR.Parser_No_Recover is
 
    Default_Max_Parallel : constant := 15;
 
-   type Parser is new Ada.Finalization.Limited_Controlled with record
-      Trace     : access WisiToken.Trace'Class;
-      Lexer     : WisiToken.Lexer.Handle;
+   type Parser is new WisiToken.Parse.Base_Parser with record
       Table     : Parse_Table_Ptr;
-      User_Data : WisiToken.Syntax_Trees.User_Data_Access;
-
-      Lexer_Errors : WisiToken.Lexer.Error_Lists.List;
-
-      Terminals : aliased Base_Token_Arrays.Vector;
-      --  All terminal grammar tokens, in lexical order.
-
-      Line_Begin_Token : Line_Begin_Token_Vectors.Vector;
-      --  Index into Terminals of first grammar token on line.
-
       Shared_Tree : aliased Syntax_Trees.Base_Tree;
-      --  Each parser (normal and recover) has its own branched syntax tree,
-      --  all branched from this tree. Terminals are added to the tree when
-      --  they become the current token.
+      --  Each parser has its own branched syntax tree, all branched from
+      --  this tree.
       --
       --  See WisiToken.LR.Parser_Lists Parser_State for more discussion of
       --  Shared_Tree.
@@ -74,7 +61,7 @@ package WisiToken.LR.Parser_No_Recover is
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True);
 
-   procedure Parse (Shared_Parser : in out LR.Parser_No_Recover.Parser);
+   overriding procedure Parse (Shared_Parser : aliased in out LR.Parser_No_Recover.Parser);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --
@@ -85,11 +72,13 @@ package WisiToken.LR.Parser_No_Recover is
    --  For other errors, raises Parse_Error with an appropriate error
    --  message.
 
-   procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser);
-   --  Execute the grammar actions in Parser.
+   overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 
-   procedure Put_Errors (Parser : in out LR.Parser_No_Recover.Parser; File_Name : in String);
+   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser; File_Name : in String);
    --  Put user-friendly error messages from the parse to
    --  Ada.Text_IO.Current_Error.
+
+   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser);
+   --  Execute the grammar actions in Parser.
 
 end WisiToken.LR.Parser_No_Recover;

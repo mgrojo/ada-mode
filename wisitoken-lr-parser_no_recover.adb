@@ -30,7 +30,6 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 with Ada.Characters;
-with WisiToken.Parse;
 package body WisiToken.LR.Parser_No_Recover is
 
    procedure Reduce_Stack_1
@@ -231,7 +230,7 @@ package body WisiToken.LR.Parser_No_Recover is
       end if;
    end New_Parser;
 
-   procedure Parse (Shared_Parser : in out Parser)
+   overriding procedure Parse (Shared_Parser : aliased in out Parser)
    is
       use all type Syntax_Trees.User_Data_Access;
       use all type SAL.Base_Peek_Type;
@@ -261,11 +260,7 @@ package body WisiToken.LR.Parser_No_Recover is
 
    begin
       --  The user must call Lexer.Reset_* to set the input text.
-      Shared_Parser.Lexer_Errors.Clear;
-
-      WisiToken.Parse.Lex_All
-        (Shared_Parser.Lexer, Shared_Parser.Terminals, Shared_Parser.Line_Begin_Token, Shared_Parser.User_Data,
-         Shared_Parser.Trace);
+      Shared_Parser.Lex_All;
 
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
@@ -422,7 +417,7 @@ package body WisiToken.LR.Parser_No_Recover is
       --  character.
    end Parse;
 
-   procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser)
+   overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser)
    is
       use all type Syntax_Trees.User_Data_Access;
 
@@ -459,14 +454,24 @@ package body WisiToken.LR.Parser_No_Recover is
       end if;
    end Execute_Actions;
 
-   procedure Put_Errors (Parser : in out LR.Parser_No_Recover.Parser; File_Name : in String)
+   overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean
+   is
+      use all type SAL.Base_Peek_Type;
+      use all type Ada.Containers.Count_Type;
+      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
+   begin
+      pragma Assert (Parser_State.Tree.Flushed);
+      return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Lexer.Errors.Length > 0;
+   end Any_Errors;
+
+   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser; File_Name : in String)
    is
       use Ada.Text_IO;
 
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;
+      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
       Descriptor   : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
    begin
-      for Item of Parser.Lexer_Errors loop
+      for Item of Parser.Lexer.Errors loop
          Put_Line
            (Current_Error,
             File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));

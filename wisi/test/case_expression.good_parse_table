@@ -18,30 +18,20 @@ Tokens:
  16 => factor_list
  17 => range_nt
 
-LALR Parse Table:
-Minimal_Terminal_Sequences:
-wisitoken_accept => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL, Wisi_EOI)
-case_expression => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL)
-choice_expression => (NUMBER_LITERAL)
-choice_relation => (NUMBER_LITERAL)
-discrete_choice => (NUMBER_LITERAL)
-factor => (NUMBER_LITERAL)
-factor_list => (NUMBER_LITERAL)
-range_nt => (NUMBER_LITERAL, DOT_DOT, NUMBER_LITERAL)
-
 Productions:
-10.0: wisitoken_accept <= (case_expression, Wisi_EOI)
-11.0: case_expression <= (WHEN, discrete_choice, EQUAL_GREATER, factor)
-12.0: choice_expression <= (choice_relation)
-13.0: choice_relation <= (factor_list)
-14.0: discrete_choice <= (choice_expression)
-14.1: discrete_choice <= (range_nt)
-15.0: factor <= (IDENTIFIER)
-15.1: factor <= (NUMBER_LITERAL)
-16.0: factor_list <= (factor)
-17.0: range_nt <= (IDENTIFIER, TICK, RANGE)
-17.1: range_nt <= (factor_list, DOT_DOT, factor_list)
+10.0: wisitoken_accept <= case_expression Wisi_EOI
+11.0: case_expression <= WHEN discrete_choice EQUAL_GREATER factor
+12.0: choice_expression <= choice_relation
+13.0: choice_relation <= factor_list
+14.0: discrete_choice <= choice_expression
+14.1: discrete_choice <= range_nt
+15.0: factor <= IDENTIFIER
+15.1: factor <= NUMBER_LITERAL
+16.0: factor_list <= factor
+17.0: range_nt <= IDENTIFIER TICK RANGE
+17.1: range_nt <= factor_list DOT_DOT factor_list
 
+LALR Parse Table:
 State 0:
      10.0:wisitoken_accept <= ^ case_expression Wisi_EOI, 
 
@@ -190,7 +180,7 @@ State 17:
    default           => ERROR
 
 
-LR1 Parse Table:
+
 Minimal_Terminal_Sequences:
 wisitoken_accept => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL, Wisi_EOI)
 case_expression => (WHEN, NUMBER_LITERAL, EQUAL_GREATER, NUMBER_LITERAL)
@@ -201,6 +191,7 @@ factor => (NUMBER_LITERAL)
 factor_list => (NUMBER_LITERAL)
 range_nt => (NUMBER_LITERAL, DOT_DOT, NUMBER_LITERAL)
 
+LR1 Parse Table:
 State 0:
      10.0:wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI
 

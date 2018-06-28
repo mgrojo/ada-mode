@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017, 2018 Stephe Leake
+--  Copyright (C) 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -25,16 +25,16 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with WisiToken.LR.Parser;
+with WisiToken.Parse.Packrat;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-procedure Gen_Parser_Run
+procedure Gen_Packrat_Parser_Run
 is
    procedure Put_Usage
    is begin
       Put_Line ("usage: *_run [-v <integer>] filename");
-      Put_Line ("  parse input file, executing grammar actions");
-      Put_Line ("  -v : output trace of states while parsing");
+      Put_Line ("  parse input file, execute grammar actions");
+      Put_Line ("  -v : output trace while parsing");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -45,47 +45,7 @@ is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
-   User_Data : aliased User_Data_Type;
-
-   procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
-   is
-      use all type WisiToken.Token_ID;
-      Parser : WisiToken.LR.Parser.Parser;
-   begin
-      case Algorithm is
-      when WisiToken.LALR                =>
-         Create_Parser
-           (Parser, WisiToken.LALR, Trace'Unchecked_Access,
-            Language_Fixes               => null,
-            Language_Constrain_Terminals => null,
-            User_Data                    => User_Data'Unchecked_Access);
-         Put_Line ("LALR_Parser parse:");
-
-      when WisiToken.LR1                 =>
-         Create_Parser
-           (Parser, WisiToken.LR1, Trace'Unchecked_Access,
-            Language_Fixes               => null,
-            Language_Constrain_Terminals => null,
-            User_Data                    => User_Data'Unchecked_Access);
-         Put_Line ("LR1_Parser parse:");
-      end case;
-
-      Parser.Lexer.Reset_With_File (-File_Name);
-      Parser.Parse;
-      Parser.Execute_Actions;
-      Parser.Put_Errors (-File_Name);
-
-   exception
-   when WisiToken.Syntax_Error =>
-      Parser.Put_Errors (-File_Name);
-
-   when E : WisiToken.Parse_Error =>
-      Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
-
-   when Name_Error =>
-      Put_Line (-File_Name & " cannot be opened");
-      raise WisiToken.User_Error;
-   end Parse;
+   Parser : WisiToken.Parse.Packrat.Parser;
 
 begin
    declare
@@ -119,16 +79,29 @@ begin
       return;
    end;
 
-   Parse (WisiToken.LALR);
+   Put_Line ("Packrat Parser parse:");
 
-   if LR1 then
-      New_Line;
-      Parse (WisiToken.LR1);
-   end if;
+   Create_Parser (Parser, Trace'Unchecked_Access, User_Data => null);
+   Parser.Lexer.Reset_With_File (-File_Name);
+   Parser.Parse;
+
+   --  No user data, so no point in Execute_Actions
+
+   Parser.Put_Errors (-File_Name);
 
 exception
+when WisiToken.Syntax_Error =>
+   Parser.Put_Errors (-File_Name);
+
+when E : WisiToken.Parse_Error =>
+   Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
+
+when Name_Error =>
+   Put_Line (-File_Name & " cannot be opened");
+   raise WisiToken.User_Error;
+
 when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Parser_Run;
+end Gen_Packrat_Parser_Run;

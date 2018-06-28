@@ -24,6 +24,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Regexp;
 with Wisi.Gen_Output_Ada_Common;
+with Wisi.Generate_Packrat;
 with Wisi.Utils;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
@@ -282,6 +283,7 @@ is
       when LR_Generator_Algorithm =>
          null;
       when Packrat =>
+         Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.Parse;");
       end case;
 
@@ -298,12 +300,14 @@ is
 
       case Data.Generator_Algorithm is
       when LR_Generator_Algorithm =>
-         Create_Create_Parser
+         LR_Create_Create_Parser
            (Data, LR_Parsers, Data.Generator_Algorithm, None, Input_Data.Generate_Params.First_State_Index,
             Input_Data.Generate_Params.First_Parser_Label, Ada_Action_Names, Ada_Check_Names);
 
       when Packrat =>
-         Create_Packrat_Parser (Data.Grammar, Ada_Action_Names, Ada_Check_Names, Generate_Utils.LR1_Descriptor);
+         Wisi.Generate_Packrat (Data.Grammar, Ada_Action_Names, Ada_Check_Names, Generate_Utils.LR1_Descriptor);
+
+         Packrat_Create_Create_Parser;
       end case;
 
       Put_Line ("end " & Main_Package_Name & ";");
@@ -364,33 +368,103 @@ begin
         (Input_Data.Lexer.File_Name, 1, "Ada output language does not support setting Interface");
    end case;
 
+   if WisiToken.Trace_Generate > 0 then
+      Put_Line ("Tokens:");
+      WisiToken.Put_Tokens (Generate_Utils.LR1_Descriptor);
+      New_Line;
+      Put_Line ("Productions:");
+      WisiToken.Productions.Put (Data.Grammar, Generate_Utils.LR1_Descriptor);
+      New_Line;
+   end if;
+
    case Data.Generator_Algorithm is
    when LALR_LR1 =>
+      if WisiToken.Trace_Generate > 0 then
+         Put_Line ("LALR Parse Table:");
+      end if;
+
       Generate_LALR;
+
+      if WisiToken.Trace_Generate > 0 then
+         if LR_Parsers (LALR).McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
+            New_Line;
+            Put_Line ("McKenzie:");
+            WisiToken.LR.Put (LR_Parsers (LALR).McKenzie_Param, Generate_Utils.LR1_Descriptor);
+         end if;
+
+         New_Line;
+         Put_Line ("Minimal_Terminal_Sequences:");
+         for I in LR_Parsers (LALR).Minimal_Terminal_Sequences.First_Index ..
+           LR_Parsers (LALR).Minimal_Terminal_Sequences.Last_Index
+         loop
+            Put_Line
+              (WisiToken.Image (I, Generate_Utils.LR1_Descriptor) & " => " & WisiToken.Image
+                 (LR_Parsers (LALR).Minimal_Terminal_Sequences (I), Generate_Utils.LR1_Descriptor));
+         end loop;
+
+         New_Line;
+         Put_Line ("LR1 Parse Table:");
+      end if;
+
       Generate_LR1;
 
       Data.Parser_State_Count := LR_Parsers (LR1).State_Last - LR_Parsers (LR1).State_First + 1;
 
    when LALR =>
+      if WisiToken.Trace_Generate > 0 then
+         Put_Line ("LALR Parse Table:");
+      end if;
+
       Generate_LALR;
+
+      if WisiToken.Trace_Generate > 0 then
+         if LR_Parsers (LALR).McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
+            New_Line;
+            Put_Line ("McKenzie:");
+            WisiToken.LR.Put (LR_Parsers (LALR).McKenzie_Param, Generate_Utils.LR1_Descriptor);
+         end if;
+
+         New_Line;
+         Put_Line ("Minimal_Terminal_Sequences:");
+         for I in LR_Parsers (LALR).Minimal_Terminal_Sequences.First_Index ..
+           LR_Parsers (LALR).Minimal_Terminal_Sequences.Last_Index
+         loop
+            Put_Line
+              (WisiToken.Image (I, Generate_Utils.LR1_Descriptor) & " => " & WisiToken.Image
+                 (LR_Parsers (LALR).Minimal_Terminal_Sequences (I), Generate_Utils.LR1_Descriptor));
+         end loop;
+      end if;
 
       Data.Parser_State_Count := LR_Parsers (LALR).State_Last - LR_Parsers (LALR).State_First + 1;
 
    when LR1 =>
+      if WisiToken.Trace_Generate > 0 then
+         Put_Line ("LR1 Parse Table:");
+      end if;
+
       Generate_LR1;
+
+      if WisiToken.Trace_Generate > 0 then
+         if LR_Parsers (LR1).McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
+            New_Line;
+            Put_Line ("McKenzie:");
+            WisiToken.LR.Put (LR_Parsers (LR1).McKenzie_Param, Generate_Utils.LR1_Descriptor);
+         end if;
+
+         New_Line;
+         Put_Line ("Minimal_Terminal_Sequences:");
+         for I in LR_Parsers (LR1).Minimal_Terminal_Sequences.First_Index ..
+           LR_Parsers (LR1).Minimal_Terminal_Sequences.Last_Index
+         loop
+            Put_Line
+              (WisiToken.Image (I, Generate_Utils.LR1_Descriptor) & " => " & WisiToken.Image
+                 (LR_Parsers (LR1).Minimal_Terminal_Sequences (I), Generate_Utils.LR1_Descriptor));
+         end loop;
+      end if;
 
       Data.Parser_State_Count := LR_Parsers (LR1).State_Last - LR_Parsers (LR1).State_First + 1;
 
    when Packrat =>
-      if WisiToken.Trace_Generate > 0 then
-         Put_Line ("Tokens:");
-         WisiToken.Put_Tokens (Generate_Utils.LR1_Descriptor);
-         New_Line;
-         Put_Line ("Productions:");
-         WisiToken.Productions.Put (Data.Grammar, Generate_Utils.LR1_Descriptor);
-      end if;
-      New_Line;
-
       Data.Parser_State_Count := 0;
    end case;
 
@@ -417,16 +491,22 @@ begin
 
    Create_re2c (Output_File_Name_Root, Input_Data.Elisp_Names.Regexps);
 
-   Put_Line
-     (Integer'Image (Input_Data.Rule_Count) & " rules," &
-        Integer'Image (Input_Data.Action_Count) & " actions," &
-        Integer'Image (Input_Data.Check_Count) & " checks," &
-        WisiToken.State_Index'Image (Data.Parser_State_Count) & " states," &
-        Integer'Image (Data.Table_Entry_Count) & " table entries");
-   Put_Line
-     (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
-        Integer'Image (Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-        Integer'Image (Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+   case Data.Generator_Algorithm is
+   when LR_Generator_Algorithm =>
+      Put_Line
+        (Integer'Image (Input_Data.Rule_Count) & " rules," &
+           Integer'Image (Input_Data.Action_Count) & " actions," &
+           Integer'Image (Input_Data.Check_Count) & " checks," &
+           WisiToken.State_Index'Image (Data.Parser_State_Count) & " states," &
+           Integer'Image (Data.Table_Entry_Count) & " table entries");
+      Put_Line
+        (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+           Integer'Image (Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+           Integer'Image (Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+
+   when Packrat =>
+      null;
+   end case;
 exception
 when others =>
    Set_Output (Standard_Output);

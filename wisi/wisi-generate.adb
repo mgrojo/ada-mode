@@ -214,7 +214,7 @@ begin
 
    case Grammar_Parse_Data.Generate_Params.Output_Language is
    when None =>
-      raise Programmer_Error; -- checked in wisi.declarations
+      raise User_Error with "output language not specified";
 
    when Ada =>
       Wisi.Output_Ada (Grammar_Parse_Data, -Output_File_Root);

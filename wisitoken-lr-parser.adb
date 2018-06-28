@@ -900,6 +900,7 @@ package body WisiToken.LR.Parser is
       --  character.
    end Parse;
 
+   overriding
    procedure Execute_Actions (Parser : in out LR.Parser.Parser)
    is
       use all type Syntax_Trees.User_Data_Access;
@@ -942,12 +943,14 @@ package body WisiToken.LR.Parser is
       end if;
    end Execute_Actions;
 
+   overriding
    function Any_Errors (Parser : in out LR.Parser.Parser) return Boolean
    is
       use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
       Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;
    begin
+      pragma Assert (Parser_State.Tree.Flushed);
       return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Lexer.Errors.Length > 0;
    end Any_Errors;
 
