@@ -56,9 +56,6 @@ package Wisi.Gen_Generate_Utils is
 
    subtype Nonterminal_ID is Token_ID range LR1_Descriptor.Last_Terminal + 1 .. LR1_Descriptor.Last_Nonterminal;
 
-   function Token_WY_Image (ID : in Token_ID) return String is (LR1_Descriptor.Image (ID).all);
-   --  The token name as given in the grammar (.wy) file.
-
    function Find_Token_ID (Token : in String) return Token_ID;
 
    function Find_Kind (Target_Kind : in String) return Token_ID;
@@ -104,11 +101,14 @@ package Wisi.Gen_Generate_Utils is
    function Iterate
      (Container    : aliased    Token_Container;
       Non_Grammar  :         in Boolean := True;
-      Other_Tokens :         in Boolean := True)
+      Nonterminals :         in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class;
 
-   function First (Non_Grammar : in Boolean) return Token_Cursor;
-   procedure Next (Cursor : in out Token_Cursor; Other_Tokens : in Boolean);
+   function First
+     (Non_Grammar  : in Boolean;
+      Nonterminals : in Boolean)
+     return Token_Cursor;
+   procedure Next (Cursor : in out Token_Cursor; Nonterminals : in Boolean);
 
    function ID (Cursor : in Token_Cursor) return Token_ID;
 
@@ -132,9 +132,6 @@ package Wisi.Gen_Generate_Utils is
 
    All_Tokens : constant Token_Container := (Bogus_Content => 1);
 
-   procedure Put_Tokens;
-   --  Put user readable token list to Standard_Output
-
    function To_Conflicts
      (Source_File_Name             : in     String;
       Accept_Reduce_Conflict_Count :    out Integer;
@@ -142,14 +139,24 @@ package Wisi.Gen_Generate_Utils is
       Reduce_Reduce_Conflict_Count :    out Integer)
      return WisiToken.LR.Generator_Utils.Conflict_Lists.List;
 
-   function To_Grammar
-     (Descriptor       : in WisiToken.Descriptor'Class;
-      Source_File_Name : in String;
-      Start_Token      : in String)
-     return WisiToken.Productions.Arrays.Vector;
-   --  Convert Tokens.Rules into a grammar.
+   procedure To_Grammar
+     (Descriptor       : in     WisiToken.Descriptor'Class;
+      Source_File_Name : in     String;
+      Start_Token      : in     String;
+      Grammar          :    out WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map  :    out WisiToken.Productions.Source_Line_Maps.Vector);
+   --  Convert Tokens.Rules into a grammar, run WisiToken.Generate.Check_Consistent.
    --
-   --  Descriptor, Source_File_Name used in error messages.
+   --  Descriptor, Source_File_Name used in error messages. Error message
+   --  output to Ada.Text_IO.Standard_Error, set WisiToken.Generate.Error
+   --  True.
+
+   function To_Grammar
+     (Descriptor       : in     WisiToken.Descriptor'Class;
+      Source_File_Name : in     String;
+      Start_Token      : in     String)
+     return WisiToken.Productions.Prod_Arrays.Vector;
+   --  Same as To_Grammar above, without Source_Line_Map
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set;
 

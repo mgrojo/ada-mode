@@ -76,8 +76,8 @@ compilation_unit
   ;
 
 statement_list
-  : statement
-  | statement_list statement
+  : statement_list statement
+  | statement
   ;
 
 ;; For CHARACTER_LITERAL and TICK, the input consists of variations of:

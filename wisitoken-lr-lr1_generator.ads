@@ -33,13 +33,11 @@ package WisiToken.LR.LR1_Generator is
    use Generator_Utils;
 
    function Generate
-     (Grammar                  : in WisiToken.Productions.Arrays.Vector;
+     (Grammar                  : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Trace                    : in Boolean             := False;
-      Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
       Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr;
@@ -51,8 +49,6 @@ package WisiToken.LR.LR1_Generator is
    --  process. We don't use WisiToken.Trace here; we often want to
    --  see a trace of the parser execution without the parser
    --  generation.
-   --
-   --  If Put_Parse_Table, output the parse table to Standard_Output
    --
    --  Unless Ignore_Unused_Tokens is True, raise Grammar_Error if
    --  there are unused tokens.
@@ -68,7 +64,7 @@ package WisiToken.LR.LR1_Generator is
       Symbol               : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Productions.Arrays.Vector;
+      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set;
@@ -77,7 +73,7 @@ package WisiToken.LR.LR1_Generator is
    function LR1_Item_Sets
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Productions.Arrays.Vector;
+      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       First_State_Index    : in State_Index;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)

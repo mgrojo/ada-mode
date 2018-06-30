@@ -52,9 +52,9 @@ package WisiToken.LR.AUnit is
 
    procedure Check is new Config_Op_Arrays.Gen_AUnit (SAL.AUnit.Check, Check);
 
-   procedure Check is new Token_Sequence_Arrays.Gen_AUnit
+   package Token_Sequence_Arrays_AUnit is new Token_Sequence_Arrays.Gen_AUnit
      (Check_Index   => WisiToken.AUnit.Check,
-      Check_Element => WisiToken.AUnit.Check);
+      Check_Element => WisiToken.AUnit.Token_ID_Arrays_AUnit.Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
 

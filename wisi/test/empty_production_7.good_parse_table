@@ -11,199 +11,180 @@ Tokens:
  9 => aliased_opt
  10 => constant_opt
 
+Productions:
+6.0: wisitoken_accept <= object_declaration_list Wisi_EOI
+7.0: object_declaration_list <= object_declaration_list object_declaration
+7.1: object_declaration_list <= object_declaration
+8.0: object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON
+9.0: aliased_opt <= ALIASED
+9.1: aliased_opt <=
+10.0: constant_opt <= CONSTANT
+10.1: constant_opt <=
+
 LALR Parse Table:
+State 1:
+      6.0:wisitoken_accept <= ^ object_declaration_list Wisi_EOI, 
+
+   IDENTIFIER              => shift and goto state 2 (8.0)
+   default                 => ERROR
+
+      6.0: object_declaration_list goto state 3
+      7.1: object_declaration      goto state 4
+
+State 2:
+      8.0:object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
+
+   ALIASED                 => shift and goto state 6 (9.0)
+   CONSTANT                => reduce 0 tokens to aliased_opt 9.1
+   SEMICOLON               => reduce 0 tokens to aliased_opt 9.1
+   default                 => ERROR
+
+      8.0: aliased_opt             goto state 7
+
+State 3:
+      6.0:wisitoken_accept <= object_declaration_list ^ Wisi_EOI, 
+      7.0:object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER              => shift and goto state 2 (8.0)
+   Wisi_EOI                => accept it 6.0
+   default                 => ERROR
+
+      7.0: object_declaration      goto state 5
+
+State 4:
+      7.1:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER              => reduce 1 tokens to object_declaration_list 7.1
+   Wisi_EOI                => reduce 1 tokens to object_declaration_list 7.1
+   default                 => ERROR
+
+State 5:
+      7.0:object_declaration_list <= object_declaration_list object_declaration ^, IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER              => reduce 2 tokens to object_declaration_list 7.0
+   Wisi_EOI                => reduce 2 tokens to object_declaration_list 7.0
+   default                 => ERROR
+
+State 6:
+      9.0:aliased_opt <= ALIASED ^, CONSTANT/SEMICOLON
+
+   CONSTANT                => reduce 1 tokens to aliased_opt 9.0
+   SEMICOLON               => reduce 1 tokens to aliased_opt 9.0
+   default                 => ERROR
+
+State 7:
+      8.0:object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
+
+   CONSTANT                => shift and goto state 8 (10.0)
+   SEMICOLON               => reduce 0 tokens to constant_opt 10.1
+   default                 => ERROR
+
+      8.0: constant_opt            goto state 9
+
+State 8:
+     10.0:constant_opt <= CONSTANT ^, SEMICOLON
+
+   SEMICOLON               => reduce 1 tokens to constant_opt 10.0
+   default                 => ERROR
+
+State 9:
+      8.0:object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/Wisi_EOI
+
+   SEMICOLON               => shift and goto state 10 (8.0)
+   default                 => ERROR
+
+State 10:
+      8.0:object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^, IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER              => reduce 4 tokens to object_declaration 8.0
+   Wisi_EOI                => reduce 4 tokens to object_declaration 8.0
+   default                 => ERROR
+
 Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, SEMICOLON, Wisi_EOI)
 object_declaration_list => (IDENTIFIER, SEMICOLON)
 object_declaration => (IDENTIFIER, SEMICOLON)
 aliased_opt => ()
 constant_opt => ()
-
-Productions:
-1: wisitoken_accept <= (object_declaration_list, Wisi_EOI)
-2: object_declaration_list <= (object_declaration)
-3: object_declaration_list <= (object_declaration_list, object_declaration)
-4: object_declaration <= (IDENTIFIER, aliased_opt, constant_opt, SEMICOLON)
-5: aliased_opt <= ()
-6: aliased_opt <= (ALIASED)
-7: constant_opt <= ()
-8: constant_opt <= (CONSTANT)
-
-State 1:
-     1:wisitoken_accept <= ^ object_declaration_list Wisi_EOI, 
-
-   IDENTIFIER              => shift and goto state 2 (4)
-   default                 => ERROR
-
-     1: object_declaration_list goto state 3
-     2: object_declaration      goto state 4
-
-State 2:
-     4:object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
-
-   ALIASED                 => shift and goto state 6 (6)
-   CONSTANT                => reduce 0 tokens to aliased_opt (5)
-   SEMICOLON               => reduce 0 tokens to aliased_opt (5)
-   default                 => ERROR
-
-     4: aliased_opt             goto state 7
-
-State 3:
-     1:wisitoken_accept <= object_declaration_list ^ Wisi_EOI, 
-     3:object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/Wisi_EOI
-
-   IDENTIFIER              => shift and goto state 2 (4)
-   Wisi_EOI                => accept it (1)
-   default                 => ERROR
-
-     3: object_declaration      goto state 5
-
-State 4:
-     2:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI
-
-   IDENTIFIER              => reduce 1 tokens to object_declaration_list (2)
-   Wisi_EOI                => reduce 1 tokens to object_declaration_list (2)
-   default                 => ERROR
-
-
-State 5:
-     3:object_declaration_list <= object_declaration_list object_declaration ^, IDENTIFIER/Wisi_EOI
-
-   IDENTIFIER              => reduce 2 tokens to object_declaration_list (3)
-   Wisi_EOI                => reduce 2 tokens to object_declaration_list (3)
-   default                 => ERROR
-
-
-State 6:
-     6:aliased_opt <= ALIASED ^, CONSTANT/SEMICOLON
-
-   CONSTANT                => reduce 1 tokens to aliased_opt (6)
-   SEMICOLON               => reduce 1 tokens to aliased_opt (6)
-   default                 => ERROR
-
-
-State 7:
-     4:object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
-
-   CONSTANT                => shift and goto state 8 (8)
-   SEMICOLON               => reduce 0 tokens to constant_opt (7)
-   default                 => ERROR
-
-     4: constant_opt            goto state 9
-
-State 8:
-     8:constant_opt <= CONSTANT ^, SEMICOLON
-
-   SEMICOLON               => reduce 1 tokens to constant_opt (8)
-   default                 => ERROR
-
-
-State 9:
-     4:object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/Wisi_EOI
-
-   SEMICOLON               => shift and goto state 10 (4)
-   default                 => ERROR
-
-
-State 10:
-     4:object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^, IDENTIFIER/Wisi_EOI
-
-   IDENTIFIER              => reduce 4 tokens to object_declaration (4)
-   Wisi_EOI                => reduce 4 tokens to object_declaration (4)
-   default                 => ERROR
-
 
 LR1 Parse Table:
-Minimal_Terminal_Sequences:
-wisitoken_accept => (IDENTIFIER, SEMICOLON, Wisi_EOI)
-object_declaration_list => (IDENTIFIER, SEMICOLON)
-object_declaration => (IDENTIFIER, SEMICOLON)
-aliased_opt => ()
-constant_opt => ()
-
 State 1:
-     1:wisitoken_accept <= ^ object_declaration_list Wisi_EOI, Wisi_EOI
+      6.0:wisitoken_accept <= ^ object_declaration_list Wisi_EOI, Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 2 (4)
+   IDENTIFIER              => shift and goto state 2 (8.0)
    default                 => ERROR
 
-     1: object_declaration_list goto state 3
-     2: object_declaration      goto state 4
+      6.0: object_declaration_list goto state 3
+      7.1: object_declaration      goto state 4
 
 State 2:
-     4:object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
+      8.0:object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
 
-   ALIASED                 => shift and goto state 6 (6)
-   CONSTANT                => reduce 0 tokens to aliased_opt (5)
-   SEMICOLON               => reduce 0 tokens to aliased_opt (5)
+   ALIASED                 => shift and goto state 6 (9.0)
+   CONSTANT                => reduce 0 tokens to aliased_opt 9.1
+   SEMICOLON               => reduce 0 tokens to aliased_opt 9.1
    default                 => ERROR
 
-     4: aliased_opt             goto state 7
+      8.0: aliased_opt             goto state 7
 
 State 3:
-     1:wisitoken_accept <= object_declaration_list ^ Wisi_EOI, Wisi_EOI
-     3:object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/Wisi_EOI
+      6.0:wisitoken_accept <= object_declaration_list ^ Wisi_EOI, Wisi_EOI
+      7.0:object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 2 (4)
-   Wisi_EOI                => accept it (1)
+   IDENTIFIER              => shift and goto state 2 (8.0)
+   Wisi_EOI                => accept it 6.0
    default                 => ERROR
 
-     3: object_declaration      goto state 5
+      7.0: object_declaration      goto state 5
 
 State 4:
-     2:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI
+      7.1:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => reduce 1 tokens to object_declaration_list (2)
-   Wisi_EOI                => reduce 1 tokens to object_declaration_list (2)
+   IDENTIFIER              => reduce 1 tokens to object_declaration_list 7.1
+   Wisi_EOI                => reduce 1 tokens to object_declaration_list 7.1
    default                 => ERROR
-
 
 State 5:
-     3:object_declaration_list <= object_declaration_list object_declaration ^, IDENTIFIER/Wisi_EOI
+      7.0:object_declaration_list <= object_declaration_list object_declaration ^, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => reduce 2 tokens to object_declaration_list (3)
-   Wisi_EOI                => reduce 2 tokens to object_declaration_list (3)
+   IDENTIFIER              => reduce 2 tokens to object_declaration_list 7.0
+   Wisi_EOI                => reduce 2 tokens to object_declaration_list 7.0
    default                 => ERROR
-
 
 State 6:
-     6:aliased_opt <= ALIASED ^, CONSTANT/SEMICOLON
+      9.0:aliased_opt <= ALIASED ^, CONSTANT/SEMICOLON
 
-   CONSTANT                => reduce 1 tokens to aliased_opt (6)
-   SEMICOLON               => reduce 1 tokens to aliased_opt (6)
+   CONSTANT                => reduce 1 tokens to aliased_opt 9.0
+   SEMICOLON               => reduce 1 tokens to aliased_opt 9.0
    default                 => ERROR
-
 
 State 7:
-     4:object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
+      8.0:object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
 
-   CONSTANT                => shift and goto state 8 (8)
-   SEMICOLON               => reduce 0 tokens to constant_opt (7)
+   CONSTANT                => shift and goto state 8 (10.0)
+   SEMICOLON               => reduce 0 tokens to constant_opt 10.1
    default                 => ERROR
 
-     4: constant_opt            goto state 9
+      8.0: constant_opt            goto state 9
 
 State 8:
-     8:constant_opt <= CONSTANT ^, SEMICOLON
+     10.0:constant_opt <= CONSTANT ^, SEMICOLON
 
-   SEMICOLON               => reduce 1 tokens to constant_opt (8)
+   SEMICOLON               => reduce 1 tokens to constant_opt 10.0
    default                 => ERROR
-
 
 State 9:
-     4:object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/Wisi_EOI
+      8.0:object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/Wisi_EOI
 
-   SEMICOLON               => shift and goto state 10 (4)
+   SEMICOLON               => shift and goto state 10 (8.0)
    default                 => ERROR
-
 
 State 10:
-     4:object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^, IDENTIFIER/Wisi_EOI
+      8.0:object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => reduce 4 tokens to object_declaration (4)
-   Wisi_EOI                => reduce 4 tokens to object_declaration (4)
+   IDENTIFIER              => reduce 4 tokens to object_declaration 8.0
+   Wisi_EOI                => reduce 4 tokens to object_declaration 8.0
    default                 => ERROR
-
 
  4 rules, 0 actions, 0 checks, 10 states, 28 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

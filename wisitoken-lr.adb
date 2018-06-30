@@ -159,7 +159,7 @@ package body WisiToken.LR is
 
       when Reduce =>
          return "(Reduce," & Count_Type'Image (Item.Token_Count) & ", " &
-           Image (Item.LHS, Descriptor) & "," & Image (Item.Productions) & ")";
+           Image (Item.Production.Nonterm, Descriptor) & "," & Trimmed_Image (Item.Production.RHS) & ")";
       when Accept_It =>
          return "(Accept It)";
       when Error =>
@@ -177,7 +177,7 @@ package body WisiToken.LR is
             return Left.State = Right.State;
 
          when Reduce | Accept_It =>
-            return Left.LHS = Right.LHS and Left.Token_Count = Right.Token_Count;
+            return Left.Production.Nonterm = Right.Production.Nonterm and Left.Token_Count = Right.Token_Count;
 
          when Error =>
             return True;
@@ -198,7 +198,7 @@ package body WisiToken.LR is
       when Reduce =>
          Trace.Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.LHS, Trace.Descriptor.all));
+              Image (Item.Production.Nonterm, Trace.Descriptor.all));
       when Accept_It =>
          Trace.Put ("accept it");
       when Error =>
@@ -263,22 +263,19 @@ package body WisiToken.LR is
       Symbol          : in     Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
       Production      : in     Production_ID;
-      LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     Semantic_Checks.Semantic_Check)
    is
-      use Production_ID_Arrays;
       Action   : Parse_Action_Rec;
       New_Node : Action_Node_Ptr;
       Node     : Action_Node_Ptr;
    begin
       case Verb is
       when Reduce =>
-         Action := (Reduce, +Production, LHS_ID, Semantic_Action, Semantic_Check, RHS_Token_Count, Name_Index);
+         Action := (Reduce, Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
       when Accept_It =>
-         Action := (Accept_It, +Production, LHS_ID, Semantic_Action, Semantic_Check, RHS_Token_Count, Name_Index);
+         Action := (Accept_It, Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
       when others =>
          null;
       end case;
@@ -368,9 +365,7 @@ package body WisiToken.LR is
      (State           : in out Parse_State;
       Symbols         : in     Token_ID_Array;
       Production      : in     Production_ID;
-      LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check)
    is begin
@@ -378,7 +373,7 @@ package body WisiToken.LR is
       --  conflicts, all the same action.
       for Symbol of Symbols loop
          Add_Action
-           (State, Symbol, Reduce, Production, LHS_ID, RHS_Token_Count, Name_Index,
+           (State, Symbol, Reduce, Production, RHS_Token_Count,
             Semantic_Action, Semantic_Check);
       end loop;
       Add_Error (State);
@@ -390,16 +385,14 @@ package body WisiToken.LR is
       Symbol            : in     Token_ID;
       State_Index       : in     WisiToken.State_Index;
       Reduce_Production : in     Production_ID;
-      LHS_ID            : in     Token_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Name_Index        : in     Natural;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     Semantic_Checks.Semantic_Check)
    is
       use Production_ID_Arrays;
       Action_1 : constant Parse_Action_Rec := (Shift, +Shift_Productions, State_Index);
       Action_2 : constant Parse_Action_Rec :=
-        (Reduce, +Reduce_Production, LHS_ID, Semantic_Action, Semantic_Check, RHS_Token_Count, Name_Index);
+        (Reduce, Reduce_Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -410,28 +403,24 @@ package body WisiToken.LR is
       Symbol            : in     Token_ID;
       Verb              : in     LR.Parse_Action_Verbs;
       Production_1      : in     Production_ID;
-      LHS_ID_1          : in     Token_ID;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Name_Index_1      : in     Natural;
       Semantic_Action_1 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     Semantic_Checks.Semantic_Check;
       Production_2      : in     Production_ID;
-      LHS_ID_2          : in     Token_ID;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Name_Index_2      : in     Natural;
       Semantic_Action_2 : in     Syntax_Trees.Semantic_Action;
       Semantic_Check_2  : in     Semantic_Checks.Semantic_Check)
    is
-      use Production_ID_Arrays;
-      Action_1 : constant Parse_Action_Rec   :=
+      Action_1 : constant Parse_Action_Rec :=
         (case Verb is
          when Reduce    =>
-           (Reduce, +Production_1, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1, Name_Index_1),
+           (Reduce, Production_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1),
          when Accept_It =>
-           (Accept_It, +Production_1, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1, Name_Index_1),
+           (Accept_It, Production_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1),
          when others => raise WisiToken.Programmer_Error);
+
       Action_2 : constant Parse_Action_Rec :=
-        (Reduce, +Production_2, LHS_ID_2, Semantic_Action_2, Semantic_Check_2, RHS_Token_Count_2, Name_Index_2);
+        (Reduce, Production_2, Semantic_Action_2, Semantic_Check_2, RHS_Token_Count_2);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -439,7 +428,7 @@ package body WisiToken.LR is
 
    procedure Add_Error (State  : in out LR.Parse_State)
    is
-      Action : constant Parse_Action_Rec := (Verb => Error, Productions => Production_ID_Arrays.Empty_Vector);
+      Action : constant Parse_Action_Rec := (Verb => Error);
       Node   : Action_Node_Ptr           := State.Action_List;
    begin
       if Node = null then
@@ -495,16 +484,28 @@ package body WisiToken.LR is
    end Set_Token_Sequence;
 
    procedure Set_Production
-     (Prod : in out Production;
-      LHS  : in     Token_ID;
-      RHS  : in     Token_ID_Array)
+     (Prod     : in out Productions.Instance;
+      LHS      : in     Token_ID;
+      RHS_Last : in     Natural)
    is begin
       Prod.LHS := LHS;
-      Prod.RHS.Set_Length (RHS'Length);
-      for I in RHS'Range loop
-         Prod.RHS (I) := RHS (I);
-      end loop;
+      Prod.RHSs.Set_First (0);
+      Prod.RHSs.Set_Last (RHS_Last);
    end Set_Production;
+
+   procedure Set_RHS
+     (Prod      : in out Productions.Instance;
+      RHS_Index : in     Natural;
+      RHS       : in     Token_ID_Array)
+   is begin
+      if RHS'Length > 0 then
+         Prod.RHSs (RHS_Index).Tokens.Set_First (1);
+         Prod.RHSs (RHS_Index).Tokens.Set_Last (RHS'Length);
+         for I in RHS'Range loop
+            Prod.RHSs (RHS_Index).Tokens (I) := RHS (I);
+         end loop;
+      end if;
+   end Set_RHS;
 
    function Action_For
      (Table : in Parse_Table;
@@ -580,7 +581,8 @@ package body WisiToken.LR is
       Iter         : Action_List_Iterator := First (Table.States (State));
       Reduce_Count : Integer              := 0;
       Action       : Reduce_Action_Rec;
-      --  In the absence of conflicts, there is only one reduce action in each state.
+      --  In the absence of conflicts and reduce to empty nonterm, there is
+      --  only one reduce action in each state.
 
       --  FIXME: if this is useful, cache shift, reduce counts in table.
       --  FIXME: also compress reduce?
@@ -590,7 +592,7 @@ package body WisiToken.LR is
          exit when Is_Done (Iter);
 
          if Iter.Item.Item.Verb = Reduce then
-            if Action.LHS = Invalid_Token_ID then
+            if Action.Production.Nonterm = Invalid_Token_ID then
                Action       := Iter.Item.Item;
                Reduce_Count := 1;
             else
@@ -695,15 +697,15 @@ package body WisiToken.LR is
       case Item.Verb is
       when Shift =>
          Put ("shift and goto state" & State_Index'Image (Item.State));
-         Put (" " & Image (Item.Productions, Strict => False));
+         Put (" " & Trimmed_Image (Item.Productions, Strict => False));
       when Reduce =>
          Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.LHS, Descriptor));
-         Put (" " & Image (Item.Productions, Strict => False));
+              Image (Item.Production.Nonterm, Descriptor));
+         Put (" " & Trimmed_Image (Item.Production));
       when Accept_It =>
          Put ("accept it");
-         Put (" " & Image (Item.Productions, Strict => False));
+         Put (" " & Trimmed_Image (Item.Production));
       when Error =>
          Put ("ERROR");
       end case;
@@ -746,11 +748,14 @@ package body WisiToken.LR is
          Action_Ptr := Action_Ptr.Next;
       end loop;
 
-      New_Line;
+      if Goto_Ptr /= null then
+         New_Line;
+      end if;
 
       while Goto_Ptr /= null loop
          Put_Line
-           ("  " & Padded_Image (Goto_Ptr.Production, Width => 4) & ": " & Image (Goto_Ptr.Symbol, Descriptor) &
+           ("  " & Padded_Image (Goto_Ptr.Production, Width => Prod_ID_Image_Width) & ": " &
+              Image (Goto_Ptr.Symbol, Descriptor) &
               (Descriptor.Image_Width - Image (Goto_Ptr.Symbol, Descriptor)'Length) * ' ' &
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;
@@ -811,55 +816,5 @@ package body WisiToken.LR is
          return "Check, " & Semantic_Checks.Image (Item.Check_Status, Descriptor);
       end case;
    end Image;
-
-   function Next_Grammar_Token
-     (Terminals        : in out          Base_Token_Arrays.Vector;
-      Line_Begin_Token : in out          Line_Begin_Token_Vectors.Vector;
-      Descriptor       : in              WisiToken.Descriptor'Class;
-      Lexer            : not null access WisiToken.Lexer.Instance'Class;
-      User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
-     return Token_ID
-   is
-      use all type Syntax_Trees.User_Data_Access;
-
-      Token : Base_Token;
-      Error : Boolean;
-   begin
-      loop
-         Error := Lexer.Find_Next (Token);
-
-         if User_Data /= null then
-            User_Data.Lexer_To_Augmented (Token, Lexer);
-         end if;
-
-         if Token.Line /= Invalid_Line_Number then
-            --  Some lexers don't support line numbers.
-            if Lexer.First then
-               Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line));
-               Line_Begin_Token (Token.Line) := Terminals.Last_Index +
-                 (if Token.ID >= Descriptor.First_Terminal then 1 else 0);
-
-            elsif Token.ID = Descriptor.EOF_ID then
-               Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line + 1));
-               Line_Begin_Token (Token.Line + 1) := Terminals.Last_Index + 1;
-            end if;
-         end if;
-
-         exit when Token.ID >= Descriptor.First_Terminal;
-      end loop;
-      Terminals.Append (Token);
-
-      if Error then
-         declare
-            Error : WisiToken.Lexer.Error renames Lexer.Errors.Reference (Lexer.Errors.Last);
-         begin
-            if Error.Recover_Char (1) /= ASCII.NUL then
-               Error.Recover_Token := Terminals.Last_Index;
-            end if;
-         end;
-      end if;
-
-      return Token.ID;
-   end Next_Grammar_Token;
 
 end WisiToken.LR;

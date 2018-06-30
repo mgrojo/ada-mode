@@ -28,6 +28,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
    is
       use WisiToken.AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
+      use WisiToken.Syntax_Trees.AUnit_Public.Valid_Node_Index_Arrays_AUnit;
    begin
       Check (Label & ".label", Computed.Label, Expected.Label);
       Check (Label & ".parent", Computed.Parent, Expected.Parent);
@@ -49,11 +50,15 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       Computed : in Tree;
       Expected : in Tree)
    is
+      use Standard.AUnit.Checks;
       use WisiToken.Syntax_Trees.AUnit_Public;
+      use Node_Arrays_AUnit;
    begin
       --  Ignoring shared_tree
       Check (Label & ".last_shared_node", Computed.Last_Shared_Node, Expected.Last_Shared_Node);
       Check (Label & ".branched_nodes", Computed.Branched_Nodes, Expected.Branched_Nodes);
+      Check (Label & ".Flush", Computed.Flush, Expected.Flush);
+      Check (Label & ".root", Computed.Root, Expected.Root);
    end Check;
 
 end WisiToken.Syntax_Trees.AUnit_Private;

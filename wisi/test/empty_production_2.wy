@@ -11,9 +11,11 @@
 ;; empty declaration. Both are correct according to the grammar; this
 ;; is reported as shift/reduce conflicts when compiling the grammar.
 ;;
-;; In the actual parse, an infinite number of parsers are spawned,
-;; terminating when the parallel parse limit is reached. Because the
-;; conflict is never resolved, no actions are output.
+;; In the actual LALR parse of empty_production_2.input, an infinite
+;; number of parsers are spawned, terminating with an error when the
+;; parallel parse limit is reached.
+;;
+;; The packrat parser succeeds on the same input.
 
 %keyword BEGIN "begin"
 %keyword IS "is"
@@ -41,13 +43,13 @@
 %conflict SHIFT/REDUCE in state body, declarations  on token BEGIN
 
 declaration
-  : ;; empty
-  | body
+  : body
+  | ;; empty
   ;
 
 declarations
-  : declaration
-  | declarations declaration
+  : declarations declaration
+  | declaration
   ;
 
 body

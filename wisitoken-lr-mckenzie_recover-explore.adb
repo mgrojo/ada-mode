@@ -103,7 +103,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
       end case;
 
-      New_State := Goto_For (Table, Config.Stack (1).State, Action.LHS);
+      New_State := Goto_For (Table, Config.Stack (1).State, Action.Production.Nonterm);
 
       Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
       return Continue;

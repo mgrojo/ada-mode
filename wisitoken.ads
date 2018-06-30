@@ -144,6 +144,10 @@ package WisiToken is
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Token_ID);
 
+   procedure Put_Tokens (Descriptor : in WisiToken.Descriptor'Class);
+   --  Put user readable token list (token_id'first ..
+   --  descriptor.last_nonterminal) to Ada.Text_IO.Current_Output
+
    function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
 
@@ -152,6 +156,9 @@ package WisiToken is
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+
+   function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
+   --  Return last index in A of a prefix shared between A, B; 0 if none.
 
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set;
    --  First, Last determine size of result.
@@ -214,29 +221,43 @@ package WisiToken is
    ----------
    --  Production IDs; see wisitoken-productions.ads for more
 
-   type Production_ID is range 1 .. Natural'Last;
-   --  Index into the production array. 1 origin for backward compatibility.
+   type Production_ID is record
+      Nonterm : Token_ID := Invalid_Token_ID;
+      RHS     : Natural  := 0;
+      --  Index into the production table.
+   end record;
 
-   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Production_ID);
+   function Image (Item : in Production_ID) return String;
+   --  Ada positional aggregate syntax, for code generation.
+
+   function Trimmed_Image (Item : in Production_ID) return String;
+   --  Nonterm.rhs_index, both integers, no leading or trailing space;
+   --  for parse table output and diagnostics.
+
+   Prod_ID_Image_Width : constant Integer := 7;
+   --  Max width of Trimmed_Image
 
    function Padded_Image (Item : in Production_ID; Width : in Integer) return String;
-   --  Padded with leading spaces to Width
+   --  Trimmed_Image padded with leading spaces to Width
 
    package Production_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Production_ID);
-   function Image is new Production_ID_Arrays.Gen_Image (Trimmed_Image);
+   function Image is new Production_ID_Arrays.Gen_Image (Image);
+   function Trimmed_Image is new Production_ID_Arrays.Gen_Image (Trimmed_Image);
 
    type Production_ID_Array is array (Natural range <>) of Production_ID;
 
    function To_Vector (Item : in Production_ID_Array) return Production_ID_Arrays.Vector;
    function "+" (Item : in Production_ID_Array) return Production_ID_Arrays.Vector renames To_Vector;
+   function "+" (Item : in Production_ID) return Production_ID_Arrays.Vector is (To_Vector ((1 => Item)));
 
    ----------
    --  Tokens
 
-   type Buffer_Pos is range 1 .. Integer'Last; -- match Emacs buffer origin.
+   type Base_Buffer_Pos is range 0 .. Integer'Last;
+   subtype Buffer_Pos is Base_Buffer_Pos range 1 .. Base_Buffer_Pos'Last; -- match Emacs buffer origin.
    type Buffer_Region is record
       First : Buffer_Pos;
-      Last  : Buffer_Pos;
+      Last  : Base_Buffer_Pos; --  allow representing null range.
    end record;
 
    Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;
@@ -262,7 +283,7 @@ package WisiToken is
       --  Char_Region are included for error messages.
       ID : Token_ID := Invalid_Token_ID;
 
-      Byte_Region : Buffer_Region     := Null_Buffer_Region;
+      Byte_Region : Buffer_Region := Null_Buffer_Region;
       --  Index into the Lexer buffer for the token text.
 
       Line   : Line_Number_Type  := Invalid_Line_Number;
@@ -367,7 +388,7 @@ package WisiToken is
    --  Extra   - add error recovery parse actions
 
    Trace_Action : Integer := 0;
-   --  Output during Execute_Action.
+   --  Output during Execute_Action, and unit tests.
 
    Trace_Generate : Integer := 0;
    --  Output during grammar generation.
@@ -407,9 +428,6 @@ package WisiToken is
       Message   : in String)
      return String;
    --  Return Gnu-formatted error message.
-
-   procedure Put_Error (Message : in String);
-   --  Put Message to Standard_Error.
 
    type Generator_Algorithm_Type is (LALR, LR1);
 

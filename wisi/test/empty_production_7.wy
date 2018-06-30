@@ -16,8 +16,8 @@
 %lexer re2c
 
 object_declaration_list
-  : object_declaration
-  | object_declaration_list object_declaration
+  : object_declaration_list object_declaration
+  | object_declaration
   ;
 
 object_declaration
@@ -25,13 +25,13 @@ object_declaration
   ;
 
 aliased_opt
-  : ;; empty
-  | ALIASED
+  : ALIASED
+  | ;; empty
   ;
 
 constant_opt
-  : ;; empty
-  | CONSTANT
+  : CONSTANT
+  | ;; empty
   ;
 
 ;;; end of file

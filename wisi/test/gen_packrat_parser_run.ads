@@ -20,17 +20,14 @@
 
 pragma License (GPL);
 
-with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Parse.Packrat;
 with WisiToken.Syntax_Trees;
 generic
-   type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with private;
-
    Descriptor : in WisiToken.Descriptor;
 
    with procedure Create_Parser
-     (Parser    :    out          WisiToken.LR.Parser_No_Recover.Parser;
-      Algorithm : in              WisiToken.Generator_Algorithm_Type;
+     (Parser    :    out          WisiToken.Parse.Packrat.Parser;
       Trace     : not null access WisiToken.Trace'Class;
       User_Data : in              WisiToken.Syntax_Trees.User_Data_Access);
 
-procedure Gen_Parser_No_Recover_Run;
+procedure Gen_Packrat_Parser_Run;

@@ -1,7 +1,0 @@
-with Gen_Parser_No_Recover_Run;
-with Identifier_List_Name_Conflict_Actions;
-with Identifier_List_Name_Conflict_Main;
-with WisiToken.Syntax_Trees;
-procedure Identifier_List_Name_Conflict_Run is new Gen_Parser_No_Recover_Run
-  (WisiToken.Syntax_Trees.User_Data_Type, Identifier_List_Name_Conflict_Actions.Descriptor,
-   Identifier_List_Name_Conflict_Main.Create_Parser);

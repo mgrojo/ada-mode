@@ -40,6 +40,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
    is
       pragma Unreferenced (T);
       use WisiToken.AUnit;
+      use WisiToken.AUnit.Token_ID_Arrays_AUnit;
       use AUnit.Checks.Containers;
 
       Input_File_Name  : constant String := "../wisi/test/ada_lite.wy";
@@ -67,7 +68,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
            (Grammar_Parse_Data.Tokens, Grammar_Parse_Data.Conflicts, EOI_Name, WisiToken_Accept_Name);
          use Generate_Utils;
 
-         Grammar : constant WisiToken.Productions.Arrays.Vector := To_Grammar
+         Grammar : constant WisiToken.Productions.Prod_Arrays.Vector := To_Grammar
            (LALR_Descriptor, Input_File_Name, Start_Token => "compilation_unit");
 
          Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;

@@ -44,18 +44,18 @@ package body Name_Grammar_Test is
       Identifier_ID,
       EOF_ID,
 
-      --  non-terminals; accept is neither first nor last.
+      --  non-terminals
+      Statement_ID,
       Component_ID,
       Component_List_ID,
       Name_ID,
-      Statement_ID,
       Symbol_Name_ID);
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Dot_ID,
       Last_Terminal     => EOF_ID,
-      First_Nonterminal => Component_ID,
+      First_Nonterminal => Statement_ID,
       Last_Nonterminal  => Symbol_Name_ID,
       EOF_ID            => EOF_ID,
       Accept_ID         => Statement_ID,
@@ -85,15 +85,15 @@ package body Name_Grammar_Test is
    --  Module.Symbol.Component
    --  Module.Symbol (Index).Component
    --  Module.Symbol.Component (Index) ...
-   Full_Grammar : constant WisiToken.Productions.Arrays.Vector :=
+   Full_Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
      Statement_ID      <= Name_ID & EOF_ID + Null_Action and
-     Name_ID           <= Symbol_Name_ID & Component_List_ID + Null_Action and
-     Name_ID           <= Symbol_Name_ID + Null_Action and
+     (Name_ID           <= Symbol_Name_ID & Component_List_ID + Null_Action or
+                           Symbol_Name_ID + Null_Action) and
      Symbol_Name_ID    <= Identifier_ID & Dot_ID & Identifier_ID + Null_Action and
-     Component_List_ID <= Component_ID & Component_List_ID + Null_Action and
-     Component_List_ID <= Component_ID + Null_Action and
-     Component_ID      <= Dot_ID & Identifier_ID + Null_Action and
-     Component_ID      <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
+     (Component_List_ID <= Component_ID & Component_List_ID + Null_Action or
+                           Component_ID + Null_Action) and
+     (Component_ID      <= Dot_ID & Identifier_ID + Null_Action or
+                           Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 

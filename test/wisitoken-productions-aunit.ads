@@ -22,8 +22,6 @@ with SAL.Gen_Definite_Doubly_Linked_Lists.Gen_AUnit;
 with WisiToken.AUnit;
 package WisiToken.Productions.AUnit is
 
-   package Token_ID_Lists_AUnit is new Token_ID_Lists.Gen_AUnit (WisiToken.AUnit.Check);
-
    procedure Check
      (Label    : in String;
       Computed : in Instance;

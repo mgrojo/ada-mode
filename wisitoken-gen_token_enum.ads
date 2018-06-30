@@ -40,6 +40,7 @@ package WisiToken.Gen_Token_Enum is
    function Token_Enum_Image return Token_ID_Array_String;
 
    subtype Terminal_Enum_ID is Token_Enum_ID range First_Terminal .. Last_Terminal;
+   subtype Nonterminal_Enum_ID is Token_Enum_ID range First_Nonterminal .. Last_Nonterminal;
 
    LR1_Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal                => +First_Terminal,
@@ -85,12 +86,12 @@ package WisiToken.Gen_Token_Enum is
 
    function To_Syntax (Item : in Enum_Syntax) return WisiToken.Lexer.Regexp.Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Productions.Token_ID_Lists.List;
+   function "&" (Left, Right : in Token_Enum_ID) return Token_ID_Arrays.Vector;
 
    function "&"
-     (Left  : in WisiToken.Productions.Token_ID_Lists.List;
+     (Left  : in Token_ID_Arrays.Vector;
       Right : in Token_Enum_ID)
-     return WisiToken.Productions.Token_ID_Lists.List;
+     return Token_ID_Arrays.Vector;
 
    function "+" (Left : in Token_Enum_ID; Right : in Syntax_Trees.Semantic_Action) return Productions.Right_Hand_Side;
 

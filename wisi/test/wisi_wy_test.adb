@@ -20,11 +20,31 @@
 
 pragma License (GPL);
 
-with Ada.Directories;
 with AUnit.Assertions;
 with AUnit.Checks.Text_IO;
+with Ada.Directories;
 with GNAT.OS_Lib;
 package body Wisi_WY_Test is
+
+   procedure Dos2unix (File_Name : in String)
+   is
+      use GNAT.OS_Lib;
+   begin
+      if GNAT.OS_Lib.Directory_Separator = '\' then
+         declare
+            Exe : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
+            Success : Boolean;
+            pragma Unreferenced (Success);
+         begin
+            Spawn
+              (Program_Name => Exe.all,
+               Args         =>
+                 (1         => new String'("-q"),
+                  2         => new String'(File_Name)),
+               Success      => Success);
+         end;
+      end if;
+   end Dos2unix;
 
    ----------
    --  Test procedures
@@ -64,6 +84,11 @@ package body Wisi_WY_Test is
       AUnit.Assertions.Assert
         (Success,
          "spawn or execution of 'wisi-generate.exe' " & WY_File.all & "' failed");
+
+      Dos2unix (Computed_LALR_El_File);
+      if Test.LR1 then
+         Dos2unix (Computed_LR1_El_File);
+      end if;
 
       AUnit.Checks.Text_IO.Check_Files ("LALR", Computed_LALR_El_File, Expected_LALR_El_File);
       if Test.LR1 then

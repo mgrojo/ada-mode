@@ -35,10 +35,11 @@ package body WisiToken.LR.AUnit is
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
       when Shift =>
+         --  Ignoring Productions; not set in unit tests
          Check (Label & ".State", Computed.State, Expected.State);
       when Reduce | Accept_It =>
-         Check (Label & ".LHS", Computed.LHS, Expected.LHS);
-         --  Ignoring Production, Action, Name_Index
+         Check (Label & ".Production", Computed.Production, Expected.Production);
+         --  Ignoring Action, Check
          Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);
       when Error =>
          null;

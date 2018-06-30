@@ -1,3 +1,4 @@
+
 ^Docs/wisi-user_guide\.html$
 ^Docs/wisi-user_guide\.info$
 ^build/.*\-elisp.el$
@@ -16,6 +17,7 @@
 ^build/.*\.l$
 ^build/.*\.out$
 ^build/.*\.output$
+^build/.*\.packrat_parse_table$
 ^build/.*\.parse$
 ^build/.*\.parse_table$
 ^build/.*\.profile$
@@ -34,4 +36,3 @@
 ^wisi/test/wisent\.output$
 ^wisi/wisi_grammar\.parse_table$
 ^wisi/wisi_grammar\.re2c$
-

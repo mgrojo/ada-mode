@@ -211,6 +211,24 @@ package body Wisi is
       return False;
    end Is_In;
 
+   function Is_Present (Rules : in Rule_Lists.List; LHS : in String) return Boolean
+   is
+      use Rule_Lists;
+
+      Found : Boolean := False;
+
+      procedure Process (Position : in Cursor)
+      is begin
+         if -Rules (Position).Left_Hand_Side = LHS then
+            Found := True;
+         end if;
+      end Process;
+
+   begin
+      Rules.Iterate (Process'Access);
+      return Found;
+   end Is_Present;
+
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List
    is
       Result : String_Lists.List := List;

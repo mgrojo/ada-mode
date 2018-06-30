@@ -61,8 +61,8 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
 
                         when Reduce =>
                            Put
-                             ("(" & Image (Parse_Action.LHS, Descriptor) & " ." &
-                                Integer'Image (Parse_Action.Name_Index) & ")");
+                             ("(" & Image (Parse_Action.Production.Nonterm, Descriptor) & " ." &
+                                Integer'Image (Parse_Action.Production.RHS) & ")");
 
                         when Shift =>
                            Put (State_Index'Image (Parse_Action.State));
@@ -202,7 +202,7 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
          RHS_Count  := 1;
          for RHS of Rule.Right_Hand_Sides loop
             Put ("       ((");
-            for Token of RHS.Production loop
+            for Token of RHS.Tokens loop
                Put (Token & " ");
             end loop;
             if Length (RHS.Action) = 0 then

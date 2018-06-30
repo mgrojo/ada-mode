@@ -49,17 +49,17 @@ package body Association_Grammar_Test is
       EOF_ID,
 
       --  non-terminals
+      Statement_ID, -- must be first nonterm
       Aggregate_ID,
       Association_ID,
-      Association_List_ID,
-      Statement_ID);
+      Association_List_ID);
 
    package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Comma_ID,
       Last_Terminal     => EOF_ID,
-      First_Nonterminal => Aggregate_ID,
-      Last_Nonterminal  => Statement_ID,
+      First_Nonterminal => Statement_ID,
+      Last_Nonterminal  => Association_List_ID,
       EOF_ID            => EOF_ID,
       Accept_ID         => Statement_ID,
       Case_Insensitive  => False);
@@ -87,14 +87,14 @@ package body Association_Grammar_Test is
    --  (identifier => identifier)
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
-   Full_Grammar : constant WisiToken.Productions.Arrays.Vector :=
+   Full_Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
      Statement_ID        <= Aggregate_ID & EOF_ID + Null_Action and
      Aggregate_ID        <= Paren_Left_ID & Association_List_ID & Paren_Right_ID + Null_Action and
-     Association_List_ID <= Association_ID & Comma_ID & Association_List_ID + Null_Action and
-     Association_List_ID <= Association_ID + Null_Action and
-     Association_ID      <= Identifier_ID & Equal_Greater_ID & Identifier_ID + Null_Action and
-     Association_ID      <= Int_ID & Equal_Greater_ID & Identifier_ID + Null_Action and
-     Association_ID      <= Identifier_ID + Null_Action;
+     (Association_List_ID <= Association_ID & Comma_ID & Association_List_ID + Null_Action or
+                            Association_ID + Null_Action) and
+     (Association_ID      <= Identifier_ID & Equal_Greater_ID & Identifier_ID + Null_Action or
+                            Int_ID & Equal_Greater_ID & Identifier_ID + Null_Action or
+                            Identifier_ID + Null_Action);
 
    First_Parser_Label : constant := 1;
 

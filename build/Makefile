@@ -1,8 +1,8 @@
-# Gnu Makefile
+# Gnu Makefile for WisiToken
 #
 # Top level rules here for visibility; lower level rules in rules.make
 
-ZIP_VERSION := 6.0b
+ZIP_VERSION := 1.0a
 #w-$(shell date +%Y-%m-%d)
 
 all : test-clean tests
@@ -12,7 +12,7 @@ all : test-clean tests
 # test_all_harness.adb
 #
 #t_one : one-clean
-t_one : ada_lite_re2c.c
+#t_one : ada_lite_re2c.c
 t_one : export Standard_Common_Build := Debug
 # t_one : RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
 t_one : test_one_harness.run
@@ -26,16 +26,15 @@ t_all : skip_to_grammar_re2c.c
 t_all : test_all_harness.run
 
 one-clean :
-	rm -rf wisi_grammar*
-	cd ../wisi/; rm -rf wisi_grammar.ad? wisi_grammar.parse_table wisi_grammar.re2c wisi_grammar_re2c.c wisi_grammar_re2c_c.ads
+	rm -rf case_expression*
 
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-#one :: one-clean
+one :: one-clean
 one :: export Standard_Common_Build := Debug
 #one :: RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
 #one :: ../wisi/wisi_grammar_re2c.c
-one :: wisi_grammar_run.exe
-	./wisi_grammar_run.exe -v 2  ../wisi/test/debug.wy
+one :: identifier_list_name_conflict_re2c.c identifier_list_name_conflict-parse.diff
+
 
 #c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
 

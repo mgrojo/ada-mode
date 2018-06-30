@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Utilities for parsing Wisent files
+--  Utilities for generating source code from  Wisi source files
 --
 --  Copyright (C) 2012, 2013, 2015, 2017, 2018 Stephen Leake. All Rights Reserved.
 --
@@ -21,28 +21,6 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 package Wisi.Utils is
 
-   Error : Boolean := False;
-
-   function Skip_Comments (File : in Standard.Ada.Text_IO.File_Type) return String;
-   --  Return next line that is not a comment, and strip leading
-   --  whitespace and trailing comment from line.
-
-   function Error_String
-     (File_Name : in String;
-      File_Line : in WisiToken.Line_Number_Type;
-      Message   : in String)
-     return String;
-
-   procedure Put_Error
-     (File_Name : in String;
-      File_Line : in WisiToken.Line_Number_Type;
-      Message   : in String);
-   --  Set Error True, output to Standard_Error
-
-   procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String);
-   --  Set Error True, output error to Standard_Error
-
-   --  code generation
    Indent : Standard.Ada.Text_IO.Positive_Count := 1;
 
    procedure Indent_Line (Text : in String);

@@ -46,7 +46,7 @@ with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with System.Multiprocessors;
-with WisiToken.Lexer;
+with WisiToken.Productions;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.LR is
@@ -68,25 +68,24 @@ package WisiToken.LR is
    --  Pause, Shift_Recover are only used for error recovery.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
-      Productions : Production_ID_Arrays.Vector;
-      --  Index into Parse_Table.Productions, for McKenzie_Recover. The same
-      --  Shift action may occur in several productions in one state (ie
-      --  push the first token in a statement that has several variants).
-      --  Only one production occurs for Reduce.
-
       case Verb is
       when Shift =>
+         Productions : Production_ID_Arrays.Vector;
+         --  Index into Parse_Table.Productions, for McKenzie_Recover. A Shift
+         --  action for the same token may occur in several productions in one
+         --  state (ie push the first token in a statement that has several
+         --  variants).
+
          State : State_Index := State_Index'Last;
 
       when Reduce | Accept_It =>
-         LHS         : Token_ID                                 := Invalid_Token_ID;
+         Production : Production_ID;
+         --  Index into Parse_Table.Productions, and the result nonterm.
+
+         --  FIXME: use Action, Check in table.productions
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
          Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
          Token_Count : Ada.Containers.Count_Type                := 0;
-
-         Name_Index : Natural := 0;
-         --  Index of production among productions for a nonterminal,
-         --  for generating action names
 
       when Error =>
          null;
@@ -101,7 +100,7 @@ package WisiToken.LR is
    --  Ada aggregate syntax, leaving out Action, Check in reduce.
 
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
-   --  Ignore Production, Action, Check, Name_Index.
+   --  Ignore Action, Check.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
 
@@ -133,7 +132,7 @@ package WisiToken.LR is
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
    type Parse_State is record
-      Productions : Production_ID_Arrays.Vector;
+      Productions : Production_ID_Arrays.Vector; --  FIXME: replace with Kernels
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
    end record;
@@ -176,9 +175,7 @@ package WisiToken.LR is
       Symbol          : in     Token_ID;
       Verb            : in     Parse_Action_Verbs;
       Production      : in     Production_ID;
-      LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Reduce or Accept_It action to tail of State action list.
@@ -197,9 +194,7 @@ package WisiToken.LR is
      (State           : in out Parse_State;
       Symbols         : in     Token_ID_Array;
       Production      : in     Production_ID;
-      LHS_ID          : in     Token_ID;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Name_Index      : in     Natural;
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add duplicate Reduce actions, and final Error action, to tail of
@@ -211,9 +206,7 @@ package WisiToken.LR is
       Symbol            : in     Token_ID;
       State_Index       : in     WisiToken.State_Index;
       Reduce_Production : in     Production_ID;
-      LHS_ID            : in     Token_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
-      Name_Index        : in     Natural;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Shift/Reduce conflict to State.
@@ -223,15 +216,11 @@ package WisiToken.LR is
       Symbol            : in     Token_ID;
       Verb              : in     Parse_Action_Verbs;
       Production_1      : in     Production_ID;
-      LHS_ID_1          : in     Token_ID;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Name_Index_1      : in     Natural;
       Semantic_Action_1 : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check_1  : in     WisiToken.Semantic_Checks.Semantic_Check;
       Production_2      : in     Production_ID;
-      LHS_ID_2          : in     Token_ID;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Name_Index_2      : in     Natural;
       Semantic_Action_2 : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check_2  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
@@ -291,16 +280,19 @@ package WisiToken.LR is
       RHS : Token_ID_Arrays.Vector;
    end record;
 
-   package Production_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Production_ID, Production);
-
    package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
 
    procedure Set_Token_Sequence (Vector : in out Token_ID_Arrays.Vector; Tokens : in Token_ID_Array);
 
    procedure Set_Production
-     (Prod : in out Production;
-      LHS  : in     Token_ID;
-      RHS  : in     Token_ID_Array);
+     (Prod     : in out Productions.Instance;
+      LHS      : in     Token_ID;
+      RHS_Last : in     Natural);
+
+   procedure Set_RHS
+     (Prod      : in out Productions.Instance;
+      RHS_Index : in     Natural;
+      RHS       : in     Token_ID_Array);
 
    type Parse_Table
      (State_First       : State_Index;
@@ -313,7 +305,7 @@ package WisiToken.LR is
    record
       States         : Parse_State_Array (State_First .. State_Last);
       McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Productions    : Production_Arrays.Vector; -- Indexed by Action.Production
+      Productions    : WisiToken.Productions.Prod_Arrays.Vector;
 
       Minimal_Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
    end record;
@@ -627,18 +619,5 @@ private
    type Goto_List_Iterator is tagged record
       Node : Goto_Node_Ptr;
    end record;
-
-   function Next_Grammar_Token
-     (Terminals        : in out          Base_Token_Arrays.Vector;
-      Line_Begin_Token : in out          Line_Begin_Token_Vectors.Vector;
-      Descriptor       : in              WisiToken.Descriptor'Class;
-      Lexer            : not null access WisiToken.Lexer.Instance'Class;
-      User_Data        : in              WisiToken.Syntax_Trees.User_Data_Access)
-     return Token_ID;
-   --  Get next token from Lexer, call User_Data.Lexer_To_Augmented. If
-   --  it is a grammar token, store in Terminals and return its id.
-   --  Otherwise, repeat.
-   --
-   --  Propagates Fatal_Error from Lexer.
 
 end WisiToken.LR;

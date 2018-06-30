@@ -85,9 +85,6 @@ package WisiToken.Syntax_Trees is
      is null;
    --  Read auxiliary data from Lexer, create an Augmented_Token, store
    --  it in User_Data.
-   --
-   --  Does not have a Tree argument, because this is called from
-   --  recover, which does not maintain a tree.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
@@ -121,13 +118,13 @@ package WisiToken.Syntax_Trees is
    procedure Set_Flush_False (Tree : in out Syntax_Trees.Tree);
    --  Set Flush mode False; use Flush to set True.
 
+   function Flushed (Tree : in Syntax_Trees.Tree) return Boolean;
+
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
-      Nonterm         : in     WisiToken.Token_ID;
-      Action          : in     Semantic_Action;
       Production      : in     Production_ID;
-      Name_Index      : in     Natural;
       Children        : in     Valid_Node_Index_Array;
+      Action          : in     Semantic_Action;
       Default_Virtual : in     Boolean)
      return Valid_Node_Index
    with
@@ -234,12 +231,6 @@ package WisiToken.Syntax_Trees is
      return Semantic_Action
    with Pre => Tree.Is_Nonterm (Node);
 
-   function Name_Index
-     (Tree : in Syntax_Trees.Tree;
-      Node : in Valid_Node_Index)
-     return Natural
-   with Pre => Tree.Is_Nonterm (Node);
-
    function Find_Ancestor
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;
@@ -274,9 +265,11 @@ package WisiToken.Syntax_Trees is
    --  Return the child of Node that contains ID (may be Node), or
    --  Invalid_Node_Index if none match.
 
+   procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index);
+
    function Root (Tree : in Syntax_Trees.Tree) return Node_Index;
-   --  The last node added; normally the final nonterm.
-   --  Invalid_Node_Index if Tree is empty.
+   --  Return value set by Set_Root; defaults to the last node added.
+   --  returns Invalid_Node_Index if Tree is empty.
 
    procedure Process_Tree
      (Tree         : in out Syntax_Trees.Tree;
@@ -298,9 +291,10 @@ package WisiToken.Syntax_Trees is
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
 
    function Image
-     (Tree       : in Syntax_Trees.Tree;
-      Node       : in Valid_Node_Index;
-      Descriptor : in WisiToken.Descriptor'Class)
+     (Tree             : in Syntax_Trees.Tree;
+      Node             : in Valid_Node_Index;
+      Descriptor       : in WisiToken.Descriptor'Class;
+      Include_Children : in Boolean := False)
      return String;
    function Image
      (Tree       : in Syntax_Trees.Tree;
@@ -339,12 +333,9 @@ private
          --  True if any child node is Virtual_Terminal or Nonterm with Virtual
          --  set. Used by Semantic_Check actions.
 
-         Production : Production_ID := Production_ID'Last;
-         --  Index into Parse_Table.Productions.
-
-         Name_Index : Natural := 0;
-         --  Production for nonterm_id used to produce this element, for debug
-         --  messages.
+         RHS_Index : Natural;
+         --  With ID, index into Parse_Table.Productions.
+         --  FIXME: delete if not used. or delete Action.
 
          Action : Semantic_Action := null;
 
@@ -365,22 +356,17 @@ private
    package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
 
    type Base_Tree is new Ada.Finalization.Controlled with record
-      --  It is tempting to store an access to Shared_Parser.Terminals here,
-      --  and use that to represent some data. However, during
-      --  McKenzie_Recover, the tree is read by parallel tasks, and
-      --  Shared_Parser.Terminals is written (when reading new terminals
-      --  from the Lexer), also by parallel tasks. So we would need a
-      --  protected object to control access to Terminals, and that would
-      --  largely eliminate the advantage of parallel tasks. So we copy data
-      --  from Terminals into Tree nodes.
+      --  FIXME: Store Shared_Parser.Terminals here (or just in Terminal
+      --  tree nodes). There used to be a good reason not to, but since we
+      --  now call Lex_All before Parse, there isn't.
 
       Nodes : Node_Arrays.Vector;
       --  During normal parsing, tokens are added to Nodes by "parallel"
-      --  parsers, but they are all run from one Ada task, so there's no
-      --  need for Nodes to be Protected.
+      --  LALR parsers, but they are all run from one Ada task, so there's
+      --  no need for Nodes to be Protected. Packrat parsing also has a
+      --  single Ada task.
       --
-      --  During McKenzie_Recover, tokens are added to Terminals by parallel
-      --  tasks, but not to the shared syntax_tree.
+      --  During McKenzie_Recover, the syntax tree is not modified.
 
       Augmented_Present : Boolean := False;
       --  True if Set_Augmented has been called on any node.
@@ -402,6 +388,8 @@ private
       Flush            : Boolean    := False;
       --  We maintain Last_Shared_Node when Flush is True, so subprograms
       --  that have no reason to check Flush can rely on Last_Shared_Node.
+
+      Root : Node_Index := Invalid_Node_Index;
    end record with
      Type_Invariant => (if Tree.Flush then not Tree.Has_Branched_Nodes);
 

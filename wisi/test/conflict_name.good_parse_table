@@ -12,7 +12,128 @@ Tokens:
  10 => name
  11 => qualified_expression
 
+Productions:
+6.0: wisitoken_accept <= name Wisi_EOI
+7.0: aggregate <= LEFT_PAREN name RIGHT_PAREN
+8.0: attribute_reference <= name TICK attribute_designator
+9.0: attribute_designator <= name
+10.0: name <= IDENTIFIER
+10.1: name <= attribute_reference
+10.2: name <= qualified_expression
+11.0: qualified_expression <= name TICK aggregate
+
 LALR Parse Table:
+State 1:
+      6.0:wisitoken_accept <= ^ name Wisi_EOI, 
+
+   IDENTIFIER           => shift and goto state 2 (10.0)
+   default              => ERROR
+
+     10.1: attribute_reference  goto state 3
+      6.0: name                 goto state 4
+     10.2: qualified_expression goto state 5
+
+State 2:
+     10.0:name <= IDENTIFIER ^, RIGHT_PAREN/TICK/Wisi_EOI
+
+   RIGHT_PAREN          => reduce 1 tokens to name 10.0
+   TICK                 => reduce 1 tokens to name 10.0
+   Wisi_EOI             => reduce 1 tokens to name 10.0
+   default              => ERROR
+
+State 3:
+     10.1:name <= attribute_reference ^, RIGHT_PAREN/TICK/Wisi_EOI
+
+   RIGHT_PAREN          => reduce 1 tokens to name 10.1
+   TICK                 => reduce 1 tokens to name 10.1
+   Wisi_EOI             => reduce 1 tokens to name 10.1
+   default              => ERROR
+
+State 4:
+      6.0:wisitoken_accept <= name ^ Wisi_EOI, 
+      8.0:attribute_reference <= name ^ TICK attribute_designator, TICK/Wisi_EOI
+     11.0:qualified_expression <= name ^ TICK aggregate, TICK/Wisi_EOI
+
+   TICK                 => shift and goto state 6 (8.0, 11.0)
+   Wisi_EOI             => accept it 6.0
+   default              => ERROR
+
+State 5:
+     10.2:name <= qualified_expression ^, RIGHT_PAREN/TICK/Wisi_EOI
+
+   RIGHT_PAREN          => reduce 1 tokens to name 10.2
+   TICK                 => reduce 1 tokens to name 10.2
+   Wisi_EOI             => reduce 1 tokens to name 10.2
+   default              => ERROR
+
+State 6:
+      8.0:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
+     11.0:qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/Wisi_EOI
+
+   LEFT_PAREN           => shift and goto state 7 (7.0)
+   IDENTIFIER           => shift and goto state 2 (10.0)
+   default              => ERROR
+
+     11.0: aggregate            goto state 8
+     10.1: attribute_reference  goto state 3
+      8.0: attribute_designator goto state 9
+      8.0: name                 goto state 10
+     10.2: qualified_expression goto state 5
+
+State 7:
+      7.0:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
+
+   IDENTIFIER           => shift and goto state 2 (10.0)
+   default              => ERROR
+
+     10.1: attribute_reference  goto state 3
+      7.0: name                 goto state 11
+     10.2: qualified_expression goto state 5
+
+State 8:
+     11.0:qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/TICK/Wisi_EOI
+
+   RIGHT_PAREN          => reduce 3 tokens to qualified_expression 11.0
+   TICK                 => reduce 3 tokens to qualified_expression 11.0
+   Wisi_EOI             => reduce 3 tokens to qualified_expression 11.0
+   default              => ERROR
+
+State 9:
+      8.0:attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/TICK/Wisi_EOI
+
+   RIGHT_PAREN          => reduce 3 tokens to attribute_reference 8.0
+   TICK                 => reduce 3 tokens to attribute_reference 8.0
+   Wisi_EOI             => reduce 3 tokens to attribute_reference 8.0
+   default              => ERROR
+
+State 10:
+      8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
+      9.0:attribute_designator <= name ^, RIGHT_PAREN/TICK/Wisi_EOI
+     11.0:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK/Wisi_EOI
+
+   RIGHT_PAREN          => reduce 1 tokens to attribute_designator 9.0
+   TICK                 => shift and goto state 6 (8.0, 11.0),
+                           reduce 1 tokens to attribute_designator 9.0
+   Wisi_EOI             => reduce 1 tokens to attribute_designator 9.0
+   default              => ERROR
+
+State 11:
+      7.0:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
+      8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
+     11.0:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
+
+   RIGHT_PAREN          => shift and goto state 12 (7.0)
+   TICK                 => shift and goto state 6 (8.0, 11.0)
+   default              => ERROR
+
+State 12:
+      7.0:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/TICK/Wisi_EOI
+
+   RIGHT_PAREN          => reduce 3 tokens to aggregate 7.0
+   TICK                 => reduce 3 tokens to aggregate 7.0
+   Wisi_EOI             => reduce 3 tokens to aggregate 7.0
+   default              => ERROR
+
 Minimal_Terminal_Sequences:
 wisitoken_accept => (IDENTIFIER, Wisi_EOI)
 aggregate => (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
@@ -20,351 +141,196 @@ attribute_reference => (IDENTIFIER, TICK, IDENTIFIER)
 attribute_designator => (IDENTIFIER)
 name => (IDENTIFIER)
 qualified_expression => (IDENTIFIER, TICK, LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
-
-Productions:
-1: wisitoken_accept <= (name, Wisi_EOI)
-2: aggregate <= (LEFT_PAREN, name, RIGHT_PAREN)
-3: attribute_reference <= (name, TICK, attribute_designator)
-4: attribute_designator <= (name)
-5: name <= (IDENTIFIER)
-6: name <= (attribute_reference)
-7: name <= (qualified_expression)
-8: qualified_expression <= (name, TICK, aggregate)
-
-State 1:
-     1:wisitoken_accept <= ^ name Wisi_EOI, 
-
-   IDENTIFIER           => shift and goto state 2 (5)
-   default              => ERROR
-
-     6: attribute_reference  goto state 3
-     1: name                 goto state 4
-     7: qualified_expression goto state 5
-
-State 2:
-     5:name <= IDENTIFIER ^, RIGHT_PAREN/TICK/Wisi_EOI
-
-   RIGHT_PAREN          => reduce 1 tokens to name (5)
-   TICK                 => reduce 1 tokens to name (5)
-   Wisi_EOI             => reduce 1 tokens to name (5)
-   default              => ERROR
-
-
-State 3:
-     6:name <= attribute_reference ^, RIGHT_PAREN/TICK/Wisi_EOI
-
-   RIGHT_PAREN          => reduce 1 tokens to name (6)
-   TICK                 => reduce 1 tokens to name (6)
-   Wisi_EOI             => reduce 1 tokens to name (6)
-   default              => ERROR
-
-
-State 4:
-     1:wisitoken_accept <= name ^ Wisi_EOI, 
-     3:attribute_reference <= name ^ TICK attribute_designator, TICK/Wisi_EOI
-     8:qualified_expression <= name ^ TICK aggregate, TICK/Wisi_EOI
-
-   TICK                 => shift and goto state 6 (3, 8)
-   Wisi_EOI             => accept it (1)
-   default              => ERROR
-
-
-State 5:
-     7:name <= qualified_expression ^, RIGHT_PAREN/TICK/Wisi_EOI
-
-   RIGHT_PAREN          => reduce 1 tokens to name (7)
-   TICK                 => reduce 1 tokens to name (7)
-   Wisi_EOI             => reduce 1 tokens to name (7)
-   default              => ERROR
-
-
-State 6:
-     3:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
-     8:qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/Wisi_EOI
-
-   LEFT_PAREN           => shift and goto state 7 (2)
-   IDENTIFIER           => shift and goto state 2 (5)
-   default              => ERROR
-
-     8: aggregate            goto state 8
-     6: attribute_reference  goto state 3
-     3: attribute_designator goto state 9
-     3: name                 goto state 10
-     7: qualified_expression goto state 5
-
-State 7:
-     2:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
-
-   IDENTIFIER           => shift and goto state 2 (5)
-   default              => ERROR
-
-     6: attribute_reference  goto state 3
-     2: name                 goto state 11
-     7: qualified_expression goto state 5
-
-State 8:
-     8:qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/TICK/Wisi_EOI
-
-   RIGHT_PAREN          => reduce 3 tokens to qualified_expression (8)
-   TICK                 => reduce 3 tokens to qualified_expression (8)
-   Wisi_EOI             => reduce 3 tokens to qualified_expression (8)
-   default              => ERROR
-
-
-State 9:
-     3:attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/TICK/Wisi_EOI
-
-   RIGHT_PAREN          => reduce 3 tokens to attribute_reference (3)
-   TICK                 => reduce 3 tokens to attribute_reference (3)
-   Wisi_EOI             => reduce 3 tokens to attribute_reference (3)
-   default              => ERROR
-
-
-State 10:
-     3:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
-     4:attribute_designator <= name ^, RIGHT_PAREN/TICK/Wisi_EOI
-     8:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK/Wisi_EOI
-
-   RIGHT_PAREN          => reduce 1 tokens to attribute_designator (4)
-   TICK                 => shift and goto state 6 (3, 8),
-                           reduce 1 tokens to attribute_designator (4)
-   Wisi_EOI             => reduce 1 tokens to attribute_designator (4)
-   default              => ERROR
-
-
-State 11:
-     2:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
-     3:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
-     8:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
-
-   RIGHT_PAREN          => shift and goto state 12 (2)
-   TICK                 => shift and goto state 6 (3, 8)
-   default              => ERROR
-
-
-State 12:
-     2:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/TICK/Wisi_EOI
-
-   RIGHT_PAREN          => reduce 3 tokens to aggregate (2)
-   TICK                 => reduce 3 tokens to aggregate (2)
-   Wisi_EOI             => reduce 3 tokens to aggregate (2)
-   default              => ERROR
-
 
 LR1 Parse Table:
-Minimal_Terminal_Sequences:
-wisitoken_accept => (IDENTIFIER, Wisi_EOI)
-aggregate => (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
-attribute_reference => (IDENTIFIER, TICK, IDENTIFIER)
-attribute_designator => (IDENTIFIER)
-name => (IDENTIFIER)
-qualified_expression => (IDENTIFIER, TICK, LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
-
 State 1:
-     1:wisitoken_accept <= ^ name Wisi_EOI, Wisi_EOI
+      6.0:wisitoken_accept <= ^ name Wisi_EOI, Wisi_EOI
 
-   IDENTIFIER           => shift and goto state 2 (5)
+   IDENTIFIER           => shift and goto state 2 (10.0)
    default              => ERROR
 
-     6: attribute_reference  goto state 3
-     1: name                 goto state 4
-     7: qualified_expression goto state 5
+     10.1: attribute_reference  goto state 3
+      6.0: name                 goto state 4
+     10.2: qualified_expression goto state 5
 
 State 2:
-     5:name <= IDENTIFIER ^, TICK/Wisi_EOI
+     10.0:name <= IDENTIFIER ^, TICK/Wisi_EOI
 
-   TICK                 => reduce 1 tokens to name (5)
-   Wisi_EOI             => reduce 1 tokens to name (5)
+   TICK                 => reduce 1 tokens to name 10.0
+   Wisi_EOI             => reduce 1 tokens to name 10.0
    default              => ERROR
-
 
 State 3:
-     6:name <= attribute_reference ^, TICK/Wisi_EOI
+     10.1:name <= attribute_reference ^, TICK/Wisi_EOI
 
-   TICK                 => reduce 1 tokens to name (6)
-   Wisi_EOI             => reduce 1 tokens to name (6)
+   TICK                 => reduce 1 tokens to name 10.1
+   Wisi_EOI             => reduce 1 tokens to name 10.1
    default              => ERROR
-
 
 State 4:
-     1:wisitoken_accept <= name ^ Wisi_EOI, Wisi_EOI
-     3:attribute_reference <= name ^ TICK attribute_designator, TICK/Wisi_EOI
-     8:qualified_expression <= name ^ TICK aggregate, TICK/Wisi_EOI
+      6.0:wisitoken_accept <= name ^ Wisi_EOI, Wisi_EOI
+      8.0:attribute_reference <= name ^ TICK attribute_designator, TICK/Wisi_EOI
+     11.0:qualified_expression <= name ^ TICK aggregate, TICK/Wisi_EOI
 
-   TICK                 => shift and goto state 6 (3, 8)
-   Wisi_EOI             => accept it (1)
+   TICK                 => shift and goto state 6 (8.0, 11.0)
+   Wisi_EOI             => accept it 6.0
    default              => ERROR
-
 
 State 5:
-     7:name <= qualified_expression ^, TICK/Wisi_EOI
+     10.2:name <= qualified_expression ^, TICK/Wisi_EOI
 
-   TICK                 => reduce 1 tokens to name (7)
-   Wisi_EOI             => reduce 1 tokens to name (7)
+   TICK                 => reduce 1 tokens to name 10.2
+   Wisi_EOI             => reduce 1 tokens to name 10.2
    default              => ERROR
-
 
 State 6:
-     3:attribute_reference <= name TICK ^ attribute_designator, TICK/Wisi_EOI
-     8:qualified_expression <= name TICK ^ aggregate, TICK/Wisi_EOI
+      8.0:attribute_reference <= name TICK ^ attribute_designator, TICK/Wisi_EOI
+     11.0:qualified_expression <= name TICK ^ aggregate, TICK/Wisi_EOI
 
-   LEFT_PAREN           => shift and goto state 7 (2)
-   IDENTIFIER           => shift and goto state 2 (5)
+   LEFT_PAREN           => shift and goto state 7 (7.0)
+   IDENTIFIER           => shift and goto state 2 (10.0)
    default              => ERROR
 
-     8: aggregate            goto state 8
-     6: attribute_reference  goto state 3
-     3: attribute_designator goto state 9
-     3: name                 goto state 10
-     7: qualified_expression goto state 5
+     11.0: aggregate            goto state 8
+     10.1: attribute_reference  goto state 3
+      8.0: attribute_designator goto state 9
+      8.0: name                 goto state 10
+     10.2: qualified_expression goto state 5
 
 State 7:
-     2:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, TICK/Wisi_EOI
+      7.0:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, TICK/Wisi_EOI
 
-   IDENTIFIER           => shift and goto state 11 (5)
+   IDENTIFIER           => shift and goto state 11 (10.0)
    default              => ERROR
 
-     6: attribute_reference  goto state 12
-     2: name                 goto state 13
-     7: qualified_expression goto state 14
+     10.1: attribute_reference  goto state 12
+      7.0: name                 goto state 13
+     10.2: qualified_expression goto state 14
 
 State 8:
-     8:qualified_expression <= name TICK aggregate ^, TICK/Wisi_EOI
+     11.0:qualified_expression <= name TICK aggregate ^, TICK/Wisi_EOI
 
-   TICK                 => reduce 3 tokens to qualified_expression (8)
-   Wisi_EOI             => reduce 3 tokens to qualified_expression (8)
+   TICK                 => reduce 3 tokens to qualified_expression 11.0
+   Wisi_EOI             => reduce 3 tokens to qualified_expression 11.0
    default              => ERROR
-
 
 State 9:
-     3:attribute_reference <= name TICK attribute_designator ^, TICK/Wisi_EOI
+      8.0:attribute_reference <= name TICK attribute_designator ^, TICK/Wisi_EOI
 
-   TICK                 => reduce 3 tokens to attribute_reference (3)
-   Wisi_EOI             => reduce 3 tokens to attribute_reference (3)
+   TICK                 => reduce 3 tokens to attribute_reference 8.0
+   Wisi_EOI             => reduce 3 tokens to attribute_reference 8.0
    default              => ERROR
-
 
 State 10:
-     3:attribute_reference <= name ^ TICK attribute_designator, TICK/Wisi_EOI
-     4:attribute_designator <= name ^, TICK/Wisi_EOI
-     8:qualified_expression <= name ^ TICK aggregate, TICK/Wisi_EOI
+      8.0:attribute_reference <= name ^ TICK attribute_designator, TICK/Wisi_EOI
+      9.0:attribute_designator <= name ^, TICK/Wisi_EOI
+     11.0:qualified_expression <= name ^ TICK aggregate, TICK/Wisi_EOI
 
-   TICK                 => shift and goto state 6 (3, 8),
-                           reduce 1 tokens to attribute_designator (4)
-   Wisi_EOI             => reduce 1 tokens to attribute_designator (4)
+   TICK                 => shift and goto state 6 (8.0, 11.0),
+                           reduce 1 tokens to attribute_designator 9.0
+   Wisi_EOI             => reduce 1 tokens to attribute_designator 9.0
    default              => ERROR
-
 
 State 11:
-     5:name <= IDENTIFIER ^, RIGHT_PAREN/TICK
+     10.0:name <= IDENTIFIER ^, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => reduce 1 tokens to name (5)
-   TICK                 => reduce 1 tokens to name (5)
+   RIGHT_PAREN          => reduce 1 tokens to name 10.0
+   TICK                 => reduce 1 tokens to name 10.0
    default              => ERROR
-
 
 State 12:
-     6:name <= attribute_reference ^, RIGHT_PAREN/TICK
+     10.1:name <= attribute_reference ^, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => reduce 1 tokens to name (6)
-   TICK                 => reduce 1 tokens to name (6)
+   RIGHT_PAREN          => reduce 1 tokens to name 10.1
+   TICK                 => reduce 1 tokens to name 10.1
    default              => ERROR
-
 
 State 13:
-     2:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, TICK/Wisi_EOI
-     3:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
-     8:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
+      7.0:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, TICK/Wisi_EOI
+      8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
+     11.0:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => shift and goto state 15 (2)
-   TICK                 => shift and goto state 16 (3, 8)
+   RIGHT_PAREN          => shift and goto state 15 (7.0)
+   TICK                 => shift and goto state 16 (8.0, 11.0)
    default              => ERROR
-
 
 State 14:
-     7:name <= qualified_expression ^, RIGHT_PAREN/TICK
+     10.2:name <= qualified_expression ^, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => reduce 1 tokens to name (7)
-   TICK                 => reduce 1 tokens to name (7)
+   RIGHT_PAREN          => reduce 1 tokens to name 10.2
+   TICK                 => reduce 1 tokens to name 10.2
    default              => ERROR
-
 
 State 15:
-     2:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, TICK/Wisi_EOI
+      7.0:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, TICK/Wisi_EOI
 
-   TICK                 => reduce 3 tokens to aggregate (2)
-   Wisi_EOI             => reduce 3 tokens to aggregate (2)
+   TICK                 => reduce 3 tokens to aggregate 7.0
+   Wisi_EOI             => reduce 3 tokens to aggregate 7.0
    default              => ERROR
-
 
 State 16:
-     3:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK
-     8:qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK
+      8.0:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK
+     11.0:qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK
 
-   LEFT_PAREN           => shift and goto state 17 (2)
-   IDENTIFIER           => shift and goto state 11 (5)
+   LEFT_PAREN           => shift and goto state 17 (7.0)
+   IDENTIFIER           => shift and goto state 11 (10.0)
    default              => ERROR
 
-     8: aggregate            goto state 18
-     6: attribute_reference  goto state 12
-     3: attribute_designator goto state 19
-     3: name                 goto state 20
-     7: qualified_expression goto state 14
+     11.0: aggregate            goto state 18
+     10.1: attribute_reference  goto state 12
+      8.0: attribute_designator goto state 19
+      8.0: name                 goto state 20
+     10.2: qualified_expression goto state 14
 
 State 17:
-     2:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK
+      7.0:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK
 
-   IDENTIFIER           => shift and goto state 11 (5)
+   IDENTIFIER           => shift and goto state 11 (10.0)
    default              => ERROR
 
-     6: attribute_reference  goto state 12
-     2: name                 goto state 21
-     7: qualified_expression goto state 14
+     10.1: attribute_reference  goto state 12
+      7.0: name                 goto state 21
+     10.2: qualified_expression goto state 14
 
 State 18:
-     8:qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/TICK
+     11.0:qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => reduce 3 tokens to qualified_expression (8)
-   TICK                 => reduce 3 tokens to qualified_expression (8)
+   RIGHT_PAREN          => reduce 3 tokens to qualified_expression 11.0
+   TICK                 => reduce 3 tokens to qualified_expression 11.0
    default              => ERROR
-
 
 State 19:
-     3:attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/TICK
+      8.0:attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => reduce 3 tokens to attribute_reference (3)
-   TICK                 => reduce 3 tokens to attribute_reference (3)
+   RIGHT_PAREN          => reduce 3 tokens to attribute_reference 8.0
+   TICK                 => reduce 3 tokens to attribute_reference 8.0
    default              => ERROR
-
 
 State 20:
-     3:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
-     4:attribute_designator <= name ^, RIGHT_PAREN/TICK
-     8:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
+      8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
+      9.0:attribute_designator <= name ^, RIGHT_PAREN/TICK
+     11.0:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => reduce 1 tokens to attribute_designator (4)
-   TICK                 => shift and goto state 16 (3, 8),
-                           reduce 1 tokens to attribute_designator (4)
+   RIGHT_PAREN          => reduce 1 tokens to attribute_designator 9.0
+   TICK                 => shift and goto state 16 (8.0, 11.0),
+                           reduce 1 tokens to attribute_designator 9.0
    default              => ERROR
-
 
 State 21:
-     2:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK
-     3:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
-     8:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
+      7.0:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK
+      8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
+     11.0:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => shift and goto state 22 (2)
-   TICK                 => shift and goto state 16 (3, 8)
+   RIGHT_PAREN          => shift and goto state 22 (7.0)
+   TICK                 => shift and goto state 16 (8.0, 11.0)
    default              => ERROR
-
 
 State 22:
-     2:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/TICK
+      7.0:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => reduce 3 tokens to aggregate (2)
-   TICK                 => reduce 3 tokens to aggregate (2)
+   RIGHT_PAREN          => reduce 3 tokens to aggregate 7.0
+   TICK                 => reduce 3 tokens to aggregate 7.0
    default              => ERROR
-
 
  5 rules, 0 actions, 1 checks, 22 states, 63 table entries
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts

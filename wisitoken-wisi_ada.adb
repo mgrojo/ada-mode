@@ -31,83 +31,131 @@ pragma License (Modified_GPL);
 package body WisiToken.Wisi_Ada is
    use WisiToken.Productions;
 
-   function Only (Item : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List
+   function Only (Item : in Token_ID) return WisiToken.Token_ID_Arrays.Vector
    is begin
-      return List : WisiToken.Productions.Token_ID_Lists.List do
-         List.Append (Item);
+      return Result : WisiToken.Token_ID_Arrays.Vector do
+         Result.Append (Item);
       end return;
    end Only;
 
-   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Productions.Token_ID_Lists.List
+   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Token_ID_Arrays.Vector
    is begin
-      return Result : WisiToken.Productions.Token_ID_Lists.List do
+      return Result : WisiToken.Token_ID_Arrays.Vector do
          Result.Append (Left);
          Result.Append (Right);
       end return;
    end "&";
 
-   function "+" (Tokens : in Token_ID_Lists.List; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID_Arrays.Vector; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Tokens, Action, null, 0);
+      return (Tokens, Action, null);
    end "+";
 
    function "+" (Tokens : in Token_ID; Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Only (Tokens), Action, null, 0);
+      return (Only (Tokens), Action, null);
    end "+";
 
    function "+" (Action : in Syntax_Trees.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Token_ID_Lists.Empty_List, Action, null, 0);
+      return (Token_ID_Arrays.Empty_Vector, Action, null);
    end "+";
 
-   function "+" (Tokens : in Token_ID_Lists.List; Index  : in Integer) return Right_Hand_Side
+   function Only (Item : in WisiToken.Productions.Right_Hand_Side) return WisiToken.Productions.RHS_Arrays.Vector
    is begin
-      return (Tokens, null, null, Index);
-   end "+";
-
-   function "+" (Tokens : in Token_ID; Index  : in Integer) return Right_Hand_Side
-   is begin
-      return (Only (Tokens), null, null, Index);
-   end "+";
-
-   function "+" (Index  : in Integer) return Right_Hand_Side
-   is begin
-      return (Token_ID_Lists.Empty_List, null, null, Index);
-   end "+";
-
-   function "<=" (LHS : in Token_ID; RHS : in Right_Hand_Side) return Instance
-   is begin
-      return (LHS, RHS);
-   end "<=";
-
-   function Only (Subject : in Instance) return Arrays.Vector
-   is begin
-      return Result : Arrays.Vector do
-         Result.Append (Subject);
+      return Result : WisiToken.Productions.RHS_Arrays.Vector do
+         Result.Append (Item);
       end return;
    end Only;
 
-   function "and" (Left : in Instance; Right : in Instance) return Arrays.Vector
+   function "or"
+     (Left  : in WisiToken.Productions.Instance;
+      Right : in WisiToken.Productions.Right_Hand_Side)
+     return WisiToken.Productions.Instance
    is begin
-      return Result : Arrays.Vector do
-         Result.Append (Left);
-         Result.Append (Right);
+      return Result : WisiToken.Productions.Instance := Left do
+         Result.RHSs.Append (Right);
+      end return;
+   end "or";
+
+   function "<=" (LHS : in Token_ID; RHSs : in WisiToken.Productions.RHS_Arrays.Vector) return Instance
+   is begin
+      return (LHS, RHSs);
+   end "<=";
+
+   function Only (Subject : in Instance) return Prod_Arrays.Vector
+   is begin
+      return Result : Prod_Arrays.Vector do
+         Result.Set_First (Subject.LHS);
+         Result.Set_Last (Subject.LHS);
+         Result (Subject.LHS) := Subject;
+      end return;
+   end Only;
+
+   function Merge (Left, Right : in Instance) return Instance
+   is
+      Index : Integer := Left.RHSs.Last_Index + 1;
+   begin
+      return Result : Instance := Left do
+         Result.RHSs.Set_Last (Left.RHSs.Last_Index + Integer (Right.RHSs.Length));
+         for RHS of Right.RHSs loop
+            Result.RHSs (Index) := RHS;
+            Index := Index + 1;
+         end loop;
+      end return;
+   end Merge;
+
+   function "and" (Left : in Instance; Right : in Instance) return Prod_Arrays.Vector
+   is begin
+      return Result : Prod_Arrays.Vector do
+         Result.Set_First (Token_ID'Min (Left.LHS, Right.LHS));
+         Result.Set_Last (Token_ID'Max (Left.LHS, Right.LHS));
+         if Left.LHS = Right.LHS then
+            Result (Left.LHS) := Merge (Left, Right);
+         else
+            Result (Left.LHS) := Left;
+            Result (Right.LHS) := Right;
+         end if;
       end return;
    end "and";
 
-   function "and" (Left : in Arrays.Vector; Right : in Instance) return Arrays.Vector
+   function "and" (Left : in Prod_Arrays.Vector; Right : in Instance) return Prod_Arrays.Vector
    is begin
-      return Result : Arrays.Vector := Left do
-         Result.Append (Right);
+      return Result : Prod_Arrays.Vector := Left do
+         if Right.LHS < Result.First_Index then
+            Result.Set_First (Right.LHS);
+         elsif Right.LHS > Result.Last_Index then
+            Result.Set_Last (Right.LHS);
+         end if;
+
+         if Result (Right.LHS).LHS = Invalid_Token_ID then
+            Result (Right.LHS) := Right;
+         else
+            Result (Right.LHS) := Merge (Result (Right.LHS), Right);
+         end if;
       end return;
    end "and";
 
-   function "and" (Left : in Arrays.Vector; Right : in Arrays.Vector) return Arrays.Vector
+   function "and" (Left : in Prod_Arrays.Vector; Right : in Prod_Arrays.Vector) return Prod_Arrays.Vector
    is begin
-      return Result : Arrays.Vector := Left do
+      return Result : Prod_Arrays.Vector := Left do
+         if Right.First_Index < Result.First_Index then
+            Result.Set_First (Right.First_Index);
+         elsif Right.First_Index > Result.Last_Index then
+            Result.Set_Last (Right.First_Index);
+         end if;
+         if Right.Last_Index < Result.First_Index then
+            Result.Set_First (Right.Last_Index);
+         elsif Right.Last_Index > Result.Last_Index then
+            Result.Set_Last (Right.Last_Index);
+         end if;
+
          for P of Right loop
-            Result.Append (P);
+            if Result (P.LHS).LHS = Invalid_Token_ID then
+               Result (P.LHS) := P;
+            else
+               Result (P.LHS) := Merge (Result (P.LHS), P);
+            end if;
          end loop;
       end return;
    end "and";

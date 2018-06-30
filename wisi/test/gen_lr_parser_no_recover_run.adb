@@ -25,10 +25,10 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with WisiToken.LR.Parser;
+with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-procedure Gen_Parser_Run
+procedure Gen_LR_Parser_No_Recover_Run
 is
    procedure Put_Usage
    is begin
@@ -45,34 +45,20 @@ is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
-   User_Data : aliased User_Data_Type;
-
-   procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
+   procedure Parse
    is
-      use all type WisiToken.Token_ID;
-      Parser : WisiToken.LR.Parser.Parser;
+      Parser : WisiToken.LR.Parser_No_Recover.Parser;
    begin
-      case Algorithm is
-      when WisiToken.LALR                =>
-         Create_Parser
-           (Parser, WisiToken.LALR, Trace'Unchecked_Access,
-            Language_Fixes               => null,
-            Language_Constrain_Terminals => null,
-            User_Data                    => User_Data'Unchecked_Access);
-         Put_Line ("LALR_Parser parse:");
-
-      when WisiToken.LR1                 =>
-         Create_Parser
-           (Parser, WisiToken.LR1, Trace'Unchecked_Access,
-            Language_Fixes               => null,
-            Language_Constrain_Terminals => null,
-            User_Data                    => User_Data'Unchecked_Access);
-         Put_Line ("LR1_Parser parse:");
-      end case;
+      Create_Parser
+        (Parser, WisiToken.LALR, Trace'Unchecked_Access,
+         User_Data => null);
+      Put_Line ("LALR Parser parse:");
 
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;
-      Parser.Execute_Actions;
+
+      --  No user data, so no point in calling Execute_Actions
+
       Parser.Put_Errors (-File_Name);
 
    exception
@@ -119,16 +105,11 @@ begin
       return;
    end;
 
-   Parse (WisiToken.LALR);
-
-   if LR1 then
-      New_Line;
-      Parse (WisiToken.LR1);
-   end if;
+   Parse;
 
 exception
 when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Parser_Run;
+end Gen_LR_Parser_No_Recover_Run;

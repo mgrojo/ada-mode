@@ -24,8 +24,10 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.Generate;
 with WisiToken.LR.AUnit;
 with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LR1_Items.AUnit; use WisiToken.LR.LR1_Items.AUnit;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
@@ -33,7 +35,6 @@ with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
-with WisiToken_AUnit; use WisiToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
    --  grammar in eqn (4.21) example 4.42 pg 231
@@ -66,14 +67,14 @@ package body Dragon_4_45_LALR_Test is
 
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-   Grammar : constant WisiToken.Productions.Arrays.Vector :=
+   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
      Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
      and
-     Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action -- 3
-     and
-     Upper_C_ID <= Lower_D_ID + Null_Action -- 4
+     (Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action -- 3
+      or
+                    Lower_D_ID + Null_Action) -- 4
      ;
 
    --  See comment in Test_LALR_Kernels about state numbering
@@ -95,8 +96,7 @@ package body Dragon_4_45_LALR_Test is
      ));
 
 
-   Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-     WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
+   Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
    First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
@@ -145,13 +145,13 @@ package body Dragon_4_45_LALR_Test is
       --  states is different. In this test, we accomodate that by
       --  using symbolic names matching the example state labels, and
       --  adding kernels to the list in the order we compute them.
-        (S0 + Get_Item (Grammar, 1, 1, Null_Lookaheads)) &
-        (S36 + Get_Item (Grammar, 3, 2, Null_Lookaheads)) &
-        (S47 + Get_Item (Grammar, 4, 2, Null_Lookaheads)) &
-        (S1 + Get_Item (Grammar, 1, 2, Null_Lookaheads)) &
-        (S2 + Get_Item (Grammar, 2, 2, Null_Lookaheads)) &
-        (S5 + Get_Item (Grammar, 2, 3, Null_Lookaheads)) &
-        (S89 + Get_Item (Grammar, 3, 3, Null_Lookaheads));
+        (S0 + Get_Item (Grammar, (+Accept_ID, 0), 1, Null_Lookaheads)) &
+        (S36 + Get_Item (Grammar, (+Upper_C_ID, 0), 2, Null_Lookaheads)) &
+        (S47 + Get_Item (Grammar, (+Upper_C_ID, 1), 2, Null_Lookaheads)) &
+        (S1 + Get_Item (Grammar, (+Accept_ID, 0), 2, Null_Lookaheads)) &
+        (S2 + Get_Item (Grammar, (+Upper_S_ID, 0), 2, Null_Lookaheads)) &
+        (S5 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, Null_Lookaheads)) &
+        (S89 + Get_Item (Grammar, (+Upper_C_ID, 0), 3, Null_Lookaheads));
 
    begin
       Add_Gotos
@@ -206,7 +206,7 @@ package body Dragon_4_45_LALR_Test is
          Symbol      : in     WisiToken.Token_ID;
          State_Index : in     WisiToken.State_Index)
       is begin
-         Add_Action (State, (1 .. 0 => 1), Symbol, State_Index);
+         Add_Action (State, (1 .. 0 => (1, 0)), Symbol, State_Index);
       end Add_Action;
 
       procedure Add_Goto
@@ -214,7 +214,7 @@ package body Dragon_4_45_LALR_Test is
          Symbol   : in     WisiToken.Token_ID;
          To_State : in     WisiToken.State_Index)
       is begin
-         Add_Goto (State, 1, Symbol, To_State);
+         Add_Goto (State, (1, 0), Symbol, To_State);
       end Add_Goto;
 
    begin
@@ -226,7 +226,7 @@ package body Dragon_4_45_LALR_Test is
       Add_Goto (Expected.States (S0), +Upper_C_ID, S2);
       Add_Goto (Expected.States (S0), +Upper_S_ID, S1);
 
-      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, 1, +Accept_ID, 1, 0, Null_Action, null);
+      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, (+Accept_ID, 0), 1, Null_Action, null);
       Add_Error (Expected.States (S1));
 
       Add_Action (Expected.States (S2), +Lower_C_ID, S36);
@@ -239,17 +239,17 @@ package body Dragon_4_45_LALR_Test is
       Add_Error (Expected.States (S36));
       Add_Goto (Expected.States (S36), +Upper_C_ID, S89);
 
-      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, 4, +Upper_C_ID, 1, 0, Null_Action, null);
-      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, 4, +Upper_C_ID, 1, 0, Null_Action, null);
-      Add_Action (Expected.States (S47), +EOF_ID, Reduce, 4, +Upper_C_ID, 1, 0, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +EOF_ID, Reduce, (+Upper_C_ID, 1), 1, Null_Action, null);
       Add_Error (Expected.States (S47));
 
-      Add_Action (Expected.States (S5), +EOF_ID, Reduce, 3, +Upper_S_ID, 2, 0, Null_Action, null);
+      Add_Action (Expected.States (S5), +EOF_ID, Reduce, (+Upper_S_ID, 0), 2, Null_Action, null);
       Add_Error (Expected.States (S5));
 
-      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
-      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
-      Add_Action (Expected.States (S89), +EOF_ID, Reduce, 3, +Upper_C_ID, 2, 0, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +EOF_ID, Reduce, (+Upper_C_ID, 0), 2, Null_Action, null);
       Add_Error (Expected.States (S89));
 
       Check ("", Computed.all, Expected);

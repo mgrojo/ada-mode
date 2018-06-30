@@ -1,7 +1,6 @@
 --  Abstract :
 --
---  Type and operations for building grammar
---  productions.
+--  Type and operations for building grammar productions.
 --
 --  Copyright (C) 2018 Stephe Leake
 --
@@ -21,34 +20,45 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Vectors;
-with SAL.Gen_Definite_Doubly_Linked_Lists;
+with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.Productions is
 
-   package Token_ID_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Token_ID);
-
    type Right_Hand_Side is record
-      Tokens     : Token_ID_Lists.List;
-      Action     : WisiToken.Syntax_Trees.Semantic_Action;
-      Check      : WisiToken.Semantic_Checks.Semantic_Check;
-      Name_Index : Integer;
-      --  Index of production among productions for a single nonterminal (the LHS)
+      Tokens : Token_ID_Arrays.Vector;
+      Action : WisiToken.Syntax_Trees.Semantic_Action;
+      Check  : WisiToken.Semantic_Checks.Semantic_Check;
    end record;
+
+   package RHS_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Natural, Right_Hand_Side);
 
    type Instance is record
-      LHS : Token_ID;
-      RHS : aliased Right_Hand_Side;
+      LHS  : Token_ID := Invalid_Token_ID;
+      RHSs : RHS_Arrays.Vector;
    end record;
 
-   package Arrays is new Ada.Containers.Vectors (Production_ID, Instance);
+   package Prod_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Instance);
 
-   type Production_ID_Range is record
-      First : Production_ID;
-      Last  : Production_ID;
+   function Image
+     (LHS        : in Token_ID;
+      RHS_Index  : in Natural;
+      RHS        : in Token_ID_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
+   --  For comments in generated code, diagnostic messages.
+
+   procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class);
+   --  Put Image of each production to Ada.Text_IO.Current_Output.
+
+   package Line_Number_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Natural, WisiToken.Line_Number_Type);
+
+   type Prod_Source_Line_Map is record
+      Line    : Line_Number_Type;
+      RHS_Map : Line_Number_Arrays.Vector;
    end record;
 
-   function Find (Grammar : in Arrays.Vector; Nonterm : in Token_ID) return Production_ID_Range;
+   package Source_Line_Maps is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Prod_Source_Line_Map);
+   --  For line numbers of productions in source files.
 
 end WisiToken.Productions;

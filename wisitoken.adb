@@ -49,6 +49,15 @@ package body WisiToken is
       return (if Item = Invalid_Token_ID then "" else Desc.Image (Item).all);
    end Image;
 
+   procedure Put_Tokens (Descriptor : in WisiToken.Descriptor'Class)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      for I in Token_ID'First .. Descriptor.Last_Nonterminal loop
+         Put_Line (Token_ID'Image (I) & " => " & Descriptor.Image (I).all);
+      end loop;
+   end Put_Tokens;
+
    function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID
    is begin
       for I in Descriptor.Image'Range loop
@@ -58,6 +67,24 @@ package body WisiToken is
       end loop;
       raise Programmer_Error with "token name '" & Name & "' not found in descriptor.image";
    end Find_ID;
+
+   function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural
+   is
+      use all type Ada.Containers.Count_Type;
+      I : Natural := A.First_Index;
+      J : Natural := B.First_Index;
+   begin
+      if A.Length = 0 or B.Length = 0 then
+         return 0;
+      end if;
+
+      loop
+         exit when A (I) /= B (I) or I = A.Last_Index or J = B.Last_Index;
+         I := I + 1;
+         J := J + 1;
+      end loop;
+      return I - 1;
+   end Shared_Prefix;
 
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set
    is begin
@@ -191,12 +218,22 @@ package body WisiToken is
       return To_String (Result);
    end Lookahead_Image;
 
+   function Image (Item : in Production_ID) return String
+   is begin
+      return '(' & Trimmed_Image (Item.Nonterm) & ',' & Natural'Image (Item.RHS) & ')';
+   end Image;
+
+   function Trimmed_Image (Item : in Production_ID) return String
+   is begin
+      return Trimmed_Image (Item.Nonterm) & '.' & Trimmed_Image (Item.RHS);
+   end Trimmed_Image;
+
    function Padded_Image (Item : in Production_ID; Width : in Integer) return String
    is
       use Ada.Strings.Fixed;
    begin
       return Result : String (1 .. Width) do
-         Move (Production_ID'Image (Item), Result, Justify => Ada.Strings.Right);
+         Move (Trimmed_Image (Item), Result, Justify => Ada.Strings.Right);
       end return;
    end Padded_Image;
 
@@ -307,11 +344,6 @@ package body WisiToken is
         Trimmed_Image (Integer (Column)) & ": " &
         Message;
    end Error_Message;
-
-   procedure Put_Error (Message : in String)
-   is begin
-      Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Message);
-   end Put_Error;
 
    function Image (Item : in Buffer_Region) return String
    is begin

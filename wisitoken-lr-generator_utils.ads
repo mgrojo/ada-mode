@@ -24,9 +24,6 @@ with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
 package WisiToken.LR.Generator_Utils is
 
-   Error : Boolean := False;
-   --  Set True by errors during grammar generation
-
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict is record
       --  A typical conflict is:
@@ -56,7 +53,7 @@ package WisiToken.LR.Generator_Utils is
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
-      Grammar              : in     WisiToken.Productions.Arrays.Vector;
+      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -69,7 +66,7 @@ package WisiToken.LR.Generator_Utils is
    procedure Add_Actions
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
-      Grammar              : in     WisiToken.Productions.Arrays.Vector;
+      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -81,7 +78,7 @@ package WisiToken.LR.Generator_Utils is
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
-      Grammar              : in     WisiToken.Productions.Arrays.Vector;
+      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
@@ -106,7 +103,7 @@ package WisiToken.LR.Generator_Utils is
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;
-      Grammar              : in WisiToken.Productions.Arrays.Vector;
+      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Descriptor           : in WisiToken.Descriptor'Class)
@@ -126,7 +123,7 @@ package WisiToken.LR.Generator_Utils is
       Descriptor : in WisiToken.Descriptor'Class);
 
    procedure Compute_Minimal_Terminal_Sequences
-     (Grammar    : in     WisiToken.Productions.Arrays.Vector;
+     (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector);
 

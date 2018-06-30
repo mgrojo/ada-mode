@@ -77,7 +77,7 @@ package body Trivial_Productions_Test is
 
          Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-         Grammar : constant WisiToken.Productions.Arrays.Vector :=
+         Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
            E_ID <= T_ID & EOF_ID + Null_Action and
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
@@ -167,15 +167,15 @@ package body Trivial_Productions_Test is
 
          Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
-         Grammar : constant WisiToken.Productions.Arrays.Vector :=
+         Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
            WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
-           Declarations_ID     <= Declaration_ID + Null_Action and
-           Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and
+           (Declarations_ID    <= Declaration_ID + Null_Action or
+                                  Declarations_ID & Declaration_ID + Null_Action) and
            Declaration_ID      <= Subprogram_ID + Null_Action and
            Subprogram_ID       <= Function_ID & Parameter_List_ID & Symbol_ID + Null_Action and
            Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and
-           Parameter_List_ID   <= +Null_Action and
-           Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
+           (Parameter_List_ID  <= +Null_Action or
+                                  Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action);
 
          Parser : WisiToken.LR.Parser.Parser;
 

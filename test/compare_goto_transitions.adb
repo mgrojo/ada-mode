@@ -22,6 +22,7 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Text_IO;
+with WisiToken.Generate;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
@@ -29,7 +30,7 @@ with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada;
-with WisiToken_AUnit;
+with WisiToken.LR.LR1_Items.AUnit;
 package body Compare_Goto_Transitions is
 
    ----------
@@ -72,28 +73,27 @@ package body Compare_Goto_Transitions is
 
       --  This grammar has an empty production (number 6); test that
       --  Closure and Goto_Transitions handle it properly.
-      Grammar : constant WisiToken.Productions.Arrays.Vector :=
+      Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
         WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and                -- 1
-        Declarations_ID     <= Declaration_ID + Null_Action and                          -- 2
-        Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and        -- 3
+        (Declarations_ID    <= Declaration_ID + Null_Action or                           -- 2
+                               Declarations_ID & Declaration_ID + Null_Action) and       -- 3
         Declaration_ID      <= Subprogram_ID + Null_Action and                           -- 4
         Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and        -- 5
-        Parameter_List_ID   <= +Null_Action and                                          -- 6
-        Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
+        (Parameter_List_ID  <= +Null_Action or                                           -- 6
+                               Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action); -- 7
 
-      Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-        WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, Token_Enum.LALR_Descriptor);
+      Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
       First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
         (Grammar, Token_Enum.LALR_Descriptor, Has_Empty_Production, Trace => False);
 
-      procedure Compare (Prod : in WisiToken.Production_ID; Symbol : in Token_Enum_ID; Trace : in Boolean)
+      procedure Compare (Prod : in WisiToken.Production_ID; Symbol : in Token_Enum_ID)
       is
          use Ada.Text_IO;
          use WisiToken;
          use WisiToken.LR.LR1_Items;
 
          Set : constant Item_Set := Closure
-           ((Set      => WisiToken_AUnit.Get_Item_Node
+           ((Set      => WisiToken.LR.LR1_Items.AUnit.Get_Item_Node
                (Grammar, Prod, 1, WisiToken.To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
              Goto_List => null,
              State     => WisiToken.Unknown_State,
@@ -109,7 +109,7 @@ package body Compare_Goto_Transitions is
          for ID in Token_Enum_ID loop
             declare
                Label : constant String :=
-                 Production_ID'Image (Prod) & "." &
+                 Trimmed_Image (Prod) & "." &
                  Token_Enum_ID'Image (Symbol) & "." &
                  Token_Enum_ID'Image (ID);
             begin
@@ -121,13 +121,13 @@ package body Compare_Goto_Transitions is
                LALR := WisiToken.LR.LALR_Generator.LALR_Goto_Transitions
                  (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor);
 
-               WisiToken_AUnit.Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);
+               WisiToken.LR.LR1_Items.AUnit.Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);
                Free (LR1_Filtered);
                Free (LALR);
             exception
             when AUnit.Assertions.Assertion_Error =>
                Mismatch := True;
-               if Trace then
+               if Trace_Action > Outline then
                   Put_Line (Label & " mismatch");
                   Put_Line ("  lr1:");
                   Put (Grammar, LR1_Descriptor, LR1_Filtered, Show_Goto_List => True);
@@ -144,8 +144,8 @@ package body Compare_Goto_Transitions is
                end if;
             end;
          end loop;
-         if Trace and Mismatch then
-            Put_Line (Production_ID'Image (Prod) & "." & Token_Enum_ID'Image (Symbol) & ".closure");
+         if Trace_Action > Outline and Mismatch then
+            Put_Line (Trimmed_Image (Prod) & "." & Token_Enum_ID'Image (Symbol) & ".closure");
             Put (Grammar, LR1_Descriptor, Set);
             New_Line;
          end if;
@@ -154,11 +154,13 @@ package body Compare_Goto_Transitions is
 
       procedure One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is
-         Test : Test_Case renames Test_Case (T);
+         pragma Unreferenced (T);
       begin
-         for Prod in WisiToken.Production_ID'(1) .. 7 loop
-            for Symbol in LALR_Descriptor.First_Terminal .. LALR_Descriptor.Last_Terminal loop
-               Compare (Prod, -Symbol, Test.Debug);
+         for Nonterm in Grammar.First_Index .. Grammar.Last_Index loop
+            for RHS in Grammar (Nonterm).RHSs.First_Index .. Grammar (Nonterm).RHSs.Last_Index loop
+               for Symbol in LALR_Descriptor.First_Terminal .. LALR_Descriptor.Last_Terminal loop
+                  Compare ((Nonterm, RHS), -Symbol);
+               end loop;
             end loop;
          end loop;
       end One;
