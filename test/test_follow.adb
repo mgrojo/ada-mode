@@ -23,6 +23,7 @@ pragma License (GPL);
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.Generate;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR;
 with WisiToken.Productions;
@@ -75,8 +76,7 @@ package body Test_Follow is
         (Parameter_List_ID  <= +Null_Action or                                           -- 6
                                Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action); -- 7
 
-      Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.LR.LR1_Items.Has_Empty_Production
-        (Grammar, LALR_Descriptor);
+      Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
       First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
         (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
 

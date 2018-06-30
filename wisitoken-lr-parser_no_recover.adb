@@ -28,8 +28,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Characters.Handling;
-with Ada.Characters;
 package body WisiToken.LR.Parser_No_Recover is
 
    procedure Reduce_Stack_1
@@ -53,15 +51,7 @@ package body WisiToken.LR.Parser_No_Recover is
       --  Computes Nonterm.Byte_Region
 
       if Trace_Parse > Detail then
-         declare
-            Action_Name : constant String := Ada.Characters.Handling.To_Lower
-              (Image (Action.Production.Nonterm, Trace.Descriptor.all)) & "_" & Trimmed_Image (Action.Production.RHS);
-         begin
-            Trace.Put_Line
-              (Action_Name & ": " &
-                 Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all) & " <= " &
-                 Parser_State.Tree.Image (Children_Tree, Trace.Descriptor.all));
-         end;
+         Trace.Put_Line (Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
       end if;
    end Reduce_Stack_1;
 

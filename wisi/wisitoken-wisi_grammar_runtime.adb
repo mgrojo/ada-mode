@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with WisiToken.Generate;   use WisiToken.Generate;
 with Wisi_Grammar_Actions; use Wisi_Grammar_Actions;
 package body WisiToken.Wisi_Grammar_Runtime is
 
@@ -107,31 +108,35 @@ package body WisiToken.Wisi_Grammar_Runtime is
    begin
       pragma Assert (-Tree.ID (Token) = rhs_ID);
 
-      if Tokens'Length = 0 then
-         return Wisi.RHS_Type'(others => <>);
-      end if;
-
       return RHS : Wisi.RHS_Type do
-         for I of Tree.Get_Terminals (Tokens (1)) loop
-            RHS.Tokens.Append (Get_Text (Data, Tree, I));
-         end loop;
+         if Tokens'Length = 0 then
+            --  Token is an empty rhs; parent is a possibly empty rhs_list; grandparent is
+            --  a non-empty rhs_list or nonterminal.
+            RHS.Source_Line := Data.Terminals.all (Tree.Min_Terminal_Index (Tree.Parent (Tree.Parent (Token)))).Line;
 
-         if Tokens'Last >= 2 then
-            declare
-               Text : constant String := Get_Text (Data, Tree, Tokens (2));
-            begin
-               if Text'Length > 0 then
-                  RHS.Action := +Text;
-                  Data.Action_Count := Data.Action_Count + 1;
-               end if;
-            end;
-         end if;
+         else
+            RHS.Source_Line := Data.Terminals.all (Tree.Min_Terminal_Index (Token)).Line;
 
-         if Tokens'Last >= 3 then
-            RHS.Check := +Get_Text (Data, Tree, Tokens (3));
-            Data.Check_Count := Data.Check_Count + 1;
+            for I of Tree.Get_Terminals (Tokens (1)) loop
+               RHS.Tokens.Append (Get_Text (Data, Tree, I));
+            end loop;
+
+            if Tokens'Last >= 2 then
+               declare
+                  Text : constant String := Get_Text (Data, Tree, Tokens (2));
+               begin
+                  if Text'Length > 0 then
+                     RHS.Action := +Text;
+                     Data.Action_Count := Data.Action_Count + 1;
+                  end if;
+               end;
+            end if;
+
+            if Tokens'Last >= 3 then
+               RHS.Check := +Get_Text (Data, Tree, Tokens (3));
+               Data.Check_Count := Data.Check_Count + 1;
+            end if;
          end if;
-         RHS.Source_Line := Data.Terminals.all (Tree.Min_Terminal_Index (Token)).Line;
       end return;
    end Get_RHS;
 

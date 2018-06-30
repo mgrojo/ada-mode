@@ -28,7 +28,7 @@ with GNAT.Traceback.Symbolic;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-procedure Gen_LALR_Parser_No_Recover_Run
+procedure Gen_LR_Parser_No_Recover_Run
 is
    procedure Put_Usage
    is begin
@@ -112,4 +112,4 @@ when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_LALR_Parser_No_Recover_Run;
+end Gen_LR_Parser_No_Recover_Run;

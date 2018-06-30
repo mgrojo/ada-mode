@@ -36,8 +36,8 @@ association
   ;
 
 association_list
-  : association
-  | association_list COMMA association
+  : association_list COMMA association
+  | association
   ;
 
 compilation
@@ -52,8 +52,8 @@ compilation_unit
   ;
 
 identifier_list
-  : IDENTIFIER
-  | identifier_list COMMA IDENTIFIER
+  : identifier_list COMMA IDENTIFIER
+  | IDENTIFIER
   ;
 
 name
@@ -62,8 +62,8 @@ name
   ;
 
 name_list
-  : name
-  | name_list COMMA name
+  : name_list COMMA name
+  | name
   ;
 
 selector_name

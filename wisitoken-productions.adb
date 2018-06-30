@@ -31,13 +31,10 @@ package body WisiToken.Productions is
      return String
    is
       use Ada.Strings.Unbounded;
-      Result : Unbounded_String := +Trimmed_Image ((LHS, RHS_Index)) & ": " & Image (LHS, Descriptor) & " <= ";
+      Result : Unbounded_String := +Trimmed_Image ((LHS, RHS_Index)) & ": " & Image (LHS, Descriptor) & " <=";
    begin
-      for I in RHS.First_Index .. RHS.Last_Index loop
-         Result := Result & Image (RHS (I), Descriptor);
-         if I /= RHS.Last_Index then
-            Result := Result & ' ';
-         end if;
+      for ID of RHS loop
+         Result := Result & ' ' & Image (ID, Descriptor);
       end loop;
       return To_String (Result);
    end Image;

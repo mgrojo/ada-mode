@@ -25,8 +25,10 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.Generate;
 with WisiToken.LR.AUnit;
 with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LR1_Items.AUnit; use WisiToken.LR.LR1_Items.AUnit;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
@@ -34,7 +36,6 @@ with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
-with WisiToken.LR.LR1_Items.AUnit; use WisiToken.LR.LR1_Items.AUnit;
 package body Dragon_4_43_LR1_Test is
 
    --  grammar in eqn (4.21) example 4.42 pg 231
@@ -100,8 +101,7 @@ package body Dragon_4_43_LR1_Test is
        EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
      ));
 
-   Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-     WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
+   Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
    First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);

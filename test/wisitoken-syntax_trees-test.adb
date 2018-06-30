@@ -125,7 +125,8 @@ package body WisiToken.Syntax_Trees.Test is
          ((Shared_Tree      => Shared_Tree'Unchecked_Access,
            Last_Shared_Node => 1,
            Branched_Nodes   => Expected_Branched_Nodes,
-           Flush            => False)));
+           Flush            => False,
+           Root             => Invalid_Node_Index)));
 
    end Test_Move_Branch_Point;
 

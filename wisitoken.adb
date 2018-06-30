@@ -68,6 +68,24 @@ package body WisiToken is
       raise Programmer_Error with "token name '" & Name & "' not found in descriptor.image";
    end Find_ID;
 
+   function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural
+   is
+      use all type Ada.Containers.Count_Type;
+      I : Natural := A.First_Index;
+      J : Natural := B.First_Index;
+   begin
+      if A.Length = 0 or B.Length = 0 then
+         return 0;
+      end if;
+
+      loop
+         exit when A (I) /= B (I) or I = A.Last_Index or J = B.Last_Index;
+         I := I + 1;
+         J := J + 1;
+      end loop;
+      return I - 1;
+   end Shared_Prefix;
+
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set
    is begin
       return Result : Token_ID_Set := (First .. Last => False)
@@ -326,11 +344,6 @@ package body WisiToken is
         Trimmed_Image (Integer (Column)) & ": " &
         Message;
    end Error_Message;
-
-   procedure Put_Error (Message : in String)
-   is begin
-      Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Message);
-   end Put_Error;
 
    function Image (Item : in Buffer_Region) return String
    is begin

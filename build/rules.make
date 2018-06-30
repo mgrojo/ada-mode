@@ -34,7 +34,7 @@ tests :: wisi-generate.exe
 tests :: ada_lite_re2c.c
 tests :: character_literal_re2c.c
 tests :: skip_to_grammar_re2c.c
-tests :: dragon_4_43_re2c.c
+tests :: dragon_4_43_packrat_re2c.c
 tests :: warth_left_recurse_expr_1_re2c.c
 
 tests :: test_all_harness.diff
@@ -58,28 +58,40 @@ tests :: test_all_harness.diff
 
 # case_expression-elisp.el.diff done in wisi_wy_test.adb
 tests :: case_expression_re2c.c
+tests :: case_expression_packrat_re2c.c
 tests :: case_expression-parse.diff
 tests :: character_literal_re2c.c
+tests :: character_literal_packrat_re2c.c
 tests :: character_literal-parse.diff
 tests :: conflict_name_re2c.c
+tests :: conflict_name_packrat_re2c.c
 tests :: conflict_name-parse.diff
 tests :: empty_production_1_re2c.c
+tests :: empty_production_1_packrat_re2c.c
 tests :: empty_production_1-parse.diff
 tests :: empty_production_2_re2c.c
+tests :: empty_production_2_packrat_re2c.c
 tests :: empty_production_2-parse.diff
 tests :: empty_production_3_re2c.c
+tests :: empty_production_3_packrat_re2c.c
 tests :: empty_production_3-parse.diff
 tests :: empty_production_4_re2c.c
+tests :: empty_production_4_packrat_re2c.c
 tests :: empty_production_4-parse.diff
 tests :: empty_production_5_re2c.c
+tests :: empty_production_5_packrat_re2c.c
 tests :: empty_production_5-parse.diff
 tests :: empty_production_6_re2c.c
+tests :: empty_production_6_packrat_re2c.c
 tests :: empty_production_6-parse.diff
 tests :: empty_production_7_re2c.c
+tests :: empty_production_7_packrat_re2c.c
 tests :: empty_production_7-parse.diff
 tests :: empty_production_8_re2c.c
+tests :: empty_production_8_packrat_re2c.c
 tests :: empty_production_8-parse.diff
 tests :: identifier_list_name_conflict_re2c.c
+tests :: identifier_list_name_conflict_packrat_re2c.c
 tests :: identifier_list_name_conflict-parse.diff
 tests :: subprograms-process.el.diff
 tests :: subprograms_process_actions.adb.diff
@@ -178,8 +190,8 @@ wisi-clean :
 	rm -f *-elisp.el *-process.el *.*parse_table *.ads *.adb
 
 # -v 2 gives parse trace.
-%.parse : %.input %_lalr_run.exe %_packrat_run.exe
-	./$*_lalr_run.exe -v 2 $< > $*.parse
+%.parse : %.input %_lr_run.exe %_packrat_run.exe
+	./$*_lr_run.exe -v 2 $< > $*.parse
 	echo "" >> $*.parse
 	./$*_packrat_run.exe -v 2 $< >> $*.parse
 	dos2unix -q $*.parse

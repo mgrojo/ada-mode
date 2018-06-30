@@ -197,7 +197,7 @@ package Wisi is
       Tokens      : String_Lists.List;
       Action      : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Check       : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Source_Line : WisiToken.Line_Number_Type;
+      Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
    end record;
    package RHS_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 

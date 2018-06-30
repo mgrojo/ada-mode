@@ -35,13 +35,13 @@ statement
   ;
 
 sequence_of_statements
-  : statement ;; label is included in statement
-  | sequence_of_statements statement
+  : sequence_of_statements statement
+  | statement ;; label is included in statement
   ;
 
 label_opt
-  : ;; empty
-  | IDENTIFIER COLON ;; on blocks, loops
+  : IDENTIFIER COLON ;; on blocks, loops
+  | ;; empty
   ;
 
 ;;; end of file

@@ -327,7 +327,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (27, 27),
          Ops                     => +(Insert, +END_ID, 7) & (Insert, +SEMICOLON_ID, 7),
          Enqueue_Low             => 37,
-         Enqueue_High            => 151,
+         Enqueue_High            => 178,
          Check_Low               => 6,
          Check_High              => 21,
          Cost                    => 2);
@@ -709,7 +709,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 30,
          Enqueue_High            => 88,
          Check_Low               => 4,
-         Check_High              => 14,
+         Check_High              => 15,
          Cost                    => 3);
    end Error_Token_When_Parallel;
 
@@ -1384,9 +1384,9 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 115,
-         Enqueue_High            => 280,
+         Enqueue_High            => 283,
          Check_Low               => 20,
-         Check_High              => 46,
+         Check_High              => 48,
          Cost                    => 6);
    end Actual_Parameter_Part_1;
 
@@ -1580,7 +1580,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 47,
          Enqueue_High            => 127,
          Check_Low               => 3,
-         Check_High              => 12,
+         Check_High              => 15,
          Cost                    => 1);
    end String_Quote_4;
 

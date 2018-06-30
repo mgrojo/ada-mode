@@ -49,7 +49,8 @@ package Wisi.Gen_Output_Ada_Common is
       Table_Entry_Count            : Integer := -1;
       Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
 
-      Grammar : WisiToken.Productions.Prod_Arrays.Vector;
+      Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
 
       Package_Name_Root       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Lower_Package_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -58,12 +59,11 @@ package Wisi.Gen_Output_Ada_Common is
 
    type LR_Parser_Array is array (Generator_Algorithm_Type range LALR .. LR1) of WisiToken.LR.Parse_Table_Ptr;
 
-   procedure Initialize
-     (Data             : in out Data_Type;
-      Input_File_Name  : in     String;
+   function Initialize
+     (Input_File_Name  : in     String;
       Output_File_Root : in     String;
-      Check_Interface  : in     Boolean);
-   --  set Data
+      Check_Interface  : in     Boolean)
+     return Data_Type;
 
    function File_Name_To_Ada (File_Name : in String) return String;
 

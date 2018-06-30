@@ -1,9 +1,9 @@
-LALR_Parser parse:
+LALR Parser parse:
  6 tokens lexed
  1: 1:  1:(IDENTIFIER, (1 . 3)) : shift and goto state 2
  1: 2:  2:(IN, (5 . 6)) : shift and goto state 6
  1: 6:  3:(IDENTIFIER, (8 . 13)) : reduce 1 tokens to mode
-mode_1: (mode, (5 . 6)) <= ( 2:(IN, (5 . 6)))
+mode_0: (mode, (5 . 6)) <= ( 2:(IN, (5 . 6)))
  ... goto state 7
  1: 7:  3:(IDENTIFIER, (8 . 13)) : shift and goto state 8
  1: 8:  4:(IDENTIFIER, (15 . 17)) : reduce 1 tokens to name
@@ -14,7 +14,7 @@ parameter_specification_0: (parameter_specification, (1 . 13)) <= ( 1:(IDENTIFIE
  ... goto state 4
  1: 4:  4:(IDENTIFIER, (15 . 17)) : shift and goto state 2
  1: 2:  5:(IDENTIFIER, (19 . 30)) : reduce 0 tokens to mode
-mode_0: (mode) <= ()
+mode_1: (mode) <= ()
  ... goto state 7
  1: 7:  5:(IDENTIFIER, (19 . 30)) : shift and goto state 8
  1: 8:  6:(Wisi_EOI, (33 . 32)) : reduce 1 tokens to name
@@ -29,3 +29,14 @@ compilation_unit_0: (compilation_unit, (1 . 30)) <= ((parameter_specification, (
  1: 3:  6:(Wisi_EOI, (33 . 32)) : accept it
 wisitoken_accept_0: (wisitoken_accept, (1 . 30)) <= ((compilation_unit, (1 . 30)))
  1: succeed
+
+Packrat Parser parse:
+ 6 tokens lexed
+mode_0: (mode, (5 . 6)) <= ( 2:(IN, (5 . 6)))
+name_0: (name, (8 . 13)) <= ( 3:(IDENTIFIER, (8 . 13)))
+parameter_specification_0: (parameter_specification, (1 . 13)) <= ( 1:(IDENTIFIER, (1 . 3)), (mode, (5 . 6)), (name, (8 . 13)))
+mode_1: (mode) <= ()
+name_0: (name, (19 . 30)) <= ( 5:(IDENTIFIER, (19 . 30)))
+parameter_specification_0: (parameter_specification, (15 . 30)) <= ( 4:(IDENTIFIER, (15 . 17)), (mode), (name, (19 . 30)))
+compilation_unit_0: (compilation_unit, (1 . 30)) <= ((parameter_specification, (1 . 13)), (parameter_specification, (15 . 30)))
+wisitoken_accept_0: (wisitoken_accept, (1 . 32)) <= ((compilation_unit, (1 . 30)),  6:(Wisi_EOI, (33 . 32)))

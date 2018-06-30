@@ -138,7 +138,9 @@ package body WisiToken.LR.LALR_Generator is
          New_Line;
          Put (Descriptor, Table.States (State));
 
-         New_Line;
+         if State /= Table.States'Last then
+            New_Line;
+         end if;
       end loop;
    end Put_Parse_Table;
 
@@ -654,7 +656,7 @@ package body WisiToken.LR.LALR_Generator is
 
       Table : Parse_Table_Ptr;
 
-      Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar, Descriptor);
+      Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
       First : constant Token_Array_Token_Set := LR1_Items.First
         (Grammar, Descriptor, Has_Empty_Production, Trace_Generate > Detail);
@@ -668,7 +670,7 @@ package body WisiToken.LR.LALR_Generator is
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
    begin
-      Generator_Utils.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
+      WisiToken.Generate.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
 
       Used_Tokens (Grammar (Grammar.First_Index).LHS) := True;
 
@@ -687,7 +689,7 @@ package body WisiToken.LR.LALR_Generator is
       end loop;
 
       if Unused_Tokens then
-         Generator_Utils.Error := not Ignore_Unused_Tokens;
+         WisiToken.Generate.Error := not Ignore_Unused_Tokens;
          Ada.Text_IO.New_Line;
       end if;
 
@@ -751,18 +753,14 @@ package body WisiToken.LR.LALR_Generator is
          Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "unknown conflicts:");
          Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
+         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "excess known conflicts:");
          Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
          Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
-         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
-      end if;
-
-      if Generator_Utils.Error then
-         raise Grammar_Error with "errors: aborting";
+         WisiToken.Generate.Error := WisiToken.Generate.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       return Table;

@@ -31,8 +31,8 @@ name : IDENTIFIER
   ;
 
 parameter_profile
-  : ;; empty
-  | LEFT_PAREN IDENTIFIER RIGHT_PAREN
+  : LEFT_PAREN IDENTIFIER RIGHT_PAREN
+  | ;; empty
   ;
 
 ;; end of file

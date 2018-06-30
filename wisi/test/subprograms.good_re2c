@@ -161,6 +161,7 @@ int subprograms_next_token
       DOT = ".";
       SEMICOLON = ";";
       SYMBOL =  [a-zA-Z][0-9a-zA-Z_]* ;
+      Wisi_EOI = [\x04];
 
       WHITESPACE { lexer->byte_token_start = lexer->cursor;
           lexer->char_token_start = lexer->char_pos;
@@ -187,8 +188,8 @@ int subprograms_next_token
       DOT {*id =  16; continue;}
       SEMICOLON {*id =  17; continue;}
       SYMBOL {*id =  18; continue;}
+      Wisi_EOI {*id =  19; continue;}
 
-      [\x04] {*id =  19; continue;}
       * {status = ERROR_unrecognized_character; continue;}
 */
       }

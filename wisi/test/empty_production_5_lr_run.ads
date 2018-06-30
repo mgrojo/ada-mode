@@ -1,0 +1,6 @@
+with Gen_LR_Parser_No_Recover_Run;
+with Empty_Production_5_Actions;
+with Empty_Production_5_Main;
+with WisiToken.Syntax_Trees;
+procedure Empty_Production_5_LR_Run is new Gen_LR_Parser_No_Recover_Run
+  (Empty_Production_5_Actions.Descriptor, Empty_Production_5_Main.Create_Parser);

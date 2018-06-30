@@ -19,12 +19,13 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
+with Wisi.Gen_Generate_Utils;
+with Wisi.Output_Elisp_Common;
+with WisiToken.Generate;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.Wisi_Generate_Elisp;
 with WisiToken.Productions;
-with Wisi.Gen_Generate_Utils;
-with Wisi.Output_Elisp_Common;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Elisp
   (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
@@ -43,9 +44,6 @@ is
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
-   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector := Generate_Utils.To_Grammar
-     (Generate_Utils.LR1_Descriptor, Input_Data.Lexer.File_Name, -Input_Data.Generate_Params.Start_Token);
-
    Parser : WisiToken.LR.Parse_Table_Ptr;
 
    procedure Create_Elisp (Algorithm : in LR_Single_Generator_Algorithm; Both : in Boolean)
@@ -53,7 +51,14 @@ is
       use Standard.Ada.Strings.Unbounded;
       File            : File_Type;
       Elisp_Package_1 : Unbounded_String;
+
+      Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
    begin
+      Generate_Utils.To_Grammar
+        (Generate_Utils.LR1_Descriptor, Input_Data.Lexer.File_Name, -Input_Data.Generate_Params.Start_Token,
+         Grammar, Source_Line_Map);
+
       if Both then
          case Algorithm is
          when LALR =>
@@ -90,6 +95,10 @@ is
             Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
             Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
       end case;
+
+      if WisiToken.Generate.Error then
+         raise WisiToken.Grammar_Error with "errors: aborting";
+      end if;
 
       Create (File, Out_File, -Elisp_Package_1 & "-elisp.el");
       Set_Output (File);

@@ -26,6 +26,7 @@ with GNAT.Regexp;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Generate_Packrat;
 with Wisi.Utils;
+with WisiToken.Generate.Packrat;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.Productions;
@@ -40,8 +41,13 @@ is
      (Input_Data.Raw_Code, Input_Data.Tokens, Input_Data.Conflicts, Input_Data.Generate_Params);
    use Common;
 
-   Data       : Common.Data_Type;
+   Data : Common.Data_Type := Common.Initialize
+     (Input_Data.Lexer.File_Name, Output_File_Name_Root, Check_Interface => False);
+
    LR_Parsers : LR_Parser_Array;
+
+   Packrat_Data : constant WisiToken.Generate.Packrat.Data := WisiToken.Generate.Packrat.Initialize
+     (Input_Data.Lexer.File_Name, Data.Grammar, Data.Source_Line_Map);
 
    function Symbol_Regexp (Item : in String) return String
    is begin
@@ -275,7 +281,10 @@ is
 
       Put_Line ("with WisiToken.Lexer.re2c;");
       Put_Line ("with " & re2c_Package_Name & ";");
-      if Input_Data.Action_Count + Input_Data.Check_Count > 0 then
+      if (case Data.Generator_Algorithm is
+          when LR_Generator_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
+          when Packrat => Input_Data.Action_Count > 0)
+      then
          Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
       end if;
 
@@ -305,7 +314,7 @@ is
             Input_Data.Generate_Params.First_Parser_Label, Ada_Action_Names, Ada_Check_Names);
 
       when Packrat =>
-         Wisi.Generate_Packrat (Data.Grammar, Ada_Action_Names, Ada_Check_Names, Generate_Utils.LR1_Descriptor);
+         Wisi.Generate_Packrat (Packrat_Data, Ada_Action_Names, Ada_Check_Names, Generate_Utils.LR1_Descriptor);
 
          Packrat_Create_Create_Parser;
       end case;
@@ -347,14 +356,12 @@ is
    Ada_Check_Names  : Nonterminal_Names_Array;
 
 begin
-   Common.Initialize (Data, Input_Data.Lexer.File_Name, Output_File_Name_Root, Check_Interface => False);
-
    case Data.Lexer is
    when re2c_Lexer =>
       null;
 
    when Elisp_Lexer =>
-      raise User_Error with Wisi.Utils.Error_String
+      raise User_Error with WisiToken.Generate.Error_Message
         (Input_Data.Lexer.File_Name, 1, "Ada output language does not support " & Lexer_Names (Data.Lexer).all &
            " lexer");
    end case;
@@ -364,7 +371,7 @@ begin
       null;
 
    when Module | Process =>
-      raise User_Error with Wisi.Utils.Error_String
+      raise User_Error with WisiToken.Generate.Error_Message
         (Input_Data.Lexer.File_Name, 1, "Ada output language does not support setting Interface");
    end case;
 
@@ -465,14 +472,21 @@ begin
       Data.Parser_State_Count := LR_Parsers (LR1).State_Last - LR_Parsers (LR1).State_First + 1;
 
    when Packrat =>
-      Data.Parser_State_Count := 0;
+      Packrat_Data.Check_All (Generate_Utils.LR1_Descriptor);
    end case;
+
+   if WisiToken.Generate.Error then
+      raise WisiToken.Grammar_Error with "errors: aborting";
+   end if;
 
    declare
       Main_Package_Name    : constant String := -Data.Package_Name_Root & "_Main";
       Actions_Package_Name : constant String := -Data.Package_Name_Root & "_Actions";
    begin
-      if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
+      if (case Data.Generator_Algorithm is
+          when LR_Generator_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
+          when Packrat => Input_Data.Action_Count > 0)
+      then
          --  Some WisiToken tests have no actions or checks.
          Create_Ada_Actions_Body (Ada_Action_Names, Ada_Check_Names, Actions_Package_Name);
       end if;
@@ -493,6 +507,7 @@ begin
 
    case Data.Generator_Algorithm is
    when LR_Generator_Algorithm =>
+      New_Line;
       Put_Line
         (Integer'Image (Input_Data.Rule_Count) & " rules," &
            Integer'Image (Input_Data.Action_Count) & " actions," &

@@ -27,7 +27,7 @@ package WisiToken.Parse is
       Lexer            : WisiToken.Lexer.Handle;
       User_Data        : WisiToken.Syntax_Trees.User_Data_Access;
       Terminals        : aliased WisiToken.Base_Token_Arrays.Vector;
-      Line_Begin_Token : WisiToken.Line_Begin_Token_Vectors.Vector;
+      Line_Begin_Token : aliased WisiToken.Line_Begin_Token_Vectors.Vector;
    end record;
    --  Common to all parsers. Finalize should free any allocated objects.
 

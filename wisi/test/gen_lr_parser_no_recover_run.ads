@@ -31,4 +31,4 @@ generic
       Trace     : not null access WisiToken.Trace'Class;
       User_Data : in              WisiToken.Syntax_Trees.User_Data_Access);
 
-procedure Gen_LALR_Parser_No_Recover_Run;
+procedure Gen_LR_Parser_No_Recover_Run;

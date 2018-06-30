@@ -157,6 +157,9 @@ package WisiToken is
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
+   function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
+   --  Return last index in A of a prefix shared between A, B; 0 if none.
+
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set;
    --  First, Last determine size of result.
    --  For each element in Item, set result (element) True.
@@ -425,9 +428,6 @@ package WisiToken is
       Message   : in String)
      return String;
    --  Return Gnu-formatted error message.
-
-   procedure Put_Error (Message : in String);
-   --  Put Message to Standard_Error.
 
    type Generator_Algorithm_Type is (LALR, LR1);
 

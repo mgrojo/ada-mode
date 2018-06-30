@@ -23,6 +23,7 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.Generate;
 with WisiToken.Lexer.Regexp;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.LR1_Items;
@@ -84,8 +85,7 @@ package body Grune_9_30 is
        EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-     WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
+   Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
    First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);

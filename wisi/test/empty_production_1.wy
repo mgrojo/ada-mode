@@ -35,13 +35,13 @@
 %lexer re2c
 
 declarations
-  : body
-  | declarations body
+  : declarations body
+  | body
   ;
 
 declarative_part
-  : ;; empty
-  | declarations
+  : declarations
+  | ;; empty
   ;
 
 body

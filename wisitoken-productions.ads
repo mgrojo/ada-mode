@@ -51,4 +51,14 @@ package WisiToken.Productions is
    procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class);
    --  Put Image of each production to Ada.Text_IO.Current_Output.
 
+   package Line_Number_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Natural, WisiToken.Line_Number_Type);
+
+   type Prod_Source_Line_Map is record
+      Line    : Line_Number_Type;
+      RHS_Map : Line_Number_Arrays.Vector;
+   end record;
+
+   package Source_Line_Maps is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Prod_Source_Line_Map);
+   --  For line numbers of productions in source files.
+
 end WisiToken.Productions;

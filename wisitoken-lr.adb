@@ -748,7 +748,9 @@ package body WisiToken.LR is
          Action_Ptr := Action_Ptr.Next;
       end loop;
 
-      New_Line;
+      if Goto_Ptr /= null then
+         New_Line;
+      end if;
 
       while Goto_Ptr /= null loop
          Put_Line

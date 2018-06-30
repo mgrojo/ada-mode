@@ -22,15 +22,15 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with Dragon_4_43_Actions;
-with Dragon_4_43_Main; --  FIXME: add 'packrat'? also produce LALR?
-with WisiToken.Packrat.AUnit;
+with Dragon_4_43_Packrat_Actions;
+with Dragon_4_43_Packrat_Main; --  FIXME: add 'packrat'? also produce LALR?
+with WisiToken.Parse.Packrat;
 with WisiToken.Text_IO_Trace;
 package body Dragon_4_43_Packrat_Gen is
 
-   Parser : aliased Dragon_4_43_Main.Parser_Type;
+   Parser : aliased WisiToken.Parse.Packrat.Parser;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Dragon_4_43_Actions.Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Dragon_4_43_Packrat_Actions.Descriptor'Access);
    --  FIXME: why does Trace need a Descriptor?
 
    ----------
@@ -40,22 +40,21 @@ package body Dragon_4_43_Packrat_Gen is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Packrat;
+      use WisiToken.Parse.Packrat;
 
       procedure Execute_Parse
         (Input    : in String;
-         Expected : in WisiToken.Packrat.Result_States)
-      is
-         use WisiToken.Packrat.AUnit;
-      begin
+         Expected : in Result_States)
+      is begin
          Parser.Lexer.Reset_With_String (Input);
-         declare
-            Result : constant Result_Type := Dragon_4_43_Main.Parse (Parser);
-         begin
-            Check (Input, Result.State, Expected);
-            --  FIXME: check syntax_tree, actions?
-         end;
+         Parser.Parse;
+
+         AUnit.Assertions.Assert (Expected = Success, "'" & Input & "': expected fail; did not get Syntax_Error");
+
       exception
+      when WisiToken.Syntax_Error =>
+         AUnit.Assertions.Assert (Expected = Failure, "'" & Input & "': expected success; got Syntax_Error");
+
       when AUnit.Assertions.Assertion_Error =>
          raise;
       when E : others =>
@@ -95,7 +94,7 @@ package body Dragon_4_43_Packrat_Gen is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Dragon_4_43_Main.Create_Parser
+      Dragon_4_43_Packrat_Main.Create_Parser
         (Parser,
          Trace     => Trace'Access,
          User_Data => null);

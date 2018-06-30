@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Exceptions;
-with Wisi.Utils;
+with WisiToken.Generate; use WisiToken.Generate;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada;
 package body Wisi.Gen_Generate_Utils is
@@ -527,7 +527,6 @@ package body Wisi.Gen_Generate_Utils is
       use all type WisiToken.LR.Parse_Action_Verbs;
       Result   : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
       Conflict : WisiToken.LR.Generator_Utils.Conflict;
-      Error    : Boolean := False;
    begin
       Accept_Reduce_Conflict_Count := 0;
       Shift_Reduce_Conflict_Count  := 0;
@@ -555,43 +554,47 @@ package body Wisi.Gen_Generate_Utils is
             Result.Append (Conflict);
          exception
          when E : Not_Found =>
-            Wisi.Utils.Put_Error (Source_File_Name, Item.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
-            Error := True;
+            Put_Error
+              (Error_Message
+                 (Source_File_Name, Item.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
          end;
       end loop;
-      if Error then
-         raise WisiToken.Grammar_Error with "known conflicts: tokens not found, aborting";
-      end if;
       return Result;
    end To_Conflicts;
 
-   function To_Grammar
-     (Descriptor       : in WisiToken.Descriptor'Class;
-      Source_File_Name : in String;
-      Start_Token      : in String)
-     return WisiToken.Productions.Prod_Arrays.Vector
+   procedure To_Grammar
+     (Descriptor       : in     WisiToken.Descriptor'Class;
+      Source_File_Name : in     String;
+      Start_Token      : in     String;
+      Grammar          :    out WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map  :    out WisiToken.Productions.Source_Line_Maps.Vector)
    is
       use WisiToken.Wisi_Ada;
-
-      Grammar : WisiToken.Productions.Prod_Arrays.Vector;
-      Error   : Boolean := False;
    begin
       Grammar.Set_First (Descriptor.First_Nonterminal);
       Grammar.Set_Last (Descriptor.Last_Nonterminal);
+      Source_Line_Map.Set_First (Descriptor.First_Nonterminal);
+      Source_Line_Map.Set_Last (Descriptor.Last_Nonterminal);
+
       pragma Assert (Descriptor.Accept_ID = Descriptor.First_Nonterminal);
       begin
          Grammar (Descriptor.Accept_ID) :=
            Descriptor.Accept_ID <= Only (Find_Token_ID (Start_Token) & EOF_ID + WisiToken.Syntax_Trees.Null_Action);
+
+         Source_Line_Map (Descriptor.Accept_ID).Line := Line_Number_Type'First;
+         Source_Line_Map (Descriptor.Accept_ID).RHS_Map.Set_First (0);
+         Source_Line_Map (Descriptor.Accept_ID).RHS_Map.Set_Last (0);
+         Source_Line_Map (Descriptor.Accept_ID).RHS_Map (0) := Line_Number_Type'First;
       exception
       when Not_Found =>
-         Wisi.Utils.Put_Error
-           (Source_File_Name, 1, "start token '" & (Start_Token) & "' not found; need %start?");
-         Error := True;
+         Put_Error
+           (Error_Message
+              (Source_File_Name, 1, "start token '" & (Start_Token) & "' not found; need %start?"));
       end;
 
       for Rule of Tokens.Rules loop
          declare
-            RHS_Index : Natural := 0; -- Semantic_Action defines Rhs_index as zero-origin
+            RHS_Index : Natural := 0;
             RHSs      : WisiToken.Productions.RHS_Arrays.Vector;
             LHS       : Token_ID; -- not initialized for exception handler
          begin
@@ -599,6 +602,10 @@ package body Wisi.Gen_Generate_Utils is
 
             RHSs.Set_First (RHS_Index);
             RHSs.Set_Last (Natural (Rule.Right_Hand_Sides.Length) - 1);
+
+            Source_Line_Map (LHS).Line := Rule.Source_Line;
+            Source_Line_Map (LHS).RHS_Map.Set_First (RHSs.First_Index);
+            Source_Line_Map (LHS).RHS_Map.Set_Last (RHSs.Last_Index);
 
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
@@ -615,12 +622,14 @@ package body Wisi.Gen_Generate_Utils is
                      end loop;
                   end if;
                   RHSs (RHS_Index) := (Tokens => Tokens, Action => null, Check => null);
+
+                  Source_Line_Map (LHS).RHS_Map (RHS_Index) := Right_Hand_Side.Source_Line;
                exception
                when E : Not_Found =>
                   --  From "&"
-                  Wisi.Utils.Put_Error
-                    (Source_File_Name, Right_Hand_Side.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
-                  Error := True;
+                  Put_Error
+                    (Error_Message
+                       (Source_File_Name, Right_Hand_Side.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
                end;
                RHS_Index := RHS_Index + 1;
             end loop;
@@ -629,17 +638,26 @@ package body Wisi.Gen_Generate_Utils is
          exception
          when E : Not_Found =>
             --  From Find_Token_ID (left_hand_side)
-            Wisi.Utils.Put_Error
-              (Source_File_Name, Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
-            Error := True;
+            Put_Error
+              (Error_Message
+                 (Source_File_Name, Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
          end;
       end loop;
 
-      if Error then
-         raise Syntax_Error;
-      else
-         return Grammar;
-      end if;
+      WisiToken.Generate.Check_Consistent (Grammar, Descriptor, Source_File_Name);
+   end To_Grammar;
+
+   function To_Grammar
+     (Descriptor       : in     WisiToken.Descriptor'Class;
+      Source_File_Name : in     String;
+      Start_Token      : in     String)
+     return WisiToken.Productions.Prod_Arrays.Vector
+   is
+      Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
+   begin
+      To_Grammar (Descriptor, Source_File_Name, Start_Token, Grammar, Source_Line_Map);
+      return Grammar;
    end To_Grammar;
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set

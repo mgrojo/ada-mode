@@ -18,6 +18,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
+with WisiToken.Generate;
 package body WisiToken.LR.Generator_Utils is
 
    procedure Add_Action
@@ -94,10 +95,9 @@ package body WisiToken.LR.Generator_Utils is
                         Ada.Text_IO.Put_Line (" - conflict duplicate");
                      end if;
                   else
-                     Put_Error
+                     WisiToken.Generate.Put_Error
                        ("More than two actions on " & Image (Symbol, Descriptor) &
                           " in state" & State_Index'Image (Closure.State));
-                     Error := True;
                   end if;
                end if;
 
@@ -220,7 +220,7 @@ package body WisiToken.LR.Generator_Utils is
             --
             --  We continue generating the grammar, in order to help the user
             --  debug this issue.
-            Error := True;
+            WisiToken.Generate.Error := True;
 
             Ada.Text_IO.Put_Line
               ("Error: Generating parser: state" & State_Index'Image (State) &

@@ -20,6 +20,7 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Multiprocessors;
+with WisiToken.Generate; use WisiToken.Generate;
 with Wisi.Utils;
 package body Wisi.Gen_Output_Ada_Common is
 
@@ -1164,41 +1165,39 @@ package body Wisi.Gen_Output_Ada_Common is
       return Result;
    end File_Name_To_Ada;
 
-   procedure Initialize
-     (Data             : in out Data_Type;
-      Input_File_Name  : in     String;
+   function Initialize
+     (Input_File_Name  : in     String;
       Output_File_Root : in     String;
       Check_Interface  : in     Boolean)
+     return Data_Type
    is begin
-      declare
-         use Wisi.Utils;
-         Quit : Boolean := False;
-      begin
+      return Data : Data_Type do
          Data.Generator_Algorithm := Params.Generator_Algorithm;
 
          if Params.Lexer in Valid_Lexer then
             Data.Lexer := Valid_Lexer (Params.Lexer);
          else
-            Put_Error (Input_File_Name, 1, "Lexer not set in grammar file");
-            Quit := True;
+            Put_Error
+              (Error_Message
+                 (Input_File_Name, 1, "Lexer not set in grammar file or command line"));
          end if;
 
          if Check_Interface then
             if Params.Interface_Kind in Valid_Interface then
                Data.Interface_Kind := Valid_Interface (Params.Interface_Kind);
             else
-               Put_Error (Input_File_Name, 1, "Interface_Kind not set in grammar file");
-               Quit := True;
+               Put_Error
+                 (Error_Message
+                    (Input_File_Name, 1, "Interface_Kind not set in grammar file or command line"));
             end if;
          end if;
 
-         if Quit then raise User_Error with "missing grammar file directives"; end if;
-      end;
+         Generate_Utils.To_Grammar
+           (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token, Data.Grammar, Data.Source_Line_Map);
 
-      Data.Grammar := Generate_Utils.To_Grammar (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
-
-      Data.Package_Name_Root       := +File_Name_To_Ada (Output_File_Root);
-      Data.Lower_Package_Name_Root := +To_Lower (Output_File_Root);
+         Data.Package_Name_Root       := +File_Name_To_Ada (Output_File_Root);
+         Data.Lower_Package_Name_Root := +To_Lower (Output_File_Root);
+      end return;
    end Initialize;
 
    function To_Token_Ada_Name (WY_Name : in String) return String

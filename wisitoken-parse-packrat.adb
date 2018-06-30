@@ -52,6 +52,10 @@ package body WisiToken.Parse.Packrat is
       Result := Parser.Parse_WisiToken_Accept (Parser, Parser.Terminals.First_Index - 1);
 
       if Result.State /= Success then
+         if Trace_Parse > Outline then
+            Parser.Trace.Put_Line ("parse failed");
+         end if;
+
          raise Syntax_Error with "parse failed"; --  FIXME: need better error message!
       else
          Parser.Tree.Set_Root (Result.Result);

@@ -65,7 +65,7 @@ package WisiToken.Parse.Packrat is
       when Success =>
          Result : aliased WisiToken.Syntax_Trees.Valid_Node_Index;
 
-         Last_Token : Token_Index;
+         Last_Token : Base_Token_Index;
       end case;
    end record;
 

@@ -24,9 +24,6 @@ with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
 package WisiToken.LR.Generator_Utils is
 
-   Error : Boolean := False;
-   --  Set True by errors during grammar generation
-
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict is record
       --  A typical conflict is:

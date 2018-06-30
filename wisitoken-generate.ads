@@ -26,10 +26,25 @@ pragma License (Modified_GPL);
 with WisiToken.Productions;
 package WisiToken.Generate is
 
-   function Has_Empty_Production
-     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
-     return Token_ID_Set;
+   Error : Boolean := False;
+   --  Set True by errors during grammar generation
+
+   function Error_Message
+     (File_Name : in String;
+      File_Line : in WisiToken.Line_Number_Type;
+      Message   : in String)
+     return String;
+
+   procedure Put_Error (Message : in String);
+   --  Set Error True, output Message to Standard_Error
+
+   --  code generation
+   procedure Check_Consistent
+     (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor       : in WisiToken.Descriptor'Class;
+      Source_File_Name : in String);
+
+   function Has_Empty_Production (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_ID_Set;
    --  Result (ID) is True if any production for ID can be an empty
    --  production, recursively.
 

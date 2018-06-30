@@ -24,9 +24,9 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Finalization;
 with WisiToken.LR.Parser_Lists;
 with WisiToken.Lexer;
+with WisiToken.Parse;
 package WisiToken.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
@@ -125,7 +125,7 @@ package WisiToken.LR.Parser is
       First_Parser_Label           : in              Integer            := 1;
       Terminate_Same_State         : in              Boolean            := True);
 
-   procedure Parse (Shared_Parser : in out LR.Parser.Parser);
+   overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of
    --  input setting Shared_Parser.Terminals, then parses tokens.
    --
@@ -137,16 +137,13 @@ package WisiToken.LR.Parser is
    --  For errors where no recovery is possible, raises Parse_Error with
    --  an appropriate error message.
 
-   overriding
-   procedure Execute_Actions (Parser : in out LR.Parser.Parser);
+   overriding procedure Execute_Actions (Parser : in out LR.Parser.Parser);
    --  Execute the grammar actions in Parser.
 
-   overriding
-   function Any_Errors (Parser : in out LR.Parser.Parser) return Boolean;
+   overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean;
    --  Return True if any errors where encountered, recovered or not.
 
-   overriding
-   procedure Put_Errors (Parser : in out LR.Parser.Parser; File_Name : in String);
+   overriding procedure Put_Errors (Parser : in LR.Parser.Parser; File_Name : in String);
    --  Put user-friendly error messages from the parse to
    --  Ada.Text_IO.Current_Error.
 

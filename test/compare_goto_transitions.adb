@@ -22,6 +22,7 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Text_IO;
+with WisiToken.Generate;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
@@ -81,8 +82,7 @@ package body Compare_Goto_Transitions is
         (Parameter_List_ID  <= +Null_Action or                                           -- 6
                                Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action); -- 7
 
-      Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-        WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, Token_Enum.LALR_Descriptor);
+      Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
       First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
         (Grammar, Token_Enum.LALR_Descriptor, Has_Empty_Production, Trace => False);
 

@@ -19,8 +19,7 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-add packrat to all .wy tests
-    case_expression done, passing
+handle empty success in left_recursion not in tratt 2010?
 
 add packrat to ada_lite tests?
 
@@ -37,18 +36,13 @@ delete action from tree.node?
     decouples actions from tree
         action params are tree nodes, but action can be declared in wisitoken.parse.
 
-wisitoken.packrat
-    .generate
-        read existing *.wy
-            rewrite left-recursion
-
-    .parser
-        nothing here?
-        error correction?
-
 add *, +, ? to wisi_grammar?
     re-write to current syntax?
     closer to Ada appendix P
+
+    * does not need recursion; shorter syntax tree
+        require lalr, packrat generate same syntax tree so actions are the same
+        option to violate that if not doing one or the other.
 
 reorganize package hierarchy?
     wisitoken - truly common stuff

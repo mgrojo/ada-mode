@@ -29,7 +29,6 @@
 pragma License (Modified_GPL);
 
 with WisiToken.LR.McKenzie_Recover;
-with WisiToken.Parse;
 package body WisiToken.LR.Parser is
 
    function Reduce_Stack_1
@@ -62,14 +61,7 @@ package body WisiToken.LR.Parser is
       --  Computes Nonterm.Byte_Region, Virtual
 
       if Trace_Parse > Detail then
-         declare
-            Action_Name : constant String :=
-              Image (Action.Production.Nonterm, Trace.Descriptor.all) & "_" &
-              Trimmed_Image (Action.Production.RHS);
-         begin
-            Trace.Put_Line
-              (Action_Name & ": " & Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
-         end;
+         Trace.Put_Line (Parser_State.Tree.Image (Nonterm, Trace.Descriptor.all, Include_Children => True));
       end if;
 
       if Action.Check = null then
@@ -384,7 +376,7 @@ package body WisiToken.LR.Parser is
       end if;
    end New_Parser;
 
-   procedure Parse (Shared_Parser : in out LR.Parser.Parser)
+   overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser)
    is
       use all type Syntax_Trees.User_Data_Access;
       use all type Ada.Containers.Count_Type;
@@ -443,11 +435,7 @@ package body WisiToken.LR.Parser is
          Shared_Parser.User_Data.Reset;
       end if;
 
-      Shared_Parser.Lexer.Errors.Clear;
-
-      WisiToken.Parse.Lex_All
-        (Shared_Parser.Lexer, Shared_Parser.Terminals, Shared_Parser.Line_Begin_Token, Shared_Parser.User_Data,
-         Shared_Parser.Trace);
+      Shared_Parser.Lex_All;
 
       Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
       Shared_Parser.Shared_Tree.Clear;
@@ -943,23 +931,22 @@ package body WisiToken.LR.Parser is
       end if;
    end Execute_Actions;
 
-   overriding
-   function Any_Errors (Parser : in out LR.Parser.Parser) return Boolean
+   overriding function Any_Errors (Parser : in LR.Parser.Parser) return Boolean
    is
       use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;
+      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
    begin
       pragma Assert (Parser_State.Tree.Flushed);
       return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Lexer.Errors.Length > 0;
    end Any_Errors;
 
-   procedure Put_Errors (Parser : in out LR.Parser.Parser; File_Name : in String)
+   overriding procedure Put_Errors (Parser : in LR.Parser.Parser; File_Name : in String)
    is
       use all type SAL.Base_Peek_Type;
       use Ada.Text_IO;
 
-      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref;
+      Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_Constant_State_Ref;
       Descriptor   : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
    begin
       for Item of Parser.Lexer.Errors loop
