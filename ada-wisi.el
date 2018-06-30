@@ -578,6 +578,7 @@ Also return cache at start."
 	     (setq result (ada-wisi-which-function-1 "protected" t)))
 
 	    ((abstract_subprogram_declaration
+	      expression_function_declaration
 	      subprogram_declaration
 	      subprogram_renaming_declaration
 	      generic_subprogram_declaration ;; after 'generic'

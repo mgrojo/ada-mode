@@ -1321,8 +1321,8 @@ and treat `ada-case-strict' as t in code.."
 
 (defun ada-case-adjust-at-point (&optional in-comment)
   "If ’ada-auto-case’ is non-nil, adjust case of word at point, move to end of word.
-With prefix arg, adjust case as code even if in comment;
-otherwise, capitalize words in comments.
+With prefix arg, adjust case as code even if in comment or string;
+otherwise, capitalize words in comments and strings.
 If ’ada-auto-case’ is nil, capitalize current word."
   (interactive "P")
   (cond

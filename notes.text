@@ -52,20 +52,28 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+packrat
+    langkit packrat is significantly faster than wisitoken lalr
+    use non-error-correcting packrat as primary parser, error-correcting lalr as fallback
+
+time with w32-pipe-read-delay 0
+
 ada-gps-size-threshold not safe local variable
     use in some tests
 
 allow set task count from Emacs
 
-create_parser supposed to respect line limits
+wisi-generate create_parser supposed to respect line limits
     fix it
+
+test/ada_mode-recover_*.adb failing
+    fix them
 
 test/ada_mode-recover_type_1.ads
     desired solution: (insert 'end case ; end record ;') cost (+ 1 1 1 1 2 1) => 7
         found a cost 13 solution!?
     constrain_terminal not returning 'end'
         need to handle mixed shift/reduce better
-
 Contact ada cubesat lab, see if they will beta test indentation engine.
 
 --  FIXME: see if more tasks go faster or slower.
