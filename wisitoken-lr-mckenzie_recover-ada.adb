@@ -203,6 +203,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       Begin_Name_Token : Recover_Token renames Config.Check_Status.Begin_Name;
       End_Name_Token   : Recover_Token renames Config.Check_Status.End_Name;
    begin
+      --  We don't raise an exception on an assert fail; we just abandon the
+      --  config. The user has no way to work around an exception. If we are
+      --  trying to fix a particular use case, the trace messages will be
+      --  enough.
+
       if not Begin_Name_IDs (Begin_Name_Token.ID) then
          raise Programmer_Error with "unrecognized begin_name_token id " & Image (Begin_Name_Token.ID, Descriptor);
       end if;
@@ -355,9 +360,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   end if;
                exception
                when E : System.Assertions.Assert_Failure =>
-                  raise Programmer_Error with "Match_Names_Error 2 " &
-                    Standard.Ada.Exceptions.Exception_Message (E) & " " &
-                    Image (Config.Error_Token.ID, Descriptor);
+                  if Trace_McKenzie > Outline then
+                     Trace.Put_Line
+                       ("Match_Names_Error 2 " & Standard.Ada.Exceptions.Exception_Message (E) & " " &
+                          Image (Config.Error_Token.ID, Descriptor));
+                  end if;
+                  return Abandon;
                end;
                return Continue;
 
@@ -406,9 +414,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   end if;
                exception
                when E : System.Assertions.Assert_Failure =>
-                  raise Programmer_Error with "Match_Names_Error 1 " &
-                    Standard.Ada.Exceptions.Exception_Message (E) & " " &
-                    Image (Config.Error_Token.ID, Descriptor);
+                  if Trace_McKenzie > Outline then
+                     Trace.Put_Line
+                       ("Match_Names_Error 1 " & Standard.Ada.Exceptions.Exception_Message (E) & " " &
+                          Image (Config.Error_Token.ID, Descriptor));
+                  end if;
+                  return Abandon;
                end;
                return Abandon;
             end if;
@@ -699,6 +710,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          Put (Message, Trace, Parser_Label, Terminals, Config);
       end Put;
    begin
+      --  We don't raise an exception on an assert fail; we just abandon the
+      --  config. The user has no way to work around an exception. If we are
+      --  trying to fix a particular use case, the trace messages will be
+      --  enough.
+
       if Config.Error_Token.ID = +DOT_ID then
          --  We've encountered a Selected_Component when we were expecting a
          --  simple IDENTIFIER or a name. If the name is preceded by 'end', then
@@ -757,11 +773,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
                   Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
                end if;
-               --  We don't re-raise the exception here; so far, this has only
-               --  happened while exploring a high-cost config (which only occurs in
-               --  a race condition with the lower cost solution), and the correct
-               --  thing to do would be to abandon it. If we are trying to fix a
-               --  particular use case, the trace messages will be enough.
                return Abandon;
             end;
          end if;
@@ -801,9 +812,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          exception
          when System.Assertions.Assert_Failure =>
             --  From *_Check
-            Put ("Language_Fixes " & Label & " ID mismatch " &
-                   Image (Config.Error_Token.ID, Descriptor), Config);
-            Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
+            if Trace_McKenzie > Outline then
+               Put ("Language_Fixes " & Label & " ID mismatch " &
+                      Image (Config.Error_Token.ID, Descriptor), Config);
+               Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
+            end if;
+            return Abandon;
          end;
       end if;
       return Continue;
