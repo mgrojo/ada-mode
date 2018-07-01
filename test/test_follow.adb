@@ -77,8 +77,8 @@ package body Test_Follow is
                                Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action); -- 7
 
       Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
-      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
-        (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
+      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.First
+        (Grammar, Has_Empty_Production, LALR_Descriptor.First_Terminal);
 
       procedure One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is

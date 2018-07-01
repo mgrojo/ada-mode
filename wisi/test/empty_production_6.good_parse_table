@@ -136,5 +136,5 @@ statement => (IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)
 sequence_of_statements => (IDENTIFIER, COLON_EQUAL, IDENTIFIER, SEMICOLON)
 label_opt => ()
 
- 4 rules, 0 actions, 0 checks, 15 states, 34 table entries
+ 4 rules, 0 user actions, 0 checks, 15 states, 34 parse actions
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts

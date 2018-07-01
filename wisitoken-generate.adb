@@ -104,4 +104,84 @@ package body WisiToken.Generate is
       return Result;
    end Has_Empty_Production;
 
+   function First
+     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
+      Has_Empty_Production : in Token_ID_Set;
+      First_Terminal       : in Token_ID;
+      Non_Terminal         : in Token_ID)
+     return Token_ID_Set
+   is
+      Derivations   : Token_ID_Set := (First_Terminal .. Grammar.Last_Index => False);
+      Added_Tokens  : Token_ID_Set := (First_Terminal .. Grammar.Last_Index => False);
+      Search_Tokens : Token_ID_Set := (First_Terminal .. Grammar.Last_Index => False);
+
+      function Compute_Non_Terminals return Token_ID_Set
+      is
+         Result : Token_ID_Set := (First_Terminal .. Grammar.Last_Index => False);
+      begin
+         --  Can't use a simple aggregate for this; bounds are non-static.
+         Result (First_Terminal .. Grammar.First_Index - 1) := (others => False);
+         Result (Grammar.First_Index .. Grammar.Last_Index) := (others => True);
+         return Result;
+      end Compute_Non_Terminals;
+
+      Non_Terminals : constant Token_ID_Set := Compute_Non_Terminals;
+
+   begin
+      Search_Tokens (Non_Terminal) := True;
+
+      while Any (Search_Tokens) loop
+
+         Added_Tokens := (others => False);
+
+         for Prod of Grammar loop
+            if Search_Tokens (Prod.LHS) then
+               for RHS of Prod.RHSs loop
+                  for Derived_Token of RHS.Tokens loop
+                     if not Derivations (Derived_Token) then
+                        Added_Tokens (Derived_Token) := True;
+                     end if;
+
+                     if Non_Terminals (Derived_Token) and then Has_Empty_Production (Derived_Token) then
+                        null;
+                     else
+                        exit;
+                     end if;
+                  end loop;
+               end loop;
+            end if;
+         end loop;
+
+         Derivations   := Derivations or Added_Tokens;
+         Search_Tokens := Added_Tokens and Non_Terminals;
+      end loop;
+
+      return Derivations;
+   end First;
+
+   function First
+     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
+      Has_Empty_Production : in Token_ID_Set;
+      First_Terminal       : in Token_ID)
+     return Token_Array_Token_Set
+   is
+      Matrix : Token_Array_Token_Set :=
+        (Grammar.First_Index .. Grammar.Last_Index =>
+           (First_Terminal .. Grammar.Last_Index => False));
+
+      procedure Set_Slice (Matrix : in out Token_Array_Token_Set; I : Token_ID; Value : in Token_ID_Set)
+      is begin
+         for J in Matrix'Range (2) loop
+            Matrix (I, J) := Value (J);
+         end loop;
+      end Set_Slice;
+
+   begin
+      for NT_Index in Matrix'Range loop
+         Set_Slice (Matrix, NT_Index, First (Grammar, Has_Empty_Production, First_Terminal, NT_Index));
+      end loop;
+
+      return Matrix;
+   end First;
+
 end WisiToken.Generate;

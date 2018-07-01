@@ -190,5 +190,5 @@ statement_list => (FOO, SEMICOLON)
 statement => (FOO, SEMICOLON)
 tick => (TICK_2)
 
- 4 rules, 0 actions, 0 checks, 19 states, 65 table entries
+ 4 rules, 0 user actions, 0 checks, 19 states, 65 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

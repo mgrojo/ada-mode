@@ -26,6 +26,8 @@ package body WisiToken.Generate.Packrat is
    is
       subtype Nonterminal is Token_ID range Grammar.First_Index .. Grammar.Last_Index;
    begin
+      --  FIXME: this duplicates the computation of First; if keep First,
+      --  change this to use it.
       return Result : Token_ID_Set (Nonterminal) := (others => False) do
          for Prod of Grammar loop
             RHS_Loop :
@@ -77,22 +79,44 @@ package body WisiToken.Generate.Packrat is
       end return;
    end Potential_Direct_Right_Recursive;
 
+   procedure Indirect_Left_Recursive (Data : in out Packrat.Data)
+   is
+   begin
+      for Prod_I of Data.Grammar loop
+         for Prod_J of Data.Grammar loop
+            Data.Involved (Prod_I.LHS, Prod_J.LHS) :=
+              Data.First (Prod_I.LHS, Prod_J.LHS) and
+              Data.First (Prod_J.LHS, Prod_I.LHS);
+         end loop;
+      end loop;
+   end Indirect_Left_Recursive;
+
+   ----------
+   --  Public subprograms
+
    function Initialize
      (Source_File_Name : in String;
       Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map  : in Productions.Source_Line_Maps.Vector)
+      Source_Line_Map  : in Productions.Source_Line_Maps.Vector;
+      First_Terminal   : in Token_ID)
      return Packrat.Data
    is
       Empty : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
    begin
-      return Result : constant Packrat.Data :=
-        (First_Nonterminal => Grammar.First_Index,
-         Last_Nonterminal => Grammar.Last_Index,
-         Source_File_Name => +Source_File_Name,
-         Grammar => Grammar,
-         Source_Line_Map => Source_Line_Map,
-         Empty => Empty,
-         Left_Recursive => Potential_Direct_Left_Recursive (Grammar, Empty));
+      return Result : Packrat.Data :=
+        (First_Terminal        => First_Terminal,
+         First_Nonterminal     => Grammar.First_Index,
+         Last_Nonterminal      => Grammar.Last_Index,
+         Source_File_Name      => +Source_File_Name,
+         Grammar               => Grammar,
+         Source_Line_Map       => Source_Line_Map,
+         Empty                 => Empty,
+         Direct_Left_Recursive => Potential_Direct_Left_Recursive (Grammar, Empty),
+         First                 => WisiToken.Generate.First (Grammar, Empty, First_Terminal => First_Terminal),
+         Involved              => (others => (others => False)))
+      do
+         Indirect_Left_Recursive (Result);
+      end return;
    end Initialize;
 
    procedure Check_Recursion (Data : in Packrat.Data; Descriptor : in WisiToken.Descriptor)
@@ -100,15 +124,26 @@ package body WisiToken.Generate.Packrat is
       Right_Recursive : constant Token_ID_Set := Potential_Direct_Right_Recursive (Data.Grammar, Data.Empty);
    begin
       for Prod of Data.Grammar loop
-         if Data.Left_Recursive (Prod.LHS) and Right_Recursive (Prod.LHS) then
+         if Data.Direct_Left_Recursive (Prod.LHS) and Right_Recursive (Prod.LHS) then
             --  We only implement the simplest left recursion solution ([warth
             --  2008] figure 3); [tratt 2010] section 6.3 gives this condition for
-            --  that to be valid. Indirect left recursion is detected at runtime.
+            --  that to be valid.
+            --  FIXME: not quite? definite direct right recursive ok?
+            --  FIXME: for indirect left recursion, need potential indirect right recursive check?
             Put_Error
               (Error_Message
                  (-Data.Source_File_Name, Data.Source_Line_Map (Prod.LHS).Line, "'" & Image (Prod.LHS, Descriptor) &
                     "' is both left and right recursive; not supported."));
          end if;
+
+         for I in Data.Involved'Range (2) loop
+            if Prod.LHS /= I and then Data.Involved (Prod.LHS, I) then
+               Put_Error
+                 (Error_Message
+                    (-Data.Source_File_Name, Data.Source_Line_Map (Prod.LHS).Line, "'" & Image (Prod.LHS, Descriptor) &
+                       "' is indirect recursive with " & Image (I, Descriptor) & ", not supported"));
+            end if;
+         end loop;
       end loop;
    end Check_Recursion;
 
@@ -117,45 +152,7 @@ package body WisiToken.Generate.Packrat is
       use all type Ada.Containers.Count_Type;
    begin
       for Prod of Data.Grammar loop
-         --  Special case; typical LALR list is written:
-         --
-         --  statement_list
-         --    : statement
-         --    | statement_list statement
-         --    ;
-         --  association_list
-         --    : association
-         --    | association_list COMMA association
-         --    ;
-         --
-         --  For packrat, that must change to:
-         --
-         --  statement_list
-         --    : statement_list statement
-         --    | statement
-         --    ;
-         --  association_list
-         --    : association_list COMMA association
-         --    | association
-         --    ;
-
-         if Prod.RHSs.Length > 1 then
-            declare
-               Tokens_0 : Token_ID_Arrays.Vector renames Prod.RHSs (0).Tokens;
-               Tokens_1 : Token_ID_Arrays.Vector renames Prod.RHSs (1).Tokens;
-            begin
-               if (Tokens_0.Length = 1 and Tokens_1.Length > 1) and then
-                   Tokens_1 (1) = Prod.LHS and then
-                   Tokens_0 (1) = Tokens_1 (Tokens_1.Last_Index)
-               then
-                  Put_Error
-                    (Error_Message
-                       (-Data.Source_File_Name, Data.Source_Line_Map (Prod.LHS).Line,
-                        "LALR recursive list must be rewritten for packrat; swap order of right hand sides."));
-               end if;
-            end;
-         end if;
-
+         --  Empty must be last
          for I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index - 1 loop
             if Prod.RHSs (I).Tokens.Length = 0 then
                Put_Error
@@ -171,6 +168,7 @@ package body WisiToken.Generate.Packrat is
             declare
                Cur : Token_ID_Arrays.Vector renames Prod.RHSs (I).Tokens;
             begin
+               --  Shared prefix; longer must be first
                for J in Prod.RHSs.First_Index .. I - 1 loop
                   declare
                      Prev : Token_ID_Arrays.Vector renames Prod.RHSs (J).Tokens;
@@ -186,6 +184,55 @@ package body WisiToken.Generate.Packrat is
                      end if;
                   end;
                end loop;
+
+               --  recursion; typical LALR list is written:
+               --
+               --  statement_list
+               --    : statement
+               --    | statement_list statement
+               --    ;
+               --  association_list
+               --    : association
+               --    | association_list COMMA association
+               --    ;
+               --
+               --  a different recursive definition:
+               --
+               --  name
+               --    : IDENTIFIER
+               --    | name LEFT_PAREN range_list RIGHT_PAREN
+               --    | name actual_parameter_part
+               --    ...
+               --    ;
+               --
+               --  For packrat, the recursive RHSs must come before others:
+               --
+               --  statement_list
+               --    : statement_list statement
+               --    | statement
+               --    ;
+               --  association_list
+               --    : association_list COMMA association
+               --    | association
+               --    ;
+               --  name
+               --    : name LEFT_PAREN range_list RIGHT_PAREN
+               --    | name actual_parameter_part
+               --    | IDENTIFIER
+               --    ...
+               --    ;
+               declare
+                  Prev : Token_ID_Arrays.Vector renames Prod.RHSs (I - 1).Tokens;
+               begin
+                  if Cur.Length > 0 and then Prev.Length > 0 and then
+                    Cur (1) = Prod.LHS and then Prev (1) /= Prod.LHS
+                  then
+                     Put_Error
+                       (Error_Message
+                          (-Data.Source_File_Name, Data.Source_Line_Map (Prod.LHS).Line,
+                           "recursive right hand sides must be before others."));
+                  end if;
+               end;
             end;
          end loop;
       end loop;

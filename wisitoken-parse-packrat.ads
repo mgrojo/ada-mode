@@ -77,8 +77,8 @@ package WisiToken.Parse.Packrat is
    function Tree_Index (Terminal_Index : in Token_Index) return Syntax_Trees.Valid_Node_Index
      is (Syntax_Trees.Valid_Node_Index (Terminal_Index));
    --  All tokens are read and entered into the syntax tree before any
-   --  nonterms are reduced, so the mapping from token_index to
-   --  tree node_index is identity.
+   --  nonterms are reduced, so the mapping from Terminals token_index to
+   --  Tree node_index is identity.
 
    package Derivs is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Memos.Vector);
 
@@ -86,6 +86,8 @@ package WisiToken.Parse.Packrat is
      function (Parser : in out Base_Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type;
 
    type Parser is new Base_Parser with record
+      --  Dynamic parsing data
+
       Base_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
       Tree      : WisiToken.Syntax_Trees.Tree;
       --  FIXME: Current we only need Base_Tree for Execute_Actions, except
@@ -95,6 +97,8 @@ package WisiToken.Parse.Packrat is
       --  base_parser.
 
       Derivs : Packrat.Derivs.Vector;
+
+      --  Precomputed constants.
 
       Parse_WisiToken_Accept : Packrat.Parse_WisiToken_Accept;
    end record;

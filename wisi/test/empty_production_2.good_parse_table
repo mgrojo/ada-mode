@@ -113,5 +113,5 @@ declaration => ()
 declarations => ()
 body => (IS, BEGIN, SEMICOLON)
 
- 3 rules, 1 actions, 0 checks, 9 states, 30 table entries
+ 3 rules, 1 user actions, 0 checks, 9 states, 30 parse actions
  1 accept/reduce conflicts, 5 shift/reduce conflicts, 0 reduce/reduce conflicts

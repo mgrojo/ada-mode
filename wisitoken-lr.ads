@@ -5,12 +5,9 @@
 --  list. It contains types shared by the parse table generators and
 --  the parser.
 --
---  References:
+--  References :
 --
---  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
---  Sethi, and Ullman (aka: "The [Red] Dragon Book").
---
---  [info] Docs/wisi-user_guide.texinfo
+--  See wisitoken.ads
 --
 --  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2018 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison

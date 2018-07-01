@@ -8,6 +8,10 @@
 --  computing parser properties from the grammar. (For historical
 --  reasons, not all packages follow this naming convention yet).
 --
+--  References :
+--
+--  See wisitoken.ads
+--
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
@@ -38,7 +42,6 @@ package WisiToken.Generate is
    procedure Put_Error (Message : in String);
    --  Set Error True, output Message to Standard_Error
 
-   --  code generation
    procedure Check_Consistent
      (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor       : in WisiToken.Descriptor'Class;
@@ -47,5 +50,15 @@ package WisiToken.Generate is
    function Has_Empty_Production (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_ID_Set;
    --  Result (ID) is True if any production for ID can be an empty
    --  production, recursively.
+
+   function First
+     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
+      Has_Empty_Production : in Token_ID_Set;
+      First_Terminal       : in Token_ID)
+     return Token_Array_Token_Set;
+   --  For each nonterminal in Grammar, find the set of tokens
+   --  (terminal or nonterminal) that any string derived from it can
+   --  start with. Together with Has_Empty_Production, implements
+   --  algorithm FIRST from [dragon], augmented with nonterminals.
 
 end WisiToken.Generate;

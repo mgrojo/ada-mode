@@ -27,41 +27,28 @@ pragma License (Modified_GPL);
 
 package WisiToken.Generate.Packrat is
 
-   function Potential_Direct_Left_Recursive
-     (Grammar : in WisiToken.Productions.Prod_Arrays.Vector;
-      Empty   : in Token_ID_Set)
-     return Token_ID_Set;
-   --  Result (ID) is True if any production for ID can be direct left
-   --  recursive; ie the first non-empty token is ID.
-   --
-   --  Empty must be from WisiToken.Generate.Has_Empty_Production.
-
-   function Potential_Direct_Right_Recursive
-     (Grammar : in WisiToken.Productions.Prod_Arrays.Vector;
-      Empty   : in Token_ID_Set)
-     return Token_ID_Set;
-   --  Result (ID) is True if any production for ID can be direct right
-   --  recursive; ie the last non-empty token is ID.
-   --
-   --  Empty must be from WisiToken.Generate.Has_Empty_Production.
-
-   type Data (First_Nonterminal, Last_Nonterminal : Token_ID) is tagged
+   type Data (First_Terminal, First_Nonterminal, Last_Nonterminal : Token_ID) is tagged
    record
       --  Data needed to check a grammar and generate code. Tagged to allow
       --  Object.Method syntax. Descriptor not included to avoid duplicating
       --  lots of discriminants.
-      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
-      Grammar          : WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map  : Productions.Source_Line_Maps.Vector;
-      Empty            : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
-      Left_Recursive   : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+      Source_File_Name      : Ada.Strings.Unbounded.Unbounded_String;
+      Grammar               : WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map       : Productions.Source_Line_Maps.Vector;
+      Empty                 : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+      Direct_Left_Recursive : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+      First                 : Token_Array_Token_Set
+        (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Nonterminal);
+      Involved              : Token_Array_Token_Set
+        (First_Nonterminal .. Last_Nonterminal, First_Nonterminal .. Last_Nonterminal);
    end record;
 
    function Initialize
      (Source_File_Name : in String;
       Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map  : in Productions.Source_Line_Maps.Vector)
-   return Packrat.Data;
+      Source_Line_Map  : in Productions.Source_Line_Maps.Vector;
+      First_Terminal   : in Token_ID)
+     return Packrat.Data;
 
    procedure Check_Recursion (Data : in Packrat.Data; Descriptor : in WisiToken.Descriptor);
    --  Check that any rule recursion present is supported.

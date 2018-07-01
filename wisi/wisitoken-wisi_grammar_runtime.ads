@@ -28,7 +28,7 @@ package WisiToken.Wisi_Grammar_Runtime is
       Terminals        : Base_Token_Array_Access;
       Raw_Code         : Wisi.Raw_Code;
       Generate_Params  : Wisi.Generate_Param_Type;
-      Tokens           : Wisi.Tokens;
+      Tokens           : aliased Wisi.Tokens;
       Elisp_Names      : Wisi.Elisp_Names;
       Conflicts        : Wisi.Conflict_Lists.List;
       McKenzie_Recover : Wisi.McKenzie_Recover_Param_Type;

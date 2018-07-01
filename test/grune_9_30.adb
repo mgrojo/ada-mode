@@ -87,8 +87,8 @@ package body Grune_9_30 is
 
    Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
-   First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
-     (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
+   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.First
+     (Grammar, Has_Empty_Production, LALR_Descriptor.First_Terminal);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 

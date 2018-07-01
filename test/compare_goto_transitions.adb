@@ -83,8 +83,8 @@ package body Compare_Goto_Transitions is
                                Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action); -- 7
 
       Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
-      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
-        (Grammar, Token_Enum.LALR_Descriptor, Has_Empty_Production, Trace => False);
+      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.First
+        (Grammar, Has_Empty_Production, Token_Enum.LALR_Descriptor.First_Terminal);
 
       procedure Compare (Prod : in WisiToken.Production_ID; Symbol : in Token_Enum_ID)
       is

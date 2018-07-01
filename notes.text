@@ -19,6 +19,23 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+packrat indirect recursion
+    ada-lite selected_component
+    conflict_name attribute_reference
+
+    implement warth 2008 section 3
+
+changed wisi-gen_generate_utils to be non-generic
+    compiles
+
+started changing wisi-gen_output_common_ada to be non-generic
+    needs work
+
+add packrat to ada-mode s-4
+    time, compare to langkit
+
+add packrat error recover
+
 compile ada_process_main still very slow on Debian
     compare to libadalang; larger files!
     one subprogram per state?w

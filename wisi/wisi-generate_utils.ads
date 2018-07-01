@@ -22,48 +22,34 @@ pragma License (Modified_GPL);
 with Ada.Iterator_Interfaces;
 with WisiToken.LR.Generator_Utils;
 with WisiToken.Productions;
-generic
-   Tokens                : in Wisi.Tokens;
-   Conflicts             : in Wisi.Conflict_Lists.List;
-   EOI_Name              : in Standard.Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
-   WisiToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-package Wisi.Gen_Generate_Utils is
+package Wisi.Generate_Utils is
    use WisiToken;
 
-   EOF_ID : constant Token_ID := Token_ID
-     (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + Token_ID'First;
+   EOI_Name : constant String := "Wisi_EOI";
+   --  EOI_Name is used for EOF_ID token; it must match Emacs ada-mode
+   --  wisi.el wisi-eoi-term. It must be a valid Ada identifier when
+   --  "_ID" is appended.
 
-   LR1_Descriptor : WisiToken.Descriptor
-     (First_Terminal    =>
-        (if Count (Tokens.Non_Grammar) > 0
-         then Token_ID (Count (Tokens.Non_Grammar)) + Token_ID'First
-         else Token_ID'First),
-      Last_Terminal     => EOF_ID,
-      EOF_ID            => EOF_ID,
-      Accept_ID         => EOF_ID + 1,
-      First_Nonterminal => EOF_ID + 1,
-      Last_Nonterminal  => EOF_ID + 1 + Token_ID (Tokens.Rules.Length));
-   --  other components set by Set_Token_Images in the body
+   WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
-   LALR_Descriptor : WisiToken.LALR_Descriptor
-     (First_Terminal    => LR1_Descriptor.First_Terminal,
-      Last_Terminal     => LR1_Descriptor.Last_Terminal,
-      First_Nonterminal => EOF_ID + 1,
-      Last_Nonterminal  => LR1_Descriptor.Last_Nonterminal,
-      EOF_ID            => LR1_Descriptor.EOF_ID,
-      Accept_ID         => EOF_ID + 1,
-      Propagate_ID      => EOF_ID + 1);
+   type Generate_Data is limited record
+      Tokens          : access constant Wisi.Tokens;
+      LR1_Descriptor  : access WisiToken.Descriptor;
+      LALR_Descriptor : access WisiToken.LALR_Descriptor;
+      Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
+      Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
+      Conflicts       : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
+   end record;
 
-   subtype Nonterminal_ID is Token_ID range LR1_Descriptor.Last_Terminal + 1 .. LR1_Descriptor.Last_Nonterminal;
+   function Initialize
+     (Source_File_Name :         in String;
+      Tokens           : aliased in Wisi.Tokens;
+      Start_Token      :         in String)
+     return Generate_Data;
 
-   function Find_Token_ID (Token : in String) return Token_ID;
+   function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
 
-   function Find_Kind (Target_Kind : in String) return Token_ID;
-   --  Returns Invalid_Token_ID if not found.
-
-   type Token_Container is tagged record
-      Bogus_Content : Integer; -- need a component to declare an object
-   end record
+   type Token_Container (Data : not null access constant Generate_Data) is tagged null record
    with
      Constant_Indexing => Constant_Reference,
      Default_Iterator  => Iterate,
@@ -71,6 +57,8 @@ package Wisi.Gen_Generate_Utils is
    --  We need a container type to define an iterator; the actual data is
    --  in generic parameters Keywords, Non_Grammar, Tokens, and Rules. The
    --  Iterator_Element is given by Token_Name below.
+
+   function All_Tokens (Data : aliased in Generate_Data) return Token_Container;
 
    type Token_Constant_Reference_Type
      (Element : not null access constant Standard.Ada.Strings.Unbounded.Unbounded_String)
@@ -105,8 +93,9 @@ package Wisi.Gen_Generate_Utils is
      return Iterator_Interfaces.Forward_Iterator'Class;
 
    function First
-     (Non_Grammar  : in Boolean;
-      Nonterminals : in Boolean)
+     (Data         : aliased in Generate_Data;
+      Non_Grammar  :         in Boolean;
+      Nonterminals :         in Boolean)
      return Token_Cursor;
    procedure Next (Cursor : in out Token_Cursor; Nonterminals : in Boolean);
 
@@ -130,37 +119,26 @@ package Wisi.Gen_Generate_Utils is
    --  Tokens  : Tokens (i).Tokens (j).Value
    --  Rules   : "" - they have no Value
 
-   All_Tokens : constant Token_Container := (Bogus_Content => 1);
-
    function To_Conflicts
-     (Source_File_Name             : in     String;
-      Accept_Reduce_Conflict_Count :    out Integer;
-      Shift_Reduce_Conflict_Count  :    out Integer;
-      Reduce_Reduce_Conflict_Count :    out Integer)
+     (Data                         : aliased in     Generate_Data;
+      Conflicts                    :         in     Wisi.Conflict_Lists.List;
+      Source_File_Name             :         in     String;
+      Accept_Reduce_Conflict_Count :            out Integer;
+      Shift_Reduce_Conflict_Count  :            out Integer;
+      Reduce_Reduce_Conflict_Count :            out Integer)
      return WisiToken.LR.Generator_Utils.Conflict_Lists.List;
+   --  Not included in Initialize because some grammars and algorithms
+   --  have no conflicts.
 
-   procedure To_Grammar
-     (Descriptor       : in     WisiToken.Descriptor'Class;
-      Source_File_Name : in     String;
-      Start_Token      : in     String;
-      Grammar          :    out WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map  :    out WisiToken.Productions.Source_Line_Maps.Vector);
-   --  Convert Tokens.Rules into a grammar, run WisiToken.Generate.Check_Consistent.
-   --
-   --  Descriptor, Source_File_Name used in error messages. Error message
-   --  output to Ada.Text_IO.Standard_Error, set WisiToken.Generate.Error
-   --  True.
+   function To_Nonterminal_ID_Set
+     (Data : aliased in Generate_Data;
+      Item :         in String_Lists.List)
+     return Token_ID_Set;
 
-   function To_Grammar
-     (Descriptor       : in     WisiToken.Descriptor'Class;
-      Source_File_Name : in     String;
-      Start_Token      : in     String)
-     return WisiToken.Productions.Prod_Arrays.Vector;
-   --  Same as To_Grammar above, without Source_Line_Map
-
-   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set;
-
-   function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.LR.McKenzie_Param_Type;
+   function To_McKenzie_Param
+     (Data : aliased in Generate_Data;
+      Item :         in McKenzie_Recover_Param_Type)
+     return WisiToken.LR.McKenzie_Param_Type;
 
 private
 
@@ -168,6 +146,7 @@ private
      (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
 
    type Token_Cursor is record
+      Data        : not null access constant Generate_Data;
       Kind        : Token_Cursor_Kind;
       ID          : Token_ID;
       Token_Kind  : Wisi.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
@@ -176,4 +155,4 @@ private
       Nonterminal : Rule_Lists.Cursor;
    end record;
 
-end Wisi.Gen_Generate_Utils;
+end Wisi.Generate_Utils;

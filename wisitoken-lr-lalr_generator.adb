@@ -658,8 +658,8 @@ package body WisiToken.LR.LALR_Generator is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
-      First : constant Token_Array_Token_Set := LR1_Items.First
-        (Grammar, Descriptor, Has_Empty_Production, Trace_Generate > Detail);
+      First : constant Token_Array_Token_Set := WisiToken.Generate.First
+        (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
       Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 

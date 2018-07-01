@@ -133,5 +133,5 @@ object_declaration => (IDENTIFIER, SEMICOLON)
 aliased_opt => ()
 constant_opt => ()
 
- 4 rules, 0 actions, 0 checks, 13 states, 37 table entries
+ 4 rules, 0 user actions, 0 checks, 13 states, 37 parse actions
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts

@@ -186,17 +186,6 @@ package WisiToken.LR.LR1_Items is
    --  Return Item_Set from From.Goto_List where the goto symbol is
    --  Symbol; null if not found.
 
-   function First
-     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor'Class;
-      Has_Empty_Production : in Token_ID_Set;
-      Trace                : in Boolean)
-     return Token_Array_Token_Set;
-   --  For each nonterminal in Grammar, find the set of tokens
-   --  (terminal or nonterminal) that any string derived from it can
-   --  start with. Together with Has_Empty_Production, implements
-   --  algorithm FIRST from [dragon], augmented with nonterminals.
-
    function Follow
      (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor'Class;

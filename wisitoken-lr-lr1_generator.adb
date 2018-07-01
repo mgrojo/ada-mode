@@ -275,8 +275,8 @@ package body WisiToken.LR.LR1_Generator is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
-      First                : constant Token_Array_Token_Set := LR1_Items.First
-        (Grammar, Descriptor, Has_Empty_Production, Trace_Generate > Detail);
+      First : constant Token_Array_Token_Set := WisiToken.Generate.First
+        (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, First_State_Index, Descriptor, Trace_Generate > Detail);

@@ -473,7 +473,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 4,
          Enqueue_High            => 35,
          Check_Low               => 2,
-         Check_High              => 9,
+         Check_High              => 11,
          Cost                    => 0);
    end Conflict_2;
 
@@ -970,7 +970,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 11,
          Enqueue_High            => 52,
          Check_Low               => 2,
-         Check_High              => 13,
+         Check_High              => 14,
          Cost                    => 0,
          Code                    => Missing_Name_Error);
    end Missing_Name_2;
@@ -1384,7 +1384,7 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 115,
-         Enqueue_High            => 283,
+         Enqueue_High            => 312,
          Check_Low               => 20,
          Check_High              => 48,
          Cost                    => 6);

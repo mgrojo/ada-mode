@@ -185,5 +185,5 @@ State 13:
    Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
- 4 rules, 1 actions, 1 checks, 13 states, 28 table entries
+ 4 rules, 1 user actions, 1 checks, 13 states, 28 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

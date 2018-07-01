@@ -27,8 +27,8 @@ with WisiToken.Generate.Packrat;
 with WisiToken.Productions;
 procedure Wisi.Generate_Packrat
   (Data         : in WisiToken.Generate.Packrat.Data;
-   Action_Names : in Names_Array_Array;
-   Check_Names  : in Names_Array_Array;
+   Action_Names : not null access constant Names_Array_Array;
+   Check_Names  : not null access constant Names_Array_Array;
    Descriptor   : in WisiToken.Descriptor)
 is
    pragma Unreferenced (Check_Names);
@@ -87,7 +87,7 @@ is
          end;
       end loop;
 
-      if Data.Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) then
          Indent_Line ("Pos_Recurse_Last : Base_Token_Index := Last_Pos;");
          Indent_Line ("Result_Recurse   : Memo_Entry;");
       end if;
@@ -119,7 +119,7 @@ is
       Indent_Line ("end;");
       New_Line;
 
-      if Data.Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) then
          --  This is the top of the 'while' loop in [warth 2008] figure 3 Grow-LR.
          Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos, (State => Failure));");
          Indent_Line ("<<Recurse_Start>>");
@@ -131,7 +131,7 @@ is
 
             procedure Finish
             is begin
-               if Data.Left_Recursive (Prod.LHS) then
+               if Data.Direct_Left_Recursive (Prod.LHS) then
                   Indent_Line ("Result_Recurse :=");
                   Indent := Indent + 2;
                else
@@ -190,7 +190,7 @@ is
                Indent := Indent - 3;
                Indent_Start (" Last_Token      => Pos)");
 
-               if Data.Left_Recursive (Prod.LHS) then
+               if Data.Direct_Left_Recursive (Prod.LHS) then
                   Put_Line (";");
                   Indent := Indent - 2;
                   Indent_Line ("goto Finish;");
@@ -202,7 +202,7 @@ is
             end Finish;
 
          begin
-            Indent_Line ("--  " & Productions.Image (Prod.LHS, RHS_Index, RHS.Tokens, Descriptor));
+            Indent_Wrap_Comment (Productions.Image (Prod.LHS, RHS_Index, RHS.Tokens, Descriptor), Ada_Comment);
             Indent_Line ("Pos := Last_Pos;");
 
             if RHS.Tokens.Length = 0 then
@@ -252,14 +252,14 @@ is
       end loop;
 
       --  We get here if the last alternative fails.
-      if Data.Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) then
          Indent_Line ("Result_Recurse := (State => Failure);");
       else
          Indent_Line ("Parser.Derivs (" & Result_ID & ").Replace_Element (Start_Pos, (State => Failure));");
          Indent_Line ("return Parser.Derivs (" & Result_ID & ")(Start_Pos);");
       end if;
 
-      if Data.Left_Recursive (Prod.LHS) then
+      if Data.Direct_Left_Recursive (Prod.LHS) then
          Indent_Line ("<<Finish>>");
          Indent_Line ("if Result_Recurse.State = Success then");
          Indent := Indent + 3;
@@ -276,7 +276,8 @@ is
          Indent_Line ("goto Recurse_Start;");
          Indent := Indent - 3;
          Indent_Line ("elsif Pos = Pos_Recurse_Last and then Parser.Tree.Is_Empty (Result_Recurse.Result) then");
-         --  Parse succeeded producing an empty nonterm; don't try again
+         --  Parse succeeded producing an empty nonterm; don't try again. This
+         --  special case is not in [warth 2008].
          Indent_Line ("               Parser.Derivs (8).Replace_Element (Start_Pos, Result_Recurse);");
          Indent_Line ("end if;");
          Indent := Indent - 3;
@@ -284,7 +285,7 @@ is
       end if;
       New_Line;
 
-      if not Data.Left_Recursive (Prod.LHS) then
+      if not Data.Direct_Left_Recursive (Prod.LHS) then
          Indent_Line ("<<Succeed>>");
          Indent_Line ("if WisiToken.Trace_Parse > Detail then");
          Indent := Indent + 3;

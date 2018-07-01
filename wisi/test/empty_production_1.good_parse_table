@@ -226,5 +226,5 @@ State 16:
    IS               => reduce 4 tokens to body 9.0
    default          => ERROR
 
- 3 rules, 1 actions, 0 checks, 16 states, 43 table entries
+ 3 rules, 1 user actions, 0 checks, 16 states, 43 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

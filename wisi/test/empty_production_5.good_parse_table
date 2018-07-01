@@ -225,5 +225,5 @@ State 16:
    Wisi_EOI          => reduce 4 tokens to accept_statement 9.0
    default           => ERROR
 
- 4 rules, 0 actions, 1 checks, 16 states, 35 table entries
+ 4 rules, 0 user actions, 1 checks, 16 states, 35 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

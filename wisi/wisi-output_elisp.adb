@@ -19,26 +19,19 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
-with Wisi.Gen_Generate_Utils;
+with Wisi.Generate_Utils;
 with Wisi.Output_Elisp_Common;
 with WisiToken.Generate;
 with WisiToken.LR.LALR_Generator;
 with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.Wisi_Generate_Elisp;
-with WisiToken.Productions;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Elisp
   (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
    Elisp_Package : in String)
 is
-   EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
-   --  See comments in wisi-output_ada_emacs.adb EOI_Name for what
-   --  this must match.
-
-   WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"wisitoken_accept";
-
-   package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Input_Data.Tokens, Input_Data.Conflicts, EOI_Name, WisiToken_Accept_Name);
+   Generate_Data : aliased constant Wisi.Generate_Utils.Generate_Data := Wisi.Generate_Utils.Initialize
+     (Input_Data.Lexer.File_Name, Input_Data.Tokens, -Input_Data.Generate_Params.Start_Token);
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
@@ -51,14 +44,7 @@ is
       use Standard.Ada.Strings.Unbounded;
       File            : File_Type;
       Elisp_Package_1 : Unbounded_String;
-
-      Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
-      Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
    begin
-      Generate_Utils.To_Grammar
-        (Generate_Utils.LR1_Descriptor, Input_Data.Lexer.File_Name, -Input_Data.Generate_Params.Start_Token,
-         Grammar, Source_Line_Map);
-
       if Both then
          case Algorithm is
          when LALR =>
@@ -75,23 +61,23 @@ is
       case Algorithm is
       when LALR                      =>
          Parser := WisiToken.LR.LALR_Generator.Generate
-           (Grammar,
-            Generate_Utils.LALR_Descriptor,
+           (Generate_Data.Grammar,
+            Generate_Data.LALR_Descriptor.all,
             WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
             Generate_Utils.To_Conflicts
-              (Input_Data.Lexer.File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
-               Reduce_Reduce_Conflict_Count),
+              (Generate_Data, Input_Data.Conflicts, Input_Data.Lexer.File_Name, Accept_Reduce_Conflict_Count,
+               Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
             Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
             Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
 
       when LR1                       =>
          Parser := WisiToken.LR.LR1_Generator.Generate
-           (Grammar,
-            Generate_Utils.LR1_Descriptor,
+           (Generate_Data.Grammar,
+            Generate_Data.LR1_Descriptor.all,
             WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
             Generate_Utils.To_Conflicts
-              (Input_Data.Lexer.File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
-               Reduce_Reduce_Conflict_Count),
+              (Generate_Data, Input_Data.Conflicts, Input_Data.Lexer.File_Name, Accept_Reduce_Conflict_Count,
+               Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
             Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
             Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
       end case;
@@ -119,7 +105,7 @@ is
       Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Input_Data.Tokens.Tokens, To_String'Access);
       New_Line;
       WisiToken.LR.Wisi_Generate_Elisp.Output
-        (-Elisp_Package_1, Input_Data.Tokens, Parser, Generate_Utils.LR1_Descriptor);
+        (-Elisp_Package_1, Input_Data.Tokens, Parser, Generate_Data.LR1_Descriptor.all);
       New_Line;
       Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
       Put_Line (";; end of file");

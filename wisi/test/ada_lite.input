@@ -1,4 +1,5 @@
---  An example Ada-lite program, to verify that the parser works
+--  An example syntactically correct Ada-lite program, to verify that the parser works.
+--  For the packrat parser, no indirect left recursion is encountered.
 
 procedure Proc_1;
 

@@ -171,8 +171,8 @@ actual_parameter_part
   ;
 
 aspect_specification_opt
-  : ;; empty
-  | WITH association_list
+  : WITH association_list
+  | ;; empty
   ;
 assignment_statement
   : name COLON_EQUAL expression_opt SEMICOLON
@@ -181,14 +181,14 @@ assignment_statement
 ;; Allowing empty items makes many partially written programs legal;
 ;; make sure they don't confuse the error recovery.
 association_opt
-  : ;; empty
-  | IDENTIFIER EQUAL_GREATER expression_opt
+  : IDENTIFIER EQUAL_GREATER expression_opt
   | expression
+  | ;; empty
   ;
 
 association_list
-  : association_opt
-  | association_list COMMA association_opt
+  : association_list COMMA association_opt
+  | association_opt
   ;
 
 binary_adding_operator :
@@ -198,10 +198,10 @@ binary_adding_operator :
   ;
 
 block_label_opt
-  : ;; empty
-  | IDENTIFIER COLON
+  : IDENTIFIER COLON
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+  | ;; empty
   ;
 
 block_statement
@@ -234,8 +234,8 @@ case_statement_alternative
 ;; We don't allow an empty list here; that leads to parallel parser
 ;; explosion in nested case statements.
 case_statement_alternative_list
-  : case_statement_alternative
-  | case_statement_alternative_list case_statement_alternative
+  : case_statement_alternative_list case_statement_alternative
+  | case_statement_alternative
   ;
 
 compilation_unit
@@ -243,8 +243,8 @@ compilation_unit
   ;
 
 compilation_unit_list
-  : compilation_unit
-  | compilation_unit_list compilation_unit
+  : compilation_unit_list compilation_unit
+  | compilation_unit
   ;
 
 compound_statement
@@ -268,13 +268,13 @@ declaration
   ;
 
 declarations
-  : declaration
-  | declarations declaration
+  : declarations declaration
+  | declaration
   ;
 
 declarative_part_opt
-  : ;; empty
-  | declarations
+  : declarations
+  | ;; empty
   ;
 
 discrete_subtype_definition : subtype_indication | range_g ;
@@ -284,13 +284,13 @@ elsif_statement_item
   ;
 
 elsif_statement_list
-  : elsif_statement_item
-  | elsif_statement_list elsif_statement_item
+  : elsif_statement_list elsif_statement_item
+  | elsif_statement_item
   ;
 
 enumeration_literal_list
-  : IDENTIFIER
-  | enumeration_literal_list COMMA IDENTIFIER
+  : enumeration_literal_list COMMA IDENTIFIER
+  | IDENTIFIER
   ;
 
 enumeration_type_definition
@@ -304,13 +304,13 @@ exception_handler
   ;
 
 exception_handler_list
-  : exception_handler
-  | exception_handler_list exception_handler
+  : exception_handler_list exception_handler
+  | exception_handler
   ;
 
 exception_handler_list_opt
-  : ;; empty for user friendly
-  | exception_handler_list
+  : exception_handler_list
+  | ;; empty for user friendly
   ;
 
 exit_statement
@@ -326,8 +326,8 @@ expression
   ;
 
 expression_opt
-  : ;; empty for user friendly
-  | expression
+  : expression
+  | ;; empty for user friendly
   ;
 
 extended_return_object_declaration
@@ -369,16 +369,16 @@ handled_sequence_of_statements
   ;
 
 identifier_opt
-  : ;; empty
-  | IDENTIFIER
+  : IDENTIFIER
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+  | ;; empty
   ;
 
 if_statement
   : IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
-  | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
   | IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
+  | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
   | IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON
   ;
 
@@ -405,21 +405,21 @@ loop_statement
 multiplying_operator : STAR | SLASH ;
 
 name
-  : IDENTIFIER
+  : name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
+  | name actual_parameter_part ;; function_call, procedure call.
+  | IDENTIFIER
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
-  | name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
   | selected_component
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
-  | name actual_parameter_part ;; function_call, procedure call.
   ;
 
 name_opt
-  : ;; empty
-  | name
+  : name
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+  | ;; empty
   ;
 
 object_declaration
@@ -442,19 +442,19 @@ parameter_and_result_profile
   ;
 
 parameter_profile_opt
-  : ;; empty
-  | formal_part
+  : formal_part
+  | ;; empty
   ;
 
 parameter_specification
-  : ;; empty
-  | IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression_opt
+  : IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression_opt
   | IDENTIFIER COLON IDENTIFIER
+  | ;; empty
   ;
 
 parameter_specification_list
-  : parameter_specification
-  | parameter_specification_list SEMICOLON parameter_specification
+  : parameter_specification_list SEMICOLON parameter_specification
+  | parameter_specification
   ;
 
 paren_expression
@@ -488,28 +488,28 @@ range_g
   ;
 
 range_list
-  : range_g
-  | range_list COMMA range_g
+  : range_list COMMA range_g
+  | range_g
   ;
 
 relation_and_list
-  : relation AND relation
-  | relation_and_list AND relation
+  : relation_and_list AND relation
+  | relation AND relation
   ;
 
 relation_or_list
-  : relation OR relation
-  | relation_or_list OR relation
+  : relation_or_list OR relation
+  | relation OR relation
   ;
 
 relation_xor_list
-  : relation XOR relation
-  | relation_xor_list XOR relation
+  : relation_xor_list XOR relation
+  | relation XOR relation
   ;
 
 relation
-  : simple_expression
-  | simple_expression relational_operator simple_expression
+  : simple_expression relational_operator simple_expression
+  | simple_expression
   ;
 
 relational_operator
@@ -523,13 +523,13 @@ selected_component
   ;
 
 sequence_of_statements
-  : statement
-  | sequence_of_statements statement
+  : sequence_of_statements statement
+  | statement
   ;
 
 sequence_of_statements_opt
-  : ;; empty
-  | sequence_of_statements
+  : sequence_of_statements
+  | ;; empty
   ;
 
 simple_expression
@@ -538,8 +538,8 @@ simple_expression
   ;
 
 simple_return_statement
-  : RETURN SEMICOLON
-  | RETURN expression_opt SEMICOLON
+  : RETURN expression_opt SEMICOLON
+  | RETURN SEMICOLON
   ;
 
 simple_statement
@@ -584,13 +584,13 @@ subtype_indication
   ;
 
 term
-  : factor
-  | term multiplying_operator factor
+  : term multiplying_operator factor
+  | factor
   ;
 
 term_list
-  : term
-  | term_list binary_adding_operator term
+  : term_list binary_adding_operator term
+  | term
   ;
 
 type_declaration

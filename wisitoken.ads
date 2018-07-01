@@ -2,12 +2,19 @@
 --
 --  Root of WisiToken lexer/parser generator and exector.
 --
---  The token type is an integer subtype, to avoid making this package
---  generic, which would make all other packages generic, and
---  eventually GNAT 2016 chokes.
+--  The token type is an integer subtype, not an enumeration type, to
+--  avoid making this package generic, which would make all other
+--  packages generic.
 --
---  To store additional information about a token, see
---  fasttoken-token_regions.ads or fasttoken-token_wisi.ads.
+--  Additional information about a token can be stored in the
+--  'augmented' field of the syntax tree; see
+--  wisitoken-syntax_trees.ads.
+--
+--  References:
+--
+--  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
+--  Sethi, and Ullman (aka: "The [Red] Dragon Book" due to the dragon
+--  on the cover).
 --
 --  Copyright (C) 2009, 2010, 2013 - 2015, 2017, 2018 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
