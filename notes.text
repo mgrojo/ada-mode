@@ -19,11 +19,48 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+run all tests with direct-left only in packrat.procedural
+    put .wy tests under aunit
+        expect fail for indirect recursion
+        do all parses; lalr, lr1, packrat proc, packrat gen
+            except as noted
+
+try indirect recursion solution
+    Solution to left recurse is merge into one expression. See how
+    that evaluates, make recursive do the same - use memo instead of
+    apply rule = madeiros 2014. Need recurse_pos in case possibly
+    empty nonterm is not empty - optional unary minus - call apply
+    rule if memo empty.
+
+
+review fixmes
+
+propagate to main
+
+
+try to elim indirect in Ada
+
+try to elim indirect in Java
+
 packrat indirect recursion
     ada-lite selected_component
     conflict_name attribute_reference
 
     implement warth 2008 section 3
+        wisitoken-parse-packrat-procedural.adb
+        non-recursive implemented
+            warth_left_recurse_expr_1.adb : Test_Parse_Proc failing
+                because it's recursive (duh).
+
+        trying to implement full warth, but it's missing stuff, and some makes no sense
+            try https://github.com/alexwarth/ometa-js
+            or figure out what it must do; ie understand the algorithm
+
+        try S Medeiros, F Mascarenhas, R Ierusalimschy 2014 Left recursion in parsing expression grammars.pdf
+            "memoization scope"
+
+        or adapt langkit with pre-computed indirect
+
 
 changed wisi-gen_generate_utils to be non-generic
     compiles

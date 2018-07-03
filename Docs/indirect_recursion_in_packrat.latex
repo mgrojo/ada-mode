@@ -1,0 +1,4 @@
+Solution to left recurse is merge into one expression. See how that
+evaluates, make recursive do the same - use memo instead of apply rule
+= madeiros 2014. Need recurse_pos in case possibly empty nonterm is
+not empty - optional unary minus - call apply rule if memo empty.

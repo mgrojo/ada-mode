@@ -221,7 +221,7 @@ package body Wisi.Output_Ada_Common is
       procedure Packrat_Process
       is begin
          Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser    :    out WisiToken.Parse.Packrat.Parser;");
+         Indent_Line ("  (Parser    :    out WisiToken.Parse.Packrat.Generated.Parser;");
          Indent_Line ("   Trace     : not null access WisiToken.Trace'Class;");
          Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access);");
          Indent_Line ("--  Set Trace, Lexer, User_Data, Parse_WisiToken_Accept in Parser.");
@@ -263,7 +263,7 @@ package body Wisi.Output_Ada_Common is
          end if;
 
       when Packrat =>
-         Put_Line ("with WisiToken.Parse.Packrat;");
+         Put_Line ("with WisiToken.Parse.Packrat.Generated;");
       end case;
 
       Put_Line ("package " & Main_Package_Name & " is");
@@ -756,7 +756,7 @@ package body Wisi.Output_Ada_Common is
       use Wisi.Utils;
    begin
       Indent_Line ("procedure Create_Parser");
-      Indent_Line ("  (Parser    :    out WisiToken.Parse.Packrat.Parser;");
+      Indent_Line ("  (Parser    :    out WisiToken.Parse.Packrat.Generated.Parser;");
       Indent_Line ("   Trace     : not null access WisiToken.Trace'Class;");
       Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)");
       Indent_Line ("is begin");

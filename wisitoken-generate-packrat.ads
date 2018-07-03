@@ -67,4 +67,9 @@ package WisiToken.Generate.Packrat is
    --  Note that WisiToken.Generate.Check_Consistent is run in
    --  wisi-gen_generate_utils.To_Grammar.
 
+   function Potential_Direct_Left_Recursive
+     (Grammar : in WisiToken.Productions.Prod_Arrays.Vector;
+      Empty   : in Token_ID_Set)
+     return Token_ID_Set;
+
 end WisiToken.Generate.Packrat;

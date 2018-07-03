@@ -289,13 +289,6 @@ is
          Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
       end if;
 
-      case Common_Data.Generator_Algorithm is
-      when LR_Generator_Algorithm =>
-         null;
-      when Packrat =>
-         Put_Line ("with WisiToken.Parse;");
-      end case;
-
       Put_Line ("package body " & Main_Package_Name & " is");
       Indent := Indent + 3;
       New_Line;

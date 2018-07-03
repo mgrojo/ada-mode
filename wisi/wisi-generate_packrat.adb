@@ -48,7 +48,7 @@ is
    procedure Put_Parser_Spec (Name : in String)
    is begin
       Indent_Line ("function " & Name);
-      Indent_Start ("  (Parser : in out Packrat.Parser; Last_Pos : in Base_Token_Index) return Result_Type");
+      Indent_Start ("  (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type");
    end Put_Parser_Spec;
 
    function Var_Suffix (I, J : in Integer) return String
@@ -107,7 +107,10 @@ is
       Indent_Line ("when Success =>");
       Indent_Line ("   return Parser.Derivs (" & Result_ID & ")(Start_Pos);");
       Indent_Line ("when Failure =>");
+
+      --  FIXME: Could simplify this when not doing left recursion
       Indent_Line ("   goto RHS_" & Trimmed_Image (Prod.RHSs.Last_Index) & "_Fail;");
+
       Indent_Line ("when No_Result =>");
       Indent_Line ("   if Memo.Recursive then");
       Indent_Start ("      raise Recursive with Image (" & Result_ID & ", Descriptor) &");
@@ -305,8 +308,8 @@ is
 
 begin
    Indent_Line ("use WisiToken;");
-   Indent_Line ("use WisiToken.Parse;");
    Indent_Line ("use WisiToken.Parse.Packrat;");
+   Indent_Line ("use WisiToken.Parse.Packrat.Generated;");
 
    for Prod of Data.Grammar loop
       Put_Parser_Spec (Parser_Name (Prod.LHS)); Put_Line (";");
@@ -318,9 +321,11 @@ begin
    end loop;
 
    Indent_Line ("function Parse_wisitoken_accept_1");
-   Indent_Line ("  (Parser : in out Base_Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type");
+   Indent_Line
+     ("  (Parser : in out WisiToken.Parse.Packrat.Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type");
    Indent_Line ("is begin");
-   Indent_Line ("   return Parse_wisitoken_accept (Packrat.Parser (Parser), Last_Pos);");
+   Indent_Line ("   return Parse_wisitoken_accept (Generated.Parser (Parser), Last_Pos);");
    Indent_Line ("end Parse_wisitoken_accept_1;");
    New_Line;
+
 end Wisi.Generate_Packrat;

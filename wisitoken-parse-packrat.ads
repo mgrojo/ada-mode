@@ -47,45 +47,13 @@ pragma License (Modified_GPL);
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.Packrat is
 
-   Recursive : exception;
-   --  Raised when parser detects recursion at runtime.
-
-   type Memo_State is (No_Result, Failure, Success);
-   subtype Result_States is Memo_State range Failure .. Success;
-
-   type Memo_Entry (State : Memo_State := No_Result) is record
-      case State is
-      when No_Result =>
-         Recursive : Boolean := False;
-         --  Set True on first access; used to detect recursion.
-
-      when Failure =>
-         null;
-
-      when Success =>
-         Result : aliased WisiToken.Syntax_Trees.Valid_Node_Index;
-
-         Last_Token : Base_Token_Index;
-      end case;
-   end record;
-
-   package Memos is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Memo_Entry);
-
-   subtype Result_Type is Memo_Entry
-   with Dynamic_Predicate => Result_Type.State in Result_States;
-
    function Tree_Index (Terminal_Index : in Token_Index) return Syntax_Trees.Valid_Node_Index
      is (Syntax_Trees.Valid_Node_Index (Terminal_Index));
    --  All tokens are read and entered into the syntax tree before any
    --  nonterms are reduced, so the mapping from Terminals token_index to
    --  Tree node_index is identity.
 
-   package Derivs is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Memos.Vector);
-
-   type Parse_WisiToken_Accept is access
-     function (Parser : in out Base_Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type;
-
-   type Parser is new Base_Parser with record
+   type Parser is abstract new Base_Parser with record
       --  Dynamic parsing data
 
       Base_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
@@ -96,16 +64,8 @@ package WisiToken.Parse.Packrat is
       --  Syntax_Trees, move Base_Tree and Execute_Actions up to
       --  base_parser.
 
-      Derivs : Packrat.Derivs.Vector;
-
-      --  Precomputed constants.
-
-      Parse_WisiToken_Accept : Packrat.Parse_WisiToken_Accept;
    end record;
 
-   overriding procedure Parse (Parser : aliased in out Packrat.Parser);
-   overriding function Any_Errors (Parser : in Packrat.Parser) return Boolean;
-   overriding procedure Put_Errors (Parser : in Packrat.Parser; Input_File_Name : in String);
    overriding procedure Execute_Actions (Parser : in out Packrat.Parser);
 
 end WisiToken.Parse.Packrat;
