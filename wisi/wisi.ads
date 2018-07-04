@@ -48,14 +48,14 @@ package Wisi is
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
-   type Generator_Algorithm_Type is (None, LALR_LR1, LALR, LR1, Packrat);
-   subtype Valid_Generator_Algorithm is Generator_Algorithm_Type range LALR_LR1 .. Packrat;
-   subtype LR_Single_Generator_Algorithm is Generator_Algorithm_Type range LALR .. LR1;
-   subtype LR_Generator_Algorithm is Generator_Algorithm_Type range LALR_LR1 .. LR1;
+   type Generator_Algorithm is (None, LALR, LR1, Packrat);
 
-   type Output_Language_Type is (None, Ada, Ada_Emacs, Elisp);
-   subtype Valid_Output_Language is Output_Language_Type range Ada .. Elisp;
-   subtype Ada_Output_Language is Output_Language_Type range Ada .. Ada_Emacs;
+   subtype Valid_Generator_Algorithm is Generator_Algorithm range LALR .. Packrat;
+   subtype LR_Generator_Algorithm is Generator_Algorithm range LALR .. LR1;
+
+   type Output_Language is (None, Ada, Ada_Emacs, Elisp);
+   subtype Valid_Output_Language is Output_Language range Ada .. Elisp;
+   subtype Ada_Output_Language is Output_Language range Ada .. Ada_Emacs;
 
    type Lexer_Type is (None, Elisp_Lexer, re2c_Lexer);
    subtype Valid_Lexer is Lexer_Type range Elisp_Lexer .. Lexer_Type'Last;
@@ -86,8 +86,8 @@ package Wisi is
       Lexer                         : Lexer_Type               := None;
       Language_Runtime              : Boolean                  := True;
       Error_Recover                 : Boolean                  := False;
-      Output_Language               : Output_Language_Type     := None;
-      Generator_Algorithm           : Generator_Algorithm_Type := None;
+      Output_Language               : Wisi.Output_Language     := None;
+      Generator_Algorithm           : Wisi.Generator_Algorithm := None;
       Start_Token                   : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 

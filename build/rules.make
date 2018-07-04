@@ -132,7 +132,7 @@ source-clean ::
 	dos2unix ../wisi/wisi_grammar*
 
 ../wisi/wisi_grammar_re2c.c : ../wisi/wisi_grammar.re2c
-	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix ../wisi/wisi_grammar_re2c.c
 
 wisi_grammar-clean :

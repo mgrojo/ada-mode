@@ -34,7 +34,8 @@ with WisiToken.Productions;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Ada
   (Input_Data            : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-   Output_File_Name_Root : in String)
+   Output_File_Name_Root : in String;
+   Test_Main             : in Boolean)
 is
    use all type WisiToken.Unknown_State_Index;
 
@@ -51,6 +52,10 @@ is
    Packrat_Data : constant WisiToken.Generate.Packrat.Data := WisiToken.Generate.Packrat.Initialize
      (Input_Data.Lexer.File_Name, Generate_Data.Grammar, Generate_Data.Source_Line_Map,
       Generate_Data.LR1_Descriptor.First_Terminal);
+
+   Lower_Gen_Alg : constant String :=
+     (if Test_Main then "_" & To_Lower (Wisi.Generator_Algorithm'Image (Common_Data.Generator_Algorithm))
+      else "");
 
    function Symbol_Regexp (Item : in String) return String
    is begin
@@ -72,6 +77,7 @@ is
       use Wisi.Utils;
 
       File_Name : constant String := Output_File_Name_Root & "_actions.adb";
+      --  No generate_algorithm when Test_Main; the generated actions file is independent of that.
 
       User_Data_Regexp : constant Regexp := Compile (Symbol_Regexp ("User_Data"), Case_Sensitive => False);
       Tree_Regexp      : constant Regexp := Compile (Symbol_Regexp ("Tree"), Case_Sensitive      => False);
@@ -266,7 +272,7 @@ is
    is
       use Wisi.Utils;
 
-      File_Name         : constant String := Output_File_Name_Root & "_main.adb";
+      File_Name         : constant String := Output_File_Name_Root & Lower_Gen_Alg & "_main.adb";
       re2c_Package_Name : constant String := -Common_Data.Lower_File_Name_Root & "_re2c_c";
 
       Body_File : File_Type;
@@ -317,6 +323,52 @@ is
       Close (Body_File);
       Set_Output (Standard_Output);
    end Create_Ada_Main_Body;
+
+   procedure Create_Ada_Test_Main
+     (Actions_Package_Name : in String;
+      Main_Package_Name    : in String)
+   is
+      use Wisi.Utils;
+
+      Generic_Package_Name : constant String :=
+        (case Common_Data.Generator_Algorithm is
+         when LR_Generator_Algorithm => "Gen_LR_Parser_No_Recover_Run",
+         --  recover tests are done Test_McKenzie_Recover
+
+         when Packrat => "Gen_Packrat_Parser_Run");
+
+      Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
+        "_" & Generator_Algorithm'Image (Common_Data.Generator_Algorithm) & "_Run";
+
+      File_Name : constant String := To_Lower (Unit_Name) & ".ads";
+
+      File : File_Type;
+   begin
+      Create (File, Out_File, File_Name);
+      Set_Output (File);
+      Indent := 1;
+
+      Put_File_Header (Ada_Comment);
+      --  no Copyright_License; just a test file
+      New_Line;
+
+      Put_Line ("with " & Generic_Package_Name & ";");
+      if (case Common_Data.Generator_Algorithm is
+          when LR_Generator_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
+          when Packrat => Input_Data.Action_Count > 0)
+      then
+         Put_Line ("with " & Actions_Package_Name & ";");
+      end if;
+      Put_Line ("with " & Main_Package_Name & ";");
+
+      Put_Line ("procedure " & Unit_Name & " is new " & Generic_Package_Name);
+      Put_Line
+        ("  (" &
+           Actions_Package_Name & ".Descriptor, " &
+           Main_Package_Name & ".Create_Parser);");
+      Close (File);
+      Set_Output (Standard_Output);
+   end Create_Ada_Test_Main;
 
    procedure Generate_LR1
    is begin
@@ -376,38 +428,6 @@ begin
    end if;
 
    case Common_Data.Generator_Algorithm is
-   when LALR_LR1 =>
-      if WisiToken.Trace_Generate > 0 then
-         Put_Line ("LALR Parse Table:");
-      end if;
-
-      Generate_LALR;
-
-      if WisiToken.Trace_Generate > 0 then
-         if LR_Parsers (LALR).McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
-            New_Line;
-            Put_Line ("McKenzie:");
-            WisiToken.LR.Put (LR_Parsers (LALR).McKenzie_Param, Generate_Data.LR1_Descriptor.all);
-         end if;
-
-         New_Line;
-         Put_Line ("Minimal_Terminal_Sequences:");
-         for I in LR_Parsers (LALR).Minimal_Terminal_Sequences.First_Index ..
-           LR_Parsers (LALR).Minimal_Terminal_Sequences.Last_Index
-         loop
-            Put_Line
-              (WisiToken.Image (I, Generate_Data.LR1_Descriptor.all) & " => " & WisiToken.Image
-                 (LR_Parsers (LALR).Minimal_Terminal_Sequences (I), Generate_Data.LR1_Descriptor.all));
-         end loop;
-
-         New_Line;
-         Put_Line ("LR1 Parse Table:");
-      end if;
-
-      Generate_LR1;
-
-      Common_Data.Parser_State_Count := LR_Parsers (LR1).State_Last - LR_Parsers (LR1).State_First + 1;
-
    when LALR =>
       if WisiToken.Trace_Generate > 0 then
          Put_Line ("LALR Parse Table:");
@@ -471,8 +491,8 @@ begin
    end if;
 
    declare
-      Main_Package_Name    : constant String := -Common_Data.Package_Name_Root & "_Main";
-      Actions_Package_Name : constant String := -Common_Data.Package_Name_Root & "_Actions";
+      Main_Package_Name    : constant String := File_Name_To_Ada (Output_File_Name_Root & Lower_Gen_Alg) & "_Main";
+      Actions_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) & "_Actions";
    begin
       if (case Common_Data.Generator_Algorithm is
           when LR_Generator_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
@@ -490,8 +510,12 @@ begin
       Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
 
       Create_Ada_Main_Spec
-        (Output_File_Name_Root & "_main.ads", Main_Package_Name,
+        (Output_File_Name_Root & Lower_Gen_Alg & "_main.ads", Main_Package_Name,
          Input_Data, Common_Data);
+
+      if Test_Main then
+         Create_Ada_Test_Main (Actions_Package_Name, Main_Package_Name);
+      end if;
    end;
 
    Create_re2c (Input_Data, Generate_Data, Output_File_Name_Root, Input_Data.Elisp_Names.Regexps);

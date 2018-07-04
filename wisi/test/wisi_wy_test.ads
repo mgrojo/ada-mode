@@ -2,7 +2,7 @@
 --
 --  Test one .wy file; compare to known good output files.
 --
---  Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,10 +18,15 @@
 
 pragma License (GPL);
 
+with Wisi;
 with AUnit.Test_Cases;
 package Wisi_WY_Test is
 
-   type Test_Case (Root_Name : access String; LR1 : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case
+     (Root_Name       : access String;
+      Generate        : Wisi.Valid_Generator_Algorithm;
+      Output_Language : Wisi.Valid_Output_Language)
+     is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 

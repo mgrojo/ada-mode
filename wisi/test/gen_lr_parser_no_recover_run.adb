@@ -49,10 +49,8 @@ is
    is
       Parser : WisiToken.LR.Parser_No_Recover.Parser;
    begin
-      Create_Parser
-        (Parser, WisiToken.LALR, Trace'Unchecked_Access,
-         User_Data => null);
-      Put_Line ("LALR Parser parse:");
+      Create_Parser (Parser, Trace'Unchecked_Access, User_Data => null);
+      Put_Line ("parse:");
 
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;
@@ -63,9 +61,11 @@ is
 
    exception
    when WisiToken.Syntax_Error =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Parser.Put_Errors (-File_Name);
 
    when E : WisiToken.Parse_Error =>
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
 
    when Name_Error =>
@@ -109,6 +109,7 @@ begin
 
 exception
 when E : others =>
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));

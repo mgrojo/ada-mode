@@ -1256,7 +1256,7 @@ is
       use Generate_Utils;
       use Wisi.Utils;
 
-      Lower_Package_Name_Root : constant String := -Common_Data.Package_Name_Root;
+      Lower_Package_Name_Root : constant String := To_Lower (File_Name_To_Ada (Output_File_Name_Root));
 
       function To_ID_Image (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
       is
@@ -1344,8 +1344,8 @@ is
    is
       use Wisi.Utils;
 
-      Package_Name_Root       : constant String := -Common_Data.Package_Name_Root;
-      Lower_Package_Name_Root : constant String := -Common_Data.Lower_File_Name_Root;
+      Package_Name_Root       : constant String := File_Name_To_Ada (Output_File_Name_Root);
+      Lower_Package_Name_Root : constant String := To_Lower (Package_Name_Root);
 
       File : File_Type;
    begin
@@ -1479,9 +1479,9 @@ begin
    end if;
 
    case Common_Data.Generator_Algorithm is
-   when LALR_LR1 | LR1 =>
+   when LR1 =>
       raise User_Error with "Ada_Emacs does not support generator algorithm " &
-        Generator_Algorithm_Type'Image (Common_Data.Generator_Algorithm);
+        Generator_Algorithm'Image (Common_Data.Generator_Algorithm);
 
    when LALR =>
       if WisiToken.Trace_Generate > 0 then
@@ -1528,12 +1528,12 @@ begin
    end if;
 
    declare
-      Actions_Package_Name : constant String := -Common_Data.Package_Name_Root &
+      Actions_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         (case Common_Data.Interface_Kind is
          when Process => "_Process_Actions",
          when Module  => "_Module_Actions");
 
-      Main_Package_Name : constant String := -Common_Data.Package_Name_Root &
+      Main_Package_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         (case Common_Data.Interface_Kind is
          when Process => "_Process_Main",
          when Module  => "_Module_Main");

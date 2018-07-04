@@ -39,7 +39,7 @@ is
 
    Parser : WisiToken.LR.Parse_Table_Ptr;
 
-   procedure Create_Elisp (Algorithm : in LR_Single_Generator_Algorithm; Both : in Boolean)
+   procedure Create_Elisp (Algorithm : in LR_Generator_Algorithm; Both : in Boolean)
    is
       use Standard.Ada.Strings.Unbounded;
       File            : File_Type;
@@ -116,13 +116,7 @@ is
 
    use all type WisiToken.Unknown_State_Index;
 begin
-   case LR_Generator_Algorithm (Input_Data.Generate_Params.Generator_Algorithm) is
-   when LALR | LR1 =>
-      Create_Elisp (Input_Data.Generate_Params.Generator_Algorithm, Both => False);
-   when LALR_LR1 =>
-      Create_Elisp (LALR, Both => True);
-      Create_Elisp (LR1, Both => True);
-   end case;
+   Create_Elisp (Input_Data.Generate_Params.Generator_Algorithm, Both => False);
 
    if WisiToken.Trace_Generate > 0 then
       --  Match wisi-output_ada.adb, wisi-output_ada_emacs.adb format

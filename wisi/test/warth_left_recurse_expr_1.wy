@@ -27,7 +27,8 @@
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
-;; no newline, comment.
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+;; no comment
 ;; no mckenzie
 
 %start expr

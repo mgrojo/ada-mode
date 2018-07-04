@@ -19,11 +19,17 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+put .wy tests under aunit
+    do all parses; lalr, lr1, packrat proc, packrat gen
+        except as noted
+
+    add Packrat_Proc to wisi.generate_languages
+        generate _action.ad?, _main_proc.adb
+            _main_proc.adb calls packrat.procedural.parse.
+
 run all tests with direct-left only in packrat.procedural
-    put .wy tests under aunit
-        expect fail for indirect recursion
-        do all parses; lalr, lr1, packrat proc, packrat gen
-            except as noted
+
+change all "generator" to "generate"
 
 try indirect recursion solution
     Solution to left recurse is merge into one expression. See how

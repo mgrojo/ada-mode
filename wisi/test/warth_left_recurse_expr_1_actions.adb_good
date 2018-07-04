@@ -1,0 +1,47 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe --generator_algorithm LR1 --output_language ADA --lexer re2c --test_main
+--  ../wisi/test/warth_left_recurse_expr_1.wy
+--
+
+--  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+with Warth_Left_Recurse_Expr_1_Runtime; use Warth_Left_Recurse_Expr_1_Runtime;
+
+package body Warth_Left_Recurse_Expr_1_Actions is
+
+   procedure expr_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      Push (User_Data, Tree, Tokens, 3);
+      Subtract (User_Data, Tree, Tokens);
+   end expr_0;
+
+   procedure expr_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      Push (User_Data, Tree, Tokens, 1);
+   end expr_1;
+
+end Warth_Left_Recurse_Expr_1_Actions;

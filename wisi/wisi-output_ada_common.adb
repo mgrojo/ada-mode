@@ -212,7 +212,6 @@ package body Wisi.Output_Ada_Common is
          else
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
          end if;
-         Indent_Line ("   Algorithm                    : in     WisiToken.Generator_Algorithm_Type;");
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
          Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);");
          New_Line;
@@ -647,7 +646,6 @@ package body Wisi.Output_Ada_Common is
          else
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
          end if;
-         Indent_Line ("   Algorithm                    : in     WisiToken.Generator_Algorithm_Type;");
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
          Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)");
 
@@ -661,11 +659,6 @@ package body Wisi.Output_Ada_Common is
       Indent := Indent + 3;
 
       Indent_Line ("use WisiToken.LR;");
-
-      if Common_Data.Generator_Algorithm = LALR_LR1 then
-         Indent_Line ("use all type WisiToken.Generator_Algorithm_Type;");
-      end if;
-
       Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
       Indent_Line ("  (State_First       =>" & Integer'Image (First_State_Index) & ",");
       Indent := Indent + 3;
@@ -678,10 +671,6 @@ package body Wisi.Output_Ada_Common is
       when LR1 =>
          Put_Line (WisiToken.Image (Parsers (LR1).State_Last) & ",");
 
-      when LALR_LR1 =>
-         Put_Line
-           ("(case Algorithm is when LALR => " & WisiToken.Image (Parsers (LALR).State_Last) &
-              ", when LR1 => " & WisiToken.Image (Parsers (LR1).State_Last) & "),");
       end case;
       Indent_Line ("First_Terminal    => Trace.Descriptor.First_Terminal,");
       Indent_Line ("Last_Terminal     => Trace.Descriptor.Last_Terminal,");
@@ -691,33 +680,17 @@ package body Wisi.Output_Ada_Common is
 
       case LR_Generator_Algorithm'(Common_Data.Generator_Algorithm) is
       when LALR =>
-         Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
          Create_Parser_Core (Input_Data, Generate_Data, Common_Data, Parsers (LALR));
 
       when LR1 =>
-         Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
          Create_Parser_Core (Input_Data, Generate_Data, Common_Data, Parsers (LR1));
 
-      when LALR_LR1 =>
-         Indent := Indent - 3;
-         Indent_Line ("begin");
-         Indent := Indent + 3;
-         Indent_Line ("case Algorithm is");
-         Indent_Line ("when LALR =>");
-         Indent := Indent + 3;
-         Create_Parser_Core (Input_Data, Generate_Data, Common_Data, Parsers (LALR));
-         Indent := Indent - 3;
-         Indent_Line ("when LR1 =>");
-         Indent := Indent + 3;
-         Create_Parser_Core (Input_Data, Generate_Data, Common_Data, Parsers (LR1));
-         Indent := Indent - 3;
-         Indent_Line ("end case;");
       end case;
       New_Line;
 
@@ -1215,7 +1188,6 @@ package body Wisi.Output_Ada_Common is
             Data.Interface_Kind := Process;
          end if;
 
-         Data.Package_Name_Root    := +File_Name_To_Ada (Output_File_Root);
          Data.Lower_File_Name_Root := +To_Lower (Output_File_Root);
 
          Data.Ada_Action_Names := new Names_Array_Array (First_Nonterminal .. Last_Nonterminal);

@@ -71,12 +71,15 @@ is
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error,
                 "  --<directive_name> <value>; same as directive in grammar file; override grammar file");
+      Put_Line (Standard_Error,
+                "  --test_main; generate standalone main program for running the generated parser, modify file names");
 
    end Put_Usage;
 
    Language_Name    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Suffix           : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Test_Main        : Boolean := False;
 
    Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
    Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
@@ -163,7 +166,7 @@ begin
          elsif Argument (Arg_Next) = "--output_language" then
             Arg_Next  := Arg_Next + 1;
             begin
-               Grammar_Parse_Data.Generate_Params.Output_Language := Output_Language_Type'Value (Argument (Arg_Next));
+               Grammar_Parse_Data.Generate_Params.Output_Language := Output_Language'Value (Argument (Arg_Next));
                Arg_Next := Arg_Next + 1;
             exception
             when Constraint_Error =>
@@ -173,7 +176,7 @@ begin
          elsif Argument (Arg_Next) = "--generator_algorithm" then
             Arg_Next  := Arg_Next + 1;
             begin
-               Grammar_Parse_Data.Generate_Params.Generator_Algorithm := Generator_Algorithm_Type'Value
+               Grammar_Parse_Data.Generate_Params.Generator_Algorithm := Generator_Algorithm'Value
                  (Argument (Arg_Next));
                Arg_Next := Arg_Next + 1;
             exception
@@ -185,6 +188,10 @@ begin
             Arg_Next := Arg_Next + 1;
             Suffix   := +Argument (Arg_Next);
             Arg_Next := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "--test_main" then
+            Arg_Next  := Arg_Next + 1;
+            Test_Main := True;
 
          else
             raise User_Error with "invalid argument '" & Argument (Arg_Next) & "'";
@@ -217,14 +224,12 @@ begin
       raise User_Error with "output language not specified";
 
    when Ada =>
-      Wisi.Output_Ada (Grammar_Parse_Data, -Output_File_Root);
+      Wisi.Output_Ada (Grammar_Parse_Data, -Output_File_Root, Test_Main);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs (Grammar_Parse_Data, -Output_File_Root, -Language_Name);
 
    when Elisp =>
-      --  The Elisp parser does not support any error recover algorithms,
-      --  thus no semantic checks.
       Wisi.Output_Elisp (Grammar_Parse_Data, -Output_File_Root);
 
    end case;

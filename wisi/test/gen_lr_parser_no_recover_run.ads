@@ -27,7 +27,6 @@ generic
 
    with procedure Create_Parser
      (Parser    :    out          WisiToken.LR.Parser_No_Recover.Parser;
-      Algorithm : in              WisiToken.Generator_Algorithm_Type;
       Trace     : not null access WisiToken.Trace'Class;
       User_Data : in              WisiToken.Syntax_Trees.User_Data_Access);
 

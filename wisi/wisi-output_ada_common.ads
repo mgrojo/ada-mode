@@ -39,7 +39,6 @@ package Wisi.Output_Ada_Common is
       Reduce_Reduce_Conflict_Count : Integer;
 
       --  Various names
-      Package_Name_Root    : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Lower_File_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
 
       Ada_Action_Names : access Names_Array_Array;
@@ -48,7 +47,7 @@ package Wisi.Output_Ada_Common is
       --  non-null only if there is an action or check in the grammar.
    end record;
 
-   type LR_Parser_Array is array (Generator_Algorithm_Type range LALR .. LR1) of WisiToken.LR.Parse_Table_Ptr;
+   type LR_Parser_Array is array (Generator_Algorithm range LALR .. LR1) of WisiToken.LR.Parse_Table_Ptr;
 
    function Initialize
      (Generate_Params   : in Wisi.Generate_Param_Type;

@@ -245,8 +245,8 @@ package body WisiToken.Wisi_Grammar_Runtime is
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type Wisi.Lexer_Type;
       use all type Wisi.Interface_Type;
-      use all type Wisi.Output_Language_Type;
-      use all type Wisi.Generator_Algorithm_Type;
+      use all type Wisi.Output_Language;
+      use all type Wisi.Generator_Algorithm;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
