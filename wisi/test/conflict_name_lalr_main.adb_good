@@ -1,0 +1,111 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate LALR ADA ../../wisi/test/conflict_name.wy
+--
+
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+with WisiToken.Lexer.re2c;
+with conflict_name_re2c_c;
+with Conflict_Name_Actions; use Conflict_Name_Actions;
+package body Conflict_Name_Lalr_Main is
+
+   package Lexer is new WisiToken.Lexer.re2c
+     (conflict_name_re2c_c.New_Lexer,
+      conflict_name_re2c_c.Free_Lexer,
+      conflict_name_re2c_c.Reset_Lexer,
+      conflict_name_re2c_c.Next_Token);
+
+   procedure Create_Parser
+     (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;
+      Trace                        : not null access WisiToken.Trace'Class;
+      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
+   is
+      use WisiToken.LR;
+      Table : constant Parse_Table_Ptr := new Parse_Table
+        (State_First       => 0,
+         State_Last        => 11,
+         First_Terminal    => Trace.Descriptor.First_Terminal,
+         Last_Terminal     => Trace.Descriptor.Last_Terminal,
+         First_Nonterminal => Trace.Descriptor.First_Nonterminal,
+         Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);
+   begin
+      Table.McKenzie_Param :=
+        (First_Terminal    => 1,
+         Last_Terminal     => 5,
+         First_Nonterminal => 6,
+         Last_Nonterminal  => 11,
+         Insert =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0),
+         Delete =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0),
+         Push_Back =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0),
+         Task_Count  => 0,
+         Cost_Limit  => 2147483647,
+         Check_Limit => 2147483647,
+         Check_Delta_Limit => 2147483647,
+         Enqueue_Limit => 2147483647);
+
+
+      Add_Action (Table.States (0), (1 => (10, 0)), 4, 1);
+      Add_Error (Table.States (0));
+      Add_Goto (Table.States (0), (10, 1), 8, 2);
+      Add_Goto (Table.States (0), (6, 0), 10, 3);
+      Add_Goto (Table.States (0), (10, 2), 11, 4);
+      Add_Action (Table.States (1), (2, 3, 5), (10, 0), 1, null, name_0_check'Access);
+      Add_Action (Table.States (2), (2, 3, 5), (10, 1), 1, null, null);
+      Add_Action (Table.States (3), ((8, 0), (11, 0)), 3, 5);
+      Add_Action (Table.States (3), 5, Accept_It, (6, 0), 1, null, null);
+      Add_Error (Table.States (3));
+      Add_Action (Table.States (4), (2, 3, 5), (10, 2), 1, null, null);
+      Add_Action (Table.States (5), (1 => (7, 0)), 1, 6);
+      Add_Action (Table.States (5), (1 => (10, 0)), 4, 1);
+      Add_Error (Table.States (5));
+      Add_Goto (Table.States (5), (11, 0), 7, 7);
+      Add_Goto (Table.States (5), (10, 1), 8, 2);
+      Add_Goto (Table.States (5), (8, 0), 9, 8);
+      Add_Goto (Table.States (5), (8, 0), 10, 9);
+      Add_Goto (Table.States (5), (10, 2), 11, 4);
+      Add_Action (Table.States (6), (1 => (10, 0)), 4, 1);
+      Add_Error (Table.States (6));
+      Add_Goto (Table.States (6), (10, 1), 8, 2);
+      Add_Goto (Table.States (6), (7, 0), 10, 10);
+      Add_Goto (Table.States (6), (10, 2), 11, 4);
+      Add_Action (Table.States (7), (2, 3, 5), (11, 0), 3, null, null);
+      Add_Action (Table.States (8), (2, 3, 5), (8, 0), 3, null, null);
+      Add_Action (Table.States (9), 2, Reduce, (9, 0), 1, null, null);
+      Add_Action (Table.States (9), ((8, 0), (11, 0)), 3, 5, (9, 0), 1, null, null);
+      Add_Action (Table.States (9), 5, Reduce, (9, 0), 1, null, null);
+      Add_Error (Table.States (9));
+      Add_Action (Table.States (10), (1 => (7, 0)), 2, 11);
+      Add_Action (Table.States (10), ((8, 0), (11, 0)), 3, 5);
+      Add_Error (Table.States (10));
+      Add_Action (Table.States (11), (2, 3, 5), (7, 0), 3, null, null);
+
+      WisiToken.LR.Parser_No_Recover.New_Parser
+        (Parser,
+         Trace,
+         Lexer.New_Lexer (Trace),
+         Table,
+         User_Data,
+         Max_Parallel         => 15,
+         First_Parser_Label   => 0,
+         Terminate_Same_State => True);
+   end Create_Parser;
+end Conflict_Name_Lalr_Main;

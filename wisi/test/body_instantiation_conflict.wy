@@ -5,26 +5,27 @@
 ;; Also tests wisi rules parser
 
 %code copyright_license %{
-;; Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
 ;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%code actions spec context %{with WisiToken.Token_Region;}%
+;; testing that '%code' works
+%code actions body context %{--  with WisiToken.Token_Region;}%
 
 %code actions spec post %{
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+   --  State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 }%
 
 %keyword BEGIN "begin"
@@ -37,21 +38,20 @@
 %keyword RIGHT_PAREN ")"
 
 %token <punctuation> SEMICOLON ";"
-%token <symbol> IDENTIFIER %[ "[a-zA-Z][0-9a-zA-Z_]*" ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 
 %start compilation_unit
-%first_state_index 0
-%first_parser_label 0
 
 ;; LR1 gives different conflict names
-%generator_algorithm LALR
-%output_language Elisp
+%generate LALR Elisp
 
 %conflict SHIFT/REDUCE in state generic_instantiation, subprogram_specification on token IS
 
 compilation_unit
   : library_item library_item
-    %((setq wisi-test-success t))%
   ;
 
 ;; all on one line, no spaces before '|' ';'
@@ -60,7 +60,6 @@ library_item : subprogram_body|generic_instantiation;
 subprogram_body
  ;; comment before : line
   : subprogram_specification IS BEGIN NULL END SEMICOLON
-    %((wisi-statement-action [1 statement-start 6 statement-end]))%
   ;
 
 ;; some on one line
@@ -68,11 +67,10 @@ subprogram_specification
   : PROCEDURE IDENTIFIER parameter_list  ;
 
 ;; all on one line, empty production
-parameter_list : | LEFT_PAREN IDENTIFIER RIGHT_PAREN ;
+parameter_list : LEFT_PAREN IDENTIFIER RIGHT_PAREN | ;
 
 generic_instantiation
   : PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON
-    %((wisi-statement-action [1 statement-start 9 statement-end]))%
   ;
 
 ;;; end of file

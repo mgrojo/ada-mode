@@ -32,6 +32,7 @@
 ^build/obj$
 ^build/obj_pro$
 ^build/test_one_harness\.log$
+^build/wisi$
 ^wisi/test/.*-wy\.el$
 ^wisi/test/wisent\.output$
 ^wisi/wisi_grammar\.parse_table$

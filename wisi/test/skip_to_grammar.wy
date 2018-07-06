@@ -11,10 +11,6 @@
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 %non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
 
-%output_language Ada
-%lexer re2c
-%generator_algorithm LALR
-
 %start compilation_unit_list
 
 declaration
@@ -23,8 +19,8 @@ declaration
   ;
 
 declaration_item_list
-  : declaration_item
-  | declaration_item_list declaration_item
+  : declaration_item_list declaration_item
+  | declaration_item
   ;
 
 declaration_item
@@ -37,7 +33,7 @@ compilation_unit
 ;
 
 compilation_unit_list
-  : compilation_unit
-  | compilation_unit_list compilation_unit
+  : compilation_unit_list compilation_unit
+  | compilation_unit
 ;
 ;; end of file

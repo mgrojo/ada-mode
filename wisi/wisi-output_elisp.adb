@@ -21,76 +21,33 @@ pragma License (Modified_GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Generate_Utils;
 with Wisi.Output_Elisp_Common;
+with WisiToken.Generate.Packrat;
 with WisiToken.Generate;
-with WisiToken.LR.LALR_Generator;
-with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.Wisi_Generate_Elisp;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Elisp
-  (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-   Elisp_Package : in String)
+  (Input_Data    :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+   Elisp_Package :         in String;
+   Generate_Data : aliased in Wisi.Generate_Utils.Generate_Data;
+   Packrat_Data  :         in WisiToken.Generate.Packrat.Data;
+   Quad          :         in Generate_Quad)
 is
-   Generate_Data : aliased constant Wisi.Generate_Utils.Generate_Data := Wisi.Generate_Utils.Initialize
-     (Input_Data.Lexer.File_Name, Input_Data.Tokens, -Input_Data.Generate_Params.Start_Token);
+   pragma Unreferenced (Packrat_Data);
 
-   Accept_Reduce_Conflict_Count : Integer;
-   Shift_Reduce_Conflict_Count  : Integer;
-   Reduce_Reduce_Conflict_Count : Integer;
-
-   Parser : WisiToken.LR.Parse_Table_Ptr;
-
-   procedure Create_Elisp (Algorithm : in LR_Generator_Algorithm; Both : in Boolean)
+   procedure Create_Elisp (Algorithm : in LR_Generate_Algorithm)
    is
       use Standard.Ada.Strings.Unbounded;
       File            : File_Type;
-      Elisp_Package_1 : Unbounded_String;
+      Elisp_Package_1 : constant String :=
+        (case Algorithm is
+         when LALR => Elisp_Package & "-lalr",
+         when LR1  => Elisp_Package & "-lr1");
    begin
-      if Both then
-         case Algorithm is
-         when LALR =>
-            Elisp_Package_1 := +Elisp_Package & "-lalr";
-         when LR1 =>
-            Elisp_Package_1 := +Elisp_Package & "-lr1";
-         end case;
-      else
-         Elisp_Package_1 := +Elisp_Package;
-      end if;
-
-      WisiToken.LR.Free_Table (Parser);
-
-      case Algorithm is
-      when LALR                      =>
-         Parser := WisiToken.LR.LALR_Generator.Generate
-           (Generate_Data.Grammar,
-            Generate_Data.LALR_Descriptor.all,
-            WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
-            Generate_Utils.To_Conflicts
-              (Generate_Data, Input_Data.Conflicts, Input_Data.Lexer.File_Name, Accept_Reduce_Conflict_Count,
-               Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
-            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
-
-      when LR1                       =>
-         Parser := WisiToken.LR.LR1_Generator.Generate
-           (Generate_Data.Grammar,
-            Generate_Data.LR1_Descriptor.all,
-            WisiToken.State_Index (Input_Data.Generate_Params.First_State_Index),
-            Generate_Utils.To_Conflicts
-              (Generate_Data, Input_Data.Conflicts, Input_Data.Lexer.File_Name, Accept_Reduce_Conflict_Count,
-               Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-            Ignore_Unused_Tokens     => WisiToken.Trace_Generate > 1,
-            Ignore_Unknown_Conflicts => WisiToken.Trace_Generate > 1);
-      end case;
-
-      if WisiToken.Generate.Error then
-         raise WisiToken.Grammar_Error with "errors: aborting";
-      end if;
-
-      Create (File, Out_File, -Elisp_Package_1 & "-elisp.el");
+      Create (File, Out_File, Elisp_Package_1 & "-elisp.el");
       Set_Output (File);
 
-      Put_Line (";;; " & (-Elisp_Package_1) & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
-      Put_Command_Line (Elisp_Comment & "  ");
+      Put_Line (";;; " & Elisp_Package_1 & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
+      Put_Command_Line (Elisp_Comment & "  ", Use_Quad => True, Quad => Quad);
       Put_Raw_Code (Elisp_Comment, Input_Data.Raw_Code (Copyright_License));
       Put_Raw_Code (Elisp_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       New_Line;
@@ -100,33 +57,24 @@ is
       Put_Line ("(require 'wisi-elisp-parse)");
       New_Line;
       Output_Elisp_Common.Indent_Keyword_Table
-        (-Elisp_Package_1, "elisp", Input_Data.Tokens.Keywords, To_String'Access);
+        (Elisp_Package_1, "elisp", Input_Data.Tokens.Keywords, To_String'Access);
       New_Line;
-      Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Input_Data.Tokens.Tokens, To_String'Access);
+      Output_Elisp_Common.Indent_Token_Table (Elisp_Package_1, "elisp", Input_Data.Tokens.Tokens, To_String'Access);
       New_Line;
       WisiToken.LR.Wisi_Generate_Elisp.Output
-        (-Elisp_Package_1, Input_Data.Tokens, Parser, Generate_Data.LR1_Descriptor.all);
+        (Elisp_Package_1, Input_Data.Tokens, Generate_Data.LR_Parsers (Algorithm), Generate_Data.LR1_Descriptor.all);
       New_Line;
-      Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
+      Put_Line ("(provide '" & Elisp_Package_1 & "-elisp)");
       Put_Line (";; end of file");
       Close (File);
 
       Set_Output (Standard_Output);
    end Create_Elisp;
 
-   use all type WisiToken.Unknown_State_Index;
 begin
-   Create_Elisp (Input_Data.Generate_Params.Generator_Algorithm, Both => False);
+   Create_Elisp (Quad.Gen_Alg);
 
    if WisiToken.Trace_Generate > 0 then
-      --  Match wisi-output_ada.adb, wisi-output_ada_emacs.adb format
-      Put_Line
-        (Integer'Image (Input_Data.Rule_Count) & " rules," &
-           Integer'Image (Input_Data.Action_Count) & " actions," &
-           WisiToken.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
-      Put_Line
-        (Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
-           Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-           Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+      Wisi.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
    end if;
 end Wisi.Output_Elisp;

@@ -21,10 +21,6 @@
 
 %code actions spec context %{with WisiToken.Syntax_Trees;}%
 
-%generator_algorithm LR1
-%output_language Ada
-%lexer re2c
-
 ;; wisi-generate requires some keywords; test case insensitive
 %case_insensitive
 %keyword FOO "foo"
@@ -68,8 +64,6 @@
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 
 %start compilation_unit
-%first_state_index 1
-%first_parser_label 1
 
 compilation_unit
   : statement_list

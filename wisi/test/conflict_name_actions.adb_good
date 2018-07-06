@@ -1,0 +1,35 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate LALR ADA ../../wisi/test/conflict_name.wy
+--
+
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+package body Conflict_Name_Actions is
+
+   use WisiToken.Semantic_Checks;
+
+   function name_0_check
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm : in out WisiToken.Recover_Token;
+     Tokens  : in     WisiToken.Recover_Token_Array)
+    return WisiToken.Semantic_Checks.Check_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end name_0_check;
+
+end Conflict_Name_Actions;

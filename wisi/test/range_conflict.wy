@@ -1,20 +1,20 @@
 ;; grammar has a reduce-reduce conflict
 
 %code copyright_license %{
-;; Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
 ;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
 %keyword IN "in"
@@ -29,21 +29,17 @@
 %token <string-double> STRING_LITERAL %[ "\"[^\"]*" ]%
 
 %start compilation_unit
-%first_state_index 0
-%first_parser_label 0
-%generator_algorithm LALR_LR1
-%output_language Elisp
 
-%conflict SHIFT/REDUCE in state range, range on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state range_g, range_g on token LEFT_PAREN
 
 compilation_unit
-  : membership_choice range
+  : membership_choice range_g
     %((setq wisi-test-success t))%
   ;
 
 membership_choice
   : primary
-  | range ;; note that this does _not_ conflict with RANGE
+  | range_g
   ;
 
 primary
@@ -52,7 +48,7 @@ primary
   | LEFT_PAREN relation RIGHT_PAREN
   ;
 
-range
+range_g
   : IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ;; a little weird, but it's a test
   | IDENTIFIER TICK RANGE
   | primary DOT_DOT primary

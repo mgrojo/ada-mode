@@ -1,0 +1,9 @@
+ 5 tokens lexed
+factor_0: (factor, (33 . 33)) <= ( 2:(IDENTIFIER, (33 . 33)))
+factor_list_0: (factor_list, (33 . 33)) <= ((factor, (33 . 33)))
+choice_relation_0: (choice_relation, (33 . 33)) <= ((factor_list, (33 . 33)))
+choice_expression_0: (choice_expression, (33 . 33)) <= ((choice_relation, (33 . 33)))
+discrete_choice_0: (discrete_choice, (33 . 33)) <= ((choice_expression, (33 . 33)))
+factor_1: (factor, (38 . 42)) <= ( 4:(NUMBER_LITERAL, (38 . 42)))
+case_expression_0: (case_expression, (28 . 42)) <= ( 1:(WHEN, (28 . 31)), (discrete_choice, (33 . 33)),  3:(EQUAL_GREATER, (35 . 36)), (factor, (38 . 42)))
+wisitoken_accept_0: (wisitoken_accept, (28 . 44)) <= ((case_expression, (28 . 42)),  5:(Wisi_EOI, (45 . 44)))

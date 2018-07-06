@@ -1,0 +1,104 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => COMMENT
+ 2 => BEGIN
+ 3 => IS
+ 4 => SEMICOLON
+ 5 => Wisi_EOI
+ 6 => wisitoken_accept
+ 7 => declarations
+ 8 => declarative_part
+ 9 => body
+
+Productions:
+6.0: wisitoken_accept <= declarative_part Wisi_EOI
+7.0: declarations <= declarations body
+7.1: declarations <= body
+8.0: declarative_part <= declarations
+8.1: declarative_part <=
+9.0: body <= IS declarative_part BEGIN SEMICOLON
+
+LALR Parse Table:
+State 0:
+      6.0:wisitoken_accept <= ^ declarative_part Wisi_EOI, 
+
+   IS               => shift and goto state 1 (9.0)
+   Wisi_EOI         => reduce 0 tokens to declarative_part 8.1
+   default          => ERROR
+
+      7.0: declarations     goto state 2
+      6.0: declarative_part goto state 3
+      7.1: body             goto state 4
+
+State 1:
+      9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+
+   BEGIN            => reduce 0 tokens to declarative_part 8.1
+   IS               => shift and goto state 1 (9.0)
+   default          => ERROR
+
+      7.0: declarations     goto state 2
+      9.0: declarative_part goto state 6
+      7.1: body             goto state 4
+
+State 2:
+      7.0:declarations <= declarations ^ body, BEGIN/IS/Wisi_EOI
+      8.0:declarative_part <= declarations ^, BEGIN/Wisi_EOI
+
+   BEGIN            => reduce 1 tokens to declarative_part 8.0
+   IS               => shift and goto state 1 (9.0)
+   Wisi_EOI         => reduce 1 tokens to declarative_part 8.0
+   default          => ERROR
+
+      7.0: body             goto state 5
+
+State 3:
+      6.0:wisitoken_accept <= declarative_part ^ Wisi_EOI, 
+
+   Wisi_EOI         => accept it 6.0
+   default          => ERROR
+
+State 4:
+      7.1:declarations <= body ^, BEGIN/IS/Wisi_EOI
+
+   BEGIN            => reduce 1 tokens to declarations 7.1
+   IS               => reduce 1 tokens to declarations 7.1
+   Wisi_EOI         => reduce 1 tokens to declarations 7.1
+   default          => ERROR
+
+State 5:
+      7.0:declarations <= declarations body ^, BEGIN/IS/Wisi_EOI
+
+   BEGIN            => reduce 2 tokens to declarations 7.0
+   IS               => reduce 2 tokens to declarations 7.0
+   Wisi_EOI         => reduce 2 tokens to declarations 7.0
+   default          => ERROR
+
+State 6:
+      9.0:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
+
+   BEGIN            => shift and goto state 7 (9.0)
+   default          => ERROR
+
+State 7:
+      9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
+
+   SEMICOLON        => shift and goto state 8 (9.0)
+   default          => ERROR
+
+State 8:
+      9.0:body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
+
+   BEGIN            => reduce 4 tokens to body 9.0
+   IS               => reduce 4 tokens to body 9.0
+   Wisi_EOI         => reduce 4 tokens to body 9.0
+   default          => ERROR
+
+Minimal_Terminal_Sequences:
+wisitoken_accept => (Wisi_EOI)
+declarations => (IS, BEGIN, SEMICOLON)
+declarative_part => ()
+body => (IS, BEGIN, SEMICOLON)
+
+ 3 rules, 1 user actions, 0 checks, 9 states, 28 parse actions
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

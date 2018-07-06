@@ -1,0 +1,95 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => IN
+ 2 => IDENTIFIER
+ 3 => Wisi_EOI
+ 4 => wisitoken_accept
+ 5 => compilation_unit
+ 6 => mode
+ 7 => name
+ 8 => parameter_specification
+
+Productions:
+4.0: wisitoken_accept <= compilation_unit Wisi_EOI
+5.0: compilation_unit <= parameter_specification parameter_specification
+6.0: mode <= IN
+6.1: mode <=
+7.0: name <= IDENTIFIER
+8.0: parameter_specification <= IDENTIFIER mode name
+
+LALR Parse Table:
+State 0:
+      4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+
+   IDENTIFIER              => shift and goto state 1 (8.0)
+   default                 => ERROR
+
+      4.0: compilation_unit        goto state 2
+      5.0: parameter_specification goto state 3
+
+State 1:
+      8.0:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER/Wisi_EOI
+
+   IN                      => shift and goto state 5 (6.0)
+   IDENTIFIER              => reduce 0 tokens to mode 6.1
+   default                 => ERROR
+
+      8.0: mode                    goto state 6
+
+State 2:
+      4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
+
+   Wisi_EOI                => accept it 4.0
+   default                 => ERROR
+
+State 3:
+      5.0:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
+
+   IDENTIFIER              => shift and goto state 1 (8.0)
+   default                 => ERROR
+
+      5.0: parameter_specification goto state 4
+
+State 4:
+      5.0:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
+
+   Wisi_EOI                => reduce 2 tokens to compilation_unit 5.0
+   default                 => ERROR
+
+State 5:
+      6.0:mode <= IN ^, IDENTIFIER
+
+   IDENTIFIER              => reduce 1 tokens to mode 6.0
+   default                 => ERROR
+
+State 6:
+      8.0:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER              => shift and goto state 7 (7.0)
+   default                 => ERROR
+
+      8.0: name                    goto state 8
+
+State 7:
+      7.0:name <= IDENTIFIER ^, IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER              => reduce 1 tokens to name 7.0
+   Wisi_EOI                => reduce 1 tokens to name 7.0
+   default                 => ERROR
+
+State 8:
+      8.0:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER              => reduce 3 tokens to parameter_specification 8.0
+   Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
+   default                 => ERROR
+
+Minimal_Terminal_Sequences:
+wisitoken_accept => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, Wisi_EOI)
+compilation_unit => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER)
+mode => ()
+name => (IDENTIFIER)
+parameter_specification => (IDENTIFIER, IDENTIFIER)
+
+ 4 rules, 1 user actions, 1 checks, 9 states, 21 parse actions
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

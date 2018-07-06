@@ -32,9 +32,7 @@
 ;; no mckenzie
 
 %start expr
-%generator_algorithm Packrat
-%output_language Ada
-%lexer re2c
+%generate Packrat_Gen Ada re2c
 
 expr
   : expr MINUS NUMERIC_LITERAL

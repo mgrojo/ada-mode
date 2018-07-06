@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Generate.Packrat;
 package body WisiToken.Parse.Packrat.Procedural is
 
    function Apply_Rule
@@ -105,6 +104,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                      Last_Pos           => Pos);
 
                   <<Fail_RHS>>
+                  Pos := Last_Pos;
                end;
             end if;
          end;
@@ -141,7 +141,7 @@ package body WisiToken.Parse.Packrat.Procedural is
             Parser.Derivs (R).Replace_Element (Start_Pos, (State => Failure));
          else
             Memo := Eval (Parser, R, Last_Pos);
-            if WisiToken.Trace_Parse > Detail and then Memo.State = Success then
+            if Trace_Parse > Detail and then Memo.State = Success then
                Parser.Trace.Put_Line (Parser.Tree.Image (Memo.Result, Descriptor, Include_Children => True));
             end if;
             Parser.Derivs (R).Replace_Element (Start_Pos, Memo);
@@ -187,22 +187,23 @@ package body WisiToken.Parse.Packrat.Procedural is
    ----------
    --  Public subprograms
 
-   procedure Create
-     (Parser    :    out Procedural.Parser;
-      Grammar   : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Start_ID  : in     Token_ID;
-      Trace     : access WisiToken.Trace'Class;
-      Lexer     :        WisiToken.Lexer.Handle;
-      User_Data :        WisiToken.Syntax_Trees.User_Data_Access)
+   function Create
+     (Grammar               : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Direct_Left_Recursive : in     Token_ID_Set;
+      Start_ID              : in     Token_ID;
+      Trace                 : access WisiToken.Trace'Class;
+      Lexer                 :        WisiToken.Lexer.Handle;
+      User_Data             :        WisiToken.Syntax_Trees.User_Data_Access)
+     return Procedural.Parser
    is begin
-      Parser.Trace                 := Trace;
-      Parser.Lexer                 := Lexer;
-      Parser.User_Data             := User_Data;
-      Parser.Grammar               := Grammar;
-      Parser.Start_ID              := Start_ID;
-      --  FIXME: don't call _any_ "generate" procedures at runtime? ie move PDLR, HEP to Parse.Packrat?
-      Parser.Direct_Left_Recursive := WisiToken.Generate.Packrat.Potential_Direct_Left_Recursive
-        (Grammar, WisiToken.Generate.Has_Empty_Production (Grammar));
+      return Parser : Procedural.Parser (Grammar.First_Index, Grammar.Last_Index) do
+         Parser.Trace                 := Trace;
+         Parser.Lexer                 := Lexer;
+         Parser.User_Data             := User_Data;
+         Parser.Grammar               := Grammar;
+         Parser.Start_ID              := Start_ID;
+         Parser.Direct_Left_Recursive := Direct_Left_Recursive;
+      end return;
    end Create;
 
    overriding procedure Parse (Parser : aliased in out Procedural.Parser)

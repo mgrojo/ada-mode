@@ -20,14 +20,14 @@
 
 pragma License (GPL);
 
-with WisiToken.Parse.Packrat;
+with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
 generic
    Descriptor : in WisiToken.Descriptor;
 
-   with procedure Create_Parser
-     (Parser    :    out          WisiToken.Parse.Packrat.Parser;
-      Trace     : not null access WisiToken.Trace'Class;
-      User_Data : in              WisiToken.Syntax_Trees.User_Data_Access);
+   with function Create_Parser
+     (Trace     : not null access WisiToken.Trace'Class;
+      User_Data : in              WisiToken.Syntax_Trees.User_Data_Access)
+   return WisiToken.Parse.Base_Parser'Class;
 
 procedure Gen_Packrat_Parser_Run;

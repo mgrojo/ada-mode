@@ -1,0 +1,46 @@
+ 13 tokens lexed
+ 0: 0:  1:(OVERRIDING, (1 . 10)) : shift and goto state 1
+ 0: 1:  2:(OTHER, (12 . 16)) : reduce 1 tokens to overriding_indicator
+overriding_indicator_0: (overriding_indicator, (1 . 10)) <= ( 1:(OVERRIDING, (1 . 10)))
+ ... goto state 5
+ 0: 5:  2:(OTHER, (12 . 16)) : shift and goto state 2
+ 0: 2:  3:(PROCEDURE, (18 . 26)) : reduce 1 tokens to other_indicator
+other_indicator_0: (other_indicator, (12 . 16)) <= ( 2:(OTHER, (12 . 16)))
+ ... goto state 6
+ 0: 6:  3:(PROCEDURE, (18 . 26)) : shift and goto state 9
+ 0: 9:  4:(IDENTIFIER, (28 . 33)) : shift and goto state 10
+ 0: 10:  5:(SEMICOLON, (34 . 34)) : shift and goto state 11
+ 0: 11:  6:(OTHER, (37 . 41)) : reduce 5 tokens to subprogram_declaration
+subprogram_declaration_0: (subprogram_declaration, (1 . 34)) <= ((overriding_indicator, (1 . 10)), (other_indicator, (12 . 16)),  3:(PROCEDURE, (18 . 26)),  4:(IDENTIFIER, (28 . 33)),  5:(SEMICOLON, (34 . 34)))
+ ... goto state 4
+ 0: 4:  6:(OTHER, (37 . 41)) : reduce 0 tokens to overriding_indicator
+overriding_indicator_1: (overriding_indicator) <= ()
+ ... goto state 5
+ 0: 5:  6:(OTHER, (37 . 41)) : shift and goto state 2
+ 0: 2:  7:(PROCEDURE, (43 . 51)) : reduce 1 tokens to other_indicator
+other_indicator_0: (other_indicator, (37 . 41)) <= ( 6:(OTHER, (37 . 41)))
+ ... goto state 6
+ 0: 6:  7:(PROCEDURE, (43 . 51)) : shift and goto state 9
+ 0: 9:  8:(IDENTIFIER, (53 . 58)) : shift and goto state 10
+ 0: 10:  9:(SEMICOLON, (59 . 59)) : shift and goto state 11
+ 0: 11:  10:(PROCEDURE, (62 . 70)) : reduce 5 tokens to subprogram_declaration
+subprogram_declaration_0: (subprogram_declaration, (37 . 59)) <= ((overriding_indicator), (other_indicator, (37 . 41)),  7:(PROCEDURE, (43 . 51)),  8:(IDENTIFIER, (53 . 58)),  9:(SEMICOLON, (59 . 59)))
+ ... goto state 7
+ 0: 7:  10:(PROCEDURE, (62 . 70)) : reduce 0 tokens to overriding_indicator
+overriding_indicator_1: (overriding_indicator) <= ()
+ ... goto state 5
+ 0: 5:  10:(PROCEDURE, (62 . 70)) : reduce 0 tokens to other_indicator
+other_indicator_1: (other_indicator) <= ()
+ ... goto state 6
+ 0: 6:  10:(PROCEDURE, (62 . 70)) : shift and goto state 9
+ 0: 9:  11:(IDENTIFIER, (72 . 77)) : shift and goto state 10
+ 0: 10:  12:(SEMICOLON, (78 . 78)) : shift and goto state 11
+ 0: 11:  13:(Wisi_EOI, (81 . 80)) : reduce 5 tokens to subprogram_declaration
+subprogram_declaration_0: (subprogram_declaration, (62 . 78)) <= ((overriding_indicator), (other_indicator),  10:(PROCEDURE, (62 . 70)),  11:(IDENTIFIER, (72 . 77)),  12:(SEMICOLON, (78 . 78)))
+ ... goto state 8
+ 0: 8:  13:(Wisi_EOI, (81 . 80)) : reduce 3 tokens to compilation_unit
+compilation_unit_0: (compilation_unit, (1 . 78)) <= ((subprogram_declaration, (1 . 34)), (subprogram_declaration, (37 . 59)), (subprogram_declaration, (62 . 78)))
+ ... goto state 3
+ 0: 3:  13:(Wisi_EOI, (81 . 80)) : accept it
+wisitoken_accept_0: (wisitoken_accept, (1 . 78)) <= ((compilation_unit, (1 . 78)))
+ 0: succeed

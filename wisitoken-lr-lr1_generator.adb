@@ -213,6 +213,15 @@ package body WisiToken.LR.LR1_Generator is
    is
       use Ada.Text_IO;
    begin
+      Put_Line ("Tokens:");
+      WisiToken.Put_Tokens (Descriptor);
+      New_Line;
+      Put_Line ("Productions:");
+      WisiToken.Productions.Put (Grammar, Descriptor);
+      New_Line;
+
+      Put_Line ("LR1 Parse Table:");
+
       for State in Table.States'Range loop
          LR1_Items.Put
            (Grammar, Descriptor, LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
@@ -222,6 +231,22 @@ package body WisiToken.LR.LR1_Generator is
          if State /= Table.States'Last then
             New_Line;
          end if;
+      end loop;
+
+      if Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
+         New_Line;
+         Put_Line ("McKenzie:");
+         WisiToken.LR.Put (Table.McKenzie_Param, Descriptor);
+      end if;
+
+      New_Line;
+      Put_Line ("Minimal_Terminal_Sequences:");
+      for I in Table.Minimal_Terminal_Sequences.First_Index ..
+        Table.Minimal_Terminal_Sequences.Last_Index
+      loop
+         Put_Line
+           (WisiToken.Image (I, Descriptor) & " => " & WisiToken.Image
+              (Table.Minimal_Terminal_Sequences (I), Descriptor));
       end loop;
    end Put_Parse_Table;
 
@@ -258,18 +283,18 @@ package body WisiToken.LR.LR1_Generator is
    end Check_Unused_Tokens;
 
    function Generate
-     (Grammar                  : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor               : in WisiToken.Descriptor;
-      First_State_Index        : in State_Index;
-      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
-      Ignore_Unused_Tokens     : in Boolean             := False;
-      Ignore_Unknown_Conflicts : in Boolean             := False)
+     (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor      : in WisiToken.Descriptor;
+      Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param)
      return Parse_Table_Ptr
    is
       use type Ada.Containers.Count_Type;
 
-      Unused_Tokens : constant Boolean := Check_Unused_Tokens (Descriptor, Grammar);
+      Ignore_Unused_Tokens     : constant Boolean     := WisiToken.Trace_Generate > 1;
+      Ignore_Unknown_Conflicts : constant Boolean     := WisiToken.Trace_Generate > 1;
+      First_State_Index        : constant State_Index := 0;
+      Unused_Tokens            : constant Boolean     := Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;
 
@@ -284,7 +309,7 @@ package body WisiToken.LR.LR1_Generator is
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
    begin
-      if Trace_Generate > Detail then
+      if Trace_Generate > Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Item_Sets:");
          LR1_Items.Put (Grammar, Descriptor, Item_Sets);
@@ -323,9 +348,8 @@ package body WisiToken.LR.LR1_Generator is
         (Item_Sets, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all,
          Trace_Generate > Detail, Descriptor);
 
-      if Trace_Generate > Outline then
-         LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
-      end if;
+      --  Always output the parse table
+      LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 

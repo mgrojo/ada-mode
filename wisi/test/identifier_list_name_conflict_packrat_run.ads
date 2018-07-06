@@ -1,6 +1,0 @@
-with Gen_Packrat_Parser_Run;
-with Identifier_List_Name_Conflict_Actions;
-with Identifier_List_Name_Conflict_Packrat_Main;
-with WisiToken.Syntax_Trees;
-procedure Identifier_List_Name_Conflict_Packrat_Run is new Gen_Packrat_Parser_Run
-  (Identifier_List_Name_Conflict_Actions.Descriptor, Identifier_List_Name_Conflict_Packrat_Main.Create_Parser);

@@ -322,7 +322,8 @@ begin
 
    Indent_Line ("function Parse_wisitoken_accept_1");
    Indent_Line
-     ("  (Parser : in out WisiToken.Parse.Packrat.Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type");
+     --  WORKAROUND: using Parse.Packrat.Parser'Class here generates GNAT bug box with GPL 2018
+     ("  (Parser : in out WisiToken.Parse.Base_Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type");
    Indent_Line ("is begin");
    Indent_Line ("   return Parse_wisitoken_accept (Generated.Parser (Parser), Last_Pos);");
    Indent_Line ("end Parse_wisitoken_accept_1;");

@@ -36,12 +36,12 @@ package body WisiToken.Wisi_Grammar_Runtime is
       begin
          if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
             --  strip delimiters.
-            return Data.Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
+            return Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
 
          elsif -Tree.ID (Tree_Index) in STRING_LITERAL_ID | STRING_LITERAL_CASE_INS_ID and Strip_Quotes then
-            return Data.Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
+            return Data.Grammar_Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
          else
-            return Data.Lexer.Buffer_Text (Region);
+            return Data.Grammar_Lexer.Buffer_Text (Region);
          end if;
       end Strip_Delimiters;
 
@@ -91,7 +91,11 @@ package body WisiToken.Wisi_Grammar_Runtime is
       use all type Wisi.Lexer_Type;
    begin
       if "lexer" = Get_Text (Data, Tree, A_Index) then
-         Data.Ignore_Lines := Data.Generate_Params.Lexer /= Wisi.To_Lexer (Get_Text (Data, Tree, B_Index));
+         Data.If_Lexer_Present := True;
+         if Data.User_Lexer = None then
+            raise Grammar_Error with "%if lexer present, but lexer not specified";
+         end if;
+         Data.Ignore_Lines := Data.User_Lexer /= Wisi.To_Lexer (Get_Text (Data, Tree, B_Index));
       else
          raise Grammar_Error with "invalid '%if'; only 'lexer' supported";
       end if;
@@ -190,27 +194,16 @@ package body WisiToken.Wisi_Grammar_Runtime is
       Lexer     : in     WisiToken.Lexer.Handle;
       Terminals : in     Base_Token_Array_Access)
    is begin
-      User_Data.Lexer     := Lexer;
-      User_Data.Terminals := Terminals;
+      User_Data.Grammar_Lexer := Lexer;
+      User_Data.Terminals     := Terminals;
    end Set_Lexer_Terminals;
 
    overriding procedure Reset (Data : in out User_Data_Type)
    is begin
       --  Preserve Lexer, Terminals
-      Data.Raw_Code := (others => <>);
-
-      --  Preserve Generate_Params items set by wisi-generate command line options
-      Data.Generate_Params.Case_Insensitive              := False;
-      Data.Generate_Params.Embedded_Quote_Escape_Doubled := False;
-      Data.Generate_Params.End_Names_Optional_Option     := +"";
-      --  First_Parser_Label          := 0;
-      --  First_State_Index          := 0;
-      --  Interface_Kind             := None;
-      --  Lexer                      := None;
-      --  Output_Language            := None;
-      --  Parser_Algorithm           := None;
-      Data.Generate_Params.Start_Token                   := +"";
-
+      Data.Raw_Code         := (others => <>);
+      Data.Generate_Params  := (others => <>);
+      Wisi.Free (Data.Generate_Set);
       Data.Tokens           := (others => <>);
       Data.Elisp_Names      := (others => <>);
       Data.Conflicts.Clear;
@@ -219,6 +212,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
       Data.Rule_Count       := 0;
       Data.Action_Count     := 0;
       Data.Check_Count      := 0;
+      Data.If_Lexer_Present := False;
       Data.Ignore_Lines     := False;
    end Reset;
 
@@ -244,9 +238,6 @@ package body WisiToken.Wisi_Grammar_Runtime is
    is
       use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type Wisi.Lexer_Type;
-      use all type Wisi.Interface_Type;
-      use all type Wisi.Output_Language;
-      use all type Wisi.Generator_Algorithm;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
@@ -360,7 +351,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
                Loc_List : constant Base_Token_Array := Get_Loc_List;
 
                function Get_Loc (Index : in SAL.Peek_Type) return String
-               is (Data.Lexer.Buffer_Text (Loc_List (Index).Byte_Region));
+               is (Data.Grammar_Lexer.Buffer_Text (Loc_List (Index).Byte_Region));
 
             begin
                if Get_Loc (Loc_List'First) = "actions" then
@@ -391,13 +382,13 @@ package body WisiToken.Wisi_Grammar_Runtime is
             when Grammar_Error =>
                Put_Error
                  (Error_Message
-                    (Data.Lexer.File_Name, Token (2).Line, Token (2).Column,
+                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column,
                      "invalid raw code location; actions {spec | body} {context | pre | post}"));
             end;
 
          when IDENTIFIER_ID =>
             declare
-               Kind : constant String := Data.Lexer.Buffer_Text (Token (2).Byte_Region);
+               Kind : constant String := Data.Grammar_Lexer.Buffer_Text (Token (2).Byte_Region);
             begin
                if Kind = "case_insensitive" then
                   Data.Generate_Params.Case_Insensitive := True;
@@ -441,26 +432,28 @@ package body WisiToken.Wisi_Grammar_Runtime is
                elsif Kind = "end_names_optional_option" then
                   Data.Generate_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tokens (3));
 
-               elsif Kind = "first_parser_label" then
-                  Data.Generate_Params.First_Parser_Label := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
-               elsif Kind = "first_state_index" then
-                  Data.Generate_Params.First_State_Index := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+               elsif Kind = "generate" then
+                  declare
+                     Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Tokens (3));
+                     Quad     : constant Wisi.Generate_Quad                  :=
+                       (Gen_Alg        => Wisi.Generate_Algorithm'Value (Get_Text (Data, Tree, Children (1))),
+                        Out_Lang       => Wisi.Output_Language'Value (Get_Text (Data, Tree, Children (2))),
+                        Lexer =>
+                          (if Children'Length >= 3
+                           then Wisi.To_Lexer (Get_Text (Data, Tree, Children (3)))
+                           else Wisi.None),
+                        Interface_Kind =>
+                          (if Children'Length >= 4
+                           then Wisi.Valid_Interface'Value (Get_Text (Data, Tree, Children (4)))
+                           else Wisi.None));
+                  begin
+                     Wisi.Add (Data.Generate_Set, Quad);
+                  end;
 
                elsif Kind = "if" then
                   Data.Ignore_Lines :=
-                    Data.Generate_Params.Lexer /= Wisi.To_Lexer (Get_Child_Text (Data, Tree, Tokens (3), 3));
-
-               elsif Kind = "interface" then
-                  if Data.Generate_Params.Interface_Kind = None then
-                     Data.Generate_Params.Interface_Kind := Wisi.Valid_Interface'Value
-                       (Get_Text (Data, Tree, Tokens (3)));
-                  end if;
-
-               elsif Kind = "lexer" then
-                  if Data.Generate_Params.Lexer = None then
-                     Data.Generate_Params.Lexer := Wisi.To_Lexer (Get_Text (Data, Tree, Tokens (3)));
-                  end if;
+                    Data.User_Lexer /= Wisi.To_Lexer (Get_Child_Text (Data, Tree, Tokens (3), 3));
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Generate_Params.Error_Recover := True;
@@ -504,17 +497,8 @@ package body WisiToken.Wisi_Grammar_Runtime is
                elsif Kind = "no_language_runtime" then
                   Data.Generate_Params.Language_Runtime := False;
 
-               elsif Kind = "output_language" then
-                  if Data.Generate_Params.Output_Language = None then
-                     Data.Generate_Params.Output_Language := Wisi.Valid_Output_Language'Value
-                       (Get_Text (Data, Tree, Tokens (3)));
-                  end if;
-
-               elsif Kind = "generator_algorithm" then
-                  if Data.Generate_Params.Generator_Algorithm = None then
-                     Data.Generate_Params.Generator_Algorithm := Wisi.Valid_Generator_Algorithm'Value
-                       (Get_Text (Data, Tree, Tokens (3)));
-                  end if;
+               elsif Kind = "no_enum" then
+                  Data.Generate_Params.Declare_Enums := False;
 
                elsif Kind = "start" then
                   Data.Generate_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));
@@ -526,7 +510,8 @@ package body WisiToken.Wisi_Grammar_Runtime is
 
                else
                   Put_Error
-                    (Error_Message (Data.Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax"));
+                    (Error_Message
+                       (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax"));
                   raise WisiToken.Grammar_Error;
 
                end if;
@@ -560,7 +545,8 @@ package body WisiToken.Wisi_Grammar_Runtime is
          declare
             LHS_Token : Base_Token renames Data.Terminals.all (Tree.Terminal (Tokens (1)));
          begin
-            Put_Error (Error_Message (Data.Lexer.File_Name, LHS_Token.Line, LHS_Token.Column, "duplicate nonterm"));
+            Put_Error
+              (Error_Message (Data.Grammar_Lexer.File_Name, LHS_Token.Line, LHS_Token.Column, "duplicate nonterm"));
             raise WisiToken.Grammar_Error;
          end;
       else

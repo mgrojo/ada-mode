@@ -20,15 +20,15 @@
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"
 
-;; no whitespace, newline, comment.
+%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
+
+;; comment.
 ;; no mckenzie
 
 %no_language_runtime
 
 %start upper_s
-%generator_algorithm Packrat
-%output_language Ada
-%lexer re2c
+%generate Packrat_Gen Ada re2c
 
 ;; wisi-generate adds accept production
 

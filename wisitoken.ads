@@ -164,6 +164,8 @@ package WisiToken is
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
 
+   procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
+
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
    --  Return last index in A of a prefix shared between A, B; 0 if none.
 
@@ -185,6 +187,7 @@ package WisiToken is
       Max_Count : in Integer := Integer'Last;
       Inverted  : in Boolean := False)
      return String;
+   --  For diagnostics; not Ada syntax.
 
    type Token_Array_Token_Set is array (Token_ID range <>, Token_ID range <>) of Boolean;
 
@@ -193,7 +196,6 @@ package WisiToken is
    function Any (Item : in Token_Array_Token_Set) return Boolean;
    procedure Or_Slice (Item : in out Token_Array_Token_Set; I : in Token_ID; Value : in Token_ID_Set);
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_ID_Set);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array_Token_Set);
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate
    --  syntax.

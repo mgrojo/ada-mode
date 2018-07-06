@@ -27,11 +27,17 @@ with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
+with Wisi.Generate_Utils;
 with Wisi.Output_Ada;
+with Wisi.Output_Ada_Common;
 with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
 with Wisi.Output_Elisp_Common;
+with WisiToken.Generate.Packrat;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LR1_Generator;
 with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Productions;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
 with Wisi_Grammar_Actions;
@@ -51,17 +57,16 @@ is
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
       Put_Line (Standard_Error, "The following grammar file directives control parser generation:");
-      Put_Line (Standard_Error, "%first_state_index <n> - default 0");
-      Put_Line (Standard_Error, "%first_parser_label <n> -  default 0");
-      Put_Line (Standard_Error, "%generator_algorithm {LALR_LR1 | LALR | LR1 | Packrat}");
-      Put_Line (Standard_Error, "   LALR_LR1 generates both parsers; choice is made at parser run-time.");
-      Put_Line (Standard_Error, "%output_language' {Ada | Ada_Emacs | Elisp}");
-      Put_Line (Standard_Error, "%lexer {re2c | Elisp | Regexp}");
-      Put_Line (Standard_Error, "%interface {Process | Module}");
-      New_Line (Standard_Error);
-      Put_Line (Standard_Error, "Interface is only valid with Ada_Emacs:");
-      Put_Line (Standard_Error, "   Ada_Emacs, Process is for an external subprocess communicating with Emacs.");
-      Put_Line (Standard_Error, "   Ada_Emacs, Module  is for a dynamically loaded Emacs module.");
+      Put_Line (Standard_Error,
+                "%generate <algorithm> <output language> [<lexer>] [<interface>]");
+      Put_Line (Standard_Error, "   specify one of each generate parameter. May be repeated.");
+      Put_Line (Standard_Error, "   algorithm: LALR | LR1 | Packrat_Gen | Packrat_Proc");
+      Put_Line (Standard_Error, "   output language: Ada | Ada_Emacs | Elisp");
+      Put_Line (Standard_Error, "   interface: interface Process | Module");
+      Put_Line (Standard_Error, "      only valid with Ada_Emacs:");
+      Put_Line (Standard_Error, "      Process is for an external subprocess communicating with Emacs.");
+      Put_Line (Standard_Error, "      Module  is for a dynamically loaded Emacs module.");
+      Put_Line (Standard_Error, "   lexer: re2c | Elisp");
       New_Line (Standard_Error);
       Put_Line (Standard_Error, "options are:");
       Put_Line (Standard_Error, "  -v level: sets verbosity (default 0):");
@@ -70,33 +75,32 @@ is
       Put_Line (Standard_Error, "     2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error,
-                "  --<directive_name> <value>; same as directive in grammar file; override grammar file");
-      Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
 
    end Put_Usage;
 
-   Language_Name    : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Suffix           : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Test_Main        : Boolean := False;
+   Language_Name         : Standard.Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
+   Output_File_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Suffix                : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Test_Main             : Boolean := False;
 
-   Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
-   Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser     : WisiToken.LR.Parser_No_Recover.Parser;
+   Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
+
+   Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
+   Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+   Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
 
    procedure Use_Input_File (File_Name : in String)
    is
       use Standard.Ada.Strings.Unbounded;
       use Standard.Ada.Text_IO;
    begin
-      Output_File_Root := +Standard.Ada.Directories.Base_Name (File_Name) & Suffix;
+      Output_File_Name_Root := +Standard.Ada.Directories.Base_Name (File_Name) & Suffix;
 
       Wisi_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
-         Algorithm => WisiToken.LALR,
          Trace     => Trace'Unchecked_Access,
-         User_Data => Grammar_Parse_Data'Unchecked_Access);
+         User_Data => Input_Data'Unchecked_Access);
 
       Grammar_Parser.Lexer.Reset_With_File (File_Name);
 
@@ -134,54 +138,44 @@ begin
             WisiToken.Trace_Generate := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
 
-         elsif Argument (Arg_Next) = "--first_state_index" then
+         elsif Argument (Arg_Next) = "--generate" then
             Arg_Next  := Arg_Next + 1;
-            Grammar_Parse_Data.Generate_Params.First_State_Index := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "--first_parser_label" then
-            Arg_Next  := Arg_Next + 1;
-            Grammar_Parse_Data.Generate_Params.First_Parser_Label := Integer'Value (Argument (Arg_Next));
-            Arg_Next  := Arg_Next + 1;
-
-         elsif Argument (Arg_Next) = "--interface" then
-            Arg_Next  := Arg_Next + 1;
+            declare
+               Quad : Generate_Quad;
             begin
-               Grammar_Parse_Data.Generate_Params.Interface_Kind := Interface_Type'Value (Argument (Arg_Next));
-               Arg_Next := Arg_Next + 1;
-            exception
-            when Constraint_Error =>
-               raise User_Error with "invalid value for interface: '" & Argument (Arg_Next) & ";";
-            end;
-         elsif Argument (Arg_Next) = "--lexer" then
-            Arg_Next  := Arg_Next + 1;
-            begin
-               Grammar_Parse_Data.Generate_Params.Lexer := To_Lexer (Argument (Arg_Next));
-               Arg_Next := Arg_Next + 1;
-            exception
-            when Constraint_Error =>
-               raise User_Error with "invalid value for lexer: '" & Argument (Arg_Next) & ";";
-            end;
+               begin
+                  Quad.Gen_Alg := Generate_Algorithm'Value (Argument (Arg_Next));
+                  Arg_Next     := Arg_Next + 1;
+               exception
+               when Constraint_Error =>
+                  raise User_Error with "invalid value for generator_algorithm: '" & Argument (Arg_Next) & ";";
+               end;
+               begin
+                  Quad.Out_Lang := Output_Language'Value (Argument (Arg_Next));
+                  Arg_Next  := Arg_Next + 1;
+               exception
+               when Constraint_Error =>
+                  raise User_Error with "invalid value for output_language: '" & Argument (Arg_Next) & ";";
+               end;
 
-         elsif Argument (Arg_Next) = "--output_language" then
-            Arg_Next  := Arg_Next + 1;
-            begin
-               Grammar_Parse_Data.Generate_Params.Output_Language := Output_Language'Value (Argument (Arg_Next));
-               Arg_Next := Arg_Next + 1;
-            exception
-            when Constraint_Error =>
-               raise User_Error with "invalid value for output_language: '" & Argument (Arg_Next) & ";";
-            end;
+               begin
+                  Quad.Lexer := To_Lexer (Argument (Arg_Next));
+                  Arg_Next   := Arg_Next + 1;
+                  begin
+                     Quad.Interface_Kind := Interface_Type'Value (Argument (Arg_Next));
+                     Arg_Next := Arg_Next + 1;
+                  exception
+                  when Constraint_Error =>
+                     --  interface not specified
+                     null;
+                  end;
+               exception
+               when User_Error =>
+                  --  lexer not specified
+                  null;
+               end;
 
-         elsif Argument (Arg_Next) = "--generator_algorithm" then
-            Arg_Next  := Arg_Next + 1;
-            begin
-               Grammar_Parse_Data.Generate_Params.Generator_Algorithm := Generator_Algorithm'Value
-                 (Argument (Arg_Next));
-               Arg_Next := Arg_Next + 1;
-            exception
-            when Constraint_Error =>
-               raise User_Error with "invalid value for generator_algorithm: '" & Argument (Arg_Next) & ";";
+               Add (Command_Generate_Set, Quad);
             end;
 
          elsif Argument (Arg_Next) = "--suffix" then
@@ -208,32 +202,165 @@ begin
 
    begin
       Grammar_Parser.Parse;
-      Grammar_Parser.Execute_Actions;
    exception
    when WisiToken.Syntax_Error =>
-      Grammar_Parser.Put_Errors (Grammar_Parse_Data.Lexer.File_Name);
+      Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
       raise;
    end;
 
-   if Grammar_Parse_Data.Rule_Count = 0 or Grammar_Parse_Data.Tokens.Rules.Length = 0 then
-      raise WisiToken.Grammar_Error with "no rules";
-   end if;
+   declare
+      use all type WisiToken.Unknown_State_Index;
+      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
+      use Standard.Ada.Text_IO;
 
-   case Grammar_Parse_Data.Generate_Params.Output_Language is
-   when None =>
-      raise User_Error with "output language not specified";
+      --  We always create a .parse_table file
+      Parse_Table_File : File_Type;
 
-   when Ada =>
-      Wisi.Output_Ada (Grammar_Parse_Data, -Output_File_Root, Test_Main);
+      Generate_Done : Lexer_Generate_Algorithm_Set := (others => (others => False));
+      Generate_Set  : Generate_Set_Access;
 
-   when Ada_Emacs =>
-      Wisi.Output_Ada_Emacs (Grammar_Parse_Data, -Output_File_Root, -Language_Name);
+      Parse_Done : Lexer_Set := (others => False);
+      Lexer_Done : Lexer_Set := (others => False);
 
-   when Elisp =>
-      Wisi.Output_Elisp (Grammar_Parse_Data, -Output_File_Root);
+      procedure Parse_Check (Lexer : in Lexer_Type)
+      is begin
+         Input_Data.User_Lexer := Lexer;
+         --  Specifying the lexer can change the parsed grammar, due to %if lexer.
 
-   end case;
+         Input_Data.Reset;
+         Grammar_Parser.Execute_Actions;
 
+         if not Input_Data.If_Lexer_Present then
+            --  Parse cannot depend on lexer - mark them all done.
+            Parse_Done := (others => True);
+         else
+            Parse_Done (Input_Data.User_Lexer) := True;
+         end if;
+
+         if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
+            raise WisiToken.Grammar_Error with "no rules";
+         end if;
+
+      end Parse_Check;
+
+   begin
+      if Command_Generate_Set = null then
+         --  get quad from input file
+         Parse_Check (None);
+
+         if Input_Data.Generate_Set = null then
+            raise User_Error with "generate algorithm, output_language, lexer, interface not specified";
+         end if;
+         Generate_Set := Input_Data.Generate_Set;
+      else
+         Generate_Set := Command_Generate_Set;
+      end if;
+
+      for Quad of Generate_Set.all loop
+
+         if Quad.Lexer = None then
+            case Quad.Out_Lang is
+            when Ada | Ada_Emacs =>
+               Input_Data.User_Lexer := re2c_Lexer;
+            when Elisp =>
+               Input_Data.User_Lexer := Elisp_Lexer;
+            end case;
+         else
+            Input_Data.User_Lexer := Quad.Lexer;
+         end if;
+
+         if not Parse_Done (Input_Data.User_Lexer) then
+            Parse_Check (Input_Data.User_Lexer);
+         end if;
+
+         declare
+            Generate_Data : aliased Wisi.Generate_Utils.Generate_Data := Wisi.Generate_Utils.Initialize
+              (Input_Data.Grammar_Lexer.File_Name, Input_Data.Tokens, -Input_Data.Generate_Params.Start_Token);
+
+            Packrat_Data : constant WisiToken.Generate.Packrat.Data := WisiToken.Generate.Packrat.Initialize
+              (Input_Data.Grammar_Lexer.File_Name, Generate_Data.Grammar, Generate_Data.Source_Line_Map,
+               Generate_Data.LR1_Descriptor.First_Terminal);
+         begin
+            if not Lexer_Done (Input_Data.User_Lexer) then
+               Lexer_Done (Input_Data.User_Lexer) := True;
+               if Input_Data.User_Lexer = re2c_Lexer then
+                  Wisi.Output_Ada_Common.Create_re2c
+                    (Input_Data, Quad, Generate_Data, -Output_File_Name_Root, Input_Data.Elisp_Names.Regexps);
+                  --  FIXME: "Elisp_Names" is a misnomer if output lang /= elisp; "lexer_names" would be better?
+               end if;
+            end if;
+
+            if not Generate_Done (Input_Data.User_Lexer)(Quad.Gen_Alg) then
+               Generate_Done (Input_Data.User_Lexer)(Quad.Gen_Alg) := True;
+               Create
+                 (Parse_Table_File, Out_File,
+                  -Output_File_Name_Root & "_" & To_Lower (Generate_Algorithm'Image (Quad.Gen_Alg)) &
+                    (if Input_Data.If_Lexer_Present
+                     then "_" & Lexer_Image (Input_Data.User_Lexer).all
+                     else "") &
+                    ".parse_table");
+               Set_Output (Parse_Table_File);
+
+               case Quad.Gen_Alg is
+               when LALR =>
+                  Generate_Data.LR_Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
+                    (Generate_Data.Grammar,
+                     Generate_Data.LALR_Descriptor.all,
+                     Generate_Utils.To_Conflicts
+                       (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
+                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover));
+
+                  Generate_Data.Parser_State_Count :=
+                    Generate_Data.LR_Parsers (LALR).State_Last - Generate_Data.LR_Parsers (LALR).State_First + 1;
+                  Wisi.Generate_Utils.Count_Actions (Generate_Data, LALR);
+                  Wisi.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
+
+               when LR1 =>
+                  Generate_Data.LR_Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
+                    (Generate_Data.Grammar,
+                     Generate_Data.LR1_Descriptor.all,
+                     Generate_Utils.To_Conflicts
+                       (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
+                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover));
+
+                  Generate_Data.Parser_State_Count :=
+                    Generate_Data.LR_Parsers (LR1).State_Last - Generate_Data.LR_Parsers (LR1).State_First + 1;
+                  Wisi.Generate_Utils.Count_Actions (Generate_Data, LR1);
+                  Wisi.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
+
+               when Packrat_Generate_Algorithm =>
+                  Put_Line ("Tokens:");
+                  WisiToken.Put_Tokens (Generate_Data.LR1_Descriptor.all);
+                  New_Line;
+                  Put_Line ("Productions:");
+                  WisiToken.Productions.Put (Generate_Data.Grammar, Generate_Data.LR1_Descriptor.all);
+
+                  Packrat_Data.Check_All (Generate_Data.LR1_Descriptor.all);
+               end case;
+
+               Set_Output (Standard_Output);
+               Close (Parse_Table_File);
+
+               if WisiToken.Generate.Error then
+                  raise WisiToken.Grammar_Error with "errors: aborting";
+               end if;
+            end if;
+
+            case Quad.Out_Lang is
+            when Ada =>
+               Wisi.Output_Ada (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad, Test_Main);
+
+            when Ada_Emacs =>
+               Wisi.Output_Ada_Emacs
+                 (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad, Test_Main, -Language_Name);
+
+            when Elisp =>
+               Wisi.Output_Elisp (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad);
+
+            end case;
+         end;
+      end loop;
+   end;
 exception
 when WisiToken.Syntax_Error =>
    --  error message already output
@@ -246,6 +373,7 @@ when E : User_Error =>
       use Standard.Ada.Text_IO;
    begin
       Put_Line (Standard_Error, Exception_Message (E));
+      Put_Command_Line (Ada_Comment);
       Set_Exit_Status (Failure);
       Put_Usage;
    end;

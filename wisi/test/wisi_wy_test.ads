@@ -23,9 +23,10 @@ with AUnit.Test_Cases;
 package Wisi_WY_Test is
 
    type Test_Case
-     (Root_Name       : access String;
-      Generate        : Wisi.Valid_Generator_Algorithm;
-      Output_Language : Wisi.Valid_Output_Language)
+     (Root_Name        : access String;
+      If_Lexer_Present : Boolean;
+      Actions_Present  : Boolean;
+      Generate_Set     : Wisi.Generate_Set_Access)
      is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
@@ -33,5 +34,9 @@ package Wisi_WY_Test is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
+
+   overriding procedure Set_Up_Case (T : in out Test_Case);
+
+   overriding procedure Tear_Down_Case (T : in out Test_Case);
 
 end Wisi_WY_Test;

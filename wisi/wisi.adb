@@ -24,10 +24,25 @@ with Ada.Text_IO;
 with Ada.Strings.Fixed;
 package body Wisi is
 
+   procedure Add
+     (Set  : in out Generate_Set_Access;
+      Quad : in     Generate_Quad)
+   is
+      Prev : Generate_Set_Access := Set;
+      Last : constant Integer    := (if Prev = null then 1 else Prev.all'Length + 1);
+   begin
+      Set := new Generate_Set (1 .. Last);
+      for I in 1 .. Last - 1 loop
+         Set (I) := Prev (I);
+      end loop;
+      Set (Last) := Quad;
+      Free (Prev);
+   end Add;
+
    function To_Lexer (Item : in String) return Lexer_Type
    is begin
       for I in Valid_Lexer loop
-         if Lexer_Names (I).all = To_Lower (Item) then
+         if Lexer_Image (I).all = To_Lower (Item) then
             return I;
          end if;
       end loop;
@@ -116,12 +131,14 @@ package body Wisi is
 
    procedure Put_File_Header
      (Comment_Syntax : in String_2;
-      Emacs_Mode     : in String := "")
+      Emacs_Mode     : in String := "";
+      Use_Quad       : in Boolean       := False;
+      Quad           : in Generate_Quad := (others => <>))
    is
       use Standard.Ada.Text_IO;
    begin
       Put_Line (Comment_Syntax & "  generated parser support file." & Emacs_Mode);
-      Put_Command_Line  (Comment_Syntax & "  ");
+      Put_Command_Line  (Comment_Syntax & "  ", Use_Quad, Quad);
       Put_Line (Comment_Syntax);
    end Put_File_Header;
 
@@ -261,7 +278,10 @@ package body Wisi is
       return Result;
    end "+";
 
-   procedure Put_Command_Line (Comment_Prefix : in String)
+   procedure Put_Command_Line
+     (Comment_Prefix : in String;
+      Use_Quad       : in Boolean       := False;
+      Quad           : in Generate_Quad := (others => <>))
    is
       use Standard.Ada.Command_Line;
       use Standard.Ada.Text_IO;
@@ -288,9 +308,17 @@ package body Wisi is
    begin
       Put (Comment_Prefix & "command line:", False);
       Put (Standard.Ada.Directories.Simple_Name (Command_Name), True);
-      for I in 1 .. Argument_Count loop
-         Put (Argument (I), True);
-      end loop;
+      if Use_Quad then
+         Put (" --generate " & Generate_Algorithm'Image (Quad.Gen_Alg) & " " & Output_Language'Image (Quad.Out_Lang) &
+                (if Quad.Lexer /= None then " " & Lexer_Image (Quad.Lexer).all else "") &
+                (if Quad.Interface_Kind /= None then " " & Interface_Type'Image (Quad.Interface_Kind) else "") &
+                " " & Argument (Argument_Count), --  .wy file
+              True);
+      else
+         for I in 1 .. Argument_Count loop
+            Put (Argument (I), True);
+         end loop;
+      end if;
       New_Line;
    end Put_Command_Line;
 

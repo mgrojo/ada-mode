@@ -1,0 +1,3 @@
+procedure Bar (foo) is begin null end;
+
+procedure Bar is new Foo (Baz);

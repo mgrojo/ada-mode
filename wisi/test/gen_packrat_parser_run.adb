@@ -25,7 +25,7 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with WisiToken.Parse.Packrat;
+with WisiToken.Parse;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Packrat_Parser_Run
@@ -45,7 +45,7 @@ is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
-   Parser : WisiToken.Parse.Packrat.Parser;
+   Parser : WisiToken.Parse.Base_Parser'Class := Create_Parser (Trace'Unchecked_Access, User_Data => null);
 
 begin
    declare
@@ -79,9 +79,6 @@ begin
       return;
    end;
 
-   Put_Line ("Packrat Parser parse:");
-
-   Create_Parser (Parser, Trace'Unchecked_Access, User_Data => null);
    Parser.Lexer.Reset_With_File (-File_Name);
    Parser.Parse;
 

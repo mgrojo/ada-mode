@@ -26,14 +26,6 @@
 %non_grammar <non-reporting> COMMENT %[ "--"[^\n]*[\n] ]%
 
 %start declarations
-%first_state_index 1
-%first_parser_label 1
-
-;; LR1 generates different conflict names, so we only do LALR
-%generator_algorithm LALR
-
-%output_language Ada
-%lexer re2c
 
 %conflict SHIFT/REDUCE in state wisitoken_accept, wisitoken_accept  on token IS
 %conflict SHIFT/REDUCE in state body, body  on token IS

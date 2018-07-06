@@ -1,6 +1,0 @@
-with Gen_LR_Parser_No_Recover_Run;
-with Identifier_List_Name_Conflict_Actions;
-with Identifier_List_Name_Conflict_Main;
-with WisiToken.Syntax_Trees;
-procedure Identifier_List_Name_Conflict_LR_Run is new Gen_LR_Parser_No_Recover_Run
-  (Identifier_List_Name_Conflict_Actions.Descriptor, Identifier_List_Name_Conflict_Main.Create_Parser);

@@ -33,7 +33,7 @@ package WisiToken.Parse.Packrat.Generated is
 
       case State is
       when No_Result =>
-         Recursive : Boolean; --  FIXME: delete
+         Recursive : Boolean := False; --  FIXME: delete
 
       when Failure =>
          null;

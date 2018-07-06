@@ -50,7 +50,6 @@ is
       Parser : WisiToken.LR.Parser_No_Recover.Parser;
    begin
       Create_Parser (Parser, Trace'Unchecked_Access, User_Data => null);
-      Put_Line ("parse:");
 
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;

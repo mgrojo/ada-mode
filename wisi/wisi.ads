@@ -36,6 +36,7 @@ with Ada.Characters.Handling;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
+with Ada.Unchecked_Deallocation;
 with WisiToken;
 package Wisi is
 
@@ -48,13 +49,21 @@ package Wisi is
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
-   type Generator_Algorithm is (None, LALR, LR1, Packrat);
+   type Generate_Algorithm is (LALR, LR1, Packrat_Gen, Packrat_Proc);
+   subtype LR_Generate_Algorithm is Generate_Algorithm range LALR .. LR1;
+   subtype Packrat_Generate_Algorithm is Generate_Algorithm range Packrat_Gen .. Packrat_Proc;
 
-   subtype Valid_Generator_Algorithm is Generator_Algorithm range LALR .. Packrat;
-   subtype LR_Generator_Algorithm is Generator_Algorithm range LALR .. LR1;
+   Generate_Algorithm_Image : constant array (Generate_Algorithm) of access constant String :=
+     (LALR         => new String'("LALR"),
+      LR1          => new String'("LR1"),
+      Packrat_Gen  => new String'("Packrat_Gen"),
+      Packrat_Proc => new String'("Packrat_Proc"));
+   --  Suitable for Ada package names.
 
-   type Output_Language is (None, Ada, Ada_Emacs, Elisp);
-   subtype Valid_Output_Language is Output_Language range Ada .. Elisp;
+   type Generate_Algorithm_Set is array (Generate_Algorithm) of Boolean;
+   type Generate_Algorithm_Set_Access is access Generate_Algorithm_Set;
+
+   type Output_Language is (Ada, Ada_Emacs, Elisp);
    subtype Ada_Output_Language is Output_Language range Ada .. Ada_Emacs;
 
    type Lexer_Type is (None, Elisp_Lexer, re2c_Lexer);
@@ -62,32 +71,47 @@ package Wisi is
    --  We append "_Lexer" to these names to avoid colliding with the
    --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
-   Lexer_Names : constant array (Valid_Lexer) of access constant String :=
+   Lexer_Image : constant array (Valid_Lexer) of access constant String :=
      (Elisp_Lexer => new String'("elisp"),
       re2c_Lexer  => new String'("re2c"));
 
    function To_Lexer (Item : in String) return Lexer_Type;
    --  Raises User_Error for invalid Item
 
+   type Lexer_Set is array (Lexer_Type) of Boolean;
+
+   type Lexer_Generate_Algorithm_Set is array (Lexer_Type) of Generate_Algorithm_Set;
+   --  %if lexer change change the generated parse table
+
    type Interface_Type is (None, Process, Module);
    subtype Valid_Interface is Interface_Type range Process .. Module;
+
+   type Generate_Quad is record
+      Gen_Alg        : Generate_Algorithm;
+      Out_Lang       : Output_Language;
+      Lexer          : Lexer_Type     := None;
+      Interface_Kind : Interface_Type := None;
+   end record;
+
+   type Generate_Set is array (Natural range <>) of Generate_Quad;
+   type Generate_Set_Access is access Generate_Set;
+   procedure Free is new Standard.Ada.Unchecked_Deallocation (Generate_Set, Generate_Set_Access);
+
+   procedure Add
+     (Set  : in out Generate_Set_Access;
+      Quad : in     Generate_Quad);
 
    package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
    type Generate_Param_Type is record
-      --  Set by grammar file declarations. Error recover parameters
-      --  are in McKenzie_Recover_Param_Type below.
-      Case_Insensitive              : Boolean                  := False;
-      Embedded_Quote_Escape_Doubled : Boolean                  := False;
+      --  Set by grammar file declarations or command line options. Error
+      --  recover parameters are in McKenzie_Recover_Param_Type below.
+      Case_Insensitive              : Boolean := False;
+      Embedded_Quote_Escape_Doubled : Boolean := False;
       End_Names_Optional_Option     : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      First_Parser_Label            : Integer                  := 0;
-      First_State_Index             : Integer                  := 0;
-      Interface_Kind                : Interface_Type           := None;
-      Lexer                         : Lexer_Type               := None;
-      Language_Runtime              : Boolean                  := True;
-      Error_Recover                 : Boolean                  := False;
-      Output_Language               : Wisi.Output_Language     := None;
-      Generator_Algorithm           : Wisi.Generator_Algorithm := None;
+      Language_Runtime              : Boolean := True;
+      Declare_Enums                 : Boolean := True;
+      Error_Recover                 : Boolean := False;
       Start_Token                   : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
@@ -132,7 +156,9 @@ package Wisi is
 
    procedure Put_File_Header
      (Comment_Syntax : in String_2;
-      Emacs_Mode     : in String := "");
+      Emacs_Mode     : in String := "";
+      Use_Quad       : in Boolean       := False;
+      Quad           : in Generate_Quad := (others => <>));
    --  Output "parser support file <emacs_mode> /n command line: " comment to Ada.Text_IO.Current_Output.
 
    type String_Pair_Type is record
@@ -265,7 +291,10 @@ package Wisi is
      is (if Item then "True" else "False");
    --  Match casing in Standard.
 
-   procedure Put_Command_Line (Comment_Prefix : in String);
-   --  Put command line to current output
+   procedure Put_Command_Line
+     (Comment_Prefix : in String;
+      Use_Quad       : in Boolean       := False;
+      Quad           : in Generate_Quad := (others => <>));
+   --  Put command line to current output; indicate current quad.
 
 end Wisi;

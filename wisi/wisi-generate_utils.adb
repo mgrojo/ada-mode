@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada.Exceptions;
+with Ada.Text_IO;
 with WisiToken.Generate; use WisiToken.Generate;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada;
@@ -208,22 +209,19 @@ package body Wisi.Generate_Utils is
             First_Nonterminal => EOF_ID + 1,
             Last_Nonterminal  => EOF_ID + 1 + Token_ID (Tokens.Rules.Length)),
 
-         LALR_Descriptor => null,
-         Grammar         => <>,
-         Source_Line_Map => <>,
-         Conflicts       => <>)
+         others => <>)
       do
 
          --  FIXME: We don't set Descriptor.Case_Insensitive,
          --  Embedded_Quote_Escape_Doubled here, because we don't have access
          --  to Generate_Params. They are set in the generated code in
          --  wisi-gen_output_ada_common.adb.
-         Result.LR1_Descriptor.New_Line_ID      := Find_Kind (Result, "new-line");
-         Result.LR1_Descriptor.Comment_ID       := Find_Kind (Result, "comment");
-         Result.LR1_Descriptor.Left_Paren_ID    := Find_Kind (Result, "left-paren");
-         Result.LR1_Descriptor.Right_Paren_ID   := Find_Kind (Result, "right-paren");
-         Result.LR1_Descriptor.String_1_ID      := Find_Kind (Result, "string-single");
-         Result.LR1_Descriptor.String_2_ID      := Find_Kind (Result, "string-double");
+         Result.LR1_Descriptor.New_Line_ID    := Find_Kind (Result, "new-line");
+         Result.LR1_Descriptor.Comment_ID     := Find_Kind (Result, "comment");
+         Result.LR1_Descriptor.Left_Paren_ID  := Find_Kind (Result, "left-paren");
+         Result.LR1_Descriptor.Right_Paren_ID := Find_Kind (Result, "right-paren");
+         Result.LR1_Descriptor.String_1_ID    := Find_Kind (Result, "string-single");
+         Result.LR1_Descriptor.String_2_ID    := Find_Kind (Result, "string-double");
 
          Result.LR1_Descriptor.Terminal_Image_Width := 0;
          Result.LR1_Descriptor.Image_Width          := 0;
@@ -660,12 +658,9 @@ package body Wisi.Generate_Utils is
    end Value;
 
    function To_Conflicts
-     (Data                         : aliased in     Generate_Data;
-      Conflicts                    :         in     Wisi.Conflict_Lists.List;
-      Source_File_Name             :         in     String;
-      Accept_Reduce_Conflict_Count :            out Integer;
-      Shift_Reduce_Conflict_Count  :            out Integer;
-      Reduce_Reduce_Conflict_Count :            out Integer)
+     (Data             : aliased in out Generate_Data;
+      Conflicts        :         in     Wisi.Conflict_Lists.List;
+      Source_File_Name :         in     String)
      return WisiToken.LR.Generator_Utils.Conflict_Lists.List
    is
       use WisiToken.LR.Generator_Utils;
@@ -673,9 +668,9 @@ package body Wisi.Generate_Utils is
       Result   : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
       Conflict : WisiToken.LR.Generator_Utils.Conflict;
    begin
-      Accept_Reduce_Conflict_Count := 0;
-      Shift_Reduce_Conflict_Count  := 0;
-      Reduce_Reduce_Conflict_Count := 0;
+      Data.Accept_Reduce_Conflict_Count := 0;
+      Data.Shift_Reduce_Conflict_Count  := 0;
+      Data.Reduce_Reduce_Conflict_Count := 0;
 
       for Item of Conflicts loop
          begin
@@ -689,11 +684,11 @@ package body Wisi.Generate_Utils is
 
             case Conflict.Action_A is
             when Shift =>
-               Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
+               Data.Shift_Reduce_Conflict_Count := Data.Shift_Reduce_Conflict_Count + 1;
             when Reduce =>
-               Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
+               Data.Reduce_Reduce_Conflict_Count := Data.Reduce_Reduce_Conflict_Count + 1;
             when Accept_It =>
-               Accept_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
+               Data.Accept_Reduce_Conflict_Count := Data.Reduce_Reduce_Conflict_Count + 1;
             end case;
 
             Result.Append (Conflict);
@@ -755,5 +750,35 @@ package body Wisi.Generate_Utils is
 
       return Result;
    end To_McKenzie_Param;
+
+   procedure Count_Actions
+     (Data : in out Generate_Utils.Generate_Data;
+      Alg  : in     LR_Generate_Algorithm)
+   is begin
+      Data.Table_Actions_Count := 0;
+      for State_Index in Data.LR_Parsers (Alg).States'Range loop
+         Data.Table_Actions_Count := Data.Table_Actions_Count +
+           WisiToken.LR.Actions_Length (Data.LR_Parsers (Alg).States (State_Index)) + 1;
+      end loop;
+   end Count_Actions;
+
+   procedure Put_Stats
+     (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Generate_Data : in Generate_Utils.Generate_Data)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      New_Line;
+      Put_Line
+        (Integer'Image (Input_Data.Rule_Count) & " rules," &
+           Integer'Image (Input_Data.Action_Count) & " user actions," &
+           Integer'Image (Input_Data.Check_Count) & " checks," &
+           WisiToken.State_Index'Image (Generate_Data.Parser_State_Count) & " states," &
+           Integer'Image (Generate_Data.Table_Actions_Count) & " parse actions");
+      Put_Line
+        (Integer'Image (Generate_Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+           Integer'Image (Generate_Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+           Integer'Image (Generate_Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+   end Put_Stats;
 
 end Wisi.Generate_Utils;

@@ -2,7 +2,7 @@
 --
 --  Test reporting of errors by LALR.Generate, processing one .wy file.
 --
---  Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,11 +19,13 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
+with Wisi;
 package Test_Generate_Errors is
 
-   type Test_Case (Root_Name : access String; LR1 : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
-   --  If LR1 is True, generate both LALR and LR1, with different expected results.
-   --  Otherwise just run LALR
+   type Test_Case
+     (Root_Name    : access String;
+      Generate_Set : access Wisi.Generate_Algorithm_Set)
+     is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 

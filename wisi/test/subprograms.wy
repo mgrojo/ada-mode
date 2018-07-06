@@ -43,9 +43,7 @@
 %non_grammar <comment> COMMENT %[ "--"[^\n]* ]%
 
 %start compilation_unit
-%generator_algorithm LALR
-%output_language Ada_Emacs
-%lexer Elisp
+%generate LALR Ada_Emacs Elisp Process
 
 %mckenzie_cost_limit 10
 %mckenzie_check_limit 3
@@ -63,11 +61,11 @@
 %elisp_indent subp-indent-function Function_1
 
 block
-  : BEGIN END
-  | BEGIN loop_statement EXCEPTION WHEN name END
+  : BEGIN loop_statement EXCEPTION WHEN name END
     %((progn
       (wisi-statement-action [3 motion 4 motion])
       (wisi-indent-action [0 subp-indent 0 subp-indent 0 0])))%
+  | BEGIN END
 ;
 
 compilation_unit
@@ -75,8 +73,8 @@ compilation_unit
   ;
 
 declarations
-  : declaration
-  | declarations declaration
+  : declarations declaration
+  | declaration
   ;
 
 declaration
@@ -92,28 +90,28 @@ loop_statement
   ;
 
 name
-  : SYMBOL
-    %((wisi-face-mark-action [1 suffix]))%
-    %((wisi-propagate-name 1))%
-  | name DOT SYMBOL
+  : name DOT SYMBOL
     %((wisi-face-mark-action [1 prefix 3 suffix]))%
     %((wisi-merge-names 1 3))%
+  | SYMBOL
+    %((wisi-face-mark-action [1 suffix]))%
+    %((wisi-propagate-name 1))%
   ;
 
 name_list
-  : name
-  | name_list COMMA name
+  : name_list COMMA name
+  | name
   ;
 
 ;; not on one line, empty production with comment
 parameter_list
-  : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
-    %((wisi-statement-action [1 misc 2 misc]))% ;; single action; no progn
-  | ;; ada-like no parameters
-  | LEFT_PAREN SYMBOL RIGHT_PAREN
+  : LEFT_PAREN SYMBOL RIGHT_PAREN
     %((progn
       (wisi-statement-action [2 misc]) ;; single pair
       (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))%
+  | LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
+    %((wisi-statement-action [1 misc 2 misc]))% ;; single action; no progn
+  | ;; ada-like no parameters
   ;
 
 subprogram

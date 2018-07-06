@@ -68,6 +68,16 @@ package body WisiToken is
       raise Programmer_Error with "token name '" & Name & "' not found in descriptor.image";
    end Find_ID;
 
+   procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector)
+   is
+      J : Integer := Vector.First_Index;
+   begin
+      for ID of Item loop
+         Vector.Replace_Element (J, ID);
+         J := J + 1;
+      end loop;
+   end To_Vector;
+
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural
    is
       use all type Ada.Containers.Count_Type;
@@ -288,11 +298,6 @@ package body WisiToken is
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID)
    is begin
       Trace.Put (Image (Item, Trace.Descriptor.all));
-   end Put;
-
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_ID_Set)
-   is begin
-      Ada.Text_IO.Put (Image (Item, Descriptor));
    end Put;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array_Token_Set)

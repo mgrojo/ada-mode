@@ -97,9 +97,7 @@
 %non_grammar <comment> COMMENT %[ "--"[^\n]*[\n] ]%
 
 %start compilation_unit_list
-%generator_algorithm LALR
-%output_language Ada
-%lexer re2c
+%generate LALR Ada re2c
 
 ;; Set costs to take advantage of syntax to get to solution faster.
 

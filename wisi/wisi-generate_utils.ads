@@ -22,6 +22,7 @@ pragma License (Modified_GPL);
 with Ada.Iterator_Interfaces;
 with WisiToken.LR.Generator_Utils;
 with WisiToken.Productions;
+with WisiToken.Wisi_Grammar_Runtime;
 package Wisi.Generate_Utils is
    use WisiToken;
 
@@ -32,13 +33,26 @@ package Wisi.Generate_Utils is
 
    WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
+   type LR_Parser_Array is array (Generate_Algorithm range LALR .. LR1) of WisiToken.LR.Parse_Table_Ptr;
+
    type Generate_Data is limited record
       Tokens          : access constant Wisi.Tokens;
       LR1_Descriptor  : access WisiToken.Descriptor;
       LALR_Descriptor : access WisiToken.LALR_Descriptor;
       Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
+      Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
       Conflicts       : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
+
+      LR_Parsers : LR_Parser_Array;
+
+      --  LR parse table stats
+      Table_Actions_Count          : Integer                       := -1; -- parse, not user, actions
+      Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
+      Accept_Reduce_Conflict_Count : Integer                       := 0;
+      Shift_Reduce_Conflict_Count  : Integer                       := 0;
+      Reduce_Reduce_Conflict_Count : Integer                       := 0;
+
    end record;
 
    function Initialize
@@ -120,15 +134,11 @@ package Wisi.Generate_Utils is
    --  Rules   : "" - they have no Value
 
    function To_Conflicts
-     (Data                         : aliased in     Generate_Data;
-      Conflicts                    :         in     Wisi.Conflict_Lists.List;
-      Source_File_Name             :         in     String;
-      Accept_Reduce_Conflict_Count :            out Integer;
-      Shift_Reduce_Conflict_Count  :            out Integer;
-      Reduce_Reduce_Conflict_Count :            out Integer)
+     (Data             : aliased in out Generate_Data;
+      Conflicts        :         in     Wisi.Conflict_Lists.List;
+      Source_File_Name :         in     String)
      return WisiToken.LR.Generator_Utils.Conflict_Lists.List;
-   --  Not included in Initialize because some grammars and algorithms
-   --  have no conflicts.
+   --  Not included in Initialize because algorithms have no conflicts.
 
    function To_Nonterminal_ID_Set
      (Data : aliased in Generate_Data;
@@ -139,6 +149,14 @@ package Wisi.Generate_Utils is
      (Data : aliased in Generate_Data;
       Item :         in McKenzie_Recover_Param_Type)
      return WisiToken.LR.McKenzie_Param_Type;
+
+   procedure Count_Actions
+     (Data : in out Generate_Utils.Generate_Data;
+      Alg  : in     LR_Generate_Algorithm);
+
+   procedure Put_Stats
+     (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Generate_Data : in Generate_Utils.Generate_Data);
 
 private
 

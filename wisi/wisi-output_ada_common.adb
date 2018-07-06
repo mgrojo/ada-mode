@@ -21,7 +21,9 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Multiprocessors;
 with WisiToken.Generate; use WisiToken.Generate;
+with WisiToken.LR;
 with WisiToken.Productions;
+with Wisi.Generate_Grammar;
 with Wisi.Utils;
 package body Wisi.Output_Ada_Common is
 
@@ -32,6 +34,7 @@ package body Wisi.Output_Ada_Common is
       Package_Name     :         in              String;
       Descriptor       :         in              WisiToken.Descriptor'Class;
       Input_Data       :         in              WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad             :         in              Generate_Quad;
       Generate_Data    : aliased in              Wisi.Generate_Utils.Generate_Data;
       Ada_Action_Names :         not null access constant Names_Array_Array;
       Ada_Check_Names  :         not null access constant Names_Array_Array;
@@ -49,7 +52,7 @@ package body Wisi.Output_Ada_Common is
       Set_Output (Spec_File);
       Indent := 1;
 
-      Put_File_Header (Ada_Comment);
+      Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
@@ -112,9 +115,7 @@ package body Wisi.Output_Ada_Common is
       Indent := Indent - 3;
       New_Line;
 
-      if Input_Data.Generate_Params.Language_Runtime then
-         --  We assume the language runtime code needs the enumerals.
-         --  FIXME: not always true; add 'declare_enum' grammar declaration
+      if Input_Data.Generate_Params.Declare_Enums then
          Paren_Done := False;
 
          Cursor := First (Generate_Data, Non_Grammar => True, Nonterminals => True);
@@ -191,6 +192,7 @@ package body Wisi.Output_Ada_Common is
      (Output_File_Name  : in String;
       Main_Package_Name : in String;
       Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad              : in Generate_Quad;
       Common_Data       : in Output_Ada_Common.Common_Data)
    is
       use Wisi.Utils;
@@ -219,11 +221,10 @@ package body Wisi.Output_Ada_Common is
 
       procedure Packrat_Process
       is begin
-         Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser    :    out WisiToken.Parse.Packrat.Generated.Parser;");
-         Indent_Line ("   Trace     : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access);");
-         Indent_Line ("--  Set Trace, Lexer, User_Data, Parse_WisiToken_Accept in Parser.");
+         Indent_Line ("function Create_Parser");
+         Indent_Line ("  (Trace     : not null access WisiToken.Trace'Class;");
+         Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)");
+         Indent_Line ("  return WisiToken.Parse.Base_Parser'Class;");
          New_Line;
       end Packrat_Process;
 
@@ -232,7 +233,7 @@ package body Wisi.Output_Ada_Common is
       Set_Output (Spec_File);
       Indent := 1;
 
-      Put_File_Header (Ada_Comment);
+      Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
@@ -253,16 +254,17 @@ package body Wisi.Output_Ada_Common is
          end case;
       end case;
 
-      case Common_Data.Generator_Algorithm is
-      when LR_Generator_Algorithm =>
+      case Common_Data.Generate_Algorithm is
+      when LR_Generate_Algorithm =>
          if Input_Data.Generate_Params.Error_Recover then
             Put_Line ("with WisiToken.LR.Parser;");
          else
             Put_Line ("with WisiToken.LR.Parser_No_Recover;");
          end if;
 
-      when Packrat =>
-         Put_Line ("with WisiToken.Parse.Packrat.Generated;");
+      when Packrat_Generate_Algorithm =>
+         Put_Line ("with WisiToken.Parse;");
+
       end case;
 
       Put_Line ("package " & Main_Package_Name & " is");
@@ -271,20 +273,20 @@ package body Wisi.Output_Ada_Common is
 
       case Common_Data.Output_Language is
       when Ada =>
-         case Common_Data.Generator_Algorithm is
-         when LR_Generator_Algorithm =>
+         case Common_Data.Generate_Algorithm is
+         when LR_Generate_Algorithm =>
             LR_Process;
-         when Packrat =>
+         when Packrat_Generate_Algorithm =>
             Packrat_Process;
          end case;
 
       when Ada_Emacs =>
          case Common_Data.Interface_Kind is
          when Process =>
-            case Common_Data.Generator_Algorithm is
-            when LR_Generator_Algorithm =>
+            case Common_Data.Generate_Algorithm is
+            when LR_Generate_Algorithm =>
                LR_Process;
-            when Packrat =>
+            when Packrat_Generate_Algorithm =>
                Packrat_Process;
             end case;
 
@@ -304,7 +306,7 @@ package body Wisi.Output_Ada_Common is
 
    end Create_Ada_Main_Spec;
 
-   procedure Create_Parser_Core
+   procedure Create_LR_Parser_Core
      (Input_Data    : in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Generate_Data : in     Wisi.Generate_Utils.Generate_Data;
       Common_Data   : in out Output_Ada_Common.Common_Data;
@@ -451,12 +453,10 @@ package body Wisi.Output_Ada_Common is
          New_Line;
       end if;
 
-      Common_Data.Table_Actions_Count := 0;
-
       for State_Index in Table.States'Range loop
 
          if Input_Data.Generate_Params.Error_Recover then
-            Indent_Line
+            Indent_Wrap
               ("Table.States (" & WisiToken.Image (State_Index) & ").Productions := WisiToken.To_Vector (" &
                  WisiToken.Image (Table.States (State_Index).Productions, Strict => True) & ");");
          end if;
@@ -473,9 +473,9 @@ package body Wisi.Output_Ada_Common is
 
             procedure Append (Item : in String)
             is begin
-               --  -2 for trailing ); or ,
-               if Indent + Standard.Ada.Text_IO.Count (Length (Line)) + Item'Length > Max_Line_Length - 2 then
-                  Put_Line (-Trim (Line, Right));
+               --  -4 for trailing ))); or ,
+               if Indent + Standard.Ada.Text_IO.Count (Length (Line)) + Item'Length > Max_Line_Length - 4 then
+                  Indent_Wrap (-Trim (Line, Right));
                   Indent := Indent + 2;
                   Set_Col (Indent);
                   Line := +Item;
@@ -489,10 +489,6 @@ package body Wisi.Output_Ada_Common is
                declare
                   Action : constant Reduce_Action_Rec := Node.Action.Item;
                begin
-                  Common_Data.Table_Actions_Count := Common_Data.Table_Actions_Count + Actions_Length
-                    (Table.States (State_Index)) + 1;
-                  --  +1 for Error.
-
                   Set_Col (Indent);
                   Line := +"Add_Action (Table.States (" & WisiToken.Image (State_Index) & "), " &
                     Symbols_Image (Table.States (State_Index)) & ", " &
@@ -520,7 +516,6 @@ package body Wisi.Output_Ada_Common is
             else
                loop
                   exit when Node = null;
-                  Common_Data.Table_Actions_Count := Common_Data.Table_Actions_Count + 1;
                   Set_Col (Indent);
                   declare
                      Action_Node : Parse_Action_Node_Ptr := Node.Action;
@@ -621,17 +616,16 @@ package body Wisi.Output_Ada_Common is
             end loop;
          end Gotos;
       end loop;
-   end Create_Parser_Core;
+   end Create_LR_Parser_Core;
 
    procedure LR_Create_Create_Parser
-     (Input_Data         :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Common_Data        :         in out Output_Ada_Common.Common_Data;
-      Generate_Data      : aliased in     Wisi.Generate_Utils.Generate_Data;
-      Parsers            :         in     LR_Parser_Array;
-      First_State_Index  :         in     Integer;
-      First_Parser_Label :         in     Integer)
+     (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Common_Data   :         in out Output_Ada_Common.Common_Data;
+      Generate_Data : aliased in     Wisi.Generate_Utils.Generate_Data)
    is
       use Wisi.Utils;
+      First_State_Index  : constant Integer := 0;
+      First_Parser_Label : constant Integer := 0;
    begin
       Indent_Line ("procedure Create_Parser");
       case Common_Data.Interface_Kind is
@@ -664,12 +658,12 @@ package body Wisi.Output_Ada_Common is
       Indent := Indent + 3;
       Indent_Start ("State_Last        => ");
 
-      case LR_Generator_Algorithm'(Common_Data.Generator_Algorithm) is
+      case LR_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
       when LALR =>
-         Put_Line (WisiToken.Image (Parsers (LALR).State_Last) & ",");
+         Put_Line (WisiToken.Image (Generate_Data.LR_Parsers (LALR).State_Last) & ",");
 
       when LR1 =>
-         Put_Line (WisiToken.Image (Parsers (LR1).State_Last) & ",");
+         Put_Line (WisiToken.Image (Generate_Data.LR_Parsers (LR1).State_Last) & ",");
 
       end case;
       Indent_Line ("First_Terminal    => Trace.Descriptor.First_Terminal,");
@@ -678,18 +672,18 @@ package body Wisi.Output_Ada_Common is
       Indent_Line ("Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);");
       Indent := Indent - 3;
 
-      case LR_Generator_Algorithm'(Common_Data.Generator_Algorithm) is
+      case LR_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
       when LALR =>
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Create_Parser_Core (Input_Data, Generate_Data, Common_Data, Parsers (LALR));
+         Create_LR_Parser_Core (Input_Data, Generate_Data, Common_Data, Generate_Data.LR_Parsers (LALR));
 
       when LR1 =>
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Create_Parser_Core (Input_Data, Generate_Data, Common_Data, Parsers (LR1));
+         Create_LR_Parser_Core (Input_Data, Generate_Data, Common_Data, Generate_Data.LR_Parsers (LR1));
 
       end case;
       New_Line;
@@ -725,21 +719,76 @@ package body Wisi.Output_Ada_Common is
    end LR_Create_Create_Parser;
 
    procedure Packrat_Create_Create_Parser
+     (Common_Data   :         in out Output_Ada_Common.Common_Data;
+      Generate_Data : aliased in     Wisi.Generate_Utils.Generate_Data;
+      Packrat_Data  :         in     WisiToken.Generate.Packrat.Data)
    is
+      use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
+      use WisiToken;
+
+      Text       : Unbounded_String;
+      Need_Comma : Boolean := True;
    begin
-      Indent_Line ("procedure Create_Parser");
-      Indent_Line ("  (Parser    :    out WisiToken.Parse.Packrat.Generated.Parser;");
-      Indent_Line ("   Trace     : not null access WisiToken.Trace'Class;");
+      Indent_Line ("function Create_Parser");
+      Indent_Line ("  (Trace     : not null access WisiToken.Trace'Class;");
       Indent_Line ("   User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)");
-      Indent_Line ("is begin");
-      Indent := Indent + 3;
+      Indent_Line ("  return WisiToken.Parse.Base_Parser'Class");
 
-      Indent_Line ("Parser.Trace := Trace;");
-      Indent_Line ("Parser.Lexer := Lexer.New_Lexer (Trace);");
-      Indent_Line ("Parser.User_Data := User_Data;");
-      Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;");
+      case Packrat_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
+      when Packrat_Gen =>
+         Indent_Line ("is begin");
+         Indent := Indent + 3;
+         Indent_Line ("return Parser : WisiToken.Parse.Packrat.Generated.Parser do");
+         Indent := Indent + 3;
+         Indent_Line ("Parser.Trace := Trace;");
+         Indent_Line ("Parser.Lexer := Lexer.New_Lexer (Trace);");
+         Indent_Line ("Parser.User_Data := User_Data;");
+         Indent_Line ("Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;");
+         Indent := Indent - 3;
+         Indent_Line ("end return;");
 
+      when Packrat_Proc =>
+         Indent_Line ("is");
+         Indent := Indent + 3;
+         Indent_Line ("use WisiToken;");
+         Indent_Line ("use WisiToken.Productions;");
+         Indent_Line ("Grammar               : Prod_Arrays.Vector;");
+         Indent_Line
+           ("Direct_Left_Recursive : constant WisiToken.Token_ID_Set (" &
+              Trimmed_Image (Generate_Data.Grammar.First_Index) & " .. " &
+              Trimmed_Image (Generate_Data.Grammar.Last_Index) & ") :=");
+
+         Need_Comma := False;
+         if Any (Packrat_Data.Direct_Left_Recursive) then
+            for I in Packrat_Data.Direct_Left_Recursive'Range loop
+               if Packrat_Data.Direct_Left_Recursive (I) then
+                  if Need_Comma then
+                     Text := Text & ", ";
+                  else
+                     Need_Comma := True;
+                  end if;
+                  Text := Text & Trimmed_Image (I);
+               end if;
+            end loop;
+            Indent_Start ("  (");
+            Indent := Indent + 3;
+            Indent_Wrap (-Text & " => True,");
+            Indent_Line ("others => False);");
+            Indent := Indent - 3;
+         else
+            Indent_Line ("  (others => False);");
+         end if;
+         Indent := Indent - 3;
+         Indent_Line ("begin");
+         Indent := Indent + 3;
+         Wisi.Generate_Grammar (Generate_Data.Grammar, Common_Data.Ada_Action_Names);
+
+         Indent_Line ("return WisiToken.Parse.Packrat.Procedural.Create");
+         Indent_Line
+           ("  (Grammar, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.LR1_Descriptor.Accept_ID) &
+              ", Trace, Lexer.New_Lexer (Trace), User_Data);");
+      end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");
       New_Line;
@@ -747,6 +796,7 @@ package body Wisi.Output_Ada_Common is
 
    procedure Create_re2c
      (Input_Data            :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad                  :         in Generate_Quad;
       Generate_Data         : aliased in Wisi.Generate_Utils.Generate_Data;
       Output_File_Name_Root :         in String;
       Elisp_Regexps         :         in Wisi.String_Pair_Lists.List)
@@ -760,7 +810,7 @@ package body Wisi.Output_Ada_Common is
       Set_Output (File);
       Indent := 1;
 
-      Put_File_Header (C_Comment, " -*- mode: C -*-");
+      Put_File_Header (C_Comment, " -*- mode: C -*-", Use_Quad => True, Quad => Quad);
       Put_Raw_Code (C_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
@@ -1077,7 +1127,7 @@ package body Wisi.Output_Ada_Common is
          Create (File, Out_File, Output_File_Name_Root & "_re2c_c.ads");
          Set_Output (File);
          Indent := 1;
-         Put_File_Header (Ada_Comment);
+         Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
          Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
          New_Line;
 
@@ -1149,40 +1199,32 @@ package body Wisi.Output_Ada_Common is
    end File_Name_To_Ada;
 
    function Initialize
-     (Generate_Params   : in Wisi.Generate_Param_Type;
+     (Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad              : in Generate_Quad;
       First_Nonterminal : in WisiToken.Token_ID;
       Last_Nonterminal  : in WisiToken.Token_ID;
-      Input_File_Name   : in String;
       Output_File_Root  : in String;
       Check_Interface   : in Boolean)
      return Common_Data
    is begin
       return Data : Common_Data do
-         Data.Generator_Algorithm := Generate_Params.Generator_Algorithm;
+         Data.Generate_Algorithm := Quad.Gen_Alg;
 
-         if Generate_Params.Lexer in Valid_Lexer then
-            Data.Lexer := Valid_Lexer (Generate_Params.Lexer);
-         else
-            Put_Error
-              (Error_Message
-                 (Input_File_Name, 1, "Lexer not set in grammar file or command line"));
-         end if;
+         Data.Output_Language := Ada_Output_Language (Quad.Out_Lang);
 
-         if Generate_Params.Output_Language in Ada_Output_Language then
-            Data.Output_Language := Ada_Output_Language (Generate_Params.Output_Language);
+         if Input_Data.User_Lexer in Valid_Lexer then
+            Data.Lexer := Valid_Lexer (Input_Data.User_Lexer);
          else
-            Put_Error
-              (Error_Message
-                 (Input_File_Name, 1, "Output_Language not set in grammar file or command line"));
+            raise Programmer_Error;
          end if;
 
          if Check_Interface then
-            if Generate_Params.Interface_Kind in Valid_Interface then
-               Data.Interface_Kind := Valid_Interface (Generate_Params.Interface_Kind);
+            if Quad.Interface_Kind in Valid_Interface then
+               Data.Interface_Kind := Valid_Interface (Quad.Interface_Kind);
             else
                Put_Error
                  (Error_Message
-                    (Input_File_Name, 1, "Interface_Kind not set in grammar file or command line"));
+                    (Input_Data.Grammar_Lexer.File_Name, 1, "Interface_Kind not set on command line"));
             end if;
          else
             Data.Interface_Kind := Process;
@@ -1211,22 +1253,5 @@ package body Wisi.Output_Ada_Common is
       end loop;
       return Image & "_ID";
    end To_Token_Ada_Name;
-
-   procedure Put_Stats
-     (Input_Data  : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Common_Data : in Output_Ada_Common.Common_Data)
-   is begin
-      New_Line;
-      Put_Line
-        (Integer'Image (Input_Data.Rule_Count) & " rules," &
-           Integer'Image (Input_Data.Action_Count) & " user actions," &
-           Integer'Image (Input_Data.Check_Count) & " checks," &
-           WisiToken.State_Index'Image (Common_Data.Parser_State_Count) & " states," &
-           Integer'Image (Common_Data.Table_Actions_Count) & " parse actions");
-      Put_Line
-        (Integer'Image (Common_Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
-           Integer'Image (Common_Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-           Integer'Image (Common_Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
-   end Put_Stats;
 
 end Wisi.Output_Ada_Common;

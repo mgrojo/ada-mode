@@ -17,26 +17,19 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR;
-with WisiToken.Wisi_Grammar_Runtime;
 with Wisi.Generate_Utils;
+with WisiToken.Generate.Packrat;
+with WisiToken.Wisi_Grammar_Runtime;
 package Wisi.Output_Ada_Common is
 
    function To_Token_Ada_Name (WY_Name : in String) return String;
 
    type Common_Data is limited record
       --  Validated versions of .wy values
-      Generator_Algorithm : Valid_Generator_Algorithm;
-      Lexer               : Valid_Lexer;
-      Output_Language     : Ada_Output_Language;
-      Interface_Kind      : Valid_Interface;
-
-      --  LR parse table stats
-      Table_Actions_Count          : Integer                       := -1; -- parse, not user, actions
-      Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
-      Accept_Reduce_Conflict_Count : Integer;
-      Shift_Reduce_Conflict_Count  : Integer;
-      Reduce_Reduce_Conflict_Count : Integer;
+      Generate_Algorithm : Wisi.Generate_Algorithm;
+      Lexer              : Valid_Lexer;
+      Output_Language    : Ada_Output_Language;
+      Interface_Kind     : Valid_Interface;
 
       --  Various names
       Lower_File_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -47,13 +40,11 @@ package Wisi.Output_Ada_Common is
       --  non-null only if there is an action or check in the grammar.
    end record;
 
-   type LR_Parser_Array is array (Generator_Algorithm range LALR .. LR1) of WisiToken.LR.Parse_Table_Ptr;
-
    function Initialize
-     (Generate_Params   : in Wisi.Generate_Param_Type;
+     (Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad              : in Generate_Quad;
       First_Nonterminal : in WisiToken.Token_ID;
       Last_Nonterminal  : in WisiToken.Token_ID;
-      Input_File_Name   : in String;
       Output_File_Root  : in String;
       Check_Interface   : in Boolean)
      return Common_Data;
@@ -65,6 +56,7 @@ package Wisi.Output_Ada_Common is
       Package_Name     :         in              String;
       Descriptor       :         in              WisiToken.Descriptor'Class;
       Input_Data       :         in              WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad             :         in              Generate_Quad;
       Generate_Data    : aliased in              Wisi.Generate_Utils.Generate_Data;
       Ada_Action_Names :         not null access constant Names_Array_Array;
       Ada_Check_Names  :         not null access constant Names_Array_Array;
@@ -75,26 +67,24 @@ package Wisi.Output_Ada_Common is
      (Output_File_Name  : in String;
       Main_Package_Name : in String;
       Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad              : in Generate_Quad;
       Common_Data       : in Output_Ada_Common.Common_Data);
 
    procedure LR_Create_Create_Parser
-     (Input_Data         :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Common_Data        :         in out Output_Ada_Common.Common_Data;
-      Generate_Data      : aliased in     Wisi.Generate_Utils.Generate_Data;
-      Parsers            :         in     LR_Parser_Array;
-      First_State_Index  :         in     Integer;
-      First_Parser_Label :         in     Integer);
+     (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Common_Data   :         in out Output_Ada_Common.Common_Data;
+      Generate_Data : aliased in     Wisi.Generate_Utils.Generate_Data);
 
-   procedure Packrat_Create_Create_Parser;
+   procedure Packrat_Create_Create_Parser
+     (Common_Data   :         in out Output_Ada_Common.Common_Data;
+      Generate_Data : aliased in     Wisi.Generate_Utils.Generate_Data;
+      Packrat_Data  :         in     WisiToken.Generate.Packrat.Data);
 
    procedure Create_re2c
      (Input_Data            :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Quad                  :         in Generate_Quad;
       Generate_Data         : aliased in Wisi.Generate_Utils.Generate_Data;
       Output_File_Name_Root :         in String;
       Elisp_Regexps         :         in Wisi.String_Pair_Lists.List);
-
-   procedure Put_Stats
-     (Input_Data  : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Common_Data : in Output_Ada_Common.Common_Data);
 
 end Wisi.Output_Ada_Common;

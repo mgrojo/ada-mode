@@ -1,0 +1,116 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => ACCEPT
+ 2 => LEFT_PAREN
+ 3 => RIGHT_PAREN
+ 4 => SEMICOLON
+ 5 => IDENTIFIER
+ 6 => Wisi_EOI
+ 7 => wisitoken_accept
+ 8 => compilation_unit
+ 9 => accept_statement
+ 10 => name
+ 11 => parameter_profile
+
+Productions:
+7.0: wisitoken_accept <= compilation_unit Wisi_EOI
+8.0: compilation_unit <= accept_statement accept_statement
+9.0: accept_statement <= ACCEPT name parameter_profile SEMICOLON
+10.0: name <= IDENTIFIER
+11.0: parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN
+11.1: parameter_profile <=
+
+LALR Parse Table:
+State 0:
+      7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
+
+   ACCEPT            => shift and goto state 1 (9.0)
+   default           => ERROR
+
+      7.0: compilation_unit  goto state 2
+      8.0: accept_statement  goto state 3
+
+State 1:
+      9.0:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
+
+   IDENTIFIER        => shift and goto state 5 (10.0)
+   default           => ERROR
+
+      9.0: name              goto state 6
+
+State 2:
+      7.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
+
+   Wisi_EOI          => accept it 7.0
+   default           => ERROR
+
+State 3:
+      8.0:compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
+
+   ACCEPT            => shift and goto state 1 (9.0)
+   default           => ERROR
+
+      8.0: accept_statement  goto state 4
+
+State 4:
+      8.0:compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
+
+   Wisi_EOI          => reduce 2 tokens to compilation_unit 8.0
+   default           => ERROR
+
+State 5:
+     10.0:name <= IDENTIFIER ^, LEFT_PAREN/SEMICOLON
+
+   LEFT_PAREN        => reduce 1 tokens to name 10.0
+   SEMICOLON         => reduce 1 tokens to name 10.0
+   default           => ERROR
+
+State 6:
+      9.0:accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
+
+   LEFT_PAREN        => shift and goto state 7 (11.0)
+   SEMICOLON         => reduce 0 tokens to parameter_profile 11.1
+   default           => ERROR
+
+      9.0: parameter_profile goto state 8
+
+State 7:
+     11.0:parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
+
+   IDENTIFIER        => shift and goto state 10 (11.0)
+   default           => ERROR
+
+State 8:
+      9.0:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/Wisi_EOI
+
+   SEMICOLON         => shift and goto state 9 (9.0)
+   default           => ERROR
+
+State 9:
+      9.0:accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT/Wisi_EOI
+
+   ACCEPT            => reduce 4 tokens to accept_statement 9.0
+   Wisi_EOI          => reduce 4 tokens to accept_statement 9.0
+   default           => ERROR
+
+State 10:
+     11.0:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
+
+   RIGHT_PAREN       => shift and goto state 11 (11.0)
+   default           => ERROR
+
+State 11:
+     11.0:parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^, SEMICOLON
+
+   SEMICOLON         => reduce 3 tokens to parameter_profile 11.0
+   default           => ERROR
+
+Minimal_Terminal_Sequences:
+wisitoken_accept => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON, Wisi_EOI)
+compilation_unit => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON)
+accept_statement => (ACCEPT, IDENTIFIER, SEMICOLON)
+name => (IDENTIFIER)
+parameter_profile => ()
+
+ 4 rules, 0 user actions, 1 checks, 12 states, 27 parse actions
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

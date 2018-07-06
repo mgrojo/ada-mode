@@ -1,6 +1,0 @@
-with Gen_Packrat_Parser_Run;
-with Character_Literal_Actions;
-with Character_Literal_Packrat_Main;
-with WisiToken.Syntax_Trees;
-procedure Character_Literal_Packrat_Run is new Gen_Packrat_Parser_Run
-  (Character_Literal_Actions.Descriptor, Character_Literal_Packrat_Main.Create_Parser);

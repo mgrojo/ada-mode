@@ -21,7 +21,6 @@
 pragma License (GPL);
 
 with Ada.Directories;
-with AUnit.Assertions;
 with AUnit.Checks.Text_IO;
 with GNAT.OS_Lib;
 with GNAT.Source_Info;
@@ -34,58 +33,43 @@ package body Test_Generate_Errors is
    is
       use Ada.Directories;
       use GNAT.OS_Lib;
+      use Wisi;
       Test : Test_Case renames Test_Case (T);
 
       Success     : Boolean;
       Return_Code : Integer;
+      pragma Unreferenced (Return_Code);
 
       WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
 
-      Computed_LALR_File : constant String := Simple_Name (Test.Root_Name.all) &
-        (if Test.LR1 then "-lalr.out" else ".out");
-
-      Expected_LALR_File : constant String := Test.Root_Name.all &
-        (if Test.LR1 then "-lalr.good_out" else ".good_out");
-
-      --  LALR reports terminals that are only used in unused
-      --  productions as unused; lr1 is not that smart.
-      Computed_LR1_File : constant String := Simple_Name (Test.Root_Name.all) & "-lr1.out";
-      Expected_LR1_File : constant String := Test.Root_Name.all & "-lr1.good_out";
-
    begin
-      Spawn
-        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
-         Args         =>
-           (1         => new String'("--generator_algorithm"),
-            2         => new String'("LALR"),
-            3         => WY_File),
-         Output_File  => Computed_LALR_File,
-         Return_Code  => Return_Code,
-         Success      => Success);
+      for Alg in Test.Generate_Set.all'Range loop
+         if Test.Generate_Set (Alg) then
+            declare
+               Computed : constant String := Simple_Name (Test.Root_Name.all) & "_" &
+                 To_Lower (Generate_Algorithm'Image (Alg)) & ".out";
+            begin
+               --  We specify Err_To_Out => True, because the error messages normally
+               --  go to Standard_Error, but we need to capture them for this test.
+               --  That means we don't see any error messages when something
+               --  unexpected goes wrong.
+               Spawn
+                 (Program_Name => Locate_Exec_On_Path ("wisi-generate.exe").all,
+                  Args         =>
+                    (1         => new String'("--generate"),
+                     2         => new String'(Generate_Algorithm'Image (Alg)),
+                     3         => new String'("Elisp"), -- actually ignored due to errors
+                     4         => WY_File),
+                  Output_File  => Computed,
+                  Return_Code  => Return_Code,
+                  Err_To_Out   => True,
+                  Success      => Success);
 
-      AUnit.Assertions.Assert
-        (Success,
-         "spawn or execution of 'wisi-generate.exe' LALR " & WY_File.all & "' failed");
-
-      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LALR_File, Expected_LALR_File);
-
-      if Test.LR1 then
-         Spawn
-           (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
-            Args         =>
-              (1         => new String'("--generator_algorithm"),
-               2         => new String'("LR1"),
-               3         => WY_File),
-            Output_File  => Computed_LR1_File,
-            Return_Code  => Return_Code,
-            Success      => Success);
-
-         AUnit.Assertions.Assert
-           (Success,
-            "spawn or execution of 'wisi-generate.exe' LR1 " & WY_File.all & "' failed");
-
-         AUnit.Checks.Text_IO.Check_Files ("1", Computed_LR1_File, Expected_LR1_File);
-      end if;
+               --  Note that we don't need dos2unix here; Ada.Text_IO handles that.
+               AUnit.Checks.Text_IO.Check_Files ("1", Computed, "../wisi/test/" & Computed & "_good");
+            end;
+         end if;
+      end loop;
    end Run_Test;
 
    ----------

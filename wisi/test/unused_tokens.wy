@@ -17,8 +17,6 @@ State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %token <symbol> SYMBOL %[ [a-zA-Z][0-9a-zA-Z_]* ]%
 
 %start compilation_unit
-%output_language Ada
-%lexer re2c
 
 unused_nonterm_1
   : unused_nonterm_2 UNUSED_TERMINAL_1

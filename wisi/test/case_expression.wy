@@ -40,13 +40,7 @@
 
 %start case_expression
 
-;; match elisp grammar compiler, parser
-%first_state_index 0
-%first_parser_label 0
-
-%generator_algorithm LALR_LR1
-%output_language Ada
-%lexer re2c
+%generate LALR Ada re2c
 
 case_expression
   : WHEN discrete_choice EQUAL_GREATER factor

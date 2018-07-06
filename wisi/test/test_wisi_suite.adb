@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Build AUnit test suite containing all Wisi tests
+--  Build AUnit test suite containing tests that run wisi-generate
 --
 --  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
@@ -22,29 +22,123 @@ with Ada.Strings.Unbounded;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_Generate_Errors;
 with Wisi_WY_Test;
+with Wisi;
 function Test_Wisi_Suite return Access_Test_Suite
 is
+   use all type Wisi.Generate_Algorithm;
+   use all type Wisi.Interface_Type;
+   use all type Wisi.Lexer_Type;
+   use all type Wisi.Output_Language;
+
    function "+" (Item : in String) return Ada.Strings.Unbounded.String_Access
    is begin
       return Ada.Strings.Unbounded.String_Access'(new String'(Item));
    end "+";
+   function "+" (Item : in Wisi.Generate_Algorithm_Set) return Wisi.Generate_Algorithm_Set_Access
+   is begin
+      return new Wisi.Generate_Algorithm_Set'(Item);
+   end "+";
+   function "+" (Item : in Wisi.Generate_Set) return Wisi.Generate_Set_Access
+   is begin
+      return new Wisi.Generate_Set'(Item);
+   end "+";
 
    Suite : constant Access_Test_Suite := new Test_Suite;
 begin
-   --  Test cases; test package alphabetical order, unless otherwise noted.
+   --  test error handling when generate fails
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case
+               (+"../wisi/test/unused_tokens", +(LR1 | LALR => True, others => False)));
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case
+               (+"../wisi/test/triple_conflict", +(LALR => True, others => False)));
 
-   Add_Test (Suite, new Test_Generate_Errors.Test_Case (+"../wisi/test/unused_tokens", LR1 => True));
+   --  generate succeeds; grammar file name order
 
-   --  elisp grammar generate tests; grammar file name order
+   --  We don't do LR1 for all test files; not a helpful test. Just keep
+   --  enough so we don't break LR1 accidently.
+   --
+   --  In several files, LALR and LR1 generate different names for
+   --  conflicts, so generate fails on unrecognized conflict.
 
-   --  In body_instantiation_conflict, LALR and LR1 generate different
-   --  names for the conflict. In the other files, the conflict names are
-   --  the same.
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/body_instantiation_conflict", False));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/case_expression", True));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/character_literal", True));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/identifier_list_name_conflict", True));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"../wisi/test/range_conflict", True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"ada_lite", False, True, +(1 => (LALR, Wisi.Ada, None, None))));
+   --  FIXME: support indirect left recursion, add , Packrat_Gen, Packrat_Proc
+
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"body_instantiation_conflict", False, False,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None),
+                 (LALR, Elisp, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"case_expression", False, False,
+                +((LR1, Wisi.Ada, None, None), (LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None),
+                  (LR1, Elisp, None, None), (LALR, Elisp, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"character_literal", True, False,
+                +((LR1, Wisi.Ada, re2c_Lexer, None), (Packrat_Gen, Wisi.Ada, re2c_Lexer, None),
+                  (Packrat_Proc, Wisi.Ada, re2c_Lexer, None), (LR1, Elisp, Elisp_Lexer, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"conflict_name", False, True,
+                +(1 => (LALR, Wisi.Ada, None, None))));
+   --  FIXME: conflict_name has indirect left recursion (Packrat_Gen, Wisi.Ada), (Packrat_Proc, Wisi.Ada))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"dragon_4_43", False, False,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_1", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_2", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_3", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_4", False, False,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_5", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_6", False, False,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_7", False, False,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"empty_production_8", False, False,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"identifier_list_name_conflict", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None),
+                  (LR1, Elisp, None, None), (LALR, Elisp, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"range_conflict", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None),
+                  (LR1, Elisp, None, None), (LALR, Elisp, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"skip_to_grammar", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"subprograms", False, True,
+                +((LALR, Ada_Emacs, re2c_Lexer, Process), (Packrat_Gen, Ada_Emacs, re2c_Lexer, Process),
+                  (Packrat_Proc, Ada_Emacs, re2c_Lexer, Process))));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case
+               (+"warth_left_recurse_expr_1", False, True,
+                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+                  (Packrat_Proc, Wisi.Ada, None, None))));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.

@@ -60,14 +60,14 @@ package WisiToken.Parse.Packrat.Procedural is
       Derivs                : Procedural.Derivs (First_Nonterminal .. Last_Nonterminal);
    end record;
 
-   procedure Create
-     (Parser    :    out Procedural.Parser;
-      Grammar   : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Start_ID  : in     Token_ID;
-      Trace     : access WisiToken.Trace'Class;
-      Lexer     :        WisiToken.Lexer.Handle;
-      User_Data :        WisiToken.Syntax_Trees.User_Data_Access);
-   --  Compute internal data needed for parsing; ready for Parse.
+   function Create
+     (Grammar               : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Direct_Left_Recursive : in     Token_ID_Set;
+      Start_ID              : in     Token_ID;
+      Trace                 : access WisiToken.Trace'Class;
+      Lexer                 :        WisiToken.Lexer.Handle;
+      User_Data             :        WisiToken.Syntax_Trees.User_Data_Access)
+     return Procedural.Parser;
 
    overriding procedure Parse (Parser : aliased in out Procedural.Parser);
    overriding function Any_Errors (Parser : in Procedural.Parser) return Boolean

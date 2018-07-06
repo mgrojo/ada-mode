@@ -21,9 +21,6 @@
 
 ;; not first nonterminal
 %start compilation
-%generator_algorithm LALR_LR1
-%output_language Ada
-%lexer re2c
 
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN

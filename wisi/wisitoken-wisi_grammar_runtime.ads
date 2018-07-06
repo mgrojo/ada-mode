@@ -24,7 +24,15 @@ package WisiToken.Wisi_Grammar_Runtime is
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
-      Lexer            : WisiToken.Lexer.Handle;
+      Grammar_Lexer : WisiToken.Lexer.Handle; -- used to read the .wy file now.
+
+      User_Lexer : Wisi.Lexer_Type;
+      --  Used to read the user language file, after parser is generated;
+      --  used now in %if lexer statements.
+
+      Generate_Set : Wisi.Generate_Set_Access;
+      --  As specified by %generate directives.
+
       Terminals        : Base_Token_Array_Access;
       Raw_Code         : Wisi.Raw_Code;
       Generate_Params  : Wisi.Generate_Param_Type;
@@ -37,8 +45,10 @@ package WisiToken.Wisi_Grammar_Runtime is
       Action_Count    : Integer := 0;
       Check_Count     : Integer := 0;
 
+      If_Lexer_Present : Boolean; -- valid after Execute_Actions done
+
       Ignore_Lines : Boolean := False;
-      --  An '%if' specified a different lexer
+      --  An '%if' specified a different lexer, during Excute_Actions
    end record;
 
    overriding
