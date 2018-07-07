@@ -108,10 +108,7 @@ package WisiToken.LR.Parser_Lists is
      Default_Iterator  => Iterate,
      Iterator_Element  => Parser_State;
 
-   function New_List
-     (First_Parser_Label : in Natural;
-      Shared_Tree        : in Syntax_Trees.Base_Tree_Access)
-     return List;
+   function New_List (Shared_Tree : in Syntax_Trees.Base_Tree_Access) return List;
 
    function Last_Label (List : in Parser_Lists.List) return Natural;
 

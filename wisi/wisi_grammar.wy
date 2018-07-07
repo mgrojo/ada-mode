@@ -66,9 +66,7 @@ with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
 %elisp_face font-lock-type-face
 %elisp_face nil
 
-%output_language Ada
-%lexer re2c
-%generator_algorithm LALR
+%generate LALR Ada re2c
 %start compilation_unit_list
 
 ;; No error recovery, so wisi-generate is independent of

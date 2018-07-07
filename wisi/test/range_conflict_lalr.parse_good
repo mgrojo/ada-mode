@@ -1,0 +1,42 @@
+ 9 tokens lexed
+ 0: 0:  1:(LEFT_PAREN, (1 . 1)) : shift and goto state 1
+ 0: 1:  2:(IDENTIFIER, (3 . 5)) : shift and goto state 12
+ 0: 12:  3:(IN, (7 . 8)) : reduce 1 tokens to primary
+primary_0: (primary, (3 . 5)) <= ( 2:(IDENTIFIER, (3 . 5)))
+ ... goto state 13
+ 0: 13:  3:(IN, (7 . 8)) : shift and goto state 16
+ 0: 16:  4:(IDENTIFIER, (10 . 12)) : shift and goto state 2
+ 0: 2:  5:(RIGHT_PAREN, (14 . 14)) : reduce 1 tokens to primary
+primary_0: (primary, (10 . 12)) <= ( 4:(IDENTIFIER, (10 . 12)))
+ ... goto state 6
+ 0: 6:  5:(RIGHT_PAREN, (14 . 14)) : reduce 1 tokens to membership_choice
+membership_choice_0: (membership_choice, (10 . 12)) <= ((primary, (10 . 12)))
+ ... goto state 20
+ 0: 20:  5:(RIGHT_PAREN, (14 . 14)) : reduce 3 tokens to relation
+relation_0: (relation, (3 . 12)) <= ((primary, (3 . 5)),  3:(IN, (7 . 8)), (membership_choice, (10 . 12)))
+ ... goto state 14
+ 0: 14:  5:(RIGHT_PAREN, (14 . 14)) : shift and goto state 15
+ 0: 15:  6:(STRING_LITERAL, (17 . 19)) : reduce 3 tokens to primary
+primary_2: (primary, (1 . 14)) <= ( 1:(LEFT_PAREN, (1 . 1)), (relation, (3 . 12)),  5:(RIGHT_PAREN, (14 . 14)))
+ ... goto state 6
+ 0: 6:  6:(STRING_LITERAL, (17 . 19)) : reduce 1 tokens to membership_choice
+membership_choice_0: (membership_choice, (1 . 14)) <= ((primary, (1 . 14)))
+ ... goto state 5
+ 0: 5:  6:(STRING_LITERAL, (17 . 19)) : shift and goto state 3
+ 0: 3:  7:(DOT_DOT, (21 . 22)) : reduce 1 tokens to primary
+primary_1: (primary, (17 . 19)) <= ( 6:(STRING_LITERAL, (17 . 19)))
+ ... goto state 9
+ 0: 9:  7:(DOT_DOT, (21 . 22)) : shift and goto state 8
+ 0: 8:  8:(IDENTIFIER, (24 . 26)) : shift and goto state 12
+ 0: 12:  9:(Wisi_EOI, (28 . 27)) : reduce 1 tokens to primary
+primary_0: (primary, (24 . 26)) <= ( 8:(IDENTIFIER, (24 . 26)))
+ ... goto state 18
+ 0: 18:  9:(Wisi_EOI, (28 . 27)) : reduce 3 tokens to range_g
+range_g_2: (range_g, (17 . 26)) <= ((primary, (17 . 19)),  7:(DOT_DOT, (21 . 22)), (primary, (24 . 26)))
+ ... goto state 10
+ 0: 10:  9:(Wisi_EOI, (28 . 27)) : reduce 2 tokens to compilation_unit
+compilation_unit_0: (compilation_unit, (1 . 26)) <= ((membership_choice, (1 . 14)), (range_g, (17 . 26)))
+ ... goto state 4
+ 0: 4:  9:(Wisi_EOI, (28 . 27)) : accept it
+wisitoken_accept_0: (wisitoken_accept, (1 . 26)) <= ((compilation_unit, (1 . 26)))
+ 0: succeed

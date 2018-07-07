@@ -47,9 +47,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
       Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
    begin
-      Wisi_Grammar_Main.Create_Parser
-        (Grammar_Parser, WisiToken.LALR, Trace'Unchecked_Access,
-         User_Data => Input_Data'Unchecked_Access);
+      Wisi_Grammar_Main.Create_Parser (Grammar_Parser, Trace'Unchecked_Access, Input_Data'Unchecked_Access);
 
       Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
       Grammar_Parser.Parse;
@@ -59,7 +57,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
          use Wisi.Generate_Utils;
 
          Generate_Data : aliased constant Wisi.Generate_Utils.Generate_Data := Initialize
-           (Input_Data.Lexer.File_Name, Input_Data.Tokens, Start_Token => "compilation_unit");
+           (Input_Data.Grammar_Lexer.File_Name, Input_Data.Tokens, Start_Token => "compilation_unit");
 
          Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;
          Sequence : WisiToken.Token_ID_Arrays.Vector;

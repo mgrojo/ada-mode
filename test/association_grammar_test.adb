@@ -96,8 +96,6 @@ package body Association_Grammar_Test is
                             Int_ID & Equal_Greater_ID & Identifier_ID + Null_Action or
                             Identifier_ID + Null_Action);
 
-   First_Parser_Label : constant := 1;
-
    Parser : WisiToken.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
@@ -148,15 +146,11 @@ package body Association_Grammar_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generator.Generate
-           (Full_Grammar,
-            LALR_Descriptor,
-            First_State_Index         => 1),
+         WisiToken.LR.LALR_Generator.Generate (Full_Grammar, LALR_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,
-         Language_String_ID_Set       => null,
-         First_Parser_Label           => First_Parser_Label);
+         Language_String_ID_Set       => null);
 
       WisiToken.Trace_Parse := WisiToken.Detail + 1;
 

@@ -258,8 +258,7 @@ package body WisiToken.LR.Parser_No_Recover is
       Shared_Parser.Shared_Tree.Clear;
 
       Shared_Parser.Parsers := Parser_Lists.New_List
-        (First_Parser_Label => Shared_Parser.First_Parser_Label,
-         Shared_Tree        => Shared_Parser.Shared_Tree'Unchecked_Access);
+        (Shared_Tree => Shared_Parser.Shared_Tree'Unchecked_Access);
 
       Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 

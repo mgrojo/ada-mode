@@ -1,7 +1,4 @@
-;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
-;;
-;; also testing pending actions during conflict resolution; label_opt
-;; action is not output until one parser terminates.
+;;; finding bug in parse table generator; same conflict in two states
 
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
@@ -29,7 +26,7 @@ statement
 
 sequence_of_statements
   : sequence_of_statements statement
-  | statement ;; label is included in statement
+  | statement 
   ;
 
 label_opt

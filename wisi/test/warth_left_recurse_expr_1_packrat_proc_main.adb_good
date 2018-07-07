@@ -1,0 +1,93 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate PACKRAT_PROC ADA ../../wisi/test/warth_left_recurse_expr_1.wy
+--
+
+--  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+with WisiToken.Lexer.re2c;
+with warth_left_recurse_expr_1_re2c_c;
+with Warth_Left_Recurse_Expr_1_Actions; use Warth_Left_Recurse_Expr_1_Actions;
+with WisiToken.Parse.Packrat.Procedural;
+with WisiToken.Productions;
+package body Warth_Left_Recurse_Expr_1_Packrat_Proc_Main is
+
+   package Lexer is new WisiToken.Lexer.re2c
+     (warth_left_recurse_expr_1_re2c_c.New_Lexer,
+      warth_left_recurse_expr_1_re2c_c.Free_Lexer,
+      warth_left_recurse_expr_1_re2c_c.Reset_Lexer,
+      warth_left_recurse_expr_1_re2c_c.Next_Token);
+
+   function Create_Parser
+     (Trace     : not null access WisiToken.Trace'Class;
+      User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Base_Parser'Class
+   is
+      use WisiToken;
+      use WisiToken.Productions;
+      Grammar               : Prod_Arrays.Vector;
+      Direct_Left_Recursive : constant WisiToken.Token_ID_Set (5 .. 6) :=
+        (6 => True,
+         others => False);
+   begin
+      Grammar.Set_First (5);
+      Grammar.Set_Last (6);
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 5;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (0);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (2);
+            To_Vector ((6, 4), RHS.Tokens);
+            Prod.RHSs (0) := RHS;
+         end;
+         Grammar (5) := Prod;
+      end;
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 6;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (1);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (3);
+            To_Vector ((6, 2, 3), RHS.Tokens);
+            RHS.Action     := expr_0'Access;
+            Prod.RHSs (0) := RHS;
+         end;
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (1);
+            To_Vector ((1 => 3), RHS.Tokens);
+            RHS.Action     := expr_1'Access;
+            Prod.RHSs (1) := RHS;
+         end;
+         Grammar (6) := Prod;
+      end;
+      return WisiToken.Parse.Packrat.Procedural.Create
+        (Grammar, Direct_Left_Recursive, 5, Trace, Lexer.New_Lexer (Trace), User_Data);
+   end Create_Parser;
+
+end Warth_Left_Recurse_Expr_1_Packrat_Proc_Main;

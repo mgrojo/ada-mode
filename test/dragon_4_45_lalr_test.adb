@@ -62,9 +62,6 @@ package body Dragon_4_45_LALR_Test is
       Case_Insensitive  => False);
    use Token_Enum;
 
-   First_State_Index  : constant := 0;
-   First_Parser_Label : constant := 1;
-
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
@@ -129,7 +126,7 @@ package body Dragon_4_45_LALR_Test is
       pragma Unreferenced (T);
 
       Computed : constant Item_Set_List := WisiToken.LR.LALR_Generator.LALR_Kernels
-        (Grammar, First, First_State_Index, LALR_Descriptor);
+        (Grammar, First, LALR_Descriptor);
 
       Null_Lookaheads : constant WisiToken.Token_ID_Set :=
         --  + 1 for propagate
@@ -190,8 +187,7 @@ package body Dragon_4_45_LALR_Test is
 
       pragma Unreferenced (T);
 
-      Computed : constant Parse_Table_Ptr := LALR_Generator.Generate
-        (Grammar, LALR_Descriptor, First_State_Index);
+      Computed : constant Parse_Table_Ptr := LALR_Generator.Generate (Grammar, LALR_Descriptor);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -277,13 +273,11 @@ package body Dragon_4_45_LALR_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generator.Generate
-           (Grammar, LALR_Descriptor, First_State_Index),
+         WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,
-         Language_String_ID_Set       => null,
-         First_Parser_Label           => First_Parser_Label);
+         Language_String_ID_Set       => null);
 
       Execute_Command ("cdcd");
    end Test_Parse;

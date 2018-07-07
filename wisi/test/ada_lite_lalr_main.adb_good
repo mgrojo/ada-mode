@@ -2741,7 +2741,6 @@ package body Ada_Lite_LALR_Main is
          Language_String_ID_Set,
          User_Data,
          Max_Parallel         => 15,
-         First_Parser_Label   => 0,
          Terminate_Same_State => True);
    end Create_Parser;
 end Ada_Lite_LALR_Main;

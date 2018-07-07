@@ -1,0 +1,12 @@
+ 9 tokens lexed
+primary_0: (primary, (3 . 5)) <= ( 2:(IDENTIFIER, (3 . 5)))
+primary_0: (primary, (10 . 12)) <= ( 4:(IDENTIFIER, (10 . 12)))
+membership_choice_0: (membership_choice, (10 . 12)) <= ((primary, (10 . 12)))
+relation_0: (relation, (3 . 12)) <= ((primary, (3 . 5)),  3:(IN, (7 . 8)), (membership_choice, (10 . 12)))
+primary_2: (primary, (1 . 14)) <= ( 1:(LEFT_PAREN, (1 . 1)), (relation, (3 . 12)),  5:(RIGHT_PAREN, (14 . 14)))
+membership_choice_0: (membership_choice, (1 . 14)) <= ((primary, (1 . 14)))
+primary_1: (primary, (17 . 19)) <= ( 6:(STRING_LITERAL, (17 . 19)))
+primary_0: (primary, (24 . 26)) <= ( 8:(IDENTIFIER, (24 . 26)))
+range_g_2: (range_g, (17 . 26)) <= ((primary, (17 . 19)),  7:(DOT_DOT, (21 . 22)), (primary, (24 . 26)))
+compilation_unit_0: (compilation_unit, (1 . 26)) <= ((membership_choice, (1 . 14)), (range_g, (17 . 26)))
+wisitoken_accept_0: (wisitoken_accept, (1 . 27)) <= ((compilation_unit, (1 . 26)),  9:(Wisi_EOI, (28 . 27)))

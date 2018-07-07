@@ -51,11 +51,9 @@ package body WisiToken.LR.Parser_Lists is
       return To_String (Result & ")");
    end Parser_Stack_Image;
 
-   function New_List
-     (First_Parser_Label : in Natural;
-      Shared_Tree        : in Syntax_Trees.Base_Tree_Access)
-     return List
+   function New_List (Shared_Tree : in Syntax_Trees.Base_Tree_Access) return List
    is
+      First_Parser_Label : constant := 0;
       Parser : Parser_State := (Label => First_Parser_Label, others => <>);
    begin
       Parser.Tree.Initialize (Shared_Tree, Flush => True);

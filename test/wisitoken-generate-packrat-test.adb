@@ -45,7 +45,6 @@ package body WisiToken.Generate.Packrat.Test is
       --  FIXME: move this code to wisi-generate_utils.
       Wisi_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
-         Algorithm => WisiToken.LALR,
          Trace     => Trace'Unchecked_Access,
          User_Data => Grammar_Parse_Data'Unchecked_Access);
 
@@ -83,7 +82,7 @@ package body WisiToken.Generate.Packrat.Test is
 
          if Trace_Action > Outline then
             Ada.Text_IO.Put_Line ("Direct_Left_Recursive:");
-            Put (Generate_Data.LR1_Descriptor.all, Packrat_Data.Direct_Left_Recursive);
+            Ada.Text_IO.Put_Line (Image (Packrat_Data.Direct_Left_Recursive, Generate_Data.LR1_Descriptor.all));
             Ada.Text_IO.New_Line (2);
 
             Ada.Text_IO.Put_Line ("First:");

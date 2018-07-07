@@ -3,7 +3,7 @@
 # note that we use .exe for test executables even on non-windows, to
 # keep the makerules simpler.
 
-.PRECIOUS : %.exe %.out
+.PRECIOUS : %.exe %.out %.re2c
 
 .PHONY : zip force
 
@@ -83,7 +83,7 @@ wisi-generate.exe : force
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisi-generate $(GPRBUILD_LINK_ARGS)
 
 %.out : %.exe
-	./$*.exe $(RUN_ARGS) > $*.out 2>&1
+	./$*.exe $(RUN_ARGS) > $*.out
 	dos2unix -q $*.out
 
 DIFF_OPT := -u -w
@@ -93,6 +93,10 @@ DIFF_OPT := -u -w
 
 %.re2c : %.wy wisi-generate.exe
 	./wisi-generate.exe $<
+	dos2unix -q $**
+
+%_packrat.re2c : %.wy wisi-generate.exe
+	./wisi-generate.exe --suffix "_packrat" --generate Packrat_Gen Ada $<
 	dos2unix -q $**
 
 # delete files created by wisi-generate in tests

@@ -353,7 +353,6 @@ package body WisiToken.LR.Parser is
       Language_String_ID_Set       : in              Language_String_ID_Set_Access;
       User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
       Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      First_Parser_Label           : in              Integer            := 1;
       Terminate_Same_State         : in              Boolean            := True)
    is
       use all type Syntax_Trees.User_Data_Access;
@@ -368,7 +367,6 @@ package body WisiToken.LR.Parser is
       Parser.Enable_McKenzie_Recover      :=
         Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
       Parser.Max_Parallel                 := Max_Parallel;
-      Parser.First_Parser_Label           := First_Parser_Label;
       Parser.Terminate_Same_State         := Terminate_Same_State;
 
       if User_Data /= null then
@@ -440,8 +438,7 @@ package body WisiToken.LR.Parser is
       Shared_Parser.String_Quote_Checked := Invalid_Line_Number;
       Shared_Parser.Shared_Tree.Clear;
       Shared_Parser.Parsers              := Parser_Lists.New_List
-        (First_Parser_Label => Shared_Parser.First_Parser_Label,
-         Shared_Tree        => Shared_Parser.Shared_Tree'Unchecked_Access);
+        (Shared_Tree => Shared_Parser.Shared_Tree'Unchecked_Access);
 
       Shared_Parser.Parsers.First.State_Ref.Stack.Push ((Shared_Parser.Table.State_First, others => <>));
 

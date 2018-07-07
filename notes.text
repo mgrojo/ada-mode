@@ -19,21 +19,19 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-run all tests with direct-left only in packrat.procedural
-    t_one RUN_ARGS="1 wisi_wy_test.adb-character_literal Run_Test 0 0 1"
-        failing packrat proc parse
-        character_literal_packrat_proc_run.exe -v 2 ../wisi/test/character_literal.input
+update ada-mode.s-4
 
-
-    empty_production_6_actions.adb does not exist; no actions in .wy
-        need another param in wisi_wy_test
-
-wisi-grammar-mode adapt to '%generate <gen_alg> <out_lang>' to get output language
+wisi-grammar-mode.s-1 adapt to '%generate <gen_alg> <out_lang>' to get output language
     and try to guess from actions content
+
+lr parse should put eof on stack, in final accept production
+    as packrat parse does
 
 change all "generator" to "generate"
 
 try indirect recursion solution
+    add ".wy to run" main
+
     Solution to left recurse is merge into one expression. See how
     that evaluates, make recursive do the same - use memo instead of
     apply rule = madeiros 2014. Need recurse_pos in case possibly

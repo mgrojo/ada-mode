@@ -13,6 +13,8 @@
 
 %start compilation_unit_list
 
+%generate LALR Ada 
+
 declaration
   : PERCENT IDENTIFIER declaration_item_list
   %(Test_Declaration_0 ((Tree.ID (Nonterm), Tree.Byte_Region (Nonterm), others => <>));)%

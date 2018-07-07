@@ -21,6 +21,8 @@
 
 %code actions spec context %{with WisiToken.Syntax_Trees;}%
 
+%generate LALR Ada re2c
+
 ;; wisi-generate requires some keywords; test case insensitive
 %case_insensitive
 %keyword FOO "foo"

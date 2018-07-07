@@ -76,12 +76,13 @@ package body WisiToken.LR.LR1_Generator is
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      First_State_Index    : in State_Index;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
+
+      First_State_Index : constant State_Index := 0;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
@@ -286,7 +287,8 @@ package body WisiToken.LR.LR1_Generator is
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor;
       Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param)
+      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
+      Put_Parse_Table : in Boolean := False)
      return Parse_Table_Ptr
    is
       use type Ada.Containers.Count_Type;
@@ -304,7 +306,7 @@ package body WisiToken.LR.LR1_Generator is
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, First_State_Index, Descriptor, Trace_Generate > Detail);
+        (Has_Empty_Production, First, Grammar, Descriptor, Trace_Generate > Detail);
 
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
@@ -348,8 +350,9 @@ package body WisiToken.LR.LR1_Generator is
         (Item_Sets, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all,
          Trace_Generate > Detail, Descriptor);
 
-      --  Always output the parse table
-      LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
+      if Put_Parse_Table then
+         LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
+      end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 

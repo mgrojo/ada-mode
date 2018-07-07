@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe -v 1 wisi_grammar.wy
+--  command line: wisi-generate.exe  --generate LALR ADA re2c wisi_grammar.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.

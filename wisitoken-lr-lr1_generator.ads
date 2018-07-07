@@ -36,7 +36,8 @@ package WisiToken.LR.LR1_Generator is
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor;
       Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param)
+      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
+      Put_Parse_Table : in Boolean := False)
      return Parse_Table_Ptr;
    --  Generate a generalized LR1 parse table for Grammar. The
    --  grammar start symbol is the LHS of the first production in
@@ -71,7 +72,6 @@ package WisiToken.LR.LR1_Generator is
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      First_State_Index    : in State_Index;
       Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set_List;

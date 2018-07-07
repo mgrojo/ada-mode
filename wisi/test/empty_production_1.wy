@@ -1,4 +1,5 @@
-;;; Demonstrate a correct way to allow an empty production where a list is allowed.
+;;; Demonstrate a correct way to allow an empty production where a list
+;;  is allowed, for both lr and packrat parsers.
 
 ;; Consider the following statements:
 ;;
@@ -11,9 +12,9 @@
 ;;
 ;; other similar tests:
 ;;  1 - empty production in a list
-;;  2 - empty production causes ambiguity
-;;  3 - terminal followed by empty nonterm
-;;  4 - empty production in the first two nonterms in a production
+;;  2 - empty production in a list causes ambiguity in lalr, packrat parses successfully
+;;  3 - production ends in empty nonterm, non-empty nonterm
+;;  4 - production starts with two empty nonterms
 ;;  5 - empty production following a nonterm
 ;;  6 - empty production in a list; same conflict in two states
 ;;  7 - two consecutive empty productions not first

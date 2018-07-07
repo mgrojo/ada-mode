@@ -29,6 +29,4 @@ package Dragon_4_43_Packrat_Gen is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-   overriding procedure Set_Up_Case (T : in out Test_Case);
-
 end Dragon_4_43_Packrat_Gen;

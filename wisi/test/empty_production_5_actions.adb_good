@@ -1,0 +1,20 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate LALR ADA ../../wisi/test/empty_production_5.wy
+--
+
+package body Empty_Production_5_Actions is
+
+   use WisiToken.Semantic_Checks;
+
+   function name_0_check
+    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm : in out WisiToken.Recover_Token;
+     Tokens  : in     WisiToken.Recover_Token_Array)
+    return WisiToken.Semantic_Checks.Check_Status
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return Propagate_Name (Nonterm, Tokens, 1);
+   end name_0_check;
+
+end Empty_Production_5_Actions;

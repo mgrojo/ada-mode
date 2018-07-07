@@ -1,0 +1,19 @@
+ 6 tokens lexed
+ 0: 0:  1:(NUMERIC_LITERAL, (1 . 1)) : shift and goto state 1
+ 0: 1:  2:(MINUS, (3 . 3)) : reduce 1 tokens to expr
+expr_1: (expr, (1 . 1)) <= ( 1:(NUMERIC_LITERAL, (1 . 1)))
+ ... goto state 2
+ 0: 2:  2:(MINUS, (3 . 3)) : shift and goto state 3
+ 0: 3:  3:(NUMERIC_LITERAL, (5 . 5)) : shift and goto state 4
+ 0: 4:  4:(MINUS, (7 . 7)) : reduce 3 tokens to expr
+expr_0: (expr, (1 . 5)) <= ((expr, (1 . 1)),  2:(MINUS, (3 . 3)),  3:(NUMERIC_LITERAL, (5 . 5)))
+ ... goto state 2
+ 0: 2:  4:(MINUS, (7 . 7)) : shift and goto state 3
+ 0: 3:  5:(NUMERIC_LITERAL, (9 . 9)) : shift and goto state 4
+ 0: 4:  6:(Wisi_EOI, (11 . 10)) : reduce 3 tokens to expr
+expr_0: (expr, (1 . 9)) <= ((expr, (1 . 5)),  4:(MINUS, (7 . 7)),  5:(NUMERIC_LITERAL, (9 . 9)))
+ ... goto state 2
+ 0: 2:  6:(Wisi_EOI, (11 . 10)) : accept it
+wisitoken_accept_0: (wisitoken_accept, (1 . 9)) <= ((expr, (1 . 9)))
+ 0: succeed
+

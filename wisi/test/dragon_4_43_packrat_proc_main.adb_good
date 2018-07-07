@@ -1,0 +1,105 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate PACKRAT_PROC ADA ../../wisi/test/dragon_4_43.wy
+--
+
+--  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+with WisiToken.Lexer.re2c;
+with dragon_4_43_re2c_c;
+with WisiToken.Parse.Packrat.Procedural;
+with WisiToken.Productions;
+package body Dragon_4_43_Packrat_Proc_Main is
+
+   package Lexer is new WisiToken.Lexer.re2c
+     (dragon_4_43_re2c_c.New_Lexer,
+      dragon_4_43_re2c_c.Free_Lexer,
+      dragon_4_43_re2c_c.Reset_Lexer,
+      dragon_4_43_re2c_c.Next_Token);
+
+   function Create_Parser
+     (Trace     : not null access WisiToken.Trace'Class;
+      User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Base_Parser'Class
+   is
+      use WisiToken;
+      use WisiToken.Productions;
+      Grammar               : Prod_Arrays.Vector;
+      Direct_Left_Recursive : constant WisiToken.Token_ID_Set (5 .. 7) :=
+        (others => False);
+   begin
+      Grammar.Set_First (5);
+      Grammar.Set_Last (7);
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 5;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (0);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (2);
+            To_Vector ((6, 4), RHS.Tokens);
+            Prod.RHSs (0) := RHS;
+         end;
+         Grammar (5) := Prod;
+      end;
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 6;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (0);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (2);
+            To_Vector ((7, 7), RHS.Tokens);
+            Prod.RHSs (0) := RHS;
+         end;
+         Grammar (6) := Prod;
+      end;
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 7;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (1);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (2);
+            To_Vector ((2, 7), RHS.Tokens);
+            Prod.RHSs (0) := RHS;
+         end;
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (1);
+            To_Vector ((1 => 3), RHS.Tokens);
+            Prod.RHSs (1) := RHS;
+         end;
+         Grammar (7) := Prod;
+      end;
+      return WisiToken.Parse.Packrat.Procedural.Create
+        (Grammar, Direct_Left_Recursive, 5, Trace, Lexer.New_Lexer (Trace), User_Data);
+   end Create_Parser;
+
+end Dragon_4_43_Packrat_Proc_Main;

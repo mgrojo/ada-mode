@@ -203,9 +203,10 @@ package body Wisi_WY_Test is
         (Program => "gprbuild",
          Args    =>
            (1    => new String'("-p"),
-            2    => new String'("-P"),
-            3    => new String'("wisi_test.gpr"),
-            4    => new String'(Main)));
+            2    => new String'("-q"), -- quiet; no [compile] in test_all_harness.out
+            3    => new String'("-P"),
+            4    => new String'("wisi_test.gpr"),
+            5    => new String'(Main)));
    end Compile;
 
    procedure Execute_Parse
@@ -222,7 +223,7 @@ package body Wisi_WY_Test is
         To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
    begin
       if WisiToken.Trace_Action > WisiToken.Outline then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "parse " & Root_Name);
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "parse " & Exe);
       end if;
 
       Spawn

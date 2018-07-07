@@ -61,7 +61,7 @@ is
 
    Gen_Alg_Name : constant String :=
      (if Test_Main then Output_Ada_Common.File_Name_To_Ada
-        ("_" & Wisi.Generate_Algorithm'Image (Common_Data.Generate_Algorithm))
+        ("_" & Wisi.Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all)
       else "");
 
    function Split_Sexp
@@ -1085,18 +1085,13 @@ is
    end Create_Ada_Actions_Body;
 
    procedure Create_Ada_Main_Body
-     (Ada_Action_Names     : not null access constant Names_Array_Array;
+     (File_Name            : in              String;
+      Ada_Action_Names     : not null access constant Names_Array_Array;
       Ada_Check_Names      : not null access constant Names_Array_Array;
-      Actions_Package_Name : in String;
-      Main_Package_Name    : in String)
+      Actions_Package_Name : in              String;
+      Main_Package_Name    : in              String)
    is
       use Wisi.Utils;
-
-      File_Name : constant String := Output_File_Name_Root &
-        (case Common_Data.Interface_Kind is
-         when Process => "_process_main",
-         when Module  => "_module_main") &
-        ".adb";
 
       Body_File : File_Type;
 
@@ -1501,7 +1496,10 @@ begin
          Checks_Present   => Input_Data.Check_Count > 0);
 
       Create_Ada_Main_Body
-        (Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Actions_Package_Name, Main_Package_Name);
+        (Output_File_Name_Root & "_" &
+           To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
+           To_Lower (Gen_Alg_Name) & "_main.adb",
+         Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Actions_Package_Name, Main_Package_Name);
 
       Create_Ada_Main_Spec
         (Output_File_Name => Output_File_Name_Root & "_" &

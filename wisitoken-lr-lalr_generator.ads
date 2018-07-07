@@ -30,7 +30,8 @@ package WisiToken.LR.LALR_Generator is
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in LALR_Descriptor;
       Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param)
+      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
+      Put_Parse_Table : in Boolean := False)
      return Parse_Table_Ptr;
    --  Generate a generalized LALR parse table for Grammar. The
    --  grammar start symbol is the LHS of the first production in
@@ -59,10 +60,9 @@ package WisiToken.LR.LALR_Generator is
      return LR1_Items.Item_Set;
 
    function LALR_Kernels
-     (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
-      First             : in Token_Array_Token_Set;
-      First_State_Index : in State_Index;
-      Descriptor        : in LALR_Descriptor)
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      First      : in Token_Array_Token_Set;
+      Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set_List;
 
 end WisiToken.LR.LALR_Generator;

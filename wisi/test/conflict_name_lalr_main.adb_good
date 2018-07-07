@@ -20,7 +20,7 @@
 with WisiToken.Lexer.re2c;
 with conflict_name_re2c_c;
 with Conflict_Name_Actions; use Conflict_Name_Actions;
-package body Conflict_Name_Lalr_Main is
+package body Conflict_Name_LALR_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
      (conflict_name_re2c_c.New_Lexer,
@@ -105,7 +105,6 @@ package body Conflict_Name_Lalr_Main is
          Table,
          User_Data,
          Max_Parallel         => 15,
-         First_Parser_Label   => 0,
          Terminate_Same_State => True);
    end Create_Parser;
-end Conflict_Name_Lalr_Main;
+end Conflict_Name_LALR_Main;

@@ -1,0 +1,33 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate PACKRAT_PROC ADA ../../wisi/test/range_conflict.wy
+--
+
+--  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+package body Range_Conflict_Actions is
+
+   procedure compilation_unit_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (User_Data, Tree, Nonterm, Tokens);
+   begin
+      (setq wisi-test-success t)
+   end compilation_unit_0;
+
+end Range_Conflict_Actions;

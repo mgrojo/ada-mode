@@ -62,9 +62,6 @@ package body Name_Grammar_Test is
       Case_Insensitive  => False);
    use Token_Enum;
 
-   First_State_Index  : constant := 1;
-   First_Parser_Label : constant := 1;
-
    package Lexer renames WisiToken.Lexer.Regexp;
 
    Syntax : constant Lexer.Syntax := To_Syntax
@@ -154,16 +151,11 @@ package body Name_Grammar_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate
-              (Full_Grammar,
-               LALR_Descriptor,
-               First_State_Index,
-               Ignore_Unused_Tokens      => False),
+            WisiToken.LR.LALR_Generator.Generate (Full_Grammar, LALR_Descriptor),
             User_Data                    => null,
             Language_Fixes               => null,
             Language_Constrain_Terminals => null,
-            Language_String_ID_Set       => null,
-            First_Parser_Label           => First_Parser_Label);
+            Language_String_ID_Set       => null);
 
          Parse_Command ("Full Parser", Parser, "Module.Symbol");
          Parse_Command ("Full Parser", Parser, "Module.Symbol (Index)");

@@ -249,7 +249,10 @@ begin
          Parse_Check (None);
 
          if Input_Data.Generate_Set = null then
-            raise User_Error with "generate algorithm, output_language, lexer, interface not specified";
+            raise User_Error with
+              WisiToken.Generate.Error_Message
+                (Input_Data.Grammar_Lexer.File_Name, 1,
+                 "generate algorithm, output_language, lexer, interface not specified");
          end if;
          Generate_Set := Input_Data.Generate_Set;
       else
@@ -308,7 +311,8 @@ begin
                      Generate_Data.LALR_Descriptor.all,
                      Generate_Utils.To_Conflicts
                        (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
-                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover));
+                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                     Put_Parse_Table => True);
 
                   Generate_Data.Parser_State_Count :=
                     Generate_Data.LR_Parsers (LALR).State_Last - Generate_Data.LR_Parsers (LALR).State_First + 1;
@@ -321,7 +325,8 @@ begin
                      Generate_Data.LR1_Descriptor.all,
                      Generate_Utils.To_Conflicts
                        (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
-                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover));
+                     Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                     Put_Parse_Table => True);
 
                   Generate_Data.Parser_State_Count :=
                     Generate_Data.LR_Parsers (LR1).State_Last - Generate_Data.LR_Parsers (LR1).State_First + 1;

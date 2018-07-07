@@ -64,8 +64,11 @@ begin
    --  FIXME: support indirect left recursion, add , Packrat_Gen, Packrat_Proc
 
    Add_Test (Suite, new Wisi_WY_Test.Test_Case
-               (+"body_instantiation_conflict", False, False,
-                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
+               (Root_Name        => +"body_instantiation_conflict",
+                If_Lexer_Present => False,
+                Actions_Present  => False,
+                Generate_Set     =>
+                  +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
                   (Packrat_Proc, Wisi.Ada, None, None),
                  (LALR, Elisp, None, None))));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case
@@ -123,14 +126,13 @@ begin
                   (Packrat_Proc, Wisi.Ada, None, None),
                   (LR1, Elisp, None, None), (LALR, Elisp, None, None))));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case
-               (+"range_conflict", False, True,
+               (+"range_conflict", False, False,
                 +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
                   (Packrat_Proc, Wisi.Ada, None, None),
                   (LR1, Elisp, None, None), (LALR, Elisp, None, None))));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case
-               (+"skip_to_grammar", False, True,
-                +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
-                  (Packrat_Proc, Wisi.Ada, None, None))));
+
+   --  skip_to_grammar has AUnit in user actions
+
    Add_Test (Suite, new Wisi_WY_Test.Test_Case
                (+"subprograms", False, True,
                 +((LALR, Ada_Emacs, re2c_Lexer, Process), (Packrat_Gen, Ada_Emacs, re2c_Lexer, Process),

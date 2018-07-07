@@ -265,7 +265,7 @@ package body Character_Literal_Packrat_Gen_Main is
             end if;
             goto Recurse_Start;
          elsif Pos = Pos_Recurse_Last and then Parser.Tree.Is_Empty (Result_Recurse.Result) then
-                        Parser.Derivs (8).Replace_Element (Start_Pos, Result_Recurse);
+            Parser.Derivs (8).Replace_Element (Start_Pos, Result_Recurse);
          end if;
       end if;
 

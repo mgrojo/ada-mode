@@ -23,15 +23,17 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Dragon_4_43_Packrat_Actions;
-with Dragon_4_43_Packrat_Main; --  FIXME: add 'packrat'? also produce LALR?
-with WisiToken.Parse.Packrat;
+with Dragon_4_43_Packrat_Main;
+with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Text_IO_Trace;
 package body Dragon_4_43_Packrat_Gen is
 
-   Parser : aliased WisiToken.Parse.Packrat.Parser;
-
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Dragon_4_43_Packrat_Actions.Descriptor'Access);
    --  FIXME: why does Trace need a Descriptor?
+
+   Parser : aliased WisiToken.Parse.Base_Parser'Class := Dragon_4_43_Packrat_Main.Create_Parser
+     (Trace     => Trace'Access,
+      User_Data => null);
 
    ----------
    --  Test procedures
@@ -40,7 +42,7 @@ package body Dragon_4_43_Packrat_Gen is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.Parse.Packrat;
+      use WisiToken.Parse.Packrat.Generated;
 
       procedure Execute_Parse
         (Input    : in String;
@@ -88,16 +90,5 @@ package body Dragon_4_43_Packrat_Gen is
    begin
       Register_Routine (T, Test_Parse'Access, "Test_Parse");
    end Register_Tests;
-
-   overriding procedure Set_Up_Case (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      --  Run before all tests in register
-      Dragon_4_43_Packrat_Main.Create_Parser
-        (Parser,
-         Trace     => Trace'Access,
-         User_Data => null);
-   end Set_Up_Case;
 
 end Dragon_4_43_Packrat_Gen;

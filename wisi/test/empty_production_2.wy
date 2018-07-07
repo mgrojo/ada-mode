@@ -1,4 +1,5 @@
-;;; show an incorrect way to declare an empty production in a list
+;;; Demonstrate an incorrect way to declare an empty production in a list,
+;;  for an LR parser.
 
 ;; This grammar is ambiguous. Consider the following statements:
 ;;
@@ -6,7 +7,7 @@
 ;; 2) is is <empty declaration> begin ; begin ;
 ;; 3) is <empty declaration> is <empty declaration> begin ; begin ;
 ;;
-;; In parsing 3), the second 'is' causes a shift/reduce conflict;
+;; In LR parsing 3), the second 'is' causes a shift/reduce conflict;
 ;; shift to start the nested declaration (as in 2), reduce to the
 ;; empty declaration. Both are correct according to the grammar; this
 ;; is reported as shift/reduce conflicts when compiling the grammar.

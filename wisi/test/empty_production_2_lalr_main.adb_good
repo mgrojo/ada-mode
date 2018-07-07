@@ -5,7 +5,7 @@
 with WisiToken.Lexer.re2c;
 with empty_production_2_re2c_c;
 with Empty_Production_2_Actions; use Empty_Production_2_Actions;
-package body Empty_Production_2_Lalr_Main is
+package body Empty_Production_2_LALR_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
      (empty_production_2_re2c_c.New_Lexer,
@@ -81,7 +81,6 @@ package body Empty_Production_2_Lalr_Main is
          Table,
          User_Data,
          Max_Parallel         => 15,
-         First_Parser_Label   => 0,
          Terminate_Same_State => True);
    end Create_Parser;
-end Empty_Production_2_Lalr_Main;
+end Empty_Production_2_LALR_Main;

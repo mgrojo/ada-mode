@@ -266,13 +266,14 @@ package body WisiToken.LR.LALR_Generator is
    end LALR_Goto_Transitions;
 
    function LALR_Kernels
-     (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
-      First             : in Token_Array_Token_Set;
-      First_State_Index : in State_Index;
-      Descriptor        : in LALR_Descriptor)
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      First      : in Token_Array_Token_Set;
+      Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
+
+      First_State_Index : constant State_Index := 0;
 
       Kernel_List : Item_Set_List :=
         (Head             => new Item_Set'
@@ -670,7 +671,8 @@ package body WisiToken.LR.LALR_Generator is
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in LALR_Descriptor;
       Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param)
+      McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
+      Put_Parse_Table : in Boolean := False)
      return Parse_Table_Ptr
    is
       use all type Ada.Containers.Count_Type;
@@ -689,7 +691,7 @@ package body WisiToken.LR.LALR_Generator is
 
       Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 
-      Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First, First_State_Index, Descriptor);
+      Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First, Descriptor);
 
       Unused_Tokens        : Boolean             := False;
       Unknown_Conflicts    : Conflict_Lists.List;
@@ -769,8 +771,9 @@ package body WisiToken.LR.LALR_Generator is
          end;
       end loop;
 
-      --  Always output the parse table
-      LALR_Generator.Put_Parse_Table (Table, Grammar, Kernels, Descriptor);
+      if Put_Parse_Table then
+         LALR_Generator.Put_Parse_Table (Table, Grammar, Kernels, Descriptor);
+      end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 

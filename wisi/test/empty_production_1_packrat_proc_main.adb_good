@@ -1,0 +1,114 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate PACKRAT_PROC ADA ../../wisi/test/empty_production_1.wy
+--
+
+with WisiToken.Lexer.re2c;
+with empty_production_1_re2c_c;
+with Empty_Production_1_Actions; use Empty_Production_1_Actions;
+with WisiToken.Parse.Packrat.Procedural;
+with WisiToken.Productions;
+package body Empty_Production_1_Packrat_Proc_Main is
+
+   package Lexer is new WisiToken.Lexer.re2c
+     (empty_production_1_re2c_c.New_Lexer,
+      empty_production_1_re2c_c.Free_Lexer,
+      empty_production_1_re2c_c.Reset_Lexer,
+      empty_production_1_re2c_c.Next_Token);
+
+   function Create_Parser
+     (Trace     : not null access WisiToken.Trace'Class;
+      User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Base_Parser'Class
+   is
+      use WisiToken;
+      use WisiToken.Productions;
+      Grammar               : Prod_Arrays.Vector;
+      Direct_Left_Recursive : constant WisiToken.Token_ID_Set (6 .. 9) :=
+        (7 => True,
+         others => False);
+   begin
+      Grammar.Set_First (6);
+      Grammar.Set_Last (9);
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 6;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (0);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (2);
+            To_Vector ((8, 5), RHS.Tokens);
+            Prod.RHSs (0) := RHS;
+         end;
+         Grammar (6) := Prod;
+      end;
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 7;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (1);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (2);
+            To_Vector ((7, 9), RHS.Tokens);
+            Prod.RHSs (0) := RHS;
+         end;
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (1);
+            To_Vector ((1 => 9), RHS.Tokens);
+            Prod.RHSs (1) := RHS;
+         end;
+         Grammar (7) := Prod;
+      end;
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 8;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (1);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (1);
+            To_Vector ((1 => 7), RHS.Tokens);
+            Prod.RHSs (0) := RHS;
+         end;
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            Prod.RHSs (1) := RHS;
+         end;
+         Grammar (8) := Prod;
+      end;
+      declare
+         Prod : Instance;
+      begin
+         Prod.LHS := 9;
+         Prod.RHSs.Set_First (0);
+         Prod.RHSs.Set_Last (0);
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (4);
+            To_Vector ((3, 8, 2, 4), RHS.Tokens);
+            RHS.Action     := body_0'Access;
+            Prod.RHSs (0) := RHS;
+         end;
+         Grammar (9) := Prod;
+      end;
+      return WisiToken.Parse.Packrat.Procedural.Create
+        (Grammar, Direct_Left_Recursive, 6, Trace, Lexer.New_Lexer (Trace), User_Data);
+   end Create_Parser;
+
+end Empty_Production_1_Packrat_Proc_Main;

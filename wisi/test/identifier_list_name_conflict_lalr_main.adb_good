@@ -1,0 +1,144 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate LALR ADA ../../wisi/test/identifier_list_name_conflict.wy
+--
+
+with WisiToken.Lexer.re2c;
+with identifier_list_name_conflict_re2c_c;
+with Identifier_List_Name_Conflict_Actions; use Identifier_List_Name_Conflict_Actions;
+package body Identifier_List_Name_Conflict_LALR_Main is
+
+   package Lexer is new WisiToken.Lexer.re2c
+     (identifier_list_name_conflict_re2c_c.New_Lexer,
+      identifier_list_name_conflict_re2c_c.Free_Lexer,
+      identifier_list_name_conflict_re2c_c.Reset_Lexer,
+      identifier_list_name_conflict_re2c_c.Next_Token);
+
+   procedure Create_Parser
+     (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;
+      Trace                        : not null access WisiToken.Trace'Class;
+      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
+   is
+      use WisiToken.LR;
+      Table : constant Parse_Table_Ptr := new Parse_Table
+        (State_First       => 0,
+         State_Last        => 25,
+         First_Terminal    => Trace.Descriptor.First_Terminal,
+         Last_Terminal     => Trace.Descriptor.Last_Terminal,
+         First_Nonterminal => Trace.Descriptor.First_Nonterminal,
+         Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);
+   begin
+      Table.McKenzie_Param :=
+        (First_Terminal    => 2,
+         Last_Terminal     => 8,
+         First_Nonterminal => 9,
+         Last_Nonterminal  => 17,
+         Insert =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0),
+         Delete =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0),
+         Push_Back =>
+           (0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0),
+         Task_Count  => 0,
+         Cost_Limit  => 2147483647,
+         Check_Limit => 2147483647,
+         Check_Delta_Limit => 2147483647,
+         Enqueue_Limit => 2147483647);
+
+
+      Add_Action (Table.States (0), (1 => (13, 2)), 2, 1);
+      Add_Action (Table.States (0), (1 => (15, 1)), 6, 2);
+      Add_Action (Table.States (0), ((14, 1), (15, 0)), 7, 3);
+      Add_Error (Table.States (0));
+      Add_Goto (Table.States (0), (9, 0), 12, 4);
+      Add_Goto (Table.States (0), (12, 0), 13, 5);
+      Add_Goto (Table.States (0), (13, 0), 14, 6);
+      Add_Goto (Table.States (0), (16, 1), 15, 7);
+      Add_Goto (Table.States (0), (13, 1), 16, 8);
+      Add_Action (Table.States (1), (1 => (17, 1)), 6, 12);
+      Add_Action (Table.States (1), (1 => (17, 0)), 7, 13);
+      Add_Error (Table.States (1));
+      Add_Goto (Table.States (1), (11, 1), 10, 14);
+      Add_Goto (Table.States (1), (11, 0), 11, 15);
+      Add_Goto (Table.States (1), (10, 0), 17, 16);
+      Add_Action (Table.States (2), (2, 3, 4, 6, 7, 8), (15, 1), 1, null, null);
+      Add_Action (Table.States (3), 2, Reduce, (14, 1), 1, null, null, (15, 0), 1, null, null);
+      Add_Action (Table.States (3), 4, Reduce, (14, 1), 1, null, null, (15, 0), 1, null, null);
+      Add_Action (Table.States (3), 6, Reduce, (14, 1), 1, null, null, (15, 0), 1, null, null);
+      Add_Action (Table.States (3), 7, Reduce, (14, 1), 1, null, null, (15, 0), 1, null, null);
+      Add_Action (Table.States (3), 8, Reduce, (14, 1), 1, null, null, (15, 0), 1, null, null);
+      Add_Error (Table.States (3));
+      Add_Action (Table.States (4), 8, Accept_It, (9, 0), 1, null, null);
+      Add_Error (Table.States (4));
+      Add_Action (Table.States (5), (1 => (13, 2)), 2, 1);
+      Add_Action (Table.States (5), (1 => (15, 1)), 6, 2);
+      Add_Action (Table.States (5), ((14, 1), (15, 0)), 7, 3);
+      Add_Error (Table.States (5));
+      Add_Goto (Table.States (5), (12, 0), 13, 11);
+      Add_Goto (Table.States (5), (13, 0), 14, 6);
+      Add_Goto (Table.States (5), (16, 1), 15, 7);
+      Add_Goto (Table.States (5), (13, 1), 16, 8);
+      Add_Action (Table.States (6), 2, Reduce, (13, 0), 1, null, null);
+      Add_Action (Table.States (6), (1 => (14, 0)), 4, 10);
+      Add_Action (Table.States (6), 6, Reduce, (13, 0), 1, null, null);
+      Add_Action (Table.States (6), 7, Reduce, (13, 0), 1, null, null);
+      Add_Action (Table.States (6), 8, Reduce, (13, 0), 1, null, null);
+      Add_Error (Table.States (6));
+      Add_Action (Table.States (7), (2, 4, 6, 7, 8), (16, 1), 1, null, null);
+      Add_Action (Table.States (8), 2, Reduce, (13, 1), 1, null, null);
+      Add_Action (Table.States (8), (1 => (16, 0)), 4, 9);
+      Add_Action (Table.States (8), 6, Reduce, (13, 1), 1, null, null);
+      Add_Action (Table.States (8), 7, Reduce, (13, 1), 1, null, null);
+      Add_Action (Table.States (8), 8, Reduce, (13, 1), 1, null, null);
+      Add_Error (Table.States (8));
+      Add_Action (Table.States (9), (1 => (15, 1)), 6, 2);
+      Add_Action (Table.States (9), (1 => (15, 0)), 7, 22);
+      Add_Error (Table.States (9));
+      Add_Goto (Table.States (9), (16, 0), 15, 23);
+      Add_Action (Table.States (10), (1 => (14, 0)), 7, 21);
+      Add_Error (Table.States (10));
+      Add_Action (Table.States (11), (1 => (13, 2)), 2, 1);
+      Add_Action (Table.States (11), (1 => (15, 1)), 6, 2);
+      Add_Action (Table.States (11), ((14, 1), (15, 0)), 7, 3);
+      Add_Error (Table.States (11));
+      Add_Goto (Table.States (11), (12, 0), 13, 20);
+      Add_Goto (Table.States (11), (13, 0), 14, 6);
+      Add_Goto (Table.States (11), (16, 1), 15, 7);
+      Add_Goto (Table.States (11), (13, 1), 16, 8);
+      Add_Action (Table.States (12), (1 =>  5), (17, 1), 1, null, null);
+      Add_Action (Table.States (13), (1 =>  5), (17, 0), 1, null, null);
+      Add_Action (Table.States (14), (3, 4), (11, 1), 1, null, null);
+      Add_Action (Table.States (15), (1 => (13, 2)), 3, 18);
+      Add_Action (Table.States (15), (1 => (11, 0)), 4, 19);
+      Add_Error (Table.States (15));
+      Add_Action (Table.States (16), (1 => (10, 0)), 5, 17);
+      Add_Error (Table.States (16));
+      Add_Action (Table.States (17), (1 => (15, 1)), 6, 2);
+      Add_Action (Table.States (17), (1 => (15, 0)), 7, 22);
+      Add_Error (Table.States (17));
+      Add_Goto (Table.States (17), (10, 0), 15, 25);
+      Add_Action (Table.States (18), (2, 6, 7, 8), (13, 2), 3, null, null);
+      Add_Action (Table.States (19), (1 => (17, 1)), 6, 12);
+      Add_Action (Table.States (19), (1 => (17, 0)), 7, 13);
+      Add_Error (Table.States (19));
+      Add_Goto (Table.States (19), (11, 0), 10, 24);
+      Add_Goto (Table.States (19), (10, 0), 17, 16);
+      Add_Action (Table.States (20), (1 =>  8), (12, 0), 3, compilation_0'Access, null);
+      Add_Action (Table.States (21), (2, 4, 6, 7, 8), (14, 0), 3, null, null);
+      Add_Action (Table.States (22), (2, 3, 4, 6, 7, 8), (15, 0), 1, null, null);
+      Add_Action (Table.States (23), (2, 4, 6, 7, 8), (16, 0), 3, null, null);
+      Add_Action (Table.States (24), (3, 4), (11, 0), 3, null, null);
+      Add_Action (Table.States (25), (3, 4), (10, 0), 3, null, null);
+
+      WisiToken.LR.Parser_No_Recover.New_Parser
+        (Parser,
+         Trace,
+         Lexer.New_Lexer (Trace),
+         Table,
+         User_Data,
+         Max_Parallel         => 15,
+         Terminate_Same_State => True);
+   end Create_Parser;
+end Identifier_List_Name_Conflict_LALR_Main;

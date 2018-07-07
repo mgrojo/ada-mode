@@ -1,0 +1,663 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate PACKRAT_GEN ADA ../../wisi/test/range_conflict.wy
+--
+
+--  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+with WisiToken.Lexer.re2c;
+with range_conflict_re2c_c;
+with WisiToken.Parse.Packrat.Generated;
+package body Range_Conflict_Packrat_Gen_Main is
+
+   package Lexer is new WisiToken.Lexer.re2c
+     (range_conflict_re2c_c.New_Lexer,
+      range_conflict_re2c_c.Free_Lexer,
+      range_conflict_re2c_c.Reset_Lexer,
+      range_conflict_re2c_c.Next_Token);
+
+   use WisiToken;
+   use WisiToken.Parse.Packrat;
+   use WisiToken.Parse.Packrat.Generated;
+   function Parse_wisitoken_accept
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type;
+   function Parse_compilation_unit
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type;
+   function Parse_membership_choice
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type;
+   function Parse_primary
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type;
+   function Parse_range_g
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type;
+   function Parse_relation
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type;
+
+   function Parse_wisitoken_accept
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type
+   is
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm
+      Pos        : Base_Token_Index := Last_Pos; --  last token parsed.
+      Memo_0_1 : Memo_Entry;
+      Pos_0_2  : Token_Index;
+   begin
+      if Pos = Parser.Terminals.Last_Index then
+         return (State => Failure);
+      end if;
+      declare
+         Memo : Memo_Entry renames Parser.Derivs (11)(Start_Pos);
+      begin
+         case Memo.State is
+         when Success =>
+            return Parser.Derivs (11)(Start_Pos);
+         when Failure =>
+            goto RHS_0_Fail;
+         when No_Result =>
+            if Memo.Recursive then
+               raise Recursive with Image (11, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
+            end if;
+            Memo.Recursive := True;
+         end case;
+      end;
+
+      --  11.0: wisitoken_accept <= compilation_unit Wisi_EOI
+      Pos := Last_Pos;
+      Memo_0_1 := Parse_compilation_unit (Parser, Pos);
+      case Result_States'(Memo_0_1.State) is
+      when Success =>
+         Pos := Memo_0_1.Last_Token;
+      when Failure =>
+         goto RHS_0_Fail;
+      end case;
+      if Parser.Terminals (Pos + 1).ID = 10 then
+         Pos := Pos + 1;
+         Pos_0_2 := Pos;
+         Parser.Derivs (11).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (11, 0),
+                Action          => null,
+                Children        =>
+                 (Memo_0_1.Result,
+                  Tree_Index (Pos_0_2)),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      else
+         goto RHS_0_Fail;
+      end if;
+      <<RHS_0_Fail>>
+
+      Parser.Derivs (11).Replace_Element (Start_Pos, (State => Failure));
+      return Parser.Derivs (11)(Start_Pos);
+
+      <<Succeed>>
+      if WisiToken.Trace_Parse > Detail then
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+             (Parser.Derivs (11)(Start_Pos).Result, Descriptor, Include_Children => True));
+      end if;
+      return Parser.Derivs (11)(Start_Pos);
+   end Parse_wisitoken_accept;
+
+   function Parse_compilation_unit
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type
+   is
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm
+      Pos        : Base_Token_Index := Last_Pos; --  last token parsed.
+      Memo_0_1 : Memo_Entry;
+      Memo_0_2 : Memo_Entry;
+   begin
+      if Pos = Parser.Terminals.Last_Index then
+         return (State => Failure);
+      end if;
+      declare
+         Memo : Memo_Entry renames Parser.Derivs (12)(Start_Pos);
+      begin
+         case Memo.State is
+         when Success =>
+            return Parser.Derivs (12)(Start_Pos);
+         when Failure =>
+            goto RHS_0_Fail;
+         when No_Result =>
+            if Memo.Recursive then
+               raise Recursive with Image (12, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
+            end if;
+            Memo.Recursive := True;
+         end case;
+      end;
+
+      --  12.0: compilation_unit <= membership_choice range_g
+      Pos := Last_Pos;
+      Memo_0_1 := Parse_membership_choice (Parser, Pos);
+      case Result_States'(Memo_0_1.State) is
+      when Success =>
+         Pos := Memo_0_1.Last_Token;
+      when Failure =>
+         goto RHS_0_Fail;
+      end case;
+      Memo_0_2 := Parse_range_g (Parser, Pos);
+      case Result_States'(Memo_0_2.State) is
+      when Success =>
+         Pos := Memo_0_2.Last_Token;
+         Parser.Derivs (12).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (12, 0),
+                Action          => null,
+                Children        =>
+                 (Memo_0_1.Result,
+                  Memo_0_2.Result),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      when Failure =>
+         goto RHS_0_Fail;
+      end case;
+      <<RHS_0_Fail>>
+
+      Parser.Derivs (12).Replace_Element (Start_Pos, (State => Failure));
+      return Parser.Derivs (12)(Start_Pos);
+
+      <<Succeed>>
+      if WisiToken.Trace_Parse > Detail then
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+             (Parser.Derivs (12)(Start_Pos).Result, Descriptor, Include_Children => True));
+      end if;
+      return Parser.Derivs (12)(Start_Pos);
+   end Parse_compilation_unit;
+
+   function Parse_membership_choice
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type
+   is
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm
+      Pos        : Base_Token_Index := Last_Pos; --  last token parsed.
+      Memo_0_1 : Memo_Entry;
+      Memo_1_1 : Memo_Entry;
+   begin
+      if Pos = Parser.Terminals.Last_Index then
+         return (State => Failure);
+      end if;
+      declare
+         Memo : Memo_Entry renames Parser.Derivs (13)(Start_Pos);
+      begin
+         case Memo.State is
+         when Success =>
+            return Parser.Derivs (13)(Start_Pos);
+         when Failure =>
+            goto RHS_1_Fail;
+         when No_Result =>
+            if Memo.Recursive then
+               raise Recursive with Image (13, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
+            end if;
+            Memo.Recursive := True;
+         end case;
+      end;
+
+      --  13.0: membership_choice <= primary
+      Pos := Last_Pos;
+      Memo_0_1 := Parse_primary (Parser, Pos);
+      case Result_States'(Memo_0_1.State) is
+      when Success =>
+         Pos := Memo_0_1.Last_Token;
+         Parser.Derivs (13).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (13, 0),
+                Action          => null,
+                Children        => (1 => Memo_0_1.Result),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      when Failure =>
+         goto RHS_0_Fail;
+      end case;
+      <<RHS_0_Fail>>
+
+      --  13.1: membership_choice <= range_g
+      Pos := Last_Pos;
+      Memo_1_1 := Parse_range_g (Parser, Pos);
+      case Result_States'(Memo_1_1.State) is
+      when Success =>
+         Pos := Memo_1_1.Last_Token;
+         Parser.Derivs (13).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (13, 1),
+                Action          => null,
+                Children        => (1 => Memo_1_1.Result),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      when Failure =>
+         goto RHS_1_Fail;
+      end case;
+      <<RHS_1_Fail>>
+
+      Parser.Derivs (13).Replace_Element (Start_Pos, (State => Failure));
+      return Parser.Derivs (13)(Start_Pos);
+
+      <<Succeed>>
+      if WisiToken.Trace_Parse > Detail then
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+             (Parser.Derivs (13)(Start_Pos).Result, Descriptor, Include_Children => True));
+      end if;
+      return Parser.Derivs (13)(Start_Pos);
+   end Parse_membership_choice;
+
+   function Parse_primary
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type
+   is
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm
+      Pos        : Base_Token_Index := Last_Pos; --  last token parsed.
+      Pos_0_1  : Token_Index;
+      Pos_1_1  : Token_Index;
+      Pos_2_1  : Token_Index;
+      Memo_2_2 : Memo_Entry;
+      Pos_2_3  : Token_Index;
+   begin
+      if Pos = Parser.Terminals.Last_Index then
+         return (State => Failure);
+      end if;
+      declare
+         Memo : Memo_Entry renames Parser.Derivs (14)(Start_Pos);
+      begin
+         case Memo.State is
+         when Success =>
+            return Parser.Derivs (14)(Start_Pos);
+         when Failure =>
+            goto RHS_2_Fail;
+         when No_Result =>
+            if Memo.Recursive then
+               raise Recursive with Image (14, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
+            end if;
+            Memo.Recursive := True;
+         end case;
+      end;
+
+      --  14.0: primary <= IDENTIFIER
+      Pos := Last_Pos;
+      if Parser.Terminals (Pos + 1).ID = 8 then
+         Pos := Pos + 1;
+         Pos_0_1 := Pos;
+         Parser.Derivs (14).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (14, 0),
+                Action          => null,
+                Children        => (1 => Tree_Index (Pos_0_1)),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      else
+         goto RHS_0_Fail;
+      end if;
+      <<RHS_0_Fail>>
+
+      --  14.1: primary <= STRING_LITERAL
+      Pos := Last_Pos;
+      if Parser.Terminals (Pos + 1).ID = 9 then
+         Pos := Pos + 1;
+         Pos_1_1 := Pos;
+         Parser.Derivs (14).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (14, 1),
+                Action          => null,
+                Children        => (1 => Tree_Index (Pos_1_1)),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      else
+         goto RHS_1_Fail;
+      end if;
+      <<RHS_1_Fail>>
+
+      --  14.2: primary <= LEFT_PAREN relation RIGHT_PAREN
+      Pos := Last_Pos;
+      if Parser.Terminals (Pos + 1).ID = 3 then
+         Pos := Pos + 1;
+         Pos_2_1 := Pos;
+      else
+         goto RHS_2_Fail;
+      end if;
+      Memo_2_2 := Parse_relation (Parser, Pos);
+      case Result_States'(Memo_2_2.State) is
+      when Success =>
+         Pos := Memo_2_2.Last_Token;
+      when Failure =>
+         goto RHS_2_Fail;
+      end case;
+      if Parser.Terminals (Pos + 1).ID = 5 then
+         Pos := Pos + 1;
+         Pos_2_3 := Pos;
+         Parser.Derivs (14).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (14, 2),
+                Action          => null,
+                Children        =>
+                 (Tree_Index (Pos_2_1),
+                  Memo_2_2.Result,
+                  Tree_Index (Pos_2_3)),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      else
+         goto RHS_2_Fail;
+      end if;
+      <<RHS_2_Fail>>
+
+      Parser.Derivs (14).Replace_Element (Start_Pos, (State => Failure));
+      return Parser.Derivs (14)(Start_Pos);
+
+      <<Succeed>>
+      if WisiToken.Trace_Parse > Detail then
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+             (Parser.Derivs (14)(Start_Pos).Result, Descriptor, Include_Children => True));
+      end if;
+      return Parser.Derivs (14)(Start_Pos);
+   end Parse_primary;
+
+   function Parse_range_g
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type
+   is
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm
+      Pos        : Base_Token_Index := Last_Pos; --  last token parsed.
+      Pos_0_1  : Token_Index;
+      Pos_0_2  : Token_Index;
+      Pos_0_3  : Token_Index;
+      Pos_0_4  : Token_Index;
+      Memo_0_5 : Memo_Entry;
+      Pos_0_6  : Token_Index;
+      Pos_1_1  : Token_Index;
+      Pos_1_2  : Token_Index;
+      Pos_1_3  : Token_Index;
+      Memo_2_1 : Memo_Entry;
+      Pos_2_2  : Token_Index;
+      Memo_2_3 : Memo_Entry;
+   begin
+      if Pos = Parser.Terminals.Last_Index then
+         return (State => Failure);
+      end if;
+      declare
+         Memo : Memo_Entry renames Parser.Derivs (15)(Start_Pos);
+      begin
+         case Memo.State is
+         when Success =>
+            return Parser.Derivs (15)(Start_Pos);
+         when Failure =>
+            goto RHS_2_Fail;
+         when No_Result =>
+            if Memo.Recursive then
+               raise Recursive with Image (15, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
+            end if;
+            Memo.Recursive := True;
+         end case;
+      end;
+
+      --  15.0: range_g <= IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN
+      Pos := Last_Pos;
+      if Parser.Terminals (Pos + 1).ID = 8 then
+         Pos := Pos + 1;
+         Pos_0_1 := Pos;
+      else
+         goto RHS_0_Fail;
+      end if;
+      if Parser.Terminals (Pos + 1).ID = 7 then
+         Pos := Pos + 1;
+         Pos_0_2 := Pos;
+      else
+         goto RHS_0_Fail;
+      end if;
+      if Parser.Terminals (Pos + 1).ID = 4 then
+         Pos := Pos + 1;
+         Pos_0_3 := Pos;
+      else
+         goto RHS_0_Fail;
+      end if;
+      if Parser.Terminals (Pos + 1).ID = 3 then
+         Pos := Pos + 1;
+         Pos_0_4 := Pos;
+      else
+         goto RHS_0_Fail;
+      end if;
+      Memo_0_5 := Parse_relation (Parser, Pos);
+      case Result_States'(Memo_0_5.State) is
+      when Success =>
+         Pos := Memo_0_5.Last_Token;
+      when Failure =>
+         goto RHS_0_Fail;
+      end case;
+      if Parser.Terminals (Pos + 1).ID = 5 then
+         Pos := Pos + 1;
+         Pos_0_6 := Pos;
+         Parser.Derivs (15).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (15, 0),
+                Action          => null,
+                Children        =>
+                 (Tree_Index (Pos_0_1),
+                  Tree_Index (Pos_0_2),
+                  Tree_Index (Pos_0_3),
+                  Tree_Index (Pos_0_4),
+                  Memo_0_5.Result,
+                  Tree_Index (Pos_0_6)),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      else
+         goto RHS_0_Fail;
+      end if;
+      <<RHS_0_Fail>>
+
+      --  15.1: range_g <= IDENTIFIER TICK RANGE
+      Pos := Last_Pos;
+      if Parser.Terminals (Pos + 1).ID = 8 then
+         Pos := Pos + 1;
+         Pos_1_1 := Pos;
+      else
+         goto RHS_1_Fail;
+      end if;
+      if Parser.Terminals (Pos + 1).ID = 7 then
+         Pos := Pos + 1;
+         Pos_1_2 := Pos;
+      else
+         goto RHS_1_Fail;
+      end if;
+      if Parser.Terminals (Pos + 1).ID = 4 then
+         Pos := Pos + 1;
+         Pos_1_3 := Pos;
+         Parser.Derivs (15).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (15, 1),
+                Action          => null,
+                Children        =>
+                 (Tree_Index (Pos_1_1),
+                  Tree_Index (Pos_1_2),
+                  Tree_Index (Pos_1_3)),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      else
+         goto RHS_1_Fail;
+      end if;
+      <<RHS_1_Fail>>
+
+      --  15.2: range_g <= primary DOT_DOT primary
+      Pos := Last_Pos;
+      Memo_2_1 := Parse_primary (Parser, Pos);
+      case Result_States'(Memo_2_1.State) is
+      when Success =>
+         Pos := Memo_2_1.Last_Token;
+      when Failure =>
+         goto RHS_2_Fail;
+      end case;
+      if Parser.Terminals (Pos + 1).ID = 6 then
+         Pos := Pos + 1;
+         Pos_2_2 := Pos;
+      else
+         goto RHS_2_Fail;
+      end if;
+      Memo_2_3 := Parse_primary (Parser, Pos);
+      case Result_States'(Memo_2_3.State) is
+      when Success =>
+         Pos := Memo_2_3.Last_Token;
+         Parser.Derivs (15).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (15, 2),
+                Action          => null,
+                Children        =>
+                 (Memo_2_1.Result,
+                  Tree_Index (Pos_2_2),
+                  Memo_2_3.Result),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      when Failure =>
+         goto RHS_2_Fail;
+      end case;
+      <<RHS_2_Fail>>
+
+      Parser.Derivs (15).Replace_Element (Start_Pos, (State => Failure));
+      return Parser.Derivs (15)(Start_Pos);
+
+      <<Succeed>>
+      if WisiToken.Trace_Parse > Detail then
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+             (Parser.Derivs (15)(Start_Pos).Result, Descriptor, Include_Children => True));
+      end if;
+      return Parser.Derivs (15)(Start_Pos);
+   end Parse_range_g;
+
+   function Parse_relation
+     (Parser : in out Generated.Parser; Last_Pos : in Base_Token_Index) return Result_Type
+   is
+      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
+      Start_Pos  : constant Token_Index := Last_Pos + 1; --  first token in current nonterm
+      Pos        : Base_Token_Index := Last_Pos; --  last token parsed.
+      Memo_0_1 : Memo_Entry;
+      Pos_0_2  : Token_Index;
+      Memo_0_3 : Memo_Entry;
+   begin
+      if Pos = Parser.Terminals.Last_Index then
+         return (State => Failure);
+      end if;
+      declare
+         Memo : Memo_Entry renames Parser.Derivs (16)(Start_Pos);
+      begin
+         case Memo.State is
+         when Success =>
+            return Parser.Derivs (16)(Start_Pos);
+         when Failure =>
+            goto RHS_0_Fail;
+         when No_Result =>
+            if Memo.Recursive then
+               raise Recursive with Image (16, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
+            end if;
+            Memo.Recursive := True;
+         end case;
+      end;
+
+      --  16.0: relation <= primary IN membership_choice
+      Pos := Last_Pos;
+      Memo_0_1 := Parse_primary (Parser, Pos);
+      case Result_States'(Memo_0_1.State) is
+      when Success =>
+         Pos := Memo_0_1.Last_Token;
+      when Failure =>
+         goto RHS_0_Fail;
+      end case;
+      if Parser.Terminals (Pos + 1).ID = 2 then
+         Pos := Pos + 1;
+         Pos_0_2 := Pos;
+      else
+         goto RHS_0_Fail;
+      end if;
+      Memo_0_3 := Parse_membership_choice (Parser, Pos);
+      case Result_States'(Memo_0_3.State) is
+      when Success =>
+         Pos := Memo_0_3.Last_Token;
+         Parser.Derivs (16).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (16, 0),
+                Action          => null,
+                Children        =>
+                 (Memo_0_1.Result,
+                  Tree_Index (Pos_0_2),
+                  Memo_0_3.Result),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      when Failure =>
+         goto RHS_0_Fail;
+      end case;
+      <<RHS_0_Fail>>
+
+      Parser.Derivs (16).Replace_Element (Start_Pos, (State => Failure));
+      return Parser.Derivs (16)(Start_Pos);
+
+      <<Succeed>>
+      if WisiToken.Trace_Parse > Detail then
+         Parser.Trace.Put_Line
+           (Parser.Tree.Image
+             (Parser.Derivs (16)(Start_Pos).Result, Descriptor, Include_Children => True));
+      end if;
+      return Parser.Derivs (16)(Start_Pos);
+   end Parse_relation;
+
+   function Parse_wisitoken_accept_1
+     (Parser : in out WisiToken.Parse.Base_Parser'Class; Last_Pos : in Base_Token_Index) return Result_Type
+   is begin
+      return Parse_wisitoken_accept (Generated.Parser (Parser), Last_Pos);
+   end Parse_wisitoken_accept_1;
+
+   function Create_Parser
+     (Trace     : not null access WisiToken.Trace'Class;
+      User_Data : in     WisiToken.Syntax_Trees.User_Data_Access)
+     return WisiToken.Parse.Base_Parser'Class
+   is begin
+      return Parser : WisiToken.Parse.Packrat.Generated.Parser do
+         Parser.Trace := Trace;
+         Parser.Lexer := Lexer.New_Lexer (Trace);
+         Parser.User_Data := User_Data;
+         Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;
+      end return;
+   end Create_Parser;
+
+end Range_Conflict_Packrat_Gen_Main;

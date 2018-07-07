@@ -76,9 +76,6 @@ package body Test_LR_Expecting_Terminal_Sequence is
       Case_Insensitive  => False);
    use Token_Enum;
 
-   First_State_Index  : constant := 1;
-   First_Parser_Label : constant := 1;
-
    package Set_Statement is
 
       Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
@@ -150,12 +147,11 @@ package body Test_LR_Expecting_Terminal_Sequence is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index),
+         WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,
-         Language_String_ID_Set       => null,
-         First_Parser_Label           => First_Parser_Label);
+         Language_String_ID_Set       => null);
 
       Execute
         ("set A = 2",

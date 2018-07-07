@@ -152,7 +152,7 @@ package body WisiToken.Parse.Packrat.Procedural is
       loop
          Pos := Last_Pos;
 
-         if Pos > Parser.Terminals.Last_Index then
+         if Pos > Parser.Terminals.Last_Index then --  FIXME: this can't pass here; Last_Pos never > last_index
             --  There might be an empty nonterm after the last token
             return (State => Failure);
          end if;
@@ -160,10 +160,7 @@ package body WisiToken.Parse.Packrat.Procedural is
          Result_Recurse := Eval (Parser, R, Pos);
 
          if Result_Recurse.State = Success then
-            if Result_Recurse.Last_Pos < Pos_Recurse_Last then
-               exit;
-
-            elsif Result_Recurse.Last_Pos > Pos_Recurse_Last then
+            if Result_Recurse.Last_Pos > Pos_Recurse_Last then
                Parser.Derivs (R).Replace_Element (Start_Pos, Result_Recurse);
                Pos              := Result_Recurse.Last_Pos;
                Pos_Recurse_Last := Pos;
@@ -172,9 +169,15 @@ package body WisiToken.Parse.Packrat.Procedural is
                   Parser.Trace.Put_Line
                     (Parser.Tree.Image (Result_Recurse.Result, Descriptor, Include_Children => True));
                end if;
+               --  continue looping
 
-            elsif Result_Recurse.Last_Pos = Pos_Recurse_Last and then Parser.Tree.Is_Empty (Result_Recurse.Result) then
-               Parser.Derivs (R).Replace_Element (Start_Pos, Result_Recurse);
+            elsif Result_Recurse.Last_Pos = Pos_Recurse_Last then
+               if Parser.Tree.Is_Empty (Result_Recurse.Result) then
+                  Parser.Derivs (R).Replace_Element (Start_Pos, Result_Recurse);
+               end if;
+               exit;
+            else
+               --  Result_Recurse.Last_Pos < Pos_Recurse_Last
                exit;
             end if;
          else

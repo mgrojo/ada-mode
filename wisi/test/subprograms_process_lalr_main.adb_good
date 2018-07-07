@@ -1,6 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process
---  ../../wisi/test/subprograms.wy
+--  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS ../../wisi/test/subprograms.wy
 --
 
 --  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
@@ -21,7 +20,7 @@
 with Subprograms_Process_Actions; use Subprograms_Process_Actions;
 with WisiToken.Lexer.re2c;
 with subprograms_re2c_c;
-package body Subprograms_Process_Main is
+package body Subprograms_Process_LALR_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
      (subprograms_re2c_c.New_Lexer,
@@ -34,7 +33,6 @@ package body Subprograms_Process_Main is
       Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;
       Language_Constrain_Terminals : in     WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
       Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;
-      Algorithm                    : in     WisiToken.Generator_Algorithm_Type;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
@@ -46,7 +44,6 @@ package body Subprograms_Process_Main is
          Last_Terminal     => Trace.Descriptor.Last_Terminal,
          First_Nonterminal => Trace.Descriptor.First_Nonterminal,
          Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);
-      pragma Unreferenced (Algorithm);
    begin
       Table.McKenzie_Param :=
         (First_Terminal    => 3,
@@ -80,28 +77,28 @@ package body Subprograms_Process_Main is
       Set_Production (Table.Productions (20), 20, 0);
       Set_RHS (Table.Productions (20), 0, (22, 19));
       Set_Production (Table.Productions (21), 21, 1);
-      Set_RHS (Table.Productions (21), 0, (3, 4));
-      Set_RHS (Table.Productions (21), 1, (3, 25, 5, 11, 26, 4));
+      Set_RHS (Table.Productions (21), 0, (3, 25, 5, 11, 26, 4));
+      Set_RHS (Table.Productions (21), 1, (3, 4));
       Set_Production (Table.Productions (22), 22, 0);
       Set_RHS (Table.Productions (22), 0, (1 => 23));
       Set_Production (Table.Productions (23), 23, 1);
-      Set_RHS (Table.Productions (23), 0, (1 => 24));
-      Set_RHS (Table.Productions (23), 1, (23, 24));
+      Set_RHS (Table.Productions (23), 0, (23, 24));
+      Set_RHS (Table.Productions (23), 1, (1 => 24));
       Set_Production (Table.Productions (24), 24, 1);
       Set_RHS (Table.Productions (24), 0, (1 => 29));
       Set_RHS (Table.Productions (24), 1, (1 => 31));
       Set_Production (Table.Productions (25), 25, 0);
       Set_RHS (Table.Productions (25), 0, (6, 18, 8, 30, 9, 17));
       Set_Production (Table.Productions (26), 26, 1);
-      Set_RHS (Table.Productions (26), 0, (1 => 18));
-      Set_RHS (Table.Productions (26), 1, (26, 16, 18));
+      Set_RHS (Table.Productions (26), 0, (26, 16, 18));
+      Set_RHS (Table.Productions (26), 1, (1 => 18));
       Set_Production (Table.Productions (27), 27, 1);
-      Set_RHS (Table.Productions (27), 0, (1 => 26));
-      Set_RHS (Table.Productions (27), 1, (27, 15, 26));
+      Set_RHS (Table.Productions (27), 0, (27, 15, 26));
+      Set_RHS (Table.Productions (27), 1, (1 => 26));
       Set_Production (Table.Productions (28), 28, 2);
-      Set_RHS (Table.Productions (28), 0, (13, 14));
-      Set_RHS (Table.Productions (28), 1, (1 .. 0 => <>));
-      Set_RHS (Table.Productions (28), 2, (13, 18, 14));
+      Set_RHS (Table.Productions (28), 0, (13, 18, 14));
+      Set_RHS (Table.Productions (28), 1, (13, 14));
+      Set_RHS (Table.Productions (28), 2, (1 .. 0 => <>));
       Set_Production (Table.Productions (29), 29, 1);
       Set_RHS (Table.Productions (29), 0, (7, 26, 28, 21, 17));
       Set_RHS (Table.Productions (29), 1, (10, 26, 28, 4, 26, 17));
@@ -132,71 +129,71 @@ package body Subprograms_Process_Main is
       Add_Error (Table.States (0));
       Add_Goto (Table.States (0), (20, 0), 22, 4);
       Add_Goto (Table.States (0), (22, 0), 23, 5);
-      Add_Goto (Table.States (0), (23, 0), 24, 6);
+      Add_Goto (Table.States (0), (23, 1), 24, 6);
       Add_Goto (Table.States (0), (24, 0), 29, 7);
       Add_Goto (Table.States (0), (24, 1), 31, 8);
       Table.States (1).Productions := WisiToken.To_Vector ((1 => (29, 0)));
-      Add_Action (Table.States (1), (1 => (26, 0)), 18, 10);
+      Add_Action (Table.States (1), (1 => (26, 1)), 18, 10);
       Add_Error (Table.States (1));
-      Add_Goto (Table.States (1), (26, 1), 26, 14);
+      Add_Goto (Table.States (1), (26, 0), 26, 14);
       Table.States (2).Productions := WisiToken.To_Vector ((1 => (29, 1)));
-      Add_Action (Table.States (2), (1 => (26, 0)), 18, 10);
+      Add_Action (Table.States (2), (1 => (26, 1)), 18, 10);
       Add_Error (Table.States (2));
-      Add_Goto (Table.States (2), (26, 1), 26, 13);
+      Add_Goto (Table.States (2), (26, 0), 26, 13);
       Table.States (3).Productions := WisiToken.To_Vector ((1 => (31, 0)));
-      Add_Action (Table.States (3), (1 => (26, 0)), 18, 10);
+      Add_Action (Table.States (3), (1 => (26, 1)), 18, 10);
       Add_Error (Table.States (3));
-      Add_Goto (Table.States (3), (26, 1), 26, 11);
-      Add_Goto (Table.States (3), (27, 1), 27, 12);
+      Add_Goto (Table.States (3), (26, 0), 26, 11);
+      Add_Goto (Table.States (3), (27, 0), 27, 12);
       Table.States (4).Productions := WisiToken.To_Vector ((1 => (20, 0)));
       Add_Action (Table.States (4), 19, Accept_It, (20, 0), 1, null, null);
       Add_Error (Table.States (4));
-      Table.States (5).Productions := WisiToken.To_Vector (((22, 0), (23, 1)));
+      Table.States (5).Productions := WisiToken.To_Vector (((22, 0), (23, 0)));
       Add_Action (Table.States (5), (1 => (29, 0)), 7, 1);
       Add_Action (Table.States (5), (1 => (29, 1)), 10, 2);
       Add_Action (Table.States (5), (1 => (31, 0)), 12, 3);
       Add_Action (Table.States (5), 19, Reduce, (22, 0), 1, null, null);
       Add_Error (Table.States (5));
-      Add_Goto (Table.States (5), (23, 1), 24, 9);
+      Add_Goto (Table.States (5), (23, 0), 24, 9);
       Add_Goto (Table.States (5), (24, 0), 29, 7);
       Add_Goto (Table.States (5), (24, 1), 31, 8);
-      Table.States (6).Productions := WisiToken.To_Vector ((1 => (23, 0)));
-      Add_Action (Table.States (6), (7, 10, 12, 19), (23, 0), 1, null, null);
+      Table.States (6).Productions := WisiToken.To_Vector ((1 => (23, 1)));
+      Add_Action (Table.States (6), (7, 10, 12, 19), (23, 1), 1, null, null);
       Table.States (7).Productions := WisiToken.To_Vector ((1 => (24, 0)));
       Add_Action (Table.States (7), (7, 10, 12, 19), (24, 0), 1, null, null);
       Table.States (8).Productions := WisiToken.To_Vector ((1 => (24, 1)));
       Add_Action (Table.States (8), (7, 10, 12, 19), (24, 1), 1, null, null);
-      Table.States (9).Productions := WisiToken.To_Vector ((1 => (23, 1)));
-      Add_Action (Table.States (9), (7, 10, 12, 19), (23, 1), 2, null, null);
-      Table.States (10).Productions := WisiToken.To_Vector ((1 => (26, 0)));
-      Add_Action (Table.States (10), (3, 4, 9, 13, 15, 16, 17), (26, 0), 1, name_0'Access, name_0_check'Access);
-      Table.States (11).Productions := WisiToken.To_Vector (((26, 1), (27, 0)));
-      Add_Action (Table.States (11), 15, Reduce, (27, 0), 1, null, null);
-      Add_Action (Table.States (11), (1 => (26, 1)), 16, 16);
-      Add_Action (Table.States (11), 17, Reduce, (27, 0), 1, null, null);
+      Table.States (9).Productions := WisiToken.To_Vector ((1 => (23, 0)));
+      Add_Action (Table.States (9), (7, 10, 12, 19), (23, 0), 2, null, null);
+      Table.States (10).Productions := WisiToken.To_Vector ((1 => (26, 1)));
+      Add_Action (Table.States (10), (3, 4, 9, 13, 15, 16, 17), (26, 1), 1, name_1'Access, name_1_check'Access);
+      Table.States (11).Productions := WisiToken.To_Vector (((26, 0), (27, 1)));
+      Add_Action (Table.States (11), 15, Reduce, (27, 1), 1, null, null);
+      Add_Action (Table.States (11), (1 => (26, 0)), 16, 16);
+      Add_Action (Table.States (11), 17, Reduce, (27, 1), 1, null, null);
       Add_Error (Table.States (11));
-      Table.States (12).Productions := WisiToken.To_Vector (((27, 1), (31, 0)));
-      Add_Action (Table.States (12), (1 => (27, 1)), 15, 19);
+      Table.States (12).Productions := WisiToken.To_Vector (((27, 0), (31, 0)));
+      Add_Action (Table.States (12), (1 => (27, 0)), 15, 19);
       Add_Action (Table.States (12), (1 => (31, 0)), 17, 20);
       Add_Error (Table.States (12));
-      Table.States (13).Productions := WisiToken.To_Vector (((26, 1), (29, 1)));
-      Add_Action (Table.States (13), 4, Reduce, (28, 1), 0, null, null);
-      Add_Action (Table.States (13), ((28, 0), (28, 2)), 13, 15);
-      Add_Action (Table.States (13), (1 => (26, 1)), 16, 16);
+      Table.States (13).Productions := WisiToken.To_Vector (((26, 0), (29, 1)));
+      Add_Action (Table.States (13), 4, Reduce, (28, 2), 0, null, null);
+      Add_Action (Table.States (13), ((28, 0), (28, 1)), 13, 15);
+      Add_Action (Table.States (13), (1 => (26, 0)), 16, 16);
       Add_Error (Table.States (13));
       Add_Goto (Table.States (13), (29, 1), 28, 18);
-      Table.States (14).Productions := WisiToken.To_Vector (((26, 1), (29, 0)));
-      Add_Action (Table.States (14), 3, Reduce, (28, 1), 0, null, null);
-      Add_Action (Table.States (14), ((28, 0), (28, 2)), 13, 15);
-      Add_Action (Table.States (14), (1 => (26, 1)), 16, 16);
+      Table.States (14).Productions := WisiToken.To_Vector (((26, 0), (29, 0)));
+      Add_Action (Table.States (14), 3, Reduce, (28, 2), 0, null, null);
+      Add_Action (Table.States (14), ((28, 0), (28, 1)), 13, 15);
+      Add_Action (Table.States (14), (1 => (26, 0)), 16, 16);
       Add_Error (Table.States (14));
       Add_Goto (Table.States (14), (29, 0), 28, 17);
-      Table.States (15).Productions := WisiToken.To_Vector (((28, 0), (28, 2)));
-      Add_Action (Table.States (15), (1 => (28, 0)), 14, 26);
-      Add_Action (Table.States (15), (1 => (28, 2)), 18, 27);
+      Table.States (15).Productions := WisiToken.To_Vector (((28, 0), (28, 1)));
+      Add_Action (Table.States (15), (1 => (28, 1)), 14, 26);
+      Add_Action (Table.States (15), (1 => (28, 0)), 18, 27);
       Add_Error (Table.States (15));
-      Table.States (16).Productions := WisiToken.To_Vector ((1 => (26, 1)));
-      Add_Action (Table.States (16), (1 => (26, 1)), 18, 25);
+      Table.States (16).Productions := WisiToken.To_Vector ((1 => (26, 0)));
+      Add_Action (Table.States (16), (1 => (26, 0)), 18, 25);
       Add_Error (Table.States (16));
       Table.States (17).Productions := WisiToken.To_Vector ((1 => (29, 0)));
       Add_Action (Table.States (17), ((21, 0), (21, 1)), 3, 23);
@@ -205,76 +202,76 @@ package body Subprograms_Process_Main is
       Table.States (18).Productions := WisiToken.To_Vector ((1 => (29, 1)));
       Add_Action (Table.States (18), (1 => (29, 1)), 4, 22);
       Add_Error (Table.States (18));
-      Table.States (19).Productions := WisiToken.To_Vector ((1 => (27, 1)));
-      Add_Action (Table.States (19), (1 => (26, 0)), 18, 10);
+      Table.States (19).Productions := WisiToken.To_Vector ((1 => (27, 0)));
+      Add_Action (Table.States (19), (1 => (26, 1)), 18, 10);
       Add_Error (Table.States (19));
-      Add_Goto (Table.States (19), (26, 1), 26, 21);
+      Add_Goto (Table.States (19), (26, 0), 26, 21);
       Table.States (20).Productions := WisiToken.To_Vector ((1 => (31, 0)));
       Add_Action (Table.States (20), (7, 10, 12, 19), (31, 0), 3, use_clause_0'Access, null);
-      Table.States (21).Productions := WisiToken.To_Vector (((26, 1), (27, 1)));
-      Add_Action (Table.States (21), 15, Reduce, (27, 1), 3, null, null);
-      Add_Action (Table.States (21), (1 => (26, 1)), 16, 16);
-      Add_Action (Table.States (21), 17, Reduce, (27, 1), 3, null, null);
+      Table.States (21).Productions := WisiToken.To_Vector (((26, 0), (27, 0)));
+      Add_Action (Table.States (21), 15, Reduce, (27, 0), 3, null, null);
+      Add_Action (Table.States (21), (1 => (26, 0)), 16, 16);
+      Add_Action (Table.States (21), 17, Reduce, (27, 0), 3, null, null);
       Add_Error (Table.States (21));
       Table.States (22).Productions := WisiToken.To_Vector ((1 => (29, 1)));
-      Add_Action (Table.States (22), (1 => (26, 0)), 18, 10);
+      Add_Action (Table.States (22), (1 => (26, 1)), 18, 10);
       Add_Error (Table.States (22));
-      Add_Goto (Table.States (22), (26, 1), 26, 33);
+      Add_Goto (Table.States (22), (26, 0), 26, 33);
       Table.States (23).Productions := WisiToken.To_Vector (((21, 0), (21, 1)));
-      Add_Action (Table.States (23), (1 => (21, 0)), 4, 30);
+      Add_Action (Table.States (23), (1 => (21, 1)), 4, 30);
       Add_Action (Table.States (23), (1 => (25, 0)), 6, 31);
       Add_Error (Table.States (23));
-      Add_Goto (Table.States (23), (21, 1), 25, 32);
+      Add_Goto (Table.States (23), (21, 0), 25, 32);
       Table.States (24).Productions := WisiToken.To_Vector ((1 => (29, 0)));
       Add_Action (Table.States (24), (1 => (29, 0)), 17, 29);
       Add_Error (Table.States (24));
-      Table.States (25).Productions := WisiToken.To_Vector ((1 => (26, 1)));
-      Add_Action (Table.States (25), (3, 4, 9, 13, 15, 16, 17), (26, 1), 3, name_1'Access, name_1_check'Access);
-      Table.States (26).Productions := WisiToken.To_Vector ((1 => (28, 0)));
-      Add_Action (Table.States (26), (3, 4), (28, 0), 2, parameter_list_0'Access, null);
-      Table.States (27).Productions := WisiToken.To_Vector ((1 => (28, 2)));
-      Add_Action (Table.States (27), (1 => (28, 2)), 14, 28);
+      Table.States (25).Productions := WisiToken.To_Vector ((1 => (26, 0)));
+      Add_Action (Table.States (25), (3, 4, 9, 13, 15, 16, 17), (26, 0), 3, name_0'Access, name_0_check'Access);
+      Table.States (26).Productions := WisiToken.To_Vector ((1 => (28, 1)));
+      Add_Action (Table.States (26), (3, 4), (28, 1), 2, parameter_list_1'Access, null);
+      Table.States (27).Productions := WisiToken.To_Vector ((1 => (28, 0)));
+      Add_Action (Table.States (27), (1 => (28, 0)), 14, 28);
       Add_Error (Table.States (27));
-      Table.States (28).Productions := WisiToken.To_Vector ((1 => (28, 2)));
-      Add_Action (Table.States (28), (3, 4), (28, 2), 3, parameter_list_2'Access, null);
+      Table.States (28).Productions := WisiToken.To_Vector ((1 => (28, 0)));
+      Add_Action (Table.States (28), (3, 4), (28, 0), 3, parameter_list_0'Access, null);
       Table.States (29).Productions := WisiToken.To_Vector ((1 => (29, 0)));
       Add_Action (Table.States (29), (7, 10, 12, 19), (29, 0), 5, subprogram_0'Access, null);
-      Table.States (30).Productions := WisiToken.To_Vector ((1 => (21, 0)));
-      Add_Action (Table.States (30), (1 =>  17), (21, 0), 2, null, null);
+      Table.States (30).Productions := WisiToken.To_Vector ((1 => (21, 1)));
+      Add_Action (Table.States (30), (1 =>  17), (21, 1), 2, null, null);
       Table.States (31).Productions := WisiToken.To_Vector ((1 => (25, 0)));
       Add_Action (Table.States (31), (1 => (25, 0)), 18, 36);
       Add_Error (Table.States (31));
-      Table.States (32).Productions := WisiToken.To_Vector ((1 => (21, 1)));
-      Add_Action (Table.States (32), (1 => (21, 1)), 5, 35);
+      Table.States (32).Productions := WisiToken.To_Vector ((1 => (21, 0)));
+      Add_Action (Table.States (32), (1 => (21, 0)), 5, 35);
       Add_Error (Table.States (32));
-      Table.States (33).Productions := WisiToken.To_Vector (((26, 1), (29, 1)));
-      Add_Action (Table.States (33), (1 => (26, 1)), 16, 16);
+      Table.States (33).Productions := WisiToken.To_Vector (((26, 0), (29, 1)));
+      Add_Action (Table.States (33), (1 => (26, 0)), 16, 16);
       Add_Action (Table.States (33), (1 => (29, 1)), 17, 34);
       Add_Error (Table.States (33));
       Table.States (34).Productions := WisiToken.To_Vector ((1 => (29, 1)));
       Add_Action (Table.States (34), (7, 10, 12, 19), (29, 1), 6, subprogram_1'Access, null);
-      Table.States (35).Productions := WisiToken.To_Vector ((1 => (21, 1)));
-      Add_Action (Table.States (35), (1 => (21, 1)), 11, 38);
+      Table.States (35).Productions := WisiToken.To_Vector ((1 => (21, 0)));
+      Add_Action (Table.States (35), (1 => (21, 0)), 11, 38);
       Add_Error (Table.States (35));
       Table.States (36).Productions := WisiToken.To_Vector ((1 => (25, 0)));
       Add_Action (Table.States (36), (1 => (25, 0)), 8, 37);
       Add_Error (Table.States (36));
       Table.States (37).Productions := WisiToken.To_Vector ((1 => (25, 0)));
-      Add_Action (Table.States (37), (1 => (26, 0)), 18, 10);
+      Add_Action (Table.States (37), (1 => (26, 1)), 18, 10);
       Add_Error (Table.States (37));
-      Add_Goto (Table.States (37), (26, 1), 26, 40);
+      Add_Goto (Table.States (37), (26, 0), 26, 40);
       Add_Goto (Table.States (37), (25, 0), 30, 41);
-      Table.States (38).Productions := WisiToken.To_Vector ((1 => (21, 1)));
-      Add_Action (Table.States (38), (1 => (26, 0)), 18, 10);
+      Table.States (38).Productions := WisiToken.To_Vector ((1 => (21, 0)));
+      Add_Action (Table.States (38), (1 => (26, 1)), 18, 10);
       Add_Error (Table.States (38));
-      Add_Goto (Table.States (38), (21, 1), 26, 39);
-      Table.States (39).Productions := WisiToken.To_Vector (((21, 1), (26, 1)));
-      Add_Action (Table.States (39), (1 => (21, 1)), 4, 43);
-      Add_Action (Table.States (39), (1 => (26, 1)), 16, 16);
+      Add_Goto (Table.States (38), (21, 0), 26, 39);
+      Table.States (39).Productions := WisiToken.To_Vector (((21, 0), (26, 0)));
+      Add_Action (Table.States (39), (1 => (21, 0)), 4, 43);
+      Add_Action (Table.States (39), (1 => (26, 0)), 16, 16);
       Add_Error (Table.States (39));
-      Table.States (40).Productions := WisiToken.To_Vector (((26, 1), (30, 0)));
+      Table.States (40).Productions := WisiToken.To_Vector (((26, 0), (30, 0)));
       Add_Action (Table.States (40), 9, Reduce, (30, 0), 1, subtype_0'Access, null);
-      Add_Action (Table.States (40), (1 => (26, 1)), 16, 16);
+      Add_Action (Table.States (40), (1 => (26, 0)), 16, 16);
       Add_Error (Table.States (40));
       Table.States (41).Productions := WisiToken.To_Vector ((1 => (25, 0)));
       Add_Action (Table.States (41), (1 => (25, 0)), 9, 42);
@@ -282,8 +279,8 @@ package body Subprograms_Process_Main is
       Table.States (42).Productions := WisiToken.To_Vector ((1 => (25, 0)));
       Add_Action (Table.States (42), (1 => (25, 0)), 17, 44);
       Add_Error (Table.States (42));
-      Table.States (43).Productions := WisiToken.To_Vector ((1 => (21, 1)));
-      Add_Action (Table.States (43), (1 =>  17), (21, 1), 6, block_1'Access, null);
+      Table.States (43).Productions := WisiToken.To_Vector ((1 => (21, 0)));
+      Add_Action (Table.States (43), (1 =>  17), (21, 0), 6, block_0'Access, null);
       Table.States (44).Productions := WisiToken.To_Vector ((1 => (25, 0)));
       Add_Action (Table.States (44), (1 =>  5), (25, 0), 6, loop_statement_0'Access, null);
 
@@ -297,7 +294,6 @@ package body Subprograms_Process_Main is
          Language_String_ID_Set,
          User_Data,
          Max_Parallel         => 15,
-         First_Parser_Label   => 0,
          Terminate_Same_State => True);
    end Create_Parser;
-end Subprograms_Process_Main;
+end Subprograms_Process_LALR_Main;

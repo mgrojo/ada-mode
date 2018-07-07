@@ -88,16 +88,35 @@ package body WisiToken.Wisi_Grammar_Runtime is
       A_Index : in     Syntax_Trees.Valid_Node_Index;
       B_Index : in     Syntax_Trees.Valid_Node_Index)
    is
+      use all type Wisi.Generate_Set_Access;
       use all type Wisi.Lexer_Type;
    begin
       if "lexer" = Get_Text (Data, Tree, A_Index) then
          Data.If_Lexer_Present := True;
          if Data.User_Lexer = None then
-            raise Grammar_Error with "%if lexer present, but lexer not specified";
+            if Data.Generate_Set /= null then
+               for Quad of Data.Generate_Set.all loop
+                  if Quad.Lexer /= None then
+                     Data.User_Lexer := Quad.Lexer;
+                     exit;
+                  end if;
+               end loop;
+
+            end if;
+         end if;
+
+         if Data.User_Lexer = None then
+            raise Grammar_Error with
+              Error_Message
+                (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (A_Index)).Line,
+                 "%if lexer present, but lexer not specified");
          end if;
          Data.Ignore_Lines := Data.User_Lexer /= Wisi.To_Lexer (Get_Text (Data, Tree, B_Index));
       else
-         raise Grammar_Error with "invalid '%if'; only 'lexer' supported";
+         raise Grammar_Error with
+           Error_Message
+             (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (A_Index)).Line,
+              "invalid '%if'; only 'lexer' supported");
       end if;
    end Start_If_1;
 
@@ -247,9 +266,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
          use all type SAL.Base_Peek_Type;
       begin
          if Tokens'Last < Index then
-            raise Grammar_Error;
+            raise Programmer_Error;
          elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Shared_Terminal then
-            raise Grammar_Error;
+            raise Programmer_Error;
          else
             return Data.Terminals.all (Tree.Terminal (Tokens (Index)));
          end if;
@@ -360,13 +379,19 @@ package body WisiToken.Wisi_Grammar_Runtime is
                        (if Get_Loc (3) = "context" then Wisi.Actions_Spec_Context
                         elsif Get_Loc (3) = "pre" then Wisi.Actions_Spec_Pre
                         elsif Get_Loc (3) = "post" then Wisi.Actions_Spec_Post
-                        else raise Grammar_Error)
+                        else raise Grammar_Error with
+                          Error_Message
+                            (Data.Grammar_Lexer.File_Name, Loc_List (2).Line,
+                            "expecting {context | pre | post}"))
 
                      elsif Get_Loc (2) = "body" then
                        (if Get_Loc (3) = "context" then Wisi.Actions_Body_Context
                         elsif Get_Loc (3) = "pre" then Wisi.Actions_Body_Pre
                         elsif Get_Loc (3) = "post" then Wisi.Actions_Body_Post
-                        else raise Grammar_Error)
+                        else raise Grammar_Error with
+                          Error_Message
+                            (Data.Grammar_Lexer.File_Name, Loc_List (2).Line,
+                            "expecting {context | pre | post}"))
 
                      else raise Grammar_Error);
 
@@ -374,7 +399,10 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   Location := Wisi.Copyright_License;
 
                else
-                  raise Grammar_Error;
+                  raise Grammar_Error with
+                    Error_Message
+                      (Data.Grammar_Lexer.File_Name, Loc_List (Loc_List'First).Line,
+                       "expecting {actions | copyright_license}");
                end if;
 
                Data.Raw_Code (Location) := Wisi.Split_Lines (Get_Text (Data, Tree, Tokens (4)));
@@ -509,16 +537,15 @@ package body WisiToken.Wisi_Grammar_Runtime is
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                else
-                  Put_Error
-                    (Error_Message
-                       (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax"));
-                  raise WisiToken.Grammar_Error;
+                  raise Grammar_Error with Error_Message
+                    (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
 
                end if;
             end;
 
          when others =>
-            raise Grammar_Error;
+            raise Grammar_Error with Error_Message
+              (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
          end case;
 
       when Syntax_Trees.Virtual_Terminal =>
@@ -545,9 +572,8 @@ package body WisiToken.Wisi_Grammar_Runtime is
          declare
             LHS_Token : Base_Token renames Data.Terminals.all (Tree.Terminal (Tokens (1)));
          begin
-            Put_Error
-              (Error_Message (Data.Grammar_Lexer.File_Name, LHS_Token.Line, LHS_Token.Column, "duplicate nonterm"));
-            raise WisiToken.Grammar_Error;
+            raise Grammar_Error with Error_Message
+              (Data.Grammar_Lexer.File_Name, LHS_Token.Line, LHS_Token.Column, "duplicate nonterm");
          end;
       else
          Data.Tokens.Rules.Append

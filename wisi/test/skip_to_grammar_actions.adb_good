@@ -1,0 +1,19 @@
+--  generated parser support file.
+--  command line: wisi-generate.exe  --generate PACKRAT_PROC ADA ../../wisi/test/skip_to_grammar.wy
+--
+with Test_Skip_To_Aux; use Test_Skip_To_Aux;
+
+package body Skip_To_Grammar_Actions is
+
+   procedure declaration_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (User_Data, Tokens);
+   begin
+      Test_Declaration_0 ((Tree.ID (Nonterm), Tree.Byte_Region (Nonterm), others => <>));
+   end declaration_0;
+
+end Skip_To_Grammar_Actions;

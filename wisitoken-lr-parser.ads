@@ -104,7 +104,6 @@ package WisiToken.LR.Parser is
       Parsers : aliased Parser_Lists.List;
 
       Max_Parallel            : SAL.Base_Peek_Type;
-      First_Parser_Label      : Integer;
       Terminate_Same_State    : Boolean;
       Enable_McKenzie_Recover : Boolean;
    end record;
@@ -122,7 +121,6 @@ package WisiToken.LR.Parser is
       Language_String_ID_Set       : in              Language_String_ID_Set_Access;
       User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
       Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      First_Parser_Label           : in              Integer            := 1;
       Terminate_Same_State         : in              Boolean            := True);
 
    overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser);

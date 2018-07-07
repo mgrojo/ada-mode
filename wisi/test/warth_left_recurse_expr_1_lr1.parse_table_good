@@ -1,0 +1,58 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => MINUS
+ 3 => NUMERIC_LITERAL
+ 4 => Wisi_EOI
+ 5 => wisitoken_accept
+ 6 => expr
+
+Productions:
+5.0: wisitoken_accept <= expr Wisi_EOI
+6.0: expr <= expr MINUS NUMERIC_LITERAL
+6.1: expr <= NUMERIC_LITERAL
+
+LR1 Parse Table:
+State 0:
+      5.0:wisitoken_accept <= ^ expr Wisi_EOI, Wisi_EOI
+
+   NUMERIC_LITERAL  => shift and goto state 1 (6.1)
+   default          => ERROR
+
+      5.0: expr             goto state 2
+
+State 1:
+      6.1:expr <= NUMERIC_LITERAL ^, MINUS/Wisi_EOI
+
+   MINUS            => reduce 1 tokens to expr 6.1
+   Wisi_EOI         => reduce 1 tokens to expr 6.1
+   default          => ERROR
+
+State 2:
+      5.0:wisitoken_accept <= expr ^ Wisi_EOI, Wisi_EOI
+      6.0:expr <= expr ^ MINUS NUMERIC_LITERAL, MINUS/Wisi_EOI
+
+   MINUS            => shift and goto state 3 (6.0)
+   Wisi_EOI         => accept it 5.0
+   default          => ERROR
+
+State 3:
+      6.0:expr <= expr MINUS ^ NUMERIC_LITERAL, MINUS/Wisi_EOI
+
+   NUMERIC_LITERAL  => shift and goto state 4 (6.0)
+   default          => ERROR
+
+State 4:
+      6.0:expr <= expr MINUS NUMERIC_LITERAL ^, MINUS/Wisi_EOI
+
+   MINUS            => reduce 3 tokens to expr 6.0
+   Wisi_EOI         => reduce 3 tokens to expr 6.0
+   default          => ERROR
+
+Minimal_Terminal_Sequences:
+wisitoken_accept => (NUMERIC_LITERAL, Wisi_EOI)
+expr => (NUMERIC_LITERAL)
+
+ 1 rules, 2 user actions, 0 checks, 5 states, 13 parse actions
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
+

@@ -1,21 +1,20 @@
 ;;; range_conflict-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisi-generate.exe --generator_algorithm LALR_LR1 --output_language Elisp --lexer Elisp
-;;  ../wisi/test/range_conflict.wy
+;;  command line: wisi-generate.exe  --generate LALR ELISP ../../wisi/test/range_conflict.wy
 
-;; Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
 ;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
 (require 'wisi-compile)
@@ -46,16 +45,15 @@
 (defconst range_conflict-lalr-elisp-parse-table
    (wisi-compile-grammar
    '(((compilation_unit
-       ((membership_choice range )
-        (setq wisi-test-success t)))
+       ((membership_choice range_g )))
       (membership_choice
        ((primary ))
-       ((range )))
+       ((range_g )))
       (primary
        ((IDENTIFIER ))
        ((STRING_LITERAL ))
        ((LEFT_PAREN relation RIGHT_PAREN )))
-      (range
+      (range_g
        ((IDENTIFIER TICK RANGE LEFT_PAREN relation RIGHT_PAREN ))
        ((IDENTIFIER TICK RANGE ))
        ((primary DOT_DOT primary )))
@@ -78,18 +76,18 @@
       ((default . error) (RIGHT_PAREN .  15))
       ((default . error) (IN . (primary . 2)) (LEFT_PAREN . (primary . 2)) (RIGHT_PAREN . (primary . 2)) (DOT_DOT . (primary . 2)) (IDENTIFIER . (primary . 2)) (STRING_LITERAL . (primary . 2)) (Wisi_EOI . (primary . 2)))
       ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  2) (STRING_LITERAL .  3))
-      ((default . error) (LEFT_PAREN . ( 19 (range . 1))) (RIGHT_PAREN . (range . 1)) (IDENTIFIER . (range . 1)) (STRING_LITERAL . (range . 1)) (Wisi_EOI . (range . 1)))
-      ((default . error) (LEFT_PAREN . (range . 2)) (RIGHT_PAREN . (range . 2)) (IDENTIFIER . (range . 2)) (STRING_LITERAL . (range . 2)) (Wisi_EOI . (range . 2)))
+      ((default . error) (LEFT_PAREN . ( 19 (range_g . 1))) (RIGHT_PAREN . (range_g . 1)) (IDENTIFIER . (range_g . 1)) (STRING_LITERAL . (range_g . 1)) (Wisi_EOI . (range_g . 1)))
+      ((default . error) (LEFT_PAREN . (range_g . 2)) (RIGHT_PAREN . (range_g . 2)) (IDENTIFIER . (range_g . 2)) (STRING_LITERAL . (range_g . 2)) (Wisi_EOI . (range_g . 2)))
       ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  12) (STRING_LITERAL .  3))
       ((default . error) (RIGHT_PAREN . (relation . 0)))
       ((default . error) (RIGHT_PAREN .  22))
-      ((default . error) (LEFT_PAREN . (range . 0)) (RIGHT_PAREN . (range . 0)) (IDENTIFIER . (range . 0)) (STRING_LITERAL . (range . 0)) (Wisi_EOI . (range . 0)))]
-     [((compilation_unit . 4)(membership_choice . 5)(primary . 6)(range . 7))
+      ((default . error) (LEFT_PAREN . (range_g . 0)) (RIGHT_PAREN . (range_g . 0)) (IDENTIFIER . (range_g . 0)) (STRING_LITERAL . (range_g . 0)) (Wisi_EOI . (range_g . 0)))]
+     [((compilation_unit . 4)(membership_choice . 5)(primary . 6)(range_g . 7))
       ((primary . 13)(relation . 14))
       nil
       nil
       nil
-      ((primary . 9)(range . 10))
+      ((primary . 9)(range_g . 10))
       nil
       nil
       ((primary . 18))
@@ -100,7 +98,7 @@
       nil
       nil
       nil
-      ((membership_choice . 20)(primary . 6)(range . 7))
+      ((membership_choice . 20)(primary . 6)(range_g . 7))
       nil
       nil
       ((primary . 13)(relation . 21))

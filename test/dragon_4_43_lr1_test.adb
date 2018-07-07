@@ -63,9 +63,6 @@ package body Dragon_4_43_LR1_Test is
       Case_Insensitive  => False);
    use Token_Enum;
 
-   First_State_Index  : constant := 0;
-   First_Parser_Label : constant := 1;
-
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
@@ -150,7 +147,7 @@ package body Dragon_4_43_LR1_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant Item_Set_List := WisiToken.LR.LR1_Generator.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug > 0);
+        (Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => Test.Debug > 0);
 
       Expected : constant Item_Set_List :=
         --  [dragon] fig 4.39 pg 235 shows the item sets and gotos. We
@@ -230,8 +227,7 @@ package body Dragon_4_43_LR1_Test is
       use WisiToken.LR;
       use WisiToken.LR.AUnit;
 
-      Computed : constant Parse_Table_Ptr := WisiToken.LR.LR1_Generator.Generate
-        (Grammar, LR1_Descriptor, First_State_Index);
+      Computed : constant Parse_Table_Ptr := WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -337,13 +333,11 @@ package body Dragon_4_43_LR1_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index),
-
+         WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,
-         Language_String_ID_Set       => null,
-         First_Parser_Label           => First_Parser_Label);
+         Language_String_ID_Set       => null);
 
       Execute_Command ("cdcd");
    end Test_Parse;

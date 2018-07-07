@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe -v 1 wisi_grammar.wy
+--  command line: wisi-generate.exe  --generate LALR ADA re2c wisi_grammar.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -21,9 +21,9 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with Wisi_Grammar_Actions; use Wisi_Grammar_Actions;
 with WisiToken.Lexer.re2c;
 with wisi_grammar_re2c_c;
+with Wisi_Grammar_Actions; use Wisi_Grammar_Actions;
 package body Wisi_Grammar_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
@@ -33,18 +33,18 @@ package body Wisi_Grammar_Main is
       wisi_grammar_re2c_c.Next_Token);
 
    procedure Create_Parser
-     (Parser    :    out          WisiToken.LR.Parser_No_Recover.Parser;
-      Trace     : not null access WisiToken.Trace'Class;
-      User_Data : in              WisiToken.Syntax_Trees.User_Data_Access)
+     (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;
+      Trace                        : not null access WisiToken.Trace'Class;
+      User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
       use WisiToken.LR;
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
          State_Last        => 61,
-         First_Terminal    => Descriptor.First_Terminal,
-         Last_Terminal     => Descriptor.Last_Terminal,
-         First_Nonterminal => Descriptor.First_Nonterminal,
-         Last_Nonterminal  => Descriptor.Last_Nonterminal);
+         First_Terminal    => Trace.Descriptor.First_Terminal,
+         Last_Terminal     => Trace.Descriptor.Last_Terminal,
+         First_Nonterminal => Trace.Descriptor.First_Nonterminal,
+         Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);
    begin
       Table.McKenzie_Param :=
         (First_Terminal    => 3,

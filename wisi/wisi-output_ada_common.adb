@@ -624,8 +624,6 @@ package body Wisi.Output_Ada_Common is
       Generate_Data : aliased in     Wisi.Generate_Utils.Generate_Data)
    is
       use Wisi.Utils;
-      First_State_Index  : constant Integer := 0;
-      First_Parser_Label : constant Integer := 0;
    begin
       Indent_Line ("procedure Create_Parser");
       case Common_Data.Interface_Kind is
@@ -654,7 +652,7 @@ package body Wisi.Output_Ada_Common is
 
       Indent_Line ("use WisiToken.LR;");
       Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
-      Indent_Line ("  (State_First       =>" & Integer'Image (First_State_Index) & ",");
+      Indent_Line ("  (State_First       => 0,");
       Indent := Indent + 3;
       Indent_Start ("State_Last        => ");
 
@@ -706,7 +704,6 @@ package body Wisi.Output_Ada_Common is
          end if;
          Indent_Line ("   User_Data,");
          Indent_Line ("   Max_Parallel         => 15,");
-         Indent_Line ("   First_Parser_Label   => " & WisiToken.Trimmed_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");
 
       when Module =>
@@ -727,8 +724,8 @@ package body Wisi.Output_Ada_Common is
       use Wisi.Utils;
       use WisiToken;
 
-      Text       : Unbounded_String;
-      Need_Comma : Boolean := True;
+      Text     : Unbounded_String;
+      Need_Bar : Boolean := True;
    begin
       Indent_Line ("function Create_Parser");
       Indent_Line ("  (Trace     : not null access WisiToken.Trace'Class;");
@@ -759,14 +756,14 @@ package body Wisi.Output_Ada_Common is
               Trimmed_Image (Generate_Data.Grammar.First_Index) & " .. " &
               Trimmed_Image (Generate_Data.Grammar.Last_Index) & ") :=");
 
-         Need_Comma := False;
+         Need_Bar := False;
          if Any (Packrat_Data.Direct_Left_Recursive) then
             for I in Packrat_Data.Direct_Left_Recursive'Range loop
                if Packrat_Data.Direct_Left_Recursive (I) then
-                  if Need_Comma then
-                     Text := Text & ", ";
+                  if Need_Bar then
+                     Text := Text & " | ";
                   else
-                     Need_Comma := True;
+                     Need_Bar := True;
                   end if;
                   Text := Text & Trimmed_Image (I);
                end if;

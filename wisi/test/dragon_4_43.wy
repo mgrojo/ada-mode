@@ -20,7 +20,8 @@
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"
 
-%non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 
 ;; comment.
 ;; no mckenzie

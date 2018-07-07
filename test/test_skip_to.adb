@@ -73,5 +73,5 @@ package body Test_Skip_To is
    end Register_Tests;
 
 begin
-   Skip_To_Grammar_Main.Create_Parser (Parser, WisiToken.LALR, Trace'Access, null);
+   Skip_To_Grammar_Main.Create_Parser (Parser, Trace'Access, null);
 end Test_Skip_To;

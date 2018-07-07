@@ -1,0 +1,146 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => COMMENT
+ 3 => PERCENT
+ 4 => PREAMBLE
+ 5 => IDENTIFIER
+ 6 => Wisi_EOI
+ 7 => wisitoken_accept
+ 8 => declaration
+ 9 => declaration_item_list
+ 10 => declaration_item
+ 11 => compilation_unit
+ 12 => compilation_unit_list
+
+Productions:
+7.0: wisitoken_accept <= compilation_unit_list Wisi_EOI
+8.0: declaration <= PERCENT IDENTIFIER declaration_item_list
+9.0: declaration_item_list <= declaration_item_list declaration_item
+9.1: declaration_item_list <= declaration_item
+10.0: declaration_item <= IDENTIFIER
+11.0: compilation_unit <= PREAMBLE
+11.1: compilation_unit <= declaration
+12.0: compilation_unit_list <= compilation_unit_list compilation_unit
+12.1: compilation_unit_list <= compilation_unit
+
+LALR Parse Table:
+State 0:
+      7.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI, 
+
+   PERCENT               => shift and goto state 1 (8.0)
+   PREAMBLE              => shift and goto state 2 (11.0)
+   default               => ERROR
+
+     11.1: declaration           goto state 3
+     12.1: compilation_unit      goto state 4
+      7.0: compilation_unit_list goto state 5
+
+State 1:
+      8.0:declaration <= PERCENT ^ IDENTIFIER declaration_item_list, PERCENT/PREAMBLE/Wisi_EOI
+
+   IDENTIFIER            => shift and goto state 7 (8.0)
+   default               => ERROR
+
+State 2:
+     11.0:compilation_unit <= PREAMBLE ^, PERCENT/PREAMBLE/Wisi_EOI
+
+   PERCENT               => reduce 1 tokens to compilation_unit 11.0
+   PREAMBLE              => reduce 1 tokens to compilation_unit 11.0
+   Wisi_EOI              => reduce 1 tokens to compilation_unit 11.0
+   default               => ERROR
+
+State 3:
+     11.1:compilation_unit <= declaration ^, PERCENT/PREAMBLE/Wisi_EOI
+
+   PERCENT               => reduce 1 tokens to compilation_unit 11.1
+   PREAMBLE              => reduce 1 tokens to compilation_unit 11.1
+   Wisi_EOI              => reduce 1 tokens to compilation_unit 11.1
+   default               => ERROR
+
+State 4:
+     12.1:compilation_unit_list <= compilation_unit ^, PERCENT/PREAMBLE/Wisi_EOI
+
+   PERCENT               => reduce 1 tokens to compilation_unit_list 12.1
+   PREAMBLE              => reduce 1 tokens to compilation_unit_list 12.1
+   Wisi_EOI              => reduce 1 tokens to compilation_unit_list 12.1
+   default               => ERROR
+
+State 5:
+      7.0:wisitoken_accept <= compilation_unit_list ^ Wisi_EOI, 
+     12.0:compilation_unit_list <= compilation_unit_list ^ compilation_unit, PERCENT/PREAMBLE/Wisi_EOI
+
+   PERCENT               => shift and goto state 1 (8.0)
+   PREAMBLE              => shift and goto state 2 (11.0)
+   Wisi_EOI              => accept it 7.0
+   default               => ERROR
+
+     11.1: declaration           goto state 3
+     12.0: compilation_unit      goto state 6
+
+State 6:
+     12.0:compilation_unit_list <= compilation_unit_list compilation_unit ^, PERCENT/PREAMBLE/Wisi_EOI
+
+   PERCENT               => reduce 2 tokens to compilation_unit_list 12.0
+   PREAMBLE              => reduce 2 tokens to compilation_unit_list 12.0
+   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 12.0
+   default               => ERROR
+
+State 7:
+      8.0:declaration <= PERCENT IDENTIFIER ^ declaration_item_list, PERCENT/PREAMBLE/Wisi_EOI
+
+   IDENTIFIER            => shift and goto state 8 (10.0)
+   default               => ERROR
+
+      8.0: declaration_item_list goto state 9
+      9.1: declaration_item      goto state 10
+
+State 8:
+     10.0:declaration_item <= IDENTIFIER ^, PERCENT/PREAMBLE/IDENTIFIER/Wisi_EOI
+
+   PERCENT               => reduce 1 tokens to declaration_item 10.0
+   PREAMBLE              => reduce 1 tokens to declaration_item 10.0
+   IDENTIFIER            => reduce 1 tokens to declaration_item 10.0
+   Wisi_EOI              => reduce 1 tokens to declaration_item 10.0
+   default               => ERROR
+
+State 9:
+      8.0:declaration <= PERCENT IDENTIFIER declaration_item_list ^, PERCENT/PREAMBLE/Wisi_EOI
+      9.0:declaration_item_list <= declaration_item_list ^ declaration_item, PERCENT/PREAMBLE/IDENTIFIER/Wisi_EOI
+
+   PERCENT               => reduce 3 tokens to declaration 8.0
+   PREAMBLE              => reduce 3 tokens to declaration 8.0
+   IDENTIFIER            => shift and goto state 8 (10.0)
+   Wisi_EOI              => reduce 3 tokens to declaration 8.0
+   default               => ERROR
+
+      9.0: declaration_item      goto state 11
+
+State 10:
+      9.1:declaration_item_list <= declaration_item ^, PERCENT/PREAMBLE/IDENTIFIER/Wisi_EOI
+
+   PERCENT               => reduce 1 tokens to declaration_item_list 9.1
+   PREAMBLE              => reduce 1 tokens to declaration_item_list 9.1
+   IDENTIFIER            => reduce 1 tokens to declaration_item_list 9.1
+   Wisi_EOI              => reduce 1 tokens to declaration_item_list 9.1
+   default               => ERROR
+
+State 11:
+      9.0:declaration_item_list <= declaration_item_list declaration_item ^, PERCENT/PREAMBLE/IDENTIFIER/Wisi_EOI
+
+   PERCENT               => reduce 2 tokens to declaration_item_list 9.0
+   PREAMBLE              => reduce 2 tokens to declaration_item_list 9.0
+   IDENTIFIER            => reduce 2 tokens to declaration_item_list 9.0
+   Wisi_EOI              => reduce 2 tokens to declaration_item_list 9.0
+   default               => ERROR
+
+Minimal_Terminal_Sequences:
+wisitoken_accept => (PREAMBLE, Wisi_EOI)
+declaration => (PERCENT, IDENTIFIER, IDENTIFIER)
+declaration_item_list => (IDENTIFIER)
+declaration_item => (IDENTIFIER)
+compilation_unit => (PREAMBLE)
+compilation_unit_list => (PREAMBLE)
+
+ 5 rules, 1 user actions, 0 checks, 12 states, 47 parse actions
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
