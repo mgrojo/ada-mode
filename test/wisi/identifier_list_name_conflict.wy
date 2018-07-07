@@ -38,8 +38,7 @@
 
 ;; not first nonterminal
 %start compilation
-%generator_algorithm LALR
-%output_language Elisp
+%generate LALR Elisp
 
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN

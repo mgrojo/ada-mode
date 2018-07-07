@@ -1547,7 +1547,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       return
         (case Tree.Label (Tree_Index) is
-         when Shared_Terminal => Data.Terminals.Variable_Reference (Tree.Terminal (Tree_Index)),
+         when Shared_Terminal => Data.Terminals.Variable_Ref (Tree.Terminal (Tree_Index)),
          when Virtual_Terminal => raise Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
          when Nonterm => (Element => Augmented_Token_Access (Tree.Augmented (Tree_Index))));
    end Get_Aug_Token;

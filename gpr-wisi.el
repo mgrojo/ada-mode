@@ -1,6 +1,6 @@
 ;; gpr-wisi.el --- Indentation engine for gpr mode, using the wisi parser  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2013 - 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -23,7 +23,7 @@
 ;;
 ;;;;
 
-(require 'gpr-elisp)
+(require 'gpr-lalr-elisp)
 (require 'gpr-indent-user-options)
 (require 'gpr-mode)
 (require 'wisi)
@@ -108,9 +108,8 @@
    (cond
     ((or (null gpr-parser)
 	 (eq 'elisp gpr-parser))
-     (require 'gpr-elisp)
      (wisi-make-elisp-parser
-      gpr-elisp-parse-table
+      gpr-lalr-elisp-parse-table
       #'wisi-forward-token))
 
     ((eq 'process gpr-parser)
@@ -125,8 +124,8 @@
     )
 
    :lexer (wisi-make-elisp-lexer
-	   :token-table-raw gpr-elisp-token-table-raw
-	   :keyword-table-raw gpr-elisp-keyword-table-raw
+	   :token-table-raw gpr-lalr-elisp-token-table-raw
+	   :keyword-table-raw gpr-lalr-elisp-keyword-table-raw
 	   :string-quote-escape-doubled nil
 	   :string-quote-escape nil))
 

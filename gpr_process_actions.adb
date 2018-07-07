@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process gpr.wy
+--  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS gpr.wy
 --
 
 --  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
@@ -37,7 +37,8 @@ package body Gpr_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple,
+         (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end aggregate_g_0;
 
@@ -55,7 +56,9 @@ package body Gpr_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False,
+         (Simple, (Int, 0)))));
       end case;
    end attribute_declaration_0;
 
@@ -73,7 +76,10 @@ package body Gpr_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end attribute_declaration_1;
 
@@ -91,7 +97,10 @@ package body Gpr_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken - 1))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end attribute_declaration_2;
 
@@ -110,7 +119,9 @@ package body Gpr_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent_When)), (Simple, (Int, Gpr_Indent_When))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent_When)), (Simple, (Int,
+         Gpr_Indent_When))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end case_statement_0;
 
@@ -128,7 +139,8 @@ package body Gpr_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, Gpr_Indent)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, Gpr_Indent)))));
       end case;
    end case_item_0;
 
@@ -158,7 +170,9 @@ package body Gpr_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 1, 0), (6, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int,
+         Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end package_spec_0;
 
@@ -188,7 +202,10 @@ package body Gpr_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 1, 0), (8, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False,
+         (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int,
+         0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end package_extension_0;
 
@@ -236,7 +253,10 @@ package body Gpr_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 1, 0), (8, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False,
+         (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int,
+         0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end project_extension_0;
 
@@ -265,7 +285,8 @@ package body Gpr_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end simple_declarative_item_0;
 
@@ -283,7 +304,9 @@ package body Gpr_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end simple_declarative_item_1;
 
@@ -320,7 +343,9 @@ package body Gpr_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((2, 1, 0), (6, 1, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int, Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Gpr_Indent)), (Simple, (Int,
+         Gpr_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end simple_project_declaration_0;
 
@@ -349,7 +374,9 @@ package body Gpr_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, Gpr_Indent_Broken))), (False, (Simple, (Int,
+         Gpr_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end typed_string_declaration_0;
 

@@ -831,18 +831,10 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       return False;
    end Member;
 
-   function Member (ID : in Production_ID; Item : in Production_ID_Arrays.Vector) return Boolean
-   is begin
-      for I of Item loop
-         if I = ID then return True; end if;
-      end loop;
-      return False;
-   end Member;
-
    function Find (ID : in Production_ID; Reductions : in Reduce_Action_Array) return Natural
    is begin
       for I in Reductions'Range loop
-         if Member (ID, Reductions (I).Productions) then
+         if ID = Reductions (I).Production then
             return I;
          end if;
       end loop;
@@ -858,12 +850,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       Goto_Node : Goto_Node_Ptr;
    begin
       Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
-      Goto_Node := Goto_For (Table, Config.Stack (1).State, Action.LHS);
+      Goto_Node := Goto_For (Table, Config.Stack (1).State, Action.Production.Nonterm);
       Prod_ID := LR.Prod_ID (Goto_Node);
       Config.Stack.Push
         ((State (Goto_Node),
           Syntax_Trees.Invalid_Node_Index,
-          (Action.LHS, others => <>)));
+          (Action.Production.Nonterm, others => <>)));
    end Do_Reduce;
 
    ----------
@@ -924,7 +916,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          declare
             Temp_Config : Configuration          := Config;
             Result      : WisiToken.Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => False);
-            Prod_ID     : Production_ID          := Production_ID'Last; -- production used in last reduce
+            Prod_ID     : Production_ID          := (Token_ID'Last, 0); -- production used in last reduce
          begin
             Reduce_To_Shift :
             loop
@@ -962,11 +954,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                         Table_Entry : Parse_State renames Table.States (Item.State);
                         I           : Action_List_Iterator                 := First (Table_Entry);
                         Prods       : constant Production_ID_Arrays.Vector := Table.States (Item.State).Productions;
-                        LHS         : constant Token_ID                    := Table.Productions (Prods (1)).LHS;
+                        LHS         : constant Token_ID                    := Prods (1).Nonterm;
                         One_LHS     : Boolean                              := True;
                      begin
                         for P of Prods loop
-                           if LHS /= Table.Productions (P).LHS then
+                           if LHS /= P.Nonterm then
                               One_LHS := False;
                            end if;
                         end loop;
@@ -983,9 +975,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                                     Action : Parse_Action_Rec renames I.Action;
                                  begin
                                     for J of Action.Productions loop
-                                       if Member
-                                         (I.Symbol, Table.Minimal_Terminal_Sequences
-                                            (Table.Productions (J).LHS))
+                                       if Member (I.Symbol, Table.Minimal_Terminal_Sequences (J.Nonterm))
                                        then
                                           --  FIXME: change terminal_sequences to set?
                                           --  or find position in it?

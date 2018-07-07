@@ -1,6 +1,6 @@
 ;;; wisi-tests.el --- Common utils for wisi tests -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -83,7 +83,7 @@
   (cl-ecase wisi-test-parser
     (elisp
      (require 'wisi-elisp-parse)
-     (let* ((grammar-file-root (concat grammar-name "-elisp"))
+     (let* ((grammar-file-root (concat grammar-name "-lalr-elisp"))
 	    (grammar-file-name (concat grammar-file-root ".el"))
 	    (grammar-file-abs (locate-file grammar-file-name load-path)))
        (unless grammar-file-abs
@@ -94,11 +94,11 @@
       :indent-calculate nil
       :post-indent-fail nil
       :parser (wisi-make-elisp-parser
-	       (symbol-value (intern-soft (concat grammar-name "-elisp-parse-table")))
+	       (symbol-value (intern-soft (concat grammar-name "-lalr-elisp-parse-table")))
 	       `wisi-forward-token)
       :lexer (wisi-make-elisp-lexer
-	      :token-table-raw (symbol-value (intern-soft (concat grammar-name "-elisp-token-table-raw")))
-	      :keyword-table-raw (symbol-value (intern-soft (concat grammar-name "-elisp-keyword-table-raw")))
+	      :token-table-raw (symbol-value (intern-soft (concat grammar-name "-lalr-elisp-token-table-raw")))
+	      :keyword-table-raw (symbol-value (intern-soft (concat grammar-name "-lalr-elisp-keyword-table-raw")))
 	      :string-quote-escape-doubled nil
 	      :string-quote-escape nil)))
 
@@ -120,8 +120,8 @@
 	:token-table (symbol-value (intern-soft (concat grammar-name "-process-token-table")))
 	))
       :lexer (wisi-make-elisp-lexer
-	      :token-table-raw (symbol-value (intern-soft (concat grammar-name "-elisp-token-table-raw")))
-	      :keyword-table-raw (symbol-value (intern-soft (concat grammar-name "-elisp-keyword-table-raw")))
+	      :token-table-raw (symbol-value (intern-soft (concat grammar-name "-lalr-elisp-token-table-raw")))
+	      :keyword-table-raw (symbol-value (intern-soft (concat grammar-name "-lalr-elisp-keyword-table-raw")))
 	      :string-quote-escape-doubled nil
 	      :string-quote-escape nil))
      (setq wisi-mckenzie-enable t)

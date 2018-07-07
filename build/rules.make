@@ -1,229 +1,172 @@
-# makefile rules for FastToken
+# common rules for Emacs Ada and gpr mode tests
 
-# note that we use .exe for test executables even on non-windows, to
-# keep the makerules simpler.
+ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
+ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])
 
-.PRECIOUS : %.exe %.out
+ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))# debug only
+ADA_TEST_FILES := $(filter-out debug.ads, $(ADA_TEST_FILES))# debug only
 
-.PHONY : zip force
+GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
+GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
+GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
-VPATH := ../..
-VPATH += ../Test
-VPATH += ../Examples/ASU_Example_3_6
-VPATH += ../Examples/ASU_Example_4_46
-VPATH += ../Examples/ASU_Example_5_10
-VPATH += ../wisi
-VPATH += ../wisi/test
+ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
-# Variables for library creation
-export GPRBUILD_TARGET := $(shell gcc -dumpmachine)
-ifneq (,$(findstring mingw,$(GPRBUILD_TARGET)))
-   export DYN_LIB_EXTENSION := dll
-else ifneq (,$(findstring darwin,$(GPRBUILD_TARGET)))
-   export DYN_LIB_EXTENSION := dylib
-else ifneq (,$(findstring linux,$(GPRBUILD_TARGET)))
-   export DYN_LIB_EXTENSION := so
-else
-   $(error "Don't know dynamic lib file extension for $(GPRBUILD_TARGET)")
-endif
+.PRECIOUS : %-elisp.el %-process.el %.ads %_packrat.re2c %.re2c %.tmp %_process.adb %_re2c.c %_packrat_re2c.c %.diff
 
-tests : wisi-generate.exe
-tests : ada_lite_yylex.adb
-tests : character_literal_yylex.adb
-tests : test_all_harness.diff
+.PHONY : all force one test test-clean
 
-# from ../wisi/test
+vpath %.adb   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.ads   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.re2c  ../test/wisi
+vpath %.el    ../ ../test/wisi
+vpath %.gpr   ../test/gpr
+vpath %.input ../test/wisi
+vpath %.wy    ../ ../test/wisi
+
+# emacs to test with
 #
-# to parse .wy, build %_yylex.adb, and run the parser, we'd like to do:
-#
-# %_run.exe : %_run.adb %_yylex.adb; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*_run
-#
-# but that gets overridden by the simpler .exe rule for other things.
-# So we must list %_yylex.adb explicitly in tests.
-#
-# Testing with an Emacs module calling the elisp wisi lexer and wisi
-# actions is done from the ada-mode development tree, not here.
-#
-# some also or only run from ../wisi/test/test_wisi_suite.adb We only
-# diff %-process.el on a couple tests, because it doesn't depend on
-# the grammar much
-#tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
-tests : case_expression_yylex.adb
-tests : case_expression-parse.diff
-tests : conflict_name-process.el.diff
-tests : conflict_name_yylex.adb
-tests : conflict_name-parse.diff
-tests : empty_production_1_yylex.adb
-tests : empty_production_1-parse.diff
-tests : empty_production_2_yylex.adb
-tests : empty_production_2-parse.diff
-tests : empty_production_3_yylex.adb
-tests : empty_production_3-parse.diff
-tests : empty_production_4_yylex.adb
-tests : empty_production_4-parse.diff
-tests : empty_production_5_yylex.adb
-tests : empty_production_5-parse.diff
-tests : empty_production_6_yylex.adb
-tests : empty_production_6-parse.diff
-tests : empty_production_7_yylex.adb
-tests : empty_production_7-parse.diff
-tests : empty_production_8_yylex.adb
-tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict_yylex.adb
-tests : identifier_list_name_conflict-parse.diff
-tests : subprograms-process.el.diff
+# This can be overridden on the 'make' command line or by an external
+# environment variable.
+EMACS_EXE ?= emacs
 
-# we don't run subprograms-parse because subprograms is used in a real
-# Emacs Ada mode test, so it has real elisp syntax.
+test-elisp :
+	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
 
-examples : asu_example_3_6-run.run
-examples : asu_example_4_46-run.run
-examples : asu_example_5_10_lr-run.run
+gpr-skel.gpr.tmp :
+	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
-asu_example_3_6-run.run : asu_example_3_6-run.exe
-	cd ../Examples/ASU_Example_3_6; $(CURDIR)/asu_example_3_6-run.exe
+%.diff : % %.tmp
+	-diff -u $< $*.tmp > $*.diff
 
-asu_example_4_46-run.run : asu_example_4_46-run.exe
-	cd ../Examples/ASU_Example_4_46; $(CURDIR)/asu_example_4_46-run.exe
+%.diff-run : % %.tmp
+	-diff -u $< $*.tmp
 
-asu_example_4_46_rd-run.run : asu_example_4_46_rd-run.exe
-	cd ../Examples/ASU_Example_4_46; $(CURDIR)/asu_example_4_46_rd-run.exe
+%.wisi-test : %-lalr-elisp.el
+	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
-asu_example_5_10_lr-run.run : asu_example_5_10_lr-run.exe
-	cd ../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_lr-run.exe Example.txt
+%_wisi_parse.exe : %_wisi_parse.ads %_process.ads %_re2c.c force
+	gprbuild -p wisi_parse.gpr $<
 
-asu_example_5_10_rd_commute-run.run : asu_example_5_10_rd_commute-run.exe
-	cd ../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_rd_commute-run.exe Example.txt
+run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
+	gprbuild -p wisi_parse.gpr $<
 
-asu_example_5_10_rd_list-run.run : asu_example_5_10_rd_list-run.exe
-	cd ../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_rd_list-run.exe Example.txt
+# We create the output files in the same directory as the .wy file, so
+# they can be saved in CM together.
+%-lalr-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe --generate LALR Elisp Elisp $(<F)
+	cd ./$(<D); dos2unix $(*F)-lalr-elisp.el
 
-ada_count.run : ada_count.exe
-	./ada_count.exe ../Examples/Language_Lexer_Examples/ada_count.adb ../Examples/Language_Lexer_Examples/test_ada_lexer.adb
+elisp-clean :
+	rm -f ../*.output ../autoloads.el
+	rm -f ../*-wy.el ../*.elc
 
-test_all_harness.out : test_all_harness.exe wisi-generate.exe
+%.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe --generate LALR Elisp Elisp --generate LALR Ada_Emacs re2c Process $(<F)
+	cd ./$(<D); dos2unix $(*F)-lalr-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads
 
-test_ada_lexer.run : test_ada_lexer.exe
-	./test_ada_lexer.exe ../Examples/Language_Lexer_Examples/test_ada_lexer.adb
+%_re2c.c : %.re2c
+	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	cd ./$(<D); dos2unix $(*F)_re2c.c
 
-test_html_lexer_safe.out : test_html_lexer_safe.exe test_html_scan.html
-	./$^ $(RUN_ARGS) > $@
+autoloads : force
+	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
 
-test_html_lexer_safe-syntax_error.out : test_html_lexer_safe.exe test_html_scan-syntax_error.html
-	./$^ $(RUN_ARGS) > $@
+# load path rationale:
+#    .. for run-*.el
+#    ADA_MODE_DIR = "-L .. -l "autoloads.el"" for developing ada-mode
+#    ADA_MODE_DIR = "-f package-initialize" for testing installed ELPA package
+ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 
-test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe
-	./test_html_lexer_unsafe.exe ../Docs/fasttoken.html
+# All gpr-query functions run "gpr_query" in a background process.
+# That fails in batch mode; batch mode does not support background
+# processes. FIXME: not true in Emacs 25? So we don't run tests in
+# batch mode. We can't use -nw here because the standard input is not
+# a tty (at least on Windows). We don't include any other
+# dependencies, because the complete list is complex, and we sometimes
+# want to ignore it.
+%.tmp : %
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
-test_java_lexer.run : test_java_lexer.exe
-	./test_java_lexer.exe ../Examples/Language_Lexer_Examples/something.java
+benchmark :
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el
 
-# yes, we use the java source as a test for the m3 lexer. Close enough!
-test_m3_lexer.run : test_m3_lexer.exe
-	./test_m3_lexer.exe ../Examples/Language_Lexer_Examples/something.java
+COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
+COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
 
-install: library wisi-generate.exe
-	make -f Install.make install
+# remove duplicates
+COMPILE_FILES := $(sort $(COMPILE_FILES))
 
-uninstall:
-	make -f Install.make install-clean
+compile-ada-test : force
+	gprbuild -p ../test/ada_mode_compile.gpr
 
-library:
-	gprbuild -p --RTS=$(ADA_RUN_TIME) -Pfasttoken_lib
+# we compile with -gnatyN3 to be sure our indentation meets gnat's
+# check. We don't check any other style requirements; not needed for
+# comparing indentation, and they get in the way.
 
-clean :: test-clean
-	rm -rf obj *.exe
-	rm -rf libzcx libsjlj libobjzcx libobjsjlj
+# override on command line for other compiler versions
+GPRBUILD := gprbuild
 
-test-clean : wisi-clean aflex-clean
-	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *-wy.el
+%.ali : %.adb
+	$(GPRBUILD) -P ada_mode_compile.gpr -c $(<F)
 
-source-clean ::
-	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
-	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
-	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
+%.ali : %.ads
+	$(GPRBUILD) -P ada_mode_compile.gpr -c $(<F)
 
-# the test executables are only in the test project file, which requires AUnit
-# Override the project file for wisi-generate.exe, for use with Emacs Ada mode without AUnit
-wisi-generate.exe : force
-	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken.gpr $(GPRBUILD_ARGS) wisi-generate
+%.info : %.texi
+	makeinfo $< -o ../$@
 
-%.check : %.adb force; gnatmake -p -k -gnatc -Pfasttoken_test.gpr $(GNATMAKE_ARGS) $*
+%.html : %.texi
+	makeinfo --html --no-split $< -o ../$@
 
-%.out : %.exe
-	./$*.exe $(RUN_ARGS) > $*.out 2>&1
-	dos2unix $*.out
+# (grep-find "find .. -type f -print | xargs grep -n FIXME")
 
-DIFF_OPT := -u -w
-%.diff : %.good_out %.out ; diff $(DIFF_OPT) $^ > $@
+# for recompiling with release options
+recursive-clean : force
+	gprclean -r -P ../ada_mode_wisi_parse.gpr
 
-%.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
+clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
+	rm -f check_xref.gpr Makefile.conf
 
-# the parse_table and the state trace of the parse is the known good output
-%-parse.diff : %.good_parse %.parse
-	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
-	diff $(DIFF_OPT) $^ >> $@
+doc-clean ::
+	rm -f ../*.info ../*.html ../dir-ada-mode
 
-# This runs wisi-generate with lexer Elisp; -process.l uses lexer Aflex
-%-process.el : %.wy wisi-generate.exe
-	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $< > $*.parse_table
-	dos2unix $*.parse_table
-	dos2unix $*-process.el
+# delete the gpr_query database, to be sure it is rebuilt accurately
+# for the current compiler version.
+compile-ada-test-clean :
+	rm -f ../test/*.ali ../test/subdir/*.ali
+	rm -f ../test/*.o ../test/subdir/*.o
+	rm -f ../test/*.std* ../test/subdir/*.std*
+	rm -f ../test/gpr_query.db*
 
-%-process.el.diff : %-process.good_el %-process.el
-	diff $(DIFF_OPT) $< $*-process.el > $@
+exe-clean ::
+	rm -rf obj
+	rm -rf ../obj
+	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
+	rm -rf ../gpr_query-process_refresh.adb
+	rm -rf ../ada_mode_gps_indent$(EXE_EXT) ../ada_mode_gps_indent.gpr
+	rm -rf ../ada_mode_wisi_parse$(EXE_EXT)
+	rm -rf ../gpr_mode_wisi_parse$(EXE_EXT)
+	rm -rf ../run_ada_parser$(EXE_EXT)
+	rm -rf ../run_gpr_parser$(EXE_EXT)
 
-%.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
+profile-clean ::
+	rm -rf ../exec_pro ../obj_pro
 
-%.l : %.wy wisi-generate.exe
-	./wisi-generate.exe -v 1 $< > $*.parse_table
-	dos2unix $*.parse_table
+# delete all files created by wisi-generate for main programs
+build-ada-exec-clean :
+	cd ..; rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-elisp.el *-process.el *_process*.ad?
 
-~/bin/aflex.exe : force
-	make -C /Projects/edu.uci.aflex/build install
+test-clean ::
+	rm -f *.diff *.tmp
+# ada_mode-spec.adb is a temporary, generated by
+# ada-make-package-body.
+	rm -f ../test/ada_mode-spec.adb
+	rm -f *.log *.output *.wisi-test *.stamp
+	cd ../test/wisi/; rm -f *-elisp.el *.*parse_table
 
-# delete files created by wisi-generate
-# don't delete prj.el
-wisi-clean :
-	rm -f *-elisp.el *-process.el *.parse_table *.ads *.adb  *.l
-
-%.parse : %.input %_run.exe
-	./$*_run.exe -v 4 $< > $*.parse
-	dos2unix $*.parse
-
-%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*
-
-%_yylex.ada : %.l
-	aflex -i -s -E -D../wisi/fasttoken_aflex_dfa.adb.template -O../wisi/fasttoken_aflex_io.adb.template $(AFLEX_ARGS) $<
-
-%_yylex.adb : %_yylex.ada
-	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
-
-# delete files created by aflex
-aflex-clean :
-	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
-
-source-clean ::
-	-find ../ -name "*~" -delete
-	-find ../ -name ".#*" -delete
-
-BRANCH := $(notdir $(shell cd ..; pwd))
-
-bz2file : force
-	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
-	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
-	tar -c -O  -C ../.. --exclude=_MTN --exclude "build/x86*" --exclude=.mtn-ignore --exclude=.dvc-exclude --exclude debug_parser.adb --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > fasttoken-$(ZIP_VERSION).tar.bz2
-
-zipfile : ROOT := $(shell cd ..; basename `pwd`)
-zipfile : force
-	cd ../..; zip -q -r $(CURDIR)/fasttoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
-
-.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %-wy.el
-
-vpath %-wy.good_el  ../wisi/test
-vpath %.good_parse  ../wisi/test
-vpath %.input  ../wisi/test
-vpath %.texinfo ../Docs
-vpath %.wy ../wisi/test ../time
+source-clean :: test-clean
+	-find ../ -name "*~" -print -delete
+	-find ../ -name ".#*" -print -delete
 
 # end of file

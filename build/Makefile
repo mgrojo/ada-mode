@@ -41,8 +41,6 @@ docs : info html
 # This updates elisp and related executables after any source change,
 # without running the tests.
 update-elisp : autoloads
-update-elisp : ../ada-elisp.el
-update-elisp : ../gpr-elisp.el
 update-elisp : build_ada_executables
 update-elisp : byte-compile
 
@@ -75,11 +73,12 @@ test : test-wisi
 test : build_ada_executables
 test : ada_unit_tests
 test : test-ada-elisp-gpr_query.stamp
-test : test-ada-process-gpr_query.stamp
+test : test-ada-lalr-process-gpr_query.stamp
+#test : test-ada-packrat-process-gpr_query.stamp
 test : test-ada-gps.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr-elisp.stamp
-test : test-gpr-process.stamp
+test : test-gpr-lalr-process.stamp
 test : test-elisp
 test : summarize
 
@@ -113,7 +112,7 @@ one : $(addsuffix .diff, $(ONE_TEST_FILES))
 two : export Standard_Common_Build := Debug
 two : build_ada_executables
 two :
-	../run_ada_parse.exe $(RUN_ARGS)
+	../run_ada_parse_packrat.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables
@@ -147,7 +146,7 @@ export ADA_PROJECT_PATH=../test/;../test/subdir
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
 endif
 
-include common.make
+include rules.make
 
 $(WISI_WISITOKEN)/wisi-generate.exe : force
 	$(MAKE) -C $(WISI_WISITOKEN) wisi-generate.exe
@@ -161,12 +160,21 @@ test-ada-elisp-gpr_query.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-ada-process-gpr_query : RUNTEST := run-indent-test-process-gpr_query.el
-test-ada-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+test-ada-lalr-process-gpr_query : RUNTEST := run-indent-test-lalr-process-gpr_query.el
+test-ada-lalr-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
-test-ada-process-gpr_query.stamp : force
+test-ada-lalr-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-ada-process-gpr_query
+	$(MAKE) test-ada-lalr-process-gpr_query
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+test-ada-packrat-process-gpr_query : RUNTEST := run-indent-test-packrat-process-gpr_query.el
+test-ada-packrat-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-ada-packrat-process-gpr_query.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-packrat-process-gpr_query
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
@@ -189,12 +197,12 @@ test-gpr-elisp.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-gpr-process : RUNTEST := run-indent-test-process-gpr_query.el
-test-gpr-process : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+test-gpr-lalr-process : RUNTEST := run-indent-test-lalr-process-gpr_query.el
+test-gpr-lalr-process : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
-test-gpr-process.stamp : force
+test-gpr-lalr-process.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-gpr-process
+	$(MAKE) test-gpr-lalr-process
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 

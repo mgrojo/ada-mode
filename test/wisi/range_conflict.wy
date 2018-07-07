@@ -29,8 +29,7 @@
 %token <string-double> STRING_LITERAL ""
 
 %start compilation_unit
-%generator_algorithm LALR
-%output_language Elisp
+%generate LALR Elisp
 
 %conflict SHIFT/REDUCE in state range, range on token LEFT_PAREN
 
