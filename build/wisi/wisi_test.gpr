@@ -1,0 +1,72 @@
+--  For running wisi_wy_tests that generate code and compile it as part of the test
+--
+--  Separate from ../wisitoken_tests.gpr to avoid forcing
+--  test_all_harness to link after the test is run, due do generated C
+--  code.
+
+--  Copyright (c) 2018 Stephen Leake <stephen_leake@stephe-leake.org>
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 3 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+
+with "wisitoken";
+with "standard_common";
+project Wisi_Test is
+
+   for Source_Dirs use
+     (".", --  generated code
+      "../../wisi/test" -- gen_{lr|packrat}_parser_run
+     );
+
+   for Languages use ("Ada", "C");
+
+   case Standard_Common.Profile is
+   when "On" =>
+      for Object_Dir use "obj_pro";
+      for Exec_Dir use "exec_pro";
+
+   when "Off" =>
+      for Object_Dir use "obj";
+      for Exec_Dir use ".";
+   end case;
+
+   package Compiler is
+      for Default_Switches ("Ada") use WisiToken.Compiler'Default_Switches ("Ada");
+      for Default_Switches ("C") use WisiToken.Compiler'Default_Switches ("C");
+   end Compiler;
+
+   package Builder is
+      case Standard_Common.Profile is
+      when "On" =>
+         for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada") & ("-pg");
+
+      when "Off" =>
+         for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada");
+      end case;
+
+      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      for Executable_Suffix use ".exe";
+   end Builder;
+
+   package Linker is
+      case Standard_Common.Profile is
+      when "On" =>
+         for Linker_Options use ("-pg", "-lgmem");
+
+      when "Off" =>
+         null;
+      end case;
+   end Linker;
+
+   package Binder is
+      for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
+   end Binder;
+
+end Wisi_Test;

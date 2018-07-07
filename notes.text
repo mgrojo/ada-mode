@@ -21,6 +21,8 @@ org.wisitoken.stephe-1 - available
  current work
 update ada-mode.s-4
 
+propagate to main
+
 wisi-grammar-mode.s-1 adapt to '%generate <gen_alg> <out_lang>' to get output language
     and try to guess from actions content
 
