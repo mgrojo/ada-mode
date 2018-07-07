@@ -23,7 +23,7 @@
 ;;
 ;;;;
 
-(require 'ada-elisp)
+(require 'ada-lalr-elisp)
 (require 'ada-fix-error)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
@@ -729,7 +729,7 @@ TOKEN-TEXT; move point to just past token."
 	   (setq wisi-elisp-parse-indent-hanging-function #'ada-wisi-elisp-parse--indent-hanging)
 
 	   (wisi-make-elisp-parser
-	    ada-elisp-parse-table
+	    ada-lalr-elisp-parse-table
 	    #'wisi-forward-token)
 	   )
 
@@ -748,8 +748,8 @@ TOKEN-TEXT; move point to just past token."
 	 ;; the elisp lexer for ada-wisi-scan-paramlist,
 	 ;; ada-wisi-which-function, etc.
 	 (wisi-make-elisp-lexer
-	  :token-table-raw ada-elisp-token-table-raw
-	  :keyword-table-raw ada-elisp-keyword-table-raw
+	  :token-table-raw ada-lalr-elisp-token-table-raw
+	  :keyword-table-raw ada-lalr-elisp-keyword-table-raw
 	  :string-quote-escape-doubled t
 	  :string-quote-escape nil))
 	)

@@ -1,7 +1,7 @@
 ^.*\.elc$
 ^.*\.exe$
 ^.*\.re2c$
-^.*_parse_table$
+^.*\.parse_table$
 ^ada-mode\.html$
 ^ada-mode\.info$
 ^ada_mode_gps_indent$

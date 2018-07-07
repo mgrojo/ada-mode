@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 All Rights Reserved.
+--  Copyright (C) 2018 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,22 +25,18 @@ with Ada.Real_Time;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with SAL;
-with WisiToken.LR.Parser;
 with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
-procedure Gen_Run_Wisi_Parse
+procedure Gen_Run_Wisi_Parse_Packrat
 is
    use WisiToken; -- Token_ID, "+", "-" Unbounded_string
 
    Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   Parser     : WisiToken.LR.Parser.Parser;
+   Parser     : WisiToken.Parse.Packrat.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
    procedure Put_Usage
-   is
-      use all type WisiToken.LR.Parse_Table_Ptr;
-   begin
+   is begin
       Put_Line ("usage: " & Name & "_wisi_parse <file_name> <parse_action> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
       Put_Line ("options:");
@@ -51,18 +47,6 @@ is
       Put_Line ("   2 - add each parser cycle, error recovery enqueue/check");
       Put_Line ("   3 - parse stack in each cycle, error recovery parse actions");
       Put_Line ("   4 - add lexer debug");
-      Put_Line ("--cost_limit n   : set error recover cost limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Cost_Limit)));
-      Put_Line ("--check_limit n  : set error recover token check limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Token_Index'Image (Parser.Table.McKenzie_Param.Check_Limit)));
-      Put_Line ("--enqueue_limit n  : set error recover token enqueue limit" &
-                  (if Parser.Table = null then ""
-                   else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Enqueue_Limit)));
-      Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
-                  Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
-      Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--lexer_only : only run lexer, for profiling");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
@@ -81,10 +65,7 @@ is
    Lang_Params  : Ada.Strings.Unbounded.Unbounded_String;
    Start        : Ada.Real_Time.Time;
 begin
-   --  Create parser first so Put_Usage has defaults from Parser.Table.
-   Create_Parser
-     (Parser, Language_Fixes, Language_Constrain_Terminals, Language_String_ID_Set,
-      Trace'Unrestricted_Access, Parse_Data'Unchecked_Access);
+   Create_Parser (Parser, Trace'Unrestricted_Access, Parse_Data'Unchecked_Access);
 
    declare
       use Ada.Command_Line;
@@ -108,22 +89,6 @@ begin
             WisiToken.Trace_Action   := Integer'Value (Argument (Arg + 3));
             Arg                      := Arg + 4;
 
-         elsif Argument (Arg) = "--cost_limit" then
-            Parser.Table.McKenzie_Param.Cost_Limit := Integer'Value (Argument (Arg + 1));
-            Arg := Arg + 2;
-
-         elsif Argument (Arg) = "--check_limit" then
-            Parser.Table.McKenzie_Param.Check_Limit := Token_Index'Value (Argument (Arg + 1));
-            Arg := Arg + 2;
-
-         elsif Argument (Arg) = "--disable_recover" then
-            Parser.Enable_McKenzie_Recover := False;
-            Arg := Arg + 1;
-
-         elsif Argument (Arg) = "--enqueue_limit" then
-            Parser.Table.McKenzie_Param.Enqueue_Limit := Integer'Value (Argument (Arg + 1));
-            Arg := Arg + 2;
-
          elsif Argument (Arg) = "--lang_params" then
             Lang_Params := +Argument (Arg + 1);
             Arg := Arg + 2;
@@ -131,10 +96,6 @@ begin
          elsif Argument (Arg) = "--lexer_only" then
             Lexer_Only := True;
             Arg := Arg + 1;
-
-         elsif Argument (Arg) = "--max_parallel" then
-            Parser.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
-            Arg := Arg + 2;
 
          elsif Argument (Arg) = "--pause" then
             Pause := True;
@@ -174,10 +135,7 @@ begin
          exception
          when WisiToken.Syntax_Error =>
             Parser.Lexer.Discard_Rest_Of_Input;
-            Parse_Data.Put
-              (Parser.Lexer.Errors,
-               Parser.Parsers.First.State_Ref.Errors,
-               Parser.Parsers.First.State_Ref.Tree);
+            Parser.Put_Errors (-Source_File_Name);
             Put_Line ("(lexer_error)");
          end;
       end loop;
@@ -205,10 +163,7 @@ begin
          is begin
             Parser.Lexer.Discard_Rest_Of_Input;
             if Repeat_Count = 1 then
-               Parse_Data.Put
-                 (Parser.Lexer.Errors,
-                  Parser.Parsers.First.State_Ref.Errors,
-                  Parser.Parsers.First.State_Ref.Tree);
+               Parser.Put_Errors (-Source_File_Name);
             end if;
          end Clean_Up;
 
@@ -236,10 +191,7 @@ begin
 
             if Repeat_Count = 1 then
                Parse_Data.Put;
-               Parse_Data.Put
-                 (Parser.Lexer.Errors,
-                  Parser.Parsers.First.State_Ref.Errors,
-                  Parser.Parsers.First.State_Ref.Tree);
+               Parser.Put_Errors (-Source_File_Name);
             end if;
          end if;
       exception
@@ -286,4 +238,4 @@ when E : others =>
      ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E) & """)");
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Run_Wisi_Parse;
+end Gen_Run_Wisi_Parse_Packrat;

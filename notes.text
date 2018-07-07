@@ -52,9 +52,63 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+running all tests
+    test/ada_mode-recover_6, 7, 8, 9, 10, 11.adb need SKIP_UNLESS
+
+    elisp indent errors:
+        ./ada_mode-interactive_gps_fallback.adb.diff
+        ./ada_mode-parens.adb.diff
+        ./format_paramlist.adb.diff
+
+    lalr-process errors:
+        test/ada_mode-recover_11.adb crash
+            (error "unhandled exception: WISITOKEN.PROGRAMMER_ERROR: Match_Names_Error 1  37 /= 24 loop_statement")
+
+        test/ada_mode-recover_7.adb
+            (error "unhandled exception: SYSTEM.ASSERTIONS.ASSERT_FAILURE: wisitoken-lr-mckenzie_recover-parse.adb:221")
+
+        test/ada_mode-recover_8.adb
+            (error "unhandled exception: WISITOKEN.PROGRAMMER_ERROR: Match_Names_Error 1  37 /= 24 loop_statement")
+
+        test/ada_mode-recover_9.adb
+            (error "unhandled exception: SYSTEM.ASSERTIONS.ASSERT_FAILURE: failed precondition from sal-gen_bounded_definite_vectors.ads:60 instantiated at wisitoken-lr.ads:427")
+            [c:\Projects\org.emacs.ada-mode.stephe-4\ada_mode_wisi_parse.exe]
+            Wisitoken.Lr.Mckenzie_Recover.Recover at wisitoken-lr-mckenzie_recover.adb:306
+
+    lalr-process indent errors:
+        ./ada_mode-recover_10.adb.diff
+        ./ada_mode-recover_6.adb.diff
+        ./ada_mode-recover_constant_as_statement_1.adb.diff
+        ./ada_mode-recover_type_1.ads.diff
+        ./non_ascii.ads.diff
+
 packrat
+    (progn
+     (set-default 'wisi-size-threshold 1500000)
+     (set-default 'wisi-process-timeout 5.0))
+
+    running tests
+        test/access_in_record.ads
+            parse fails
+                not recognizing selected_component
+                indirect recursion!
+                    but not reported by recursive check because name is known left-recursive
+                test/fix with ada_lite
+
+    need to override wisitoken.parse.put_errors for emacs process interface
+        derive an Emacs_Parser type?
+
+        or add abstract error_list, change wisi_runtime.put_errors to use that
+
+        using Parser.Put_Errors for now
+
     langkit packrat is significantly faster than wisitoken lalr
-    use non-error-correcting packrat as primary parser, error-correcting lalr as fallback
+        use non-error-correcting packrat as primary parser, error-correcting lalr as fallback
+
+    factor out common parts of gen_emacs_wisi_parse, _packrat
+
+    generate, compile packrat speed?
+        ada_packrat_process_main.adb (31347 lines) compiles _way_ faster than ada_process_main.adb (13692 lines)
 
 time with w32-pipe-read-delay 0
 

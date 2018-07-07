@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2014, 2017, 2018 All Rights Reserved.
+--  Copyright (C) 2018 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -27,9 +27,9 @@ with GNAT.OS_Lib;
 with GNAT.Traceback.Symbolic;
 with System.Storage_Elements;
 with WisiToken.Lexer;
-with WisiToken.LR.Parser;
+with WisiToken.Parse.Packrat;
 with WisiToken.Text_IO_Trace;
-procedure Gen_Emacs_Wisi_Parse
+procedure Gen_Emacs_Wisi_Parse_Packrat
 is
    use WisiToken; -- "+", "-" Unbounded_string
 
@@ -44,7 +44,7 @@ is
    procedure Usage
    is
    begin
-      Put_Line ("usage: " & Name & "_wisi_parse");
+      Put_Line ("usage: " & Name & "_wisi_parse_packrat");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -56,6 +56,8 @@ is
       ("NNNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_disable> <mckenzie_cost_limit>" &
            " <mckenzie_check_limit> <mckenzie_enqueue_limit> <source_byte_count> <language-specific params>" &
            " <source bytes>");
+      --  The packrat parser does not support some of these options, but
+      --  they must be there to be compatible with the Emacs ada-mode API.
       Put_Line ("  NNN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
@@ -71,7 +73,7 @@ is
    end Usage;
 
    Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   Parser     : WisiToken.LR.Parser.Parser;
+   Parser     : WisiToken.Parse.Packrat.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -162,9 +164,7 @@ is
    end Get_Integer;
 
 begin
-   Create_Parser
-     (Parser, Language_Fixes, Language_Constrain_Terminals, Language_String_ID_Set, Trace'Unrestricted_Access,
-      Parse_Data'Unchecked_Access);
+   Create_Parser (Parser, Trace'Unrestricted_Access, Parse_Data'Unchecked_Access);
 
    declare
       use Ada.Command_Line;
@@ -214,22 +214,24 @@ begin
 
                Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
 
-               Line_Count       : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
-               Verbosity        : constant Integer          := Get_Integer (Command_Line, Last);
-               McKenzie_Disable : constant Integer          := Get_Integer (Command_Line, Last);
-               Cost_Limit       : constant Integer          := Get_Integer (Command_Line, Last);
-               Check_Limit      : constant Integer          := Get_Integer (Command_Line, Last);
-               Enqueue_Limit    : constant Integer          := Get_Integer (Command_Line, Last);
-               Byte_Count       : constant Integer          := Get_Integer (Command_Line, Last);
-               Buffer           : Ada.Strings.Unbounded.String_Access;
+               Line_Count : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
+               Verbosity  : constant Integer          := Get_Integer (Command_Line, Last);
+
+               --  Declared but not used to keep the argument numbers consistent with
+               --  the Emacs ada-mode API.
+               McKenzie_Disable : constant Integer := Get_Integer (Command_Line, Last);
+               Cost_Limit       : constant Integer := Get_Integer (Command_Line, Last);
+               Check_Limit      : constant Integer := Get_Integer (Command_Line, Last);
+               Enqueue_Limit    : constant Integer := Get_Integer (Command_Line, Last);
+               pragma Unreferenced (McKenzie_Disable, Cost_Limit, Check_Limit, Enqueue_Limit);
+
+               Byte_Count : constant Integer := Get_Integer (Command_Line, Last);
+               Buffer     : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up
                is begin
                   Parser.Lexer.Discard_Rest_Of_Input;
-                  Parse_Data.Put
-                    (Parser.Lexer.Errors,
-                     Parser.Parsers.First.State_Ref.Errors,
-                     Parser.Parsers.First.State_Ref.Tree);
+                  Parser.Put_Errors (-Source_File_Name);
                   Ada.Strings.Unbounded.Free (Buffer);
                end Clean_Up;
 
@@ -239,29 +241,12 @@ begin
 
                Trace_Parse := Verbosity;
 
-               --  Default Enable_McKenzie_Recover is False if there is no McKenzie
-               --  information; don't override that.
-               Parser.Enable_McKenzie_Recover :=
-                 (if McKenzie_Disable = 0
-                  then Parser.Enable_McKenzie_Recover
-                  else False);
-
                Parse_Data.Initialize
                  (Post_Parse_Action => Post_Parse_Action,
                   Descriptor        => Descriptor'Access,
                   Source_File_Name  => -Source_File_Name,
                   Line_Count        => Line_Count,
                   Params            => Command_Line (Last + 2 .. Command_Line'Last));
-
-               if Cost_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Cost_Limit := Cost_Limit;
-               end if;
-               if Check_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Check_Limit);
-               end if;
-               if Enqueue_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Enqueue_Limit := Enqueue_Limit;
-               end if;
 
                Buffer := new String (1 .. Byte_Count);
                Read_Input (Buffer (1)'Address, Byte_Count);
@@ -330,4 +315,4 @@ when E : others =>
      ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E) & """)");
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Emacs_Wisi_Parse;
+end Gen_Emacs_Wisi_Parse_Packrat;

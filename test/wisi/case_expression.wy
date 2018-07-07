@@ -40,11 +40,7 @@
 
 %start case_expression
 
-;; match elisp grammar compiler, parser
-%first_state_index 0
-%first_parser_label 0
-%generator_algorithm LALR
-%output_language Elisp
+%generate LALR Elisp
 
 case_expression
   : WHEN discrete_choice EQUAL_GREATER factor

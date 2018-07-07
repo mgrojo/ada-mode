@@ -133,7 +133,6 @@ package body Test_Ada_Recover is
          Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
          Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,
          Language_String_ID_Set       => WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
-         Algorithm                    => WisiToken.LALR,
          Trace                        => Trace'Access,
          User_Data                    => User_Data'Access);
 

@@ -16,9 +16,6 @@ project Ada_Mode_Compile is
       "ada_mode-ada2005.ads", -- font-lock only
       "ada_mode-ada2012.ads", -- font-lock only
 
-      -- incomplete code deliberately
-      "ada_mode-ambiguous_parse.adb",
-
       -- parents are not pure
       "ada_mode-generic_parent_instantiation.ads",
 
@@ -40,7 +37,14 @@ project Ada_Mode_Compile is
       "ada_mode-recover_3.adb",
       "ada_mode-recover_4.adb",
       "ada_mode-recover_5.ads",
+      "ada_mode-recover_6.adb",
+      "ada_mode-recover_7.adb",
+      "ada_mode-recover_8.adb",
+      "ada_mode-recover_9.adb",
+      "ada_mode-recover_10.adb",
+      "ada_mode-recover_11.adb",
       "ada_mode-recover_align_1.adb",
+      "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",
       "ada_mode-recover_block_name_mismatch.adb",
       "ada_mode-recover_constant_as_statement_1.adb",
@@ -75,7 +79,6 @@ project Ada_Mode_Compile is
       "bug_2016_11_21_01.adb", -- missing declarations
       "g-comlin.adb", -- copied from gnat runtime; gnat won't compile it!
       "gnatprep.adb", -- could run thru gnatprep, but it's not worth it.
-      "gps_indent_options.adb", -- gnat style, cases
 
       -- deliberate errors to test error recovery
       "slow_recover_1.adb",
