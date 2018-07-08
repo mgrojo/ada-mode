@@ -56,7 +56,7 @@
   )  "Local keymap used for WISI-GRAMMAR mode.")
 
 (defvar-local wisi-grammar-action-mode nil
-  "Emacs major mode used for actions, inferred from ’%output_language’ declaration.")
+  "Emacs major mode used for actions, inferred from ’%generate’ declaration or file local variable.")
 
 (defun wisi-grammar-new-line ()
   "If in comment, insert new comment line.
@@ -137,14 +137,14 @@ Otherwise insert a plain new line."
 (defun wisi-grammar-set-action-mode ()
   (save-excursion
     (goto-char (point-min))
-    (if (search-forward-regexp "%output_language +\\([A-Za-z_]+\\)$")
+    (if (search-forward-regexp "%generate +\\([A-Za-z_]+\\) \\([A-Za-z_]+\\)")
 	(cond
 	 ((or
-	   (string-equal (match-string 1) "Ada_Emacs")
-	   (string-equal (match-string 1) "elisp"))
+	   (string-equal (match-string 2) "Ada_Emacs")
+	   (string-equal (match-string 2) "elisp"))
 	  (setq wisi-grammar-action-mode 'emacs-lisp-mode))
 
-	 ((string-equal (match-string 1) "Ada")
+	 ((string-equal (match-string 2) "Ada")
 	  (setq wisi-grammar-action-mode 'ada-mode))
 
 	 (t

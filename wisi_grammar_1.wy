@@ -68,9 +68,7 @@
 %elisp_face font-lock-type-face
 %elisp_face nil
 
-%output_language Ada_Emacs
-%lexer re2c
-%generator_algorithm LALR
+%generate LALR Ada_Emacs re2c Process
 %start compilation_unit_list
 
 %mckenzie_cost_default 2 2 4 1 1

@@ -6,7 +6,5 @@
 ^autoloads\.el$
 ^obj$
 ^test\.log$
-^wisi_grammar\.ada_parse_table$
-^wisi_grammar\.re2c$
-^wisi_grammar_1\.ada_parse_table$
-^wisi_grammar_1\.re2c$
+^.*\.parse_table$
+^.*\.re2c$

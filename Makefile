@@ -13,7 +13,7 @@ elisp : update-elisp test
 
 pub : docs pub-wisi-grammar build-elpa uninstall-elpa
 
-update-elisp : install_ada_executables
+update-elisp : build_ada_executables
 update-elisp : autoloads
 update-elisp : byte-compile
 
@@ -36,7 +36,7 @@ two : force
 	./run_wisi_grammar_1_parse.exe wisi_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
 %.re2c : %.wy $(WISITOKEN)/wisi-generate.exe
-	$(WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
+	$(WISITOKEN)/wisi-generate.exe $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el $(*F).re2c
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 
@@ -48,7 +48,7 @@ two : force
 # monotone update. Doing byte-compile-clean first avoids errors caused
 # by loading new source on old .elc.
 byte-compile : byte-compile-clean
-	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) --eval "(progn (add-to-list 'load-path \"/Projects/mmm-mode\")(package-initialize)(batch-byte-compile))" *.el
+	$(EMACS_EXE) -Q -batch -L . -L $(EMACS_WISI) --eval "(progn (package-initialize)(batch-byte-compile))" *.el
 
 byte-compile-clean :
 	rm -f *.elc
@@ -119,7 +119,7 @@ exe-clean :
 
 # delete all files created by wisi-generate
 generate-clean :
-	rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-process.el *_process*.ad?
+	rm -f *.parse_table *.re2c *_re2c.c *_re2c_c.ads *-process.el *_process*.ad?
 
 # delete all files created by Emacs as backups
 source-clean :

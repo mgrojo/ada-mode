@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process wisi_grammar_1.wy
+--  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS wisi_grammar_1.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -24,7 +24,6 @@
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 package body Wisi_Grammar_1_Process_Actions is
 
-   use all type Motion_Param_Array;
 
    procedure declaration_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
@@ -184,7 +183,8 @@ package body Wisi_Grammar_1_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (1, 5, 1)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 2)), (Simple, (Int, -1))), (False, (Simple, (Int, 2))), (False, (Simple, (Int, 2)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 2)),
+         (Simple, (Int, -1))), (False, (Simple, (Int, 2))), (False, (Simple, (Int, 2)))));
       end case;
    end nonterminal_0;
 
@@ -202,7 +202,9 @@ package body Wisi_Grammar_1_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, -2))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         -2))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple,
+         (Int, 0)))));
       end case;
    end rhs_list_2;
 
@@ -220,7 +222,8 @@ package body Wisi_Grammar_1_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, -2))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         -2))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end rhs_list_3;
 
@@ -238,7 +241,8 @@ package body Wisi_Grammar_1_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Hanging_0, (Int, 0), (Int, 2)), (Simple, (Int, -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Hanging_0, (Int, 0), (Int, 2)), (Simple, (Int,
+         -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1)))));
       end case;
    end rhs_2;
 
@@ -256,7 +260,8 @@ package body Wisi_Grammar_1_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Hanging_0, (Int, 0), (Int, 2)), (Simple, (Int, -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Hanging_0, (Int, 0), (Int, 2)), (Simple, (Int,
+         -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1)))));
       end case;
    end rhs_3;
 

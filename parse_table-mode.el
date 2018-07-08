@@ -63,10 +63,6 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.parse_table\\'" . parse_table-mode))
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ada_parse_table\\'" . parse_table-mode))
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.elisp_parse_table\\'" . parse_table-mode))
 
 (provide 'parse_table-mode)
 ;; end of file

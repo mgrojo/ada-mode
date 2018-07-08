@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process wisi_grammar_1.wy
+--  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS wisi_grammar_1.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -80,6 +80,53 @@ package Wisi_Grammar_1_Process_Actions is
          new String'("compilation_unit_list")),
       Terminal_Image_Width => 23,
       Image_Width          => 25);
+
+   type Token_Enum_ID is
+     (WHITESPACE_ID,
+      NEW_LINE_ID,
+      COMMENT_ID,
+      CODE_ID,
+      END_ID,
+      IF_ID,
+      KEYWORD_ID,
+      NON_GRAMMAR_ID,
+      TOKEN_ID,
+      RAW_CODE_ID,
+      REGEXP_ID,
+      ACTION_ID,
+      BAR_ID,
+      COLON_ID,
+      COMMA_ID,
+      EQUAL_ID,
+      GREATER_ID,
+      LESS_ID,
+      PERCENT_ID,
+      SEMICOLON_ID,
+      SLASH_ID,
+      NUMERIC_LITERAL_ID,
+      IDENTIFIER_ID,
+      STRING_LITERAL_ID,
+      STRING_LITERAL_CASE_INS_ID,
+      Wisi_EOI_ID,
+      wisitoken_accept_ID,
+      declaration_ID,
+      token_keyword_non_grammar_ID,
+      identifier_list_ID,
+      declaration_item_list_ID,
+      declaration_item_ID,
+      nonterminal_ID,
+      rhs_list_ID,
+      rhs_ID,
+      token_list_ID,
+      compilation_unit_ID,
+      compilation_unit_list_ID);
+
+   type Token_Enum_ID_Array is array (Positive range <>) of Token_Enum_ID;
+   use all type WisiToken.Token_ID;
+   function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID
+     is (WisiToken.Token_ID'First + Token_Enum_ID'Pos (Item));
+   function "-" (Item : in WisiToken.Token_ID) return Token_Enum_ID
+     is (Token_Enum_ID'Val (Item - WisiToken.Token_ID'First));
 
    procedure declaration_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
