@@ -1340,8 +1340,7 @@ package body Test_McKenzie_Recover is
       --  the fix is the same. It provided the first rationale for expanding
       --  Semantic_Check_Fixes into Language_Fixes.
       --
-      --  Language_Fixes returns (push_back 'end IDENTIFIER', insert 'end ;
-      --  '), and that succeeds on the first check.
+      --  Language_Fixes returns two solutions.
 
       Check_Recover
         (Errors_Length           => 1,
@@ -1352,12 +1351,39 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
              (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
              (Fast_Forward, 12),
+         Enqueue_Low             => 4,
+         Enqueue_High            => 10,
+         Check_Low               => 3,
+         Check_High              => 4,
+         Cost                    => 0);
+   end Match_Selected_Component_1;
+
+   procedure Match_Selected_Component_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      End_Name_Optional := False; -- Triggers Missing_Name_Error.
+
+      Parse_Text
+        ("procedure Ada_Mode.Recover_6 is begin declare name : int; begin null; end Ada_Mode.Recover_6;");
+      --           |10       |20       |30       |40       |50       |60       |70       |80
+
+      --  Missing 'end;' 70. Enters error recovery on '.' 83
+      --  expecting ';'.
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +DOT_ID,
+         Error_Token_Byte_Region => (83, 83),
+         Ops                     =>
+           +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
+             (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
          Enqueue_Low             => 2,
          Enqueue_High            => 2,
          Check_Low               => 2,
          Check_High              => 2,
          Cost                    => 0);
-   end Match_Selected_Component_1;
+   end Match_Selected_Component_2;
 
    procedure Actual_Parameter_Part_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -1656,6 +1682,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Extra_Name_3'Access, "Extra_Name_3");
       Register_Routine (T, Two_Missing_Ends'Access, "Two_Missing_Ends");
       Register_Routine (T, Match_Selected_Component_1'Access, "Match_Selected_Component_1");
+      Register_Routine (T, Match_Selected_Component_2'Access, "Match_Selected_Component_2");
       Register_Routine (T, Actual_Parameter_Part_1'Access, "Actual_Parameter_Part_1");
       Register_Routine (T, Unfinished_Subprogram_Type_1'Access, "Unfinished_Subprogram_Type_1");
       Register_Routine (T, String_Quote_1'Access, "String_Quote_1");

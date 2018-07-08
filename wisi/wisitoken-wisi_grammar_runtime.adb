@@ -518,6 +518,12 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   Data.Generate_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Cost_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
 
+               elsif Kind = "mckenzie_cost_push_back" then
+                  Data.Generate_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Push_Back.Append
+                    ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
+                      +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+
                elsif Kind = "mckenzie_enqueue_limit" then
                   Data.Generate_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));

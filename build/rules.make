@@ -3,7 +3,7 @@
 # note that we use .exe for test executables even on non-windows, to
 # keep the makerules simpler.
 
-.PRECIOUS : %.exe %.out %.re2c
+.PRECIOUS : %.exe %.out %.re2c %_packrat.re2c
 
 .PHONY : zip force
 

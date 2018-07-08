@@ -178,6 +178,7 @@ package Wisi is
       Default_Push_Back          : Natural               := 0;
       Delete                     : String_Pair_Lists.List;
       Insert                     : String_Pair_Lists.List;
+      Push_Back                  : String_Pair_Lists.List;
       Cost_Limit                 : Natural               := Integer'Last;
       Check_Limit                : WisiToken.Token_Index := WisiToken.Token_Index'Last;
       Check_Delta_Limit          : Natural               := Integer'Last;

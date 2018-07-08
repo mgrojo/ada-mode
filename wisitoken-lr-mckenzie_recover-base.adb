@@ -176,7 +176,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
             when Active =>
                if Parser_States (I).Recover.Config_Heap.Count > 0 then
                   if Parser_States (I).Recover.Check_Count - Check_Delta_Limit >= Min_Success_Check_Count then
-                     if Trace_McKenzie > Detail then
+                     if Trace_McKenzie > Outline then
                         Put_Line (Trace.all, Parser_Labels (I), "fail; check delta (limit" &
                                     Integer'Image (Min_Success_Check_Count + Check_Delta_Limit) & ")");
                      end if;
@@ -184,7 +184,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
                      Done_Count        := Done_Count + 1;
 
                   elsif Parser_States (I).Recover.Enqueue_Count >= Enqueue_Limit then
-                     if Trace_McKenzie > Detail then
+                     if Trace_McKenzie > Outline then
                         Put_Line (Trace.all, Parser_Labels (I), "fail; enqueue limit (" &
                                     Integer'Image (Enqueue_Limit) & ")");
                      end if;
@@ -199,7 +199,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
 
                   else
                      if Active_Workers (I) = 0 then
-                        if Trace_McKenzie > Detail then
+                        if Trace_McKenzie > Outline then
                            Put_Line (Trace.all, Parser_Labels (I), "fail; too expensive");
                         end if;
                         Parser_Status (I) := Fail;
@@ -209,8 +209,8 @@ package body WisiToken.LR.McKenzie_Recover.Base is
                else
                   if Active_Workers (I) = 0 then
                      --  No configs left to check (rarely happens with real languages).
-                     if Trace_McKenzie > Detail then
-                        Put_Line (Trace.all, Parser_Labels (I), "fail (no configs left)");
+                     if Trace_McKenzie > Outline then
+                        Put_Line (Trace.all, Parser_Labels (I), "fail; no configs left");
                      end if;
                      Parser_Status (I) := Fail;
                      Done_Count        := Done_Count + 1;

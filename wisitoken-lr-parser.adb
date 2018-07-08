@@ -837,6 +837,36 @@ package body WisiToken.LR.Parser is
                   Current_Parser.State_Ref.Conflict_During_Resume := Current_Parser.State_Ref.Resume_Active;
 
                   if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
+                     --  If errors were recovered, terminate a parser that used the
+                     --  highest cost solution.
+                     declare
+                        use all type WisiToken.LR.Parser_Lists.Cursor;
+                        Max_Recover_Cost : Integer             := 0;
+                        Max_Parser       : Parser_Lists.Cursor;
+                        Cur              : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
+                     begin
+                        loop
+                           exit when Cur.Is_Done;
+                           if Cur.Total_Recover_Cost > Max_Recover_Cost then
+                              Max_Parser       := Cur;
+                              Max_Recover_Cost := Cur.Total_Recover_Cost;
+                           end if;
+                           Cur.Next;
+                        end loop;
+
+                        if Max_Recover_Cost > 0 then
+                           if Max_Parser = Current_Parser then
+                              Shared_Parser.Parsers.Terminate_Parser
+                                (Current_Parser, "too many parsers; max error repair cost", Trace);
+                           else
+                              Shared_Parser.Parsers.Terminate_Parser
+                                (Max_Parser, "too many parsers; max error repair cost", Trace);
+                           end if;
+                        end if;
+                     end;
+                  end if;
+
+                  if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
                      declare
                         Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                         Token : Base_Token renames Shared_Parser.Terminals (Parser_State.Shared_Token);

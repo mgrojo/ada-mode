@@ -30,6 +30,10 @@ with WisiToken.LR.Parser;
 with WisiToken.Lexer;
 package WisiToken.LR.McKenzie_Recover is
 
+   Bad_Config : exception;
+   --  Raised when a config is determined to violate some programming
+   --  convention; abandon it.
+
    type Recover_Status is
      (Fail,     --  Error is not fixed; fail parse with Syntax_Error
       Success); --  Error is fixed; parser continue with Resume_Active = True

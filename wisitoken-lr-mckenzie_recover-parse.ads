@@ -71,5 +71,7 @@ private package WisiToken.LR.McKenzie_Recover.Parse is
    --  Parse_Item parsed successfully to the goal. In that case, the
    --  other items are either not parsed or failed. See comment in
    --  Parse_Item for more detail.
+   --
+   --  Raises Bad_Config if parse encounters Unknown_State.
 
 end WisiToken.LR.McKenzie_Recover.Parse;

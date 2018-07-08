@@ -148,7 +148,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       loop
          if Action.Next /= null then
             if Parse_Items.Is_Full then
-               if Trace_McKenzie > Detail then
+               if Trace_McKenzie > Outline then
                   Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": too many conflicts; abandoning");
                end if;
             else
@@ -213,12 +213,27 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                  (Shared, Config.Stack, Action.Item, Nonterm,
                   Default_Virtual => Config.Current_Inserted /= No_Inserted);
 
+               if Config.Stack.Depth = 1 then
+                  --  Stack is empty; Config is a bad solution.
+                  --  We can't just return False here; user must abandon this config.
+                  raise Bad_Config;
+               end if;
+
                case Config.Check_Status.Label is
                when Ok =>
                   New_State := Config.Stack.Peek.State;
                   New_State := Goto_For (Table, New_State, Action.Item.Production.Nonterm);
 
-                  pragma Assert (New_State /= Unknown_State);
+                  if New_State = Unknown_State then
+                     --  Most likely from an inappropriate language fix.
+                     if Trace_McKenzie > Outline then
+                        Base.Put (Trace_Prefix & ": Unknown_State: ", Super, Shared, Parser_Index, Config);
+                        Put_Line (Trace, Trace_Prefix & ": stack: " & Image (Config.Stack, Descriptor));
+                     end if;
+
+                     --  We can't just return False here; user must abandon this config.
+                     raise Bad_Config;
+                  end if;
 
                   Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
 

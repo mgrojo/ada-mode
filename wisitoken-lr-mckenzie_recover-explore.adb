@@ -43,7 +43,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Config.Current_Inserted := Config.Current_Inserted + 1;
       end if;
 
-      Config.Cost := Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta;
+      Config.Cost := Integer'Max (1, Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta);
 
       Config.Stack.Push ((State, Syntax_Trees.Invalid_Node_Index, (ID, Virtual => True, others => <>)));
       if Trace_McKenzie > Detail then
@@ -326,6 +326,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             end if;
          end;
       end if;
+   exception
+   when Bad_Config =>
+      return Abandon;
    end Fast_Forward;
 
    function Check
@@ -409,6 +412,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             end if;
          end if;
       end;
+   exception
+   when Bad_Config =>
+      return Abandon;
    end Check;
 
    procedure Try_Push_Back
@@ -614,9 +620,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       end String_ID_Set;
 
       procedure String_Literal_In_Stack
-        (New_Config        : in Configuration_Access;
-         Matching          : in SAL.Peek_Type;
-         String_Literal_ID : in Token_ID)
+        (New_Config        : in out Configuration;
+         Matching          : in     SAL.Peek_Type;
+         String_Literal_ID : in     Token_ID)
       is
          Saved_Shared_Token : constant Token_Index := New_Config.Current_Shared_Token;
 
@@ -641,22 +647,26 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             J := J - 1;
          end loop;
 
-         if Parse.Parse
-           (Super, Shared, Parser_Index, Parse_Items, New_Config.all,
-            Shared_Token_Goal => J,
-            All_Conflicts     => False,
-            Trace_Prefix      => "insert quote parse pushback")
-         then
-            --  The non-deleted tokens parsed without error. We don't care if any
-            --  conflicts were encountered; we are not using the parse result.
-            New_Config.all := Parse_Items (1).Config;
-            New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
+         begin
+            if Parse.Parse
+              (Super, Shared, Parser_Index, Parse_Items, New_Config,
+               Shared_Token_Goal => J,
+               All_Conflicts     => False,
+               Trace_Prefix      => "insert quote parse pushback")
+            then
+               --  The non-deleted tokens parsed without error. We don't care if any
+               --  conflicts were encountered; we are not using the parse result.
+               New_Config := Parse_Items (1).Config;
+               New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
 
-            Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
-         else
+               Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
+            else
+               raise Programmer_Error;
+            end if;
+         exception
+         when Bad_Config =>
             raise Programmer_Error;
-         end if;
-
+         end;
          J := New_Config.Current_Shared_Token; -- parse result
          loop
             exit when J = Saved_Shared_Token;
@@ -669,9 +679,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       end String_Literal_In_Stack;
 
       procedure Finish
-        (Label       : in String;
-         New_Config  : in Configuration_Access;
-         First, Last : in Base_Token_Index)
+        (Label       : in     String;
+         New_Config  : in out Configuration;
+         First, Last : in     Base_Token_Index)
       is begin
          --  Delete tokens First .. Last; either First - 1 or Last + 1 should
          --  be a String_Literal. Leave Current_Shared_Token at Last + 1.
@@ -683,6 +693,12 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          New_Config.Cost := New_Config.Cost + 1;
 
          for I in First .. Last loop
+            if New_Config.Ops.Is_Full then
+               if Trace_McKenzie > Outline then
+                  Put_Line (Super.Trace.all, Super.Label (Parser_Index), "config.ops is full");
+               end if;
+               raise Bad_Config;
+            end if;
             New_Config.Ops.Append ((Delete, Shared.Terminals.all (I).ID, I));
          end loop;
          New_Config.Current_Shared_Token := Last + 1;
@@ -700,7 +716,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
 
          if Trace_McKenzie > Detail then
-            Base.Put ("insert missing quote " & Label & " ", Super, Shared, Parser_Index, New_Config.all);
+            Base.Put ("insert missing quote " & Label & " ", Super, Shared, Parser_Index, New_Config);
          end if;
       end Finish;
 
@@ -747,7 +763,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  test_mckenzie_recover.adb String_Quote_0. So far we have not found
          --  a test case for more than one token.
          declare
-            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+            New_Config : Configuration := Config;
             Token      : Recover_Token;
          begin
             loop
@@ -759,6 +775,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             end loop;
 
             Finish ("a", New_Config, Token.Min_Terminal_Index, Config.Current_Shared_Token - 1);
+            Local_Config_Heap.Add (New_Config);
          end;
 
          --  Note that it is not reasonable to insert a quote after the error
@@ -796,12 +813,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             end if;
 
             declare
-               New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               New_Config : Configuration := Config;
             begin
                String_Literal_In_Stack (New_Config, Matching, Lexer_Error_Token.ID);
 
                Finish
                  ("b", New_Config, Config.Current_Shared_Token, Shared.Line_Begin_Token.all (Current_Line + 1) - 1);
+               Local_Config_Heap.Add (New_Config);
             end;
          end;
 
@@ -810,13 +828,21 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
          --  case c: Assume a missing quote belongs immediately before the current token.
          --  See test_mckenzie_recover.adb String_Quote_3.
-         Finish ("c", Local_Config_Heap.Add (Config), Config.Current_Shared_Token, Lexer_Error_Token_Index - 1);
+         declare
+            New_Config : Configuration := Config;
+         begin
+            Finish ("c", New_Config, Config.Current_Shared_Token, Lexer_Error_Token_Index - 1);
+            Local_Config_Heap.Add (New_Config);
+         exception
+         when Bad_Config =>
+            null;
+         end;
 
          --  case d: Assume a missing quote belongs somewhere farther before
          --  the current token; try one non-empty (as in case a above). See
          --  test_mckenzie_recover.adb String_Quote_4.
          declare
-            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+            New_Config : Configuration := Config;
             Token      : Recover_Token;
          begin
             loop
@@ -828,6 +854,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             end loop;
 
             Finish ("d", New_Config, Token.Min_Terminal_Index, Lexer_Error_Token_Index - 1);
+            Local_Config_Heap.Add (New_Config);
+         exception
+         when Bad_Config =>
+            null;
          end;
 
          --  case e: Assume the actual error is an extra quote that terminates
@@ -848,15 +878,19 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                null;
             else
                declare
-                  New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+                  New_Config : Configuration := Config;
                begin
                   String_Literal_In_Stack (New_Config, Matching, Lexer_Error_Token.ID);
 
                   Finish ("e", New_Config, Config.Current_Shared_Token, Lexer_Error_Token_Index);
+                  Local_Config_Heap.Add (New_Config);
                end;
             end if;
          end;
       end if;
+   exception
+   when Bad_Config =>
+      null;
    end Try_Insert_Quote;
 
    procedure Try_Delete_Input

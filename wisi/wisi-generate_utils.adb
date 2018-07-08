@@ -747,6 +747,9 @@ package body Wisi.Generate_Utils is
       for Pair of Item.Insert loop
          Result.Insert (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);
       end loop;
+      for Pair of Item.Push_Back loop
+         Result.Push_Back (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);
+      end loop;
 
       return Result;
    end To_McKenzie_Param;

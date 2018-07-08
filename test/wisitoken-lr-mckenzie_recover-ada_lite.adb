@@ -602,52 +602,89 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                return Continue;
             end if;
 
-            --  The input looks like
+            --  The input looks like one of:
             --
-            --  "<begin_name_token_1> ... <begin_name_token_2> ... begin ... begin ... end <end_name_token_1> ;"
+            --  1. "<begin_name_token_1> ... <begin_name_token_2> ... begin ... begin ... end <end_name_token_1> ;"
             --
-            --  'end <end_name_token_2> ;' is missing between the 'begin's, so
-            --  parsing expects <end_name_token_1> to match the second 'begin',
-            --  which looks like an unnamed block. See test_mckenzie_recover
-            --  Match_Selected_Component_1.
+            --  2. "<begin_name_token_1> ... begin ... declare ... begin ... end <end_name_token_1> ;"
+            --
+            --  Case 1) is missing 'end <end_name_token_2> ;' between the
+            --  'begin's, so parsing expects <end_name_token_1> to match the
+            --  second 'begin', which looks like an unnamed block. See
+            --  test_mckenzie_recover Match_Selected_Component_1. 'declare ...'
+            --  may _not_ be present on the second begin.
             --
             --  The solution is to insert 'end ;' before the second 'begin'.
+            --
+            --  Case 2) is missing 'end;' after the second 'begin'. See
+            --  test_mckenzie_recover Match_Selected_Component_2. 'declare ...'
+            --  may be absent on the second begin, or a name may be present. The
+            --  solution is to insert 'end;' after the second 'begin' (ie before
+            --  the last 'end').
             --
             --  Note that it's _not_ possible the user is just editing names; that
             --  would generate a semantic check fail, not a parse table error,
             --  since a "." would be permitted.
+            --
+            --  If a 'declare' is present on the second begin, we have case 2.
+            --  Otherwise we cannot distinguish between the two, so enqueue both
+            --  solutions.
 
             declare
-               Label      : constant String               := "selected_component 1";
-               New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               Label        : constant String               := "selected_component 1";
+               New_Config_1 : constant Configuration_Access := Local_Config_Heap.Add (Config);
+               New_Config_2 : Configuration_Access;
             begin
-               New_Config.Error_Token.ID := Invalid_Token_ID;
+               New_Config_1.Error_Token.ID := Invalid_Token_ID;
 
-               Push_Back_Check
-                 (New_Config,
-                  (+IDENTIFIER_ID, +END_ID, +handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
+               Push_Back_Check (New_Config_1, (+IDENTIFIER_ID, +END_ID));
 
-               Insert (New_Config, (+END_ID, +SEMICOLON_ID));
+               case Ada_Lite_Actions.Token_Enum_ID'(-New_Config_1.Stack (3).Token.ID) is
+               when block_label_opt_ID =>
+                  --  no 'declare'; either case 1 or 2
+
+                  New_Config_2 := Local_Config_Heap.Add (New_Config_1.all);
+                  Insert (New_Config_2, (+END_ID, +SEMICOLON_ID));
+
+                  Push_Back_Check (New_Config_1, (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
+                  Insert (New_Config_1, (+END_ID, +SEMICOLON_ID));
+
+               when declarative_part_opt_ID =>
+                  --  case 2
+                  Insert (New_Config_1, (+END_ID, +SEMICOLON_ID));
+
+               when others =>
+                  if Trace_McKenzie > Outline then
+                     Put ("Language_Fixes " & Label & " missing case " & Image
+                            (New_Config_1.Stack (3).Token.ID, Descriptor), Config);
+                     Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
+                  end if;
+                  return Abandon;
+               end case;
 
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes selected_component 1 " & Image (Config.Error_Token.ID, Descriptor),
-                       New_Config.all);
+                       New_Config_1.all);
                   if Trace_McKenzie > Extra then
-                     Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
+                     Trace.Put_Line ("config stack: " & Image (New_Config_1.Stack, Descriptor));
+                  end if;
+
+                  if New_Config_2 /= null then
+                     Put ("Language_Fixes selected_component 1 " & Image (Config.Error_Token.ID, Descriptor),
+                          New_Config_2.all);
+                     if Trace_McKenzie > Extra then
+                        Trace.Put_Line ("config stack: " & Image (New_Config_2.Stack, Descriptor));
+                     end if;
                   end if;
                end if;
                return Abandon;
             exception
             when System.Assertions.Assert_Failure =>
                --  From *_Check
-               Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
-               Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
-
-               --  We don't re-raise the exception here; so far, this has only
-               --  happened while exploring a high-cost config (which only occurs in
-               --  a race condition with the lower cost solution), and the correct
-               --  thing to do would be to abandon it. If we are trying to fix a
-               --  particular use case, the trace messages will be enough.
+               if Trace_McKenzie > Outline then
+                  Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
+                  Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
+               end if;
                return Abandon;
             end;
          end if;
