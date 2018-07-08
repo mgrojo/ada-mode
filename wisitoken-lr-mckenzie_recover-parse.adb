@@ -137,6 +137,10 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
    begin
       if Trace_McKenzie > Detail then
          Base.Put (Trace_Prefix & ": " & Image (Current_Token, Descriptor), Super, Shared, Parser_Index, Config);
+         if Shared_Token_Goal /= Invalid_Token_Index then
+            Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": Shared_Token_Goal :" &
+                        Token_Index'Image (Shared_Token_Goal));
+         end if;
       end if;
 
       Item.Parsed := True;
@@ -166,6 +170,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
          if Trace_McKenzie > Extra then
             Put_Line
               (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image (Config.Stack.Peek.State) &
+                 " :" & Token_Index'Image (Config.Current_Shared_Token) &
                  " : " & Image (Current_Token, Descriptor) &
                  " : " & Image (Action.Item, Descriptor));
          end if;
@@ -212,12 +217,6 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                Config.Check_Status := Reduce_Stack
                  (Shared, Config.Stack, Action.Item, Nonterm,
                   Default_Virtual => Config.Current_Inserted /= No_Inserted);
-
-               if Config.Stack.Depth = 1 then
-                  --  Stack is empty; Config is a bad solution.
-                  --  We can't just return False here; user must abandon this config.
-                  raise Bad_Config;
-               end if;
 
                case Config.Check_Status.Label is
                when Ok =>

@@ -474,7 +474,7 @@ package body Test_McKenzie_Recover is
          Enqueue_High            => 35,
          Check_Low               => 2,
          Check_High              => 11,
-         Cost                    => 0);
+         Cost                    => 1);
    end Conflict_2;
 
    procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)

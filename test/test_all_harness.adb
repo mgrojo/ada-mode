@@ -47,11 +47,12 @@ with WisiToken.Generate.Packrat.Test;
 with WisiToken.Syntax_Trees.Test;
 procedure Test_All_Harness
 is
-   --  command line arguments:
-   --  [<verbose> [test_name [routine_name [trace_parse [trace_mckenzie [task_count cost_limit trace_action]]]]]
+   --  command line arguments (all optional, order matters):
+   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action task_count cost_limit
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace for all routines. test_name cannot be ''.
+   --  Trace_Action is used for verbosity in tests.
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
 
@@ -96,14 +97,14 @@ begin
          end;
       end case;
 
-      WisiToken.Trace_Parse    := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
-      WisiToken.Trace_McKenzie := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
+      WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
+      WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
+      WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
+      WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
 
-      Task_Count := (if Argument_Count >= 6 then System.Multiprocessors.CPU_Range'Value (Argument (6)) else 0);
-      Cost_Limit := (if Argument_Count >= 7 then Natural'Value (Argument (7)) else Natural'Last);
+      Task_Count := (if Argument_Count >= 8 then System.Multiprocessors.CPU_Range'Value (Argument (8)) else 0);
+      Cost_Limit := (if Argument_Count >= 9 then Natural'Value (Argument (9)) else Natural'Last);
 
-      WisiToken.Trace_Action := (if Argument_Count >= 8 then Integer'Value (Argument (8)) else 0);
-      --  Trace_Action is used for verbosity in tests.
    end;
 
    --  Test cases; test package alphabetical order, unless otherwise noted.
