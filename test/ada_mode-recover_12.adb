@@ -1,19 +1,26 @@
---  From a real editing session. Violates an assert: Match_Names_Error 1  37 /= 24 loop_statement"
-package debug
-   function Recursive (Nonterm : in Token_ID; Prod : in WisiToken.Productions.Instance) return Boolean
+--  From a real editing session.
+--
+--  Missing 'end if;'
+--
+--  Used to violate an assert in recover, now finds a good solution quickly.
+
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq wisi-indent-region-fallback nil)
+package Ada_Mode.Recover_12
+   function Recursive (Nonterm : in Token_Id; Prod : in Wisitoken.Productions.Instance) return Boolean
    is
    begin
-   RHS_Loop :
-      for RHS of Prod.RHSs loop
-      ID_Loop :
-         for ID of RHS.Tokens loop
-            if ID = Nonterm then
+   Rhs_Loop :
+      for Rhs of Prod.Rhss loop
+      Id_Loop :
+         for Id of Rhs.Tokens loop
+            if Id = Nonterm then
                return True;
             else
-               if ID in Nonterminal then
-                  exit ID_Loop;
+               if Id in Nonterminal then
+                  exit Id_Loop;
                end if;
-         end loop ID_Loop;
-      end loop RHS_Loop;
+         end loop Id_Loop;
+      end loop Rhs_Loop;
    end Recursive;
-end Debug;
+end Ada_Mode.Recover_12;

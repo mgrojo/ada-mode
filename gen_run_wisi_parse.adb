@@ -26,6 +26,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with SAL;
+with System.Multiprocessors;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
@@ -62,6 +63,7 @@ is
                    else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Enqueue_Limit)));
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
                   Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
+      Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--lexer_only : only run lexer, for profiling");
@@ -142,6 +144,10 @@ begin
 
          elsif Argument (Arg) = "--repeat_count" then
             Repeat_Count := Integer'Value (Argument (Arg + 1));
+            Arg := Arg + 2;
+
+         elsif Argument (Arg) = "--task_count" then
+            Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range'Value (Argument (Arg + 1));
             Arg := Arg + 2;
 
          else

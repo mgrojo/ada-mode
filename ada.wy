@@ -221,8 +221,9 @@
 %mckenzie_cost_insert WHEN 2
 
 ;; We often have an extra 'begin' while moving stuff around. Deleting
-;; that requires popping it and the corresponding nonterm off the
-;; parse stack.
+;; that requires popping it and the precediing declarative part back
+;; from the stack into the input stream (called 'push_back), then
+;; deleting it.
 ;;
 ;; Deleting an extra 'declare' requires deleting (and re-inserting)
 ;; the following identifier, since the error is detected after that,
@@ -231,13 +232,21 @@
 ;; identifiers in other cases is not as helpful.
 ;;
 ;; Similarly, we often have an extra 'end', or 'end loop' etc.
+%mckenzie_cost_push_back BEGIN 1
 %mckenzie_cost_delete BEGIN 1
+%mckenzie_cost_push_back CASE 2
 %mckenzie_cost_delete CASE 2
+%mckenzie_cost_push_back DECLARE 1
 %mckenzie_cost_delete DECLARE 1
+%mckenzie_cost_push_back END 1
 %mckenzie_cost_delete END 1
+%mckenzie_cost_push_back IDENTIFIER 2
 %mckenzie_cost_delete IDENTIFIER 2
+%mckenzie_cost_push_back IF 2
 %mckenzie_cost_delete IF 2
+%mckenzie_cost_push_back LOOP 2
 %mckenzie_cost_delete LOOP 2
+%mckenzie_cost_push_back declarative_part_opt 1
 %mckenzie_cost_delete declarative_part_opt 1
 
 ;; Most common paren error is missing closing paren.

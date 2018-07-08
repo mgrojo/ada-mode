@@ -1,6 +1,4 @@
---  Abstract :
---
---  Test indent and navigate parse with syntax error recovery
+--  From a real editing session. Now finds a reasonable solution quickly.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)

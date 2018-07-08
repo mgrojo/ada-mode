@@ -1,13 +1,12 @@
 --  From a real editing session; mckenzie fails to find a solution.
 
---  Changing "for .. of .. loop" to "for .. in .. loop"; forgot to
--- change the 'of'.
+-- Missing several "end ...;"
 --
---  Also missing several "end ...;"
+-- McKenzie reports many conflicts in Constrain_Terminals; state 42, 421
 --
---  McKenzie reports many conflicts in Constrain_Terminals; state 42, 421
---
-package debug
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq wisi-indent-region-fallback nil)
+package Ada_Mode.Recover_10
 procedure Check_RHS_Order
      (Grammar          : in     WisiToken.Productions.Prod_Arrays.Vector;
       Source_File_Name : in     String;
@@ -22,4 +21,4 @@ procedure Check_RHS_Order
          Cur : Token_ID_Arrays.Vector renames Prod.RHSs (I).Tokens;
          begin
          end Check_RHS_Order;
-   end Debug;
+   end Ada_Mode.Recover_10;

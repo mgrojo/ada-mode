@@ -1,4 +1,4 @@
---  From a real editing session.
+--  From a real editing session. Now finds a reasonable solution quickly.
 --
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 procedure Ada_Mode.Recover_3 is
