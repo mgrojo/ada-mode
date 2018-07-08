@@ -23,7 +23,7 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Text_IO;
 with WisiToken.Generate;
-package body WisiToken.LR.LR1_Generator is
+package body WisiToken.LR.LR1_Generate is
 
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
@@ -344,14 +344,14 @@ package body WisiToken.LR.LR1_Generator is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Generator_Utils.Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
+      Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
 
       Add_Actions
         (Item_Sets, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all,
          Trace_Generate > Detail, Descriptor);
 
       if Put_Parse_Table then
-         LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
+         LR1_Generate.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
@@ -375,4 +375,4 @@ package body WisiToken.LR.LR1_Generator is
       return Table;
    end Generate;
 
-end WisiToken.LR.LR1_Generator;
+end WisiToken.LR.LR1_Generate;

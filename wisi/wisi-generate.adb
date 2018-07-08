@@ -34,8 +34,8 @@ with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
 with Wisi.Output_Elisp_Common;
 with WisiToken.Generate.Packrat;
-with WisiToken.LR.LALR_Generator;
-with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LALR_Generate;
+with WisiToken.LR.LR1_Generate;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Productions;
 with WisiToken.Text_IO_Trace;
@@ -306,7 +306,7 @@ begin
 
                case Quad.Gen_Alg is
                when LALR =>
-                  Generate_Data.LR_Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
+                  Generate_Data.LR_Parsers (LALR) := WisiToken.LR.LALR_Generate.Generate
                     (Generate_Data.Grammar,
                      Generate_Data.LALR_Descriptor.all,
                      Generate_Utils.To_Conflicts
@@ -320,7 +320,7 @@ begin
                   Wisi.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
 
                when LR1 =>
-                  Generate_Data.LR_Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
+                  Generate_Data.LR_Parsers (LR1) := WisiToken.LR.LR1_Generate.Generate
                     (Generate_Data.Grammar,
                      Generate_Data.LR1_Descriptor.all,
                      Generate_Utils.To_Conflicts

@@ -23,7 +23,7 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LALR_Generate;
 with WisiToken.LR.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
@@ -95,7 +95,7 @@ package body Test_Accept_State is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor),
+         WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,

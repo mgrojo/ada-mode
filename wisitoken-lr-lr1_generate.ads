@@ -25,12 +25,10 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.Generator_Utils;
+with WisiToken.LR.Generate_Utils; use WisiToken.LR.Generate_Utils;
 with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
-package WisiToken.LR.LR1_Generator is
-
-   use Generator_Utils;
+package WisiToken.LR.LR1_Generate is
 
    function Generate
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -77,4 +75,4 @@ package WisiToken.LR.LR1_Generator is
      return LR1_Items.Item_Set_List;
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
-end WisiToken.LR.LR1_Generator;
+end WisiToken.LR.LR1_Generate;

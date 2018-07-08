@@ -25,7 +25,7 @@ with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate;
 with WisiToken.Lexer.Regexp;
-with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LR1_Generate;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
 with WisiToken.Productions;
@@ -99,7 +99,7 @@ package body Grune_9_30 is
       use WisiToken.LR.LR1_Items.AUnit;
       use WisiToken.LR.LR1_Items;
 
-      Computed : Item_Set_List := WisiToken.LR.LR1_Generator.LR1_Item_Sets
+      Computed : Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, LR1_Descriptor,
          Trace => WisiToken.Trace_Generate > 0);
 
@@ -158,7 +158,7 @@ package body Grune_9_30 is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor),
+         WisiToken.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,

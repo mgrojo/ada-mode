@@ -19,7 +19,7 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with WisiToken.Generate;
-package body WisiToken.LR.Generator_Utils is
+package body WisiToken.LR.Generate_Utils is
 
    procedure Add_Action
      (Symbol               : in     Token_ID;
@@ -161,8 +161,9 @@ package body WisiToken.LR.Generator_Utils is
                   begin
                      Add_Action
                        (Dot_ID,
-                        (Accept_It, P_ID, RHS.Action, RHS.Check,
-                         RHS.Tokens.Length - 1), -- EOF is not pushed on stack. FIXME: why not?
+                        (Accept_It, P_ID, RHS.Action, RHS.Check, RHS.Tokens.Length - 1),
+                        --  EOF is not pushed on stack in parser, because the action for EOF
+                        --  is Accept, not Shift.
                         Table.States (State).Action_List,
                         Closure, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                   end;
@@ -670,4 +671,4 @@ package body WisiToken.LR.Generator_Utils is
       end loop;
    end Compute_Minimal_Terminal_Sequences;
 
-end WisiToken.LR.Generator_Utils;
+end WisiToken.LR.Generate_Utils;
