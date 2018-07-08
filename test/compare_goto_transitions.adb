@@ -24,8 +24,8 @@ with AUnit.Assertions;
 with Ada.Text_IO;
 with WisiToken.Generate;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.LR.LALR_Generator;
-with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LALR_Generate;
+with WisiToken.LR.LR1_Generate;
 with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
@@ -113,12 +113,12 @@ package body Compare_Goto_Transitions is
                  Token_Enum_ID'Image (Symbol) & "." &
                  Token_Enum_ID'Image (ID);
             begin
-               LR1 := WisiToken.LR.LR1_Generator.LR1_Goto_Transitions
+               LR1 := WisiToken.LR.LR1_Generate.LR1_Goto_Transitions
                     (Set, +ID, Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => False);
                LR1_Filtered := Filter (LR1, Grammar, LR1_Descriptor, In_Kernel'Access);
                Free (LR1);
 
-               LALR := WisiToken.LR.LALR_Generator.LALR_Goto_Transitions
+               LALR := WisiToken.LR.LALR_Generate.LALR_Goto_Transitions
                  (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor);
 
                WisiToken.LR.LR1_Items.AUnit.Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);

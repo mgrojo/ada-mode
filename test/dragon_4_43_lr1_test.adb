@@ -27,7 +27,7 @@ with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate;
 with WisiToken.LR.AUnit;
-with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LR1_Generate;
 with WisiToken.LR.LR1_Items.AUnit; use WisiToken.LR.LR1_Items.AUnit;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
@@ -146,7 +146,7 @@ package body Dragon_4_43_LR1_Test is
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := WisiToken.LR.LR1_Generator.LR1_Item_Sets
+      Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => Test.Debug > 0);
 
       Expected : constant Item_Set_List :=
@@ -227,7 +227,7 @@ package body Dragon_4_43_LR1_Test is
       use WisiToken.LR;
       use WisiToken.LR.AUnit;
 
-      Computed : constant Parse_Table_Ptr := WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor);
+      Computed : constant Parse_Table_Ptr := WisiToken.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -333,7 +333,7 @@ package body Dragon_4_43_LR1_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor),
+         WisiToken.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,

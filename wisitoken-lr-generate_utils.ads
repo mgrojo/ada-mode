@@ -22,7 +22,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Doubly_Linked_Lists;
 with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
-package WisiToken.LR.Generator_Utils is
+package WisiToken.LR.Generate_Utils is
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict is record
@@ -127,4 +127,4 @@ package WisiToken.LR.Generator_Utils is
       Descriptor : in     WisiToken.Descriptor'Class;
       Result     : in out Token_Sequence_Arrays.Vector);
 
-end WisiToken.LR.Generator_Utils;
+end WisiToken.LR.Generate_Utils;

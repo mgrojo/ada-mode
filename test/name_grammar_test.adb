@@ -25,7 +25,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LALR_Generate;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
@@ -151,7 +151,7 @@ package body Name_Grammar_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate (Full_Grammar, LALR_Descriptor),
+            WisiToken.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor),
             User_Data                    => null,
             Language_Fixes               => null,
             Language_Constrain_Terminals => null,

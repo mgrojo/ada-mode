@@ -20,7 +20,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
-with WisiToken.LR.Generator_Utils;
+with WisiToken.LR.Generate_Utils;
 with WisiToken.Productions;
 with WisiToken.Wisi_Grammar_Runtime;
 package Wisi.Generate_Utils is
@@ -42,7 +42,7 @@ package Wisi.Generate_Utils is
       Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
       Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
-      Conflicts       : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
+      Conflicts       : WisiToken.LR.Generate_Utils.Conflict_Lists.List;
 
       LR_Parsers : LR_Parser_Array;
 
@@ -137,7 +137,7 @@ package Wisi.Generate_Utils is
      (Data             : aliased in out Generate_Data;
       Conflicts        :         in     Wisi.Conflict_Lists.List;
       Source_File_Name :         in     String)
-     return WisiToken.LR.Generator_Utils.Conflict_Lists.List;
+     return WisiToken.LR.Generate_Utils.Conflict_Lists.List;
    --  Not included in Initialize because algorithms have no conflicts.
 
    function To_Nonterminal_ID_Set

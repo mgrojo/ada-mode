@@ -25,7 +25,7 @@ with Ada.Characters.Latin_1;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
-with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LALR_Generate;
 with WisiToken.LR.Parser;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
@@ -89,7 +89,7 @@ package body Trivial_Productions_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor),
+            WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
             User_Data                    => null,
             Language_Fixes               => null,
             Language_Constrain_Terminals => null,
@@ -180,7 +180,7 @@ package body Trivial_Productions_Test is
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor),
+            WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
             User_Data                    => null,
             Language_Fixes               => null,
             Language_Constrain_Terminals => null,

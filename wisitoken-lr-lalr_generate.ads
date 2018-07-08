@@ -21,10 +21,10 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.Generator_Utils; use WisiToken.LR.Generator_Utils;
+with WisiToken.LR.Generate_Utils; use WisiToken.LR.Generate_Utils;
 with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
-package WisiToken.LR.LALR_Generator is
+package WisiToken.LR.LALR_Generate is
 
    function Generate
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -65,4 +65,4 @@ package WisiToken.LR.LALR_Generator is
       Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set_List;
 
-end WisiToken.LR.LALR_Generator;
+end WisiToken.LR.LALR_Generate;

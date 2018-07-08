@@ -661,12 +661,12 @@ package body Wisi.Generate_Utils is
      (Data             : aliased in out Generate_Data;
       Conflicts        :         in     Wisi.Conflict_Lists.List;
       Source_File_Name :         in     String)
-     return WisiToken.LR.Generator_Utils.Conflict_Lists.List
+     return WisiToken.LR.Generate_Utils.Conflict_Lists.List
    is
-      use WisiToken.LR.Generator_Utils;
+      use WisiToken.LR.Generate_Utils;
       use all type WisiToken.LR.Parse_Action_Verbs;
-      Result   : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
-      Conflict : WisiToken.LR.Generator_Utils.Conflict;
+      Result   : WisiToken.LR.Generate_Utils.Conflict_Lists.List;
+      Conflict : WisiToken.LR.Generate_Utils.Conflict;
    begin
       Data.Accept_Reduce_Conflict_Count := 0;
       Data.Shift_Reduce_Conflict_Count  := 0;

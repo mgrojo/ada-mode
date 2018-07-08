@@ -25,7 +25,7 @@ with Ada.Containers;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with WisiToken.Generate;
-package body WisiToken.LR.LALR_Generator is
+package body WisiToken.LR.LALR_Generate is
 
    --  The following types are used for computing lookahead
    --  propagations.
@@ -170,7 +170,7 @@ package body WisiToken.LR.LALR_Generator is
    end Put_Parse_Table;
 
    ----------
-   --  Generator utils
+   --  Generate utils
 
    function LALR_Goto_Transitions
      (Kernel     : in LR1_Items.Item_Set;
@@ -754,7 +754,7 @@ package body WisiToken.LR.LALR_Generator is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Generator_Utils.Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
+      Generate_Utils.Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
 
       Add_Actions (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Descriptor);
 
@@ -772,7 +772,7 @@ package body WisiToken.LR.LALR_Generator is
       end loop;
 
       if Put_Parse_Table then
-         LALR_Generator.Put_Parse_Table (Table, Grammar, Kernels, Descriptor);
+         LALR_Generate.Put_Parse_Table (Table, Grammar, Kernels, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
@@ -794,4 +794,4 @@ package body WisiToken.LR.LALR_Generator is
       return Table;
    end Generate;
 
-end WisiToken.LR.LALR_Generator;
+end WisiToken.LR.LALR_Generate;

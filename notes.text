@@ -19,16 +19,6 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-update ada-mode.s-4
-
-propagate to main
-
-wisi-grammar-mode.s-1 adapt to '%generate <gen_alg> <out_lang>' to get output language
-    and try to guess from actions content
-
-lr parse should put eof on stack, in final accept production
-    as packrat parse does
-
 change all "generator" to "generate"
 
 try indirect recursion solution
@@ -40,6 +30,17 @@ try indirect recursion solution
     empty nonterm is not empty - optional unary minus - call apply
     rule if memo empty.
 
+    warth_left_recurse_expr_1.adb : Test_Parse_Proc
+
+    trying to implement full warth, but it's missing stuff, and some makes no sense
+        try https://github.com/alexwarth/ometa-js
+        or figure out what it must do; ie understand the algorithm
+
+    try S Medeiros, F Mascarenhas, R Ierusalimschy 2014 Left recursion in parsing expression grammars.pdf
+        "memoization scope"
+
+    or adapt langkit with pre-computed indirect
+
 
 review fixmes
 
@@ -49,25 +50,6 @@ propagate to main
 try to elim indirect in Ada
 
 try to elim indirect in Java
-
-packrat indirect recursion
-    ada-lite selected_component
-    conflict_name attribute_reference
-
-    implement warth 2008 section 3
-        wisitoken-parse-packrat-procedural.adb
-        non-recursive implemented
-            warth_left_recurse_expr_1.adb : Test_Parse_Proc failing
-                because it's recursive (duh).
-
-        trying to implement full warth, but it's missing stuff, and some makes no sense
-            try https://github.com/alexwarth/ometa-js
-            or figure out what it must do; ie understand the algorithm
-
-        try S Medeiros, F Mascarenhas, R Ierusalimschy 2014 Left recursion in parsing expression grammars.pdf
-            "memoization scope"
-
-        or adapt langkit with pre-computed indirect
 
 
 changed wisi-gen_generate_utils to be non-generic

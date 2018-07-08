@@ -26,7 +26,7 @@ with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate;
 with WisiToken.LR.AUnit;
-with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LALR_Generate;
 with WisiToken.LR.LR1_Items.AUnit; use WisiToken.LR.LR1_Items.AUnit;
 with WisiToken.LR.LR1_Items;
 with WisiToken.LR.Parser;
@@ -125,7 +125,7 @@ package body Dragon_4_45_LALR_Test is
 
       pragma Unreferenced (T);
 
-      Computed : constant Item_Set_List := WisiToken.LR.LALR_Generator.LALR_Kernels
+      Computed : constant Item_Set_List := WisiToken.LR.LALR_Generate.LALR_Kernels
         (Grammar, First, LALR_Descriptor);
 
       Null_Lookaheads : constant WisiToken.Token_ID_Set :=
@@ -187,7 +187,7 @@ package body Dragon_4_45_LALR_Test is
 
       pragma Unreferenced (T);
 
-      Computed : constant Parse_Table_Ptr := LALR_Generator.Generate (Grammar, LALR_Descriptor);
+      Computed : constant Parse_Table_Ptr := LALR_Generate.Generate (Grammar, LALR_Descriptor);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -273,7 +273,7 @@ package body Dragon_4_45_LALR_Test is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor),
+         WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
          User_Data                    => null,
          Language_Fixes               => null,
          Language_Constrain_Terminals => null,
