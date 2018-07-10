@@ -55,6 +55,9 @@ package body SAL.Gen_Bounded_Definite_Vectors is
    is
       J : constant Peek_Type := To_Peek_Index (Container.Last + 1);
    begin
+      if J > Container.Elements'Last then
+         raise Container_Full;
+      end if;
       Container.Elements (J) := New_Item;
       Container.Last := Container.Last + 1;
    end Append;
