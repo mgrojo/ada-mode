@@ -933,7 +933,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 11,
          Enqueue_High            => 56,
          Check_Low               => 2,
-         Check_High              => 15,
+         Check_High              => 16,
          Cost                    => 0,
          Code                    => Missing_Name_Error);
    end Missing_Name_1;

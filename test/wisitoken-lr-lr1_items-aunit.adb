@@ -25,8 +25,8 @@ package body WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.LR.LR1_Items.Item_Ptr;
-      Expected         : in WisiToken.LR.LR1_Items.Item_Ptr;
+      Computed         : in Item_Ptr;
+      Expected         : in Item_Ptr;
       Match_Lookaheads : in Boolean)
    is
       use Standard.AUnit.Checks;
@@ -60,8 +60,8 @@ package body WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.LR.LR1_Items.Item_Set;
-      Expected         : in WisiToken.LR.LR1_Items.Item_Set;
+      Computed         : in Item_Set;
+      Expected         : in Item_Set;
       Match_Lookaheads : in Boolean := True)
    is begin
       Check (Label & ".State", Computed.State, Expected.State);
@@ -71,8 +71,8 @@ package body WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.LR.LR1_Items.Item_Set_List;
-      Expected         : in WisiToken.LR.LR1_Items.Item_Set_List;
+      Computed         : in Item_Set_List;
+      Expected         : in Item_Set_List;
       Match_Lookaheads : in Boolean := True)
    is begin
       Check (Label & ".first_index", Computed.First_Index, Expected.First_Index);
@@ -84,31 +84,32 @@ package body WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in WisiToken.LR.LR1_Items.Goto_Item_Ptr;
-      Expected : in WisiToken.LR.LR1_Items.Goto_Item_Ptr)
+      Computed : in Goto_Item_Lists.List;
+      Expected : in Goto_Item_Lists.List)
    is
       use Standard.AUnit.Checks;
-      Computed_I : Goto_Item_Ptr := Computed;
-      Expected_I : Goto_Item_Ptr := Expected;
-      Index      : Integer  := 1;
+      use Goto_Item_Lists;
+      Computed_I : Cursor  := Computed.First;
+      Expected_I : Cursor  := Expected.First;
+      Index      : Integer := 1;
    begin
-      if Computed /= null or Expected /= null then
-         Standard.AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
-         Standard.AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+      if Computed_I /= No_Element or Expected_I /= No_Element then
+         Standard.AUnit.Assertions.Assert (Computed_I /= No_Element, Label & " Computed is empty");
+         Standard.AUnit.Assertions.Assert (Expected_I /= No_Element, Label & " Expected is empty");
       else
-         --  both are null
+         --  both are empty
          return;
       end if;
 
       loop
-         --  We only check set.state, not set.*, because the full check would be recursive
-         Check (Label & Integer'Image (Index) & ".Symbol", Symbol (Computed_I), Symbol (Expected_I));
-         Check (Label & Integer'Image (Index) & ".Set.State", State (Computed_I), State (Expected_I));
-         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
+         Check (Label & Integer'Image (Index) & ".Symbol", Computed (Computed_I).Symbol, Expected (Expected_I).Symbol);
+         Check (Label & Integer'Image (Index) & ".State", Computed (Computed_I).State, Expected (Expected_I).State);
+         Check (Label & Integer'Image (Index) & ".Next = null",
+                Next (Computed_I) = No_Element, Next (Expected_I) = No_Element);
          Computed_I := Next (Computed_I);
          Expected_I := Next (Expected_I);
          Index      := Index + 1;
-         exit when Computed_I = null;
+         exit when Computed_I = No_Element;
       end loop;
    end Check;
 
@@ -116,41 +117,52 @@ package body WisiToken.LR.LR1_Items.AUnit is
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
-      Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
+      Lookaheads : in Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
-     return WisiToken.LR.LR1_Items.Item_Ptr
+     return Item_Ptr
    is
       Dot_I : constant Token_ID_Arrays.Cursor := Grammar (Prod.Nonterm).RHSs (Prod.RHS).Tokens.To_Cursor (Dot);
    begin
-      return WisiToken.LR.LR1_Items.New_Item_Node (Prod, Dot_I, State, Lookaheads);
+      return New_Item_Node (Prod, Dot_I, State, Lookaheads);
    end Get_Item_Node;
 
-   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set
+   function "+" (Item : in Item_Ptr) return Item_Set
    is begin
-      return WisiToken.LR.LR1_Items.Item_Set'(Item, null, WisiToken.LR.LR1_Items.State (Item));
+      return Item_Set'
+        (Set       => Item,
+         Goto_List => <>,
+         State     => State (Item));
    end "+";
 
-   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set_List
+   function "+" (Item : in Item_Ptr) return Item_Set_List
    is begin
       return Result : Item_Set_List do
-         Result.Append (Item_Set'(Item, null, State (Item)));
+         Result.Append
+           (Item_Set'
+              (Set       => Item,
+               Goto_List => <>,
+               State     => State (Item)));
       end return;
    end "+";
 
    function "+"
      (State : in WisiToken.Unknown_State_Index;
-      Item  : in WisiToken.LR.LR1_Items.Item_Ptr)
-     return WisiToken.LR.LR1_Items.Item_Set_List
+      Item  : in Item_Ptr)
+     return Item_Set_List
    is begin
       Set_State (Item, State);
       return Result : Item_Set_List do
-         Result.Append (Item_Set'(Item, null, State));
+         Result.Append
+           (Item_Set'
+              (Set       => Item,
+               Goto_List => <>,
+               State     => State));
       end return;
    end "+";
 
    function "&"
-     (Left, Right : in WisiToken.LR.LR1_Items.Item_Set_List)
-     return WisiToken.LR.LR1_Items.Item_Set_List
+     (Left, Right : in Item_Set_List)
+     return Item_Set_List
    is
    begin
       return Result : Item_Set_List := Left do
@@ -160,26 +172,28 @@ package body WisiToken.LR.LR1_Items.AUnit is
       end return;
    end "&";
 
-   function "+" (Right : in AUnit_Goto_Item) return WisiToken.LR.LR1_Items.Goto_Item_Ptr
+   function "+" (Right : in AUnit_Goto_Item) return Goto_Item_Lists.List
    is begin
-      return WisiToken.LR.LR1_Items.New_Goto_Item (Right.Symbol, Right.State);
+      return Result : Goto_Item_Lists.List do
+         Result.Append ((Right.Symbol, Right.State));
+      end return;
    end "+";
 
    function "&"
-     (Left  : in WisiToken.LR.LR1_Items.Goto_Item_Ptr;
+     (Left  : in Goto_Item_Lists.List;
       Right : in AUnit_Goto_Item)
-     return WisiToken.LR.LR1_Items.Goto_Item_Ptr
+     return Goto_Item_Lists.List
    is
-      Result : WisiToken.LR.LR1_Items.Goto_Item_Ptr := Left;
+      Result : Goto_Item_Lists.List := Left;
    begin
-      WisiToken.LR.LR1_Items.Add (Result, Right.Symbol, Right.State);
+      Add (Result, Right.Symbol, Right.State);
       return Left;
    end "&";
 
    procedure Add_Gotos
-     (List  : in out WisiToken.LR.LR1_Items.Item_Set_List;
+     (List  : in out Item_Set_List;
       State : in     WisiToken.Unknown_State_Index;
-      Gotos : in     WisiToken.LR.LR1_Items.Goto_Item_Ptr)
+      Gotos : in     Goto_Item_Lists.List)
    is begin
       List (State).Goto_List := Gotos;
    end Add_Gotos;
@@ -188,8 +202,8 @@ package body WisiToken.LR.LR1_Items.AUnit is
      (Grammar   : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod      : in WisiToken.Production_ID;
       Dot       : in Positive;
-      Lookahead : in WisiToken.LR.LR1_Items.Lookahead)
-     return WisiToken.LR.LR1_Items.Item_Set
+      Lookahead : in LR1_Items.Lookahead)
+     return Item_Set
    is begin
       return
         (Set => Get_Item_Node
@@ -197,7 +211,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
             Prod       => Prod,
             Dot        => Dot,
             Lookaheads => Lookahead),
-         Goto_List       => null,
+         Goto_List       => <>,
          State           => WisiToken.Unknown_State);
    end Get_Item_Set;
 

@@ -149,7 +149,7 @@ package body WisiToken.LR.Generate_Utils is
                Dot_ID : constant Token_ID := Element (Dot (Item));
                --  ID of token after Item.Dot
 
-               Goto_State : constant Unknown_State_Index := LR1_Items.Goto_Set (Closure, Dot_ID);
+               Goto_State : constant Unknown_State_Index := LR1_Items.Goto_State (Closure, Dot_ID);
             begin
                if Dot_ID = Descriptor.EOF_ID then
                   --  This is the start symbol production with dot before EOF.
@@ -235,18 +235,11 @@ package body WisiToken.LR.Generate_Utils is
          end if;
       end;
 
-      --  Fill in this state's Goto transitions
-      declare
-         use all type LR1_Items.Goto_Item_Ptr;
-         Goto_Ptr : LR1_Items.Goto_Item_Ptr := Closure.Goto_List;
-      begin
-         while Goto_Ptr /= null loop
-            if Symbol (Goto_Ptr) in Descriptor.Last_Terminal + 1 .. Descriptor.Last_Nonterminal then
-               Add_Goto (Table.States (State), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
-            end if;
-            Goto_Ptr := Next (Goto_Ptr);
-         end loop;
-      end;
+      for Item of Closure.Goto_List loop
+         if Item.Symbol in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
+            Add_Goto (Table.States (State), Item.Symbol, Item.State); -- note list is already sorted.
+         end if;
+      end loop;
    end Add_Actions;
 
    procedure Add_Lookahead_Actions

@@ -65,9 +65,9 @@ package body Conflict_Name_LALR_Main is
 
       Add_Action (Table.States (0), (1 => (10, 0)), 4, 1);
       Add_Error (Table.States (0));
-      Add_Goto (Table.States (0), (10, 1), 8, 2);
-      Add_Goto (Table.States (0), (6, 0), 10, 3);
-      Add_Goto (Table.States (0), (10, 2), 11, 4);
+      Add_Goto (Table.States (0), 8, 2);
+      Add_Goto (Table.States (0), 10, 3);
+      Add_Goto (Table.States (0), 11, 4);
       Add_Action (Table.States (1), (2, 3, 5), (10, 0), 1, null, name_0_check'Access);
       Add_Action (Table.States (2), (2, 3, 5), (10, 1), 1, null, null);
       Add_Action (Table.States (3), ((8, 0), (11, 0)), 3, 5);
@@ -77,16 +77,16 @@ package body Conflict_Name_LALR_Main is
       Add_Action (Table.States (5), (1 => (7, 0)), 1, 6);
       Add_Action (Table.States (5), (1 => (10, 0)), 4, 1);
       Add_Error (Table.States (5));
-      Add_Goto (Table.States (5), (11, 0), 7, 7);
-      Add_Goto (Table.States (5), (10, 1), 8, 2);
-      Add_Goto (Table.States (5), (8, 0), 9, 8);
-      Add_Goto (Table.States (5), (8, 0), 10, 9);
-      Add_Goto (Table.States (5), (10, 2), 11, 4);
+      Add_Goto (Table.States (5), 7, 7);
+      Add_Goto (Table.States (5), 8, 2);
+      Add_Goto (Table.States (5), 9, 8);
+      Add_Goto (Table.States (5), 10, 9);
+      Add_Goto (Table.States (5), 11, 4);
       Add_Action (Table.States (6), (1 => (10, 0)), 4, 1);
       Add_Error (Table.States (6));
-      Add_Goto (Table.States (6), (10, 1), 8, 2);
-      Add_Goto (Table.States (6), (7, 0), 10, 10);
-      Add_Goto (Table.States (6), (10, 2), 11, 4);
+      Add_Goto (Table.States (6), 8, 2);
+      Add_Goto (Table.States (6), 10, 10);
+      Add_Goto (Table.States (6), 11, 4);
       Add_Action (Table.States (7), (2, 3, 5), (11, 0), 3, null, null);
       Add_Action (Table.States (8), (2, 3, 5), (8, 0), 3, null, null);
       Add_Action (Table.States (9), 2, Reduce, (9, 0), 1, null, null);

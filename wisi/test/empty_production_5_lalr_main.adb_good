@@ -50,22 +50,22 @@ package body Empty_Production_5_LALR_Main is
 
       Add_Action (Table.States (0), (1 => (9, 0)), 1, 1);
       Add_Error (Table.States (0));
-      Add_Goto (Table.States (0), (7, 0), 8, 2);
-      Add_Goto (Table.States (0), (8, 0), 9, 3);
+      Add_Goto (Table.States (0), 8, 2);
+      Add_Goto (Table.States (0), 9, 3);
       Add_Action (Table.States (1), (1 => (10, 0)), 5, 5);
       Add_Error (Table.States (1));
-      Add_Goto (Table.States (1), (9, 0), 10, 6);
+      Add_Goto (Table.States (1), 10, 6);
       Add_Action (Table.States (2), 6, Accept_It, (7, 0), 1, null, null);
       Add_Error (Table.States (2));
       Add_Action (Table.States (3), (1 => (9, 0)), 1, 1);
       Add_Error (Table.States (3));
-      Add_Goto (Table.States (3), (8, 0), 9, 4);
+      Add_Goto (Table.States (3), 9, 4);
       Add_Action (Table.States (4), (1 =>  6), (8, 0), 2, null, null);
       Add_Action (Table.States (5), (2, 4), (10, 0), 1, null, name_0_check'Access);
       Add_Action (Table.States (6), (1 => (11, 0)), 2, 7);
       Add_Action (Table.States (6), 4, Reduce, (11, 1), 0, null, null);
       Add_Error (Table.States (6));
-      Add_Goto (Table.States (6), (9, 0), 11, 8);
+      Add_Goto (Table.States (6), 11, 8);
       Add_Action (Table.States (7), (1 => (11, 0)), 5, 10);
       Add_Error (Table.States (7));
       Add_Action (Table.States (8), (1 => (9, 0)), 4, 9);

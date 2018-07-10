@@ -66,15 +66,15 @@ package body Character_Literal_LR1_Main is
       Add_Action (Table.States (0), ((16, 0), (16, 1)), 10, 2);
       Add_Action (Table.States (0), (1 => (16, 2)), 11, 3);
       Add_Error (Table.States (0));
-      Add_Goto (Table.States (0), (13, 0), 14, 4);
-      Add_Goto (Table.States (0), (14, 0), 15, 5);
-      Add_Goto (Table.States (0), (15, 1), 16, 6);
+      Add_Goto (Table.States (0), 14, 4);
+      Add_Goto (Table.States (0), 15, 5);
+      Add_Goto (Table.States (0), 16, 6);
       Add_Action (Table.States (1), (1 => (16, 3)), 4, 12);
       Add_Error (Table.States (1));
       Add_Action (Table.States (2), (1 => (17, 0)), 5, 9);
       Add_Action (Table.States (2), (1 => (17, 1)), 6, 10);
       Add_Error (Table.States (2));
-      Add_Goto (Table.States (2), (16, 0), 17, 11);
+      Add_Goto (Table.States (2), 17, 11);
       Add_Action (Table.States (3), (1 => (16, 2)), 4, 8);
       Add_Error (Table.States (3));
       Add_Action (Table.States (4), 12, Accept_It, (13, 0), 1, null, null);
@@ -84,7 +84,7 @@ package body Character_Literal_LR1_Main is
       Add_Action (Table.States (5), (1 => (16, 2)), 11, 3);
       Add_Action (Table.States (5), 12, Reduce, (14, 0), 1, null, null);
       Add_Error (Table.States (5));
-      Add_Goto (Table.States (5), (15, 0), 16, 7);
+      Add_Goto (Table.States (5), 16, 7);
       Add_Action (Table.States (6), (3, 10, 11, 12), (15, 1), 1, null, null);
       Add_Action (Table.States (7), (3, 10, 11, 12), (15, 0), 2, null, null);
       Add_Action (Table.States (8), (3, 10, 11, 12), (16, 2), 2, null, null);

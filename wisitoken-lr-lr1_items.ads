@@ -29,6 +29,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
+with SAL.Gen_Definite_Doubly_Linked_Lists;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Productions;
 package WisiToken.LR.LR1_Items is
@@ -88,32 +89,28 @@ package WisiToken.LR.LR1_Items is
    --  Add Value to Item.Lookahead.
    --  Descriptor may be null when Exclude_Propagate is False
 
-   type Goto_Item is private;
-   type Goto_Item_Ptr is access Goto_Item;
+   type Goto_Item is record
+      Symbol : Token_ID;
+      --  If Symbol is a terminal, this is a shift and goto state action.
+      --  If Symbol is a non-terminal, this is a post-reduce goto state action.
+      State  : State_Index;
+   end record;
 
-   function Symbol (List : in Goto_Item_Ptr) return Token_ID;
-   function State (List : in Goto_Item_Ptr) return Unknown_State_Index;
-   function Next (List : in Goto_Item_Ptr) return Goto_Item_Ptr;
-
-   function New_Goto_Item
-     (Symbol : in     Token_ID;
-      State  : in     State_Index)
-     return Goto_Item_Ptr;
-   --  For unit tests
+   package Goto_Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Goto_Item);
 
    procedure Add
-     (List   : in out Goto_Item_Ptr;
+     (List   : in out Goto_Item_Lists.List;
       Symbol : in     Token_ID;
       State  : in     State_Index);
    --  Add an item to List; keep List sorted in ascending order on Symbol.
 
    type Item_Set is record
       Set       : Item_Ptr;
-      Goto_List : Goto_Item_Ptr;
+      Goto_List : Goto_Item_Lists.List;
       State     : Unknown_State_Index; --  FIXME: delete, use index in Kernels.
    end record;
 
-   Null_Item_Set : constant Item_Set := (null, null, Unknown_State);
+   Null_Item_Set : constant Item_Set := (null, Goto_Item_Lists.Empty_List, Unknown_State);
 
    package Item_Set_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (State_Index, Item_Set);
    subtype Item_Set_List is Item_Set_Arrays.Vector;
@@ -168,13 +165,12 @@ package WisiToken.LR.LR1_Items is
    --  FIXME: not used? just Sets (State)!
 
    function Is_In
-     (Symbol    : in Token_ID;
-      State     : in State_Index;
-      Goto_List : in Goto_Item_Ptr)
+     (Item      : in Goto_Item;
+      Goto_List : in Goto_Item_Lists.List)
      return Boolean;
    --  Return True if a goto on Symbol to State is found in Goto_List
 
-   function Goto_Set
+   function Goto_State
      (From   : in Item_Set;
       Symbol : in Token_ID)
      return Unknown_State_Index;
@@ -222,7 +218,7 @@ package WisiToken.LR.LR1_Items is
 
    procedure Put
      (Descriptor : in WisiToken.Descriptor'Class;
-      Item       : in Goto_Item_Ptr);
+      List       : in Goto_Item_Lists.List);
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor'Class;
@@ -250,15 +246,6 @@ private
       Next       : Item_Ptr;
    end record;
 
-   type Goto_Item is record
-      Symbol : Token_ID;
-      --  If Symbol is a terminal, this is a shift and goto state action.
-      --  If Symbol is a non-terminal, this is a post-reduce goto state action.
-      State  : State_Index;
-      Next   : Goto_Item_Ptr;
-   end record;
-
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
 
 end WisiToken.LR.LR1_Items;

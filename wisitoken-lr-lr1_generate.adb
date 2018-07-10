@@ -102,7 +102,7 @@ package body WisiToken.LR.LR1_Generate is
              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
              State      => First_State_Index,
              Lookaheads => To_Lookahead (Descriptor.EOF_ID, Descriptor)),
-          Goto_List     => null,
+          Goto_List     => <>,
           State         => First_State_Index),
          Has_Empty_Production, First, Grammar, Descriptor);
 
@@ -144,11 +144,7 @@ package body WisiToken.LR.LR1_Generate is
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In
-                       (Symbol    => Symbol,
-                        State     => Found_State,
-                        Goto_List => C (I).Goto_List)
-                     then
+                     if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
                         if Trace then
                            Ada.Text_IO.Put_Line
                              ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &

@@ -20,12 +20,6 @@ org.wisitoken.stephe-1 - available
 
  current work
 rewrite lr1_items to use containers
-    start at the top; Item_Set = one LALR state
-    replace item_set_list with sal array on state_index
-        goto_item contains state_index
-
-    compiles, tests fail
-        deleted prod from goto
 
 propagate to main
 

@@ -24,34 +24,34 @@ package WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.LR.LR1_Items.Item_Ptr;
-      Expected         : in WisiToken.LR.LR1_Items.Item_Ptr;
+      Computed         : in Item_Ptr;
+      Expected         : in Item_Ptr;
       Match_Lookaheads : in Boolean);
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.LR.LR1_Items.Item_Set;
-      Expected         : in WisiToken.LR.LR1_Items.Item_Set;
+      Computed         : in Item_Set;
+      Expected         : in Item_Set;
       Match_Lookaheads : in Boolean := True);
 
    procedure Check
      (Label    : in String;
-      Computed : in WisiToken.LR.LR1_Items.Goto_Item_Ptr;
-      Expected : in WisiToken.LR.LR1_Items.Goto_Item_Ptr);
+      Computed : in Goto_Item_Lists.List;
+      Expected : in Goto_Item_Lists.List);
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.LR.LR1_Items.Item_Set_List;
-      Expected         : in WisiToken.LR.LR1_Items.Item_Set_List;
+      Computed         : in Item_Set_List;
+      Expected         : in Item_Set_List;
       Match_Lookaheads : in Boolean := True);
 
    function Get_Item_Node
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
-      Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
+      Lookaheads : in Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
-     return WisiToken.LR.LR1_Items.Item_Ptr;
+     return Item_Ptr;
    --  Construct an LR1_Items item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).
 
@@ -59,44 +59,44 @@ package WisiToken.LR.LR1_Items.AUnit is
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
-      Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
+      Lookaheads : in Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
-     return WisiToken.LR.LR1_Items.Item_Ptr
+     return Item_Ptr
      renames Get_Item_Node;
 
-   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set;
-   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set_List;
+   function "+" (Item : in Item_Ptr) return Item_Set;
+   function "+" (Item : in Item_Ptr) return Item_Set_List;
 
    function "+"
      (State : in WisiToken.Unknown_State_Index;
-      Item  : in WisiToken.LR.LR1_Items.Item_Ptr)
-     return WisiToken.LR.LR1_Items.Item_Set_List;
+      Item  : in Item_Ptr)
+     return Item_Set_List;
    function "&"
-     (Left  : in WisiToken.LR.LR1_Items.Item_Set_List;
-      Right : in WisiToken.LR.LR1_Items.Item_Set_List)
-     return WisiToken.LR.LR1_Items.Item_Set_List;
+     (Left  : in Item_Set_List;
+      Right : in Item_Set_List)
+     return Item_Set_List;
 
    type AUnit_Goto_Item is record
       Symbol : WisiToken.Token_ID;
       State  : State_Index;
    end record;
 
-   function "+" (Right : in AUnit_Goto_Item) return WisiToken.LR.LR1_Items.Goto_Item_Ptr;
+   function "+" (Right : in AUnit_Goto_Item) return Goto_Item_Lists.List;
    function "&"
-     (Left  : in WisiToken.LR.LR1_Items.Goto_Item_Ptr;
+     (Left  : in Goto_Item_Lists.List;
       Right : in AUnit_Goto_Item)
-     return WisiToken.LR.LR1_Items.Goto_Item_Ptr;
+     return Goto_Item_Lists.List;
 
    procedure Add_Gotos
-     (List  : in out WisiToken.LR.LR1_Items.Item_Set_List;
+     (List  : in out Item_Set_List;
       State : in     WisiToken.Unknown_State_Index;
-      Gotos : in     WisiToken.LR.LR1_Items.Goto_Item_Ptr);
+      Gotos : in     Goto_Item_Lists.List);
 
    function Get_Item_Set
      (Grammar   : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod      : in WisiToken.Production_ID;
       Dot       : in Positive;
-      Lookahead : in WisiToken.LR.LR1_Items.Lookahead)
-     return WisiToken.LR.LR1_Items.Item_Set;
+      Lookahead : in LR1_Items.Lookahead)
+     return Item_Set;
 
 end WisiToken.LR.LR1_Items.AUnit;

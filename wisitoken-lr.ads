@@ -225,10 +225,10 @@ package WisiToken.LR is
    --  Add an Error action to State, at tail of action list.
 
    procedure Add_Goto
-     (State      : in out Parse_State;
-      Symbol     : in     Token_ID;
-      To_State   : in     State_Index);
-   --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
+     (State    : in out Parse_State;
+      Symbol   : in     Token_ID;
+      To_State : in     State_Index);
+   --  Add a goto item to State goto list; keep goto list sorted in ascending order on Symbol.
 
    type McKenzie_Param_Type
      (First_Terminal    : Token_ID;

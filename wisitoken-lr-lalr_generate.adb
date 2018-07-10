@@ -280,7 +280,7 @@ package body WisiToken.LR.LALR_Generate is
             Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
             State      => First_State_Index,
             Lookaheads => Null_Lookahead (Descriptor)),
-         Goto_List     => null,
+         Goto_List     => <>,
          State         => First_State_Index);
 
       while New_Items_To_Check loop
@@ -322,11 +322,7 @@ package body WisiToken.LR.LALR_Generate is
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In
-                       (Symbol    => Symbol,
-                        State     => Found_State,
-                        Goto_List => Kernels (Checking_Set).Goto_List)
-                     then
+                     if not Is_In ((Symbol, Found_State), Kernels (Checking_Set).Goto_List) then
                         if Trace_Generate > Detail then
                            Ada.Text_IO.Put_Line
                              ("  state" & Unknown_State_Index'Image (Kernels (Checking_Set).State) &
@@ -364,7 +360,7 @@ package body WisiToken.LR.LALR_Generate is
       use all type Token_ID_Arrays.Cursor;
       use all type LR1_Items.Item_Ptr;
 
-      Goto_State : constant Unknown_State_Index := LR1_Items.Goto_Set (From_Set, For_Token);
+      Goto_State : constant Unknown_State_Index := LR1_Items.Goto_State (From_Set, For_Token);
       To_Kernel  : constant LR1_Items.Item_Ptr  :=
         (if Goto_State = Unknown_State then null
          else LR1_Items.Find (To_Prod, To_Dot, Kernels (Goto_State), Match_Lookaheads => False));
@@ -452,7 +448,7 @@ package body WisiToken.LR.LALR_Generate is
       declare
          ID          : constant Token_ID            := Element (Dot (Closure_Item));
          Next_Dot    : constant Cursor              := Next (Dot (Closure_Item));
-         Goto_State  : constant Unknown_State_Index := LR1_Items.Goto_Set (Source_Set, ID);
+         Goto_State  : constant Unknown_State_Index := LR1_Items.Goto_State (Source_Set, ID);
          Next_Kernel : constant LR1_Items.Item_Ptr  :=
            (if Goto_State = Unknown_State then null
             else LR1_Items.Find (Prod_ID (Closure_Item), Next_Dot, Kernels (Goto_State), Match_Lookaheads => False));
@@ -559,7 +555,7 @@ package body WisiToken.LR.LALR_Generate is
 
       Kernel_Item_Set : LR1_Items.Item_Set :=
         (Set       => new LR1_Items.Item_Node,
-         Goto_List => null,
+         Goto_List => <>,
          State     => Unknown_State);
 
       Closure : LR1_Items.Item_Set;

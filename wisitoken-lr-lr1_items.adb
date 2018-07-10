@@ -63,32 +63,6 @@ package body WisiToken.LR.LR1_Items is
       return Reverse_List (Result);
    end Deep_Copy;
 
-   function Deep_Copy (List : in Goto_Item_Ptr) return Goto_Item_Ptr
-   is
-      I      : Goto_Item_Ptr := List;
-      Result : Goto_Item_Ptr;
-      Next_1 : Goto_Item_Ptr;
-      Next_2 : Goto_Item_Ptr;
-   begin
-      while I /= null loop
-         Result := new Goto_Item'(I.Symbol, I.State, Result);
-         I := I.Next;
-      end loop;
-
-      --  Reverse order in Result so original order is preserved
-      I      := Result;
-      Result := null;
-
-      while I /= null loop
-         Next_1      := Result;
-         Next_2      := I.Next;
-         Result      := I;
-         Result.Next := Next_1;
-         I           := Next_2;
-      end loop;
-      return Result;
-   end Deep_Copy;
-
    function Follow
      (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor           : in WisiToken.Descriptor'Class;
@@ -337,57 +311,19 @@ package body WisiToken.LR.LR1_Items is
       Include (Item.Lookaheads.all, Value, Added, Descriptor, Exclude_Propagate);
    end Include;
 
-   function Symbol (List : in Goto_Item_Ptr) return Token_ID
-   is begin
-      return List.Symbol;
-   end Symbol;
-
-   function State (List : in Goto_Item_Ptr) return Unknown_State_Index
-   is begin
-      return List.State;
-   end State;
-
-   function Next (List : in Goto_Item_Ptr) return Goto_Item_Ptr
-   is begin
-      return List.Next;
-   end Next;
-
-   function New_Goto_Item
-     (Symbol : in Token_ID;
-      State  : in State_Index)
-     return Goto_Item_Ptr
-   is begin
-      return new Goto_Item'(Symbol, State, null);
-   end New_Goto_Item;
-
    procedure Add
-     (List   : in out Goto_Item_Ptr;
+     (List   : in out Goto_Item_Lists.List;
       Symbol : in     Token_ID;
       State  : in     State_Index)
    is
-      New_Item : constant Goto_Item_Ptr := new Goto_Item'(Symbol, State, null);
-      I        : Goto_Item_Ptr;
+      use Goto_Item_Lists;
+      I : Cursor := List.First;
    begin
-      if List = null then
-         List := New_Item;
-      else
-         if List.Symbol > Symbol then
-            New_Item.Next := List;
-            List          := New_Item;
-         else
-            if List.Next = null then
-               List.Next := New_Item;
-            else
-               I := List;
-               loop
-                  exit when I.Next = null or else I.Next.Symbol > Symbol;
-                  I := I.Next;
-               end loop;
-               New_Item.Next := I.Next;
-               I.Next        := New_Item;
-            end if;
-         end if;
-      end if;
+      loop
+         exit when not Has_Element (I) or else List (I).Symbol > Symbol;
+         Next (I);
+      end loop;
+      List.Insert (Before => I, Element => (Symbol, State));
    end Add;
 
    procedure Add
@@ -478,41 +414,32 @@ package body WisiToken.LR.LR1_Items is
    end Find;
 
    function Is_In
-     (Symbol    : in Token_ID;
-      State     : in State_Index;
-      Goto_List : in Goto_Item_Ptr)
+     (Item      : in Goto_Item;
+      Goto_List : in Goto_Item_Lists.List)
      return Boolean
-   is
-      Goto_Ptr : Goto_Item_Ptr := Goto_List;
-   begin
-      while Goto_Ptr /= null loop
-         if Goto_Ptr.State = State and Goto_Ptr.Symbol = Symbol then
+   is begin
+      for List_Item of Goto_List loop
+         if List_Item = Item then
             return True;
          end if;
-
-         Goto_Ptr := Goto_Ptr.Next;
       end loop;
 
       return False;
    end Is_In;
 
-   function Goto_Set
+   function Goto_State
      (From   : in Item_Set;
       Symbol : in Token_ID)
      return Unknown_State_Index
-   is
-      Goto_Ptr : Goto_Item_Ptr := From.Goto_List;
-   begin
-      while Goto_Ptr /= null loop
-         if Goto_Ptr.Symbol = Symbol then
-            return Goto_Ptr.State;
+   is begin
+      for Item of From.Goto_List loop
+         if Item.Symbol = Symbol then
+            return Item.State;
          end if;
-
-         Goto_Ptr := Goto_Ptr.Next;
       end loop;
 
       return Unknown_State;
-   end Goto_Set;
+   end Goto_State;
 
    function Merge
      (Prod         : in     Production_ID;
@@ -563,7 +490,7 @@ package body WisiToken.LR.LR1_Items is
    begin
       --  Copy Set into I
       I.State     := Set.State;
-      I.Goto_List := Deep_Copy (Set.Goto_List);
+      I.Goto_List := Set.Goto_List;
       I.Set       := Deep_Copy (Set.Set);
 
       Item := I.Set;
@@ -666,21 +593,13 @@ package body WisiToken.LR.LR1_Items is
 
    procedure Free (Item : in out Item_Set)
    is
-      I        : Item_Ptr      := Item.Set;
-      Goto_Set : Goto_Item_Ptr := Item.Goto_List;
+      I : Item_Ptr := Item.Set;
    begin
       while I /= null loop
          Item.Set := I.Next;
          Free (I);
          I := Item.Set;
       end loop;
-
-      while Goto_Set /= null loop
-         Item.Goto_List := Goto_Set.Next;
-         Free (Goto_Set);
-         Goto_Set := Item.Goto_List;
-      end loop;
-
    end Free;
 
    function In_Kernel
@@ -720,7 +639,7 @@ package body WisiToken.LR.LR1_Items is
    begin
       Result :=
         (Set       => null,
-         Goto_List => Deep_Copy (Set.Goto_List),
+         Goto_List => Set.Goto_List,
          State     => Set.State);
 
       --  Walk I thru Set.Set, copying Include items to Result_Tail.
@@ -801,17 +720,14 @@ package body WisiToken.LR.LR1_Items is
 
    procedure Put
      (Descriptor : in WisiToken.Descriptor'Class;
-      Item       : in Goto_Item_Ptr)
+      List       : in Goto_Item_Lists.List)
    is
       use Ada.Text_IO;
-      Reference : Goto_Item_Ptr := Item;
    begin
-      while Reference /= null loop
+      for Item of List loop
          Put_Line
-           ("      on " & Image (Reference.Symbol, Descriptor) &
-              " => State" & Unknown_State_Index'Image (Reference.State));
-
-         Reference := Reference.Next;
+           ("      on " & Image (Item.Symbol, Descriptor) &
+              " => State" & Unknown_State_Index'Image (Item.State));
       end loop;
    end Put;
 
