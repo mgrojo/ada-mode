@@ -35,15 +35,30 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token);
    begin
-      if Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
-         Config.Ops.Append (Op);
-      else
-         Config.Ops.Insert (Op, Before => Config.Ops_Insert_Point);
-         Config.Inserted.Insert (ID, Before => Config.Current_Inserted);
-         Config.Current_Inserted := Config.Current_Inserted + 1;
-      end if;
+      begin
+         if Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
+            Config.Ops.Append (Op);
+         else
+            Config.Ops.Insert (Op, Before => Config.Ops_Insert_Point);
+            Config.Inserted.Insert (ID, Before => Config.Current_Inserted);
+            Config.Current_Inserted := Config.Current_Inserted + 1;
+         end if;
+      exception
+      when SAL.Container_Full =>
+         if Trace_McKenzie > Outline then
+            Put_Line (Super.Trace.all, Super.Label (Parser_Index), "config.ops is full");
+         end if;
+         raise Bad_Config;
+      end;
 
-      Config.Cost := Integer'Max (1, Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta);
+      if Cost_Delta = 0 then
+         Config.Cost := Config.Cost + McKenzie_Param.Insert (ID);
+      else
+         --  Cost_Delta /= 0 comes from Try_Insert_Terminal when
+         --  Constrain_Terminals is useful. That doesn't mean it is better than
+         --  any other solution, so don't let cost be 0.
+         Config.Cost := Integer'Max (1, Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta);
+      end if;
 
       Config.Stack.Push ((State, Syntax_Trees.Invalid_Node_Index, (ID, Virtual => True, others => <>)));
       if Trace_McKenzie > Detail then
@@ -122,7 +137,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  add the final configuration to the heap. If a conflict is
       --  encountered, process the other action the same way. If a semantic
       --  check fails, enqueue possible solutions. For parse table error
-      --  actions, just return.
+      --  actions, or exception Bad_Config, just return.
 
       Table       : Parse_Table renames Shared.Table.all;
       Next_Action : Parse_Action_Node_Ptr;
@@ -179,6 +194,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          null;
       end case;
 
+   exception
+   when Bad_Config =>
+      null;
    end Do_Reduce_2;
 
    function Fast_Forward
@@ -327,7 +345,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end;
       end if;
    exception
-   when Bad_Config =>
+   when SAL.Container_Full | Bad_Config =>
       return Abandon;
    end Fast_Forward;
 
@@ -388,8 +406,12 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                   --  not be entirely fixed. So we increase the cost. See
                   --  test_mckenzie_recover Loop_Bounds.
                   Item.Config.Cost := Item.Config.Cost + 1;
-                  Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
-
+                  begin
+                     Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+                  exception
+                  when SAL.Container_Full =>
+                     raise Bad_Config;
+                  end;
                   Local_Config_Heap.Add (Item.Config);
                   if Trace_McKenzie > Detail then
                      Base.Put ("for Language_Fixes ", Super, Shared, Parser_Index, Item.Config);
@@ -441,7 +463,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  in trying to redo it.
 
          declare
-            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+            New_Config : Configuration := Config;
          begin
             New_Config.Error_Token.ID := Invalid_Token_ID;
             New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
@@ -458,11 +480,18 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                New_Config.Current_Shared_Token := Token.Min_Terminal_Index;
             end if;
 
+            Local_Config_Heap.Add (New_Config);
+
             if Trace_McKenzie > Detail then
                Base.Put ("push_back " & Image (Token.ID, Trace.Descriptor.all), Super, Shared,
-                         Parser_Index, New_Config.all);
+                         Parser_Index, New_Config);
             end if;
          end;
+      end if;
+   exception
+   when SAL.Container_Full =>
+      if Trace_McKenzie > Outline then
+         Put_Line (Super.Trace.all, Super.Label (Parser_Index), "config.ops is full");
       end if;
    end Try_Push_Back;
 
@@ -471,19 +500,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Shared            : not null access Base.Shared;
       Parser_Index      : in              SAL.Base_Peek_Type;
       Config            : in              Configuration;
-      Local_Config_Heap : in out          Config_Heaps.Heap_Type)
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Valid_Insert      : in              Token_ID_Set)
    is
-      use all type Parser.Language_Constrain_Terminals_Access;
       use all type Ada.Containers.Count_Type;
 
       Table  : Parse_Table renames Shared.Table.all;
       EOF_ID : Token_ID renames Super.Trace.Descriptor.EOF_ID;
-
-      Valid_Insert : constant Token_ID_Set (Table.First_Terminal .. Table.Last_Terminal) :=
-        (if Shared.Language_Constrain_Terminals = null
-         then (Table.First_Terminal .. Table.Last_Terminal => True)
-         else Shared.Language_Constrain_Terminals
-           (Super.Trace.all, Super.Label (Parser_Index), Table, Config));
 
       Cost_Delta : constant Integer :=
         (if Valid_Insert = (Table.First_Terminal .. Table.Last_Terminal => True)
@@ -574,7 +597,12 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       --  It is tempting to use the Goto_List to find nonterms to insert.
       --  But that can easily lead to error states, and it turns out to be
-      --  not useful.
+      --  not useful, especially if the grammar has been relaxed so most
+      --  expressions and lists can be empty.
+
+   exception
+   when Bad_Config =>
+      null;
    end Try_Insert_Terminal;
 
    procedure Try_Insert_Quote
@@ -889,6 +917,11 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end;
       end if;
    exception
+   when SAL.Container_Full =>
+      if Trace_McKenzie > Outline then
+         Put_Line (Super.Trace.all, Super.Label (Parser_Index), "config.ops is full");
+      end if;
+
    when Bad_Config =>
       null;
    end Try_Insert_Quote;
@@ -912,7 +945,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       if ID /= EOF_ID then
          --  can't delete EOF
          declare
-            New_Config : constant Configuration_Access := Local_Config_Heap.Add (Config);
+            New_Config : Configuration := Config;
          begin
             New_Config.Error_Token.ID := Invalid_Token_ID;
             New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
@@ -931,19 +964,20 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
             if New_Config.Resume_Token_Goal - Check_Limit < New_Config.Current_Shared_Token then
                New_Config.Resume_Token_Goal := New_Config.Current_Shared_Token + Check_Limit;
-
-               if Trace_McKenzie > Detail then
-                  Put_Line
-                    (Super.Trace.all, Super.Label (Parser_Index), "resume_token_goal:" & Token_Index'Image
-                       (New_Config.Resume_Token_Goal));
-               end if;
             end if;
+
+            Local_Config_Heap.Add (New_Config);
 
             if Trace_McKenzie > Detail then
                Base.Put
-                 ("delete " & Image (ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config.all);
+                 ("delete " & Image (ID, Trace.Descriptor.all), Super, Shared, Parser_Index, New_Config);
             end if;
          end;
+      end if;
+   exception
+   when SAL.Container_Full =>
+      if Trace_McKenzie > Outline then
+         Put_Line (Super.Trace.all, Super.Label (Parser_Index), "config.ops is full");
       end if;
    end Try_Delete_Input;
 
@@ -972,6 +1006,43 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  once to Super, to minimizes task interactions.
 
       Post_Fast_Forward_Fail : Boolean := False;
+
+      Valid_Insert : Token_ID_Set (Table.First_Terminal .. Table.Last_Terminal);
+
+      function Allow_Insert_Terminal (Config : in Configuration) return Boolean
+      is
+         use all type WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
+      begin
+         Valid_Insert := (others => True);
+
+         if Shared.Language_Constrain_Terminals = null then
+            return None_Since_FF (Config.Ops, Delete);
+         end if;
+
+         --  Always compute Valid_Insert
+
+         if Config.Error_Token.ID = Invalid_Token_ID then
+            if Config.Current_Shared_Token < Shared.Terminals.Last_Index then
+               Valid_Insert := Shared.Language_Constrain_Terminals
+                 (Super.Trace.all, Super.Label (Parser_Index), Table, Config,
+                  Shared.Terminals.all (Config.Current_Shared_Token).ID);
+            end if;
+         else
+            Valid_Insert := Shared.Language_Constrain_Terminals
+              (Super.Trace.all, Super.Label (Parser_Index), Table, Config, Config.Error_Token.ID);
+         end if;
+
+         if None_Since_FF (Config.Ops, Delete) then
+            return True;
+
+         elsif (for some F of Valid_Insert => not F) then
+            --  Language_Constrain_Terminals returned a useful result; allow Insert.
+            return True;
+         end if;
+
+         return False;
+      end Allow_Insert_Terminal;
+
    begin
       Super.Get (Parser_Index, Config, Config_Status);
 
@@ -1099,8 +1170,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Try_Push_Back (Super, Shared, Parser_Index, Config, Local_Config_Heap);
       end if;
 
-      if None_Since_FF (Config.Ops, Delete) then
-         Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap);
+      if Allow_Insert_Terminal (Config) then
+         Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap, Valid_Insert);
       end if;
 
       if Config.Current_Inserted = No_Inserted then

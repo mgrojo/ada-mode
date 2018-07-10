@@ -776,8 +776,9 @@ package body WisiToken.LR.Parser is
          --  because terminate on error and spawn on conflict require
          --  changing the parser list.
          Current_Parser := Shared_Parser.Parsers.First;
+         Action_Loop :
          loop
-            exit when Current_Parser.Is_Done;
+            exit Action_Loop when Current_Parser.Is_Done;
 
             if Shared_Parser.Terminate_Same_State and
               Current_Verb in Shift | Shift_Recover and
@@ -788,7 +789,7 @@ package body WisiToken.LR.Parser is
                --  points to the next parser. Otherwise it is unchanged.
             end if;
 
-            exit when Current_Parser.Is_Done;
+            exit Action_Loop when Current_Parser.Is_Done;
 
             if Trace_Parse > Extra then
                Trace.Put_Line
@@ -856,8 +857,10 @@ package body WisiToken.LR.Parser is
 
                         if Max_Recover_Cost > 0 then
                            if Max_Parser = Current_Parser then
+                              Current_Parser.Next;
                               Shared_Parser.Parsers.Terminate_Parser
                                 (Current_Parser, "too many parsers; max error repair cost", Trace);
+                              exit Action_Loop;
                            else
                               Shared_Parser.Parsers.Terminate_Parser
                                 (Max_Parser, "too many parsers; max error repair cost", Trace);
@@ -907,7 +910,7 @@ package body WisiToken.LR.Parser is
                --  Current parser is waiting for others to catch up
                Current_Parser.Next;
             end if;
-         end loop;
+         end loop Action_Loop;
       end loop Main_Loop;
 
       --  We don't raise Syntax_Error for lexer errors, since they are all

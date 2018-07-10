@@ -19,7 +19,13 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-change all "generator" to "generate"
+better constrain_terminals:
+    o.w.s-2
+    store kernel (with dot)
+    store minimial_completing_terminal_sequence for each kernel
+    just lookup that, insert it
+
+add delete to config heap, use when configuration_access is abandoned?
 
 try indirect recursion solution
     add ".wy to run" main
@@ -43,14 +49,6 @@ try indirect recursion solution
 
 
 review fixmes
-
-propagate to main
-
-
-try to elim indirect in Ada
-
-try to elim indirect in Java
-
 
 changed wisi-gen_generate_utils to be non-generic
     compiles

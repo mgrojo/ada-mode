@@ -59,7 +59,8 @@ package WisiToken.LR.Parser is
      (Trace        : in out WisiToken.Trace'Class;
       Parser_Label : in     Natural;
       Table        : in     Parse_Table;
-      Config       : in     Configuration)
+      Config       : in     Configuration;
+      Next_Token   : in     Token_ID)
      return Token_ID_Set;
    --  Return a token ID set that constrains McKenzie explore.
    --

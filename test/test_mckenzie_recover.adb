@@ -214,9 +214,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11),
-         Enqueue_Low             => 23,
+         Enqueue_Low             => 11,
          Enqueue_High            => 44,
-         Check_Low               => 6,
+         Check_Low               => 5,
          Check_High              => 12,
          Cost                    => 2);
    end Error_1;
@@ -541,7 +541,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 350,
          Enqueue_High            => 609,
          Check_Low               => 65,
-         Check_High              => 95,
+         Check_High              => 97,
          Cost                    => 8);
    end Loop_Bounds;
 
@@ -811,7 +811,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 103,
          Enqueue_High            => 207,
          Check_Low               => 13,
-         Check_High              => 27,
+         Check_High              => 43,
          Cost                    => 3);
    end Push_Back_1;
 
@@ -1146,7 +1146,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (38, 40),
          Ops_Race_Condition      => True,
          Enqueue_Low             => 18,
-         Enqueue_High            => 53,
+         Enqueue_High            => 56,
          Check_Low               => 5,
          Check_High              => 19,
          Cost                    => 3);
@@ -1395,7 +1395,7 @@ package body Test_McKenzie_Recover is
         ("procedure Slow_Recover_2 is begin if 0 /= Input (Context, Name end Slow_Recover_2;");
       --           |10       |20       |30       |40       |50       |60       |70       |80
 
-      --  Missing ');' 63. Enters error recovery on 'end' 64
+      --  Missing ') then end if;' 63. Enters error recovery on 'end' 64
       --  expecting lots of things.
       --
       --  Desired solution is ((insert ') then end if;') cost 10.
@@ -1413,7 +1413,7 @@ package body Test_McKenzie_Recover is
          Enqueue_High            => 312,
          Check_Low               => 20,
          Check_High              => 48,
-         Cost                    => 6);
+         Cost                    => 5);
    end Actual_Parameter_Part_1;
 
    procedure Unfinished_Subprogram_Type_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1534,7 +1534,7 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 22) & (Delete, +LESS_ID, 23) & (Delete, +SLASH_ID, 24) & (Delete, +IDENTIFIER_ID, 25) &
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) & (Insert, +SEMICOLON_ID, 28),
          Enqueue_Low             => 14,
-         Enqueue_High            => 136,
+         Enqueue_High            => 161,
          Check_Low               => 3,
          Check_High              => 20,
          Cost                    => 1);

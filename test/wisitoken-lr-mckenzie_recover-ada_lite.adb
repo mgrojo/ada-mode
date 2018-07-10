@@ -734,17 +734,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
      (Trace        : in out WisiToken.Trace'Class;
       Parser_Label : in     Natural;
       Table        : in     Parse_Table;
-      Config       : in     Configuration)
+      Config       : in     Configuration;
+      Next_Token   : in     Token_ID)
      return WisiToken.Token_ID_Set
    is
       All_Ok : constant WisiToken.Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => True);
    begin
-      if Config.Error_Token.ID = Invalid_Token_ID then
-         --  no error
-         return All_Ok;
-      end if;
-
-      case Ada_Lite_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
+      case Ada_Lite_Actions.Token_Enum_ID'(-Next_Token) is
       when END_ID =>
          declare
             Temp_Config : Configuration := Config;
