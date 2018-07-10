@@ -96,14 +96,13 @@ test-wisi :: force
 summarize :
 	cat test.log
 
-ONE_TEST_FILES += ada_mode-recover_navigate_1.adb
+ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
 one : build_ada_executables
 #one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-#one : RUNTEST := run-indent-test-elisp-gpr_query.el
-one : RUNTEST := run-indent-test-process-gpr_query.el
+one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
 #one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
@@ -112,7 +111,7 @@ one : $(addsuffix .diff, $(ONE_TEST_FILES))
 two : export Standard_Common_Build := Debug
 two : build_ada_executables
 two :
-	../run_ada_parse_packrat.exe $(RUN_ARGS)
+	../run_ada_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables

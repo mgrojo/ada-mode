@@ -94,6 +94,9 @@ Allows timing parse separate from actions.")
 (defvar-local wisi-panic-enable nil
   "If non-nil, enable panic mode error recovery.")
 
+(defvar-local wisi-trace-mckenzie 0
+  "McKenzie trace level; 0 for none")
+
 (defvar-local wisi-mckenzie-disable nil
   "If non-nil, disable McKenzie error recovery. Otherwise, use parser default.")
 

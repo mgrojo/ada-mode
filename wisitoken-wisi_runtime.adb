@@ -386,10 +386,19 @@ package body WisiToken.Wisi_Runtime is
                   null;
 
                when Insert =>
-                  if Last_Op.Op /= Insert then
+                  if Last_Op.Op = Fast_Forward then
                      Append (Line, "[");
                      Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
                      Append (Line, "[");
+
+                  elsif Last_Op.Op = Delete then
+                     Append (Line, "]][");
+                     Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
+                     Append (Line, "[");
+
+                  else
+                     --  Last_Op.Op = Insert
+                     null;
                   end if;
                   Append (Line, Token_ID'Image (Op.ID));
 
@@ -403,6 +412,7 @@ package body WisiToken.Wisi_Runtime is
                         Append (Line, "[");
                         Append (Line, Buffer_Pos'Image (Terminals (Op.Token_Index).Char_Region.First));
                         Append (Line, "[][");
+
                      elsif Last_Op.Op = Insert then
                         Append (Line, "][");
 

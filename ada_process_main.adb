@@ -183,7 +183,7 @@ package body Ada_Process_Main is
          Cost_Limit  => 20,
          Check_Limit => 4,
          Check_Delta_Limit => 200,
-         Enqueue_Limit => 10000);
+         Enqueue_Limit => 15000);
 
 
       Table.Productions.Set_First (108);

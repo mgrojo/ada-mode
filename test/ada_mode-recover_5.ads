@@ -12,8 +12,8 @@ package Ada_Mode.Recover_5 is
             Value     : Integer;
             Remaining : Ada.Strings.Unbounded.Unbounded_String;
          when Failure =>
-         null;
-   --  Missing 'end case; end record;' here.
+            null;
+         --  Missing 'end case; end record;' here.
 
    function Additive (Input : String) return Result;
 

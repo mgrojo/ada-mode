@@ -52,35 +52,24 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
-running all tests
-    test/ada_mode-recover_6, 7, 8, 9, 10, 11.adb need SKIP_UNLESS
+better constrain_terminals:
+    o.w.s-1
+    store kernel (with dot)
+    store minimial_completing_terminal_sequence for each kernel
+    just lookup that, insert it
 
+running all tests
     elisp indent errors:
         ./ada_mode-interactive_gps_fallback.adb.diff
         ./ada_mode-parens.adb.diff
         ./format_paramlist.adb.diff
 
-    lalr-process errors:
-        test/ada_mode-recover_11.adb crash
-            (error "unhandled exception: WISITOKEN.PROGRAMMER_ERROR: Match_Names_Error 1  37 /= 24 loop_statement")
-
-        test/ada_mode-recover_7.adb
-            (error "unhandled exception: SYSTEM.ASSERTIONS.ASSERT_FAILURE: wisitoken-lr-mckenzie_recover-parse.adb:221")
-
-        test/ada_mode-recover_8.adb
-            (error "unhandled exception: WISITOKEN.PROGRAMMER_ERROR: Match_Names_Error 1  37 /= 24 loop_statement")
-
-        test/ada_mode-recover_9.adb
-            (error "unhandled exception: SYSTEM.ASSERTIONS.ASSERT_FAILURE: failed precondition from sal-gen_bounded_definite_vectors.ads:60 instantiated at wisitoken-lr.ads:427")
-            [c:\Projects\org.emacs.ada-mode.stephe-4\ada_mode_wisi_parse.exe]
-            Wisitoken.Lr.Mckenzie_Recover.Recover at wisitoken-lr-mckenzie_recover.adb:306
-
     lalr-process indent errors:
-        ./ada_mode-recover_10.adb.diff
-        ./ada_mode-recover_6.adb.diff
         ./ada_mode-recover_constant_as_statement_1.adb.diff
         ./ada_mode-recover_type_1.ads.diff
         ./non_ascii.ads.diff
+
+Test indent when narrowed to subprogram
 
 packrat
     (progn

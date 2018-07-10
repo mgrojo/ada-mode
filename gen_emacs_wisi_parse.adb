@@ -53,13 +53,13 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-      ("NNNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_disable> <mckenzie_cost_limit>" &
-           " <mckenzie_check_limit> <mckenzie_enqueue_limit> <source_byte_count> <language-specific params>" &
-           " <source bytes>");
+      ("NNNparse <action> <source_file_name> <line_count> <parse_verbosity> <mckenzie_verbosity> <mckenzie_disable>" &
+           " <mckenzie_cost_limit> <mckenzie_check_limit> <mckenzie_enqueue_limit> <source_byte_count>" &
+           " <language-specific params> <source bytes>");
       Put_Line ("  NNN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
-      Put_Line ("  <verbosity> is an integer; set parse trace output level");
+      Put_Line ("  <*verbosity> is an integer; set parse trace output level");
       Put_Line ("  <mckenzie_disable> is 0 | 1; 0 = use default, 1 = disable");
       Put_Line ("  <*_limit> is integer; -1 means use default");
       Put_Line ("  outputs: elisp vectors for set-text-property from parser actions or elisp forms for errors.");
@@ -214,14 +214,15 @@ begin
 
                Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
 
-               Line_Count       : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
-               Verbosity        : constant Integer          := Get_Integer (Command_Line, Last);
-               McKenzie_Disable : constant Integer          := Get_Integer (Command_Line, Last);
-               Cost_Limit       : constant Integer          := Get_Integer (Command_Line, Last);
-               Check_Limit      : constant Integer          := Get_Integer (Command_Line, Last);
-               Enqueue_Limit    : constant Integer          := Get_Integer (Command_Line, Last);
-               Byte_Count       : constant Integer          := Get_Integer (Command_Line, Last);
-               Buffer           : Ada.Strings.Unbounded.String_Access;
+               Line_Count         : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
+               Parse_Verbosity    : constant Integer          := Get_Integer (Command_Line, Last);
+               McKenzie_Verbosity : constant Integer          := Get_Integer (Command_Line, Last);
+               McKenzie_Disable   : constant Integer          := Get_Integer (Command_Line, Last);
+               Cost_Limit         : constant Integer          := Get_Integer (Command_Line, Last);
+               Check_Limit        : constant Integer          := Get_Integer (Command_Line, Last);
+               Enqueue_Limit      : constant Integer          := Get_Integer (Command_Line, Last);
+               Byte_Count         : constant Integer          := Get_Integer (Command_Line, Last);
+               Buffer             : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up
                is begin
@@ -237,7 +238,8 @@ begin
                --  Computing Line_Count in elisp allows parsing in parallel with
                --  sending source text.
 
-               Trace_Parse := Verbosity;
+               Trace_Parse    := Parse_Verbosity;
+               Trace_McKenzie := McKenzie_Verbosity;
 
                --  Default Enable_McKenzie_Recover is False if there is no McKenzie
                --  information; don't override that.

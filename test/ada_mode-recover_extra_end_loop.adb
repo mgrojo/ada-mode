@@ -1,5 +1,4 @@
 -- Test error recovery from an extra 'end loop'.
--- Does not compile.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
@@ -14,6 +13,3 @@ procedure Ada_Mode.Recover_Extra_End_Loop is
 
 begin
 end Ada_Mode.Recover_Extra_End_Loop;
---  Local Variables:
---  wisi-disable-face: t
---  End:

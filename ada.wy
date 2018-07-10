@@ -258,11 +258,13 @@
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
-;; test/ada_mode-recover_5.ads requires cost 12. We set a high cost
-;; limit, and rely on enqueue_limit; that gives a more uniform maximum
-;; compute time.
+;; test/ada_mode-recover_5.ads requires cost 12.
+;; test/ada_mode-recover_10.adb requires enqueue_limit 15_000
+;;
+;; We set a high cost limit, and rely on enqueue_limit; that gives a
+;; more uniform maximum compute time.
 %mckenzie_cost_limit 20
-%mckenzie_enqueue_limit 10_000
+%mckenzie_enqueue_limit 15_000
 
 ;; 4 required for test/ada_mode-recover_match_names.adb.
 %mckenzie_check_limit 4

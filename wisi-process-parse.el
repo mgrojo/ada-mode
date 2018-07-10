@@ -162,7 +162,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 the content of the current buffer.  Does not wait for command to
 complete."
   ;; Must match "parse" command arguments in gen_emacs_wisi_parse.adb
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -170,6 +170,7 @@ complete."
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      line-count
 		      (1- wisi-debug)
+		      wisi-trace-mckenzie
 		      (if wisi-mckenzie-disable 1 0)
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
 		      (if wisi-mckenzie-check-limit wisi-mckenzie-check-limit -1)

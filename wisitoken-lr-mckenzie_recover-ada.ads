@@ -34,7 +34,8 @@ package WisiToken.LR.McKenzie_Recover.Ada is
      (Trace        : in out WisiToken.Trace'Class;
       Parser_Label : in     Natural;
       Table        : in     Parse_Table;
-      Config       : in     Configuration)
+      Config       : in     Configuration;
+      Next_Token   : in     Token_ID)
      return WisiToken.Token_ID_Set;
    --  See wisitoken-lr-parser.ads Language_Constrain_Terminals_Access
    --  for description.

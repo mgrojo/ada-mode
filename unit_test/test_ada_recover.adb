@@ -102,7 +102,7 @@ package body Test_Ada_Recover is
       --  race condition).
 
       for I in Saved_Data'First .. Saved_Data_Last loop
-         Check_Range (Integer'Image (I), Saved_Data (I).Recover.Check_Count, 0, 1500);
+         Check_Range (Integer'Image (I), Saved_Data (I).Recover.Check_Count, 0, 1525);
       end loop;
    end Kill_Slow_Parser_2;
 
