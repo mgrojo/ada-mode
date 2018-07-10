@@ -41,14 +41,9 @@ package WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.LR.LR1_Items.Item_Set_Ptr;
-      Expected         : in WisiToken.LR.LR1_Items.Item_Set_Ptr;
+      Computed         : in WisiToken.LR.LR1_Items.Item_Set_List;
+      Expected         : in WisiToken.LR.LR1_Items.Item_Set_List;
       Match_Lookaheads : in Boolean := True);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.LR.LR1_Items.Item_Set_List;
-      Expected : in WisiToken.LR.LR1_Items.Item_Set_List);
 
    function Get_Item_Node
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -70,7 +65,7 @@ package WisiToken.LR.LR1_Items.AUnit is
      renames Get_Item_Node;
 
    function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set;
-   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set_Ptr;
+   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set_List;
 
    function "+"
      (State : in WisiToken.Unknown_State_Index;
@@ -81,14 +76,9 @@ package WisiToken.LR.LR1_Items.AUnit is
       Right : in WisiToken.LR.LR1_Items.Item_Set_List)
      return WisiToken.LR.LR1_Items.Item_Set_List;
 
-   function Get_Set
-     (To_State : in WisiToken.Unknown_State_Index;
-      Set_List : in WisiToken.LR.LR1_Items.Item_Set_List)
-     return WisiToken.LR.LR1_Items.Item_Set_Ptr;
-
    type AUnit_Goto_Item is record
       Symbol : WisiToken.Token_ID;
-      Set    : WisiToken.LR.LR1_Items.Item_Set_Ptr;
+      State  : State_Index;
    end record;
 
    function "+" (Right : in AUnit_Goto_Item) return WisiToken.LR.LR1_Items.Goto_Item_Ptr;
@@ -98,9 +88,9 @@ package WisiToken.LR.LR1_Items.AUnit is
      return WisiToken.LR.LR1_Items.Goto_Item_Ptr;
 
    procedure Add_Gotos
-     (List  : in WisiToken.LR.LR1_Items.Item_Set_List;
-      State : in WisiToken.Unknown_State_Index;
-      Gotos : in WisiToken.LR.LR1_Items.Goto_Item_Ptr);
+     (List  : in out WisiToken.LR.LR1_Items.Item_Set_List;
+      State : in     WisiToken.Unknown_State_Index;
+      Gotos : in     WisiToken.LR.LR1_Items.Goto_Item_Ptr);
 
    function Get_Item_Set
      (Grammar   : in WisiToken.Productions.Prod_Arrays.Vector;

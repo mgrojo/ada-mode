@@ -19,22 +19,43 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+rewrite lr1_items to use containers
+    start at the top; Item_Set = one LALR state
+    replace item_set_list with sal array on state_index
+        goto_item contains state_index
+
+    compiles, tests fail
+        deleted prod from goto
+
+propagate to main
+
 better constrain_terminals:
-    o.w.s-2
-    store kernel (with dot)
-    store minimial_completing_terminal_sequence for each kernel
-    just lookup that, insert it
+    o.w.s-1
+    when constrain_Terminals_Pred True, map (state) => (set of terminals to insert)
+    store kernel (set of prod with dot)
+    store set of first terminal of minimial_completing_terminal_sequence for each kernel
+
+    apply when error token is :=
+        language predicate for when to apply?
 
 add delete to config heap, use when configuration_access is abandoned?
 
 try indirect recursion solution
-    add ".wy to run" main
+    adding head, grow_set to Parser
+        must be on a stack for nested recursion?
+
+    docs/indirect_recursion_in_packrat.latex
+
+    add "run grammar.wy input" main for -procedural_*?
 
     Solution to left recurse is merge into one expression. See how
     that evaluates, make recursive do the same - use memo instead of
-    apply rule = madeiros 2014. Need recurse_pos in case possibly
-    empty nonterm is not empty - optional unary minus - call apply
-    rule if memo empty.
+    apply rule.
+
+    Need recurse_pos in case possibly empty nonterm is not empty -
+    call apply rule if memo empty.
+
+    test with optional unary minus
 
     warth_left_recurse_expr_1.adb : Test_Parse_Proc
 
@@ -43,21 +64,26 @@ try indirect recursion solution
         or figure out what it must do; ie understand the algorithm
 
     try S Medeiros, F Mascarenhas, R Ierusalimschy 2014 Left recursion in parsing expression grammars.pdf
-        "memoization scope"
+        very similar, mentions "memoization scope", doesn't say how to detect recursion
 
     or adapt langkit with pre-computed indirect
 
 
 review fixmes
 
-changed wisi-gen_generate_utils to be non-generic
-    compiles
-
-started changing wisi-gen_output_common_ada to be non-generic
-    needs work
+Implement Redziejowski language hiding check
 
 add packrat to ada-mode s-4
     time, compare to langkit
+
+propagate to main
+
+packrat space use
+    can free low level derivs; they will never be evaled
+        derive condition
+        use free list in syntax tree
+
+Wisi syntax is not bison-like; it is BNF augmented with declarations, regexp, actions
 
 add packrat error recover
 

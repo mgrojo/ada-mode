@@ -1,4 +1,116 @@
-Solution to left recurse is merge into one expression. See how that
-evaluates, make recursive do the same - use memo instead of apply rule
-= madeiros 2014. Need recurse_pos in case possibly empty nonterm is
-not empty - optional unary minus - call apply rule if memo empty.
+Present parsning algorithm given pre-computed left_recursive set.
+
+Introduce pre-computed involved.
+
+One solution to indirect left recursive rules is merge one rule into
+the other, yeilding a direct left recursive rule, which we know how to
+handle in a packrat parser.
+
+We can see how that evaluates, and make the packrat parser do the same
+with the original indirect recursive rules.
+
+Consider the following indirect grammar from Ada:
+
+selected_component ::= <name> "." <identifier>
+
+name ::= <selected_component> / <identifier>
+
+We can eliminate the indirect recursion by substituting "selected_component" into "name":
+
+name ::= <name> "." <identifier> / <identifier>
+
+Assume "identifier" is any sequence of letters. Then when the parser in (1)
+is used to parse the input "ab", it performs the following steps:
+
+Apply_Rule (name, 1);
+
+Derivs (name, 1) := (failure);
+
+Result_Recurse := Eval (name, 1);
+
+Eval (name, 1) first tries to match <name> "." <identifier>, which is
+the original <selected_component>. It fails, because <name> fails.
+Then it tries <identifier>, which matches "ab ".
+
+Result_Recurse := (success, "ab", 2);
+
+Derivs (name, 1) := (success, "ab", 2);
+
+Pos := 3;
+
+Result_Recurse := Eval (name, 1);
+
+This time, <name> returns "ab", but "." fails to match, so Eval
+returns the same result as before.
+
+Result_Recurse := (success, "ab", 3);
+
+Since that did not make progress, the left recursion terminates, and
+Apply_Rule (name) returns (Success, "ab", 3).
+
+
+Now parse the input "cd.ef":
+
+Apply_Rule (name, 1);
+
+Derivs (name, 1) := (failure);
+
+Result_Recurse := Eval (name, 1);
+
+As before, <name> "." <identifier> fails, and <identifier> matches "cd".
+
+Result_Recurse := (success, "cd", 2);
+
+Derivs (name, 1) := (success, "cd", 2);
+
+Pos := 3;
+
+Result_Recurse := Eval (name, 1);
+
+This time, <name> returns "cd", and "." <identifier> matches:
+
+Result_Recurse := (success, "cd.ef", 5);
+
+It loops again, returning the same result.
+
+
+Now examine the behavior of the parser with the indirect recursive
+grammar with input "ab":
+
+Apply_Rule (name, 1);
+
+Derivs (name, 1) := (failure);
+Derivs (selected_component, 1) := (failure);
+
+Result_Recurse := Eval (name, 1);
+
+Eval calls Apply_Rule (<selected_component>, 1). That returns the
+memoized seed (failure). Eval then tries <identifier>, which matches:
+
+Result_Recurse := (success, "ab", 2);
+
+Derivs (name, 1) := (success, "ab", 2);
+
+Pos := 3;
+
+apply_name loops again:
+
+Result_Recurse := Eval (name, 1);
+
+The memoized value for <selected_component> has not changed, so
+Apply_Rule (selected_component, 1) will fail, which is not what we
+want. Note that in the original parse, there was no memoized value for
+<selected_component>; Eval tried to match the rule directly. So we can
+do that here; if a rule is involved in indirect left recursion, Eval
+does not use Apply_Rule, it calls Eval:
+
+Eval (selected_component, 1)
+
+That tries to match <name> "." <identifier>; <name>
+
+
+
+- use eval instead of apply rule = madeiros 2014.
+
+Need recurse_pos in case possibly empty nonterm is
+not empty - (for example, optional unary minus) - call apply rule if memo empty.

@@ -99,7 +99,7 @@ package body Grune_9_30 is
       use WisiToken.LR.LR1_Items.AUnit;
       use WisiToken.LR.LR1_Items;
 
-      Computed : Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
+      Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, LR1_Descriptor,
          Trace => WisiToken.Trace_Generate > 0);
 
@@ -119,11 +119,11 @@ package body Grune_9_30 is
         (5 + Get_Item (Grammar, (+Upper_S_ID, 0), 4, +EOF_ID));
 
    begin
-      Add_Gotos (Expected, 0, +(+Lower_A_ID, Get_Set (1, Expected)) & (+Upper_A_ID, Get_Set (2, Expected)));
+      Add_Gotos (Expected, 0, +(+Lower_A_ID, 1) & (+Upper_A_ID, 2));
       --  no gotos from state 1
-      Add_Gotos (Expected, 2, +(+Lower_B_ID, Get_Set (3, Expected)) & (+Upper_B_ID, Get_Set (4, Expected)));
+      Add_Gotos (Expected, 2, +(+Lower_B_ID, 3) & (+Upper_B_ID, 4));
       --  no gotos from state 3
-      Add_Gotos (Expected, 4, +(+Lower_C_ID, Get_Set (5, Expected)));
+      Add_Gotos (Expected, 4, +(+Lower_C_ID, 5));
 
       if WisiToken.Trace_Generate > 0 then
          Put_Line ("computed:");
@@ -134,8 +134,6 @@ package body Grune_9_30 is
 
       Check ("", Computed, Expected);
 
-      Free (Computed);
-      Free (Expected);
    end Test_Item_Sets;
 
    procedure Test_Parse (T : in out AUnit.Test_Cases.Test_Case'Class)

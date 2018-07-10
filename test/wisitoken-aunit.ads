@@ -21,6 +21,7 @@ with AUnit.Checks;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 package WisiToken.AUnit is
 
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Token_ID);
 
    procedure Check (Label : in String; Computed, Expected : in Production_ID);

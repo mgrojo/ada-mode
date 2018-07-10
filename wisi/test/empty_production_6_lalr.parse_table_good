@@ -29,7 +29,7 @@ State 0:
    BEGIN                  => shift and goto state 1 (9.0)
    default                => ERROR
 
-      8.0: compilation_unit       goto state 2
+   compilation_unit       goto state 2
 
 State 1:
       9.0:compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, Wisi_EOI
@@ -38,9 +38,9 @@ State 1:
                              reduce 0 tokens to label_opt 12.1
    default                => ERROR
 
-     11.1: statement              goto state 4
-      9.0: sequence_of_statements goto state 5
-     10.0: label_opt              goto state 6
+   statement              goto state 4
+   sequence_of_statements goto state 5
+   label_opt              goto state 6
 
 State 2:
       8.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
@@ -70,8 +70,8 @@ State 5:
                              reduce 0 tokens to label_opt 12.1
    default                => ERROR
 
-     11.0: statement              goto state 9
-     10.0: label_opt              goto state 6
+   statement              goto state 9
+   label_opt              goto state 6
 
 State 6:
      10.0:statement <= label_opt ^ IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER

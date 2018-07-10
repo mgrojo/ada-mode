@@ -150,7 +150,9 @@ package body WisiToken.LR.AUnit is
      (Label    : in String;
       Computed : in Parse_Table;
       Expected : in Parse_Table)
-   is begin
+   is
+      use WisiToken.AUnit;
+   begin
       Check (Label & ".States'first", Computed.States'First, Expected.States'First);
       Check (Label & ".States'last", Computed.States'Last, Expected.States'Last);
       for I in Computed.States'Range loop

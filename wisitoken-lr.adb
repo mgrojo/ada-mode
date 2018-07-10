@@ -62,11 +62,6 @@ package body WisiToken.LR is
       return List.Symbol;
    end Symbol;
 
-   function Prod_ID (List : in Goto_Node_Ptr) return Production_ID
-   is begin
-      return List.Production;
-   end Prod_ID;
-
    function State (List : in Goto_Node_Ptr) return State_Index
    is begin
       return List.State;
@@ -443,12 +438,11 @@ package body WisiToken.LR is
 
    procedure Add_Goto
      (State      : in out LR.Parse_State;
-      Production : in     Production_ID;
       Symbol     : in     Token_ID;
       To_State   : in     State_Index)
    is
       List     : Goto_Node_Ptr renames State.Goto_List;
-      New_Item : constant Goto_Node_Ptr := new Goto_Node'(Production, Symbol, To_State, null);
+      New_Item : constant Goto_Node_Ptr := new Goto_Node'(Symbol, To_State, null);
       I        : Goto_Node_Ptr := List;
    begin
       if I = null then
@@ -754,8 +748,7 @@ package body WisiToken.LR is
 
       while Goto_Ptr /= null loop
          Put_Line
-           ("  " & Padded_Image (Goto_Ptr.Production, Width => Prod_ID_Image_Width) & ": " &
-              Image (Goto_Ptr.Symbol, Descriptor) &
+           ("   " & Image (Goto_Ptr.Symbol, Descriptor) &
               (Descriptor.Image_Width - Image (Goto_Ptr.Symbol, Descriptor)'Length) * ' ' &
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;

@@ -63,11 +63,11 @@ State 0:
    USE              => shift and goto state 3 (31.0)
    default          => ERROR
 
-     20.0: compilation_unit goto state 4
-     22.0: declarations     goto state 5
-     23.1: declaration      goto state 6
-     24.0: subprogram       goto state 7
-     24.1: use_clause       goto state 8
+   compilation_unit goto state 4
+   declarations     goto state 5
+   declaration      goto state 6
+   subprogram       goto state 7
+   use_clause       goto state 8
 
 State 1:
      29.0:subprogram <= FUNCTION ^ name parameter_list block SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -75,7 +75,7 @@ State 1:
    SYMBOL           => shift and goto state 10 (26.1)
    default          => ERROR
 
-     26.0: name             goto state 14
+   name             goto state 14
 
 State 2:
      29.1:subprogram <= PROCEDURE ^ name parameter_list END name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -83,7 +83,7 @@ State 2:
    SYMBOL           => shift and goto state 10 (26.1)
    default          => ERROR
 
-     26.0: name             goto state 13
+   name             goto state 13
 
 State 3:
      31.0:use_clause <= USE ^ name_list SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -91,8 +91,8 @@ State 3:
    SYMBOL           => shift and goto state 10 (26.1)
    default          => ERROR
 
-     26.0: name             goto state 11
-     27.0: name_list        goto state 12
+   name             goto state 11
+   name_list        goto state 12
 
 State 4:
      20.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
@@ -110,9 +110,9 @@ State 5:
    Wisi_EOI         => reduce 1 tokens to compilation_unit 22.0
    default          => ERROR
 
-     23.0: declaration      goto state 9
-     24.0: subprogram       goto state 7
-     24.1: use_clause       goto state 8
+   declaration      goto state 9
+   subprogram       goto state 7
+   use_clause       goto state 8
 
 State 6:
      23.1:declarations <= declaration ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -188,7 +188,7 @@ State 13:
    DOT              => shift and goto state 16 (26.0)
    default          => ERROR
 
-     29.1: parameter_list   goto state 18
+   parameter_list   goto state 18
 
 State 14:
      26.0:name <= name ^ DOT SYMBOL, BEGIN/LEFT_PAREN/DOT
@@ -199,7 +199,7 @@ State 14:
    DOT              => shift and goto state 16 (26.0)
    default          => ERROR
 
-     29.0: parameter_list   goto state 17
+   parameter_list   goto state 17
 
 State 15:
      28.0:parameter_list <= LEFT_PAREN ^ SYMBOL RIGHT_PAREN, BEGIN/END
@@ -221,7 +221,7 @@ State 17:
    BEGIN            => shift and goto state 23 (21.0, 21.1)
    default          => ERROR
 
-     29.0: block            goto state 24
+   block            goto state 24
 
 State 18:
      29.1:subprogram <= PROCEDURE name parameter_list ^ END name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -235,7 +235,7 @@ State 19:
    SYMBOL           => shift and goto state 10 (26.1)
    default          => ERROR
 
-     26.0: name             goto state 21
+   name             goto state 21
 
 State 20:
      31.0:use_clause <= USE name_list SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -261,7 +261,7 @@ State 22:
    SYMBOL           => shift and goto state 10 (26.1)
    default          => ERROR
 
-     26.0: name             goto state 33
+   name             goto state 33
 
 State 23:
      21.0:block <= BEGIN ^ loop_statement EXCEPTION WHEN name END, SEMICOLON
@@ -271,7 +271,7 @@ State 23:
    FOR              => shift and goto state 31 (25.0)
    default          => ERROR
 
-     21.0: loop_statement   goto state 32
+   loop_statement   goto state 32
 
 State 24:
      29.0:subprogram <= FUNCTION name parameter_list block ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -373,8 +373,8 @@ State 37:
    SYMBOL           => shift and goto state 10 (26.1)
    default          => ERROR
 
-     26.0: name             goto state 40
-     25.0: subtype          goto state 41
+   name             goto state 40
+   subtype          goto state 41
 
 State 38:
      21.0:block <= BEGIN loop_statement EXCEPTION WHEN ^ name END, SEMICOLON
@@ -382,7 +382,7 @@ State 38:
    SYMBOL           => shift and goto state 10 (26.1)
    default          => ERROR
 
-     21.0: name             goto state 39
+   name             goto state 39
 
 State 39:
      21.0:block <= BEGIN loop_statement EXCEPTION WHEN name ^ END, SEMICOLON

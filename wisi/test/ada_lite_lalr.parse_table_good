@@ -318,16 +318,16 @@ State 0:
    PROCEDURE                          => shift and goto state 3 (95.1, 115.0)
    default                            => ERROR
 
-     71.1: compilation_unit                   goto state 4
-     56.0: compilation_unit_list              goto state 5
-    134.1: function_specification             goto state 6
-    101.3: generic_instantiation              goto state 7
-     70.0: library_item                       goto state 8
-    101.0: package_body                       goto state 9
-    134.0: procedure_specification            goto state 10
-    101.2: subprogram_body                    goto state 11
-    101.1: subprogram_declaration             goto state 12
-    131.0: subprogram_specification           goto state 13
+   compilation_unit                   goto state 4
+   compilation_unit_list              goto state 5
+   function_specification             goto state 6
+   generic_instantiation              goto state 7
+   library_item                       goto state 8
+   package_body                       goto state 9
+   procedure_specification            goto state 10
+   subprogram_body                    goto state 11
+   subprogram_declaration             goto state 12
+   subprogram_specification           goto state 13
 
 State 1:
      94.0:function_specification <= FUNCTION ^ name parameter_and_result_profile, IS/WITH/SEMICOLON
@@ -335,8 +335,8 @@ State 1:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     94.0: name                               goto state 23
-    104.3: selected_component                 goto state 20
+   name                               goto state 23
+   selected_component                 goto state 20
 
 State 2:
      95.0:generic_instantiation <= PACKAGE ^ name IS NEW name SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -347,8 +347,8 @@ State 2:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     95.0: name                               goto state 22
-    104.3: selected_component                 goto state 20
+   name                               goto state 22
+   selected_component                 goto state 20
 
 State 3:
      95.1:generic_instantiation <= PROCEDURE ^ name IS NEW name SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -357,8 +357,8 @@ State 3:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     95.1: name                               goto state 19
-    104.3: selected_component                 goto state 20
+   name                               goto state 19
+   selected_component                 goto state 20
 
 State 4:
      71.1:compilation_unit_list <= compilation_unit ^, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -379,15 +379,15 @@ State 5:
    Wisi_EOI                           => accept it 56.0
    default                            => ERROR
 
-     71.0: compilation_unit                   goto state 17
-    134.1: function_specification             goto state 6
-    101.3: generic_instantiation              goto state 7
-     70.0: library_item                       goto state 8
-    101.0: package_body                       goto state 9
-    134.0: procedure_specification            goto state 10
-    101.2: subprogram_body                    goto state 11
-    101.1: subprogram_declaration             goto state 12
-    131.0: subprogram_specification           goto state 13
+   compilation_unit                   goto state 17
+   function_specification             goto state 6
+   generic_instantiation              goto state 7
+   library_item                       goto state 8
+   package_body                       goto state 9
+   procedure_specification            goto state 10
+   subprogram_body                    goto state 11
+   subprogram_declaration             goto state 12
+   subprogram_specification           goto state 13
 
 State 6:
     134.1:subprogram_specification <= function_specification ^, IS/WITH/SEMICOLON
@@ -459,7 +459,7 @@ State 13:
    SEMICOLON                          => shift and goto state 15 (133.0)
    default                            => ERROR
 
-    131.0: aspect_specification_opt           goto state 16
+   aspect_specification_opt           goto state 16
 
 State 14:
      58.0:aspect_specification_opt <= WITH ^ association_list, IS
@@ -475,22 +475,22 @@ State 14:
    IDENTIFIER                         => shift and goto state 43 (60.0, 104.2)
    default                            => ERROR
 
-     61.1: association_opt                    goto state 44
-     58.0: association_list                   goto state 45
-     60.1: expression                         goto state 46
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   association_opt                    goto state 44
+   association_list                   goto state 45
+   expression                         goto state 46
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 15:
     133.0:subprogram_declaration <= subprogram_specification SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -568,9 +568,9 @@ State 19:
    SEMICOLON                          => reduce 0 tokens to parameter_profile_opt 109.1
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
-    109.0: formal_part                        goto state 34
-    115.0: parameter_profile_opt              goto state 35
+   actual_parameter_part              goto state 27
+   formal_part                        goto state 34
+   parameter_profile_opt              goto state 35
 
 State 20:
     104.3:name <= selected_component ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -612,8 +612,8 @@ State 21:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 32
-    104.3: selected_component                 goto state 20
+   name                               goto state 32
+   selected_component                 goto state 20
 
 State 22:
      95.0:generic_instantiation <= PACKAGE name ^ IS NEW name SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -626,7 +626,7 @@ State 22:
    DOT                                => shift and goto state 26 (124.0)
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
+   actual_parameter_part              goto state 27
 
 State 23:
      94.0:function_specification <= FUNCTION name ^ parameter_and_result_profile, IS/WITH/SEMICOLON
@@ -639,9 +639,9 @@ State 23:
    DOT                                => shift and goto state 26 (124.0)
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
-    108.0: formal_part                        goto state 28
-     94.0: parameter_and_result_profile       goto state 29
+   actual_parameter_part              goto state 27
+   formal_part                        goto state 28
+   parameter_and_result_profile       goto state 29
 
 State 24:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN, IS/LEFT_PAREN/RETURN/WITH/DOT/SEMICOLON
@@ -661,26 +661,26 @@ State 24:
    IDENTIFIER                         => shift and goto state 113 (60.0, 104.2, 110.0, 110.1)
    default                            => ERROR
 
-     61.1: association_opt                    goto state 44
-     57.0: association_list                   goto state 105
-     60.1: expression                         goto state 46
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    111.1: parameter_specification            goto state 114
-     92.0: parameter_specification_list       goto state 115
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    118.1: range_g                            goto state 106
-    104.0: range_list                         goto state 107
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    117.0: simple_expression                  goto state 108
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   association_opt                    goto state 44
+   association_list                   goto state 105
+   expression                         goto state 46
+   factor                             goto state 47
+   name                               goto state 48
+   parameter_specification            goto state 114
+   parameter_specification_list       goto state 115
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   range_g                            goto state 106
+   range_list                         goto state 107
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 108
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 25:
     108.1:parameter_and_result_profile <= RETURN ^ IDENTIFIER, IS/WITH/SEMICOLON
@@ -762,24 +762,24 @@ State 31:
    IDENTIFIER                         => shift and goto state 43 (60.0, 104.2)
    default                            => ERROR
 
-     61.1: association_opt                    goto state 44
-     57.0: association_list                   goto state 105
-     60.1: expression                         goto state 46
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    118.1: range_g                            goto state 106
-    104.0: range_list                         goto state 107
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    117.0: simple_expression                  goto state 108
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   association_opt                    goto state 44
+   association_list                   goto state 105
+   expression                         goto state 46
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   range_g                            goto state 106
+   range_list                         goto state 107
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 108
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 32:
     104.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, IS/LEFT_PAREN/WITH/DOT
@@ -794,8 +794,8 @@ State 32:
    DOT                                => shift and goto state 26 (124.0)
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
-    107.0: aspect_specification_opt           goto state 104
+   actual_parameter_part              goto state 27
+   aspect_specification_opt           goto state 104
 
 State 33:
      95.1:generic_instantiation <= PROCEDURE name IS ^ NEW name SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -830,22 +830,22 @@ State 36:
    IDENTIFIER                         => shift and goto state 88 (106.0, 106.1)
    default                            => ERROR
 
-     74.0: body_g                             goto state 89
-     65.1: body_stub                          goto state 90
-     75.1: declaration                        goto state 91
-     75.0: declarations                       goto state 92
-    131.0: declarative_part_opt               goto state 93
-    138.0: full_type_declaration              goto state 94
-    134.1: function_specification             goto state 6
-     74.1: object_declaration                 goto state 95
-    116.0: package_body                       goto state 96
-    134.0: procedure_specification            goto state 10
-     65.0: proper_body                        goto state 97
-    116.1: subprogram_body                    goto state 98
-     66.0: subprogram_body_stub               goto state 99
-     74.2: subprogram_declaration             goto state 100
-    131.0: subprogram_specification           goto state 101
-     74.3: type_declaration                   goto state 102
+   body_g                             goto state 89
+   body_stub                          goto state 90
+   declaration                        goto state 91
+   declarations                       goto state 92
+   declarative_part_opt               goto state 93
+   full_type_declaration              goto state 94
+   function_specification             goto state 6
+   object_declaration                 goto state 95
+   package_body                       goto state 96
+   procedure_specification            goto state 10
+   proper_body                        goto state 97
+   subprogram_body                    goto state 98
+   subprogram_body_stub               goto state 99
+   subprogram_declaration             goto state 100
+   subprogram_specification           goto state 101
+   type_declaration                   goto state 102
 
 State 37:
     112.0:paren_expression <= LEFT_PAREN ^ expression_opt RIGHT_PAREN, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -860,21 +860,21 @@ State 37:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-    112.0: expression_opt                     goto state 84
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 84
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 38:
      91.1:factor <= NOT ^ primary, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -885,10 +885,10 @@ State 38:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.1: primary                            goto state 82
-    104.3: selected_component                 goto state 20
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 82
+   selected_component                 goto state 20
 
 State 39:
     140.1:unary_adding_operator <= MINUS ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
@@ -1075,7 +1075,7 @@ State 48:
    STAR                               => reduce 1 tokens to primary 113.2
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
+   actual_parameter_part              goto state 27
 
 State 49:
     113.3:primary <= paren_expression ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1203,7 +1203,7 @@ State 55:
    SLASH_EQUAL                        => shift and goto state 72 (123.1)
    default                            => ERROR
 
-    122.0: relational_operator                goto state 73
+   relational_operator                goto state 73
 
 State 56:
     136.0:term <= term ^ multiplying_operator factor, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1233,7 +1233,7 @@ State 56:
    STAR                               => shift and goto state 65 (103.0)
    default                            => ERROR
 
-    136.0: multiplying_operator               goto state 66
+   multiplying_operator               goto state 66
 
 State 57:
     127.1:simple_expression <= term_list ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/SEMICOLON/SLASH_EQUAL
@@ -1261,7 +1261,7 @@ State 57:
    SLASH_EQUAL                        => reduce 1 tokens to simple_expression 127.1
    default                            => ERROR
 
-    137.0: binary_adding_operator             goto state 63
+   binary_adding_operator             goto state 63
 
 State 58:
     127.0:simple_expression <= unary_adding_operator ^ term_list, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/SEMICOLON/SLASH_EQUAL
@@ -1273,13 +1273,13 @@ State 58:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    104.3: selected_component                 goto state 20
-    136.0: term                               goto state 56
-    127.0: term_list                          goto state 59
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   selected_component                 goto state 20
+   term                               goto state 56
+   term_list                          goto state 59
 
 State 59:
     127.0:simple_expression <= unary_adding_operator term_list ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/SEMICOLON/SLASH_EQUAL
@@ -1307,7 +1307,7 @@ State 59:
    SLASH_EQUAL                        => reduce 2 tokens to simple_expression 127.0
    default                            => ERROR
 
-    137.0: binary_adding_operator             goto state 63
+   binary_adding_operator             goto state 63
 
 State 60:
      62.2:binary_adding_operator <= AMPERSAND ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
@@ -1349,12 +1349,12 @@ State 63:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    104.3: selected_component                 goto state 20
-    136.0: term                               goto state 144
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   selected_component                 goto state 20
+   term                               goto state 144
 
 State 64:
     103.1:multiplying_operator <= SLASH ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
@@ -1386,11 +1386,11 @@ State 66:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.0: factor                             goto state 143
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    104.3: selected_component                 goto state 20
+   factor                             goto state 143
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   selected_component                 goto state 20
 
 State 67:
     123.0:relational_operator <= EQUAL ^, LEFT_PAREN/NOT/MINUS/PLUS/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
@@ -1476,15 +1476,15 @@ State 73:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 142
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   selected_component                 goto state 20
+   simple_expression                  goto state 142
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 74:
     119.1:relation_and_list <= relation AND ^ relation, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -1498,16 +1498,16 @@ State 74:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    119.1: relation                           goto state 141
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation                           goto state 141
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 75:
     120.1:relation_or_list <= relation OR ^ relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -1521,16 +1521,16 @@ State 75:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    120.1: relation                           goto state 140
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation                           goto state 140
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 76:
     121.1:relation_xor_list <= relation XOR ^ relation, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
@@ -1544,16 +1544,16 @@ State 76:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    121.1: relation                           goto state 139
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation                           goto state 139
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 77:
     121.0:relation_xor_list <= relation_xor_list XOR ^ relation, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
@@ -1567,16 +1567,16 @@ State 77:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    121.0: relation                           goto state 138
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation                           goto state 138
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 78:
     120.0:relation_or_list <= relation_or_list OR ^ relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -1590,16 +1590,16 @@ State 78:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    120.0: relation                           goto state 137
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation                           goto state 137
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 79:
     119.0:relation_and_list <= relation_and_list AND ^ relation, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -1613,16 +1613,16 @@ State 79:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    119.0: relation                           goto state 136
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation                           goto state 136
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 80:
      61.0:association_list <= association_list COMMA ^ association_opt, IS/RIGHT_PAREN/COMMA
@@ -1639,21 +1639,21 @@ State 80:
    IDENTIFIER                         => shift and goto state 43 (60.0, 104.2)
    default                            => ERROR
 
-     61.0: association_opt                    goto state 135
-     60.1: expression                         goto state 46
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   association_opt                    goto state 135
+   expression                         goto state 46
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 81:
      60.0:association_opt <= IDENTIFIER EQUAL_GREATER ^ expression_opt, IS/RIGHT_PAREN/COMMA
@@ -1670,21 +1670,21 @@ State 81:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-     60.0: expression_opt                     goto state 134
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 134
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 82:
      91.1:factor <= NOT primary ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1742,8 +1742,8 @@ State 86:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 132
-    104.3: selected_component                 goto state 20
+   name                               goto state 132
+   selected_component                 goto state 20
 
 State 87:
      93.0:full_type_declaration <= TYPE ^ IDENTIFIER IS type_definition SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -1807,20 +1807,20 @@ State 92:
    IDENTIFIER                         => shift and goto state 88 (106.0, 106.1)
    default                            => ERROR
 
-     74.0: body_g                             goto state 89
-     65.1: body_stub                          goto state 90
-     75.0: declaration                        goto state 129
-    138.0: full_type_declaration              goto state 94
-    134.1: function_specification             goto state 6
-     74.1: object_declaration                 goto state 95
-    116.0: package_body                       goto state 96
-    134.0: procedure_specification            goto state 10
-     65.0: proper_body                        goto state 97
-    116.1: subprogram_body                    goto state 98
-     66.0: subprogram_body_stub               goto state 99
-     74.2: subprogram_declaration             goto state 100
-    131.0: subprogram_specification           goto state 101
-     74.3: type_declaration                   goto state 102
+   body_g                             goto state 89
+   body_stub                          goto state 90
+   declaration                        goto state 129
+   full_type_declaration              goto state 94
+   function_specification             goto state 6
+   object_declaration                 goto state 95
+   package_body                       goto state 96
+   procedure_specification            goto state 10
+   proper_body                        goto state 97
+   subprogram_body                    goto state 98
+   subprogram_body_stub               goto state 99
+   subprogram_declaration             goto state 100
+   subprogram_specification           goto state 101
+   type_declaration                   goto state 102
 
 State 93:
     131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -1923,7 +1923,7 @@ State 101:
    SEMICOLON                          => shift and goto state 15 (133.0)
    default                            => ERROR
 
-    131.0: aspect_specification_opt           goto state 16
+   aspect_specification_opt           goto state 16
 
 State 102:
      74.3:declaration <= type_declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -1943,8 +1943,8 @@ State 103:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     95.1: name                               goto state 126
-    104.3: selected_component                 goto state 20
+   name                               goto state 126
+   selected_component                 goto state 20
 
 State 104:
     107.0:package_body <= PACKAGE BODY name aspect_specification_opt ^ IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -1995,7 +1995,7 @@ State 108:
    SLASH_EQUAL                        => shift and goto state 72 (123.1)
    default                            => ERROR
 
-    122.0: relational_operator                goto state 73
+   relational_operator                goto state 73
 
 State 109:
      95.0:generic_instantiation <= PACKAGE name IS NEW ^ name SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -2003,8 +2003,8 @@ State 109:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     95.0: name                               goto state 120
-    104.3: selected_component                 goto state 20
+   name                               goto state 120
+   selected_component                 goto state 20
 
 State 110:
     108.0:parameter_and_result_profile <= formal_part RETURN ^ IDENTIFIER, IS/WITH/SEMICOLON
@@ -2114,7 +2114,7 @@ State 117:
    IDENTIFIER                         => shift and goto state 181 (110.0, 110.1)
    default                            => ERROR
 
-    111.0: parameter_specification            goto state 182
+   parameter_specification            goto state 182
 
 State 118:
     110.0:parameter_specification <= IDENTIFIER COLON ^ IDENTIFIER COLON_EQUAL expression_opt, RIGHT_PAREN/SEMICOLON
@@ -2142,7 +2142,7 @@ State 120:
    SEMICOLON                          => shift and goto state 179 (95.0)
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
+   actual_parameter_part              goto state 27
 
 State 121:
     117.0:range_g <= simple_expression DOT_DOT ^ simple_expression, LOOP/RIGHT_PAREN/COLON_EQUAL/COMMA/SEMICOLON
@@ -2156,15 +2156,15 @@ State 121:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    104.3: selected_component                 goto state 20
-    117.0: simple_expression                  goto state 178
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   selected_component                 goto state 20
+   simple_expression                  goto state 178
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 122:
     104.0:name <= name LEFT_PAREN range_list RIGHT_PAREN ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -2211,16 +2211,16 @@ State 123:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-    118.0: range_g                            goto state 176
-    104.3: selected_component                 goto state 20
-    117.0: simple_expression                  goto state 177
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   range_g                            goto state 176
+   selected_component                 goto state 20
+   simple_expression                  goto state 177
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 124:
      57.0:actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -2268,22 +2268,22 @@ State 125:
    IDENTIFIER                         => shift and goto state 88 (106.0, 106.1)
    default                            => ERROR
 
-     74.0: body_g                             goto state 89
-     65.1: body_stub                          goto state 90
-     75.1: declaration                        goto state 91
-     75.0: declarations                       goto state 92
-    107.0: declarative_part_opt               goto state 175
-    138.0: full_type_declaration              goto state 94
-    134.1: function_specification             goto state 6
-     74.1: object_declaration                 goto state 95
-    116.0: package_body                       goto state 96
-    134.0: procedure_specification            goto state 10
-     65.0: proper_body                        goto state 97
-    116.1: subprogram_body                    goto state 98
-     66.0: subprogram_body_stub               goto state 99
-     74.2: subprogram_declaration             goto state 100
-    131.0: subprogram_specification           goto state 101
-     74.3: type_declaration                   goto state 102
+   body_g                             goto state 89
+   body_stub                          goto state 90
+   declaration                        goto state 91
+   declarations                       goto state 92
+   declarative_part_opt               goto state 175
+   full_type_declaration              goto state 94
+   function_specification             goto state 6
+   object_declaration                 goto state 95
+   package_body                       goto state 96
+   procedure_specification            goto state 10
+   proper_body                        goto state 97
+   subprogram_body                    goto state 98
+   subprogram_body_stub               goto state 99
+   subprogram_declaration             goto state 100
+   subprogram_specification           goto state 101
+   type_declaration                   goto state 102
 
 State 126:
      95.1:generic_instantiation <= PROCEDURE name IS NEW name ^ SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -2296,7 +2296,7 @@ State 126:
    SEMICOLON                          => shift and goto state 174 (95.1)
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
+   actual_parameter_part              goto state 27
 
 State 127:
     132.0:subprogram_body_stub <= subprogram_specification IS ^ SEPARATE SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -2320,25 +2320,25 @@ State 128:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-    131.0: handled_sequence_of_statements     goto state 162
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     96.0: sequence_of_statements_opt         goto state 169
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   handled_sequence_of_statements     goto state 162
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 169
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 129:
      75.0:declarations <= declarations declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -2359,9 +2359,9 @@ State 130:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 146
-    104.3: selected_component                 goto state 20
-    106.0: subtype_indication                 goto state 147
+   name                               goto state 146
+   selected_component                 goto state 20
+   subtype_indication                 goto state 147
 
 State 131:
      93.0:full_type_declaration <= TYPE IDENTIFIER ^ IS type_definition SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -2382,9 +2382,9 @@ State 132:
    SEMICOLON                          => reduce 0 tokens to parameter_profile_opt 109.1
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
-    109.0: formal_part                        goto state 34
-    115.0: parameter_profile_opt              goto state 35
+   actual_parameter_part              goto state 27
+   formal_part                        goto state 34
+   parameter_profile_opt              goto state 35
 
 State 133:
     112.0:paren_expression <= LEFT_PAREN expression_opt RIGHT_PAREN ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -2563,7 +2563,7 @@ State 144:
    STAR                               => shift and goto state 65 (103.0)
    default                            => ERROR
 
-    136.0: multiplying_operator               goto state 66
+   multiplying_operator               goto state 66
 
 State 145:
      93.0:full_type_declaration <= TYPE IDENTIFIER IS ^ type_definition SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -2571,8 +2571,8 @@ State 145:
    LEFT_PAREN                         => shift and goto state 212 (81.0)
    default                            => ERROR
 
-    139.0: enumeration_type_definition        goto state 213
-     93.0: type_definition                    goto state 214
+   enumeration_type_definition        goto state 213
+   type_definition                    goto state 214
 
 State 146:
     104.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, LEFT_PAREN/RANGE/COLON_EQUAL/DOT/SEMICOLON
@@ -2588,9 +2588,9 @@ State 146:
    SEMICOLON                          => reduce 1 tokens to subtype_indication 135.1
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
-    135.0: constraint                         goto state 210
-     73.1: index_constraint                   goto state 211
+   actual_parameter_part              goto state 27
+   constraint                         goto state 210
+   index_constraint                   goto state 211
 
 State 147:
     106.0:object_declaration <= IDENTIFIER COLON subtype_indication ^ COLON_EQUAL expression_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -2613,21 +2613,21 @@ State 148:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-     67.0: expression_opt                     goto state 205
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 205
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 149:
      86.0:exit_statement <= EXIT ^ identifier_opt WHEN expression_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -2638,7 +2638,7 @@ State 149:
    IDENTIFIER                         => shift and goto state 203 (97.0)
    default                            => ERROR
 
-     86.0: identifier_opt                     goto state 204
+   identifier_opt                     goto state 204
 
 State 150:
     100.0:iteration_scheme <= FOR ^ IDENTIFIER IN discrete_subtype_definition, LOOP
@@ -2662,21 +2662,21 @@ State 151:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-     98.0: expression_opt                     goto state 201
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 201
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 152:
     102.1:loop_statement <= LOOP ^ sequence_of_statements_opt END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -2693,24 +2693,24 @@ State 152:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-    102.1: sequence_of_statements_opt         goto state 200
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 200
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 153:
      90.0:extended_return_statement <= RETURN ^ extended_return_object_declaration SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -2728,22 +2728,22 @@ State 153:
    IDENTIFIER                         => shift and goto state 197 (89.0, 104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-    128.0: expression_opt                     goto state 198
-     90.0: extended_return_object_declaration goto state 199
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 198
+   extended_return_object_declaration goto state 199
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 154:
      63.0:block_label_opt <= IDENTIFIER ^ COLON, BEGIN/DECLARE
@@ -2941,7 +2941,7 @@ State 166:
    SEMICOLON                          => shift and goto state 190 (114.0)
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
+   actual_parameter_part              goto state 27
 
 State 167:
     129.2:simple_statement <= procedure_call_statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -2982,22 +2982,22 @@ State 168:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.0: statement                          goto state 188
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 188
 
 State 169:
      96.0:handled_sequence_of_statements <= sequence_of_statements_opt ^ EXCEPTION exception_handler_list_opt, END
@@ -3156,21 +3156,21 @@ State 183:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-    110.0: expression_opt                     goto state 245
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 245
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 184:
     107.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -3188,25 +3188,25 @@ State 184:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-    107.0: handled_sequence_of_statements     goto state 244
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     96.0: sequence_of_statements_opt         goto state 169
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   handled_sequence_of_statements     goto state 244
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 169
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 185:
     107.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END ^ name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -3215,9 +3215,9 @@ State 185:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 235
-    107.1: name_opt                           goto state 243
-    104.3: selected_component                 goto state 20
+   name                               goto state 235
+   name_opt                           goto state 243
+   selected_component                 goto state 20
 
 State 186:
     132.0:subprogram_body_stub <= subprogram_specification IS SEPARATE SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -3238,9 +3238,9 @@ State 187:
    WHEN                               => shift and goto state 239 (83.0)
    default                            => ERROR
 
-     84.1: exception_handler                  goto state 240
-     84.0: exception_handler_list             goto state 241
-     96.0: exception_handler_list_opt         goto state 242
+   exception_handler                  goto state 240
+   exception_handler_list             goto state 241
+   exception_handler_list_opt         goto state 242
 
 State 188:
     125.0:sequence_of_statements <= sequence_of_statements statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3274,21 +3274,21 @@ State 189:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-     59.0: expression_opt                     goto state 238
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 238
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 190:
     114.0:procedure_call_statement <= name SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3324,24 +3324,24 @@ State 191:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-    102.0: sequence_of_statements_opt         goto state 237
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 237
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 192:
     131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -3350,9 +3350,9 @@ State 192:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 235
-    131.0: name_opt                           goto state 236
-    104.3: selected_component                 goto state 20
+   name                               goto state 235
+   name_opt                           goto state 236
+   selected_component                 goto state 20
 
 State 193:
      64.1:block_statement <= block_label_opt BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3370,25 +3370,25 @@ State 193:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     64.1: handled_sequence_of_statements     goto state 234
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     96.0: sequence_of_statements_opt         goto state 169
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   handled_sequence_of_statements     goto state 234
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 169
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 194:
      64.0:block_statement <= block_label_opt DECLARE ^ declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3401,22 +3401,22 @@ State 194:
    IDENTIFIER                         => shift and goto state 88 (106.0, 106.1)
    default                            => ERROR
 
-     74.0: body_g                             goto state 89
-     65.1: body_stub                          goto state 90
-     75.1: declaration                        goto state 91
-     75.0: declarations                       goto state 92
-     64.0: declarative_part_opt               goto state 233
-    138.0: full_type_declaration              goto state 94
-    134.1: function_specification             goto state 6
-     74.1: object_declaration                 goto state 95
-    116.0: package_body                       goto state 96
-    134.0: procedure_specification            goto state 10
-     65.0: proper_body                        goto state 97
-    116.1: subprogram_body                    goto state 98
-     66.0: subprogram_body_stub               goto state 99
-     74.2: subprogram_declaration             goto state 100
-    131.0: subprogram_specification           goto state 101
-     74.3: type_declaration                   goto state 102
+   body_g                             goto state 89
+   body_stub                          goto state 90
+   declaration                        goto state 91
+   declarations                       goto state 92
+   declarative_part_opt               goto state 233
+   full_type_declaration              goto state 94
+   function_specification             goto state 6
+   object_declaration                 goto state 95
+   package_body                       goto state 96
+   procedure_specification            goto state 10
+   proper_body                        goto state 97
+   subprogram_body                    goto state 98
+   subprogram_body_stub               goto state 99
+   subprogram_declaration             goto state 100
+   subprogram_specification           goto state 101
+   type_declaration                   goto state 102
 
 State 195:
      63.0:block_label_opt <= IDENTIFIER COLON ^, BEGIN/DECLARE
@@ -3535,21 +3535,21 @@ State 206:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-    106.0: expression_opt                     goto state 223
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 223
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 207:
     106.1:object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -3579,26 +3579,26 @@ State 208:
    IDENTIFIER                         => shift and goto state 43 (60.0, 104.2)
    default                            => ERROR
 
-     61.1: association_opt                    goto state 44
-     57.0: association_list                   goto state 105
-     99.0: discrete_subtype_definition        goto state 219
-     60.1: expression                         goto state 46
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 220
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     77.1: range_g                            goto state 221
-    104.0: range_list                         goto state 107
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    117.0: simple_expression                  goto state 108
-     77.0: subtype_indication                 goto state 222
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   association_opt                    goto state 44
+   association_list                   goto state 105
+   discrete_subtype_definition        goto state 219
+   expression                         goto state 46
+   factor                             goto state 47
+   name                               goto state 220
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   range_g                            goto state 221
+   range_list                         goto state 107
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 108
+   subtype_indication                 goto state 222
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 209:
      73.0:constraint <= RANGE ^ range_g, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
@@ -3612,16 +3612,16 @@ State 209:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     73.0: range_g                            goto state 218
-    104.3: selected_component                 goto state 20
-    117.0: simple_expression                  goto state 177
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   range_g                            goto state 218
+   selected_component                 goto state 20
+   simple_expression                  goto state 177
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 210:
     135.0:subtype_indication <= name constraint ^, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
@@ -3647,7 +3647,7 @@ State 212:
    IDENTIFIER                         => shift and goto state 216 (80.1)
    default                            => ERROR
 
-     80.0: enumeration_literal_list           goto state 217
+   enumeration_literal_list           goto state 217
 
 State 213:
     139.0:type_definition <= enumeration_type_definition ^, SEMICOLON
@@ -3735,9 +3735,9 @@ State 220:
    STAR                               => reduce 1 tokens to primary 113.2
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
-    135.0: constraint                         goto state 210
-     73.1: index_constraint                   goto state 211
+   actual_parameter_part              goto state 27
+   constraint                         goto state 210
+   index_constraint                   goto state 211
 
 State 221:
      77.1:discrete_subtype_definition <= range_g ^, RIGHT_PAREN
@@ -3767,8 +3767,8 @@ State 224:
    WHEN                               => shift and goto state 262 (68.0)
    default                            => ERROR
 
-     69.1: case_statement_alternative         goto state 263
-     67.0: case_statement_alternative_list    goto state 264
+   case_statement_alternative         goto state 263
+   case_statement_alternative_list    goto state 264
 
 State 225:
      86.0:exit_statement <= EXIT identifier_opt WHEN ^ expression_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3783,21 +3783,21 @@ State 225:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-     86.0: expression_opt                     goto state 261
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 261
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 226:
      86.1:exit_statement <= EXIT identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3830,18 +3830,18 @@ State 227:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    100.0: discrete_subtype_definition        goto state 259
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 220
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     77.1: range_g                            goto state 260
-    104.3: selected_component                 goto state 20
-    117.0: simple_expression                  goto state 177
-     77.0: subtype_indication                 goto state 222
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   discrete_subtype_definition        goto state 259
+   factor                             goto state 47
+   name                               goto state 220
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   range_g                            goto state 260
+   selected_component                 goto state 20
+   simple_expression                  goto state 177
+   subtype_indication                 goto state 222
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 228:
      98.0:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3863,24 +3863,24 @@ State 228:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     98.0: sequence_of_statements_opt         goto state 258
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 258
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 229:
     102.1:loop_statement <= LOOP sequence_of_statements_opt END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3932,9 +3932,9 @@ State 232:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 146
-    104.3: selected_component                 goto state 20
-     89.0: subtype_indication                 goto state 256
+   name                               goto state 146
+   selected_component                 goto state 20
+   subtype_indication                 goto state 256
 
 State 233:
      64.0:block_statement <= block_label_opt DECLARE declarative_part_opt ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3959,7 +3959,7 @@ State 235:
    SEMICOLON                          => reduce 1 tokens to name_opt 105.0
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
+   actual_parameter_part              goto state 27
 
 State 236:
     131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -3985,9 +3985,9 @@ State 239:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     83.0: exception_choice                   goto state 249
-     82.0: name                               goto state 250
-    104.3: selected_component                 goto state 20
+   exception_choice                   goto state 249
+   name                               goto state 250
+   selected_component                 goto state 20
 
 State 240:
      84.1:exception_handler_list <= exception_handler ^, END/WHEN
@@ -4004,7 +4004,7 @@ State 241:
    WHEN                               => shift and goto state 239 (83.0)
    default                            => ERROR
 
-     84.0: exception_handler                  goto state 248
+   exception_handler                  goto state 248
 
 State 242:
      96.0:handled_sequence_of_statements <= sequence_of_statements_opt EXCEPTION exception_handler_list_opt ^, END
@@ -4038,9 +4038,9 @@ State 246:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-    104.0: name                               goto state 235
-    107.0: name_opt                           goto state 284
-    104.3: selected_component                 goto state 20
+   name                               goto state 235
+   name_opt                           goto state 284
+   selected_component                 goto state 20
 
 State 247:
     107.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -4079,7 +4079,7 @@ State 250:
    EQUAL_GREATER                      => reduce 1 tokens to exception_choice 82.0
    default                            => ERROR
 
-    104.1: actual_parameter_part              goto state 27
+   actual_parameter_part              goto state 27
 
 State 251:
      59.0:assignment_statement <= name COLON_EQUAL expression_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4126,7 +4126,7 @@ State 254:
    IDENTIFIER                         => shift and goto state 203 (97.0)
    default                            => ERROR
 
-     64.1: identifier_opt                     goto state 281
+   identifier_opt                     goto state 281
 
 State 255:
      64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4144,25 +4144,25 @@ State 255:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     64.0: handled_sequence_of_statements     goto state 280
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     96.0: sequence_of_statements_opt         goto state 169
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   handled_sequence_of_statements     goto state 280
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 169
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 256:
      89.0:extended_return_object_declaration <= IDENTIFIER COLON subtype_indication ^, SEMICOLON
@@ -4177,7 +4177,7 @@ State 257:
    IDENTIFIER                         => shift and goto state 203 (97.0)
    default                            => ERROR
 
-    102.1: identifier_opt                     goto state 279
+   identifier_opt                     goto state 279
 
 State 258:
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4190,8 +4190,8 @@ State 258:
    END                                => shift and goto state 276 (98.3)
    default                            => ERROR
 
-     79.1: elsif_statement_item               goto state 277
-     79.0: elsif_statement_list               goto state 278
+   elsif_statement_item               goto state 277
+   elsif_statement_list               goto state 278
 
 State 259:
     100.0:iteration_scheme <= FOR IDENTIFIER IN discrete_subtype_definition ^, LOOP
@@ -4232,7 +4232,7 @@ State 264:
    WHEN                               => shift and goto state 262 (68.0)
    default                            => ERROR
 
-     69.0: case_statement_alternative         goto state 271
+   case_statement_alternative         goto state 271
 
 State 265:
     106.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression_opt SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -4327,24 +4327,24 @@ State 274:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     98.1: sequence_of_statements_opt         goto state 296
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 296
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 275:
      78.0:elsif_statement_item <= ELSIF ^ expression_opt THEN sequence_of_statements_opt, ELSE/ELSIF/END
@@ -4359,21 +4359,21 @@ State 275:
    IDENTIFIER                         => shift and goto state 18 (104.2)
    default                            => ERROR
 
-     88.0: expression                         goto state 83
-     78.0: expression_opt                     goto state 295
-    136.1: factor                             goto state 47
-    104.0: name                               goto state 48
-    113.3: paren_expression                   goto state 49
-     91.0: primary                            goto state 50
-     87.1: relation_and_list                  goto state 51
-     87.2: relation_or_list                   goto state 52
-     87.3: relation_xor_list                  goto state 53
-     87.0: relation                           goto state 54
-    104.3: selected_component                 goto state 20
-    122.0: simple_expression                  goto state 55
-    136.0: term                               goto state 56
-    127.1: term_list                          goto state 57
-    127.0: unary_adding_operator              goto state 58
+   expression                         goto state 83
+   expression_opt                     goto state 295
+   factor                             goto state 47
+   name                               goto state 48
+   paren_expression                   goto state 49
+   primary                            goto state 50
+   relation_and_list                  goto state 51
+   relation_or_list                   goto state 52
+   relation_xor_list                  goto state 53
+   relation                           goto state 54
+   selected_component                 goto state 20
+   simple_expression                  goto state 55
+   term                               goto state 56
+   term_list                          goto state 57
+   unary_adding_operator              goto state 58
 
 State 276:
      98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4399,7 +4399,7 @@ State 278:
    END                                => shift and goto state 292 (98.2)
    default                            => ERROR
 
-     79.0: elsif_statement_item               goto state 293
+   elsif_statement_item               goto state 293
 
 State 279:
     102.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4426,7 +4426,7 @@ State 282:
    IDENTIFIER                         => shift and goto state 203 (97.0)
    default                            => ERROR
 
-    102.0: identifier_opt                     goto state 287
+   identifier_opt                     goto state 287
 
 State 283:
      83.0:exception_handler <= WHEN exception_choice EQUAL_GREATER ^ sequence_of_statements_opt, END/WHEN
@@ -4444,24 +4444,24 @@ State 283:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     83.0: sequence_of_statements_opt         goto state 286
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 286
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 284:
     107.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -4521,7 +4521,7 @@ State 289:
    IDENTIFIER                         => shift and goto state 203 (97.0)
    default                            => ERROR
 
-     64.0: identifier_opt                     goto state 306
+   identifier_opt                     goto state 306
 
 State 290:
     102.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4557,24 +4557,24 @@ State 291:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     98.0: sequence_of_statements_opt         goto state 305
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 305
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 292:
      98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4624,24 +4624,24 @@ State 297:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     68.0: sequence_of_statements_opt         goto state 300
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 300
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 298:
      67.0:case_statement <= CASE expression_opt IS case_statement_alternative_list END CASE ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4698,24 +4698,24 @@ State 302:
    IDENTIFIER                         => shift and goto state 154 (63.0, 104.2)
    default                            => ERROR
 
-    129.0: assignment_statement               goto state 155
-     64.0: block_label_opt                    goto state 156
-     72.3: block_statement                    goto state 157
-     72.1: case_statement                     goto state 158
-    130.1: compound_statement                 goto state 159
-    129.1: exit_statement                     goto state 160
-     72.4: extended_return_statement          goto state 161
-     72.0: if_statement                       goto state 163
-    102.0: iteration_scheme                   goto state 164
-     72.2: loop_statement                     goto state 165
-     59.0: name                               goto state 166
-    129.2: procedure_call_statement           goto state 167
-    104.3: selected_component                 goto state 20
-    125.0: sequence_of_statements             goto state 168
-     78.0: sequence_of_statements_opt         goto state 311
-    129.3: simple_return_statement            goto state 170
-    130.0: simple_statement                   goto state 171
-    125.1: statement                          goto state 172
+   assignment_statement               goto state 155
+   block_label_opt                    goto state 156
+   block_statement                    goto state 157
+   case_statement                     goto state 158
+   compound_statement                 goto state 159
+   exit_statement                     goto state 160
+   extended_return_statement          goto state 161
+   if_statement                       goto state 163
+   iteration_scheme                   goto state 164
+   loop_statement                     goto state 165
+   name                               goto state 166
+   procedure_call_statement           goto state 167
+   selected_component                 goto state 20
+   sequence_of_statements             goto state 168
+   sequence_of_statements_opt         goto state 311
+   simple_return_statement            goto state 170
+   simple_statement                   goto state 171
+   statement                          goto state 172
 
 State 303:
      98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER

@@ -131,7 +131,6 @@ package body WisiToken.LR.Generate_Utils is
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("adding actions for state" & State_Index'Image (State));
-         LR1_Items.Put (Descriptor, Closure.Goto_List);
       end if;
 
       while Item /= null loop
@@ -146,12 +145,11 @@ package body WisiToken.LR.Generate_Utils is
             --  Dot is before a terminal token.
             declare
                use all type Ada.Containers.Count_Type;
-               use all type LR1_Items.Item_Set_Ptr;
 
                Dot_ID : constant Token_ID := Element (Dot (Item));
                --  ID of token after Item.Dot
 
-               Goto_Set : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (Closure, Dot_ID);
+               Goto_State : constant Unknown_State_Index := LR1_Items.Goto_Set (Closure, Dot_ID);
             begin
                if Dot_ID = Descriptor.EOF_ID then
                   --  This is the start symbol production with dot before EOF.
@@ -168,12 +166,12 @@ package body WisiToken.LR.Generate_Utils is
                         Closure, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                   end;
                else
-                  if Goto_Set /= null then
+                  if Goto_State /= Unknown_State then
                      Add_Action
                        (Dot_ID,
                         (Verb        => Shift,
                          Productions => +Prod_ID (Item),
-                         State       => Goto_Set.State),
+                         State       => Goto_State),
                         Table.States (State).Action_List,
                         Closure, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                   end if;
@@ -244,7 +242,7 @@ package body WisiToken.LR.Generate_Utils is
       begin
          while Goto_Ptr /= null loop
             if Symbol (Goto_Ptr) in Descriptor.Last_Terminal + 1 .. Descriptor.Last_Nonterminal then
-               Add_Goto (Table.States (State), Prod_ID (Goto_Ptr), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
+               Add_Goto (Table.States (State), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
             end if;
             Goto_Ptr := Next (Goto_Ptr);
          end loop;
@@ -354,7 +352,6 @@ package body WisiToken.LR.Generate_Utils is
    is
       use WisiToken.Token_ID_Arrays;
       use all type LR1_Items.Item_Ptr;
-      use all type LR1_Items.Item_Set_Ptr;
 
       Current : LR1_Items.Item_Set := Closure;
       Item    : LR1_Items.Item_Ptr;
@@ -364,87 +361,31 @@ package body WisiToken.LR.Generate_Utils is
       when Reduce | Accept_It =>
          --  If the nonterm produced by the reduce is the LHS of the state
          --  production, use it.
+         Item := Current.Set;
          loop
-            Item := Current.Set;
-            loop
-               exit when Item = null;
-               if In_Kernel (Grammar, Descriptor, Item) and
-                 Action.Production.Nonterm = Prod_ID (Item).Nonterm
-               then
-                  return Prod_ID (Item).Nonterm;
-               end if;
-               Item := Next (Item);
-            end loop;
-            exit when Current.Next = null;
-            Current := Current.Next.all;
+            exit when Item = null;
+            if In_Kernel (Grammar, Descriptor, Item) and
+              Action.Production.Nonterm = Prod_ID (Item).Nonterm
+            then
+               return Prod_ID (Item).Nonterm;
+            end if;
+            Item := Next (Item);
          end loop;
 
          --  The reduce nonterm is after Dot in a state production; find which
          --  one, use that.
          Current := Closure;
+         Item := Current.Set;
          loop
-            Item := Current.Set;
-            loop
-               exit when Item = null;
-               if In_Kernel (Grammar, Descriptor, Item) then
-                  ID_I := Dot (Item);
-                  loop
-                     if ID_I = No_Element then
-                        if Lookaheads (Item) (Lookahead) then
-                           return Prod_ID (Item).Nonterm;
-                        end if;
-                     else
-                        declare
-                           Dot_ID : Token_ID renames Element (ID_I);
-                        begin
-                           if Dot_ID = Lookahead or
-                             (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                                First (Dot_ID, Lookahead))
-                           then
-                              return Prod_ID (Item).Nonterm;
-                           end if;
-                           exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                             not Has_Empty_Production (Dot_ID);
-                        end;
+            exit when Item = null;
+            if In_Kernel (Grammar, Descriptor, Item) then
+               ID_I := Dot (Item);
+               loop
+                  if ID_I = No_Element then
+                     if Lookaheads (Item) (Lookahead) then
+                        return Prod_ID (Item).Nonterm;
                      end if;
-
-                     exit when ID_I = No_Element;
-                     Next (ID_I);
-                  end loop;
-               end if;
-               Item := Next (Item);
-            end loop;
-            exit when Current.Next = null;
-            Current := Current.Next.all;
-         end loop;
-
-      when Shift =>
-         loop
-            Item := Current.Set;
-            loop
-               exit when Item = null;
-               if In_Kernel (Grammar, Descriptor, Item) and then
-                 Prod_ID (Item) = Action.Productions (1)
-               then
-                  return Prod_ID (Item).Nonterm;
-               end if;
-               Item := Next (Item);
-            end loop;
-            exit when Current.Next = null;
-            Current := Current.Next.all;
-         end loop;
-
-         Current := Closure;
-         loop
-            Item := Current.Set;
-            loop
-               exit when Item = null;
-               --  Lookahead (the token shifted) is starting a nonterm in a state
-               --  production; it is in First of that nonterm.
-               if In_Kernel (Grammar, Descriptor, Item) then
-                  ID_I := Dot (Item);
-                  loop
-                     exit when ID_I = No_Element;
+                  else
                      declare
                         Dot_ID : Token_ID renames Element (ID_I);
                      begin
@@ -454,18 +395,60 @@ package body WisiToken.LR.Generate_Utils is
                         then
                            return Prod_ID (Item).Nonterm;
                         end if;
-
                         exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
                           not Has_Empty_Production (Dot_ID);
                      end;
+                  end if;
 
-                     Next (ID_I);
-                  end loop;
-               end if;
-               Item := Next (Item);
-            end loop;
-            exit when Current.Next = null;
-            Current := Current.Next.all;
+                  exit when ID_I = No_Element;
+                  Next (ID_I);
+               end loop;
+            end if;
+            Item := Next (Item);
+         end loop;
+
+      when Shift =>
+
+         Item := Current.Set;
+         loop
+            exit when Item = null;
+            if In_Kernel (Grammar, Descriptor, Item) and then
+              Prod_ID (Item) = Action.Productions (1)
+            then
+               return Prod_ID (Item).Nonterm;
+            end if;
+            Item := Next (Item);
+         end loop;
+
+         Current := Closure;
+
+         Item := Current.Set;
+         loop
+            exit when Item = null;
+            --  Lookahead (the token shifted) is starting a nonterm in a state
+            --  production; it is in First of that nonterm.
+            if In_Kernel (Grammar, Descriptor, Item) then
+               ID_I := Dot (Item);
+               loop
+                  exit when ID_I = No_Element;
+                  declare
+                     Dot_ID : Token_ID renames Element (ID_I);
+                  begin
+                     if Dot_ID = Lookahead or
+                       (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                          First (Dot_ID, Lookahead))
+                     then
+                        return Prod_ID (Item).Nonterm;
+                     end if;
+
+                     exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                       not Has_Empty_Production (Dot_ID);
+                  end;
+
+                  Next (ID_I);
+               end loop;
+            end if;
+            Item := Next (Item);
          end loop;
 
       when LR.Error =>

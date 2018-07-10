@@ -149,7 +149,7 @@ package body Dragon_4_43_LR1_Test is
       Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => Test.Debug > 0);
 
-      Expected : constant Item_Set_List :=
+      Expected : Item_Set_List :=
         --  [dragon] fig 4.39 pg 235 shows the item sets and gotos. We
         --  search in a different order, which causes state numbers to
         --  not match, so we use Map.
@@ -187,28 +187,28 @@ package body Dragon_4_43_LR1_Test is
    begin
       Add_Gotos
         (Expected, Map (0),
-         +(+Lower_C_ID, Get_Set (Map (3), Expected)) &
-           (+Lower_D_ID, Get_Set (Map (4), Expected)) &
-           (+Upper_S_ID, Get_Set (Map (1), Expected)) &
-           (+Upper_C_ID, Get_Set (Map (2), Expected)));
+         +(+Lower_C_ID, Map (3)) &
+           (+Lower_D_ID, Map (4)) &
+           (+Upper_S_ID, Map (1)) &
+           (+Upper_C_ID, Map (2)));
 
       Add_Gotos
         (Expected, Map (2),
-         +(+Lower_C_ID, Get_Set (Map (6), Expected)) &
-           (+Lower_D_ID, Get_Set (Map (7), Expected)) &
-           (+Upper_C_ID, Get_Set (Map (5), Expected)));
+         +(+Lower_C_ID, Map (6)) &
+           (+Lower_D_ID, Map (7)) &
+           (+Upper_C_ID, Map (5)));
 
       Add_Gotos
         (Expected, Map (3),
-         +(+Lower_C_ID, Get_Set (Map (3), Expected)) &
-           (+Lower_D_ID, Get_Set (Map (4), Expected)) &
-           (+Upper_C_ID, Get_Set (Map (8), Expected)));
+         +(+Lower_C_ID, Map (3)) &
+           (+Lower_D_ID, Map (4)) &
+           (+Upper_C_ID, Map (8)));
 
       Add_Gotos
         (Expected, Map (6),
-         +(+Lower_C_ID, Get_Set (Map (6), Expected)) &
-           (+Lower_D_ID, Get_Set (Map (7), Expected)) &
-           (+Upper_C_ID, Get_Set (Map (9), Expected)));
+         +(+Lower_C_ID, Map (6)) &
+           (+Lower_D_ID, Map (7)) &
+           (+Upper_C_ID, Map (9)));
 
       if Test.Debug > 0 then
          Ada.Text_IO.Put_Line ("computed:");
@@ -255,14 +255,6 @@ package body Dragon_4_43_LR1_Test is
       is begin
          Add_Action (State, Symbol, Verb, (LHS_ID, RHS_Index), RHS_Token_Count, null, null);
       end Add_Action;
-
-      procedure Add_Goto
-        (State    : in out Parse_State;
-         Symbol   : in     WisiToken.Token_ID;
-         To_State : in     WisiToken.State_Index)
-      is begin
-         Add_Goto (State, (1, 0), Symbol, To_State);
-      end Add_Goto;
 
    begin
       --  figure 4.41 pg 239

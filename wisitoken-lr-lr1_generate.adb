@@ -66,7 +66,7 @@ package body WisiToken.LR.LR1_Generate is
             Put (Grammar, Descriptor, Goto_Set, Show_Lookaheads => True);
          end if;
 
-         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Descriptor, Trace => False);
+         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Descriptor);
       else
          return Goto_Set;
       end if;
@@ -80,95 +80,87 @@ package body WisiToken.LR.LR1_Generate is
       Trace                : in Boolean)
      return LR1_Items.Item_Set_List
    is
+      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
+
       use LR1_Items;
 
       First_State_Index : constant State_Index := 0;
 
-      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
+      C          : LR1_Items.Item_Set_List; -- result
+      Added_Item : Boolean := True;         -- 'until no more items can be added'
 
-      C : Item_Set_List := -- result
-        (Head                 => new Item_Set'
-           (Closure
-              ((Set           => New_Item_Node
-                  (Prod       => (Grammar.First_Index, 0),
-                   Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-                   State      => First_State_Index,
-                   Lookaheads => To_Lookahead (Descriptor.EOF_ID, Descriptor)),
-                Goto_List     => null,
-                State         => First_State_Index,
-                Next          => null),
-               Has_Empty_Production, First, Grammar, Descriptor,
-               Trace          => False)),
-         Size                 => 1);
-
-      I          : Item_Set_Ptr;    -- iterator 'for each set of items I in C'
-      Added_Item : Boolean := True; -- 'until no more items can be added'
-
-      New_Items     : Item_Set;
-      New_Items_Set : Item_Set_Ptr;
+      New_Item_Set : Item_Set;
+      Found_State  : Unknown_State_Index;
 
    begin
-      loop
-         Added_Item   := False;
-         I := C.Head;
+      C.Set_First (First_State_Index);
+      C.Set_Last (First_State_Index);
 
-         while I /= null loop
+      C (First_State_Index) := Closure
+        ((Set           => New_Item_Node
+            (Prod       => (Grammar.First_Index, 0),
+             Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
+             State      => First_State_Index,
+             Lookaheads => To_Lookahead (Descriptor.EOF_ID, Descriptor)),
+          Goto_List     => null,
+          State         => First_State_Index),
+         Has_Empty_Production, First, Grammar, Descriptor);
+
+      loop
+         Added_Item := False;
+
+         for I in reverse C.First_Index .. C.Last_Index loop
+            --  Reverse for consistency with a previous version that used a linked
+            --  list for C.
+
             if Trace then
                Ada.Text_IO.Put ("Checking ");
-               Put (Grammar, Descriptor, I.all, Show_Lookaheads => True, Show_Goto_List => True);
+               Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
             end if;
 
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
 
-               New_Items := LR1_Goto_Transitions
-                 (I.all, Symbol, Has_Empty_Production, First, Grammar, Descriptor, Trace);
+               New_Item_Set := LR1_Goto_Transitions
+                 (C (I), Symbol, Has_Empty_Production, First, Grammar, Descriptor, Trace);
 
-               if New_Items.Set /= null then -- 'goto (I, X) not empty'
+               if New_Item_Set.Set /= null then -- 'goto (I, X) not empty'
 
-                  New_Items_Set := Find (New_Items, C, Match_Lookaheads => True); -- 'not in C'
+                  Found_State := Find (New_Item_Set, C, Match_Lookaheads => True); -- 'not in C'
 
-                  if New_Items_Set = null then
+                  if Found_State = Unknown_State then
                      Added_Item := True;
 
-                     New_Items.Next  := C.Head;
-                     New_Items.State := C.Size + First_State_Index;
+                     New_Item_Set.State := C.Last_Index + 1;
 
-                     Set_State (New_Items.Set, New_Items.State);
+                     Set_State (New_Item_Set.Set, New_Item_Set.State);
 
                      if Trace then
-                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Items.State));
+                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Item_Set.State));
                      end if;
 
-                     C :=
-                       (Head => new Item_Set'(New_Items),
-                        Size => C.Size + 1);
+                     C.Append (New_Item_Set);
 
-                     Add (I.Goto_List, Symbol, C.Head);
+                     Add (C (I).Goto_List, Symbol, New_Item_Set.State);
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
                      if not Is_In
                        (Symbol    => Symbol,
-                        Set       => New_Items_Set,
-                        Goto_List => I.Goto_List)
+                        State     => Found_State,
+                        Goto_List => C (I).Goto_List)
                      then
                         if Trace then
                            Ada.Text_IO.Put_Line
                              ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                                Unknown_State_Index'Image (New_Items_Set.State));
+                                Unknown_State_Index'Image (Found_State));
 
                         end if;
 
-                        Add (I.Goto_List, Symbol, New_Items_Set);
+                        Add (C (I).Goto_List, Symbol, Found_State);
                      end if;
-
-                     --  The set is already there, so we don't need this copy.
-                     Free (New_Items);
                   end if;
                end if;
             end loop;
-
-            I := I.Next;
          end loop;
          exit when not Added_Item;
 
@@ -178,7 +170,7 @@ package body WisiToken.LR.LR1_Generate is
          Ada.Text_IO.New_Line;
       end if;
 
-      return Reverse_List (C);
+      return C;
    end LR1_Item_Sets;
 
    procedure Add_Actions
@@ -192,13 +184,9 @@ package body WisiToken.LR.LR1_Generate is
       Descriptor           : in     WisiToken.Descriptor)
    is
       --  Add actions for all Item_Sets to Table.
-
-      Item_Set : LR1_Items.Item_Set_Ptr := Item_Sets.Head;
-      use type LR1_Items.Item_Set_Ptr;
    begin
-      while Item_Set /= null loop
-         Add_Actions (Item_Set.all, Table, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
-         Item_Set := Item_Set.Next;
+      for Item_Set of Item_Sets loop
+         Add_Actions (Item_Set, Table, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
       end loop;
 
       if Trace then
@@ -225,7 +213,7 @@ package body WisiToken.LR.LR1_Generate is
 
       for State in Table.States'Range loop
          LR1_Items.Put
-           (Grammar, Descriptor, LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
+           (Grammar, Descriptor, Item_Sets (State), Kernel_Only => True, Show_Lookaheads => True);
          New_Line;
          Put (Descriptor, Table.States (State));
 
@@ -293,10 +281,9 @@ package body WisiToken.LR.LR1_Generate is
    is
       use type Ada.Containers.Count_Type;
 
-      Ignore_Unused_Tokens     : constant Boolean     := WisiToken.Trace_Generate > 1;
-      Ignore_Unknown_Conflicts : constant Boolean     := WisiToken.Trace_Generate > 1;
-      First_State_Index        : constant State_Index := 0;
-      Unused_Tokens            : constant Boolean     := Check_Unused_Tokens (Descriptor, Grammar);
+      Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate > 1;
+      Ignore_Unknown_Conflicts : constant Boolean := WisiToken.Trace_Generate > 1;
+      Unused_Tokens            : constant Boolean := Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;
 
@@ -318,8 +305,8 @@ package body WisiToken.LR.LR1_Generate is
       end if;
 
       Table := new Parse_Table
-        (State_First       => First_State_Index,
-         State_Last        => Item_Sets.Size - 1 + First_State_Index,
+        (State_First       => Item_Sets.First_Index,
+         State_Last        => Item_Sets.Last_Index,
          First_Terminal    => Descriptor.First_Terminal,
          Last_Terminal     => Descriptor.Last_Terminal,
          First_Nonterminal => Descriptor.First_Nonterminal,

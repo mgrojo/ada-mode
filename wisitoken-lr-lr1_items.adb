@@ -50,23 +50,6 @@ package body WisiToken.LR.LR1_Items is
       return Result;
    end Reverse_List;
 
-   function Reverse_List (List : in Item_Set_List) return Item_Set_List
-   is
-      I      : Item_Set_Ptr := List.Head;
-      Result : Item_Set_Ptr := null;
-      Next_1 : Item_Set_Ptr;
-      Next_2 : Item_Set_Ptr;
-   begin
-      while I /= null loop
-         Next_1      := Result;
-         Next_2      := I.Next;
-         Result      := I;
-         Result.Next := Next_1;
-         I           := Next_2;
-      end loop;
-      return (Result, List.Size);
-   end Reverse_List;
-
    function Deep_Copy (List : in Item_Ptr) return Item_Ptr
    is
       I      : Item_Ptr := List;
@@ -88,7 +71,7 @@ package body WisiToken.LR.LR1_Items is
       Next_2 : Goto_Item_Ptr;
    begin
       while I /= null loop
-         Result := new Goto_Item'(I.Symbol, I.Set, Result);
+         Result := new Goto_Item'(I.Symbol, I.State, Result);
          I := I.Next;
       end loop;
 
@@ -359,14 +342,9 @@ package body WisiToken.LR.LR1_Items is
       return List.Symbol;
    end Symbol;
 
-   function Prod_ID (List : in Goto_Item_Ptr) return Production_ID
-   is begin
-      return List.Set.Set.Prod;
-   end Prod_ID;
-
    function State (List : in Goto_Item_Ptr) return Unknown_State_Index
    is begin
-      return List.Set.State;
+      return List.State;
    end State;
 
    function Next (List : in Goto_Item_Ptr) return Goto_Item_Ptr
@@ -375,19 +353,19 @@ package body WisiToken.LR.LR1_Items is
    end Next;
 
    function New_Goto_Item
-     (Symbol : in     Token_ID;
-      Set    : in     Item_Set_Ptr)
+     (Symbol : in Token_ID;
+      State  : in State_Index)
      return Goto_Item_Ptr
    is begin
-      return new Goto_Item'(Symbol, Set, null);
+      return new Goto_Item'(Symbol, State, null);
    end New_Goto_Item;
 
    procedure Add
      (List   : in out Goto_Item_Ptr;
       Symbol : in     Token_ID;
-      Set    : in     Item_Set_Ptr)
+      State  : in     State_Index)
    is
-      New_Item : constant Goto_Item_Ptr := new Goto_Item'(Symbol, Set, null);
+      New_Item : constant Goto_Item_Ptr := new Goto_Item'(Symbol, State, null);
       I        : Goto_Item_Ptr;
    begin
       if List = null then
@@ -453,11 +431,10 @@ package body WisiToken.LR.LR1_Items is
      (Left             : in Item_Set;
       Right            : in Item_Set_List;
       Match_Lookaheads : in Boolean)
-     return Item_Set_Ptr
+     return Unknown_State_Index
    is
-      Right_Set  : Item_Set_Ptr := Right.Head;
       Right_Item : Item_Ptr;
-      Left_Size  : Natural      := 0;
+      Left_Size  : Natural := 0;
       Right_Size : Natural;
    begin
       Right_Item := Left.Set;
@@ -466,9 +443,9 @@ package body WisiToken.LR.LR1_Items is
          Right_Item := Right_Item.Next;
       end loop;
 
-      while Right_Set /= null loop
+      for Right_Index in Right.First_Index .. Right.Last_Index loop
 
-         Right_Item := Right_Set.Set;
+         Right_Item := Right (Right_Index).Set;
          Right_Size := 0;
          while Right_Item /= null loop
 
@@ -481,43 +458,35 @@ package body WisiToken.LR.LR1_Items is
          end loop;
 
          if Right_Item = null and Left_Size = Right_Size then
-            return Right_Set;
+            return Right_Index;
          end if;
-
-         Right_Set := Right_Set.Next;
       end loop;
 
-      return null;
+      return Unknown_State;
    end Find;
 
    function Find
      (State : in Unknown_State_Index;
       Sets  : in Item_Set_List)
-     return Item_Set_Ptr
-   is
-      Set : Item_Set_Ptr := Sets.Head;
-   begin
-      while Set /= null loop
-         if Set.State = State then
-            return Set;
-         end if;
-
-         Set := Set.Next;
-      end loop;
-
-      return null;
+     return Unknown_State_Index
+   is begin
+      if State in Sets.First_Index .. Sets.Last_Index then
+         return State;
+      else
+         return Unknown_State;
+      end if;
    end Find;
 
    function Is_In
      (Symbol    : in Token_ID;
-      Set       : in Item_Set_Ptr;
+      State     : in State_Index;
       Goto_List : in Goto_Item_Ptr)
      return Boolean
    is
       Goto_Ptr : Goto_Item_Ptr := Goto_List;
    begin
       while Goto_Ptr /= null loop
-         if Goto_Ptr.Set = Set and Goto_Ptr.Symbol = Symbol then
+         if Goto_Ptr.State = State and Goto_Ptr.Symbol = Symbol then
             return True;
          end if;
 
@@ -530,19 +499,19 @@ package body WisiToken.LR.LR1_Items is
    function Goto_Set
      (From   : in Item_Set;
       Symbol : in Token_ID)
-     return Item_Set_Ptr
+     return Unknown_State_Index
    is
       Goto_Ptr : Goto_Item_Ptr := From.Goto_List;
    begin
       while Goto_Ptr /= null loop
          if Goto_Ptr.Symbol = Symbol then
-            return Goto_Ptr.Set;
+            return Goto_Ptr.State;
          end if;
 
          Goto_Ptr := Goto_Ptr.Next;
       end loop;
 
-      return null;
+      return Unknown_State;
    end Goto_Set;
 
    function Merge
@@ -575,8 +544,7 @@ package body WisiToken.LR.LR1_Items is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor'Class;
-      Trace                : in Boolean)
+      Descriptor           : in WisiToken.Descriptor'Class)
      return Item_Set
    is
       use Token_ID_Arrays;
@@ -675,12 +643,6 @@ package body WisiToken.LR.LR1_Items is
 
             Item       := I.Set;
             Added_Item := False;
-
-            if Trace then
-               Ada.Text_IO.Put_Line ("I:");
-               Put (Grammar, Descriptor, I);
-               Ada.Text_IO.New_Line;
-            end if;
          else
             Item := Item.Next;
          end if;
@@ -721,20 +683,6 @@ package body WisiToken.LR.LR1_Items is
 
    end Free;
 
-   procedure Free (Item : in out Item_Set_List)
-   is
-      Set : Item_Set_Ptr := Item.Head;
-   begin
-      while Set /= null loop
-         Item.Head := Set.Next;
-
-         Free (Set.all);
-         Free (Set);
-
-         Set := Item.Head;
-      end loop;
-   end Free;
-
    function In_Kernel
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class;
@@ -773,8 +721,7 @@ package body WisiToken.LR.LR1_Items is
       Result :=
         (Set       => null,
          Goto_List => Deep_Copy (Set.Goto_List),
-         State     => Set.State,
-         Next      => null);
+         State     => Set.State);
 
       --  Walk I thru Set.Set, copying Include items to Result_Tail.
       while I /= null and then
@@ -862,7 +809,7 @@ package body WisiToken.LR.LR1_Items is
       while Reference /= null loop
          Put_Line
            ("      on " & Image (Reference.Symbol, Descriptor) &
-              " => State" & Unknown_State_Index'Image (Reference.Set.State));
+              " => State" & Unknown_State_Index'Image (Reference.State));
 
          Reference := Reference.Next;
       end loop;
@@ -901,31 +848,16 @@ package body WisiToken.LR.LR1_Items is
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor'Class;
-      Item            : in Item_Set_Ptr;
-      Show_Lookaheads : in Boolean := True)
-   is
-      use Ada.Text_IO;
-      Set : Item_Set_Ptr := Item;
-   begin
-      while Set /= null loop
-         Put (Grammar, Descriptor, Set.all, Show_Lookaheads);
-         Put_Line ("   Goto:");
-         Put (Descriptor, Set.Goto_List);
-
-         Set := Set.Next;
-      end loop;
-   end Put;
-
-   procedure Put
-     (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set_List;
       Show_Lookaheads : in Boolean := True)
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("Size :" & Unknown_State_Index'Image (Item.Size));
-      Put (Grammar, Descriptor, Item.Head, Show_Lookaheads);
+      for Set of Item loop
+         Put (Grammar, Descriptor, Set, Show_Lookaheads);
+         Put_Line ("   Goto:");
+         Put (Descriptor, Set.Goto_List);
+      end loop;
    end Put;
 
 end WisiToken.LR.LR1_Items;

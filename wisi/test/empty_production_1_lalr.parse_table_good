@@ -26,9 +26,9 @@ State 0:
    Wisi_EOI         => reduce 0 tokens to declarative_part 8.1
    default          => ERROR
 
-      7.0: declarations     goto state 2
-      6.0: declarative_part goto state 3
-      7.1: body             goto state 4
+   declarations     goto state 2
+   declarative_part goto state 3
+   body             goto state 4
 
 State 1:
       9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
@@ -37,9 +37,9 @@ State 1:
    IS               => shift and goto state 1 (9.0)
    default          => ERROR
 
-      7.0: declarations     goto state 2
-      9.0: declarative_part goto state 6
-      7.1: body             goto state 4
+   declarations     goto state 2
+   declarative_part goto state 6
+   body             goto state 4
 
 State 2:
       7.0:declarations <= declarations ^ body, BEGIN/IS/Wisi_EOI
@@ -50,7 +50,7 @@ State 2:
    Wisi_EOI         => reduce 1 tokens to declarative_part 8.0
    default          => ERROR
 
-      7.0: body             goto state 5
+   body             goto state 5
 
 State 3:
       6.0:wisitoken_accept <= declarative_part ^ Wisi_EOI, 

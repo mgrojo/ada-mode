@@ -132,7 +132,7 @@ package body Dragon_4_45_LALR_Test is
         --  + 1 for propagate
         (LALR_Descriptor.First_Terminal .. LALR_Descriptor.Last_Terminal + 1 => False);
 
-      Expected : constant Item_Set_List :=
+      Expected : Item_Set_List :=
       --  [dragon] example 4.42 pg 233 shows the item sets.
       --  LALR_Kernels computes the combined kernels of these (see page
       --  240). The LALR states and gotos are shown in fig 4.41 page 239.
@@ -153,22 +153,22 @@ package body Dragon_4_45_LALR_Test is
    begin
       Add_Gotos
         (Expected, S0,
-         +(+Lower_C_ID, Get_Set (S36, Expected)) &
-           (+Lower_D_ID, Get_Set (S47, Expected)) &
-           (+Upper_S_ID, Get_Set (S1, Expected)) &
-           (+Upper_C_ID, Get_Set (S2, Expected)));
+         +(+Lower_C_ID, S36) &
+           (+Lower_D_ID, S47) &
+           (+Upper_S_ID, S1) &
+           (+Upper_C_ID, S2));
 
       Add_Gotos
         (Expected, S2,
-         +(+Lower_C_ID, Get_Set (S36, Expected)) &
-           (+Lower_D_ID, Get_Set (S47, Expected)) &
-           (+Upper_C_ID, Get_Set (S5, Expected)));
+         +(+Lower_C_ID, S36) &
+           (+Lower_D_ID, S47) &
+           (+Upper_C_ID, S5));
 
       Add_Gotos
         (Expected, S36,
-         +(+Lower_C_ID, Get_Set (S36, Expected)) &
-           (+Lower_D_ID, Get_Set (S47, Expected)) &
-           (+Upper_C_ID, Get_Set (S89, Expected)));
+         +(+Lower_C_ID, S36) &
+           (+Lower_D_ID, S47) &
+           (+Upper_C_ID, S89));
 
       if WisiToken.Trace_Generate > WisiToken.Detail then
          Ada.Text_IO.Put_Line ("computed:");
@@ -204,14 +204,6 @@ package body Dragon_4_45_LALR_Test is
       is begin
          Add_Action (State, (1 .. 0 => (1, 0)), Symbol, State_Index);
       end Add_Action;
-
-      procedure Add_Goto
-        (State    : in out Parse_State;
-         Symbol   : in     WisiToken.Token_ID;
-         To_State : in     WisiToken.State_Index)
-      is begin
-         Add_Goto (State, (1, 0), Symbol, To_State);
-      end Add_Goto;
 
    begin
       --  figure 4.41 pg 239

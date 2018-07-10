@@ -28,8 +28,8 @@ State 0:
    IDENTIFIER              => shift and goto state 1 (8.0)
    default                 => ERROR
 
-      6.0: object_declaration_list goto state 2
-      7.1: object_declaration      goto state 3
+   object_declaration_list goto state 2
+   object_declaration      goto state 3
 
 State 1:
       8.0:object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
@@ -39,7 +39,7 @@ State 1:
    SEMICOLON               => reduce 0 tokens to aliased_opt 9.1
    default                 => ERROR
 
-      8.0: aliased_opt             goto state 6
+   aliased_opt             goto state 6
 
 State 2:
       6.0:wisitoken_accept <= object_declaration_list ^ Wisi_EOI, 
@@ -49,7 +49,7 @@ State 2:
    Wisi_EOI                => accept it 6.0
    default                 => ERROR
 
-      7.0: object_declaration      goto state 4
+   object_declaration      goto state 4
 
 State 3:
       7.1:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI
@@ -79,7 +79,7 @@ State 6:
    SEMICOLON               => reduce 0 tokens to constant_opt 10.1
    default                 => ERROR
 
-      8.0: constant_opt            goto state 8
+   constant_opt            goto state 8
 
 State 7:
      10.0:constant_opt <= CONSTANT ^, SEMICOLON

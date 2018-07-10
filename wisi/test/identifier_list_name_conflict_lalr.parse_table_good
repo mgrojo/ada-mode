@@ -45,11 +45,11 @@ State 0:
    IDENTIFIER       => shift and goto state 3 (14.1, 15.0)
    default          => ERROR
 
-      9.0: compilation      goto state 4
-     12.0: compilation_unit goto state 5
-     13.0: identifier_list  goto state 6
-     16.1: name             goto state 7
-     13.1: name_list        goto state 8
+   compilation      goto state 4
+   compilation_unit goto state 5
+   identifier_list  goto state 6
+   name             goto state 7
+   name_list        goto state 8
 
 State 1:
      13.2:compilation_unit <= LEFT_PAREN ^ association_list RIGHT_PAREN, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -58,9 +58,9 @@ State 1:
    IDENTIFIER       => shift and goto state 13 (17.0)
    default          => ERROR
 
-     11.1: association      goto state 14
-     11.0: association_list goto state 15
-     10.0: selector_name    goto state 16
+   association      goto state 14
+   association_list goto state 15
+   selector_name    goto state 16
 
 State 2:
      15.1:name <= STRING_LITERAL ^, LEFT_PAREN/RIGHT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -103,10 +103,10 @@ State 5:
    IDENTIFIER       => shift and goto state 3 (14.1, 15.0)
    default          => ERROR
 
-     12.0: compilation_unit goto state 11
-     13.0: identifier_list  goto state 6
-     16.1: name             goto state 7
-     13.1: name_list        goto state 8
+   compilation_unit goto state 11
+   identifier_list  goto state 6
+   name             goto state 7
+   name_list        goto state 8
 
 State 6:
      13.0:compilation_unit <= identifier_list ^, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -147,7 +147,7 @@ State 9:
    IDENTIFIER       => shift and goto state 22 (15.0)
    default          => ERROR
 
-     16.0: name             goto state 23
+   name             goto state 23
 
 State 10:
      14.0:identifier_list <= identifier_list COMMA ^ IDENTIFIER, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -163,10 +163,10 @@ State 11:
    IDENTIFIER       => shift and goto state 3 (14.1, 15.0)
    default          => ERROR
 
-     12.0: compilation_unit goto state 20
-     13.0: identifier_list  goto state 6
-     16.1: name             goto state 7
-     13.1: name_list        goto state 8
+   compilation_unit goto state 20
+   identifier_list  goto state 6
+   name             goto state 7
+   name_list        goto state 8
 
 State 12:
      17.1:selector_name <= STRING_LITERAL ^, EQUAL_GREATER
@@ -208,7 +208,7 @@ State 17:
    IDENTIFIER       => shift and goto state 22 (15.0)
    default          => ERROR
 
-     10.0: name             goto state 25
+   name             goto state 25
 
 State 18:
      13.2:compilation_unit <= LEFT_PAREN association_list RIGHT_PAREN ^, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -226,8 +226,8 @@ State 19:
    IDENTIFIER       => shift and goto state 13 (17.0)
    default          => ERROR
 
-     11.0: association      goto state 24
-     10.0: selector_name    goto state 16
+   association      goto state 24
+   selector_name    goto state 16
 
 State 20:
      12.0:compilation <= compilation_unit compilation_unit compilation_unit ^, Wisi_EOI

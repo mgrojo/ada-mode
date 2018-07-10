@@ -39,10 +39,10 @@ State 0:
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-     11.0: compilation_unit  goto state 4
-     12.0: membership_choice goto state 5
-     13.0: primary           goto state 6
-     13.1: range_g           goto state 7
+   compilation_unit  goto state 4
+   membership_choice goto state 5
+   primary           goto state 6
+   range_g           goto state 7
 
 State 1:
      14.2:primary <= LEFT_PAREN ^ relation RIGHT_PAREN, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
@@ -52,8 +52,8 @@ State 1:
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-     16.0: primary           goto state 13
-     14.2: relation          goto state 14
+   primary           goto state 13
+   relation          goto state 14
 
 State 2:
      14.0:primary <= IDENTIFIER ^, LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL
@@ -94,8 +94,8 @@ State 5:
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-     15.2: primary           goto state 9
-     12.0: range_g           goto state 10
+   primary           goto state 9
+   range_g           goto state 10
 
 State 6:
      13.0:membership_choice <= primary ^, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL
@@ -125,7 +125,7 @@ State 8:
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-     15.2: primary           goto state 18
+   primary           goto state 18
 
 State 9:
      15.2:range_g <= primary ^ DOT_DOT primary, Wisi_EOI
@@ -189,9 +189,9 @@ State 16:
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-     16.0: membership_choice goto state 20
-     13.0: primary           goto state 6
-     13.1: range_g           goto state 7
+   membership_choice goto state 20
+   primary           goto state 6
+   range_g           goto state 7
 
 State 17:
      15.0:range_g <= IDENTIFIER TICK RANGE ^ LEFT_PAREN relation RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
@@ -223,8 +223,8 @@ State 19:
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-     16.0: primary           goto state 13
-     15.0: relation          goto state 21
+   primary           goto state 13
+   relation          goto state 21
 
 State 20:
      16.0:relation <= primary IN membership_choice ^, RIGHT_PAREN

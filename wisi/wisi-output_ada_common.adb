@@ -610,7 +610,6 @@ package body Wisi.Output_Ada_Common is
                exit when Node = null;
                Set_Col (Indent);
                Put ("Add_Goto (Table.States (" & WisiToken.Image (State_Index) & "), ");
-               Put (WisiToken.Image (WisiToken.LR.Prod_ID (Node)) & ", ");
                Put_Line (WisiToken.Trimmed_Image (Symbol (Node)) & ", " & WisiToken.Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;

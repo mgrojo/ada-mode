@@ -38,11 +38,11 @@ State 0:
    PROCEDURE                => shift and goto state 1 (17.0, 19.0)
    default                  => ERROR
 
-     13.0: compilation_unit         goto state 2
-     14.0: library_item             goto state 3
-     15.0: subprogram_body          goto state 4
-     16.0: subprogram_specification goto state 5
-     15.1: generic_instantiation    goto state 6
+   compilation_unit         goto state 2
+   library_item             goto state 3
+   subprogram_body          goto state 4
+   subprogram_specification goto state 5
+   generic_instantiation    goto state 6
 
 State 1:
      17.0:subprogram_specification <= PROCEDURE ^ IDENTIFIER parameter_list, IS
@@ -63,10 +63,10 @@ State 3:
    PROCEDURE                => shift and goto state 1 (17.0, 19.0)
    default                  => ERROR
 
-     14.0: library_item             goto state 8
-     15.0: subprogram_body          goto state 4
-     16.0: subprogram_specification goto state 5
-     15.1: generic_instantiation    goto state 6
+   library_item             goto state 8
+   subprogram_body          goto state 4
+   subprogram_specification goto state 5
+   generic_instantiation    goto state 6
 
 State 4:
      15.0:library_item <= subprogram_body ^, PROCEDURE/Wisi_EOI
@@ -109,7 +109,7 @@ State 9:
    LEFT_PAREN               => shift and goto state 11 (18.0)
    default                  => ERROR
 
-     17.0: parameter_list           goto state 12
+   parameter_list           goto state 12
 
 State 10:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS ^ NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE/Wisi_EOI

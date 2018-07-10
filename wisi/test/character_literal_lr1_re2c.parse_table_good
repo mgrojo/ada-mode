@@ -39,9 +39,9 @@ State 0:
    STRING_LITERAL    => shift and goto state 3 (16.2)
    default           => ERROR
 
-     13.0: compilation_unit  goto state 4
-     14.0: statement_list    goto state 5
-     15.1: statement         goto state 6
+   compilation_unit  goto state 4
+   statement_list    goto state 5
+   statement         goto state 6
 
 State 1:
      16.3:statement <= FOO ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
@@ -57,7 +57,7 @@ State 2:
    TICK_2            => shift and goto state 10 (17.1)
    default           => ERROR
 
-     16.0: tick              goto state 11
+   tick              goto state 11
 
 State 3:
      16.2:statement <= STRING_LITERAL ^ SEMICOLON, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI
@@ -81,7 +81,7 @@ State 5:
    Wisi_EOI          => reduce 1 tokens to compilation_unit 14.0
    default           => ERROR
 
-     15.0: statement         goto state 7
+   statement         goto state 7
 
 State 6:
      15.1:statement_list <= statement ^, FOO/IDENTIFIER/STRING_LITERAL/Wisi_EOI

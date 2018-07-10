@@ -19,7 +19,7 @@ State 0:
    NUMERIC_LITERAL  => shift and goto state 1 (6.1)
    default          => ERROR
 
-      5.0: expr             goto state 2
+   expr             goto state 2
 
 State 1:
       6.1:expr <= NUMERIC_LITERAL ^, MINUS/Wisi_EOI

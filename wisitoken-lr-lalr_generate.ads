@@ -58,6 +58,8 @@ package WisiToken.LR.LALR_Generate is
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in LALR_Descriptor)
      return LR1_Items.Item_Set;
+   --  Return the Item_Set that is the goto for Symbol from Kernel.
+   --  If there is no such Item_Set, Result.Set is null.
 
    function LALR_Kernels
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;

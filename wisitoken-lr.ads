@@ -124,12 +124,11 @@ package WisiToken.LR is
    type Goto_Node_Ptr is access Goto_Node;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID;
-   function Prod_ID (List : in Goto_Node_Ptr) return Production_ID;
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
    type Parse_State is record
-      Productions : Production_ID_Arrays.Vector; --  FIXME: replace with Kernels
+      Productions : Production_ID_Arrays.Vector; --  FIXME: not used?
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
    end record;
@@ -227,7 +226,6 @@ package WisiToken.LR is
 
    procedure Add_Goto
      (State      : in out Parse_State;
-      Production : in     Production_ID;
       Symbol     : in     Token_ID;
       To_State   : in     State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
@@ -595,7 +593,6 @@ private
    --  Private to enforce use of Add; doesn't succeed, since only
    --  children use it.
    type Goto_Node is record
-      Production : Production_ID;
       Symbol     : Token_ID;
       State      : State_Index;
       Next       : Goto_Node_Ptr;

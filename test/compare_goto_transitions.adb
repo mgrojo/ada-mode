@@ -91,15 +91,14 @@ package body Compare_Goto_Transitions is
          use Ada.Text_IO;
          use WisiToken;
          use WisiToken.LR.LR1_Items;
+         use WisiToken.LR.LR1_Items.AUnit;
 
          Set : constant Item_Set := Closure
-           ((Set      => WisiToken.LR.LR1_Items.AUnit.Get_Item_Node
+           ((Set       => WisiToken.LR.LR1_Items.AUnit.Get_Item_Node
                (Grammar, Prod, 1, WisiToken.To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
              Goto_List => null,
-             State     => WisiToken.Unknown_State,
-             Next      => null),
-           Has_Empty_Production, First, Grammar, Token_Enum.LALR_Descriptor,
-           Trace      => False);
+             State     => WisiToken.Unknown_State),
+            Has_Empty_Production, First, Grammar, Token_Enum.LALR_Descriptor);
 
          LR1           : Item_Set;
          LR1_Filtered  : Item_Set;
@@ -121,7 +120,7 @@ package body Compare_Goto_Transitions is
                LALR := WisiToken.LR.LALR_Generate.LALR_Goto_Transitions
                  (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor);
 
-               WisiToken.LR.LR1_Items.AUnit.Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);
+               Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);
                Free (LR1_Filtered);
                Free (LALR);
             exception
