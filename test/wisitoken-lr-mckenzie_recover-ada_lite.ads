@@ -33,7 +33,8 @@ package WisiToken.LR.McKenzie_Recover.Ada_Lite is
      (Trace        : in out WisiToken.Trace'Class;
       Parser_Label : in     Natural;
       Table        : in     Parse_Table;
-      Config       : in     Configuration)
+      Config       : in     Configuration;
+      Next_Token   : in     Token_ID)
      return WisiToken.Token_ID_Set;
 
    function String_ID_Set

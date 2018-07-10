@@ -328,8 +328,21 @@ package body WisiToken.LR.McKenzie_Recover is
       --  Spawn new parsers for multiple solutions
       declare
          use Parser_Lists;
-         Cur : Cursor := Parsers.First;
+         Cur         : Cursor             := Parsers.First;
+         Solutions   : SAL.Base_Peek_Type := 0;
+         Spawn_Limit : SAL.Base_Peek_Type := Shared_Parser.Max_Parallel; -- per parser
       begin
+         for Parser of Parsers loop
+            if Parser.Recover.Success then
+               Solutions := Solutions + Parser.Recover.Results.Count;
+            end if;
+         end loop;
+
+         if Solutions > Shared_Parser.Max_Parallel and Trace_McKenzie > Outline then
+            Trace.Put_Line ("too many parallel parsers required in recover; dropping some solutions");
+            Spawn_Limit := Shared_Parser.Max_Parallel / Parsers.Count;
+         end if;
+
          loop
             declare
                Data : McKenzie_Data renames State_Ref (Cur).Recover;
@@ -345,20 +358,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   end if;
 
                   if Data.Results.Count > 1 then
-                     if Parsers.Count + Data.Results.Count > Shared_Parser.Max_Parallel then
-                        declare
-                           Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
-                        begin
-                           raise WisiToken.Parse_Error with Error_Message
-                             ("", Token.Line, Token.Column,
-                              ": too many parallel parsers required in grammar state" &
-                                State_Index'Image (Cur.State_Ref.Stack.Peek.State) &
-                                "; simplify grammar, or increase max-parallel (" &
-                                SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
-                        end;
-                     end if;
-
-                     for I in 1 .. Data.Results.Count - 1 loop
+                     for I in 1 .. SAL.Base_Peek_Type'Min (Spawn_Limit, Data.Results.Count - 1) loop
                         Parsers.Prepend_Copy (Cur); --  does not copy recover
                         if Trace_McKenzie > Outline then
                            Trace.Put_Line

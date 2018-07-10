@@ -19,17 +19,13 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-update ada-mode.s-4
+better constrain_terminals:
+    o.w.s-2
+    store kernel (with dot)
+    store minimial_completing_terminal_sequence for each kernel
+    just lookup that, insert it
 
-propagate to main
-
-wisi-grammar-mode.s-1 adapt to '%generate <gen_alg> <out_lang>' to get output language
-    and try to guess from actions content
-
-lr parse should put eof on stack, in final accept production
-    as packrat parse does
-
-change all "generator" to "generate"
+add delete to config heap, use when configuration_access is abandoned?
 
 try indirect recursion solution
     add ".wy to run" main
@@ -42,13 +38,6 @@ try indirect recursion solution
 
 
 review fixmes
-
-propagate to main
-
-
-try to elim indirect in Ada
-
-try to elim indirect in Java
 
 packrat indirect recursion
     ada-lite selected_component

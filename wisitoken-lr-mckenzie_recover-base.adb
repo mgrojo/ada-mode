@@ -218,7 +218,15 @@ package body WisiToken.LR.McKenzie_Recover.Base is
                end if;
 
             when Ready =>
-               if Parser_States (I).Recover.Config_Heap.Count > 0 and then
+               if Parser_States (I).Recover.Enqueue_Count >= Enqueue_Limit then
+                  if Trace_McKenzie > Outline then
+                     Put_Line (Trace.all, Parser_Labels (I), "fail; enqueue limit (" &
+                                 Integer'Image (Enqueue_Limit) & ")");
+                  end if;
+                  Parser_Status (I) := Fail;
+                  Done_Count        := Done_Count + 1;
+
+               elsif Parser_States (I).Recover.Config_Heap.Count > 0 and then
                  Parser_States (I).Recover.Config_Heap.Min_Key <= Parser_States (I).Recover.Results.Min_Key
                then
                   --  Still more to check.
