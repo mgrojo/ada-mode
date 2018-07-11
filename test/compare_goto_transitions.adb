@@ -94,10 +94,10 @@ package body Compare_Goto_Transitions is
          use WisiToken.LR.LR1_Items.AUnit;
 
          Set : constant Item_Set := Closure
-           ((Set       => WisiToken.LR.LR1_Items.AUnit.Get_Item_Node
-               (Grammar, Prod, 1, WisiToken.To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
+           ((Set       => +Get_Item
+               (Grammar, Prod, 1, To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
              Goto_List => <>,
-             State     => WisiToken.Unknown_State),
+             State     => Unknown_State),
             Has_Empty_Production, First, Grammar, Token_Enum.LALR_Descriptor);
 
          LR1           : Item_Set;
@@ -113,16 +113,13 @@ package body Compare_Goto_Transitions is
                  Token_Enum_ID'Image (ID);
             begin
                LR1 := WisiToken.LR.LR1_Generate.LR1_Goto_Transitions
-                    (Set, +ID, Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => False);
+                    (Set, +ID, Has_Empty_Production, First, Grammar, LR1_Descriptor);
                LR1_Filtered := Filter (LR1, Grammar, LR1_Descriptor, In_Kernel'Access);
-               Free (LR1);
 
                LALR := WisiToken.LR.LALR_Generate.LALR_Goto_Transitions
                  (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor);
 
                Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);
-               Free (LR1_Filtered);
-               Free (LALR);
             exception
             when AUnit.Assertions.Assertion_Error =>
                Mismatch := True;
@@ -134,11 +131,7 @@ package body Compare_Goto_Transitions is
                   Put_Line ("  lalr:");
                   Put (Grammar, Token_Enum.LALR_Descriptor, LALR, Show_Goto_List => True);
                   New_Line;
-                  Free (LR1_Filtered);
-                  Free (LALR);
                else
-                  Free (LR1_Filtered);
-                  Free (LALR);
                   raise;
                end if;
             end;

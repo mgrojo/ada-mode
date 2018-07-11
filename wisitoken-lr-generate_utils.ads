@@ -76,7 +76,7 @@ package WisiToken.LR.Generate_Utils is
    --  Conflicts used for conflict reporting.
 
    procedure Add_Lookahead_Actions
-     (Item                 : in     LR1_Items.Item_Ptr;
+     (Item                 : in     LR1_Items.Item;
       Action_List          : in out Action_Node_Ptr;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;

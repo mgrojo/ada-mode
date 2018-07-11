@@ -61,8 +61,7 @@ package WisiToken.LR.LR1_Generate is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor;
-      Trace                : in Boolean)
+      Descriptor           : in WisiToken.Descriptor)
      return LR1_Items.Item_Set;
    --  'goto' from [dragon] algorithm 4.9
 
@@ -70,8 +69,7 @@ package WisiToken.LR.LR1_Generate is
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor;
-      Trace                : in Boolean)
+      Descriptor           : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List;
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 

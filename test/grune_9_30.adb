@@ -100,8 +100,7 @@ package body Grune_9_30 is
       use WisiToken.LR.LR1_Items;
 
       Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, LR1_Descriptor,
-         Trace => WisiToken.Trace_Generate > 0);
+        (Has_Empty_Production, First, Grammar, LR1_Descriptor);
 
       Expected : Item_Set_List :=
         --  Item sets from [Grune] fig 9.31 a. States are numbered 1- from

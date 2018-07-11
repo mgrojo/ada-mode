@@ -31,21 +31,20 @@ package body WisiToken.LR.LR1_Generate is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor;
-      Trace                : in Boolean)
+      Descriptor           : in WisiToken.Descriptor)
      return LR1_Items.Item_Set
    is
+      use all type Ada.Containers.Count_Type;
       use Token_ID_Arrays;
       use LR1_Items;
 
       Goto_Set : Item_Set;
-      Item     : Item_Ptr := Set.Set;
    begin
       Goto_Set.State := Unknown_State;
 
-      while Item /= null loop
-         if Dot (Item) /= No_Element then
-            if Element (Dot (Item)) = Symbol and
+      for Item of Set.Set loop
+         if Item.Dot /= No_Element then
+            if Element (Item.Dot) = Symbol and
               --  We don't need a state with dot after EOF in the
               --  accept production. EOF should only appear in the
               --  accept production.
@@ -53,15 +52,13 @@ package body WisiToken.LR.LR1_Generate is
             then
                Add
                  (Goto_Set.Set,
-                  New_Item_Node (Prod_ID (Item), Next (Dot (Item)), Unknown_State, Lookaheads (Item)));
+                  (Item.Prod, Next (Item.Dot), Unknown_State, Item.Lookaheads));
             end if;
          end if;
-
-         Item := Next (Item);
       end loop;
 
-      if Goto_Set.Set /= null then
-         if Trace then
+      if Goto_Set.Set.Length > 0 then
+         if Trace_Generate > Outline then
             Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Image (Symbol, Descriptor));
             Put (Grammar, Descriptor, Goto_Set, Show_Lookaheads => True);
          end if;
@@ -76,10 +73,10 @@ package body WisiToken.LR.LR1_Generate is
      (Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor;
-      Trace                : in Boolean)
+      Descriptor           : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
+      use all type Ada.Containers.Count_Type;
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
       use LR1_Items;
@@ -97,13 +94,13 @@ package body WisiToken.LR.LR1_Generate is
       C.Set_Last (First_State_Index);
 
       C (First_State_Index) := Closure
-        ((Set           => New_Item_Node
-            (Prod       => (Grammar.First_Index, 0),
-             Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-             State      => First_State_Index,
-             Lookaheads => To_Lookahead (Descriptor.EOF_ID, Descriptor)),
-          Goto_List     => <>,
-          State         => First_State_Index),
+        ((Set            => Item_Lists.To_List
+            ((Prod       => (Grammar.First_Index, 0),
+              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
+              State      => First_State_Index,
+              Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOF_ID, Descriptor)))),
+          Goto_List      => <>,
+          State          => First_State_Index),
          Has_Empty_Production, First, Grammar, Descriptor);
 
       loop
@@ -113,7 +110,7 @@ package body WisiToken.LR.LR1_Generate is
             --  Reverse for consistency with a previous version that used a linked
             --  list for C.
 
-            if Trace then
+            if Trace_Generate > Outline then
                Ada.Text_IO.Put ("Checking ");
                Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
             end if;
@@ -121,9 +118,9 @@ package body WisiToken.LR.LR1_Generate is
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
 
                New_Item_Set := LR1_Goto_Transitions
-                 (C (I), Symbol, Has_Empty_Production, First, Grammar, Descriptor, Trace);
+                 (C (I), Symbol, Has_Empty_Production, First, Grammar, Descriptor);
 
-               if New_Item_Set.Set /= null then -- 'goto (I, X) not empty'
+               if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
 
                   Found_State := Find (New_Item_Set, C, Match_Lookaheads => True); -- 'not in C'
 
@@ -134,7 +131,7 @@ package body WisiToken.LR.LR1_Generate is
 
                      Set_State (New_Item_Set.Set, New_Item_Set.State);
 
-                     if Trace then
+                     if Trace_Generate > Outline then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Item_Set.State));
                      end if;
 
@@ -145,7 +142,7 @@ package body WisiToken.LR.LR1_Generate is
 
                      --  If there's not already a goto entry between these two sets, create one.
                      if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
-                        if Trace then
+                        if Trace_Generate > Outline then
                            Ada.Text_IO.Put_Line
                              ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
                                 Unknown_State_Index'Image (Found_State));
@@ -162,7 +159,7 @@ package body WisiToken.LR.LR1_Generate is
 
       end loop;
 
-      if Trace then
+      if Trace_Generate > Outline then
          Ada.Text_IO.New_Line;
       end if;
 
@@ -289,7 +286,7 @@ package body WisiToken.LR.LR1_Generate is
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, Descriptor, Trace_Generate > Detail);
+        (Has_Empty_Production, First, Grammar, Descriptor);
 
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;

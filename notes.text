@@ -19,7 +19,9 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-rewrite lr1_items to use containers
+delete lr1_items.*.state?
+
+time wisi-generate
 
 propagate to main
 
@@ -355,8 +357,6 @@ wisi-generate lr1 way too slow for Ada
     don't iterate on non-reporting
 
     lookahead list vs boolean array:
-        time opentoken vs fasttoken
-        or old fasttoken
 
     closure needs:
         fast access to all productions that have dot_id as the LHS
@@ -382,14 +382,6 @@ wisi-generate lr1 way too slow for Ada
                     keeps changing, not clear if it's worth finding a perfect hash table
                 each node has a list of states that differ only in lookahead
                 => one for LALR
-
-            c:/org.stephe-leake.misc/source/rb_tree_V0_1
-                bounded, not generic, but proved by Spark
-                at least use key_trees-test.adb Tree_Invariant for test
-                use to generate test cases?
-
-            c:/org.stephe-leake.sal/source/sal-gen_red_black.ads
-                write tests
 
         no 'free'; don't allocate item on heap until we know we need it
 

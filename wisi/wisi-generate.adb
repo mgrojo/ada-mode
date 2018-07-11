@@ -71,8 +71,8 @@ is
       Put_Line (Standard_Error, "options are:");
       Put_Line (Standard_Error, "  -v level: sets verbosity (default 0):");
       Put_Line (Standard_Error, "     0 - only error messages to standard error");
-      Put_Line (Standard_Error, "     1 - add compiled grammar output to standard out");
-      Put_Line (Standard_Error, "     2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
+      Put_Line (Standard_Error, "     1 - add diagnostics to standard out");
+      Put_Line (Standard_Error, "     2 - more diagnostics to standard out, ignore unused tokens, unknown conflicts");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
@@ -213,7 +213,7 @@ begin
       use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
       use Standard.Ada.Text_IO;
 
-      --  We always create a .parse_table file
+      --  Create a .parse_table file unless verbosity > 0
       Parse_Table_File : File_Type;
 
       Generate_Done : Lexer_Generate_Algorithm_Set := (others => (others => False));
@@ -295,14 +295,17 @@ begin
 
             if not Generate_Done (Input_Data.User_Lexer)(Quad.Gen_Alg) then
                Generate_Done (Input_Data.User_Lexer)(Quad.Gen_Alg) := True;
-               Create
-                 (Parse_Table_File, Out_File,
-                  -Output_File_Name_Root & "_" & To_Lower (Generate_Algorithm'Image (Quad.Gen_Alg)) &
-                    (if Input_Data.If_Lexer_Present
-                     then "_" & Lexer_Image (Input_Data.User_Lexer).all
-                     else "") &
-                    ".parse_table");
-               Set_Output (Parse_Table_File);
+
+               if WisiToken.Trace_Generate = 0 then
+                  Create
+                    (Parse_Table_File, Out_File,
+                     -Output_File_Name_Root & "_" & To_Lower (Generate_Algorithm'Image (Quad.Gen_Alg)) &
+                       (if Input_Data.If_Lexer_Present
+                        then "_" & Lexer_Image (Input_Data.User_Lexer).all
+                        else "") &
+                       ".parse_table");
+                  Set_Output (Parse_Table_File);
+               end if;
 
                case Quad.Gen_Alg is
                when LALR =>
@@ -343,8 +346,10 @@ begin
                   Packrat_Data.Check_All (Generate_Data.LR1_Descriptor.all);
                end case;
 
-               Set_Output (Standard_Output);
-               Close (Parse_Table_File);
+               if WisiToken.Trace_Generate = 0 then
+                  Set_Output (Standard_Output);
+                  Close (Parse_Table_File);
+               end if;
 
                if WisiToken.Generate.Error then
                   raise WisiToken.Grammar_Error with "errors: aborting";

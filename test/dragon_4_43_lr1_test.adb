@@ -110,8 +110,8 @@ package body Dragon_4_43_LR1_Test is
 
    procedure Test_First_Follow (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      pragma Unreferenced (T);
       use WisiToken.AUnit;
-      Test : Test_Case renames Test_Case (T);
 
       --  FIRST defined in [dragon] pg 189; we add nonterminals
 
@@ -132,7 +132,7 @@ package body Dragon_4_43_LR1_Test is
       Check ("0", Has_Empty_Production, WisiToken.Token_ID_Set'(+Accept_ID .. +Upper_C_ID => False));
       Check ("1", First, Expected_First);
 
-      if Test.Debug > 0 then
+      if WisiToken.Trace_Action > WisiToken.Outline then
          Ada.Text_IO.Put_Line ("Follow:");
          WisiToken.Put (LR1_Descriptor, Computed_Follow);
       end if;
@@ -142,12 +142,12 @@ package body Dragon_4_43_LR1_Test is
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      pragma Unreferenced (T);
+
       use WisiToken.LR.LR1_Items;
 
-      Test : Test_Case renames Test_Case (T);
-
       Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => Test.Debug > 0);
+        (Has_Empty_Production, First, Grammar, LR1_Descriptor);
 
       Expected : Item_Set_List :=
         --  [dragon] fig 4.39 pg 235 shows the item sets and gotos. We
@@ -210,7 +210,7 @@ package body Dragon_4_43_LR1_Test is
            (+Lower_D_ID, Map (7)) &
            (+Upper_C_ID, Map (9)));
 
-      if Test.Debug > 0 then
+      if WisiToken.Trace_Action > WisiToken.Outline then
          Ada.Text_IO.Put_Line ("computed:");
          Put (Grammar, LR1_Descriptor, Computed);
          Ada.Text_IO.New_Line;
@@ -348,14 +348,10 @@ package body Dragon_4_43_LR1_Test is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug > 0 then
-         Register_Routine (T, Parser_Table'Access, "debug");
-      else
-         Register_Routine (T, Test_First_Follow'Access, "Test_First_Follow");
-         Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
-         Register_Routine (T, Parser_Table'Access, "Parser_Table");
-         Register_Routine (T, Test_Parse'Access, "Test_Parse");
-      end if;
+      Register_Routine (T, Test_First_Follow'Access, "Test_First_Follow");
+      Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
+      Register_Routine (T, Parser_Table'Access, "Parser_Table");
+      Register_Routine (T, Test_Parse'Access, "Test_Parse");
    end Register_Tests;
 
 end Dragon_4_43_LR1_Test;

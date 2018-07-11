@@ -28,7 +28,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Unchecked_Deallocation;
 with SAL.Gen_Definite_Doubly_Linked_Lists;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Productions;
@@ -39,49 +38,39 @@ package WisiToken.LR.LR1_Items is
    --  lookahead (Last_Nonterminal + 1) true.
    subtype Lookahead is Token_ID_Set;
 
-   type Item_Node is private;
-   type Item_Ptr is access Item_Node;
+   type Item is record
+      Prod       : Production_ID;
+      Dot        : Token_ID_Arrays.Cursor; -- token after item Dot
+      State      : Unknown_State_Index;
+      Lookaheads : access Lookahead;
+   end record;
 
-   function Prod_ID (Item : in Item_Ptr) return WisiToken.Production_ID;
-   function Dot (Item : in Item_Ptr) return Token_ID_Arrays.Cursor;
-   --  Token after Dot; No_Element if Dot is after last token.
-   function State (Item : in Item_Ptr) return Unknown_State_Index;
-   function Lookaheads (Item : in Item_Ptr) return Lookahead;
-   function Next (Item : in Item_Ptr) return Item_Ptr;
+   Null_Item : constant Item :=
+     (Prod       => <>,
+      Dot        => <>,
+      State      => Unknown_State,
+      Lookaheads => null);
 
-   function New_Item_Node
-     (Prod       : in Production_ID;
-      Dot        : in Token_ID_Arrays.Cursor;
-      State      : in Unknown_State_Index;
-      Lookaheads : in Lookahead)
-     return Item_Ptr;
-
-   procedure Set
-     (Item       : in out Item_Node;
-      Prod       : in     Production_ID;
-      Dot        : in     Token_ID_Arrays.Cursor;
-      State      : in     Unknown_State_Index;
-      Lookaheads : in     Lookahead);
-   --  Replace all values in Item.
+   package Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Item);
 
    procedure Add
-     (List : in out Item_Ptr;
-      Item : in     Item_Ptr);
+     (List : in out Item_Lists.List;
+      Item : in     LR1_Items.Item);
    --  Add Item to List, in ascending order of Prod.LHS.
 
-   procedure Set_State (List : in Item_Ptr; State : in Unknown_State_Index);
+   procedure Set_State (List : in out Item_Lists.List; State : in Unknown_State_Index);
    --  Set State in all items in List.
 
    procedure Include
-     (Item  : in Item_Ptr;
+     (Item  : in LR1_Items.Item;
       Value : in Token_ID);
    procedure Include
-     (Item              : in     Item_Ptr;
+     (Item              : in     LR1_Items.Item;
       Value             : in     Lookahead;
       Descriptor        : access constant WisiToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean);
    procedure Include
-     (Item              : in     Item_Ptr;
+     (Item              : in     LR1_Items.Item;
       Value             : in     Lookahead;
       Added             :    out Boolean;
       Descriptor        : access constant WisiToken.Descriptor'Class;
@@ -105,12 +94,12 @@ package WisiToken.LR.LR1_Items is
    --  Add an item to List; keep List sorted in ascending order on Symbol.
 
    type Item_Set is record
-      Set       : Item_Ptr;
+      Set       : Item_Lists.List;
       Goto_List : Goto_Item_Lists.List;
-      State     : Unknown_State_Index; --  FIXME: delete, use index in Kernels.
+      State     : Unknown_State_Index := Unknown_State; --  FIXME: delete, use index in Kernels.
    end record;
 
-   Null_Item_Set : constant Item_Set := (null, Goto_Item_Lists.Empty_List, Unknown_State);
+   Null_Item_Set : constant Item_Set := (others => <>);
 
    package Item_Set_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (State_Index, Item_Set);
    subtype Item_Set_List is Item_Set_Arrays.Vector;
@@ -122,7 +111,7 @@ package WisiToken.LR.LR1_Items is
       Include    : access function
         (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
          Descriptor : in WisiToken.Descriptor'Class;
-         Item       : in Item_Ptr)
+         Item       : in LR1_Items.Item)
         return Boolean)
      return Item_Set;
    --  Return a deep copy of Set, including only items for which Include returns True.
@@ -130,32 +119,41 @@ package WisiToken.LR.LR1_Items is
    function In_Kernel
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class;
-      Item       : in Item_Ptr)
+      Item       : in LR1_Items.Item)
      return Boolean;
    --  For use with Filter; [dragon] sec 4.7 pg 240
 
-   procedure Add
-     (New_Item : in     Item_Node;
-      Target   : in out Item_Set);
-   --  Add New_Item to Target without checking to see if it is in there already.
+   function Find
+     (Item             : in LR1_Items.Item;
+      Set              : in Item_Set;
+      Match_Lookaheads : in Boolean)
+     return Item_Lists.Cursor;
+   --  Return an item from Set that matches Item; exclude Lookaheads if
+   --  not Match_Lookaheads.
+   --
+   --  Return No_Element if not found.
+   --  FIXME: never called with Match_Lookaheads => True?
 
    function Find
-     (Prod             : in     Production_ID;
-      Dot              : in     Token_ID_Arrays.Cursor;
-      Right            : in     Item_Set;
-      Lookaheads       : access Lookahead := null;
-      Match_Lookaheads : in     Boolean)
-     return Item_Ptr;
-   --  Return a pointer to an item in Right that matches Prod, Dot,
-   --  and Lookaheads if Match_Lookaheads; null if not found.
+     (Prod       : in     Production_ID;
+      Dot        : in     Token_ID_Arrays.Cursor;
+      Right      : in     Item_Set;
+      Lookaheads : access Lookahead := null)
+     return Item_Lists.Cursor;
+   --  Return an item from Right that matches Prod, Dot, and
+   --  Lookaheads if non-null.
+   --
+   --  Return No_Element if not found.
+   --  FIXME: never called with Lookaheads /= null?
 
    function Find
      (Left             : in Item_Set;
       Right            : in Item_Set_List;
       Match_Lookaheads : in Boolean)
      return Unknown_State_Index;
-   --  Return a index of element matching Left in Right, Unknown_State if
+   --  Return the index into Right of an element matching Left, Unknown_State if
    --  not found.
+   --  FIXME: never called with Match_Lookaheads => True?
 
    function Find
      (State : in Unknown_State_Index;
@@ -204,9 +202,8 @@ package WisiToken.LR.LR1_Items is
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor'Class;
-      Item            : in Item_Ptr;
+      Item            : in LR1_Items.Item;
       Show_Lookaheads : in Boolean := True);
-   --  Ignores Item.Next.
 
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -225,27 +222,5 @@ package WisiToken.LR.LR1_Items is
       Item            : in Item_Set_List;
       Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
-
-   procedure Free (Item : in out Item_Set);
-
-   ----------
-   --  For use in unit tests
-
-   function "&" (Left, Right : in Item_Ptr) return Item_Ptr;
-   --  Append Right to Left; does not enforce sort order.
-
-private
-
-   --  Private to force use of Add
-
-   type Item_Node is record
-      Prod       : Production_ID;
-      Dot        : Token_ID_Arrays.Cursor; -- token after item Dot
-      State      : Unknown_State_Index;
-      Lookaheads : access Lookahead;
-      Next       : Item_Ptr;
-   end record;
-
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
 
 end WisiToken.LR.LR1_Items;

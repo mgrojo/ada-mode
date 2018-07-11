@@ -25,36 +25,48 @@ package body WisiToken.LR.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in Item_Ptr;
-      Expected         : in Item_Ptr;
+      Computed         : in Item;
+      Expected         : in Item;
       Match_Lookaheads : in Boolean)
    is
+      use Token_ID_Arrays_AUnit;
+   begin
+      Check (Label & ".State", Computed.State, Expected.State);
+      Check (Label & ".Prod", Computed.Prod, Expected.Prod);
+      Check (Label & ".Dot", Computed.Dot, Expected.Dot);
+      if Match_Lookaheads then
+         Check (Label & ".Lookaheads", Computed.Lookaheads.all, Expected.Lookaheads.all);
+      end if;
+   end Check;
+
+   procedure Check
+     (Label            : in String;
+      Computed         : in Item_Lists.List;
+      Expected         : in Item_Lists.List;
+      Match_Lookaheads : in Boolean := True)
+   is
       use Standard.AUnit.Checks;
-      use WisiToken.AUnit.Token_ID_Arrays_AUnit;
-      Computed_I : Item_Ptr := Computed;
-      Expected_I : Item_Ptr := Expected;
+      use Item_Lists;
+      Computed_I : Cursor := Computed.First;
+      Expected_I : Cursor := Expected.First;
       Index      : Integer  := 1;
    begin
-      if Computed /= null or Expected /= null then
-         Standard.AUnit.Assertions.Assert (Computed /= null, Label & " Computed is null");
-         Standard.AUnit.Assertions.Assert (Expected /= null, Label & " Expected is null");
+      if Computed_I /= No_Element or Expected_I /= No_Element then
+         Standard.AUnit.Assertions.Assert (Computed_I /= No_Element, Label & " Computed is empty");
+         Standard.AUnit.Assertions.Assert (Expected_I /= No_Element, Label & " Expected is empty");
       else
-         --  both are null
+         --  both are empty
          return;
       end if;
 
       loop
-         Check (Label & Integer'Image (Index) & ".State", State (Computed_I), State (Expected_I));
-         Check (Label & Integer'Image (Index) & ".Prod", Prod_ID (Computed_I), Prod_ID (Expected_I));
-         Check (Label & Integer'Image (Index) & ".Dot", Dot (Computed_I), Dot (Expected_I));
-         if Match_Lookaheads then
-            Check (Label & Integer'Image (Index) & ".Lookaheads", Lookaheads (Computed_I), Lookaheads (Expected_I));
-         end if;
-         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
+         Check (Label & Integer'Image (Index), Constant_Ref (Computed_I), Constant_Ref (Expected_I), Match_Lookaheads);
+         Check (Label & Integer'Image (Index) & ".Next = null",
+                Next (Computed_I) = No_Element, Next (Expected_I) = No_Element);
          Computed_I := Next (Computed_I);
          Expected_I := Next (Expected_I);
          Index      := Index + 1;
-         exit when Computed_I = null;
+         exit when Computed_I = No_Element;
       end loop;
    end Check;
 
@@ -113,62 +125,90 @@ package body WisiToken.LR.LR1_Items.AUnit is
       end loop;
    end Check;
 
-   function Get_Item_Node
+   function Get_Item
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
       Lookaheads : in Lookahead;
       State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
-     return Item_Ptr
+     return Item
    is
       Dot_I : constant Token_ID_Arrays.Cursor := Grammar (Prod.Nonterm).RHSs (Prod.RHS).Tokens.To_Cursor (Dot);
    begin
-      return New_Item_Node (Prod, Dot_I, State, Lookaheads);
-   end Get_Item_Node;
+      return (Prod, Dot_I, State, new Token_ID_Set'(Lookaheads));
+   end Get_Item;
 
-   function "+" (Item : in Item_Ptr) return Item_Set
+   function "+" (Item : in LR1_Items.Item) return Item_Set
    is begin
       return Item_Set'
-        (Set       => Item,
+        (Set       => Item_Lists.To_List (Item),
          Goto_List => <>,
-         State     => State (Item));
+         State     => Item.State);
    end "+";
 
-   function "+" (Item : in Item_Ptr) return Item_Set_List
+   function "&"
+     (Left  : in Item;
+      Right : in Item)
+     return Item_Lists.List
+   is
+   begin
+      return Result : Item_Lists.List := Item_Lists.To_List (Left) do
+         Result.Append (Right);
+      end return;
+   end "&";
+
+   function "&"
+     (Left  : in Item_Lists.List;
+      Right : in Item)
+     return Item_Lists.List
+   is
+   begin
+      return Result : Item_Lists.List := Left do
+         Result.Append (Right);
+      end return;
+   end "&";
+
+   function "+"
+     (State : in WisiToken.Unknown_State_Index;
+      Item  : in LR1_Items.Item)
+     return Item_Set
    is begin
-      return Result : Item_Set_List do
-         Result.Append
-           (Item_Set'
-              (Set       => Item,
-               Goto_List => <>,
-               State     => State (Item)));
+      return Result : Item_Set := (Set => Item_Lists.To_List (Item), Goto_List => <>, State => State)
+      do
+         Set_State (Result.Set, State);
       end return;
    end "+";
 
    function "+"
      (State : in WisiToken.Unknown_State_Index;
-      Item  : in Item_Ptr)
-     return Item_Set_List
+      Item  : in Item_Lists.List)
+     return Item_Set
    is begin
-      Set_State (Item, State);
-      return Result : Item_Set_List do
-         Result.Append
-           (Item_Set'
-              (Set       => Item,
-               Goto_List => <>,
-               State     => State));
+      return Result : Item_Set := (Set => Item, Goto_List => <>, State => State)
+      do
+         Set_State (Result.Set, State);
       end return;
    end "+";
 
    function "&"
-     (Left, Right : in Item_Set_List)
+     (Left  : in Item_Set;
+      Right : in Item_Set)
      return Item_Set_List
    is
+      use Item_Set_Arrays;
    begin
+      return Result : Item_Set_List := To_Vector (Left) do
+         Result.Append (Right);
+      end return;
+   end "&";
+
+   function "&"
+     (Left  : in Item_Set_List;
+      Right : in Item_Set)
+     return Item_Set_List
+   is begin
       return Result : Item_Set_List := Left do
-         for Element of Right loop
-            Result.Append (Element);
-         end loop;
+         Result.Append (Right);
       end return;
    end "&";
 
@@ -206,7 +246,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
      return Item_Set
    is begin
       return
-        (Set => Get_Item_Node
+        (Set => +Get_Item
            (Grammar,
             Prod       => Prod,
             Dot        => Dot,
