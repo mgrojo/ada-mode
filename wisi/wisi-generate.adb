@@ -22,6 +22,7 @@ pragma License (Modified_GPL);
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Exceptions;
+with Ada.Real_Time;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
@@ -76,6 +77,7 @@ is
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
+      Put_Line (Standard_Error, "  --time; output execution time of various stages");
 
    end Put_Usage;
 
@@ -89,6 +91,8 @@ is
    Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
    Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
    Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
+
+   Do_Time : Boolean := False;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -187,6 +191,10 @@ begin
             Arg_Next  := Arg_Next + 1;
             Test_Main := True;
 
+         elsif Argument (Arg_Next) = "--time" then
+            Arg_Next := Arg_Next + 1;
+            Do_Time  := True;
+
          else
             raise User_Error with "invalid argument '" & Argument (Arg_Next) & "'";
          end if;
@@ -277,6 +285,11 @@ begin
          end if;
 
          declare
+            use Standard.Ada.Real_Time;
+
+            Time_Start : Time;
+            Time_End   : Time;
+
             Generate_Data : aliased Wisi.Generate_Utils.Generate_Data := Wisi.Generate_Utils.Initialize
               (Input_Data.Grammar_Lexer.File_Name, Input_Data.Tokens, -Input_Data.Generate_Params.Start_Token);
 
@@ -309,6 +322,8 @@ begin
 
                case Quad.Gen_Alg is
                when LALR =>
+                  Time_Start := Clock;
+
                   Generate_Data.LR_Parsers (LALR) := WisiToken.LR.LALR_Generate.Generate
                     (Generate_Data.Grammar,
                      Generate_Data.LALR_Descriptor.all,
@@ -317,12 +332,22 @@ begin
                      Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                      Put_Parse_Table => True);
 
+                  if Do_Time then
+                     Time_End := Clock;
+
+                     Put_Line
+                       (Standard_Error,
+                        "generate time:" & Duration'Image (To_Duration (Time_End - Time_Start)));
+                  end if;
+
                   Generate_Data.Parser_State_Count :=
                     Generate_Data.LR_Parsers (LALR).State_Last - Generate_Data.LR_Parsers (LALR).State_First + 1;
                   Wisi.Generate_Utils.Count_Actions (Generate_Data, LALR);
                   Wisi.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
 
                when LR1 =>
+                  Time_Start := Clock;
+
                   Generate_Data.LR_Parsers (LR1) := WisiToken.LR.LR1_Generate.Generate
                     (Generate_Data.Grammar,
                      Generate_Data.LR1_Descriptor.all,
@@ -331,12 +356,26 @@ begin
                      Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
                      Put_Parse_Table => True);
 
+                  if Do_Time then
+                     Time_End := Clock;
+
+                     Put_Line
+                       (Standard_Error,
+                        "generate time:" & Duration'Image (To_Duration (Time_End - Time_Start)));
+                  end if;
+
                   Generate_Data.Parser_State_Count :=
                     Generate_Data.LR_Parsers (LR1).State_Last - Generate_Data.LR_Parsers (LR1).State_First + 1;
                   Wisi.Generate_Utils.Count_Actions (Generate_Data, LR1);
                   Wisi.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
 
                when Packrat_Generate_Algorithm =>
+                  if Do_Time then
+                     --  The only significant computation done for Packrat is First, done
+                     --  in Initialize; not worth timing.
+                     Put_Line (Standard_Error, " --time not supported for Packrat");
+                  end if;
+
                   Put_Line ("Tokens:");
                   WisiToken.Put_Tokens (Generate_Data.LR1_Descriptor.all);
                   New_Line;

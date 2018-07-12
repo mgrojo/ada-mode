@@ -228,15 +228,22 @@ package body WisiToken.LR.LR1_Items is
       use Item_Lists;
       use all type Token_ID_Arrays.Cursor;
    begin
-      --  FIXME: item_set ordered on LHS?
       for Cur in Right.Set.Iterate loop
-         if Prod = Constant_Ref (Cur).Prod and
-           Dot = Constant_Ref (Cur).Dot and
-           (Lookaheads = null or else
-              Lookaheads.all = Constant_Ref (Cur).Lookaheads.all)
-         then
-            return Cur;
-         end if;
+         declare
+            Test_Item : Item renames Constant_Ref (Cur);
+         begin
+            if Prod.Nonterm < Test_Item.Prod.Nonterm then
+               --  Right.Item_Set is sorted on ascending LHS, since it is built with
+               --  Add.
+               return No_Element;
+            elsif Prod = Constant_Ref (Cur).Prod and
+              Dot = Constant_Ref (Cur).Dot and
+              (Lookaheads = null or else
+                 Lookaheads.all = Constant_Ref (Cur).Lookaheads.all)
+            then
+               return Cur;
+            end if;
+         end;
       end loop;
       return No_Element;
    end Find;
@@ -293,6 +300,9 @@ package body WisiToken.LR.LR1_Items is
          return True;
       elsif Left.Prod_1_Dot > Right.Prod_1_Dot then
          return False;
+
+      elsif Left.Prod_Count = 1 then
+         return True;
 
       elsif Left.Prod_2_LHS < Right.Prod_2_LHS then
          return True;

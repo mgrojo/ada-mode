@@ -34,19 +34,24 @@ get profile on lr1 ada_lite
 time wisi-generate ada_lite, ada
     rebuild with no debug
 
-    time ./wisi-generate.exe ../wisi/test/ada_lite.wy
+    time ./wisi-generate.exe --time ../wisi/test/ada_lite.wy
         o.w     0m0.212s 0m0.217s
         o.w.s-1 0m0.838s 0m0.836s
+        improve find item in item_list  0.549 0.514
 
-    time ./wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite_lr1.wy
-        o.w     0m28.034s 0m27.237s
-        o.w.s-1 ada_lite.wy 1m37.592s
-        item_set_tree       0m34.085s
+    time ./wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
+        o.w     ada_lite_lr1.wy     0m28.034s 0m27.237s
+        o.w.s-1                     1m37.592s
+        item_set_tree               0m34.085s
+        improve set_tree_key_less   0m33.990s 0m33.040s
+        improve find item in item_list  0m34.105s 0m34.584s  34.418 34.695
 
-    time ../org.wisitoken.stephe-1/build/wisi-generate.exe --generate LALR Ada re2c ada.wy
-        o.e.a_m.s-2     0m16.739s 0m16.166s
-        o.e.a_m.s-4     0m15.983s 0m16.006s
-        item_set_tree   0m11.276s
+    time ./wisi-generate.exe --generate LALR Ada re2c ../../org.emacs.ada-mode.stephe-4/ada.wy
+        o.e.a_m.s-2                 0m16.739s 0m16.166s
+        o.e.a_m.s-4                 0m15.983s 0m16.006s
+        item_set_tree               0m11.276s
+        improve set_tree_key_less   0m11.558s 0m11.557s
+        improve find item in item_list  0m11.597s 0m11.442s 0m11.414s 0m11.378s 0m11.589s  11.449
 
 effect of lr1/lalr on mckenzie
     wisi/ada_lite_lalr_run.exe -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lalr_recover.log
