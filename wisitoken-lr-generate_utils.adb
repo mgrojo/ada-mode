@@ -30,12 +30,11 @@ package body WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
-      if Trace then
+      if Trace_Generate > Outline then
          Ada.Text_IO.Put (Image (Symbol, Descriptor) & " => ");
          Put (Descriptor, Action);
          Ada.Text_IO.New_Line;
@@ -47,7 +46,7 @@ package body WisiToken.LR.Generate_Utils is
             --  conflict; just don't add it again.
             Matching_Action.Action.Item.Productions.Append (Action.Productions);
 
-            if Trace then
+            if Trace_Generate > Outline then
                Ada.Text_IO.Put_Line (" - already present");
             end if;
             return;
@@ -76,11 +75,11 @@ package body WisiToken.LR.Generate_Utils is
                   --  item set. Only add it to conflicts once.
                   Conflicts.Append (New_Conflict);
 
-                  if Trace then
+                  if Trace_Generate > Outline then
                      Ada.Text_IO.Put_Line (" - conflict added");
                   end if;
                else
-                  if Trace then
+                  if Trace_Generate > Outline then
                      Ada.Text_IO.Put_Line (" - conflict duplicate");
                   end if;
                end if;
@@ -91,7 +90,7 @@ package body WisiToken.LR.Generate_Utils is
                --  the excess conflict.
                if Matching_Action.Action.Next /= null then
                   if Matching_Action.Action.Item = Action or Matching_Action.Action.Next.Item = Action then
-                     if Trace then
+                     if Trace_Generate > Outline then
                         Ada.Text_IO.Put_Line (" - conflict duplicate");
                      end if;
                   else
@@ -120,14 +119,13 @@ package body WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
       use WisiToken.Token_ID_Arrays;
 
       State : constant State_Index := Closure.State;
    begin
-      if Trace then
+      if Trace_Generate > Outline then
          Ada.Text_IO.Put_Line ("adding actions for state" & State_Index'Image (State));
       end if;
 
@@ -136,8 +134,8 @@ package body WisiToken.LR.Generate_Utils is
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
-              (Item, Table.States (State).Action_List,
-               Grammar, Has_Empty_Production, First, Conflicts, Closure, Trace, Descriptor);
+              (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First, Conflicts, Closure,
+               Descriptor);
 
          elsif Element (Item.Dot) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
@@ -160,8 +158,8 @@ package body WisiToken.LR.Generate_Utils is
                         (Accept_It, P_ID, RHS.Action, RHS.Check, RHS.Tokens.Length - 1),
                         --  EOF is not pushed on stack in parser, because the action for EOF
                         --  is Accept, not Shift.
-                        Table.States (State).Action_List,
-                        Closure, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
+                        Table.States (State).Action_List, Closure,
+                        Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
                   end;
                else
                   if Goto_State /= Unknown_State then
@@ -171,13 +169,13 @@ package body WisiToken.LR.Generate_Utils is
                          Productions => +Item.Prod,
                          State       => Goto_State),
                         Table.States (State).Action_List,
-                        Closure, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
+                        Closure, Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
                   end if;
                end if;
             end;
          else
             --  Dot is before a non-terminal token; no action.
-            if Trace then
+            if Trace_Generate > Outline then
                Ada.Text_IO.Put_Line (Image (Element (Item.Dot), Descriptor) & " => no action");
             end if;
          end if;
@@ -246,14 +244,13 @@ package body WisiToken.LR.Generate_Utils is
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
-      Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
       Prod   : Productions.Instance renames Grammar (Item.Prod.Nonterm);
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
       Action : constant Parse_Action_Rec := (Reduce, Item.Prod, RHS.Action, RHS.Check, RHS.Tokens.Length);
    begin
-      if Trace then
+      if Trace_Generate > Outline then
          Ada.Text_IO.Put_Line ("processing lookaheads");
       end if;
 
@@ -267,7 +264,7 @@ package body WisiToken.LR.Generate_Utils is
             else
                Add_Action
                  (Lookahead, Action, Action_List, Closure, Grammar,
-                  Has_Empty_Production, First, Conflicts, Trace, Descriptor);
+                  Has_Empty_Production, First, Conflicts, Descriptor);
             end if;
          end if;
       end loop;

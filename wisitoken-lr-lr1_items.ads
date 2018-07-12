@@ -41,14 +41,12 @@ package WisiToken.LR.LR1_Items is
    type Item is record
       Prod       : Production_ID;
       Dot        : Token_ID_Arrays.Cursor; -- token after item Dot
-      State      : Unknown_State_Index;
       Lookaheads : access Lookahead;
    end record;
 
    Null_Item : constant Item :=
      (Prod       => <>,
       Dot        => <>,
-      State      => Unknown_State,
       Lookaheads => null);
 
    package Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Item);
@@ -57,9 +55,6 @@ package WisiToken.LR.LR1_Items is
      (List : in out Item_Lists.List;
       Item : in     LR1_Items.Item);
    --  Add Item to List, in ascending order of Prod.LHS.
-
-   procedure Set_State (List : in out Item_Lists.List; State : in Unknown_State_Index);
-   --  Set State in all items in List.
 
    procedure Include
      (Item  : in LR1_Items.Item;
@@ -96,7 +91,7 @@ package WisiToken.LR.LR1_Items is
    type Item_Set is record
       Set       : Item_Lists.List;
       Goto_List : Goto_Item_Lists.List;
-      State     : Unknown_State_Index := Unknown_State; --  FIXME: delete, use index in Kernels.
+      State     : Unknown_State_Index := Unknown_State;
    end record;
 
    Null_Item_Set : constant Item_Set := (others => <>);

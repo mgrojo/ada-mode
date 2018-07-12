@@ -8,33 +8,39 @@ ZIP_VERSION := 1.0a
 all : test-clean tests
 #all : library doc zip tag
 
+export Standard_Common_Build := Debug
+
 # test_one_harness.adb
 # test_all_harness.adb
 #
-#t_one : one-clean
-#t_one : ada_lite_re2c.c
-t_one : export Standard_Common_Build := Debug
-# t_one : RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
-t_one : test_one_harness.run
+#t_one :: one-clean
+#t_one :: wisi-generate.exe
+#t_one :: warth_left_recurse_expr_1_re2c.c
+t_one :: export Standard_Common_Build := Debug
+# t_one :: RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
+t_one :: test_one_harness.run
 
-t_all : export Standard_Common_Build := Debug
-t_all : wisi-generate.exe
-t_all : ada_lite_re2c.c
-t_all : character_literal_re2c.c
-t_all : skip_to_grammar_re2c.c
-#t_all : RUN_ARGS ?= 1 test_mckenzie_recover.adb Error_1 1 3 5 > test.log
-t_all : test_all_harness.run
+t_all :: export Standard_Common_Build := Debug
+t_all :: wisi-generate.exe
+t_all :: ada_lite_re2c.c
+t_all :: character_literal_re2c.c
+t_all :: skip_to_grammar_re2c.c
+t_all :: dragon_4_43_packrat_re2c.c
+t_all :: warth_left_recurse_expr_1_re2c.c
+#t_all :: RUN_ARGS ?= 1 test_mckenzie_recover.adb Error_1 1 3 5 > test.log
+t_all :: test_all_harness.run
 
 one-clean :
-	rm -rf case_expression*
+	rm -rf test-clean
 
-# %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-one :: one-clean
-one :: export Standard_Common_Build := Debug
-#one :: RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
-#one :: ../wisi/wisi_grammar_re2c.c
-one :: identifier_list_name_conflict_re2c.c identifier_list_name_conflict-parse.diff
-
+# one :: one-clean
+# one :: export Standard_Common_Build := Debug
+# one :: identifier_list_name_conflict_packrat_re2c.c
+# one :: identifier_list_name_conflict_re2c.c
+# one :: RUN_ARGS := -v 2 ../wisi/test/identifier_list_name_conflict.input
+one :: wisi-generate.exe
+#	./wisi-generate.exe -v 2 --generate LALR Ada re2c ../wisi/test/ada_lite.wy > ada_lite_generate.log
+	./wisi-generate.exe --generate LALR Ada re2c ../wisi/test/ada_lite.wy
 
 #c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
 
@@ -43,10 +49,8 @@ one :: identifier_list_name_conflict_re2c.c identifier_list_name_conflict-parse.
 exec_pro/ada_lite_run.exe : force
 	gprbuild -XStandard_Common_Profile=On -p -P wisitoken_test.gpr ada_lite_run
 
-two : exec_pro/ada_lite_run.exe
-	exec_pro/ada_lite_run.exe 5 c:/Projects/org.emacs.ada-mode.stephe-2/test/slow_recover_1.adb
-	gnatmem exec_pro/ada_lite_run.exe
-	gprof exec_pro/ada_lite_run.exe gmon.out > ada_lite-slow_recover_1.profile
+two : ./wisi_grammar_run.exe
+	./wisi_grammar_run.exe -v 2 ../wisi/test/warth_left_recurse_expr_1.wy
 
 .PHONY : t_one_1 t_one_2
 

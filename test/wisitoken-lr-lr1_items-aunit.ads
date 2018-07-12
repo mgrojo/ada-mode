@@ -49,8 +49,7 @@ package WisiToken.LR.LR1_Items.AUnit is
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
-      Lookaheads : in Lookahead;
-      State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
+      Lookaheads : in Lookahead)
      return Item;
    --  Construct an LR1_Items item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).

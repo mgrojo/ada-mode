@@ -40,8 +40,6 @@ package body WisiToken.LR.LR1_Generate is
 
       Goto_Set : Item_Set;
    begin
-      Goto_Set.State := Unknown_State;
-
       for Item of Set.Set loop
          if Item.Dot /= No_Element then
             if Element (Item.Dot) = Symbol and
@@ -50,9 +48,7 @@ package body WisiToken.LR.LR1_Generate is
               --  accept production.
               Symbol /= Descriptor.EOF_ID
             then
-               Add
-                 (Goto_Set.Set,
-                  (Item.Prod, Next (Item.Dot), Unknown_State, Item.Lookaheads));
+               Add (Goto_Set.Set, (Item.Prod, Next (Item.Dot), Item.Lookaheads));
             end if;
          end if;
       end loop;
@@ -97,7 +93,6 @@ package body WisiToken.LR.LR1_Generate is
         ((Set            => Item_Lists.To_List
             ((Prod       => (Grammar.First_Index, 0),
               Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-              State      => First_State_Index,
               Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOF_ID, Descriptor)))),
           Goto_List      => <>,
           State          => First_State_Index),
@@ -129,15 +124,13 @@ package body WisiToken.LR.LR1_Generate is
 
                      New_Item_Set.State := C.Last_Index + 1;
 
-                     Set_State (New_Item_Set.Set, New_Item_Set.State);
-
-                     if Trace_Generate > Outline then
-                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Item_Set.State));
-                     end if;
-
                      C.Append (New_Item_Set);
 
-                     Add (C (I).Goto_List, Symbol, New_Item_Set.State);
+                     if Trace_Generate > Outline then
+                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (C.Last_Index));
+                     end if;
+
+                     Add (C (I).Goto_List, Symbol, C.Last_Index);
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
@@ -179,7 +172,7 @@ package body WisiToken.LR.LR1_Generate is
       --  Add actions for all Item_Sets to Table.
    begin
       for Item_Set of Item_Sets loop
-         Add_Actions (Item_Set, Table, Grammar, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
+         Add_Actions (Item_Set, Table, Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
       end loop;
 
       if Trace then

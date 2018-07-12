@@ -31,7 +31,6 @@ package body WisiToken.LR.LR1_Items.AUnit is
    is
       use Token_ID_Arrays_AUnit;
    begin
-      Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Prod", Computed.Prod, Expected.Prod);
       Check (Label & ".Dot", Computed.Dot, Expected.Dot);
       if Match_Lookaheads then
@@ -129,13 +128,12 @@ package body WisiToken.LR.LR1_Items.AUnit is
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Prod       : in WisiToken.Production_ID;
       Dot        : in Positive;
-      Lookaheads : in Lookahead;
-      State      : in WisiToken.Unknown_State_Index := WisiToken.Unknown_State)
+      Lookaheads : in Lookahead)
      return Item
    is
       Dot_I : constant Token_ID_Arrays.Cursor := Grammar (Prod.Nonterm).RHSs (Prod.RHS).Tokens.To_Cursor (Dot);
    begin
-      return (Prod, Dot_I, State, new Token_ID_Set'(Lookaheads));
+      return (Prod, Dot_I, new Token_ID_Set'(Lookaheads));
    end Get_Item;
 
    function "+" (Item : in LR1_Items.Item) return Item_Set
@@ -143,7 +141,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
       return Item_Set'
         (Set       => Item_Lists.To_List (Item),
          Goto_List => <>,
-         State     => Item.State);
+         State     => <>);
    end "+";
 
    function "&"
@@ -173,10 +171,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
       Item  : in LR1_Items.Item)
      return Item_Set
    is begin
-      return Result : Item_Set := (Set => Item_Lists.To_List (Item), Goto_List => <>, State => State)
-      do
-         Set_State (Result.Set, State);
-      end return;
+      return (Set => Item_Lists.To_List (Item), Goto_List => <>, State => State);
    end "+";
 
    function "+"
@@ -184,10 +179,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
       Item  : in Item_Lists.List)
      return Item_Set
    is begin
-      return Result : Item_Set := (Set => Item, Goto_List => <>, State => State)
-      do
-         Set_State (Result.Set, State);
-      end return;
+      return (Set => Item, Goto_List => <>, State => State);
    end "+";
 
    function "&"

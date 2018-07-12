@@ -126,13 +126,6 @@ package body WisiToken.LR.LR1_Items is
       List.Insert (I, Item);
    end Add;
 
-   procedure Set_State (List : in out Item_Lists.List; State : in Unknown_State_Index)
-   is begin
-      for I in List.Iterate loop
-         List (I).State := State;
-      end loop;
-   end Set_State;
-
    procedure Include
      (Set               : in out Lookahead;
       Value             : in     Lookahead;
@@ -325,7 +318,6 @@ package body WisiToken.LR.LR1_Items is
    function Merge
      (Prod         : in     Production_ID;
       Dot          : in     Token_ID_Arrays.Cursor;
-      State        : in     Unknown_State_Index;
       Lookaheads   : in     Lookahead;
       Existing_Set : in out Item_Set)
      return Boolean
@@ -339,7 +331,7 @@ package body WisiToken.LR.LR1_Items is
       Modified : Boolean                    := False;
    begin
       if Found = No_Element then
-         Add (Existing_Set.Set, (Prod, Dot, State, new Token_ID_Set'(Lookaheads)));
+         Add (Existing_Set.Set, (Prod, Dot, new Token_ID_Set'(Lookaheads)));
 
          Modified := True;
       else
@@ -367,8 +359,8 @@ package body WisiToken.LR.LR1_Items is
 
       I : Item_Set; --  The result.
 
-      Item_I : Item_Lists.Cursor; -- iterator 'for each item in I'
-      Added_Item : Boolean := False; -- 'until no more items can be added'
+      Item_I     : Item_Lists.Cursor; -- iterator 'for each item in I'
+      Added_Item : Boolean := False;  -- 'until no more items can be added'
 
       Beta : Token_ID_Arrays.Cursor; -- into RHS.Tokens
    begin
@@ -410,13 +402,13 @@ package body WisiToken.LR.LR1_Items is
                                     --  Lookaheads are all terminals, so
                                     --  FIRST (a) = a.
                                     Added_Item := Added_Item or
-                                      Merge (P_ID_2, RHS_2.Tokens.First, Set.State, Item.Lookaheads.all, I);
+                                      Merge (P_ID_2, RHS_2.Tokens.First, Item.Lookaheads.all, I);
                                     exit First_Tail;
 
                                  elsif Element (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
                                     --  FIRST (Beta) = Beta
                                     Added_Item := Added_Item or Merge
-                                      (P_ID_2, RHS_2.Tokens.First, Set.State,
+                                      (P_ID_2, RHS_2.Tokens.First,
                                        To_Lookahead (Element (Beta), Descriptor), I);
                                     exit First_Tail;
 
@@ -426,7 +418,7 @@ package body WisiToken.LR.LR1_Items is
                                        if First (Element (Beta), Terminal) then
                                           Added_Item := Added_Item or
                                             Merge
-                                              (P_ID_2, RHS_2.Tokens.First, Set.State,
+                                              (P_ID_2, RHS_2.Tokens.First,
                                                To_Lookahead (Terminal, Descriptor), I);
                                        end if;
                                     end loop;
@@ -508,10 +500,7 @@ package body WisiToken.LR.LR1_Items is
         return Boolean)
      return Item_Set
    is begin
-      return Result : Item_Set :=
-        (Set       => <>,
-         Goto_List => Set.Goto_List,
-         State     => Set.State)
+      return Result : Item_Set := (Set => <>, Goto_List => Set.Goto_List, State => Set.State)
       do
          for Item of Set.Set loop
             if Include (Grammar, Descriptor, Item) then
@@ -525,7 +514,6 @@ package body WisiToken.LR.LR1_Items is
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in LR1_Items.Item;
-      Show_State      : in Boolean;
       Show_Lookaheads : in Boolean)
      return String
    is
@@ -554,10 +542,6 @@ package body WisiToken.LR.LR1_Items is
          Result := Result & " ^";
       end if;
 
-      if Show_State and Item.State /= Unknown_State then
-         Result := Result & " in " & Unknown_State_Index'Image (Item.State);
-      end if;
-
       if Show_Lookaheads then
          Result := Result & ", " & Lookahead_Image (Item.Lookaheads.all, Descriptor);
       end if;
@@ -571,7 +555,7 @@ package body WisiToken.LR.LR1_Items is
       Item            : in LR1_Items.Item;
       Show_Lookaheads : in Boolean := True)
    is begin
-      Ada.Text_IO.Put (Image (Grammar, Descriptor, Item, Show_State => True, Show_Lookaheads => Show_Lookaheads));
+      Ada.Text_IO.Put (Image (Grammar, Descriptor, Item, Show_Lookaheads => Show_Lookaheads));
    end Put;
 
    procedure Put
@@ -606,7 +590,7 @@ package body WisiToken.LR.LR1_Items is
            In_Kernel (Grammar, Descriptor, It)
          then
             Put_Line
-              ("  " & Image (Grammar, Descriptor, It, Show_State => False, Show_Lookaheads => Show_Lookaheads));
+              ("  " & Image (Grammar, Descriptor, It, Show_Lookaheads => Show_Lookaheads));
          end if;
       end loop;
 

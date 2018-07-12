@@ -139,11 +139,8 @@ package body WisiToken.LR.LALR_Generate is
       use LR1_Items.Item_Lists;
 
       Goto_Set : Item_Set;
-
-      Dot_ID : Token_ID;
+      Dot_ID   : Token_ID;
    begin
-      Goto_Set.State := Unknown_State;
-
       for Item of Kernel.Set loop
 
          if Has_Element (Item.Dot) then
@@ -160,7 +157,6 @@ package body WisiToken.LR.LALR_Generate is
                  (Goto_Set.Set,
                   (Prod       => Item.Prod,
                    Dot        => Next (Item.Dot),
-                   State      => Unknown_State, -- replaced in Kernels
                    Lookaheads => new Token_ID_Set'(Item.Lookaheads.all)));
 
                if Trace_Generate > Detail then
@@ -192,7 +188,6 @@ package body WisiToken.LR.LALR_Generate is
                                 (Goto_Set.Set,
                                  (Prod       => P_ID,
                                   Dot        => Next (Dot_2),
-                                  State      => Unknown_State, -- replaced in Kernels
                                   Lookaheads => Null_Lookahead (Descriptor)));
 
                               if Trace_Generate > Detail then
@@ -234,7 +229,6 @@ package body WisiToken.LR.LALR_Generate is
         (Set            => Item_Lists.To_List
            ((Prod       => (Grammar.First_Index, 0),
              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-             State      => First_State_Index,
              Lookaheads => Null_Lookahead (Descriptor))),
          Goto_List      => <>,
          State          => First_State_Index);
@@ -243,19 +237,20 @@ package body WisiToken.LR.LALR_Generate is
 
          New_Items_To_Check := False;
 
-         for Checking_Set in reverse Kernels.First_Index .. Kernels.Last_Index loop
+         for Checking_State in reverse Kernels.First_Index .. Kernels.Last_Index loop
             --  Note that Kernels.Last_Index is not updated to reflect kernels
             --  added in the body of the loop. Reverse for consistency with a
             --  previous version that used a linked list for Kernels.
 
             if Trace_Generate > Detail then
                Ada.Text_IO.Put ("Checking ");
-               Put (Grammar, Descriptor, Kernels (Checking_Set));
+               Put (Grammar, Descriptor, Kernels (Checking_State));
             end if;
 
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop
 
-               New_Item_Set := LALR_Goto_Transitions (Kernels (Checking_Set), Symbol, First, Grammar, Descriptor);
+               New_Item_Set := LALR_Goto_Transitions
+                 (Kernels (Checking_State), Symbol, First, Grammar, Descriptor);
 
                if New_Item_Set.Set.Length > 0 then
 
@@ -266,28 +261,26 @@ package body WisiToken.LR.LALR_Generate is
 
                      New_Item_Set.State := Kernels.Last_Index + 1;
 
-                     Set_State (New_Item_Set.Set, New_Item_Set.State);
-
                      Kernels.Append (New_Item_Set);
 
                      if Trace_Generate > Detail then
-                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Item_Set.State));
+                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
                      end if;
 
-                     Add (Kernels (Checking_Set).Goto_List, Symbol, New_Item_Set.State);
+                     Add (Kernels (Checking_State).Goto_List, Symbol, Kernels.Last_Index);
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In ((Symbol, Found_State), Kernels (Checking_Set).Goto_List) then
+                     if not Is_In ((Symbol, Found_State), Kernels (Checking_State).Goto_List) then
                         if Trace_Generate > Detail then
                            Ada.Text_IO.Put_Line
-                             ("  state" & Unknown_State_Index'Image (Kernels (Checking_Set).State) &
+                             ("  state" & Unknown_State_Index'Image (Checking_State) &
                                 " adding goto on " & Image (Symbol, Descriptor) & " to state" &
                                 Unknown_State_Index'Image (Found_State));
 
                         end if;
 
-                        Add (Kernels (Checking_Set).Goto_List, Symbol, Found_State);
+                        Add (Kernels (Checking_State).Goto_List, Symbol, Found_State);
                      end if;
                   end if;
                end if;
@@ -474,10 +467,12 @@ package body WisiToken.LR.LALR_Generate is
       Trace                : in     Boolean;
       Descriptor           : in     LALR_Descriptor)
    is
-      Kernel_Item_Set : LR1_Items.Item_Set :=
+      use LR1_Items.Item_Set_Arrays;
+
+      Kernel_Item_Set : LR1_Items.Item_Set := -- used for temporary storage
         (Set       => <>,
          Goto_List => <>,
-         State     => Unknown_State);
+         State     => <>);
 
       Closure : LR1_Items.Item_Set;
 
@@ -496,7 +491,6 @@ package body WisiToken.LR.LALR_Generate is
             Kernel_Item_Set.Set (Kernel_Item_Set.Set.First) :=
               (Kernel_Item.Prod,
                Kernel_Item.Dot,
-               Kernel_Item.State,
                Propagate_Lookahead (Descriptor));
 
             Closure := LR1_Items.Closure
@@ -504,8 +498,8 @@ package body WisiToken.LR.LALR_Generate is
 
             for Closure_Item of Closure.Set loop
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel, Closure_Item, Propagation_List, Used_Tokens, Trace, Descriptor, Grammar,
-                  Kernels);
+                 (Kernel_Item, Kernel, Closure_Item, Propagation_List, Used_Tokens, Trace, Descriptor,
+                  Grammar, Kernels);
             end loop;
          end loop;
       end loop;
@@ -537,8 +531,7 @@ package body WisiToken.LR.LALR_Generate is
            (Kernel, Has_Empty_Production, First, Grammar, Descriptor);
 
          Add_Actions
-           (Closure, Table, Grammar, Has_Empty_Production, First, Conflicts,
-            Trace_Generate > Detail, Descriptor);
+           (Closure, Table, Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
       end loop;
 
       if Trace_Generate > Detail then

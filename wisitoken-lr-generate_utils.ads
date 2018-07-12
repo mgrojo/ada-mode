@@ -57,7 +57,6 @@ package WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class);
    --  Add (Symbol, Action) to Action_List; check for conflicts
    --
@@ -70,7 +69,6 @@ package WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class);
    --  Add actions for Closure to Table. Has_Empty_Production, First,
    --  Conflicts used for conflict reporting.
@@ -83,7 +81,6 @@ package WisiToken.LR.Generate_Utils is
       First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
-      Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class);
    --  Add actions for Item.Lookaheads to Action_List
    --  Closure must be from the item set containing Item.

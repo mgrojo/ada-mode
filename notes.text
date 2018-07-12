@@ -19,7 +19,9 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-delete lr1_items.*.state?
+delete all 'Trace' args
+
+review lr1_items.* for actually used
 
 time wisi-generate
 
