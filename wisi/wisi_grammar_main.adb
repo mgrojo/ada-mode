@@ -261,7 +261,6 @@ package body Wisi_Grammar_Main is
          Table,
          User_Data,
          Max_Parallel         => 15,
-         First_Parser_Label   => 0,
          Terminate_Same_State => True);
    end Create_Parser;
 end Wisi_Grammar_Main;

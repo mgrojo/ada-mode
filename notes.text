@@ -19,6 +19,18 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+ada_lite_lr1_main.adb takes forever to compile
+    21095 lines, 2777 states
+    split into one subr per state
+
+get profile on lr1 ada_lite
+    exec_pro/wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
+        creates gmon.out
+
+    gprof exec_pro/wisi-generate.exe > generate_ada_lite_lr1.gprof
+
+    rerun with item_set_trees
+
 time wisi-generate ada_lite, ada
     rebuild with no debug
 
@@ -29,10 +41,18 @@ time wisi-generate ada_lite, ada
     time ./wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite_lr1.wy
         o.w     0m28.034s 0m27.237s
         o.w.s-1 ada_lite.wy 1m37.592s
+        item_set_tree       0m34.085s
 
     time ../org.wisitoken.stephe-1/build/wisi-generate.exe --generate LALR Ada re2c ada.wy
-        o.e.a_m.s-2 0m16.739s 0m16.166s
-        o.e.a_m.s-4 0m15.983s 0m16.006s
+        o.e.a_m.s-2     0m16.739s 0m16.166s
+        o.e.a_m.s-4     0m15.983s 0m16.006s
+        item_set_tree   0m11.276s
+
+effect of lr1/lalr on mckenzie
+    wisi/ada_lite_lalr_run.exe -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lalr_recover.log
+    wisi/ada_lite_lr1_run.exe  -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lr1_recover.log
+
+    lr1 finds significantly better solutions significantly quicker
 
 propagate to main
 
@@ -388,13 +408,14 @@ wisi-generate lr1 way too slow for Ada
             => use cache; invalidate when ?
 
         fast find (set, states)
-            => Store states in red/black tree sorted on concat LHS/dot position
+            => Store states in red/black tree sorted on concat prod_count/LHS/RHS/dot position
                 or hash table on that key
                     keeps changing, not clear if it's worth finding a perfect hash table
                 each node has a list of states that differ only in lookahead
-                => one for LALR
+            also need to traverse states in state order
+                only for backward compatibility.
 
-        no 'free'; don't allocate item on heap until we know we need it
+            store states in vector, build tree that holds state_index to point to vector
 
     lalr_goto_transitions needs:
         fast find prod, dot in goto_set

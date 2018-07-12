@@ -228,6 +228,7 @@ package body WisiToken.LR.LR1_Items is
       use Item_Lists;
       use all type Token_ID_Arrays.Cursor;
    begin
+      --  FIXME: item_set ordered on LHS?
       for Cur in Right.Set.Iterate loop
          if Prod = Constant_Ref (Cur).Prod and
            Dot = Constant_Ref (Cur).Dot and
@@ -240,39 +241,188 @@ package body WisiToken.LR.LR1_Items is
       return No_Element;
    end Find;
 
+   function To_Item_Set_Tree_Key (Item_Set : in LR1_Items.Item_Set) return Item_Set_Tree_Key
+   is
+      Cur : Item_Lists.Cursor := Item_Set.Set.First;
+   begin
+      return Result : Item_Set_Tree_Key do
+         Result.Prod_Count := Integer (Item_Set.Set.Length);
+         declare
+            Item_1 : Item renames Item_Set.Set (Cur);
+         begin
+            Result.Prod_1_LHS := Item_1.Prod.Nonterm;
+            Result.Prod_1_RHS := Item_1.Prod.RHS;
+            Result.Prod_1_Dot := Token_ID_Arrays.To_Index (Item_1.Dot);
+         end;
+
+         if Result.Prod_Count = 1 then
+            Result.Prod_2_LHS := Invalid_Token_ID;
+            Result.Prod_2_RHS := 0;
+            Result.Prod_2_Dot := 0;
+         else
+            Item_Lists.Next (Cur);
+            declare
+               Item_2 : Item renames Item_Set.Set (Cur);
+            begin
+               Result.Prod_2_LHS := Item_2.Prod.Nonterm;
+               Result.Prod_2_RHS := Item_2.Prod.RHS;
+               Result.Prod_2_Dot := Token_ID_Arrays.To_Index (Item_2.Dot);
+            end;
+         end if;
+      end return;
+   end To_Item_Set_Tree_Key;
+
+   function Item_Set_Tree_Key_Less (Left, Right : in Item_Set_Tree_Key) return Boolean
+   is begin
+      if Left.Prod_Count < Right.Prod_Count then
+         return True;
+      elsif Left.Prod_Count > Right.Prod_Count then
+         return False;
+
+      elsif Left.Prod_1_LHS < Right.Prod_1_LHS then
+         return True;
+      elsif Left.Prod_1_LHS > Right.Prod_1_LHS then
+         return False;
+
+      elsif Left.Prod_1_RHS < Right.Prod_1_RHS then
+         return True;
+      elsif Left.Prod_1_RHS > Right.Prod_1_RHS then
+         return False;
+
+      elsif Left.Prod_1_Dot < Right.Prod_1_Dot then
+         return True;
+      elsif Left.Prod_1_Dot > Right.Prod_1_Dot then
+         return False;
+
+      elsif Left.Prod_2_LHS < Right.Prod_2_LHS then
+         return True;
+      elsif Left.Prod_2_LHS > Right.Prod_2_LHS then
+         return False;
+
+      elsif Left.Prod_2_RHS < Right.Prod_2_RHS then
+         return True;
+      elsif Left.Prod_2_RHS > Right.Prod_2_RHS then
+         return False;
+
+      else
+         return Left.Prod_2_Dot < Right.Prod_2_Dot;
+      end if;
+   end Item_Set_Tree_Key_Less;
+
    function Find
-     (Left             : in Item_Set;
-      Right            : in Item_Set_List;
+     (New_Item_Set     : in Item_Set;
+      Item_Set_Array   : in Item_Set_List;
+      Item_Set_Tree    : in Item_Set_Trees.Tree;
       Match_Lookaheads : in Boolean)
      return Unknown_State_Index
    is
-      use all type Ada.Containers.Count_Type;
-      use Item_Lists;
+      use all type Item_Set_Trees.Cursor;
 
-      Missing : Boolean;
+      Tree_It    : constant Item_Set_Trees.Iterator := Item_Set_Trees.Iterate (Item_Set_Tree);
+      Key        : constant Item_Set_Tree_Key       := To_Item_Set_Tree_Key (New_Item_Set);
+      Found_Tree : constant Item_Set_Trees.Cursor   := Tree_It.Find (Key);
+
+      function Compare (Known_Item_Set : in Item_Set) return Boolean
+      is
+         use Item_Lists;
+
+         --  We already know they have the same number of items, and the same
+         --  LHS/RHS/Dot for the first two productions.
+
+         Known_Cur : Cursor := Known_Item_Set.Set.First;
+         New_Cur   : Cursor := New_Item_Set.Set.First;
+      begin
+         if Match_Lookaheads then
+            for I in 1 .. Key.Prod_Count loop
+               declare
+                  Known_Item : Item renames Constant_Ref (Known_Cur);
+                  New_Item   : Item renames Constant_Ref (New_Cur);
+               begin
+                  if Known_Item.Lookaheads.all /= New_Item.Lookaheads.all then
+                     --  FIXME: different data structure for lookahead so /= is faster?
+                     return False;
+                  end if;
+                  if I >= 3 then
+                     if Known_Item.Prod /= New_Item.Prod then
+                        return False;
+                     elsif Token_ID_Arrays.To_Index (Known_Item.Dot) /= Token_ID_Arrays.To_Index (New_Item.Dot) then
+                        --  FIXME: store integer dot, use To_Cursor or () elsewhere; we do this way more often?
+                        return False;
+                     end if;
+                  end if;
+               end;
+               Item_Lists.Next (Known_Cur);
+               Item_Lists.Next (New_Cur);
+            end loop;
+            return True;
+         else
+            if Key.Prod_Count <= 2 then
+               return True;
+            else
+               Item_Lists.Next (Known_Cur);
+               Item_Lists.Next (New_Cur);
+               Item_Lists.Next (Known_Cur);
+               Item_Lists.Next (New_Cur);
+               for I in 3 .. Key.Prod_Count loop
+                  declare
+                     Known_Item : Item renames Constant_Ref (Known_Cur);
+                     New_Item   : Item renames Constant_Ref (New_Cur);
+                  begin
+                     if Known_Item.Prod /= New_Item.Prod then
+                        return False;
+                     elsif Token_ID_Arrays.To_Index (Known_Item.Dot) /= Token_ID_Arrays.To_Index (New_Item.Dot) then
+                        return False;
+                     end if;
+                  end;
+                  Item_Lists.Next (Known_Cur);
+                  Item_Lists.Next (New_Cur);
+               end loop;
+               return True;
+            end if;
+         end if;
+      end Compare;
+
    begin
-      for Right_Index in Right.First_Index .. Right.Last_Index loop
-         Missing := False;
+      if Found_Tree = Item_Set_Trees.No_Element then
+         return Unknown_State;
+      end if;
 
-         for Right_Item of Right (Right_Index).Set loop
-
-            if not Has_Element
-              (Find
-                 (Right_Item.Prod, Right_Item.Dot, Left,
-                  (if Match_Lookaheads then Right_Item.Lookaheads else null)))
-            then
-               Missing := True;
-               exit;
+      declare
+         Node : Item_Set_Tree_Node renames Item_Set_Tree.Constant_Ref (Found_Tree);
+      begin
+         for State of Node.States loop
+            if Compare (Item_Set_Array (State)) then
+               return State;
             end if;
          end loop;
 
-         if not Missing and Left.Set.Length = Right (Right_Index).Set.Length then
-            return Right_Index;
-         end if;
-      end loop;
-
-      return Unknown_State;
+         return Unknown_State;
+      end;
    end Find;
+
+   procedure Add
+     (New_Item_Set    : in     Item_Set;
+      Item_Set_Vector : in out Item_Set_List;
+      Item_Set_Tree   : in out Item_Set_Trees.Tree)
+   is
+      use Item_Set_Trees;
+      Tree_It : constant Iterator          := Iterate (Item_Set_Tree);
+      Key     : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set);
+      Found   : constant Cursor            := Tree_It.Find (Key);
+   begin
+      Item_Set_Vector.Append (New_Item_Set);
+
+      if Found /= No_Element then
+         declare
+            Node : Item_Set_Tree_Node renames Item_Set_Tree.Variable_Ref (Found);
+         begin
+            Node.States.Append (New_Item_Set.State);
+         end;
+      else
+         --  FIXME: use Found to optimize insert?
+         Item_Set_Tree.Insert ((Key, State_Index_Arrays.To_Vector (New_Item_Set.State)));
+      end if;
+   end Add;
 
    function Is_In
      (Item      : in Goto_Item;

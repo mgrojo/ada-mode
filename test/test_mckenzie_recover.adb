@@ -1704,6 +1704,7 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
+      --  FIXME: add run-time choice of LR1 vs LALR
       Create_Parser
         (Parser,
          Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access,

@@ -219,19 +219,23 @@ package body WisiToken.LR.LALR_Generate is
 
       First_State_Index  : constant State_Index := 0;
       Kernels            : LR1_Items.Item_Set_List;
+      Kernel_Tree        : LR1_Items.Item_Set_Trees.Tree; -- for fast find
       New_Items_To_Check : Boolean              := True;
-      New_Item_Set       : Item_Set;
-      Found_State        : Unknown_State_Index;
-   begin
-      Kernels.Set_First (First_State_Index);
-      Kernels.Set_Last (First_State_Index);
-      Kernels (First_State_Index) :=
+
+      New_Item_Set : Item_Set :=
         (Set            => Item_Lists.To_List
            ((Prod       => (Grammar.First_Index, 0),
              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
              Lookaheads => Null_Lookahead (Descriptor))),
          Goto_List      => <>,
          State          => First_State_Index);
+
+      Found_State : Unknown_State_Index;
+   begin
+      Kernels.Set_First (First_State_Index);
+      Kernels.Set_Last (First_State_Index);
+      Kernels (First_State_Index) := New_Item_Set;
+      Kernel_Tree.Insert ((To_Item_Set_Tree_Key (New_Item_Set), State_Index_Arrays.To_Vector (First_State_Index)));
 
       while New_Items_To_Check loop
 
@@ -254,14 +258,14 @@ package body WisiToken.LR.LALR_Generate is
 
                if New_Item_Set.Set.Length > 0 then
 
-                  Found_State := Find (New_Item_Set, Kernels, Match_Lookaheads => False);
+                  Found_State := Find (New_Item_Set, Kernels, Kernel_Tree, Match_Lookaheads => False);
 
                   if Found_State = Unknown_State then
                      New_Items_To_Check := True;
 
                      New_Item_Set.State := Kernels.Last_Index + 1;
 
-                     Kernels.Append (New_Item_Set);
+                     Add (New_Item_Set, Kernels, Kernel_Tree);
 
                      if Trace_Generate > Detail then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));

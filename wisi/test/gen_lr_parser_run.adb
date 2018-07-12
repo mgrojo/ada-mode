@@ -31,9 +31,10 @@ procedure Gen_LR_Parser_Run
 is
    procedure Put_Usage
    is begin
-      Put_Line ("usage: *_run [-v <integer>] filename");
+      Put_Line ("usage: *_run [-v <integer>][-m <integer>] filename");
       Put_Line ("  parse input file, executing grammar actions");
-      Put_Line ("  -v : output trace of states while parsing");
+      Put_Line ("  -v : trace_parse");
+      Put_Line ("  -m : trace_mckenzie");
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -96,6 +97,27 @@ begin
          end if;
 
          File_Name := +Argument (3);
+
+      when 5 =>
+         if Argument (1) = "-v" then
+            WisiToken.Trace_Parse := Integer'Value (Argument (2));
+
+         else
+            Set_Exit_Status (Failure);
+            Put_Usage;
+            return;
+         end if;
+
+         if Argument (3) = "-m" then
+            WisiToken.Trace_McKenzie := Integer'Value (Argument (4));
+
+         else
+            Set_Exit_Status (Failure);
+            Put_Usage;
+            return;
+         end if;
+
+         File_Name := +Argument (5);
 
       when others =>
          Set_Exit_Status (Failure);

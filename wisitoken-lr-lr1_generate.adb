@@ -79,24 +79,27 @@ package body WisiToken.LR.LR1_Generate is
 
       First_State_Index : constant State_Index := 0;
 
-      C          : LR1_Items.Item_Set_List; -- result
-      Added_Item : Boolean := True;         -- 'until no more items can be added'
+      C          : LR1_Items.Item_Set_List;       -- result
+      C_Tree     : LR1_Items.Item_Set_Trees.Tree; -- for fast find
+      Added_Item : Boolean := True;               -- 'until no more items can be added'
 
-      New_Item_Set : Item_Set;
+      New_Item_Set : Item_Set :=
+        (Set            => Item_Lists.To_List
+           ((Prod       => (Grammar.First_Index, 0),
+             Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
+             Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOF_ID, Descriptor)))),
+         Goto_List      => <>,
+         State          => First_State_Index);
+
       Found_State  : Unknown_State_Index;
 
    begin
       C.Set_First (First_State_Index);
       C.Set_Last (First_State_Index);
 
-      C (First_State_Index) := Closure
-        ((Set            => Item_Lists.To_List
-            ((Prod       => (Grammar.First_Index, 0),
-              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-              Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOF_ID, Descriptor)))),
-          Goto_List      => <>,
-          State          => First_State_Index),
-         Has_Empty_Production, First, Grammar, Descriptor);
+      C (First_State_Index) := Closure (New_Item_Set, Has_Empty_Production, First, Grammar, Descriptor);
+
+      C_Tree.Insert ((To_Item_Set_Tree_Key (C (First_State_Index)), State_Index_Arrays.To_Vector (First_State_Index)));
 
       loop
          Added_Item := False;
@@ -112,19 +115,18 @@ package body WisiToken.LR.LR1_Generate is
 
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
 
-               New_Item_Set := LR1_Goto_Transitions
-                 (C (I), Symbol, Has_Empty_Production, First, Grammar, Descriptor);
+               New_Item_Set := LR1_Goto_Transitions (C (I), Symbol, Has_Empty_Production, First, Grammar, Descriptor);
 
                if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
 
-                  Found_State := Find (New_Item_Set, C, Match_Lookaheads => True); -- 'not in C'
+                  Found_State := Find (New_Item_Set, C, C_Tree, Match_Lookaheads => True); -- 'not in C'
 
                   if Found_State = Unknown_State then
                      Added_Item := True;
 
                      New_Item_Set.State := C.Last_Index + 1;
 
-                     C.Append (New_Item_Set);
+                     Add (New_Item_Set, C, C_Tree);
 
                      if Trace_Generate > Outline then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (C.Last_Index));

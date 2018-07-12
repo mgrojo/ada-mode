@@ -29,6 +29,7 @@
 pragma License (Modified_GPL);
 
 with SAL.Gen_Definite_Doubly_Linked_Lists;
+with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Productions;
 package WisiToken.LR.LR1_Items is
@@ -91,9 +92,6 @@ package WisiToken.LR.LR1_Items is
       State     : Unknown_State_Index := Unknown_State;
    end record;
 
-   package Item_Set_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (State_Index, Item_Set);
-   subtype Item_Set_List is Item_Set_Arrays.Vector;
-
    function Filter
      (Set        : in     Item_Set;
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -135,15 +133,65 @@ package WisiToken.LR.LR1_Items is
    --
    --  Lookaheads is non-null in LR1_Generate.
 
+   package Item_Set_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (State_Index, Item_Set);
+   subtype Item_Set_List is Item_Set_Arrays.Vector;
+
+   package State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, State_Index);
+
+   type Item_Set_Tree_Key is record
+      Prod_Count : Integer  := 0;
+      Prod_1_LHS : Token_ID := Invalid_Token_ID;
+      Prod_1_RHS : Integer  := 0;
+      Prod_1_Dot : Integer  := 0;
+      Prod_2_LHS : Token_ID := Invalid_Token_ID;
+      Prod_2_RHS : Integer  := 0;
+      Prod_2_Dot : Integer  := 0;
+      --  We want a key that is definite (hence not String or unconstrained
+      --  array), and has enough info to significantly speed the search for
+      --  an item set. Most states have only one or two productions in the
+      --  kernel.
+      --
+      --  FIXME: prod_count, rhs, dot are all small; use 8 bit integers, add
+      --  rep clause.
+   end record;
+
+   type Item_Set_Tree_Node is record
+      Key    : Item_Set_Tree_Key;
+      States : State_Index_Arrays.Vector;
+   end record;
+
+   function To_Item_Set_Tree_Key (Item_Set : in LR1_Items.Item_Set) return Item_Set_Tree_Key;
+   function To_Item_Set_Tree_Key (Node : in Item_Set_Tree_Node) return Item_Set_Tree_Key is
+     (Node.Key);
+
+   function Item_Set_Tree_Key_Less (Left, Right : in Item_Set_Tree_Key) return Boolean;
+
+   package Item_Set_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
+     (Element_Type => Item_Set_Tree_Node,
+      Key_Type     => Item_Set_Tree_Key,
+      Key          => To_Item_Set_Tree_Key,
+      "<"          => Item_Set_Tree_Key_Less);
+   --  Item_Set_Arrays.Vector holds state item sets indexed by state, for
+   --  iterating in state order. Item_Set_Trees.Tree holds lists of state
+   --  indices sorted by LR1 item info, for fast Find in LR1_Item_Sets
+   --  and LALR_Kernels.
+
    function Find
-     (Left             : in Item_Set;
-      Right            : in Item_Set_List;
+     (New_Item_Set     : in Item_Set;
+      Item_Set_Array   : in Item_Set_List;
+      Item_Set_Tree    : in Item_Set_Trees.Tree;
       Match_Lookaheads : in Boolean)
      return Unknown_State_Index;
    --  Return the index into Right of an element matching Left, Unknown_State if
    --  not found.
    --
    --  Match_Lookaheads is True in LR1_Generate.
+
+   procedure Add
+     (New_Item_Set    : in     Item_Set;
+      Item_Set_Vector : in out Item_Set_List;
+      Item_Set_Tree   : in out Item_Set_Trees.Tree);
+   --  Add New_Item_Set to Item_Set_Vector, Item_Set_Tree
 
    function Is_In
      (Item      : in Goto_Item;
