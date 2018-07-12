@@ -166,7 +166,6 @@ package body WisiToken.LR.LR1_Generate is
       First                : in     Token_Array_Token_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
-      Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor)
    is
       --  Add actions for all Item_Sets to Table.
@@ -175,7 +174,7 @@ package body WisiToken.LR.LR1_Generate is
          Add_Actions (Item_Set, Table, Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
       end loop;
 
-      if Trace then
+      if Trace_Generate > Outline then
          Ada.Text_IO.New_Line;
       end if;
    end Add_Actions;
@@ -267,8 +266,8 @@ package body WisiToken.LR.LR1_Generate is
    is
       use type Ada.Containers.Count_Type;
 
-      Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate > 1;
-      Ignore_Unknown_Conflicts : constant Boolean := WisiToken.Trace_Generate > 1;
+      Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate > Detail;
+      Ignore_Unknown_Conflicts : constant Boolean := WisiToken.Trace_Generate > Detail;
       Unused_Tokens            : constant Boolean := Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;
@@ -319,9 +318,7 @@ package body WisiToken.LR.LR1_Generate is
 
       Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
 
-      Add_Actions
-        (Item_Sets, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all,
-         Trace_Generate > Detail, Descriptor);
+      Add_Actions (Item_Sets, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Descriptor);
 
       if Put_Parse_Table then
          LR1_Generate.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);

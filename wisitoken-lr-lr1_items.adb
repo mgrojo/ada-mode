@@ -211,12 +211,11 @@ package body WisiToken.LR.LR1_Items is
    end Add;
 
    function Find
-     (Item             : in LR1_Items.Item;
-      Set              : in Item_Set;
-      Match_Lookaheads : in Boolean)
+     (Item : in LR1_Items.Item;
+      Set  : in Item_Set)
      return Item_Lists.Cursor
    is begin
-      return Find (Item.Prod, Item.Dot, Set, (if Match_Lookaheads then Item.Lookaheads else null));
+      return Find (Item.Prod, Item.Dot, Set, null);
    end Find;
 
    function Find
@@ -273,18 +272,6 @@ package body WisiToken.LR.LR1_Items is
       end loop;
 
       return Unknown_State;
-   end Find;
-
-   function Find
-     (State : in Unknown_State_Index;
-      Sets  : in Item_Set_List)
-     return Unknown_State_Index
-   is begin
-      if State in Sets.First_Index .. Sets.Last_Index then
-         return State;
-      else
-         return Unknown_State;
-      end if;
    end Find;
 
    function Is_In

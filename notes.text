@@ -19,11 +19,20 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-delete all 'Trace' args
+time wisi-generate ada_lite, ada
+    rebuild with no debug
 
-review lr1_items.* for actually used
+    time ./wisi-generate.exe ../wisi/test/ada_lite.wy
+        o.w     0m0.212s 0m0.217s
+        o.w.s-1 0m0.838s 0m0.836s
 
-time wisi-generate
+    time ./wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite_lr1.wy
+        o.w     0m28.034s 0m27.237s
+        o.w.s-1 ada_lite.wy 1m37.592s
+
+    time ../org.wisitoken.stephe-1/build/wisi-generate.exe --generate LALR Ada re2c ada.wy
+        o.e.a_m.s-2 0m16.739s 0m16.166s
+        o.e.a_m.s-4 0m15.983s 0m16.006s
 
 propagate to main
 

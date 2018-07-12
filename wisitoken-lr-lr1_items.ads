@@ -33,9 +33,6 @@ with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Productions;
 package WisiToken.LR.LR1_Items is
 
-   --  We need a special value of Lookahead to indicate '#' in
-   --  [dragon] LALR algorithm 4.12. That is implemented by setting
-   --  lookahead (Last_Nonterminal + 1) true.
    subtype Lookahead is Token_ID_Set;
 
    type Item is record
@@ -94,8 +91,6 @@ package WisiToken.LR.LR1_Items is
       State     : Unknown_State_Index := Unknown_State;
    end record;
 
-   Null_Item_Set : constant Item_Set := (others => <>);
-
    package Item_Set_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (State_Index, Item_Set);
    subtype Item_Set_List is Item_Set_Arrays.Vector;
 
@@ -119,15 +114,13 @@ package WisiToken.LR.LR1_Items is
    --  For use with Filter; [dragon] sec 4.7 pg 240
 
    function Find
-     (Item             : in LR1_Items.Item;
-      Set              : in Item_Set;
-      Match_Lookaheads : in Boolean)
+     (Item : in LR1_Items.Item;
+      Set  : in Item_Set)
      return Item_Lists.Cursor;
    --  Return an item from Set that matches Item; exclude Lookaheads if
    --  not Match_Lookaheads.
    --
    --  Return No_Element if not found.
-   --  FIXME: never called with Match_Lookaheads => True?
 
    function Find
      (Prod       : in     Production_ID;
@@ -139,7 +132,8 @@ package WisiToken.LR.LR1_Items is
    --  Lookaheads if non-null.
    --
    --  Return No_Element if not found.
-   --  FIXME: never called with Lookaheads /= null?
+   --
+   --  Lookaheads is non-null in LR1_Generate.
 
    function Find
      (Left             : in Item_Set;
@@ -148,14 +142,8 @@ package WisiToken.LR.LR1_Items is
      return Unknown_State_Index;
    --  Return the index into Right of an element matching Left, Unknown_State if
    --  not found.
-   --  FIXME: never called with Match_Lookaheads => True?
-
-   function Find
-     (State : in Unknown_State_Index;
-      Sets  : in Item_Set_List)
-     return Unknown_State_Index;
-   --  Return a pointer to the set in Sets containing State, null if not found.
-   --  FIXME: not used? just Sets (State)!
+   --
+   --  Match_Lookaheads is True in LR1_Generate.
 
    function Is_In
      (Item      : in Goto_Item;
