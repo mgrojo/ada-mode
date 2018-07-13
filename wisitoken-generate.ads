@@ -60,5 +60,16 @@ package WisiToken.Generate is
    --  (terminal or nonterminal) that any string derived from it can
    --  start with. Together with Has_Empty_Production, implements
    --  algorithm FIRST from [dragon], augmented with nonterminals.
+   --
+   --  LALR, LR1 generate want First as both Token_Sequence_Arrays.Vector
+   --  and Token_Array_Token_Set, Packrat wants Token_Array_Token_Set,
+   --  existing tests all use Token_Array_Token_Set. So for LR1 we use
+   --  To_Terminal_Sequence_Array.
+
+   function To_Terminal_Sequence_Array
+     (First      : in Token_Array_Token_Set;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return Token_Sequence_Arrays.Vector;
+   --  Only includes terminals.
 
 end WisiToken.Generate;

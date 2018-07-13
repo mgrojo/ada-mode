@@ -181,8 +181,8 @@ package body Test_LR_Expecting_Terminal_Sequence is
       pragma Unreferenced (T);
       use WisiToken.LR.AUnit;
       use WisiToken.LR.AUnit.Token_Sequence_Arrays_AUnit;
-      Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;
-      Expected : WisiToken.LR.Token_Sequence_Arrays.Vector;
+      Computed : WisiToken.Token_Sequence_Arrays.Vector;
+      Expected : WisiToken.Token_Sequence_Arrays.Vector;
       Sequence : WisiToken.Token_ID_Arrays.Vector;
    begin
       WisiToken.LR.Generate_Utils.Compute_Minimal_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);

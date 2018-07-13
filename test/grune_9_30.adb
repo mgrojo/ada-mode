@@ -82,10 +82,12 @@ package body Grune_9_30 is
        EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
-
-   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.First
-     (Grammar, Has_Empty_Production, LALR_Descriptor.First_Terminal);
+   Has_Empty_Production    : constant WisiToken.Token_ID_Set                 :=
+     WisiToken.Generate.Has_Empty_Production (Grammar);
+   First_Nonterm_Set       : constant WisiToken.Token_Array_Token_Set        := WisiToken.Generate.First
+     (Grammar, Has_Empty_Production, Token_Enum.LALR_Descriptor.First_Terminal);
+   First_Terminal_Sequence : constant WisiToken.Token_Sequence_Arrays.Vector :=
+     WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Token_Enum.LALR_Descriptor);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
@@ -100,7 +102,7 @@ package body Grune_9_30 is
       use WisiToken.LR.LR1_Items;
 
       Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, LR1_Descriptor);
+        (Has_Empty_Production, First_Terminal_Sequence, Grammar, LR1_Descriptor);
 
       Expected : Item_Set_List :=
         --  Item sets from [Grune] fig 9.31 a. States are numbered 1- from

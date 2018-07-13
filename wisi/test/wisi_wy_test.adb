@@ -135,8 +135,7 @@ package body Wisi_WY_Test is
    procedure Diff_Gen
      (Root_Name        : in String;
       Quad             : in Wisi.Generate_Quad;
-      If_Lexer_Present : in Boolean;
-      Actions_Present  : in Boolean)
+      If_Lexer_Present : in Boolean)
    is
       use Wisi;
 
@@ -166,14 +165,9 @@ package body Wisi_WY_Test is
 
       case Quad.Out_Lang is
       when Wisi.Ada =>
-         if Actions_Present then
-            Diff_One (Root_Name  & "_actions.adb", Skip => (1 => 2));
-            --  Line 2 contains the wisi-generate command line, which includes the
-            --  generate algorithm, which is irrelevant for the actions file, but
-            --  changes anyway.
-         end if;
-
-         Diff_One (Root_Name & Gen_Alg  & "_main.adb");
+         --  Not useful to diff the generated Ada source here; the fact that
+         --  the parse succeeds is enough.
+         null;
 
       when Ada_Emacs =>
          Diff_One (Root_Name & Int_Kind & "_actions.adb", Skip => (1 => 2));
@@ -259,7 +253,7 @@ package body Wisi_WY_Test is
 
          --  Do Diff_Gen after compile and execute, so we know the code is
          --  correct before we update _good.
-         Diff_Gen (Simple_Name, Quad, Test.If_Lexer_Present, Test.Actions_Present);
+         Diff_Gen (Simple_Name, Quad, Test.If_Lexer_Present);
       end loop;
    end Run_Test;
 

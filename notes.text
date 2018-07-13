@@ -19,25 +19,47 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-ada_lite_lr1_main.adb takes forever to compile
-    21095 lines, 2777 states
-    split into one subr per state
+lr1 parse_table states show full closure, not just kernel
 
-get profile on lr1 ada_lite
-    exec_pro/wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
-        creates gmon.out
+closure called in:
+    lalr_generate fill_in_lookaheads
+    lalr_generate add_actions
+        capture first, pass to second
 
-    gprof exec_pro/wisi-generate.exe > generate_ada_lite_lr1.gprof
+    lr1_generate LR1_Goto_Transitions
+    lr1_generate lr1_item_sets
+        first captured in lr1_item_sets; pass to second
 
-    rerun with item_set_trees
+get profile on generate lr1 ada_lite
+    make generate_ada_lite_lr1.gprof
+
+    top low level times:
+  4.95      9.44     0.70                             wisitoken__lr__lr1_items__include__4
+  4.49     10.07     0.64 379254210     0.00     0.00  wisitoken__lr__lr1_items__item_lists__constant_ref
+  3.89     10.62     0.55                             wisitoken__lr__lr1_items__find__compare__B_18__E297b__3.14023
+  2.76     11.02     0.39  7454674     0.00     0.00  wisitoken__lr__lr1_items__find__2
+  2.23     11.33     0.32 152718607     0.00     0.00  wisitoken__lr__lr1_items__item_lists__next__2
+  1.84     11.59     0.26 146677379     0.00     0.00  wisitoken__lr__lr1_items__item_lists__next__4
+  1.48     11.80     0.21 38812715     0.00     0.00  wisitoken__token_id_arrays__element__2
+  1.45     12.01     0.20 158746426     0.00     0.00  wisitoken__lr__lr1_items__item_lists__has_element
+  1.34     12.20     0.19  4608786     0.00     0.00  wisitoken__lr__lr1_generate__lr1_goto_transitions
+  1.27     12.38     0.18  4821257     0.00     0.00  wisitoken__to_lookahead
+
+    call graph:
+[2]     12.8    0.07    1.73                 wisitoken__lr__lr1_items__merge [2]
+                0.39    1.31 7454674/7454674     wisitoken__lr__lr1_items__find__2 [6]
+                0.00    0.04 7454674/7652313     wisitoken__lr__lr1_items__add [41]
+                0.00    0.00 6818725/6818725     wisitoken__lr__lr1_items__item_lists(long double,...)(float) [179]
 
 time wisi-generate ada_lite, ada
     rebuild with no debug
 
-    time ./wisi-generate.exe --time ../wisi/test/ada_lite.wy
+    time ./wisi-generate.exe --time --generate LALR Ada re2c ../wisi/test/ada_lite.wy
         o.w     0m0.212s 0m0.217s
         o.w.s-1 0m0.838s 0m0.836s
         improve find item in item_list  0.549 0.514
+        replace loop with grammar (lhs) 0.395
+        use first_terminal_sequence     0.399
 
     time ./wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
         o.w     ada_lite_lr1.wy     0m28.034s 0m27.237s
@@ -45,6 +67,8 @@ time wisi-generate ada_lite, ada
         item_set_tree               0m34.085s
         improve set_tree_key_less   0m33.990s 0m33.040s
         improve find item in item_list  0m34.105s 0m34.584s  34.418 34.695
+        replace loop with grammar (lhs) 10.672
+        use first_terminal_sequence     10.220
 
     time ./wisi-generate.exe --generate LALR Ada re2c ../../org.emacs.ada-mode.stephe-4/ada.wy
         o.e.a_m.s-2                 0m16.739s 0m16.166s
@@ -52,6 +76,8 @@ time wisi-generate ada_lite, ada
         item_set_tree               0m11.276s
         improve set_tree_key_less   0m11.558s 0m11.557s
         improve find item in item_list  0m11.597s 0m11.442s 0m11.414s 0m11.378s 0m11.589s  11.449
+        replace loop with grammar (lhs) 8.482
+        use first_terminal_sequence     8.449
 
 effect of lr1/lalr on mckenzie
     wisi/ada_lite_lalr_run.exe -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lalr_recover.log
@@ -385,55 +411,27 @@ wisi-generate accept two output languages
 
 wisi-generate lr1 way too slow for Ada
     time lalr generating Ada
-    time lr1 generating ada_lite (1634 states, tens of seconds)
+    time lr1 generating ada_lite
     time lr1 generating Ada to first 1000 states; increase as it gets better
 
     implement profile, get data
 
-    don't iterate on non-reporting
-
     lookahead list vs boolean array:
 
     closure needs:
-        fast access to all productions that have dot_id as the LHS
-            => array (nonterminal) of list of prod
-
-        fast access to First (beta) => array (nonterminal) of list of terminal
-
-        use multiple threads?
+        use multiple CPUs?
 
     lr1_goto_transitions needs:
         fast closure
         cache?
-
-        use optimizations from lalr_goto_transitions?
 
     LR1_Item_Sets needs:
         fast goto_transitions (state, token)
             => use cache; invalidate when ?
 
         fast find (set, states)
-            => Store states in red/black tree sorted on concat prod_count/LHS/RHS/dot position
-                or hash table on that key
-                    keeps changing, not clear if it's worth finding a perfect hash table
-                each node has a list of states that differ only in lookahead
-            also need to traverse states in state order
-                only for backward compatibility.
-
-            store states in vector, build tree that holds state_index to point to vector
-
-    lalr_goto_transitions needs:
-        fast find prod, dot in goto_set
-            null result is common
-            small set; linear search of list sorted on lhs
-
-        fast access to all productions where:
-            (Dot_ID = Nonterminal.ID (Prod.LHS) or First (Dot_ID)(Nonterminal.ID (Prod.LHS))) and
-                       (RHS.first /= Null_Iterator and then ID (RHS.first) = Symbol)
-            => array (nonterminal) of list of productions, sorted on rhs.first
-
-    lalr_kernels needs:
-        same as lr1_item_sets
+            => Store state_index in red/black tree sorted on concat prod_count/LHS/RHS/dot position
+                first try done; need better key?
 
     lalr calls closure on each kernel more than once!
         save the closure the first time?

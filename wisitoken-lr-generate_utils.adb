@@ -28,7 +28,7 @@ package body WisiToken.LR.Generate_Utils is
       Closure              : in     LR1_Items.Item_Set;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
@@ -65,8 +65,10 @@ package body WisiToken.LR.Generate_Utils is
                New_Conflict : constant Conflict :=
                  (Action_A    => Action_A.Verb,
                   Action_B    => Action_B.Verb,
-                  LHS_A       => Find (Closure, Action_A, Symbol, Grammar, Has_Empty_Production, First, Descriptor),
-                  LHS_B       => Find (Closure, Action_B, Symbol, Grammar, Has_Empty_Production, First, Descriptor),
+                  LHS_A       => Find
+                    (Closure, Action_A, Symbol, Grammar, Has_Empty_Production, First_Nonterm_Set, Descriptor),
+                  LHS_B       => Find
+                    (Closure, Action_B, Symbol, Grammar, Has_Empty_Production, First_Nonterm_Set, Descriptor),
                   State_Index => Closure.State,
                   On          => Symbol);
             begin
@@ -117,7 +119,7 @@ package body WisiToken.LR.Generate_Utils is
       Table                : in out Parse_Table;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
@@ -134,8 +136,8 @@ package body WisiToken.LR.Generate_Utils is
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
-              (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First, Conflicts, Closure,
-               Descriptor);
+              (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First_Nonterm_Set,
+               Conflicts, Closure, Descriptor);
 
          elsif Element (Item.Dot) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
@@ -159,7 +161,7 @@ package body WisiToken.LR.Generate_Utils is
                         --  EOF is not pushed on stack in parser, because the action for EOF
                         --  is Accept, not Shift.
                         Table.States (State).Action_List, Closure,
-                        Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
+                        Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
                   end;
                else
                   if Goto_State /= Unknown_State then
@@ -169,7 +171,7 @@ package body WisiToken.LR.Generate_Utils is
                          Productions => +Item.Prod,
                          State       => Goto_State),
                         Table.States (State).Action_List,
-                        Closure, Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
+                        Closure, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
                   end if;
                end if;
             end;
@@ -241,7 +243,7 @@ package body WisiToken.LR.Generate_Utils is
       Action_List          : in out Action_Node_Ptr;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Descriptor           : in     WisiToken.Descriptor'Class)
@@ -264,7 +266,7 @@ package body WisiToken.LR.Generate_Utils is
             else
                Add_Action
                  (Lookahead, Action, Action_List, Closure, Grammar,
-                  Has_Empty_Production, First, Conflicts, Descriptor);
+                  Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
             end if;
          end if;
       end loop;

@@ -25,7 +25,6 @@ package Wisi_WY_Test is
    type Test_Case
      (Root_Name        : access String;
       If_Lexer_Present : Boolean;
-      Actions_Present  : Boolean;
       Generate_Set     : Wisi.Generate_Set_Access)
      is new AUnit.Test_Cases.Test_Case with null record;
 

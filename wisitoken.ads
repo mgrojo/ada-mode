@@ -201,6 +201,8 @@ package WisiToken is
    --
    --  Descriptor'Class to avoid 'primitive operation declared too late'
 
+   package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
+
    type LALR_Descriptor
      (First_Terminal    : Token_ID;
       Last_Terminal     : Token_ID;

@@ -59,7 +59,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
          Generate_Data : aliased constant Wisi.Generate_Utils.Generate_Data := Initialize
            (Input_Data.Grammar_Lexer.File_Name, Input_Data.Tokens, Start_Token => "compilation_unit");
 
-         Computed : WisiToken.LR.Token_Sequence_Arrays.Vector;
+         Computed : WisiToken.Token_Sequence_Arrays.Vector;
          Sequence : WisiToken.Token_ID_Arrays.Vector;
       begin
          WisiToken.LR.Generate_Utils.Compute_Minimal_Terminal_Sequences

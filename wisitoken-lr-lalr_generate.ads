@@ -47,19 +47,19 @@ package WisiToken.LR.LALR_Generate is
    --  Visible for unit tests
 
    function LALR_Goto_Transitions
-     (Kernel     : in LR1_Items.Item_Set;
-      Symbol     : in Token_ID;
-      First      : in Token_Array_Token_Set;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in LALR_Descriptor)
+     (Kernel            : in LR1_Items.Item_Set;
+      Symbol            : in Token_ID;
+      First_Nonterm_Set : in Token_Array_Token_Set;
+      Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in LALR_Descriptor)
      return LR1_Items.Item_Set;
    --  Return the Item_Set that is the goto for Symbol from Kernel.
    --  If there is no such Item_Set, Result.Set is null.
 
    function LALR_Kernels
-     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      First      : in Token_Array_Token_Set;
-      Descriptor : in LALR_Descriptor)
+     (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
+      First_Nonterm_Set : in Token_Array_Token_Set;
+      Descriptor        : in LALR_Descriptor)
      return LR1_Items.Item_Set_List;
 
 end WisiToken.LR.LALR_Generate;

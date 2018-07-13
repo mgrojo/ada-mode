@@ -98,10 +98,12 @@ package body Dragon_4_43_LR1_Test is
        EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
      ));
 
-   Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
-
-   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.First
-     (Grammar, Has_Empty_Production, LR1_Descriptor.First_Terminal);
+   Has_Empty_Production    : constant WisiToken.Token_ID_Set                 :=
+     WisiToken.Generate.Has_Empty_Production (Grammar);
+   First_Nonterm_Set       : constant WisiToken.Token_Array_Token_Set        := WisiToken.Generate.First
+     (Grammar, Has_Empty_Production, Token_Enum.LALR_Descriptor.First_Terminal);
+   First_Terminal_Sequence : constant WisiToken.Token_Sequence_Arrays.Vector :=
+     WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Token_Enum.LALR_Descriptor);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
@@ -115,7 +117,7 @@ package body Dragon_4_43_LR1_Test is
 
       --  FIRST defined in [dragon] pg 189; we add nonterminals
 
-      Expected_First : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Token_Set
+      Expected_First_Nonterm_Set : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Token_Set
         ((Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
           Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
           Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False)));
@@ -127,10 +129,10 @@ package body Dragon_4_43_LR1_Test is
           Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True)));
 
       Computed_Follow : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.Follow
-        (Grammar, LR1_Descriptor, First, Has_Empty_Production);
+        (Grammar, LR1_Descriptor, First_Nonterm_Set, Has_Empty_Production);
    begin
       Check ("0", Has_Empty_Production, WisiToken.Token_ID_Set'(+Accept_ID .. +Upper_C_ID => False));
-      Check ("1", First, Expected_First);
+      Check ("1", First_Nonterm_Set, Expected_First_Nonterm_Set);
 
       if WisiToken.Trace_Action > WisiToken.Outline then
          Ada.Text_IO.Put_Line ("Follow:");
@@ -147,7 +149,7 @@ package body Dragon_4_43_LR1_Test is
       use WisiToken.LR.LR1_Items;
 
       Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, LR1_Descriptor);
+        (Has_Empty_Production, First_Terminal_Sequence, Grammar, LR1_Descriptor);
 
       Expected : Item_Set_List :=
         --  [dragon] fig 4.39 pg 235 shows the item sets and gotos. We

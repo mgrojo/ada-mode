@@ -55,7 +55,7 @@ package WisiToken.LR.Generate_Utils is
       Closure              : in     LR1_Items.Item_Set;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Descriptor           : in     WisiToken.Descriptor'Class);
    --  Add (Symbol, Action) to Action_List; check for conflicts
@@ -67,7 +67,7 @@ package WisiToken.LR.Generate_Utils is
       Table                : in out Parse_Table;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Descriptor           : in     WisiToken.Descriptor'Class);
    --  Add actions for Closure to Table. Has_Empty_Production, First,
@@ -78,7 +78,7 @@ package WisiToken.LR.Generate_Utils is
       Action_List          : in out Action_Node_Ptr;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Descriptor           : in     WisiToken.Descriptor'Class);

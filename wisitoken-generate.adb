@@ -184,4 +184,29 @@ package body WisiToken.Generate is
       return Matrix;
    end First;
 
+   function To_Terminal_Sequence_Array
+     (First      : in Token_Array_Token_Set;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return Token_Sequence_Arrays.Vector
+   is
+      subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
+   begin
+      return Result : Token_Sequence_Arrays.Vector do
+         Result.Set_First (First'First (1));
+         Result.Set_Last (First'Last (1));
+
+         for I in First'Range (1) loop
+            declare
+               Row : Token_ID_Arrays.Vector renames Result (I);
+            begin
+               for J in First'Range (2) loop
+                  if First (I, J) and then J in Terminal then
+                     Row.Append (J);
+                  end if;
+               end loop;
+            end;
+         end loop;
+      end return;
+   end To_Terminal_Sequence_Array;
+
 end WisiToken.Generate;

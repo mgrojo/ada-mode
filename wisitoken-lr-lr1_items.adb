@@ -489,11 +489,11 @@ package body WisiToken.LR.LR1_Items is
    end Merge;
 
    function Closure
-     (Set                  : in Item_Set;
-      Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor'Class)
+     (Set                     : in Item_Set;
+      Has_Empty_Production    : in Token_ID_Set;
+      First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
+      Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor              : in WisiToken.Descriptor'Class)
      return Item_Set
    is
       use all type Item_Lists.Cursor;
@@ -525,66 +525,63 @@ package body WisiToken.LR.LR1_Items is
             if Item.Dot /= No_Element and then
               Element (Item.Dot) in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal
             then
-               Beta := Next (Item.Dot); -- tokens after nonterminal, possibly null
+               declare
+                  Prod : WisiToken.Productions.Instance renames Grammar (Element (Item.Dot));
+               begin
 
-               For_Each_Production :
-               for Prod of Grammar loop
                   For_Each_RHS :
                   for B in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                      declare
                         RHS_2 : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (B);
                      begin
-                        if Prod.LHS = Element (Item.Dot) then
-                           --  Compute FIRST (<tail of right hand side> a); loop
-                           --  until find a terminal, a nonterminal that
-                           --  cannot be empty, or end of production, adding
-                           --  items on the way.
-                           First_Tail :
-                           loop
-                              declare
-                                 P_ID_2 : constant Production_ID := (Prod.LHS, B);
-                              begin
-                                 if Beta = No_Element then
-                                    --  Use FIRST (a); a = Item.Lookaheads.
-                                    --  Lookaheads are all terminals, so
-                                    --  FIRST (a) = a.
+                        --  Compute FIRST (<tail of right hand side> a); loop
+                        --  until find a terminal, a nonterminal that
+                        --  cannot be empty, or end of production, adding
+                        --  items on the way.
+
+                        Beta := Next (Item.Dot); -- tokens after nonterminal, possibly null
+
+                        First_Tail :
+                        loop
+                           declare
+                              P_ID_2 : constant Production_ID := (Prod.LHS, B);
+                           begin
+                              if Beta = No_Element then
+                                 --  Use FIRST (a); a = Item.Lookaheads.
+                                 --  Lookaheads are all terminals, so
+                                 --  FIRST (a) = a.
+                                 Added_Item := Added_Item or
+                                   Merge (P_ID_2, RHS_2.Tokens.First, Item.Lookaheads.all, I);
+                                 exit First_Tail;
+
+                              elsif Element (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+                                 --  FIRST (Beta) = Beta
+                                 Added_Item := Added_Item or Merge
+                                   (P_ID_2, RHS_2.Tokens.First,
+                                    To_Lookahead (Element (Beta), Descriptor), I);
+                                 exit First_Tail;
+
+                              else
+                                 --  Beta is a nonterminal; use FIRST (Beta)
+                                 for Terminal of First_Terminal_Sequence (Element (Beta)) loop
                                     Added_Item := Added_Item or
-                                      Merge (P_ID_2, RHS_2.Tokens.First, Item.Lookaheads.all, I);
-                                    exit First_Tail;
+                                      Merge
+                                        (P_ID_2, RHS_2.Tokens.First,
+                                         To_Lookahead (Terminal, Descriptor), I);
+                                 end loop;
 
-                                 elsif Element (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
-                                    --  FIRST (Beta) = Beta
-                                    Added_Item := Added_Item or Merge
-                                      (P_ID_2, RHS_2.Tokens.First,
-                                       To_Lookahead (Element (Beta), Descriptor), I);
-                                    exit First_Tail;
-
+                                 if Has_Empty_Production (Element (Beta)) then
+                                    --  Process the next token in the tail, or "a"
+                                    Beta := Next (Beta);
                                  else
-                                    --  Beta is a nonterminal; use FIRST (Beta)
-                                    for Terminal in Descriptor.First_Terminal .. Descriptor.Last_Terminal loop
-                                       if First (Element (Beta), Terminal) then
-                                          Added_Item := Added_Item or
-                                            Merge
-                                              (P_ID_2, RHS_2.Tokens.First,
-                                               To_Lookahead (Terminal, Descriptor), I);
-                                       end if;
-                                    end loop;
-
-                                    if Has_Empty_Production (Element (Beta)) then
-                                       --  Process the next token in the tail, or a
-                                       Beta := Next (Beta);
-                                    else
-                                       exit First_Tail;
-                                    end if;
+                                    exit First_Tail;
                                  end if;
-                              end;
-                           end loop First_Tail;
-
-                           Beta := Next (Item.Dot);
-                        end if;
+                              end if;
+                           end;
+                        end loop First_Tail;
                      end;
                   end loop For_Each_RHS;
-               end loop For_Each_Production;
+               end;
             end if; -- Dot is at non-terminal
          end;
 

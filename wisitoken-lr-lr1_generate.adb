@@ -26,12 +26,12 @@ with WisiToken.Generate;
 package body WisiToken.LR.LR1_Generate is
 
    function LR1_Goto_Transitions
-     (Set                  : in LR1_Items.Item_Set;
-      Symbol               : in Token_ID;
-      Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor)
+     (Set                     : in LR1_Items.Item_Set;
+      Symbol                  : in Token_ID;
+      Has_Empty_Production    : in Token_ID_Set;
+      First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
+      Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set
    is
       use all type Ada.Containers.Count_Type;
@@ -59,17 +59,17 @@ package body WisiToken.LR.LR1_Generate is
             Put (Grammar, Descriptor, Goto_Set, Show_Lookaheads => True);
          end if;
 
-         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Descriptor);
+         return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
       else
          return Goto_Set;
       end if;
    end LR1_Goto_Transitions;
 
    function LR1_Item_Sets
-     (Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor)
+     (Has_Empty_Production    : in Token_ID_Set;
+      First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
+      Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
       use all type Ada.Containers.Count_Type;
@@ -97,7 +97,8 @@ package body WisiToken.LR.LR1_Generate is
       C.Set_First (First_State_Index);
       C.Set_Last (First_State_Index);
 
-      C (First_State_Index) := Closure (New_Item_Set, Has_Empty_Production, First, Grammar, Descriptor);
+      C (First_State_Index) := Closure
+        (New_Item_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
       C_Tree.Insert ((To_Item_Set_Tree_Key (C (First_State_Index)), State_Index_Arrays.To_Vector (First_State_Index)));
 
@@ -115,7 +116,8 @@ package body WisiToken.LR.LR1_Generate is
 
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
 
-               New_Item_Set := LR1_Goto_Transitions (C (I), Symbol, Has_Empty_Production, First, Grammar, Descriptor);
+               New_Item_Set := LR1_Goto_Transitions
+                 (C (I), Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
                if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
 
@@ -165,7 +167,7 @@ package body WisiToken.LR.LR1_Generate is
      (Item_Sets            : in     LR1_Items.Item_Set_List;
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
+      First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Descriptor           : in     WisiToken.Descriptor)
@@ -173,7 +175,7 @@ package body WisiToken.LR.LR1_Generate is
       --  Add actions for all Item_Sets to Table.
    begin
       for Item_Set of Item_Sets loop
-         Add_Actions (Item_Set, Table, Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
+         Add_Actions (Item_Set, Table, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
       end loop;
 
       if Trace_Generate > Outline then
@@ -276,11 +278,14 @@ package body WisiToken.LR.LR1_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
-      First : constant Token_Array_Token_Set := WisiToken.Generate.First
+      First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
+      First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
+        WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
+
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, Descriptor);
+        (Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
@@ -320,7 +325,8 @@ package body WisiToken.LR.LR1_Generate is
 
       Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
 
-      Add_Actions (Item_Sets, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Descriptor);
+      Add_Actions
+        (Item_Sets, Grammar, Has_Empty_Production, First_Nonterm_Set, Unknown_Conflicts, Table.all, Descriptor);
 
       if Put_Parse_Table then
          LR1_Generate.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);

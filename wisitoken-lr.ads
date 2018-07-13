@@ -41,7 +41,6 @@ with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
-with SAL.Gen_Unbounded_Definite_Vectors;
 with System.Multiprocessors;
 with WisiToken.Productions;
 with WisiToken.Semantic_Checks;
@@ -274,8 +273,6 @@ package WisiToken.LR is
       LHS : Token_ID;
       RHS : Token_ID_Arrays.Vector;
    end record;
-
-   package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
 
    procedure Set_Token_Sequence (Vector : in out Token_ID_Arrays.Vector; Tokens : in Token_ID_Array);
 

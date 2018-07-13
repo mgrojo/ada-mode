@@ -217,11 +217,11 @@ package WisiToken.LR.LR1_Items is
    --  [dragon] pg 189.
 
    function Closure
-     (Set                  : in Item_Set;
-      Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor'Class)
+     (Set                     : in Item_Set;
+      Has_Empty_Production    : in Token_ID_Set;
+      First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
+      Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor              : in WisiToken.Descriptor'Class)
      return Item_Set;
    --  Return the closure of Set over Grammar. First must be the
    --  result of First above. Makes a deep copy of Goto_List.

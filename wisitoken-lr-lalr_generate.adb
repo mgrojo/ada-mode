@@ -127,11 +127,11 @@ package body WisiToken.LR.LALR_Generate is
    --  Generate utils
 
    function LALR_Goto_Transitions
-     (Kernel     : in LR1_Items.Item_Set;
-      Symbol     : in Token_ID;
-      First      : in Token_Array_Token_Set;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in LALR_Descriptor)
+     (Kernel            : in LR1_Items.Item_Set;
+      Symbol            : in Token_ID;
+      First_Nonterm_Set : in Token_Array_Token_Set;
+      Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor        : in LALR_Descriptor)
      return LR1_Items.Item_Set
    is
       use Token_ID_Arrays;
@@ -166,7 +166,7 @@ package body WisiToken.LR.LALR_Generate is
             end if;
 
             if Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-              First (Dot_ID, Symbol)
+              First_Nonterm_Set (Dot_ID, Symbol)
             then
                --  Find the production(s) that create Dot_ID with first token Symbol
                --  and put them in.
@@ -180,7 +180,7 @@ package body WisiToken.LR.LALR_Generate is
                         P_ID  : constant Production_ID          := (Prod.LHS, RHS_2_I);
                         Dot_2 : constant Token_ID_Arrays.Cursor := Prod.RHSs (RHS_2_I).Tokens.First;
                      begin
-                        if (Dot_ID = Prod.LHS or First (Dot_ID, Prod.LHS)) and
+                        if (Dot_ID = Prod.LHS or First_Nonterm_Set (Dot_ID, Prod.LHS)) and
                           (Has_Element (Dot_2) and then Element (Dot_2) = Symbol)
                         then
                            if not Has_Element (Find (P_ID, Next (Dot_2), Goto_Set)) then
@@ -209,9 +209,9 @@ package body WisiToken.LR.LALR_Generate is
    end LALR_Goto_Transitions;
 
    function LALR_Kernels
-     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      First      : in Token_Array_Token_Set;
-      Descriptor : in LALR_Descriptor)
+     (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
+      First_Nonterm_Set : in Token_Array_Token_Set;
+      Descriptor        : in LALR_Descriptor)
      return LR1_Items.Item_Set_List
    is
       use all type Ada.Containers.Count_Type;
@@ -254,7 +254,7 @@ package body WisiToken.LR.LALR_Generate is
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop
 
                New_Item_Set := LALR_Goto_Transitions
-                 (Kernels (Checking_State), Symbol, First, Grammar, Descriptor);
+                 (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
 
                if New_Item_Set.Set.Length > 0 then
 
@@ -462,12 +462,12 @@ package body WisiToken.LR.LALR_Generate is
    --  Kernels should be the sets of LR(0) kernels on input, and will
    --  become the set of LALR(1) kernels on output.
    procedure Fill_In_Lookaheads
-     (Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
-      Kernels              : in out LR1_Items.Item_Set_List;
-      Used_Tokens          : in out Token_ID_Set;
-      Descriptor           : in     LALR_Descriptor)
+     (Grammar                 : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Has_Empty_Production    : in     Token_ID_Set;
+      First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
+      Kernels                 : in out LR1_Items.Item_Set_List;
+      Used_Tokens             : in out Token_ID_Set;
+      Descriptor              : in     LALR_Descriptor)
    is
       use LR1_Items.Item_Set_Arrays;
 
@@ -496,7 +496,7 @@ package body WisiToken.LR.LALR_Generate is
                Propagate_Lookahead (Descriptor));
 
             Closure := LR1_Items.Closure
-              (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Descriptor);
+              (Kernel_Item_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
             for Closure_Item of Closure.Set loop
                Generate_Lookahead_Info
@@ -518,22 +518,21 @@ package body WisiToken.LR.LALR_Generate is
 
    --  Add actions for all Kernels to Table.
    procedure Add_Actions
-     (Kernels              : in     LR1_Items.Item_Set_List;
-      Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Has_Empty_Production : in     Token_ID_Set;
-      First                : in     Token_Array_Token_Set;
-      Conflicts            :    out Conflict_Lists.List;
-      Table                : in out Parse_Table;
-      Descriptor           : in     LALR_Descriptor)
+     (Kernels                 : in     LR1_Items.Item_Set_List;
+      Grammar                 : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Has_Empty_Production    : in     Token_ID_Set;
+      First_Nonterm_Set       : in     Token_Array_Token_Set;
+      First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
+      Conflicts               :    out Conflict_Lists.List;
+      Table                   : in out Parse_Table;
+      Descriptor              : in     LALR_Descriptor)
    is
       Closure : LR1_Items.Item_Set;
    begin
       for Kernel of Kernels loop
-         Closure := LR1_Items.Closure
-           (Kernel, Has_Empty_Production, First, Grammar, Descriptor);
+         Closure := LR1_Items.Closure (Kernel, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-         Add_Actions
-           (Closure, Table, Grammar, Has_Empty_Production, First, Conflicts, Descriptor);
+         Add_Actions (Closure, Table, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
       end loop;
 
       if Trace_Generate > Detail then
@@ -558,12 +557,15 @@ package body WisiToken.LR.LALR_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
-      First : constant Token_Array_Token_Set := WisiToken.Generate.First
+      First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
+
+      First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
+        WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
       Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 
-      Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First, Descriptor);
+      Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First_Nonterm_Set, Descriptor);
 
       Unused_Tokens        : Boolean             := False;
       Unknown_Conflicts    : Conflict_Lists.List;
@@ -574,7 +576,7 @@ package body WisiToken.LR.LALR_Generate is
 
       Used_Tokens (Grammar (Grammar.First_Index).LHS) := True;
 
-      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Descriptor);
+      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First_Terminal_Sequence, Kernels, Used_Tokens, Descriptor);
 
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then
@@ -626,7 +628,9 @@ package body WisiToken.LR.LALR_Generate is
 
       Generate_Utils.Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
 
-      Add_Actions (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Descriptor);
+      Add_Actions
+        (Kernels, Grammar, Has_Empty_Production, First_Nonterm_Set, First_Terminal_Sequence, Unknown_Conflicts,
+         Table.all, Descriptor);
 
       --  Set Table.States.Productions for McKenzie_Recover
       for State in Table.States'Range loop

@@ -82,9 +82,12 @@ package body Compare_Goto_Transitions is
         (Parameter_List_ID  <= +Null_Action or                                           -- 6
                                Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action); -- 7
 
-      Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
-      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.First
+      Has_Empty_Production    : constant WisiToken.Token_ID_Set                 :=
+        WisiToken.Generate.Has_Empty_Production (Grammar);
+      First_Nonterm_Set       : constant WisiToken.Token_Array_Token_Set        := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Token_Enum.LALR_Descriptor.First_Terminal);
+      First_Terminal_Sequence : constant WisiToken.Token_Sequence_Arrays.Vector :=
+        WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Token_Enum.LALR_Descriptor);
 
       procedure Compare (Prod : in WisiToken.Production_ID; Symbol : in Token_Enum_ID)
       is
@@ -98,7 +101,7 @@ package body Compare_Goto_Transitions is
                (Grammar, Prod, 1, To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
              Goto_List => <>,
              State     => Unknown_State),
-            Has_Empty_Production, First, Grammar, Token_Enum.LALR_Descriptor);
+            Has_Empty_Production, First_Terminal_Sequence, Grammar, Token_Enum.LALR_Descriptor);
 
          LR1           : Item_Set;
          LR1_Filtered  : Item_Set;
@@ -113,11 +116,11 @@ package body Compare_Goto_Transitions is
                  Token_Enum_ID'Image (ID);
             begin
                LR1 := WisiToken.LR.LR1_Generate.LR1_Goto_Transitions
-                    (Set, +ID, Has_Empty_Production, First, Grammar, LR1_Descriptor);
+                    (Set, +ID, Has_Empty_Production, First_Terminal_Sequence, Grammar, LR1_Descriptor);
                LR1_Filtered := Filter (LR1, Grammar, LR1_Descriptor, In_Kernel'Access);
 
                LALR := WisiToken.LR.LALR_Generate.LALR_Goto_Transitions
-                 (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor);
+                 (Set, +ID, First_Nonterm_Set, Grammar, Token_Enum.LALR_Descriptor);
 
                Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);
             exception
