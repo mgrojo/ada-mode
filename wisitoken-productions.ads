@@ -44,11 +44,11 @@ package WisiToken.Productions is
      (LHS        : in Token_ID;
       RHS_Index  : in Natural;
       RHS        : in Token_ID_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String;
    --  For comments in generated code, diagnostic messages.
 
-   procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class);
+   procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor);
    --  Put Image of each production to Ada.Text_IO.Current_Output.
 
    package Line_Number_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Natural, WisiToken.Line_Number_Type);

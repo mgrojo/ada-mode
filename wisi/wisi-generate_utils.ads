@@ -38,7 +38,7 @@ package Wisi.Generate_Utils is
    type Generate_Data is limited record
       Tokens          : access constant Wisi.Tokens;
       LR1_Descriptor  : access WisiToken.Descriptor;
-      LALR_Descriptor : access WisiToken.LALR_Descriptor;
+      LALR_Descriptor : access WisiToken.Descriptor;
       Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
       Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;

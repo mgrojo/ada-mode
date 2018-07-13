@@ -22,7 +22,7 @@ with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
 package body WisiToken.LR.Wisi_Generate_Elisp is
 
-   procedure Action_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor'Class)
+   procedure Action_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor)
    is begin
       Put ("     [");
       for State in Table.States'Range loop
@@ -107,7 +107,7 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
       Put_Line ("]");
    end Action_Table;
 
-   procedure Goto_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor'Class)
+   procedure Goto_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor)
    is
       function Filter_Terminals (List : in Goto_Node_Ptr) return Goto_Node_Ptr
       is
@@ -174,7 +174,7 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
      (Elisp_Package : in String;
       Tokens        : in Wisi.Tokens;
       Parser        : in Parse_Table_Ptr;
-      Descriptor    : in WisiToken.Descriptor'Class)
+      Descriptor    : in WisiToken.Descriptor)
    is
       use Ada.Strings.Unbounded;
       use Ada.Containers; -- count_type

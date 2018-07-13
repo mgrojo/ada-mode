@@ -54,7 +54,7 @@ package Wisi.Output_Ada_Common is
    procedure Create_Ada_Actions_Spec
      (Output_File_Name :         in              String;
       Package_Name     :         in              String;
-      Descriptor       :         in              WisiToken.Descriptor'Class;
+      Descriptor       :         in              WisiToken.Descriptor;
       Input_Data       :         in              WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Quad             :         in              Generate_Quad;
       Generate_Data    : aliased in              Wisi.Generate_Utils.Generate_Data;

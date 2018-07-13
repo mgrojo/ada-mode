@@ -293,13 +293,13 @@ package WisiToken.Syntax_Trees is
    function Image
      (Tree             : in Syntax_Trees.Tree;
       Node             : in Valid_Node_Index;
-      Descriptor       : in WisiToken.Descriptor'Class;
+      Descriptor       : in WisiToken.Descriptor;
       Include_Children : in Boolean := False)
      return String;
    function Image
      (Tree       : in Syntax_Trees.Tree;
       Nodes      : in Valid_Node_Index_Array;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String;
    --  For debug and error messages.
 

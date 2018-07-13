@@ -968,7 +968,7 @@ package body Test_McKenzie_Recover is
              (Undo_Reduce, +handled_sequence_of_statements_ID, 1) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
              (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14),
          Enqueue_Low             => 11,
-         Enqueue_High            => 52,
+         Enqueue_High            => 57,
          Check_Low               => 2,
          Check_High              => 14,
          Cost                    => 0,

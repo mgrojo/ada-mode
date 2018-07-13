@@ -57,7 +57,7 @@ package WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor'Class);
+      Descriptor           : in     WisiToken.Descriptor);
    --  Add (Symbol, Action) to Action_List; check for conflicts
    --
    --  Closure .. Conflicts are for conflict reporting
@@ -69,7 +69,7 @@ package WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor'Class);
+      Descriptor           : in     WisiToken.Descriptor);
    --  Add actions for Closure to Table. Has_Empty_Production, First,
    --  Conflicts used for conflict reporting.
 
@@ -81,7 +81,7 @@ package WisiToken.LR.Generate_Utils is
       First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
-      Descriptor           : in     WisiToken.Descriptor'Class);
+      Descriptor           : in     WisiToken.Descriptor);
    --  Add actions for Item.Lookaheads to Action_List
    --  Closure must be from the item set containing Item.
    --  Has_Empty_Production .. Closure used for conflict reporting.
@@ -103,12 +103,12 @@ package WisiToken.LR.Generate_Utils is
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Descriptor           : in WisiToken.Descriptor'Class)
+      Descriptor           : in WisiToken.Descriptor)
      return Token_ID;
    --  Return the LHS of a production in kernel of Closure, for an Action
    --  conflict on Lookahead; for naming a Conflict object.
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict) return String;
+   function Image (Descriptor : in WisiToken.Descriptor; Item : in Conflict) return String;
 
    function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean;
 
@@ -117,11 +117,11 @@ package WisiToken.LR.Generate_Utils is
    procedure Put
      (Item       : in Conflict_Lists.List;
       File       : in Ada.Text_IO.File_Type;
-      Descriptor : in WisiToken.Descriptor'Class);
+      Descriptor : in WisiToken.Descriptor);
 
    procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor'Class;
+      Descriptor : in     WisiToken.Descriptor;
       Result     : in out Token_Sequence_Arrays.Vector);
 
 end WisiToken.LR.Generate_Utils;

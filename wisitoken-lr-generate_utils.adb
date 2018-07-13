@@ -30,7 +30,7 @@ package body WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor'Class)
+      Descriptor           : in     WisiToken.Descriptor)
    is
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
@@ -121,7 +121,7 @@ package body WisiToken.LR.Generate_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Descriptor           : in     WisiToken.Descriptor'Class)
+      Descriptor           : in     WisiToken.Descriptor)
    is
       use WisiToken.Token_ID_Arrays;
 
@@ -246,7 +246,7 @@ package body WisiToken.LR.Generate_Utils is
       First_Nonterm_Set    : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
-      Descriptor           : in     WisiToken.Descriptor'Class)
+      Descriptor           : in     WisiToken.Descriptor)
    is
       Prod   : Productions.Instance renames Grammar (Item.Prod.Nonterm);
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
@@ -259,9 +259,7 @@ package body WisiToken.LR.Generate_Utils is
       --  We ignore propagate lookaheads here.
       for Lookahead in Item.Lookaheads'Range loop
          if Item.Lookaheads (Lookahead) then
-            if Descriptor in LALR_Descriptor and then
-              Lookahead = LALR_Descriptor (Descriptor).Propagate_ID
-            then
+            if Lookahead = Descriptor.First_Nonterminal then
                null;
             else
                Add_Action
@@ -333,7 +331,7 @@ package body WisiToken.LR.Generate_Utils is
       Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
-      Descriptor           : in WisiToken.Descriptor'Class)
+      Descriptor           : in WisiToken.Descriptor)
      return Token_ID
    is
       use WisiToken.Token_ID_Arrays;
@@ -429,7 +427,7 @@ package body WisiToken.LR.Generate_Utils is
       raise Programmer_Error;
    end Find;
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict) return String
+   function Image (Descriptor : in WisiToken.Descriptor; Item : in Conflict) return String
    is begin
       return
         ("%conflict " &
@@ -472,7 +470,7 @@ package body WisiToken.LR.Generate_Utils is
    procedure Put
      (Item       : in Conflict_Lists.List;
       File       : in Ada.Text_IO.File_Type;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
    is begin
       for Conflict of Item loop
          Ada.Text_IO.Put_Line (File, Image (Descriptor, Conflict));
@@ -481,7 +479,7 @@ package body WisiToken.LR.Generate_Utils is
 
    procedure Terminal_Sequence
      (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor    : in     WisiToken.Descriptor'Class;
+      Descriptor    : in     WisiToken.Descriptor;
       All_Sequences : in out Token_Sequence_Arrays.Vector;
       All_Set       : in out Token_ID_Set;
       Recursing     : in out Token_ID_Set;
@@ -588,7 +586,7 @@ package body WisiToken.LR.Generate_Utils is
 
    procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor'Class;
+      Descriptor : in     WisiToken.Descriptor;
       Result     : in out Token_Sequence_Arrays.Vector)
    is
       --  Result (ID).Length = 0 is a valid sequence (ie the nonterminal can

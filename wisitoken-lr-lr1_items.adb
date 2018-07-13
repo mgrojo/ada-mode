@@ -35,7 +35,7 @@ package body WisiToken.LR.LR1_Items is
 
    function Follow
      (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor;
       First                : in Token_Array_Token_Set;
       Has_Empty_Production : in Token_ID_Set)
      return Token_Array_Token_Set
@@ -127,72 +127,56 @@ package body WisiToken.LR.LR1_Items is
    end Add;
 
    procedure Include
-     (Set               : in out Lookahead;
-      Value             : in     Lookahead;
-      Added             :    out Boolean;
-      Descriptor        : access constant WisiToken.Descriptor'Class;
-      Exclude_Propagate : in     Boolean)
+     (Item  : in LR1_Items.Item;
+      Value : in Token_ID)
    is begin
-      --   Descriptor is null when Exclude_Propagate is False
+      Item.Lookaheads (Value) := True;
+   end Include;
+
+   procedure Include
+     (Item  : in LR1_Items.Item;
+      Value : in     Lookahead;
+      Added :    out Boolean)
+   is begin
       Added := False;
 
-      for I in Set'Range loop
-         if Exclude_Propagate and then
-           Descriptor.all in LALR_Descriptor and then
-           I = LALR_Descriptor (Descriptor.all).Propagate_ID
-         then
-            null;
-         else
-            if Value (I) then
-               Added := Added or not Set (I);
-               Set (I) := True;
-            end if;
+      for I in Item.Lookaheads'Range loop
+         if Value (I) then
+            Added := Added or not Item.Lookaheads (I);
+            Item.Lookaheads (I) := True;
          end if;
       end loop;
    end Include;
 
    procedure Include
-     (Set   : in out Lookahead;
-      Value : in     Token_ID)
-   is begin
-      Set (Value) := True;
-   end Include;
-
-   procedure Include
-     (Set               : in out Lookahead;
-      Value             : in     Lookahead;
-      Descriptor        : access constant WisiToken.Descriptor'Class;
-      Exclude_Propagate : in     Boolean)
+     (Item       : in     LR1_Items.Item;
+      Value      : in     Lookahead;
+      Descriptor : in     WisiToken.Descriptor)
    is
       Added : Boolean;
+      pragma Unreferenced (Added);
    begin
-      Include (Set, Value, Added, Descriptor, Exclude_Propagate);
+      Include (Item, Value, Added, Descriptor);
    end Include;
 
    procedure Include
-     (Item  : in LR1_Items.Item;
-      Value : in Token_ID)
+     (Item       : in     LR1_Items.Item;
+      Value      : in     Lookahead;
+      Added      :    out Boolean;
+      Descriptor : in     WisiToken.Descriptor)
    is begin
-      Include (Item.Lookaheads.all, Value);
-   end Include;
+      Added := False;
 
-   procedure Include
-     (Item              : in     LR1_Items.Item;
-      Value             : in     Lookahead;
-      Descriptor        : access constant WisiToken.Descriptor'Class;
-      Exclude_Propagate : in     Boolean)
-   is begin
-      Include (Item.Lookaheads.all, Value, Descriptor, Exclude_Propagate);
-   end Include;
-
-   procedure Include
-     (Item              : in     LR1_Items.Item;
-      Value             : in     Lookahead;
-      Added             :    out Boolean;
-      Descriptor        : access constant WisiToken.Descriptor'Class;
-      Exclude_Propagate : in     Boolean)
-   is begin
-      Include (Item.Lookaheads.all, Value, Added, Descriptor, Exclude_Propagate);
+      for I in Item.Lookaheads'Range loop
+         if I = Descriptor.Last_Lookahead then
+            null;
+         else
+            if Value (I) then
+               Added := Added or not Item.Lookaheads (I);
+               Item.Lookaheads (I) := True;
+            end if;
+         end if;
+      end loop;
    end Include;
 
    procedure Add
@@ -215,14 +199,13 @@ package body WisiToken.LR.LR1_Items is
       Set  : in Item_Set)
      return Item_Lists.Cursor
    is begin
-      return Find (Item.Prod, Item.Dot, Set, null);
+      return Find (Item.Prod, Item.Dot, Set);
    end Find;
 
    function Find
-     (Prod       : in     Production_ID;
-      Dot        : in     Token_ID_Arrays.Cursor;
-      Right      : in     Item_Set;
-      Lookaheads : access Lookahead := null)
+     (Prod  : in Production_ID;
+      Dot   : in Token_ID_Arrays.Cursor;
+      Right : in Item_Set)
      return Item_Lists.Cursor
    is
       use Item_Lists;
@@ -236,10 +219,39 @@ package body WisiToken.LR.LR1_Items is
                --  Right.Item_Set is sorted on ascending LHS, since it is built with
                --  Add.
                return No_Element;
-            elsif Prod = Constant_Ref (Cur).Prod and
-              Dot = Constant_Ref (Cur).Dot and
-              (Lookaheads = null or else
-                 Lookaheads.all = Constant_Ref (Cur).Lookaheads.all)
+
+            elsif Prod = Constant_Ref (Cur).Prod and then
+              Dot = Constant_Ref (Cur).Dot
+            then
+               return Cur;
+            end if;
+         end;
+      end loop;
+      return No_Element;
+   end Find;
+
+   function Find
+     (Prod       : in              Production_ID;
+      Dot        : in              Token_ID_Arrays.Cursor;
+      Right      : in              Item_Set;
+      Lookaheads : not null access Lookahead)
+     return Item_Lists.Cursor
+   is
+      use Item_Lists;
+      use all type Token_ID_Arrays.Cursor;
+   begin
+      for Cur in Right.Set.Iterate loop
+         declare
+            Test_Item : Item renames Constant_Ref (Cur);
+         begin
+            if Prod.Nonterm < Test_Item.Prod.Nonterm then
+               --  Right.Item_Set is sorted on ascending LHS, since it is built with
+               --  Add.
+               return No_Element;
+
+            elsif Prod = Constant_Ref (Cur).Prod and then
+              Dot = Constant_Ref (Cur).Dot and then
+              Lookaheads.all = Constant_Ref (Cur).Lookaheads.all
             then
                return Cur;
             end if;
@@ -482,7 +494,7 @@ package body WisiToken.LR.LR1_Items is
 
          Modified := True;
       else
-         Include (Ref (Found).Lookaheads.all, Lookaheads, Modified, null, Exclude_Propagate => False);
+         Include (Ref (Found), Lookaheads, Modified);
       end if;
 
       return Modified;
@@ -493,7 +505,7 @@ package body WisiToken.LR.LR1_Items is
       Has_Empty_Production    : in Token_ID_Set;
       First_Terminal_Sequence : in Token_Sequence_Arrays.Vector;
       Grammar                 : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor              : in WisiToken.Descriptor'Class)
+      Descriptor              : in WisiToken.Descriptor)
      return Item_Set
    is
       use all type Item_Lists.Cursor;
@@ -615,7 +627,7 @@ package body WisiToken.LR.LR1_Items is
 
    function In_Kernel
      (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class;
+      Descriptor : in WisiToken.Descriptor;
       Item       : in LR1_Items.Item)
      return Boolean
    is
@@ -636,10 +648,10 @@ package body WisiToken.LR.LR1_Items is
    function Filter
      (Set        : in     Item_Set;
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor'Class;
+      Descriptor : in     WisiToken.Descriptor;
       Include    : access function
         (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-         Descriptor : in WisiToken.Descriptor'Class;
+         Descriptor : in WisiToken.Descriptor;
          Item       : in LR1_Items.Item)
         return Boolean)
      return Item_Set
@@ -656,7 +668,7 @@ package body WisiToken.LR.LR1_Items is
 
    function Image
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in WisiToken.Descriptor'Class;
+      Descriptor      : in WisiToken.Descriptor;
       Item            : in LR1_Items.Item;
       Show_Lookaheads : in Boolean)
      return String
@@ -695,7 +707,7 @@ package body WisiToken.LR.LR1_Items is
 
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in WisiToken.Descriptor'Class;
+      Descriptor      : in WisiToken.Descriptor;
       Item            : in LR1_Items.Item;
       Show_Lookaheads : in Boolean := True)
    is begin
@@ -703,7 +715,7 @@ package body WisiToken.LR.LR1_Items is
    end Put;
 
    procedure Put
-     (Descriptor : in WisiToken.Descriptor'Class;
+     (Descriptor : in WisiToken.Descriptor;
       List       : in Goto_Item_Lists.List)
    is
       use Ada.Text_IO;
@@ -717,7 +729,7 @@ package body WisiToken.LR.LR1_Items is
 
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in WisiToken.Descriptor'Class;
+      Descriptor      : in WisiToken.Descriptor;
       Item            : in Item_Set;
       Show_Lookaheads : in Boolean := True;
       Kernel_Only     : in Boolean := False;
@@ -745,7 +757,7 @@ package body WisiToken.LR.LR1_Items is
 
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in WisiToken.Descriptor'Class;
+      Descriptor      : in WisiToken.Descriptor;
       Item            : in Item_Set_List;
       Show_Lookaheads : in Boolean := True)
    is

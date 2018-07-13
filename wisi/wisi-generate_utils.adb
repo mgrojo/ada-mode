@@ -225,6 +225,7 @@ package body Wisi.Generate_Utils is
 
          Result.LR1_Descriptor.Terminal_Image_Width := 0;
          Result.LR1_Descriptor.Image_Width          := 0;
+         Result.LR1_Descriptor.Last_Lookahead       := Result.LR1_Descriptor.Last_Terminal;
 
          for Cursor in All_Tokens (Result).Iterate loop
             Result.LR1_Descriptor.Image (ID (Cursor)) := new String'(Name_1 (Cursor));
@@ -242,14 +243,13 @@ package body Wisi.Generate_Utils is
             end if;
          end loop;
 
-         Result.LALR_Descriptor := new WisiToken.LALR_Descriptor'
+         Result.LALR_Descriptor := new WisiToken.Descriptor'
            (First_Terminal                => Result.LR1_Descriptor.First_Terminal,
             Last_Terminal                 => Result.LR1_Descriptor.Last_Terminal,
             First_Nonterminal             => EOF_ID + 1,
             Last_Nonterminal              => Result.LR1_Descriptor.Last_Nonterminal,
             EOF_ID                        => Result.LR1_Descriptor.EOF_ID,
             Accept_ID                     => EOF_ID + 1,
-            Propagate_ID                  => EOF_ID + 1,
             Case_Insensitive              => False, --  FIXME:
             New_Line_ID                   => Result.LR1_Descriptor.New_Line_ID,
             Comment_ID                    => Result.LR1_Descriptor.Comment_ID,
@@ -260,7 +260,8 @@ package body Wisi.Generate_Utils is
             Embedded_Quote_Escape_Doubled => False, --  FIXME:
             Image                         => Result.LR1_Descriptor.Image,
             Terminal_Image_Width          => Result.LR1_Descriptor.Terminal_Image_Width,
-            Image_Width                   => Result.LR1_Descriptor.Image_Width);
+            Image_Width                   => Result.LR1_Descriptor.Image_Width,
+            Last_Lookahead                => Result.LR1_Descriptor.First_Nonterminal);
 
          To_Grammar (Result, Source_File_Name, Start_Token);
       end return;

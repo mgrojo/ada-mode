@@ -1486,7 +1486,7 @@ begin
             when Process  => "_process_actions.ads",
             when Module   => "_module_actions.ads"),
          Package_Name     => Actions_Package_Name,
-         Descriptor       => Generate_Data.LALR_Descriptor.all,
+         Descriptor       => Generate_Data.LR1_Descriptor.all,
          Input_Data       => Input_Data,
          Quad             => Quad,
          Generate_Data    => Generate_Data,

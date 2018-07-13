@@ -2,7 +2,7 @@
 --
 --  Elisp output for Wisi
 --
---  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -25,6 +25,6 @@ package WisiToken.LR.Wisi_Generate_Elisp is
      (Elisp_Package : in String;
       Tokens        : in Wisi.Tokens;
       Parser        : in Parse_Table_Ptr;
-      Descriptor    : in WisiToken.Descriptor'Class);
+      Descriptor    : in WisiToken.Descriptor);
 
 end WisiToken.LR.Wisi_Generate_Elisp;

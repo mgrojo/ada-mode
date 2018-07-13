@@ -90,7 +90,8 @@ package WisiToken is
       Last_Nonterminal  : Token_ID;
       EOF_ID            : Token_ID;
       Accept_ID         : Token_ID)
-   is tagged record
+   is record
+      --  FIXME: move to -generate-lr?
       --  Tokens in the range Token_ID'First .. First_Terminal - 1 are
       --  non-reporting (comments, whitespace), and thus are not used in
       --  generating parse tables.
@@ -125,6 +126,15 @@ package WisiToken is
 
       Terminal_Image_Width : Integer;
       Image_Width          : Integer; --  max width of Image
+
+      --  We used to define 'Propagate_ID' for LALR generate, but it was
+      --  always equal to Accept_ID (it just has to be not any other
+      --  terminal). We still need to allocate first_terminal ..
+      --  last_terminal for LR1 generate, and first_terminal .. propagate_id
+      --  for LALR generate, so we define Last_Lookahead. To save space, it
+      --  must be either Last_Terminal or First_Nonterminal. After the LR
+      --  table is generated, Last_Lookahead is no longer used.
+      Last_Lookahead : Token_ID;
    end record;
 
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
@@ -141,27 +151,27 @@ package WisiToken is
    --  The following subprograms are intended to _not_ be primitive
    --  operations of Descriptor; hence 'Class.
 
-   function Padded_Image (Item : in Token_ID; Desc : in Descriptor'Class) return String;
+   function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
    --  is a terminal) or to Image_Width.
 
-   function Image (Item : in Token_ID; Desc : in Descriptor'Class) return String;
+   function Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), or empty string for Invalid_Token_ID.
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Token_ID);
 
-   procedure Put_Tokens (Descriptor : in WisiToken.Descriptor'Class);
+   procedure Put_Tokens (Descriptor : in WisiToken.Descriptor);
    --  Put user readable token list (token_id'first ..
    --  descriptor.last_nonterminal) to Ada.Text_IO.Current_Output
 
-   function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID;
+   function Find_ID (Descriptor : in WisiToken.Descriptor; Name : in String) return Token_ID;
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
 
    type Token_ID_Array is array (Positive range <>) of Token_ID;
 
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
 
-   function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
 
@@ -182,7 +192,7 @@ package WisiToken is
 
    function Image
      (Item      : in Token_ID_Set;
-      Desc      : in Descriptor'Class;
+      Desc      : in Descriptor;
       Max_Count : in Integer := Integer'Last;
       Inverted  : in Boolean := False)
      return String;
@@ -195,38 +205,11 @@ package WisiToken is
    function Any (Item : in Token_Array_Token_Set) return Boolean;
    procedure Or_Slice (Item : in out Token_Array_Token_Set; I : in Token_ID; Value : in Token_ID_Set);
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array_Token_Set);
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set);
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate
    --  syntax.
-   --
-   --  Descriptor'Class to avoid 'primitive operation declared too late'
 
    package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
-
-   type LALR_Descriptor
-     (First_Terminal    : Token_ID;
-      Last_Terminal     : Token_ID;
-      First_Nonterminal : Token_ID;
-      Last_Nonterminal  : Token_ID;
-      EOF_ID            : Token_ID;
-      Accept_ID         : Token_ID;
-      Propagate_ID      : Token_ID)
-     is new Descriptor
-       (First_Terminal    => First_Terminal,
-        Last_Terminal     => Last_Terminal,
-        First_Nonterminal => First_Nonterminal,
-        Last_Nonterminal  => Last_Nonterminal,
-        EOF_ID            => EOF_ID,
-        Accept_ID         => Accept_ID)
-     with null record;
-   --  LALR_Descriptor is only required at grammar generate time; parse
-   --  time can always use Descriptor.
-
-   overriding
-   function To_Lookahead (Item : in Token_ID; Descriptor : in LALR_Descriptor) return Token_ID_Set;
-
-   overriding
-   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in LALR_Descriptor) return String;
 
    ----------
    --  Production IDs; see wisitoken-productions.ads for more
@@ -310,7 +293,7 @@ package WisiToken is
 
    function Image
      (Item       : in Base_Token;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String;
    --  For debug/test messages.
 
@@ -332,12 +315,12 @@ package WisiToken is
 
    package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
 
-   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
    function Image
      (Token      : in Base_Token_Index;
       Terminals  : in Base_Token_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String;
 
    type Recover_Token is record
@@ -367,14 +350,14 @@ package WisiToken is
 
    function Image
      (Item       : in Recover_Token;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String;
 
    type Recover_Token_Array is array (Positive_Index_Type range <>) of Recover_Token;
 
    package Recover_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Recover_Token);
 
-   function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
    ----------
    --  Trace

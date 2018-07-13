@@ -32,7 +32,7 @@ package body Wisi.Output_Ada_Common is
    procedure Create_Ada_Actions_Spec
      (Output_File_Name :         in              String;
       Package_Name     :         in              String;
-      Descriptor       :         in              WisiToken.Descriptor'Class;
+      Descriptor       :         in              WisiToken.Descriptor;
       Input_Data       :         in              WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Quad             :         in              Generate_Quad;
       Generate_Data    : aliased in              Wisi.Generate_Utils.Generate_Data;
@@ -111,7 +111,8 @@ package body Wisi.Output_Ada_Common is
 
       Indent := Indent - 3;
       Indent_Line ("Terminal_Image_Width =>" & Integer'Image (Descriptor.Terminal_Image_Width) & ",");
-      Indent_Line ("Image_Width          =>" & Integer'Image (Descriptor.Image_Width) & ");");
+      Indent_Line ("Image_Width          =>" & Integer'Image (Descriptor.Image_Width) & ",");
+      Indent_Line ("Last_Lookahead       =>" & WisiToken.Token_ID'Image (Descriptor.Last_Lookahead) & ");");
       Indent := Indent - 3;
       New_Line;
 

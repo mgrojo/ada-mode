@@ -19,47 +19,76 @@ org.wisitoken.stephe-1 - available
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-lr1 parse_table states show full closure, not just kernel
+different lr1_items lookahead structure
+    descriptor:
+        just one class; set propagate_id to invalid_token_id
+            then just do tok_id = desc.prop_id
+            don't do lookaheads (prop_id) without prev check
 
-closure called in:
-    lalr_generate fill_in_lookaheads
-    lalr_generate add_actions
-        capture first, pass to second
+    wisitoken.to_lookahead is a bottleneck
 
-    lr1_generate LR1_Goto_Transitions
-    lr1_generate lr1_item_sets
-        first captured in lr1_item_sets; pass to second
+    operations:
+        to_lookahead (token_id)
+
+        for tok_id of lookaheads loop
+            if tok_id /= propagate_id
+            call add_action (tok_id)
+
+        if lookaheads (tok_id) then
+
+        new_item := (... , lookaheads => old_item.lookaheads)
+
+        new_item := (... , lookaheads => null_lookaheads)
+        new_item := (... , lookaheads => propagate_lookahead)
+
+        include: add tok_id to lookaheads
+
+        lookaheads /= lookaheads
+
+    allow optimize away all range checks
 
 get profile on generate lr1 ada_lite
     make generate_ada_lite_lr1.gprof
 
     top low level times:
-  4.95      9.44     0.70                             wisitoken__lr__lr1_items__include__4
-  4.49     10.07     0.64 379254210     0.00     0.00  wisitoken__lr__lr1_items__item_lists__constant_ref
-  3.89     10.62     0.55                             wisitoken__lr__lr1_items__find__compare__B_18__E297b__3.14023
-  2.76     11.02     0.39  7454674     0.00     0.00  wisitoken__lr__lr1_items__find__2
-  2.23     11.33     0.32 152718607     0.00     0.00  wisitoken__lr__lr1_items__item_lists__next__2
-  1.84     11.59     0.26 146677379     0.00     0.00  wisitoken__lr__lr1_items__item_lists__next__4
-  1.48     11.80     0.21 38812715     0.00     0.00  wisitoken__token_id_arrays__element__2
-  1.45     12.01     0.20 158746426     0.00     0.00  wisitoken__lr__lr1_items__item_lists__has_element
-  1.34     12.20     0.19  4608786     0.00     0.00  wisitoken__lr__lr1_generate__lr1_goto_transitions
-  1.27     12.38     0.18  4821257     0.00     0.00  wisitoken__to_lookahead
+  6.31      3.80     0.33                             wisitoken__lr__lr1_items__include__4.constprop.100
+  4.21      4.02     0.22 146677379     0.00     0.00  wisitoken__lr__lr1_items__item_lists__next__4
+  2.87      4.17     0.15  4608786     0.00     0.00  wisitoken__lr__lr1_generate__lr1_goto_transitions
+  2.68      4.31     0.14  7454674     0.00     0.00  wisitoken__lr__lr1_items__find__2
+  2.10      4.42     0.11  4821257     0.00     0.00  wisitoken__to_lookahead
 
     call graph:
-[2]     12.8    0.07    1.73                 wisitoken__lr__lr1_items__merge [2]
-                0.39    1.31 7454674/7454674     wisitoken__lr__lr1_items__find__2 [6]
-                0.00    0.04 7454674/7652313     wisitoken__lr__lr1_items__add [41]
-                0.00    0.00 6818725/6818725     wisitoken__lr__lr1_items__item_lists(long double,...)(float) [179]
+[5]     16.2    0.03    0.82       1         wisitoken__lr__lr1_generate__lr1_item_sets [5]
+                0.15    0.49 4608786/4608786     wisitoken__lr__lr1_generate__lr1_goto_transitions [7]
+                0.09    0.04  141101/141101      wisitoken__lr__lr1_items__find__4 [13]
+
+[7]     12.2    0.15    0.49 4608786         wisitoken__lr__lr1_generate__lr1_goto_transitions [7]
+                0.06    0.22  141101/141102      wisitoken__lr__lr1_items__closure [11]
+                0.05    0.00 30558582/146677379     wisitoken__lr__lr1_items__item_lists__next__4 [12]
+
+[11]     5.3    0.06    0.22  141102         wisitoken__lr__lr1_items__closure [11]
+                0.11    0.00 4821256/4821257     wisitoken__to_lookahead [14]
+                0.02    0.00 1017248/1019702     wisitoken__token_id_arrays__iterate [27]
+                0.00    0.02 7454674/7510152     wisitoken__token_id_arrays__first [29]
+                0.02    0.00 11502839/38812715     wisitoken__token_id_arrays__element__2 [15]
+                0.01    0.00 3166945/3166945     wisitoken__lr__lr1_items__item_lists__reference [39]
+                0.01    0.00 3184462/3185644     wisitoken__token_id_arrays__next__4 [38]
+                0.01    0.00 4201710/4205346     wisitoken__token_id_arrays__has_element [51]
+                0.01    0.00 3184462/3187533     wisitoken__token_id_arrays__constant_ref__2 [37]
+                0.01    0.00 2214682/2239218     wisitoken__productions__prod_arrays__constant_ref [40]
 
 time wisi-generate ada_lite, ada
-    rebuild with no debug
+    rebuild with no debug (ie do recursive-clean); factor of 3
 
     time ./wisi-generate.exe --time --generate LALR Ada re2c ../wisi/test/ada_lite.wy
         o.w     0m0.212s 0m0.217s
         o.w.s-1 0m0.838s 0m0.836s
         improve find item in item_list  0.549 0.514
         replace loop with grammar (lhs) 0.395
-        use first_terminal_sequence     0.399
+        use first_terminal_sequence     0.327
+            (oops; had debug options turned on)
+        delete lookaheads=null from find    0.174
+        change Descriptors to non-tagged, Last_Lookahead 0.174
 
     time ./wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
         o.w     ada_lite_lr1.wy     0m28.034s 0m27.237s
@@ -68,7 +97,10 @@ time wisi-generate ada_lite, ada
         improve set_tree_key_less   0m33.990s 0m33.040s
         improve find item in item_list  0m34.105s 0m34.584s  34.418 34.695
         replace loop with grammar (lhs) 10.672
-        use first_terminal_sequence     10.220
+        use first_terminal_sequence     4.660
+            (oops; had debug options turned on)
+        delete lookaheads=null from find    3.793
+        change Descriptors to non-tagged, Last_Lookahead 3.726
 
     time ./wisi-generate.exe --generate LALR Ada re2c ../../org.emacs.ada-mode.stephe-4/ada.wy
         o.e.a_m.s-2                 0m16.739s 0m16.166s
@@ -77,7 +109,10 @@ time wisi-generate ada_lite, ada
         improve set_tree_key_less   0m11.558s 0m11.557s
         improve find item in item_list  0m11.597s 0m11.442s 0m11.414s 0m11.378s 0m11.589s  11.449
         replace loop with grammar (lhs) 8.482
-        use first_terminal_sequence     8.449
+        use first_terminal_sequence     7.548
+            (oops; had debug options turned on)
+        delete lookaheads=null from find 3.288
+        change Descriptors to non-tagged, Last_Lookahead 3.251
 
 effect of lr1/lalr on mckenzie
     wisi/ada_lite_lalr_run.exe -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lalr_recover.log
@@ -421,20 +456,11 @@ wisi-generate lr1 way too slow for Ada
     closure needs:
         use multiple CPUs?
 
-    lr1_goto_transitions needs:
-        fast closure
-        cache?
-
     LR1_Item_Sets needs:
-        fast goto_transitions (state, token)
-            => use cache; invalidate when ?
-
         fast find (set, states)
             => Store state_index in red/black tree sorted on concat prod_count/LHS/RHS/dot position
                 first try done; need better key?
-
-    lalr calls closure on each kernel more than once!
-        save the closure the first time?
+                get histogram of full closure set
 
     need more warm-fuzzy
     command line option
@@ -444,138 +470,6 @@ wisi-generate lr1 way too slow for Ada
         everything slows down as more states added
 
 integrate with emacs module
-
-ada_grammar.adb very slow to compile
-    eliminating all but one action subprograms; not much help
-
-    build parse table without actions in one file, add actions in another
-        -> smaller files
-
-    read tables from text file?
-        action subprogram names as integer index into array of subprogram pointers.
-
-change dragon examples
-    lexer.regexp; should be easy
-
-    lexer.aflex/wisi-generate
-        need support for different actions
-        move code from tokens to actions
-        change .wy action syntax to require {} (for elisp as well)
-        use Ada code in actions; reference New_Token, Source, To_ID
-            or whatever than changes to
-        add Ada output language to wisi-generate
-            just copy text between {} to action function
-                add constant space prefix to each line; source must meet style check
-
-change wisi tests to use Ada code?
-
- Quex notes
-giving up on Quex because
-    - it failed in my first test (did not lex eof properly)
-    - it behaved differently under the debugger
-      - meaning it's using uninitalized vars
-      - it's very hard to debug
-    - it's not clear it solves the tick/char literal issue
-
-use Quex lexer (recommended by AdaCore/langkit)
-    https://sourceforge.net/projects/quex/
-    windows installer in d:/Archive/Emacs
-    installed to d:/Apps/quex-0.67.5
-    example lexer : d:/Apps/quex/quex-0.67.5/demo/C/000/Makefile
-        edited Makefile so it runs
-        needs iconv
-        d:/msys64/mingw32/include/iconv.h
-        ./mingw32/lib/libiconv.a
-        hand-written main in lexer-wchar.c
-        hand-written main in d:/Apps/quex/quex-0.67.5/demo/C/example.c
-
-        use mingw32 compiler
-            use mingw32-make
-            creates lexer.exe
-            lexer.exe example.txt works
-        use gnat C
-            cp d:/msys64/mingw32/include/iconv.h d:/Apps/GNAT-gpl_2016/include/
-            cp d:/msys64/mingw32/lib/libiconv.a  d:/Apps/GNAT-gpl_2016/lib/gcc/i686-pc-mingw32/4.9.4/
-            works!
-
-    look in libadalang for Ada bindings to quex output
-        libpgrlang-lexer.adb
-        uses GNATCOLL.Iconv to decode buffer; quex handles 32 bit chars
-        quex_interface.c, h; provides next_token
-        quex_lexer.h, .c generated by quex
-        copied to quex/*
-
-    hand transform build/ada_lite.l => quex/ada_lite.qx
-        cd quex
-        d:/Apps/quex/quex-0.67.5/quex-exe.py --language C -i ada_lite.qx -o ada_lite
-        generated:
-            ada_lite-configuration.h - lots of #defines
-            ada_lite-token.h         - access to token data?
-            ada_lite-token_ids.h     - token id constants
-            ada_lite.c               - state machine for lexer
-            ada_lite.h               - ? lexer API? ; same as quex_lexer.h (except version diffs)
-
-        copy example.c to run_ada_lite_lexer.c
-
-        gcc -I $QUEX_PATH ada_lite.c run_ada_lexer.c -liconv -o run_ada_lexer.exe
-        ./run_ada_lexer.exe ../test/ada_mode-recover_indent_3.adb
-            works!
-
-        use -DQUEX_OPTION_ASSERTS_DISABLED for speed, -DQUEX_OPTION_ASSERTS_WARNING_MESSAGE_DISABLED otherwise
-            C compiler args
-
-    add Quex to wisi lexer options, use instead of Aflex
-        parsing!
-        terminates with "bad lexatom" instead of eoi
-            reading past end of input
-            not seeing 0
-
-        behaves differently under debugger!
-0: 12: NUMBER_LITERAL : shift and goto state 3
-Assertion failed!
-
-Program: c:\Projects\org.wisitoken.stephe-1\build\case_expression_run.exe
-File: C:\Projects\org.wisitoken.stephe-1\build\case_expression_lexer.c:430
-
-    how to enable __quex_debug?
-
-
-
-
-        need a utf8 input file
-
-
-
-
-
-        *.qx take_text uses Quex internal data names to compute offset; changed with version
-            deleted for now
-
-            we know address of start of buffer! lexer.buffer!
-                do pointer arithmetic in ada, via address_to_access_conversion or something
-
-            needed for Lexeme
-                or provide C function to return string; also problematic
-            check latest AdaCore source for fix
-                not there; not definitive, they could have a version check
-                install new quex version
-                send them email
-            post on Quex mailing list
-
-
-
-        verify quex version in rules.make
-
-        review quex token_id mapping
-
-        do dvc-status
-
-        add quex to gpr source path,  so gpr_query finds it
-            also requires c compiler option
-
-    see if it has options/rules/hooks to fix wisi/test/character_literal.wy
-        how does libadalang handle this?
-        last_token_id?
 
  build/release_process.text
 

@@ -39,18 +39,19 @@ package body WisiToken.LR.LALR_Generate is
    package Item_Map_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Item_Map);
    --  FIXME: should be a 3D array indexed by Prod, rhs_index, dot_index
 
-   function Propagate_Lookahead (Descriptor : in LALR_Descriptor) return access Token_ID_Set
+   function Propagate_Lookahead (Descriptor : in WisiToken.Descriptor) return access Token_ID_Set
    is
-      Result : constant access Token_ID_Set := new Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Propagate_ID);
+      Result : constant access Token_ID_Set := new Token_ID_Set
+        (Descriptor.First_Terminal .. Descriptor.Last_Lookahead);
    begin
       Result.all := (others => False);
-      Result (Descriptor.Propagate_ID) := True;
+      Result (Descriptor.Accept_ID) := True;
       return Result;
    end Propagate_Lookahead;
 
-   function Null_Lookahead (Descriptor : in LALR_Descriptor) return access Token_ID_Set
+   function Null_Lookahead (Descriptor : in WisiToken.Descriptor) return access Token_ID_Set
    is
-      Result : constant access Token_ID_Set := new Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Propagate_ID);
+      Result : constant access Token_ID_Set := new Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Accept_ID);
    begin
       Result.all := (others => False);
       return Result;
@@ -61,7 +62,7 @@ package body WisiToken.LR.LALR_Generate is
 
    procedure Put
      (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor   : in WisiToken.Descriptor'Class;
+      Descriptor   : in WisiToken.Descriptor;
       Propagations : in Item_Map_Lists.List)
    is
       use LR1_Items.Item_Lists;
@@ -83,7 +84,7 @@ package body WisiToken.LR.LALR_Generate is
      (Table      : in Parse_Table_Ptr;
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Kernels    : in LR1_Items.Item_Set_List;
-      Descriptor : in LALR_Descriptor)
+      Descriptor : in WisiToken.Descriptor)
    is
       use Ada.Text_IO;
    begin
@@ -131,7 +132,7 @@ package body WisiToken.LR.LALR_Generate is
       Symbol            : in Token_ID;
       First_Nonterm_Set : in Token_Array_Token_Set;
       Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor        : in LALR_Descriptor)
+      Descriptor        : in WisiToken.Descriptor)
      return LR1_Items.Item_Set
    is
       use Token_ID_Arrays;
@@ -211,7 +212,7 @@ package body WisiToken.LR.LALR_Generate is
    function LALR_Kernels
      (Grammar           : in WisiToken.Productions.Prod_Arrays.Vector;
       First_Nonterm_Set : in Token_Array_Token_Set;
-      Descriptor        : in LALR_Descriptor)
+      Descriptor        : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
       use all type Ada.Containers.Count_Type;
@@ -371,14 +372,14 @@ package body WisiToken.LR.LALR_Generate is
    --
    --  Set Used_Tokens = True for all tokens in lookaheads.
    procedure Generate_Lookahead_Info
-     (Source_Item  :         in     LR1_Items.Item;
-      Source_Set   :         in     LR1_Items.Item_Set;
-      Closure_Item :         in     LR1_Items.Item;
-      Propagations :         in out Item_Map_Lists.List;
-      Used_Tokens  :         in out Token_ID_Set;
-      Descriptor   : aliased in     LALR_Descriptor;
-      Grammar      :         in     WisiToken.Productions.Prod_Arrays.Vector;
-      Kernels      :         in out LR1_Items.Item_Set_List)
+     (Source_Item  : in     LR1_Items.Item;
+      Source_Set   : in     LR1_Items.Item_Set;
+      Closure_Item : in     LR1_Items.Item;
+      Propagations : in out Item_Map_Lists.List;
+      Used_Tokens  : in out Token_ID_Set;
+      Descriptor   : in     WisiToken.Descriptor;
+      Grammar      : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Kernels      : in out LR1_Items.Item_Set_List)
    is
       use LR1_Items;
       use LR1_Items.Item_Lists;
@@ -411,7 +412,7 @@ package body WisiToken.LR.LALR_Generate is
             raise Grammar_Error with "non-reporting " & Image (ID, Descriptor) & " used in grammar";
          end;
 
-         if Closure_Item.Lookaheads (Descriptor.Propagate_ID) and Has_Element (To_Item) then
+         if Closure_Item.Lookaheads (Descriptor.Last_Lookahead) and Has_Element (To_Item) then
             Add_Propagation
               (From         => Source_Item,
                From_Set     => Source_Set,
@@ -425,15 +426,14 @@ package body WisiToken.LR.LALR_Generate is
                Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Closure_Item.Lookaheads.all, Descriptor));
             end if;
 
-            LR1_Items.Include
-              (Ref (To_Item), Closure_Item.Lookaheads.all, Descriptor'Access, Exclude_Propagate => True);
+            LR1_Items.Include (Ref (To_Item), Closure_Item.Lookaheads.all, Descriptor);
          end if;
       end;
    end Generate_Lookahead_Info;
 
    procedure Propagate_Lookaheads
-     (List       :         in Item_Map_Lists.List;
-      Descriptor : aliased in WisiToken.Descriptor'Class)
+     (List       : in Item_Map_Lists.List;
+      Descriptor : in WisiToken.Descriptor)
    is
       --  In List, update all To lookaheads from From lookaheads,
       --  recursively.
@@ -448,9 +448,7 @@ package body WisiToken.LR.LALR_Generate is
          More_To_Check := False;
          for Mapping of List loop
             for Copy of Mapping.To loop
-               LR1_Items.Include
-                 (Ref (Copy), Constant_Ref (Mapping.From).Lookaheads.all, Added_One,
-                  Descriptor'Access, Exclude_Propagate => True);
+               LR1_Items.Include (Ref (Copy), Constant_Ref (Mapping.From).Lookaheads.all, Added_One, Descriptor);
 
                More_To_Check := More_To_Check or Added_One;
             end loop;
@@ -467,7 +465,7 @@ package body WisiToken.LR.LALR_Generate is
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
       Kernels                 : in out LR1_Items.Item_Set_List;
       Used_Tokens             : in out Token_ID_Set;
-      Descriptor              : in     LALR_Descriptor)
+      Descriptor              : in     WisiToken.Descriptor)
    is
       use LR1_Items.Item_Set_Arrays;
 
@@ -525,11 +523,14 @@ package body WisiToken.LR.LALR_Generate is
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
       Conflicts               :    out Conflict_Lists.List;
       Table                   : in out Parse_Table;
-      Descriptor              : in     LALR_Descriptor)
+      Descriptor              : in     WisiToken.Descriptor)
    is
       Closure : LR1_Items.Item_Set;
    begin
       for Kernel of Kernels loop
+         --  IMPROVEME: there are three "closure" computations that could
+         --  probably be refactored to save computation; in
+         --  LALR_Goto_Transitions, Fill_In_Lookaheads, and here.
          Closure := LR1_Items.Closure (Kernel, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
          Add_Actions (Closure, Table, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
@@ -542,7 +543,7 @@ package body WisiToken.LR.LALR_Generate is
 
    function Generate
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor      : in LALR_Descriptor;
+      Descriptor      : in WisiToken.Descriptor;
       Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
       Put_Parse_Table : in Boolean := False)

@@ -43,7 +43,8 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
+   --  Unrestricted_Access because can't make generic formal parameter aliased.
 
    Parser : WisiToken.Parse.Base_Parser'Class := Create_Parser (Trace'Unchecked_Access, User_Data => null);
 

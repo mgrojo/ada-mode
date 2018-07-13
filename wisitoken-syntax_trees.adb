@@ -25,7 +25,7 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree             : in Syntax_Trees.Tree;
       N                : in Syntax_Trees.Node;
-      Descriptor       : in WisiToken.Descriptor'Class;
+      Descriptor       : in WisiToken.Descriptor;
       Include_Children : in Boolean)
      return String;
 
@@ -539,7 +539,7 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree       : in Syntax_Trees.Tree;
       Children   : in Valid_Node_Index_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -558,7 +558,7 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree             : in Syntax_Trees.Tree;
       N                : in Syntax_Trees.Node;
-      Descriptor       : in WisiToken.Descriptor'Class;
+      Descriptor       : in WisiToken.Descriptor;
       Include_Children : in Boolean)
      return String
    is
@@ -586,7 +586,7 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree             : in Syntax_Trees.Tree;
       Node             : in Valid_Node_Index;
-      Descriptor       : in WisiToken.Descriptor'Class;
+      Descriptor       : in WisiToken.Descriptor;
       Include_Children : in Boolean := False)
      return String
    is begin
@@ -600,7 +600,7 @@ package body WisiToken.Syntax_Trees is
    function Image
      (Tree       : in Syntax_Trees.Tree;
       Nodes      : in Valid_Node_Index_Array;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String
    is
       use Ada.Strings.Unbounded;

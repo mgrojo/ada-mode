@@ -31,7 +31,7 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 package body WisiToken.LR is
 
-   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class)
+   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor)
    is
       use Ada.Text_IO;
    begin
@@ -144,7 +144,7 @@ package body WisiToken.LR is
       return Iter.Node.State;
    end State;
 
-   function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String
+   function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String
    is
       use Ada.Containers;
    begin
@@ -683,7 +683,7 @@ package body WisiToken.LR is
       Free (Table);
    end Free_Table;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Parse_Action_Rec)
    is
       use Ada.Containers;
       use Ada.Text_IO;
@@ -705,7 +705,7 @@ package body WisiToken.LR is
       end case;
    end Put;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr)
+   procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr)
    is
       use Ada.Text_IO;
       Ptr    : Parse_Action_Node_Ptr   := Action;
@@ -720,7 +720,7 @@ package body WisiToken.LR is
       end loop;
    end Put;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; State : in Parse_State)
+   procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State)
    is
       use Ada.Text_IO;
       use Ada.Strings.Fixed;

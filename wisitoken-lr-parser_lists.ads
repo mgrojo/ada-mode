@@ -34,7 +34,7 @@ package WisiToken.LR.Parser_Lists is
 
    function Parser_Stack_Image
      (Stack      : in Parser_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor'Class;
+      Descriptor : in WisiToken.Descriptor;
       Tree       : in Syntax_Trees.Tree;
       Depth      : in SAL.Base_Peek_Type := 0)
      return String;
@@ -45,7 +45,7 @@ package WisiToken.LR.Parser_Lists is
 
    function Image
      (Stack      : in Parser_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor'Class;
+      Descriptor : in WisiToken.Descriptor;
       Tree       : in Syntax_Trees.Tree;
       Depth      : in SAL.Base_Peek_Type := 0)
      return String renames Parser_Stack_Image;

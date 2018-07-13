@@ -43,7 +43,7 @@ package body WisiToken.Generate is
 
    procedure Check_Consistent
      (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in WisiToken.Descriptor'Class;
+      Descriptor       : in WisiToken.Descriptor;
       Source_File_Name : in String)
    is begin
       if Descriptor.Accept_ID /= Descriptor.First_Nonterminal then
@@ -186,7 +186,7 @@ package body WisiToken.Generate is
 
    function To_Terminal_Sequence_Array
      (First      : in Token_Array_Token_Set;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return Token_Sequence_Arrays.Vector
    is
       subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;

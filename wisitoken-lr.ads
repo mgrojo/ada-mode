@@ -92,7 +92,7 @@ package WisiToken.LR is
 
    type Reduce_Action_Array is array (Positive range <>) of Reduce_Action_Rec;
 
-   function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String;
+   function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String;
    --  Ada aggregate syntax, leaving out Action, Check in reduce.
 
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
@@ -264,7 +264,7 @@ package WisiToken.LR is
       Check_Delta_Limit => Natural'Last,
       Enqueue_Limit     => Natural'Last);
 
-   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor'Class);
+   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor);
    --  Put Item to Ada.Text_IO.Current_Output
 
    type Production is record
@@ -334,9 +334,9 @@ package WisiToken.LR is
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; State : in Parse_State);
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Parse_Action_Rec);
+   procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr);
+   procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State);
 
    ----------
    --  For McKenzie_Recover. Declared here because Parser_Lists needs
@@ -469,16 +469,16 @@ package WisiToken.LR is
 
    package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
 
-   function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor'Class) return String
+   function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor) return String
      is ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " : " &
            Image (Item.Token, Descriptor));
 
-   function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
+   function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor, Image);
    --  Unique name for calling from debugger
 
    function Image
      (Stack      : in Recover_Stacks.Stack;
-      Descriptor : in WisiToken.Descriptor'Class;
+      Descriptor : in WisiToken.Descriptor;
       Depth      : in SAL.Base_Peek_Type := 0)
      return String
      renames Recover_Stack_Image;

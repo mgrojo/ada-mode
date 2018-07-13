@@ -44,7 +44,7 @@ package WisiToken.Generate is
 
    procedure Check_Consistent
      (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor       : in WisiToken.Descriptor'Class;
+      Descriptor       : in WisiToken.Descriptor;
       Source_File_Name : in String);
 
    function Has_Empty_Production (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_ID_Set;
@@ -68,7 +68,7 @@ package WisiToken.Generate is
 
    function To_Terminal_Sequence_Array
      (First      : in Token_Array_Token_Set;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return Token_Sequence_Arrays.Vector;
    --  Only includes terminals.
 

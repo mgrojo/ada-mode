@@ -27,7 +27,7 @@ package body WisiToken.Productions is
      (LHS        : in Token_ID;
       RHS_Index  : in Natural;
       RHS        : in Token_ID_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String
    is
       use Ada.Strings.Unbounded;
@@ -39,7 +39,7 @@ package body WisiToken.Productions is
       return To_String (Result);
    end Image;
 
-   procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor'Class)
+   procedure Put (Grammar : Prod_Arrays.Vector; Descriptor : in WisiToken.Descriptor)
    is begin
       for P of Grammar loop
          for R in P.RHSs.First_Index .. P.RHSs.Last_Index loop
