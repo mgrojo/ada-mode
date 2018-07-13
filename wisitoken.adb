@@ -27,14 +27,6 @@
 with Ada.Strings.Fixed;
 package body WisiToken is
 
-   function Image (Item : in Unknown_State_Index) return String
-   is
-      use Ada.Strings;
-      use Ada.Strings.Fixed;
-   begin
-      return (if Item = Unknown_State then " " else Trim (State_Index'Image (Item), Left));
-   end Image;
-
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor'Class) return String
    is begin
       return Ada.Strings.Fixed.Head

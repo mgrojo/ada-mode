@@ -128,7 +128,7 @@ package WisiToken.LR is
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
    type Parse_State is record
-      Productions : Production_ID_Arrays.Vector; --  FIXME: not used?
+      Productions : Production_ID_Arrays.Vector; -- used in error recovery
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
    end record;
@@ -473,7 +473,8 @@ package WisiToken.LR is
    package Recover_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Recover_Stack_Item);
 
    function Image (Item : in Recover_Stack_Item; Descriptor : in WisiToken.Descriptor'Class) return String
-     is (Image (Item.State) & " : " & Image (Item.Token, Descriptor));
+     is ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " : " &
+           Image (Item.Token, Descriptor));
 
    function Recover_Stack_Image is new Recover_Stacks.Gen_Image_Aux (WisiToken.Descriptor'Class, Image);
    --  Unique name for calling from debugger

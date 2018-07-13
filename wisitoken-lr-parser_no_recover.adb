@@ -67,7 +67,7 @@ package body WisiToken.LR.Parser_No_Recover is
       if Trace_Parse > Detail then
          Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
-              Image (Parser_State.Stack.Peek.State) & ": " &
+              Trimmed_Image (Parser_State.Stack.Peek.State) & ": " &
               Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : ");
          Put (Trace, Action);
          Trace.New_Line;
@@ -94,7 +94,7 @@ package body WisiToken.LR.Parser_No_Recover is
          Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);
 
          if Trace_Parse > Detail then
-            Trace.Put_Line (" ... goto state " & Image (Parser_State.Stack.Peek.State));
+            Trace.Put_Line (" ... goto state " & Trimmed_Image (Parser_State.Stack.Peek.State));
          end if;
 
       when Accept_It =>

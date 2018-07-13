@@ -71,8 +71,7 @@ package WisiToken is
    subtype State_Index is Unknown_State_Index range 0 .. Unknown_State_Index'Last;
    Unknown_State : constant Unknown_State_Index := -1;
 
-   function Image (Item : in Unknown_State_Index) return String;
-   --  no leading space; " " for Unknown_State
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (Unknown_State_Index);
 
    ----------
    --  Token IDs

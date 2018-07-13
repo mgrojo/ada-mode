@@ -1111,7 +1111,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                         else
                            raise Programmer_Error with
                              "process_one found test case for new_state = Unknown; old state " &
-                             Image (Config.Stack (1).State) & " nonterm " & Image
+                             Trimmed_Image (Config.Stack (1).State) & " nonterm " & Image
                                (Config.Error_Token.ID, Trace.Descriptor.all);
                         end if;
                      end if;

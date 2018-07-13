@@ -39,14 +39,18 @@ package body WisiToken.LR.Parser_Lists is
       Result : Unbounded_String := +"(";
    begin
       for I in 1 .. Last loop
-         Result := Result &
-           (Image (Stack.Peek (I).State) & " :" &
-              (if I = Stack.Depth
-               then ""
-               else
-                 (if Stack.Peek (I).Token = Syntax_Trees.Invalid_Node_Index -- From recover fast-forward
+         declare
+            Item : Parser_Stack_Item renames Stack.Peek (I);
+         begin
+            Result := Result &
+              ((if Item.State = Unknown_State then " " else Trimmed_Image (Item.State)) & " :" &
+                 (if I = Stack.Depth
                   then ""
-                  else Tree.Image (Stack.Peek (I).Token, Descriptor) & ", ")));
+                  else
+                    (if Item.Token = Syntax_Trees.Invalid_Node_Index -- From recover fast-forward
+                     then ""
+                     else Tree.Image (Item.Token, Descriptor) & ", ")));
+         end;
       end loop;
       return To_String (Result & ")");
    end Parser_Stack_Image;

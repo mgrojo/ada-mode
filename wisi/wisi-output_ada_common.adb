@@ -312,26 +312,18 @@ package body Wisi.Output_Ada_Common is
       Common_Data   : in out Output_Ada_Common.Common_Data;
       Table         : in     WisiToken.LR.Parse_Table_Ptr)
    is
-      use all type Standard.Ada.Containers.Count_Type;
-      use all type WisiToken.Token_ID;
-      use all type WisiToken.LR.McKenzie_Param_Type;
       use Wisi.Utils;
+      use WisiToken;
+      use all type Standard.Ada.Containers.Count_Type;
+      use all type WisiToken.LR.McKenzie_Param_Type;
 
-      subtype Nonterminal_ID is WisiToken.Token_ID range
+      subtype Nonterminal_ID is Token_ID range
         Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index;
 
       Count          : Integer;
       Items_Per_Line : constant := 8;
 
-      function Natural_Image (Item : in Natural) return String
-      is
-         use Standard.Ada.Strings;
-         use Standard.Ada.Strings.Fixed;
-      begin
-         return Trim (Natural'Image (Item), Both);
-      end Natural_Image;
-
-      procedure Put (Label : in String; Item : in WisiToken.Token_ID_Array_Natural)
+      procedure Put (Label : in String; Item : in Token_ID_Array_Natural)
       is begin
          Indent_Line (Label & " =>");
          Indent_Start ("  (");
@@ -339,7 +331,7 @@ package body Wisi.Output_Ada_Common is
          Count := 0;
          for I in Item'Range loop
             Count := Count + 1;
-            Put (Natural_Image (Item (I)));
+            Put (Trimmed_Image (Item (I)));
 
             if I = Item'Last then
                Put_Line ("),");
@@ -357,21 +349,20 @@ package body Wisi.Output_Ada_Common is
       end Put;
 
    begin
-      if Table.McKenzie_Param /= WisiToken.LR.Default_McKenzie_Param then
-         --  FIXME: duplicated for LALR_LR1
+      if Table.McKenzie_Param /= LR.Default_McKenzie_Param then
          Indent_Line ("Table.McKenzie_Param :=");
-         Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
+         Indent_Line ("  (First_Terminal    =>" & Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
          Indent := Indent + 3;
-         Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
-         Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
-         Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
+         Indent_Line ("Last_Terminal     =>" & Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
+         Indent_Line ("First_Nonterminal =>" & Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
+         Indent_Line ("Last_Nonterminal  =>" & Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
          Put ("Insert", Table.McKenzie_Param.Insert);
          Put ("Delete", Table.McKenzie_Param.Delete);
          Put ("Push_Back", Table.McKenzie_Param.Push_Back);
          Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
                         (Table.McKenzie_Param.Task_Count) & ",");
          Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");
-         Indent_Line ("Check_Limit =>" & WisiToken.Token_Index'Image (Table.McKenzie_Param.Check_Limit) & ",");
+         Indent_Line ("Check_Limit =>" & Token_Index'Image (Table.McKenzie_Param.Check_Limit) & ",");
          Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ",");
          Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie_Param.Enqueue_Limit) & ");");
          Indent := Indent - 3;
@@ -382,24 +373,24 @@ package body Wisi.Output_Ada_Common is
 
       if Input_Data.Generate_Params.Error_Recover then
          Indent_Line
-           ("Table.Productions.Set_First (" & WisiToken.Trimmed_Image (Generate_Data.Grammar.First_Index) & ");");
+           ("Table.Productions.Set_First (" & Trimmed_Image (Generate_Data.Grammar.First_Index) & ");");
          Indent_Line
-           ("Table.Productions.Set_Last (" & WisiToken.Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
+           ("Table.Productions.Set_Last (" & Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
 
          for I in Nonterminal_ID loop
             declare
-               P : WisiToken.Productions.Instance renames Generate_Data.Grammar (I);
+               P : Productions.Instance renames Generate_Data.Grammar (I);
             begin
                Indent_Start
-                 ("Set_Production (Table.Productions (" & WisiToken.Trimmed_Image (P.LHS) & "), " &
-                    WisiToken.Trimmed_Image (P.LHS) & "," & Integer'Image (P.RHSs.Last_Index) & ");");
+                 ("Set_Production (Table.Productions (" & Trimmed_Image (P.LHS) & "), " &
+                    Trimmed_Image (P.LHS) & "," & Integer'Image (P.RHSs.Last_Index) & ");");
 
                for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
                   Indent_Start
-                    ("Set_RHS (Table.Productions (" & WisiToken.Trimmed_Image (P.LHS) & ")," & Natural'Image (J) &
+                    ("Set_RHS (Table.Productions (" & Trimmed_Image (P.LHS) & ")," & Natural'Image (J) &
                        ", (");
                   declare
-                     RHS : WisiToken.Productions.Right_Hand_Side renames P.RHSs (J);
+                     RHS : Productions.Right_Hand_Side renames P.RHSs (J);
                   begin
                      if RHS.Tokens.Length = 0 then
                         Put ("1 .. 0 => <>");
@@ -421,24 +412,24 @@ package body Wisi.Output_Ada_Common is
          New_Line;
 
          Indent_Line
-           ("Table.Minimal_Terminal_Sequences.Set_First (" & WisiToken.Trimmed_Image
+           ("Table.Minimal_Terminal_Sequences.Set_First (" & Trimmed_Image
               (Table.Minimal_Terminal_Sequences.First_Index) & ");");
 
          Indent_Line
-           ("Table.Minimal_Terminal_Sequences.Set_Last (" & WisiToken.Trimmed_Image
+           ("Table.Minimal_Terminal_Sequences.Set_Last (" & Trimmed_Image
               (Table.Minimal_Terminal_Sequences.Last_Index) & ");");
 
          for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
             Indent_Start
-              ("Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & WisiToken.Trimmed_Image (I) & "), (");
+              ("Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & Trimmed_Image (I) & "), (");
 
             declare
-               S : WisiToken.Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
+               S : Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
             begin
                if S.Length = 0 then
                   Put ("1 .. 0 => <>");
                elsif S.Length = 1 then
-                  Put ("1 =>" & WisiToken.Token_ID'Image (S (S.First_Index)));
+                  Put ("1 =>" & Token_ID'Image (S (S.First_Index)));
                else
                   for J in S.First_Index .. S.Last_Index loop
                      Put (Trimmed_Image (S (J)));
@@ -453,12 +444,28 @@ package body Wisi.Output_Ada_Common is
          New_Line;
       end if;
 
+      --  Optimize source structure for GNAT compile time; one subroutine
+      --  with thousands of "Table.States (*) := ..." takes forever to
+      --  compile. But hundreds of subroutines, one per state, containing
+      --  the same lines, compiles in acceptable time.
+      --
+      --  FIXME: move subr declarations to package level?
+
+      Indent_Line ("declare");
+      Indent := Indent + 3;
+
+      State_Subroutines :
       for State_Index in Table.States'Range loop
+
+         Indent_Line
+           ("procedure Build_State_" & Trimmed_Image (State_Index) & " (State : in out Parse_State)");
+         Indent_Line ("is begin");
+         Indent := Indent + 3;
 
          if Input_Data.Generate_Params.Error_Recover then
             Indent_Wrap
-              ("Table.States (" & WisiToken.Image (State_Index) & ").Productions := WisiToken.To_Vector (" &
-                 WisiToken.Image (Table.States (State_Index).Productions, Strict => True) & ");");
+              ("State.Productions := WisiToken.To_Vector (" &
+                 Image (Table.States (State_Index).Productions, Strict => True) & ");");
          end if;
 
          Actions :
@@ -490,9 +497,9 @@ package body Wisi.Output_Ada_Common is
                   Action : constant Reduce_Action_Rec := Node.Action.Item;
                begin
                   Set_Col (Indent);
-                  Line := +"Add_Action (Table.States (" & WisiToken.Image (State_Index) & "), " &
+                  Line := +"Add_Action (State, " &
                     Symbols_Image (Table.States (State_Index)) & ", " &
-                    WisiToken.Image (Action.Production) & "," &
+                    Image (Action.Production) & "," &
                     Count_Type'Image (Action.Token_Count) & ", ";
 
                   Append
@@ -522,22 +529,22 @@ package body Wisi.Output_Ada_Common is
                   begin
                      case Action_Node.Item.Verb is
                      when Shift =>
-                        Line := +"Add_Action (Table.States (" & WisiToken.Image (State_Index) & "), " &
-                          WisiToken.Image (Action_Node.Item.Productions, Strict => True) & ", " &
-                          WisiToken.Trimmed_Image (Node.Symbol);
+                        Line := +"Add_Action (State, " &
+                          Image (Action_Node.Item.Productions, Strict => True) & ", " &
+                          Trimmed_Image (Node.Symbol);
                         Append (", ");
-                        Append (WisiToken.Image (Action_Node.Item.State));
+                        Append (Trimmed_Image (Action_Node.Item.State));
 
                      when Reduce | Accept_It =>
-                        Line := +"Add_Action (Table.States (" & WisiToken.Image (State_Index) & "), " &
-                          WisiToken.Trimmed_Image (Node.Symbol);
+                        Line := +"Add_Action (State, " &
+                          Trimmed_Image (Node.Symbol);
                         if Action_Node.Item.Verb = Reduce then
                            Append (", Reduce");
                         else
                            Append (", Accept_It");
                         end if;
                         Append (", ");
-                        Append (WisiToken.Image (Action_Node.Item.Production) & ",");
+                        Append (Image (Action_Node.Item.Production) & ",");
                         Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                         Append
                           ((if Common_Data.Ada_Action_Names (Action_Node.Item.Production.Nonterm) = null then "null"
@@ -557,8 +564,8 @@ package body Wisi.Output_Ada_Common is
                               (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS).all &
                                "'Access"));
 
-                     when WisiToken.LR.Error =>
-                        Line := +"Add_Error (Table.States (" & WisiToken.Image (State_Index) & ")";
+                     when LR.Error =>
+                        Line := +"Add_Error (State";
                      end case;
 
                      Action_Node := Action_Node.Next;
@@ -568,7 +575,7 @@ package body Wisi.Output_Ada_Common is
                         case Action_Node.Item.Verb is
                         when Reduce | Accept_It =>
                            Append (", ");
-                           Append (WisiToken.Image (Action_Node.Item.Production) & ",");
+                           Append (Image (Action_Node.Item.Production) & ",");
                            Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                            Append
                              ((if Common_Data.Ada_Action_Names (Action_Node.Item.Production.Nonterm) = null then "null"
@@ -590,7 +597,7 @@ package body Wisi.Output_Ada_Common is
 
                         when others =>
                            raise Programmer_Error with "conflict second action verb: " &
-                             WisiToken.LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
+                             LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                         end case;
                      end if;
                   end;
@@ -609,12 +616,29 @@ package body Wisi.Output_Ada_Common is
             loop
                exit when Node = null;
                Set_Col (Indent);
-               Put ("Add_Goto (Table.States (" & WisiToken.Image (State_Index) & "), ");
-               Put_Line (WisiToken.Trimmed_Image (Symbol (Node)) & ", " & WisiToken.Image (State (Node)) & ");");
+               Put ("Add_Goto (State, ");
+               Put_Line (Trimmed_Image (Symbol (Node)) & ", " & Trimmed_Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;
          end Gotos;
-      end loop;
+
+         Indent := Indent - 3;
+         Indent_Line ("end Build_State_" & Trimmed_Image (State_Index) & ";");
+
+      end loop State_Subroutines;
+
+      Indent := Indent - 3;
+      Indent_Line ("begin");
+      Indent := Indent + 3;
+
+      Build_Table_States :
+      for State_Index in Table.States'Range loop
+         Indent_Line
+           ("Build_State_" & Trimmed_Image (State_Index) & " (Table.States (" &
+              Trimmed_Image (State_Index) & "));");
+      end loop Build_Table_States;
+      Indent := Indent - 3;
+      Indent_Line ("end;");
    end Create_LR_Parser_Core;
 
    procedure LR_Create_Create_Parser
@@ -657,10 +681,10 @@ package body Wisi.Output_Ada_Common is
 
       case LR_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
       when LALR =>
-         Put_Line (WisiToken.Image (Generate_Data.LR_Parsers (LALR).State_Last) & ",");
+         Put_Line (WisiToken.Trimmed_Image (Generate_Data.LR_Parsers (LALR).State_Last) & ",");
 
       when LR1 =>
-         Put_Line (WisiToken.Image (Generate_Data.LR_Parsers (LR1).State_Last) & ",");
+         Put_Line (WisiToken.Trimmed_Image (Generate_Data.LR_Parsers (LR1).State_Last) & ",");
 
       end case;
       Indent_Line ("First_Terminal    => Trace.Descriptor.First_Terminal,");
