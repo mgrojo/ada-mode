@@ -31,6 +31,7 @@ with SAL.Time_Conversions.Test;
 with Test.Config_Files.All_Suite;
 with Test_Bounded_Definite_Queues;
 with Test_Definite_Doubly_Linked_Lists;
+with Test_Definite_Doubly_Linked_Lists_Sorted;
 with Test_Gen_Images;
 with Test_Graphs;
 with Test_Min_Heap_Binary;
@@ -100,6 +101,7 @@ begin
    Add_Test (Suite, new Test_Graphs.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Queues.Test_Case);
    Add_Test (Suite, new Test_Definite_Doubly_Linked_Lists.Test_Case);
+   Add_Test (Suite, new Test_Definite_Doubly_Linked_Lists_Sorted.Test_Case);
    Add_Test (Suite, new Test_Min_Heap_Binary.Test_Case);
    Add_Test (Suite, new Test_Min_Heap_Fibonacci.Test_Case);
    Add_Test (Suite, new Test_Network_Order.Test_Case);

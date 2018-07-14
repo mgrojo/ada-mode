@@ -78,6 +78,8 @@ OK test_bounded_definite_queues.adb : Nominal
 OK test_bounded_definite_queues.adb : Errors
 OK test_bounded_definite_queues.adb : Overwrite
 OK test_definite_doubly_linked_lists.adb : Nominal
+OK test_definite_doubly_linked_lists.adb : Test_Insert
+OK test_definite_doubly_linked_lists_sorted.adb : Nominal
 OK test_min_heaps_binary.adb : Nominal
 OK test_min_heaps.adb : Nominal
 OK test_min_heaps.adb : Test_Adjust
@@ -95,7 +97,7 @@ OK test_unbounded_definite_vectors.adb : Prepend
 OK test_unbounded_definite_vectors.adb : Test_Grow_1
 OK test_unbounded_definite_vectors.adb : Test_To_Vector_1
 
-Total Tests Run:   95
-Successful Tests:  95
+Total Tests Run:   97
+Successful Tests:  97
 Failed Assertions: 0
 Unexpected Errors: 0

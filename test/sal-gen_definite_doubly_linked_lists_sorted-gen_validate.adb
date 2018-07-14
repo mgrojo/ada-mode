@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-package body SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate is
+package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Validate is
 
    procedure Validate (Label : in String; Container : in List)
    is
@@ -49,4 +49,4 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate is
       end if;
    end Validate;
 
-end SAL.Gen_Definite_Doubly_Linked_Lists.Gen_Validate;
+end SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Validate;

@@ -58,6 +58,8 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
 
    procedure Prepend (Container : in out List; Element : in Element_Type);
 
+   function To_List (Element : in Element_Type) return List;
+
    type Cursor is private;
 
    No_Element : constant Cursor;
@@ -67,28 +69,44 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
    function First (Container : in List) return Cursor;
    function Last (Container : in List) return Cursor;
 
-   procedure Next (Position : in out Cursor);
+   procedure Next (Position : in out Cursor)
+   with Pre => Position /= No_Element;
 
-   function Next (Position : in Cursor) return Cursor;
-   function Previous (Position : in Cursor) return Cursor;
+   function Next (Position : in Cursor) return Cursor
+   with Pre => Position /= No_Element;
+   function Previous (Position : in Cursor) return Cursor
+   with Pre => Position /= No_Element;
 
-   function Element (Position : in Cursor) return Element_Type;
+   function Element (Position : in Cursor) return Element_Type
+   with Pre => Position /= No_Element;
 
-   procedure Delete (Container : in out List; Position : in out Cursor);
+   procedure Delete (Container : in out List; Position : in out Cursor)
+   with Pre => Position /= No_Element;
 
-   function Persistent_Ref (Position : in Cursor) return access Element_Type;
+   procedure Insert
+     (Container : in out List;
+      Before    : in     Cursor;
+      Element   : in     Element_Type);
+   --  If Before is No_Element, insert after Last.
+
+   function Persistent_Ref (Position : in Cursor) return access Element_Type
+   with Pre => Position /= No_Element;
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Constant_Reference (Container : in List; Position : in Cursor) return Constant_Reference_Type;
-   function Constant_Ref (Position : in Cursor) return Constant_Reference_Type;
+   function Constant_Reference (Container : in List; Position : in Cursor) return Constant_Reference_Type
+   with Pre => Position /= No_Element;
+   function Constant_Ref (Position : in Cursor) return Constant_Reference_Type
+   with Pre => Position /= No_Element;
 
    type Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Reference (Container : in List; Position : in Cursor) return Reference_Type;
-   function Ref (Position : in Cursor) return Reference_Type;
+   function Reference (Container : in List; Position : in Cursor) return Reference_Type
+   with Pre => Position /= No_Element;
+   function Ref (Position : in Cursor) return Reference_Type
+   with Pre => Position /= No_Element;
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 

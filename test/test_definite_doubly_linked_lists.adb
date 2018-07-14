@@ -46,7 +46,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Append (List, 3);
       Append (List, 5);
 
-      Val.Validate (List);
+      Val.Validate ("0", List);
       Cur := List.First;
       Check ("1a", Constant_Ref (Cur), 1);
       Next (Cur);
@@ -58,7 +58,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("1e", Cur = No_Element, True);
 
       List.Prepend (0);
-      Val.Validate (List);
+      Val.Validate ("2", List);
       Cur := List.First;
       Check ("2a", Constant_Ref (Cur), 0);
       Next (Cur);
@@ -70,7 +70,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Check ("2e", List.Length, 4);
 
       Delete (List, Cur);
-      Val.Validate (List);
+      Val.Validate ("3", List);
       Check ("3a", Cur = No_Element, True);
       Check ("3b", List.Length, 3);
       Cur := List.First;
@@ -85,7 +85,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       Cur := List.First;
       Cur := Next (Cur);
       Delete (List, Cur);
-      Val.Validate (List);
+      Val.Validate ("4", List);
       Check ("4a", List.Length, 2);
       Cur := List.First;
       Check ("4b", Constant_Ref (Cur), 0);
@@ -116,6 +116,89 @@ package body Test_Definite_Doubly_Linked_Lists is
 
    end Nominal;
 
+   procedure Test_Insert (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+
+      List : Integer_Lists.List;
+      Cur : Cursor;
+   begin
+      --  Insert into empty
+      List.Insert (List.First, 2);
+
+      Val.Validate ("1", List);
+      Check ("1a", List.Length, 1);
+      Cur := List.First;
+      Check ("1b", Constant_Ref (Cur), 2);
+      Next (Cur);
+      Check ("1c", Has_Element (Cur), False);
+
+      --  Insert before head
+      List.Insert (List.First, 0);
+      Val.Validate ("2", List);
+      Check ("2a", List.Length, 2);
+      Cur := List.First;
+      Check ("2b", Constant_Ref (Cur), 0);
+      Next (Cur);
+      Check ("2c", Constant_Ref (Cur), 2);
+      Next (Cur);
+      Check ("2d", Cur = No_Element, True);
+
+      --  Insert before tail
+      List.Insert (List.Last, 1);
+      Val.Validate ("3", List);
+      Check ("3a", List.Length, 3);
+      Cur := List.First;
+      Check ("3b", Constant_Ref (Cur), 0);
+      Next (Cur);
+      Check ("3c", Constant_Ref (Cur), 1);
+      Next (Cur);
+      Check ("3d", Constant_Ref (Cur), 2);
+      Next (Cur);
+      Check ("3e", Cur = No_Element, True);
+
+      --  Insert after tail
+      List.Insert (No_Element, 3);
+      Val.Validate ("4", List);
+      Check ("4a", List.Length, 4);
+      Cur := List.First;
+      Check ("4b", Constant_Ref (Cur), 0);
+      Next (Cur);
+      Check ("4c", Constant_Ref (Cur), 1);
+      Next (Cur);
+      Check ("4d", Constant_Ref (Cur), 2);
+      Next (Cur);
+      Check ("4e", Constant_Ref (Cur), 3);
+      Next (Cur);
+      Check ("4f", Cur = No_Element, True);
+
+      --  Insert in middle
+      Cur := List.First;
+      Cur := Next (Cur);
+      Cur := Next (Cur);
+      Check ("5a", Constant_Ref (Cur), 2);
+
+      List.Insert (Cur, -2);
+      Val.Validate ("5", List);
+      Check ("5a", List.Length, 5);
+      Cur := List.First;
+      Check ("5b", Constant_Ref (Cur), 0);
+      Next (Cur);
+      Check ("5c", Constant_Ref (Cur), 1);
+      Next (Cur);
+      Check ("5d", Constant_Ref (Cur), -2);
+      Next (Cur);
+      Check ("5e", Constant_Ref (Cur), 2);
+      Next (Cur);
+      Check ("5f", Constant_Ref (Cur), 3);
+      Next (Cur);
+      Check ("5g", Cur = No_Element, True);
+
+   end Test_Insert;
+
    ----------
    --  Public routines
 
@@ -124,6 +207,7 @@ package body Test_Definite_Doubly_Linked_Lists is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Test_Insert'Access, "Test_Insert");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

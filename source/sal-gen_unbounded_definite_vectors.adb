@@ -24,6 +24,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       return Peek_Type'Base (Item - Index_Type'First) + Peek_Type'First;
    end To_Peek_Type;
 
+   function To_Index_Type (Item : in Peek_Type'Base) return Extended_Index
+   is begin
+      return Extended_Index (Item - Peek_Type'First) + Index_Type'First;
+   end To_Index_Type;
+
    procedure Grow (Elements : in out Array_Access; Index : in Base_Peek_Type'Base)
    is
       --  Reallocate Elements so Elements (Index) is a valid element.
@@ -86,6 +91,26 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          Container.Elements := new Array_Type'(Container.Elements.all);
       end if;
    end Adjust;
+
+   overriding function "=" (Left, Right : in Vector) return Boolean
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Left.Length = 0 then
+         return Right.Length = 0;
+      elsif Left.First /= Right.First then
+         return False;
+      elsif Left.Last /= Right.Last then
+         return False;
+      else
+         declare
+            I : constant Peek_Type := To_Peek_Type (Left.First);
+            J : constant Peek_Type := To_Peek_Type (Left.Last);
+         begin
+            return Left.Elements (I .. J) = Right.Elements (I .. J);
+         end;
+      end if;
+   end "=";
 
    function Length (Container : in Vector) return Ada.Containers.Count_Type
    is begin
@@ -241,6 +266,32 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Prepend;
 
+   procedure Insert
+     (Container : in out Vector;
+      Element   : in     Element_Type;
+      Before    : in     Index_Type)
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Container.Length = 0 then
+         Container.Append (Element);
+      else
+         Container.Last := Container.Last + 1;
+
+         declare
+            J : constant Peek_Type := To_Peek_Type (Before);
+            K : constant Peek_Type := To_Peek_Type (Container.Last);
+         begin
+            if K > Container.Elements'Last then
+               Grow (Container.Elements, K);
+            end if;
+
+            Container.Elements (J + 1 .. K) := Container.Elements (J .. K - 1);
+            Container.Elements (J) := Element;
+         end;
+      end if;
+   end Insert;
+
    procedure Merge
      (Target : in out Vector;
       Source : in out Vector)
@@ -279,7 +330,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Merge;
 
-   function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector
+   function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type := 1) return Vector
    is begin
       return Result : Vector do
          for I in 1 .. Count loop
@@ -387,6 +438,22 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Delete;
 
+   function Contains (Container : in Vector; Element : in Element_Type) return Boolean
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Container.Length = 0 then
+         return False;
+      else
+         for It of Container.Elements.all loop
+            if It = Element then
+               return True;
+            end if;
+         end loop;
+         return False;
+      end if;
+   end Contains;
+
    function Has_Element (Position : Cursor) return Boolean is
    begin
       return Position.Index /= Invalid_Peek_Index;
@@ -441,6 +508,15 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
          return (Container'Access, To_Peek_Type (Index));
       end if;
    end To_Cursor;
+
+   function To_Index (Position : in Cursor) return Extended_Index
+   is begin
+      if Position = No_Element then
+         return No_Index;
+      else
+         return To_Index_Type (Position.Index);
+      end if;
+   end To_Index;
 
    function Constant_Ref (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type
    is

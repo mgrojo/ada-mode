@@ -48,6 +48,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    overriding procedure Finalize (Container : in out Vector);
    overriding procedure Adjust (Container : in out Vector);
 
+   overriding function "=" (Left, Right : in Vector) return Boolean;
+
    function Length (Container : in Vector) return Ada.Containers.Count_Type;
    function Capacity (Container : in Vector) return Ada.Containers.Count_Type;
 
@@ -89,13 +91,19 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  Copy Source (Source_First .. Source_Last) to Target, before
    --  Target.First_Index.
 
+   procedure Insert
+     (Container : in out Vector;
+      Element   : in     Element_Type;
+      Before    : in     Index_Type);
+   --  Existing elements at Before and after are slid to higher indices.
+
    procedure Merge
      (Target : in out Vector;
       Source : in out Vector);
    --  Copy all elements from Source to Target, to the same index range,
    --  deleting them from Source, and overwriting overlapping ranges.
 
-   function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type) return Vector;
+   function To_Vector (Item : in Element_Type; Count : in Ada.Containers.Count_Type := 1) return Vector;
 
    function "+" (Element : in Element_Type) return Vector;
 
@@ -123,6 +131,9 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    --  Replace Index element contents with default. If Index =
    --  Container.Last_Index, Container.Last_Index is decremented.
 
+   function Contains (Container : in Vector; Element : in Element_Type) return Boolean;
+   --  Return True if Element is in Container, False if not.
+
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
 
@@ -149,6 +160,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
      (Container : aliased in Vector;
       Index     :         in Extended_Index)
      return Cursor;
+
+   function To_Index (Position : in Cursor) return Extended_Index;
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 

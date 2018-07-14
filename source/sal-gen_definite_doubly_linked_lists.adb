@@ -111,6 +111,13 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       Container.Count := Container.Count + 1;
    end Prepend;
 
+   function To_List (Element : in Element_Type) return List
+   is begin
+      return Result : List do
+         Result.Append (Element);
+      end return;
+   end To_List;
+
    function Has_Element (Position : in Cursor) return Boolean
    is begin
       return Position.Ptr /= null;
@@ -195,6 +202,46 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       Position        := No_Element;
       Container.Count := Container.Count - 1;
    end Delete;
+
+   procedure Insert
+     (Container : in out List;
+      Before    : in     Cursor;
+      Element   : in     Element_Type)
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Before = No_Element then
+         Container.Append (Element);
+      else
+         if Before.Ptr = Container.Head then
+            declare
+               --  old list: before ...
+               --  newlist:  new  before ...
+               New_Node : constant Node_Access := new Node_Type'
+                 (Element => Element,
+                  Prev    => null,
+                  Next    => Before.Ptr);
+            begin
+               Before.Ptr.Prev := New_Node;
+               Container.Head  := New_Node;
+            end;
+         else
+            declare
+               --  old list: ... prev  before ...
+               --  newlist:  ... prev  new  before ...
+               New_Node : constant Node_Access := new Node_Type'
+                 (Element => Element,
+                  Prev    => Before.Ptr.Prev,
+                  Next    => Before.Ptr);
+            begin
+               Before.Ptr.Prev.Next := New_Node;
+               Before.Ptr.Prev      := New_Node;
+
+            end;
+         end if;
+         Container.Count := Container.Count + 1;
+      end if;
+   end Insert;
 
    function Persistent_Ref (Position : in Cursor) return access Element_Type
    is begin
