@@ -33,108 +33,91 @@ with Ada.Strings.Unbounded;
 package body WisiToken.LR.LR1_Items is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
-   function Follow
-     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor;
-      First                : in Token_Array_Token_Set;
-      Has_Empty_Production : in Token_ID_Set)
-     return Token_Array_Token_Set
+   ----------
+   --  body subprograms
+
+   function Merge
+     (Prod         : in     Production_ID;
+      Dot          : in     Token_ID_Arrays.Cursor;
+      Lookaheads   : in     Lookahead;
+      Existing_Set : in out Item_Set)
+     return Boolean
    is
-      Prev_Result : Token_Array_Token_Set :=
-        --  FIXME: use grammar.first_index .., declare local subtypes
-        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
-           (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
+      --  Merge item into Existing_Set. Return True if Existing_Set
+      --  is modified.
 
-      Result : Token_Array_Token_Set :=
-        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
-           (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
-
-      ID : Token_ID;
-   begin
-      --  [dragon] pgp 189:
-      --
-      --  Rule 1 Follow (S, EOF) = True; EOF is explicit in the
-      --  start symbol production, so this is covered by Rule 2.
-      --
-      --  Rule 2: If A => alpha B Beta, add First (Beta) to Follow (B)
-      --
-      --  Rule 3; if A => alpha B, or A -> alpha B Beta and Beta
-      --  can be null, add Follow (A) to Follow (B)
-      --
-      --  We don't assume any order in the productions list, so we
-      --  have to keep applying rule 3 until nothing changes.
-
-      for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-         for Prod of Grammar loop
-            for A of Prod.RHSs loop
-               for I in A.Tokens.First_Index .. A.Tokens.Last_Index loop
-                  if A.Tokens (I) = B then
-                     if I < A.Tokens.Last_Index then
-                        --  Rule 1
-                        ID := A.Tokens (1 + I);
-                        if ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
-                           Result (B, ID) := True;
-                        else
-                           Or_Slice (Result, B, Slice (First, ID));
-                        end if;
-                     end if;
-                  end if;
-               end loop;
-            end loop;
-         end loop;
-      end loop;
-
-      Prev_Result := Result;
-      loop
-         for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
-            for Prod of Grammar loop
-               for A of Prod.RHSs loop
-                  for I in A.Tokens.First_Index .. A.Tokens.Last_Index loop
-                     if A.Tokens (I) = B then
-                        if I = A.Tokens.Last_Index or else
-                          (A.Tokens (1 + I) in
-                             Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
-                             Has_Empty_Production (A.Tokens (1 + I)))
-                        then
-                           --  rule 3
-                           Or_Slice (Result, B, Slice (Result, Prod.LHS));
-                        end if;
-                     end if;
-                  end loop;
-               end loop;
-            end loop;
-         end loop;
-
-         exit when Prev_Result = Result;
-         Prev_Result := Result;
-      end loop;
-      return Result;
-   end Follow;
-
-   procedure Add
-     (List : in out Item_Lists.List;
-      Item : in     LR1_Items.Item)
-   is
       use Item_Lists;
-      I : Cursor := List.First;
+
+      Found    : constant Item_Lists.Cursor := Find (Prod, Dot, Existing_Set);
+      Modified : Boolean                    := False;
    begin
-      loop
-         exit when I = No_Element;
-         exit when List (I).Prod.Nonterm > Item.Prod.Nonterm;
-         Next (I);
-      end loop;
-      List.Insert (I, Item);
-   end Add;
+      if Found = No_Element then
+         Existing_Set.Set.Insert ((Prod, Dot, new Token_ID_Set'(Lookaheads)));
 
-   procedure Include
-     (Item  : in LR1_Items.Item;
-      Value : in Token_ID)
+         Modified := True;
+      else
+         Include (Ref (Found), Lookaheads, Modified);
+      end if;
+
+      return Modified;
+   end Merge;
+
+   ----------
+   --  Public subprograms, declaration order
+
+   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Lookahead
    is begin
-      Item.Lookaheads (Value) := True;
-   end Include;
+      return Result : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Lookahead => False) do
+         Result (Item) := True;
+      end return;
+   end To_Lookahead;
+
+   function Lookahead_Image (Item : in Lookahead; Descriptor : in WisiToken.Descriptor) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := Null_Unbounded_String;
+   begin
+      for I in Item'Range loop
+         if Item (I) then
+            if Length (Result) > 0 then
+               Result := Result & "/";
+            end if;
+            Result := Result & Image (I, Descriptor);
+         end if;
+      end loop;
+      return To_String (Result);
+   end Lookahead_Image;
+
+   function Item_Greater (Left, Right : in Item) return Boolean
+   is begin
+      if Left.Prod.Nonterm > Right.Prod.Nonterm then
+         return True;
+      elsif Left.Prod.Nonterm < Right.Prod.Nonterm then
+         return False;
+
+      elsif Left.Prod.RHS > Right.Prod.RHS then
+         return True;
+      elsif Left.Prod.RHS < Right.Prod.RHS then
+         return False;
+
+      else
+         return Token_ID_Arrays.To_Index (Left.Dot) > Token_ID_Arrays.To_Index (Right.Dot);
+      end if;
+   end Item_Greater;
+
+   function Item_Equal (Left, Right : in Item) return Boolean
+   is begin
+      if Left.Prod.Nonterm /= Right.Prod.Nonterm then
+         return False;
+      elsif Left.Prod.RHS /= Right.Prod.RHS then
+         return False;
+      else
+         return Token_ID_Arrays.To_Index (Left.Dot) = Token_ID_Arrays.To_Index (Right.Dot);
+      end if;
+   end Item_Equal;
 
    procedure Include
-     (Item  : in LR1_Items.Item;
+     (Item  : in out LR1_Items.Item;
       Value : in     Lookahead;
       Added :    out Boolean)
    is begin
@@ -149,7 +132,7 @@ package body WisiToken.LR.LR1_Items is
    end Include;
 
    procedure Include
-     (Item       : in     LR1_Items.Item;
+     (Item       : in out LR1_Items.Item;
       Value      : in     Lookahead;
       Descriptor : in     WisiToken.Descriptor)
    is
@@ -160,7 +143,7 @@ package body WisiToken.LR.LR1_Items is
    end Include;
 
    procedure Include
-     (Item       : in     LR1_Items.Item;
+     (Item       : in out LR1_Items.Item;
       Value      : in     Lookahead;
       Added      :    out Boolean;
       Descriptor : in     WisiToken.Descriptor)
@@ -179,20 +162,46 @@ package body WisiToken.LR.LR1_Items is
       end loop;
    end Include;
 
-   procedure Add
-     (List   : in out Goto_Item_Lists.List;
-      Symbol : in     Token_ID;
-      State  : in     State_Index)
+   function Filter
+     (Set        : in     Item_Set;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor;
+      Include    : access function
+        (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+         Descriptor : in WisiToken.Descriptor;
+         Item       : in LR1_Items.Item)
+        return Boolean)
+     return Item_Set
+   is begin
+      return Result : Item_Set := (Set => <>, Goto_List => Set.Goto_List, State => Set.State)
+      do
+         for Item of Set.Set loop
+            if Include (Grammar, Descriptor, Item) then
+               Result.Set.Insert (Item);
+            end if;
+         end loop;
+      end return;
+   end Filter;
+
+   function In_Kernel
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor;
+      Item       : in LR1_Items.Item)
+     return Boolean
    is
-      use Goto_Item_Lists;
-      I : Cursor := List.First;
+      use Token_ID_Arrays;
+      Prod : WisiToken.Productions.Instance renames Grammar (Item.Prod.Nonterm);
+      RHS  : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
    begin
-      loop
-         exit when not Has_Element (I) or else List (I).Symbol > Symbol;
-         Next (I);
-      end loop;
-      List.Insert (Before => I, Element => (Symbol, State));
-   end Add;
+      return
+        No_Element /= RHS.Tokens.First and
+        (Item.Dot = No_Element or else
+           ((Prod.LHS = Descriptor.Accept_ID and
+               Item.Dot = RHS.Tokens.First)
+              -- Start symbol production with dot before first token.
+              or
+              Item.Dot /= RHS.Tokens.First));
+   end In_Kernel;
 
    function Find
      (Item : in LR1_Items.Item;
@@ -207,57 +216,28 @@ package body WisiToken.LR.LR1_Items is
       Dot   : in Token_ID_Arrays.Cursor;
       Right : in Item_Set)
      return Item_Lists.Cursor
-   is
-      use Item_Lists;
-      use all type Token_ID_Arrays.Cursor;
-   begin
-      for Cur in Right.Set.Iterate loop
-         declare
-            Test_Item : Item renames Constant_Ref (Cur);
-         begin
-            if Prod.Nonterm < Test_Item.Prod.Nonterm then
-               --  Right.Item_Set is sorted on ascending LHS, since it is built with
-               --  Add.
-               return No_Element;
-
-            elsif Prod = Constant_Ref (Cur).Prod and then
-              Dot = Constant_Ref (Cur).Dot
-            then
-               return Cur;
-            end if;
-         end;
-      end loop;
-      return No_Element;
+   is begin
+      return Right.Set.Find ((Prod, Dot, null));
    end Find;
 
    function Find
-     (Prod       : in              Production_ID;
-      Dot        : in              Token_ID_Arrays.Cursor;
-      Right      : in              Item_Set;
-      Lookaheads : not null access Lookahead)
+     (Prod       : in Production_ID;
+      Dot        : in Token_ID_Arrays.Cursor;
+      Right      : in Item_Set;
+      Lookaheads : in Lookahead)
      return Item_Lists.Cursor
    is
       use Item_Lists;
-      use all type Token_ID_Arrays.Cursor;
+      Result : constant Cursor := Right.Set.Find ((Prod, Dot, null));
    begin
-      for Cur in Right.Set.Iterate loop
-         declare
-            Test_Item : Item renames Constant_Ref (Cur);
-         begin
-            if Prod.Nonterm < Test_Item.Prod.Nonterm then
-               --  Right.Item_Set is sorted on ascending LHS, since it is built with
-               --  Add.
-               return No_Element;
-
-            elsif Prod = Constant_Ref (Cur).Prod and then
-              Dot = Constant_Ref (Cur).Dot and then
-              Lookaheads.all = Constant_Ref (Cur).Lookaheads.all
-            then
-               return Cur;
-            end if;
-         end;
-      end loop;
-      return No_Element;
+      --  Item_Equal does not consider lookaheads
+      if Result = No_Element then
+         return Result;
+      elsif Constant_Ref (Result).Lookaheads.all = Lookaheads then
+         return Result;
+      else
+         return No_Element;
+      end if;
    end Find;
 
    function To_Item_Set_Tree_Key (Item_Set : in LR1_Items.Item_Set) return Item_Set_Tree_Key
@@ -361,7 +341,6 @@ package body WisiToken.LR.LR1_Items is
                   New_Item   : Item renames Constant_Ref (New_Cur);
                begin
                   if Known_Item.Lookaheads.all /= New_Item.Lookaheads.all then
-                     --  FIXME: different data structure for lookahead so /= is faster?
                      return False;
                   end if;
                   if I >= 3 then
@@ -474,32 +453,6 @@ package body WisiToken.LR.LR1_Items is
       return Unknown_State;
    end Goto_State;
 
-   function Merge
-     (Prod         : in     Production_ID;
-      Dot          : in     Token_ID_Arrays.Cursor;
-      Lookaheads   : in     Lookahead;
-      Existing_Set : in out Item_Set)
-     return Boolean
-   is
-      --  Merge item into Existing_Set. Return True if Existing_Set
-      --  is modified.
-
-      use Item_Lists;
-
-      Found    : constant Item_Lists.Cursor := Find (Prod, Dot, Existing_Set);
-      Modified : Boolean                    := False;
-   begin
-      if Found = No_Element then
-         Add (Existing_Set.Set, (Prod, Dot, new Token_ID_Set'(Lookaheads)));
-
-         Modified := True;
-      else
-         Include (Ref (Found), Lookaheads, Modified);
-      end if;
-
-      return Modified;
-   end Merge;
-
    function Closure
      (Set                     : in Item_Set;
       Has_Empty_Production    : in Token_ID_Set;
@@ -544,7 +497,8 @@ package body WisiToken.LR.LR1_Items is
                   For_Each_RHS :
                   for B in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                      declare
-                        RHS_2 : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (B);
+                        RHS_2 : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (B); --  FIXME: delete _2
+                        P_ID_2 : constant Production_ID := (Prod.LHS, B);
                      begin
                         --  Compute FIRST (<tail of right hand side> a); loop
                         --  until find a terminal, a nonterminal that
@@ -555,41 +509,34 @@ package body WisiToken.LR.LR1_Items is
 
                         First_Tail :
                         loop
-                           declare
-                              P_ID_2 : constant Production_ID := (Prod.LHS, B);
-                           begin
-                              if Beta = No_Element then
-                                 --  Use FIRST (a); a = Item.Lookaheads.
-                                 --  Lookaheads are all terminals, so
-                                 --  FIRST (a) = a.
+                           if Beta = No_Element then
+                              --  Use FIRST (a); a = Item.Lookaheads.
+                              --  Lookaheads are all terminals, so
+                              --  FIRST (a) = a.
+                              Added_Item := Added_Item or
+                                Merge (P_ID_2, RHS_2.Tokens.First, Item.Lookaheads.all, I);
+                              exit First_Tail;
+
+                           elsif Element (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+                              --  FIRST (Beta) = Beta
+                              Added_Item := Added_Item or Merge
+                                (P_ID_2, RHS_2.Tokens.First, To_Lookahead (Element (Beta), Descriptor), I);
+                              exit First_Tail;
+
+                           else
+                              --  Beta is a nonterminal; use FIRST (Beta)
+                              for Terminal of First_Terminal_Sequence (Element (Beta)) loop
                                  Added_Item := Added_Item or
-                                   Merge (P_ID_2, RHS_2.Tokens.First, Item.Lookaheads.all, I);
-                                 exit First_Tail;
+                                   Merge (P_ID_2, RHS_2.Tokens.First, To_Lookahead (Terminal, Descriptor), I);
+                              end loop;
 
-                              elsif Element (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
-                                 --  FIRST (Beta) = Beta
-                                 Added_Item := Added_Item or Merge
-                                   (P_ID_2, RHS_2.Tokens.First,
-                                    To_Lookahead (Element (Beta), Descriptor), I);
-                                 exit First_Tail;
-
+                              if Has_Empty_Production (Element (Beta)) then
+                                 --  Process the next token in the tail, or "a"
+                                 Beta := Next (Beta);
                               else
-                                 --  Beta is a nonterminal; use FIRST (Beta)
-                                 for Terminal of First_Terminal_Sequence (Element (Beta)) loop
-                                    Added_Item := Added_Item or
-                                      Merge
-                                        (P_ID_2, RHS_2.Tokens.First,
-                                         To_Lookahead (Terminal, Descriptor), I);
-                                 end loop;
-
-                                 if Has_Empty_Production (Element (Beta)) then
-                                    --  Process the next token in the tail, or "a"
-                                    Beta := Next (Beta);
-                                 else
-                                    exit First_Tail;
-                                 end if;
+                                 exit First_Tail;
                               end if;
-                           end;
+                           end if;
                         end loop First_Tail;
                      end;
                   end loop For_Each_RHS;
@@ -624,47 +571,6 @@ package body WisiToken.LR.LR1_Items is
          end loop;
       end return;
    end Productions;
-
-   function In_Kernel
-     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor;
-      Item       : in LR1_Items.Item)
-     return Boolean
-   is
-      use Token_ID_Arrays;
-      Prod : WisiToken.Productions.Instance renames Grammar (Item.Prod.Nonterm);
-      RHS  : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
-   begin
-      return
-        No_Element /= RHS.Tokens.First and
-        (Item.Dot = No_Element or else
-           ((Prod.LHS = Descriptor.Accept_ID and
-               Item.Dot = RHS.Tokens.First)
-              -- Start symbol production with dot before first token.
-              or
-              Item.Dot /= RHS.Tokens.First));
-   end In_Kernel;
-
-   function Filter
-     (Set        : in     Item_Set;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in     WisiToken.Descriptor;
-      Include    : access function
-        (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-         Descriptor : in WisiToken.Descriptor;
-         Item       : in LR1_Items.Item)
-        return Boolean)
-     return Item_Set
-   is begin
-      return Result : Item_Set := (Set => <>, Goto_List => Set.Goto_List, State => Set.State)
-      do
-         for Item of Set.Set loop
-            if Include (Grammar, Descriptor, Item) then
-               Result.Set.Append (Item);
-            end if;
-         end loop;
-      end return;
-   end Filter;
 
    function Image
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;

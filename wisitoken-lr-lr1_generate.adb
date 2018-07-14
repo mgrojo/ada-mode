@@ -48,7 +48,7 @@ package body WisiToken.LR.LR1_Generate is
               --  accept production.
               Symbol /= Descriptor.EOF_ID
             then
-               Add (Goto_Set.Set, (Item.Prod, Next (Item.Dot), Item.Lookaheads));
+               Goto_Set.Set.Insert ((Item.Prod, Next (Item.Dot), new Token_ID_Set'(Item.Lookaheads.all)));
             end if;
          end if;
       end loop;
@@ -134,7 +134,7 @@ package body WisiToken.LR.LR1_Generate is
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (C.Last_Index));
                      end if;
 
-                     Add (C (I).Goto_List, Symbol, C.Last_Index);
+                     C (I).Goto_List.Insert ((Symbol, C.Last_Index));
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
@@ -146,7 +146,7 @@ package body WisiToken.LR.LR1_Generate is
 
                         end if;
 
-                        Add (C (I).Goto_List, Symbol, Found_State);
+                        C (I).Goto_List.Insert ((Symbol, Found_State));
                      end if;
                   end if;
                end if;

@@ -209,4 +209,82 @@ package body WisiToken.Generate is
       end return;
    end To_Terminal_Sequence_Array;
 
+   function Follow
+     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor           : in WisiToken.Descriptor;
+      First                : in Token_Array_Token_Set;
+      Has_Empty_Production : in Token_ID_Set)
+     return Token_Array_Token_Set
+   is
+      Prev_Result : Token_Array_Token_Set :=
+        --  FIXME: use grammar.first_index .., declare local subtypes
+        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
+           (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
+
+      Result : Token_Array_Token_Set :=
+        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
+           (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
+
+      ID : Token_ID;
+   begin
+      --  [dragon] pgp 189:
+      --
+      --  Rule 1 Follow (S, EOF) = True; EOF is explicit in the
+      --  start symbol production, so this is covered by Rule 2.
+      --
+      --  Rule 2: If A => alpha B Beta, add First (Beta) to Follow (B)
+      --
+      --  Rule 3; if A => alpha B, or A -> alpha B Beta and Beta
+      --  can be null, add Follow (A) to Follow (B)
+      --
+      --  We don't assume any order in the productions list, so we
+      --  have to keep applying rule 3 until nothing changes.
+
+      for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+         for Prod of Grammar loop
+            for A of Prod.RHSs loop
+               for I in A.Tokens.First_Index .. A.Tokens.Last_Index loop
+                  if A.Tokens (I) = B then
+                     if I < A.Tokens.Last_Index then
+                        --  Rule 1
+                        ID := A.Tokens (1 + I);
+                        if ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+                           Result (B, ID) := True;
+                        else
+                           Or_Slice (Result, B, Slice (First, ID));
+                        end if;
+                     end if;
+                  end if;
+               end loop;
+            end loop;
+         end loop;
+      end loop;
+
+      Prev_Result := Result;
+      loop
+         for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+            for Prod of Grammar loop
+               for A of Prod.RHSs loop
+                  for I in A.Tokens.First_Index .. A.Tokens.Last_Index loop
+                     if A.Tokens (I) = B then
+                        if I = A.Tokens.Last_Index or else
+                          (A.Tokens (1 + I) in
+                             Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                             Has_Empty_Production (A.Tokens (1 + I)))
+                        then
+                           --  rule 3
+                           Or_Slice (Result, B, Slice (Result, Prod.LHS));
+                        end if;
+                     end if;
+                  end loop;
+               end loop;
+            end loop;
+         end loop;
+
+         exit when Prev_Result = Result;
+         Prev_Result := Result;
+      end loop;
+      return Result;
+   end Follow;
+
 end WisiToken.Generate;

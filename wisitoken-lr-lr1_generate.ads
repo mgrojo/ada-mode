@@ -36,7 +36,8 @@ package WisiToken.LR.LR1_Generate is
       Known_Conflicts : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param  : in McKenzie_Param_Type := Default_McKenzie_Param;
       Put_Parse_Table : in Boolean := False)
-     return Parse_Table_Ptr;
+     return Parse_Table_Ptr
+   with Pre => Descriptor.First_Nonterminal = Descriptor.Accept_ID;
    --  Generate a generalized LR1 parse table for Grammar. The
    --  grammar start symbol is the LHS of the first production in
    --  Grammar.

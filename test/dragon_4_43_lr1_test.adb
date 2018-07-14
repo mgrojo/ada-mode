@@ -128,7 +128,7 @@ package body Dragon_4_43_LR1_Test is
           Upper_S_ID => (EOF_ID => True, others => False),
           Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True)));
 
-      Computed_Follow : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.Follow
+      Computed_Follow : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.Follow
         (Grammar, LR1_Descriptor, First_Nonterm_Set, Has_Empty_Production);
    begin
       Check ("0", Has_Empty_Production, WisiToken.Token_ID_Set'(+Accept_ID .. +Upper_C_ID => False));

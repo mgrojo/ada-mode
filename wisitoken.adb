@@ -166,30 +166,6 @@ package body WisiToken is
       return To_String (Result);
    end Image;
 
-   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Token_ID_Set
-   is
-      Result : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Lookahead => False);
-   begin
-      Result (Item) := True;
-      return Result;
-   end To_Lookahead;
-
-   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in WisiToken.Descriptor) return String
-   is
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String := Null_Unbounded_String;
-   begin
-      for I in Item'Range loop
-         if Item (I) then
-            if Length (Result) > 0 then
-               Result := Result & "/";
-            end if;
-            Result := Result & Image (I, Descriptor);
-         end if;
-      end loop;
-      return To_String (Result);
-   end Lookahead_Image;
-
    function Image (Item : in Production_ID) return String
    is begin
       return '(' & Trimmed_Image (Item.Nonterm) & ',' & Natural'Image (Item.RHS) & ')';

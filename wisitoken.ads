@@ -127,29 +127,16 @@ package WisiToken is
       Terminal_Image_Width : Integer;
       Image_Width          : Integer; --  max width of Image
 
-      --  We used to define 'Propagate_ID' for LALR generate, but it was
-      --  always equal to Accept_ID (it just has to be not any other
-      --  terminal). We still need to allocate first_terminal ..
-      --  last_terminal for LR1 generate, and first_terminal .. propagate_id
-      --  for LALR generate, so we define Last_Lookahead. To save space, it
-      --  must be either Last_Terminal or First_Nonterminal. After the LR
-      --  table is generated, Last_Lookahead is no longer used.
+      --  LALR generate needs a 'Propagate_ID' lookahead that is distinct
+      --  from all terminals. Since lookaheads are Token_ID_Set, we need to
+      --  allocate First_Terminal .. Last_Terminal for LR1 generate, and
+      --  First_Terminal .. Propagate_ID for LALR generate, so we define
+      --  Last_Lookahead. After the LR table is generated, Last_Lookahead is
+      --  no longer used.
       Last_Lookahead : Token_ID;
    end record;
 
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
-
-   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Token_ID_Set;
-   --  Base implementation returns (Descriptor.First_Terminal ..
-   --  Descriptor.Last_Terminal), with Item = True, others False. LALR
-   --  child type adds Propagate_ID.
-
-   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in WisiToken.Descriptor) return String;
-   --  Base implementation just returns aggregate syntax for Item.
-   --  LALR child includes '#' for Propagate_ID.
-
-   --  The following subprograms are intended to _not_ be primitive
-   --  operations of Descriptor; hence 'Class.
 
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item

@@ -151,7 +151,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
    is
    begin
       return Result : Item_Lists.List := Item_Lists.To_List (Left) do
-         Result.Append (Right);
+         Result.Insert (Right);
       end return;
    end "&";
 
@@ -162,7 +162,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
    is
    begin
       return Result : Item_Lists.List := Left do
-         Result.Append (Right);
+         Result.Insert (Right);
       end return;
    end "&";
 
@@ -204,21 +204,21 @@ package body WisiToken.LR.LR1_Items.AUnit is
       end return;
    end "&";
 
-   function "+" (Right : in AUnit_Goto_Item) return Goto_Item_Lists.List
+   function "+" (Right : in Goto_Item) return Goto_Item_Lists.List
    is begin
       return Result : Goto_Item_Lists.List do
-         Result.Append ((Right.Symbol, Right.State));
+         Result.Insert (Right);
       end return;
    end "+";
 
    function "&"
      (Left  : in Goto_Item_Lists.List;
-      Right : in AUnit_Goto_Item)
+      Right : in Goto_Item)
      return Goto_Item_Lists.List
    is
       Result : Goto_Item_Lists.List := Left;
    begin
-      Add (Result, Right.Symbol, Right.State);
+      Result.Insert (Right);
       return Left;
    end "&";
 

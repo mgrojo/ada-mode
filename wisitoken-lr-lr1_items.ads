@@ -28,53 +28,121 @@
 
 pragma License (Modified_GPL);
 
-with SAL.Gen_Definite_Doubly_Linked_Lists;
+with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.Productions;
 package WisiToken.LR.LR1_Items is
 
    subtype Lookahead is Token_ID_Set;
+   --  Picking a type for Lookahead is not straight-forward. The
+   --  operations required are (called numbers are for LR1 generate
+   --  ada_lite):
+   --
+   --  to_lookahead (token_id)
+   --     Requires allocating memory dynamically:
+   --        an unconstrained array range (first_terminal .. last_terminal) for (1),
+   --        a smaller unconstrained array for (2), that grows as items are added
+   --        individual list elements for (3).
+   --
+   --     lr1_items.to_lookahead        called 4_821_256 times in (2)
+   --     sorted_token_id_lists.to_list called 4_821_256 times in (3)
+   --
+   --  for tok_id of lookaheads loop
+   --     sorted_token_id_lists__iterate called 5_687 times in (3)
+   --
+   --  if lookaheads.contains (tok_id) then
+   --     token_id_arrays__contains called 22_177_109 in (2)
+   --
+   --  new_item := (... , lookaheads => old_item.lookaheads)
+   --  new_item := (... , lookaheads => null_lookaheads)
+   --  new_item := (... , lookaheads => propagate_lookahead)
+   --     token_id_arrays.adjust called 8_437_967 times in (2)
+   --     sorted_token_id_lists.adjust  8_435_797 times in (3)
+   --
+   --  include: add tok_id to lookaheads
+   --
+   --      keep sorted in token_id order, so rest of algorithm is
+   --      stable/faster
+   --
+   --      lr1_items.include called 6_818_725 times in (2)
+   --
+   --  lookaheads /= lookaheads
+   --     if using a container, container must override "="
+   --
+   --  We've tried:
+   --
+   --  (1) Token_ID_Set (unconstrained array of boolean, allocated directly) - fastest
+   --
+   --     Allocates more memory than (2), but everything else is fast,
+   --     and it's not enough memory to matter.
+   --
+   --     Loop over lookaheads is awkward:
+   --     for tok_id in lookaheads'range loop
+   --        if lookaheads (tok_id) then
+   --           ...
+   --     But apparently it's fast enough.
+   --
+   --  (2) Instantiation of SAL.Gen_Unbounded_Definite_Vectors (token_id_arrays) - slower than (1).
+   --
+   --      Productions RHS is also token_id_arrays, so gprof numbers are
+   --      hard to sort out. Could be improved with a custom container, that
+   --      does sort and insert internally. Insert is inherently slow.
+   --
+   --  (3) Instantiation of SAL.Gen_Definite_Doubly_Linked_Lists_Sorted - slower than (2)
 
    type Item is record
       Prod       : Production_ID;
       Dot        : Token_ID_Arrays.Cursor; -- token after item Dot
-      Lookaheads : access Lookahead;
+      Lookaheads : access Lookahead := null;
+      --  Programmer must remember to copy Item.Lookaheads.all, not
+      --  Item.Lookaheads. Wrapping this in Ada.Finalization.Controlled
+      --  would just slow it down.
+      --
+      --  We don't free Lookaheads; we assume the user is running
+      --  wisi-generate, and not keeping LR1_Items around.
    end record;
 
-   Null_Item : constant Item :=
-     (Prod       => <>,
-      Dot        => <>,
-      Lookaheads => null);
+   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Lookahead;
 
-   package Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Item);
+   function Contains (Item : in Lookahead; ID : in Token_ID) return Boolean
+     is (Item (ID));
 
-   procedure Add
-     (List : in out Item_Lists.List;
-      Item : in     LR1_Items.Item);
-   --  Add Item to List, in ascending order of Prod.LHS.
+   function Lookahead_Image (Item : in Lookahead; Descriptor : in WisiToken.Descriptor) return String;
+   --  Returns the format used in parse table output.
+
+   function Item_Greater (Left, Right : in Item) return Boolean;
+   --  Sort Item_Lists in ascending order of Prod.Nonterm, Prod.RHS, Dot;
+   --  ignores Lookaheads.
+
+   function Item_Equal (Left, Right : in Item) return Boolean;
+   --  Compare Prod.Nonterm, Prod.RHS, Dot, ignore Lookaheads.
+
+   package Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Item, Item_Greater, Item_Equal);
 
    procedure Include
-     (Item  : in LR1_Items.Item;
-      Value : in Token_ID);
-   procedure Include
-     (Item  : in     LR1_Items.Item;
+     (Item  : in out LR1_Items.Item;
       Value : in     Lookahead;
       Added :    out Boolean);
-   --  Add Value to Item.Lookahead.
-   --  Does not exclude Propagate.
+   --  Add Value to Item.Lookahead, if not already present.
+   --
+   --  Added is True if Value was not already present.
+   --
+   --  Does not exclude Propagate_ID.
 
    procedure Include
-     (Item       : in LR1_Items.Item;
-      Value      : in Lookahead;
-      Descriptor : in WisiToken.Descriptor);
+     (Item       : in out LR1_Items.Item;
+      Value      : in     Lookahead;
+      Descriptor : in     WisiToken.Descriptor);
+   --  Add Value to Item.Lookahead. Does not check if already present.
+   --  Excludes Propagate_ID.
+
    procedure Include
-     (Item       : in     LR1_Items.Item;
+     (Item       : in out LR1_Items.Item;
       Value      : in     Lookahead;
       Added      :    out Boolean;
       Descriptor : in     WisiToken.Descriptor);
    --  Add Value to Item.Lookahead.
-   --  Excludes propagate.
 
    type Goto_Item is record
       Symbol : Token_ID;
@@ -83,13 +151,15 @@ package WisiToken.LR.LR1_Items is
       State  : State_Index;
    end record;
 
-   package Goto_Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Goto_Item);
+   function Goto_Item_Greater (Left, Right : in Goto_Item) return Boolean is
+     (Left.Symbol > Right.Symbol);
+   --  Sort Goto_Item_Lists in ascending order of Symbol.
 
-   procedure Add
-     (List   : in out Goto_Item_Lists.List;
-      Symbol : in     Token_ID;
-      State  : in     State_Index);
-   --  Add an item to List; keep List sorted in ascending order on Symbol.
+   function Goto_Item_Equal (Left, Right : in Goto_Item) return Boolean is
+     (Left.Symbol = Right.Symbol);
+
+   package Goto_Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted
+     (Goto_Item, Goto_Item_Greater, Goto_Item_Equal);
 
    type Item_Set is record
       Set       : Item_Lists.List;
@@ -134,10 +204,10 @@ package WisiToken.LR.LR1_Items is
    --  Return No_Element if not found.
 
    function Find
-     (Prod       : in              Production_ID;
-      Dot        : in              Token_ID_Arrays.Cursor;
-      Right      : in              Item_Set;
-      Lookaheads : not null access Lookahead)
+     (Prod       : in Production_ID;
+      Dot        : in Token_ID_Arrays.Cursor;
+      Right      : in Item_Set;
+      Lookaheads : in Lookahead)
      return Item_Lists.Cursor;
    --  Return an item from Right that matches Prod, Dot, and
    --  Lookaheads.
@@ -219,16 +289,6 @@ package WisiToken.LR.LR1_Items is
      return Unknown_State_Index;
    --  Return state from From.Goto_List where the goto symbol is
    --  Symbol; Unknown_State if not found.
-
-   function Follow
-     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor           : in WisiToken.Descriptor;
-      First                : in Token_Array_Token_Set;
-      Has_Empty_Production : in Token_ID_Set)
-     return Token_Array_Token_Set;
-   --  For each nonterminal in Grammar, find the set of terminal
-   --  tokens that can follow it. Implements algorithm FOLLOW from
-   --  [dragon] pg 189.
 
    function Closure
      (Set                     : in Item_Set;

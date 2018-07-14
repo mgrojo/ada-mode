@@ -24,8 +24,6 @@ with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate;
-with WisiToken.LR.LR1_Items;
-with WisiToken.LR;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
@@ -85,10 +83,9 @@ package body Test_Follow is
          Test : Test_Case renames Test_Case (T);
 
          use Ada.Text_IO;
-         use WisiToken.LR.LR1_Items;
 
-         Computed : constant WisiToken.Token_Array_Token_Set :=
-           Follow (Grammar, LALR_Descriptor, First, Has_Empty_Production);
+         Computed : constant WisiToken.Token_Array_Token_Set := WisiToken.Generate.Follow
+           (Grammar, LALR_Descriptor, First, Has_Empty_Production);
 
          Expected : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Terminal_Set
            ((WisiToken_Accept_ID => (others => False),

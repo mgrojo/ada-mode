@@ -72,4 +72,14 @@ package WisiToken.Generate is
      return Token_Sequence_Arrays.Vector;
    --  Only includes terminals.
 
+   function Follow
+     (Grammar              : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor           : in WisiToken.Descriptor;
+      First                : in Token_Array_Token_Set;
+      Has_Empty_Production : in Token_ID_Set)
+     return Token_Array_Token_Set;
+   --  For each nonterminal in Grammar, find the set of terminal
+   --  tokens that can follow it. Implements algorithm FOLLOW from
+   --  [dragon] pg 189.
+
 end WisiToken.Generate;

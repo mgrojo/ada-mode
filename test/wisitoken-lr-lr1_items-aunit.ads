@@ -87,15 +87,10 @@ package WisiToken.LR.LR1_Items.AUnit is
       Right : in Item_Set)
      return Item_Set_List;
 
-   type AUnit_Goto_Item is record
-      Symbol : WisiToken.Token_ID;
-      State  : State_Index;
-   end record;
-
-   function "+" (Right : in AUnit_Goto_Item) return Goto_Item_Lists.List;
+   function "+" (Right : in Goto_Item) return Goto_Item_Lists.List;
    function "&"
      (Left  : in Goto_Item_Lists.List;
-      Right : in AUnit_Goto_Item)
+      Right : in Goto_Item)
      return Goto_Item_Lists.List;
 
    procedure Add_Gotos
