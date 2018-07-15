@@ -224,25 +224,50 @@ begin
       --  Create a .parse_table file unless verbosity > 0
       Parse_Table_File : File_Type;
 
-      Generate_Done : Lexer_Generate_Algorithm_Set := (others => (others => False));
-      Generate_Set  : Generate_Set_Access;
+      Parse_Check_Run : Boolean := False;
+      Parse_Done_Data : Lexer_Generate_Algorithm_Set := (others => (others => False));
 
-      Parse_Done : Lexer_Set := (others => False);
+      Generate_Done  : Lexer_Generate_Algorithm_Set := (others => (others => False));
+      Generate_Set   : Generate_Set_Access;
+      Multiple_Quads : Boolean;
+
       Lexer_Done : Lexer_Set := (others => False);
 
-      procedure Parse_Check (Lexer : in Lexer_Type)
+      procedure Parse_Check (Lexer : in Lexer_Type; Parser : in Generate_Algorithm)
       is begin
-         Input_Data.User_Lexer := Lexer;
-         --  Specifying the lexer can change the parsed grammar, due to %if lexer.
+         Parse_Check_Run        := True;
+         Input_Data.User_Parser := Parser;
+         Input_Data.User_Lexer  := Lexer;
+         --  Specifying the parser and lexer can change the parsed grammar, due
+         --  to %if {parser | lexer}.
 
          Input_Data.Reset;
          Grammar_Parser.Execute_Actions;
+         --  Ensures Input_Data.User_{Parser|Lexer} are set if needed.
 
-         if not Input_Data.If_Lexer_Present then
-            --  Parse cannot depend on lexer - mark them all done.
-            Parse_Done := (others => True);
+         if (not Input_Data.If_Parser_Present) and (not Input_Data.If_Lexer_Present) then
+            --  Parse cannot depend on parser or lexer - mark them all done.
+            Parse_Done_Data := (others => (others => True));
+
+         elsif not Input_Data.If_Parser_Present then
+            --  Parse cannot depend on parser; use None parser column, mark others
+            --  done.
+            for I in Parse_Done_Data'Range (1) loop
+               Parse_Done_Data (I) := (None => Parse_Done_Data (I)(None), others => True);
+            end loop;
+
+            Parse_Done_Data (Input_Data.User_Lexer)(None) := True;
+
+         elsif not Input_Data.If_Lexer_Present then
+            --  Parse cannot depend on lexer; use None lexer row, mark others
+            --  done.
+            for I in Valid_Lexer loop
+               Parse_Done_Data (I) := (others => True);
+            end loop;
+
+            Parse_Done_Data (None)(Input_Data.User_Parser) := True;
          else
-            Parse_Done (Input_Data.User_Lexer) := True;
+            Parse_Done_Data (Input_Data.User_Lexer)(Input_Data.User_Parser) := True;
          end if;
 
          if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
@@ -251,10 +276,30 @@ begin
 
       end Parse_Check;
 
+      function Parse_Done (Lexer : in Lexer_Type; Parser : in Generate_Algorithm) return Boolean
+      is begin
+         if not Parse_Check_Run then
+            return False;
+         end if;
+
+         if (not Input_Data.If_Parser_Present) and (not Input_Data.If_Lexer_Present) then
+            return True;
+
+         elsif not Input_Data.If_Parser_Present then
+            return Parse_Done_Data (Lexer)(None);
+
+         elsif not Input_Data.If_Lexer_Present then
+            return Parse_Done_Data (None)(Parser);
+
+         else
+            return Parse_Done_Data (Lexer)(Parser);
+         end if;
+      end Parse_Done;
+
    begin
       if Command_Generate_Set = null then
-         --  get quad from input file
-         Parse_Check (None);
+         --  Get the first quad from the input file
+         Parse_Check (None, None);
 
          if Input_Data.Generate_Set = null then
             raise User_Error with
@@ -262,10 +307,16 @@ begin
                 (Input_Data.Grammar_Lexer.File_Name, 1,
                  "generate algorithm, output_language, lexer, interface not specified");
          end if;
-         Generate_Set := Input_Data.Generate_Set;
+
+         --  Input_Data.Generate_Set will be freed and regenerated if
+         --  Parse_Check is called, but the content won't change. So make a
+         --  copy.
+         Generate_Set := new Wisi.Generate_Set'(Input_Data.Generate_Set.all);
       else
          Generate_Set := Command_Generate_Set;
       end if;
+
+      Multiple_Quads := Generate_Set'Length > 1;
 
       for Quad of Generate_Set.all loop
 
@@ -280,8 +331,10 @@ begin
             Input_Data.User_Lexer := Quad.Lexer;
          end if;
 
-         if not Parse_Done (Input_Data.User_Lexer) then
-            Parse_Check (Input_Data.User_Lexer);
+         Input_Data.User_Parser := Quad.Gen_Alg;
+
+         if not Parse_Done (Input_Data.User_Lexer, Input_Data.User_Parser) then
+            Parse_Check (Input_Data.User_Lexer, Input_Data.User_Parser);
          end if;
 
          declare
@@ -397,11 +450,13 @@ begin
 
             case Quad.Out_Lang is
             when Ada =>
-               Wisi.Output_Ada (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad, Test_Main);
+               Wisi.Output_Ada
+                 (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad, Test_Main, Multiple_Quads);
 
             when Ada_Emacs =>
                Wisi.Output_Ada_Emacs
-                 (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad, Test_Main, -Language_Name);
+                 (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad, Test_Main, Multiple_Quads,
+                  -Language_Name);
 
             when Elisp =>
                Wisi.Output_Elisp (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Quad);

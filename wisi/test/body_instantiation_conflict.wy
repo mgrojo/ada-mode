@@ -28,6 +28,12 @@
    --  State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 }%
 
+%generate LALR Elisp
+%generate LALR Ada
+%generate LR1 Ada
+%generate Packrat_Gen Ada
+%generate Packrat_Proc Ada
+
 %keyword BEGIN "begin"
 %keyword END "end"
 %keyword IS "is"
@@ -45,10 +51,13 @@
 
 %start compilation_unit
 
-;; LR1 gives different conflict names
-%generate LALR Elisp
-
+;; don't actually need this %if, but we are testing it.
+%if parser = LALR
 %conflict SHIFT/REDUCE in state generic_instantiation, subprogram_specification on token IS
+%end if
+%if parser = LR1
+%conflict SHIFT/REDUCE in state generic_instantiation, subprogram_specification on token IS
+%end if
 
 compilation_unit
   : library_item library_item

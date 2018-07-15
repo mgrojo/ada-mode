@@ -55,9 +55,6 @@ begin
 
    --  We don't do LR1 for all test files; not a helpful test. Just keep
    --  enough so we don't break LR1 accidently.
-   --
-   --  In several files, LALR and LR1 generate different names for
-   --  conflicts, so generate fails on unrecognized conflict.
 
    Add_Test (Suite, new Wisi_WY_Test.Test_Case
                (+"ada_lite", False, +(1 => (LALR, Wisi.Ada, None, None))));
@@ -66,10 +63,7 @@ begin
    Add_Test (Suite, new Wisi_WY_Test.Test_Case
                (Root_Name        => +"body_instantiation_conflict",
                 If_Lexer_Present => False,
-                Generate_Set     =>
-                  +((LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),
-                  (Packrat_Proc, Wisi.Ada, None, None),
-                 (LALR, Elisp, None, None))));
+                Generate_Set     => null)); -- specified in .wy file to test that.
    Add_Test (Suite, new Wisi_WY_Test.Test_Case
                (+"case_expression", False,
                 +((LR1, Wisi.Ada, None, None), (LALR, Wisi.Ada, None, None), (Packrat_Gen, Wisi.Ada, None, None),

@@ -88,6 +88,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
       A_Index : in     Syntax_Trees.Valid_Node_Index;
       B_Index : in     Syntax_Trees.Valid_Node_Index)
    is
+      use all type Wisi.Generate_Algorithm;
       use all type Wisi.Generate_Set_Access;
       use all type Wisi.Lexer_Type;
    begin
@@ -101,7 +102,6 @@ package body WisiToken.Wisi_Grammar_Runtime is
                      exit;
                   end if;
                end loop;
-
             end if;
          end if;
 
@@ -112,6 +112,26 @@ package body WisiToken.Wisi_Grammar_Runtime is
                  "%if lexer present, but lexer not specified");
          end if;
          Data.Ignore_Lines := Data.User_Lexer /= Wisi.To_Lexer (Get_Text (Data, Tree, B_Index));
+
+      elsif "parser" = Get_Text (Data, Tree, A_Index) then
+         Data.If_Parser_Present := True;
+         if Data.User_Parser = None then
+            if Data.Generate_Set /= null then
+               for Quad of Data.Generate_Set.all loop
+                  Data.User_Parser := Quad.Gen_Alg;
+                  exit;
+               end loop;
+            end if;
+         end if;
+
+         if Data.User_Parser = None then
+            raise Grammar_Error with
+              Error_Message
+                (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (A_Index)).Line,
+                 "%if parser present, but parser not specified");
+         end if;
+         Data.Ignore_Lines := Data.User_Parser /= Wisi.Generate_Algorithm'Value (Get_Text (Data, Tree, B_Index));
+
       else
          raise Grammar_Error with
            Error_Message
@@ -219,20 +239,24 @@ package body WisiToken.Wisi_Grammar_Runtime is
 
    overriding procedure Reset (Data : in out User_Data_Type)
    is begin
-      --  Preserve Lexer, Terminals
-      Data.Raw_Code         := (others => <>);
-      Data.Generate_Params  := (others => <>);
+      --  Preserve Grammar_Lexer
+      --  Preserve User_Lexer
+      --  Preserve User_Parser
+      --  Perserve Generate_Set
+      --  Preserve Terminals
+      Data.Raw_Code          := (others => <>);
+      Data.Generate_Params   := (others => <>);
       Wisi.Free (Data.Generate_Set);
-      Data.Tokens           := (others => <>);
-      Data.Elisp_Names      := (others => <>);
+      Data.Tokens            := (others => <>);
+      Data.Elisp_Names       := (others => <>);
       Data.Conflicts.Clear;
-      Data.McKenzie_Recover := (others => <>);
-      --  Preserve Input_File_Name
-      Data.Rule_Count       := 0;
-      Data.Action_Count     := 0;
-      Data.Check_Count      := 0;
-      Data.If_Lexer_Present := False;
-      Data.Ignore_Lines     := False;
+      Data.McKenzie_Recover  := (others => <>);
+      Data.Rule_Count        := 0;
+      Data.Action_Count      := 0;
+      Data.Check_Count       := 0;
+      Data.If_Lexer_Present  := False;
+      Data.If_Parser_Present := False;
+      Data.Ignore_Lines      := False;
    end Reset;
 
    procedure Start_If
@@ -478,10 +502,6 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   begin
                      Wisi.Add (Data.Generate_Set, Quad);
                   end;
-
-               elsif Kind = "if" then
-                  Data.Ignore_Lines :=
-                    Data.User_Lexer /= Wisi.To_Lexer (Get_Child_Text (Data, Tree, Tokens (3), 3));
 
                elsif Kind = "mckenzie_check_limit" then
                   Data.Generate_Params.Error_Recover := True;

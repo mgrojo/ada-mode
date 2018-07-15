@@ -46,6 +46,7 @@ procedure Wisi.Output_Ada_Emacs
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
    Quad                  :         in Generate_Quad;
    Test_Main             :         in Boolean;
+   Multiple_Quads        :         in Boolean;
    Language_Name         :         in String)
 is
    use all type Standard.Ada.Containers.Count_Type;
@@ -60,8 +61,8 @@ is
       Check_Interface => True);
 
    Gen_Alg_Name : constant String :=
-     (if Test_Main then Output_Ada_Common.File_Name_To_Ada
-        ("_" & Wisi.Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all)
+     (if Test_Main or Multiple_Quads
+      then "_" & Wisi.Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all
       else "");
 
    function Split_Sexp

@@ -28,10 +28,14 @@ package WisiToken.Wisi_Grammar_Runtime is
 
       User_Lexer : Wisi.Lexer_Type;
       --  Used to read the user language file, after parser is generated;
-      --  used now in %if lexer statements.
+      --  used now in '%if lexer' statements.
+
+      User_Parser : Wisi.Generate_Algorithm;
+      --  Used to generate the current parser; used in '%if parser'
+      --  statements.
 
       Generate_Set : Wisi.Generate_Set_Access;
-      --  As specified by %generate directives.
+      --  As specified by %generate directives or command line.
 
       Terminals        : Base_Token_Array_Access;
       Raw_Code         : Wisi.Raw_Code;
@@ -45,7 +49,9 @@ package WisiToken.Wisi_Grammar_Runtime is
       Action_Count    : Integer := 0;
       Check_Count     : Integer := 0;
 
-      If_Lexer_Present : Boolean; -- valid after Execute_Actions done
+      If_Lexer_Present  : Boolean := False;
+      If_Parser_Present : Boolean := False;
+      --  Set True by %if statements in Execute_Actions.
 
       Ignore_Lines : Boolean := False;
       --  An '%if' specified a different lexer, during Excute_Actions

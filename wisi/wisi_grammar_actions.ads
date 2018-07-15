@@ -80,7 +80,7 @@ package Wisi_Grammar_Actions is
          new String'("compilation_unit_list")),
       Terminal_Image_Width => 23,
       Image_Width          => 25,
-      Last_Lookahead       => 0);
+      Last_Lookahead       => 25);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,

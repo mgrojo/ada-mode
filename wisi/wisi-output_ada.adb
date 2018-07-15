@@ -35,7 +35,8 @@ procedure Wisi.Output_Ada
    Generate_Data         : aliased in Wisi.Generate_Utils.Generate_Data;
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
    Quad                  :         in Generate_Quad;
-   Test_Main             :         in Boolean)
+   Test_Main             :         in Boolean;
+   Multiple_Quads        :         in Boolean)
 is
    Common_Data : Output_Ada_Common.Common_Data := Wisi.Output_Ada_Common.Initialize
      (Input_Data, Quad, Generate_Data.LR1_Descriptor.First_Nonterminal,
@@ -43,7 +44,8 @@ is
       Check_Interface => False);
 
    Gen_Alg_Name : constant String :=
-     (if Test_Main then "_" & Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all
+     (if Test_Main or Multiple_Quads
+      then "_" & Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all
       else "");
 
    function Symbol_Regexp (Item : in String) return String

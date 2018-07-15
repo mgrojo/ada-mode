@@ -23,7 +23,8 @@ package Wisi.Utils is
 
    Max_Line_Length : constant := 120;
 
-   Indent : Standard.Ada.Text_IO.Positive_Count := 1;
+   Indent     : Standard.Ada.Text_IO.Positive_Count := 1;
+   Line_Count : Integer;
 
    procedure Indent_Line (Text : in String);
    --  Put Text, indented to Indent, to Current_Output, with newline.

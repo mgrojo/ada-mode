@@ -49,11 +49,12 @@ package Wisi is
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
-   type Generate_Algorithm is (LALR, LR1, Packrat_Gen, Packrat_Proc);
+   type Generate_Algorithm is (None, LALR, LR1, Packrat_Gen, Packrat_Proc);
+   subtype Valid_Generate_Algorithm is Generate_Algorithm range LALR .. Packrat_Proc;
    subtype LR_Generate_Algorithm is Generate_Algorithm range LALR .. LR1;
    subtype Packrat_Generate_Algorithm is Generate_Algorithm range Packrat_Gen .. Packrat_Proc;
 
-   Generate_Algorithm_Image : constant array (Generate_Algorithm) of access constant String :=
+   Generate_Algorithm_Image : constant array (Valid_Generate_Algorithm) of access constant String :=
      (LALR         => new String'("LALR"),
       LR1          => new String'("LR1"),
       Packrat_Gen  => new String'("Packrat_Gen"),
@@ -87,7 +88,7 @@ package Wisi is
    subtype Valid_Interface is Interface_Type range Process .. Module;
 
    type Generate_Quad is record
-      Gen_Alg        : Generate_Algorithm;
+      Gen_Alg        : Valid_Generate_Algorithm;
       Out_Lang       : Output_Language;
       Lexer          : Lexer_Type     := None;
       Interface_Kind : Interface_Type := None;

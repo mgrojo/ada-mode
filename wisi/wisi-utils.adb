@@ -27,6 +27,7 @@ package body Wisi.Utils is
    begin
       Set_Col (Indent);
       Put_Line (Text);
+      Line_Count := Line_Count + 1;
    end Indent_Line;
 
    procedure Indent_Start (Text : in String)

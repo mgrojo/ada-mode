@@ -24,7 +24,11 @@ with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
-with WisiToken;
+with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Grammar_Runtime;
+with Wisi_Grammar_Actions;
+with Wisi_Grammar_Main;
 package body Wisi_WY_Test is
 
    procedure Spawn
@@ -67,53 +71,83 @@ package body Wisi_WY_Test is
    end Spawn;
 
    procedure Generate
-     (Root_Name    : in String;
-      Generate_Set : in Wisi.Generate_Set)
+     (Root_Name    : in     String;
+      Generate_Set : in out Wisi.Generate_Set_Access)
    is
       use GNAT.OS_Lib;
       use Wisi;
-      Args : String_List (1 .. 6 + 5 * Generate_Set'Length);
-      Last : Integer := 1;
+      Args : String_List (1 .. 6 + 5 * (if Generate_Set = null then 0 else Generate_Set'Length));
+      Last : Integer := 0;
 
       Gen_Alg_Arg : constant String_Access := new String'("--generate");
-      Do_re2c : Boolean := False;
+      Do_re2c     : Boolean                := False;
    begin
+      Last     := Last + 1;
       Args (1) := new String'("--test_main");
 
-      for Quad of Generate_Set loop
-         Last := Last + 1;
-         Args (Last) := Gen_Alg_Arg;
-         Last := Last + 1;
-         Args (Last) := new String'(Generate_Algorithm'Image (Quad.Gen_Alg));
-         Last := Last + 1;
-         Args (Last) := new String'(Wisi.Output_Language'Image (Quad.Out_Lang));
+      if Generate_Set = null then
+         declare
+            Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
+            Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+            Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
+         begin
+            Wisi_Grammar_Main.Create_Parser
+              (Parser    => Grammar_Parser,
+               Trace     => Trace'Unchecked_Access,
+               User_Data => Input_Data'Unchecked_Access);
 
-         if Quad.Lexer /= None then
+            Grammar_Parser.Lexer.Reset_With_File ("../../wisi/test/" & Root_Name & ".wy");
+            Grammar_Parser.Parse;
+            Grammar_Parser.Execute_Actions;
+
+            Generate_Set := Input_Data.Generate_Set;
+         exception
+         when WisiToken.Syntax_Error =>
+            Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
+            raise;
+         end;
+
+         Last := Last + 1;
+         Args (Last) := new String'("../../wisi/test/" & Root_Name & ".wy");
+         Spawn ("../wisi-generate.exe", Args (1 .. Last));
+      else
+         Args (1) := new String'("--test_main");
+
+         for Quad of Generate_Set.all loop
             Last := Last + 1;
-            Args (Last) := new String'(Wisi.Lexer_Image (Quad.Lexer).all);
-         end if;
+            Args (Last) := Gen_Alg_Arg;
+            Last := Last + 1;
+            Args (Last) := new String'(Generate_Algorithm'Image (Quad.Gen_Alg));
+            Last := Last + 1;
+            Args (Last) := new String'(Wisi.Output_Language'Image (Quad.Out_Lang));
 
-         case Quad.Lexer is
-         when re2c_Lexer =>
-            Do_re2c := True;
-         when Elisp_Lexer =>
-            null;
-
-         when None =>
-            if Quad.Out_Lang in Ada_Output_Language then
-               Do_re2c := True;
+            if Quad.Lexer /= None then
+               Last := Last + 1;
+               Args (Last) := new String'(Wisi.Lexer_Image (Quad.Lexer).all);
             end if;
-         end case;
 
-         if Quad.Interface_Kind /= None then
-            Last := Last + 1;
-            Args (Last) := new String'(Wisi.Interface_Type'Image (Quad.Interface_Kind));
-         end if;
-      end loop;
+            case Quad.Lexer is
+            when re2c_Lexer =>
+               Do_re2c := True;
+            when Elisp_Lexer =>
+               null;
 
-      Last := Last + 1;
-      Args (Last) := new String'("../../wisi/test/" & Root_Name & ".wy");
-      Spawn ("../wisi-generate.exe", Args (1 .. Last));
+            when None =>
+               if Quad.Out_Lang in Ada_Output_Language then
+                  Do_re2c := True;
+               end if;
+            end case;
+
+            if Quad.Interface_Kind /= None then
+               Last := Last + 1;
+               Args (Last) := new String'(Wisi.Interface_Type'Image (Quad.Interface_Kind));
+            end if;
+         end loop;
+
+         Last := Last + 1;
+         Args (Last) := new String'("../../wisi/test/" & Root_Name & ".wy");
+         Spawn ("../wisi-generate.exe", Args (1 .. Last));
+      end if;
 
       if Do_re2c then
          Spawn
@@ -238,10 +272,11 @@ package body Wisi_WY_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Simple_Name : constant String := Ada.Directories.Simple_Name (Test.Root_Name.all);
+      Gen_Set     : Wisi.Generate_Set_Access := Test.Generate_Set;
+      Simple_Name : constant String          := Ada.Directories.Simple_Name (Test.Root_Name.all);
    begin
-      Generate (Simple_Name, Test.Generate_Set.all);
-      for Quad of Test.Generate_Set.all loop
+      Generate (Simple_Name, Gen_Set);
+      for Quad of Gen_Set.all loop
          case Quad.Out_Lang is
          when Wisi.Ada =>
             Compile (Simple_Name, Quad.Gen_Alg);

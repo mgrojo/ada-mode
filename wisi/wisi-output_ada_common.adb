@@ -313,6 +313,7 @@ package body Wisi.Output_Ada_Common is
       Common_Data   : in out Output_Ada_Common.Common_Data;
       Table         : in     WisiToken.LR.Parse_Table_Ptr)
    is
+      use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
       use WisiToken;
       use all type Standard.Ada.Containers.Count_Type;
@@ -321,11 +322,21 @@ package body Wisi.Output_Ada_Common is
       subtype Nonterminal_ID is Token_ID range
         Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index;
 
-      Count          : Integer;
-      Items_Per_Line : constant := 8;
+      Items_Per_Line   : constant := 8;
+      Lines_Per_Subr   : constant := 1000;
+      Subr_Count       : Integer  := 1;
+      Last_Subr_Closed : Boolean := False;
+      Line             : Unbounded_String;
+
+      procedure Append (Item : in String)
+      is begin
+         Line := Line & Item;
+      end Append;
 
       procedure Put (Label : in String; Item : in Token_ID_Array_Natural)
-      is begin
+      is
+         Count : Integer := 0;
+      begin
          Indent_Line (Label & " =>");
          Indent_Start ("  (");
          Indent := Indent + 3;
@@ -421,84 +432,66 @@ package body Wisi.Output_Ada_Common is
               (Table.Minimal_Terminal_Sequences.Last_Index) & ");");
 
          for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
-            Indent_Start
-              ("Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & Trimmed_Image (I) & "), (");
+            Line := +"Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & Trimmed_Image (I) & "), (";
 
             declare
                S : Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
             begin
                if S.Length = 0 then
-                  Put ("1 .. 0 => <>");
+                  Append ("1 .. 0 => <>");
                elsif S.Length = 1 then
-                  Put ("1 =>" & Token_ID'Image (S (S.First_Index)));
+                  Append ("1 =>" & Token_ID'Image (S (S.First_Index)));
                else
                   for J in S.First_Index .. S.Last_Index loop
-                     Put (Trimmed_Image (S (J)));
+                     Append (Trimmed_Image (S (J)));
                      if J /= S.Last_Index then
-                        Put (", ");
+                        Append (", ");
                      end if;
                   end loop;
                end if;
             end;
-            Put_Line ("));");
+            Append ("));");
+            Indent_Wrap (-Line);
          end loop;
          New_Line;
       end if;
 
       --  Optimize source structure for GNAT compile time; one subroutine
       --  with thousands of "Table.States (*) := ..." takes forever to
-      --  compile. But hundreds of subroutines, one per state, containing
-      --  the same lines, compiles in acceptable time.
-      --
-      --  FIXME: move subr declarations to package level?
+      --  compile (apparently depending on available memory). But hundreds
+      --  of subroutines, containing the same lines in chunks of 1000,
+      --  compiles in acceptable time.
 
       Indent_Line ("declare");
       Indent := Indent + 3;
 
-      State_Subroutines :
-      for State_Index in Table.States'Range loop
+      Indent_Line ("procedure Subr_" & Trimmed_Image (Subr_Count));
+      Indent_Line ("is begin");
+      Indent     := Indent + 3;
+      Line_Count := 0;
 
-         Indent_Line
-           ("procedure Build_State_" & Trimmed_Image (State_Index) & " (State : in out Parse_State)");
-         Indent_Line ("is begin");
-         Indent := Indent + 3;
+      Declare_Subroutines :
+      for State_Index in Table.States'Range loop
 
          if Input_Data.Generate_Params.Error_Recover then
             Indent_Wrap
-              ("State.Productions := WisiToken.To_Vector (" &
+              ("Table.States (" & Trimmed_Image (State_Index) & ").Productions := WisiToken.To_Vector (" &
                  Image (Table.States (State_Index).Productions, Strict => True) & ");");
          end if;
 
          Actions :
          declare
             use Standard.Ada.Containers;
-            use Standard.Ada.Strings;
-            use Standard.Ada.Strings.Unbounded;
             use WisiToken.LR;
             Base_Indent : constant Standard.Ada.Text_IO.Count := Indent;
             Node        : Action_Node_Ptr := Table.States (State_Index).Action_List;
-            Line        : Unbounded_String;
-
-            procedure Append (Item : in String)
-            is begin
-               --  -4 for trailing ))); or ,
-               if Indent + Standard.Ada.Text_IO.Count (Length (Line)) + Item'Length > Max_Line_Length - 4 then
-                  Indent_Wrap (-Trim (Line, Right));
-                  Indent := Indent + 2;
-                  Set_Col (Indent);
-                  Line := +Item;
-               else
-                  Line := Line & Item;
-               end if;
-            end Append;
-
          begin
             if Duplicate_Reduce (Table.States (State_Index)) then
                declare
                   Action : constant Reduce_Action_Rec := Node.Action.Item;
                begin
                   Set_Col (Indent);
-                  Line := +"Add_Action (State, " &
+                  Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
                     Symbols_Image (Table.States (State_Index)) & ", " &
                     Image (Action.Production) & "," &
                     Count_Type'Image (Action.Token_Count) & ", ";
@@ -517,8 +510,9 @@ package body Wisi.Output_Ada_Common is
                       else Common_Data.Ada_Check_Names
                         (Action.Production.Nonterm)(Action.Production.RHS).all & "'Access"));
 
-                  Put_Line (-Line & ");");
-                  Indent := Base_Indent;
+                  Indent_Wrap (-Line & ");");
+                  Line_Count := Line_Count + 1;
+                  Indent     := Base_Indent;
                end;
 
             else
@@ -530,14 +524,14 @@ package body Wisi.Output_Ada_Common is
                   begin
                      case Action_Node.Item.Verb is
                      when Shift =>
-                        Line := +"Add_Action (State, " &
+                        Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
                           Image (Action_Node.Item.Productions, Strict => True) & ", " &
                           Trimmed_Image (Node.Symbol);
                         Append (", ");
                         Append (Trimmed_Image (Action_Node.Item.State));
 
                      when Reduce | Accept_It =>
-                        Line := +"Add_Action (State, " &
+                        Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
                           Trimmed_Image (Node.Symbol);
                         if Action_Node.Item.Verb = Reduce then
                            Append (", Reduce");
@@ -566,7 +560,7 @@ package body Wisi.Output_Ada_Common is
                                "'Access"));
 
                      when LR.Error =>
-                        Line := +"Add_Error (State";
+                        Line := +"Add_Error (Table.States (" & Trimmed_Image (State_Index) & ")";
                      end case;
 
                      Action_Node := Action_Node.Next;
@@ -602,9 +596,10 @@ package body Wisi.Output_Ada_Common is
                         end case;
                      end if;
                   end;
-                  Put_Line (-Line & ");");
-                  Indent := Base_Indent;
-                  Node   := Node.Next;
+                  Indent_Wrap (-Line & ");");
+                  Line_Count := Line_Count + 1;
+                  Indent     := Base_Indent;
+                  Node       := Node.Next;
                end loop;
             end if;
          end Actions;
@@ -617,27 +612,43 @@ package body Wisi.Output_Ada_Common is
             loop
                exit when Node = null;
                Set_Col (Indent);
-               Put ("Add_Goto (State, ");
+               Put ("Add_Goto (Table.States (" & Trimmed_Image (State_Index) & "), ");
                Put_Line (Trimmed_Image (Symbol (Node)) & ", " & Trimmed_Image (State (Node)) & ");");
+               Line_Count := Line_Count + 1;
                Node := Next (Node);
             end loop;
          end Gotos;
 
-         Indent := Indent - 3;
-         Indent_Line ("end Build_State_" & Trimmed_Image (State_Index) & ";");
+         if Line_Count > Lines_Per_Subr then
+            Line_Count := 0;
+            Indent := Indent - 3;
+            Indent_Line ("end Subr_" & Trimmed_Image (Subr_Count) & ";");
 
-      end loop State_Subroutines;
+            if State_Index < Table.States'Last then
+               Subr_Count := Subr_Count + 1;
+               Last_Subr_Closed := False;
+               Indent_Line ("procedure Subr_" & Trimmed_Image (Subr_Count));
+               Indent_Line ("is begin");
+               Indent := Indent + 3;
+            else
+               Last_Subr_Closed := True;
+            end if;
+         end if;
+
+      end loop Declare_Subroutines;
+
+      if not Last_Subr_Closed then
+         Indent := Indent - 3;
+         Indent_Line ("end Subr_" & Trimmed_Image (Subr_Count) & ";");
+      end if;
 
       Indent := Indent - 3;
       Indent_Line ("begin");
       Indent := Indent + 3;
 
-      Build_Table_States :
-      for State_Index in Table.States'Range loop
-         Indent_Line
-           ("Build_State_" & Trimmed_Image (State_Index) & " (Table.States (" &
-              Trimmed_Image (State_Index) & "));");
-      end loop Build_Table_States;
+      for Subr in 1 .. Subr_Count loop
+         Indent_Line ("Subr_" & Trimmed_Image (Subr) & ";");
+      end loop;
       Indent := Indent - 3;
       Indent_Line ("end;");
    end Create_LR_Parser_Core;

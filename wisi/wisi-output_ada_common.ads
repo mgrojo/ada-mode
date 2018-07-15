@@ -26,7 +26,7 @@ package Wisi.Output_Ada_Common is
 
    type Common_Data is limited record
       --  Validated versions of .wy values
-      Generate_Algorithm : Wisi.Generate_Algorithm;
+      Generate_Algorithm : Wisi.Valid_Generate_Algorithm;
       Lexer              : Valid_Lexer;
       Output_Language    : Ada_Output_Language;
       Interface_Kind     : Valid_Interface;

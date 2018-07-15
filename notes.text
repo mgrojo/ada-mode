@@ -14,62 +14,34 @@ org.wisitoken.stephe-1 - available
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
 
+update-wisi_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-time wisi-generate ada_lite, ada
-    rebuild with no debug (ie do recursive-clean); factor of 3
+LR1 Ada 1092.640 = 18 min, barely tolerable
+    has 1 exccess known conflict;
+    101_484 states, 1_367_186 parse actions
+    ada_lr1_re2c.parse_table is 2_145_051 lines, 150.5MB
+    ada_process_lr1_main.adb 72.7MB, 1_406_676 lines
 
-    time ./wisi-generate.exe --time --generate LALR Ada re2c ../wisi/test/ada_lite.wy
-        o.w     0m0.212s 0m0.217s
-        o.w.s-1 0m0.838s 0m0.836s
-        improve find item in item_list  0.549 0.514
-        replace loop with grammar (lhs) 0.395
-        use first_terminal_sequence     0.327
-            (oops; had debug options turned on)
-        delete lookaheads=null from find    0.174
-        change Descriptors to non-tagged, Last_Lookahead 0.174
-        token_id_arrays.vector lookahead                 0.190
-        sorted list lookahead                            0.196
-        token_id_set lookahead, sort_list items, gotos,  0.177
+gnat deadly slow compiling ada_process_lr1_main.adb; too many lines in one subroutine
+    o.e.a.s-2 ada_process_lalr_main.adb has 14_089 lines in create_parser - deadly slow
+    o.e.a.s-4 ada_process_lalr_main.adb has 16640 lines in create_parser declare, 1280 build_state_n calls
+        ~ 13 lines per subr; not worth it.
 
-    time ./wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
-        o.w     ada_lite_lr1.wy     0m28.034s 0m27.237s
-        o.w.s-1                     1m37.592s
-        item_set_tree               0m34.085s
-        improve set_tree_key_less   0m33.990s 0m33.040s
-        improve find item in item_list  0m34.105s 0m34.584s  34.418 34.695
-        replace loop with grammar (lhs) 10.672
-        use first_terminal_sequence     4.660
-            (oops; had debug options turned on)
-        delete lookaheads=null from find    3.793
-        change Descriptors to non-tagged, Last_Lookahead 3.726
-        token_id_arrays.vector lookahead                 5.473
-        sorted list lookahead                            6.473
-        token_id_set lookahead, sort_list items, gotos,  3.772
+    in lr1, only 2 lines per state subr in large majority of states; not worth it
 
-    time ./wisi-generate.exe --generate LALR Ada re2c ../../org.emacs.ada-mode.stephe-4/ada.wy
-        o.e.a_m.s-2                 0m16.739s 0m16.166s
-        o.e.a_m.s-4                 0m15.983s 0m16.006s
-        item_set_tree               0m11.276s
-        improve set_tree_key_less   0m11.558s 0m11.557s
-        improve find item in item_list  0m11.597s 0m11.442s 0m11.414s 0m11.378s 0m11.589s  11.449
-        replace loop with grammar (lhs) 8.482
-        use first_terminal_sequence     7.548
-            (oops; had debug options turned on)
-        delete lookaheads=null from find 3.288
-        change Descriptors to non-tagged, Last_Lookahead 3.251
-        token_id_arrays.vector lookahead                 3.433
-        sorted list lookahead                            3.582
-        token_id_set lookahead, sort_list items, gotos,  3.278
+    just split lines arbitrarily, at 2000 lines; don't pass State
 
-effect of lr1/lalr on mckenzie
-    wisi/ada_lite_lalr_run.exe -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lalr_recover.log
-    wisi/ada_lite_lr1_run.exe  -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lr1_recover.log
+consider multi-cpu for lr1 ada
+    and DeRemer, Pennello 1982
 
-    lr1 finds significantly better solutions significantly quicker
+distinquish between reset for lex, reset for execute_actions.
+    wisi_grammar don't reset command line args?
+
+review fixmes
 
 propagate to main
 
@@ -84,7 +56,7 @@ better constrain_terminals:
 
 add delete to config heap, use when configuration_access is abandoned?
 
-try indirect recursion solution
+try packrat indirect recursion solution
     adding head, grow_set to Parser
         must be on a stack for nested recursion?
 
@@ -113,14 +85,28 @@ try indirect recursion solution
     or adapt langkit with pre-computed indirect
 
 
-review fixmes
-
 Implement Redziejowski language hiding check
 
 add packrat to ada-mode s-4
     time, compare to langkit
 
 propagate to main
+
+compare to bison times
+
+implement IELR?
+    merges states like LALR, but only if that doesn't introduce new conflicts
+        => faster than LR1
+        for Ada, would only add 1 state
+
+    IELR and LALR merge states with different lookaheads; it is the lookaheads that determine error correction
+        define some other state merging criteria for error correction?
+
+effect of lr1/lalr on mckenzie
+    wisi/ada_lite_lalr_run.exe -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lalr_recover.log
+    wisi/ada_lite_lr1_run.exe  -v 0 -m 1 ../wisi/test/ada_lite_recover.input > ada_lite_lr1_recover.log
+
+    lr1 finds significantly better solutions significantly quicker
 
 packrat space use
     can free low level derivs; they will never be evaled
