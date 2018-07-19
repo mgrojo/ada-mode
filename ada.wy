@@ -33,6 +33,10 @@
 ;; see wisi.el for discussion of using the wisi parser for an
 ;; indentation engine.
 
+%generate LALR elisp elisp
+%generate LALR Ada_Emacs re2c Process
+%generate LR1 Ada_Emacs text_rep re2c Process
+
 %case_insensitive
 
 %keyword ABS "abs"
@@ -172,9 +176,6 @@
 %embedded_quote_escape_doubled
 
 %start compilation_unit_list
-%generate LALR elisp
-;; output_language is overridden, and lexer is set on the command
-;; line; this file is used to generate elisp and Ada_Emacs parsers.
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
@@ -283,7 +284,9 @@
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
 %conflict REDUCE/REDUCE in state paren_expression, paren_expression  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
+%if parser = LALR
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
+%end if
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token COMMA
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token RIGHT_PAREN

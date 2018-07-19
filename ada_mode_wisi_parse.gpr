@@ -22,7 +22,8 @@ project Ada_Mode_Wisi_Parse is
 
    for Main use
      ("ada_mode_wisi_parse.ads",
-      "run_ada_parse.ads",
+      "run_ada_parse_lalr.ads",
+      "run_ada_parse_lr1.ads",
       "gpr_mode_wisi_parse.ads",
       "run_gpr_parse.ads"
      );

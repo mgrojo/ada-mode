@@ -23,7 +23,6 @@ project Ada_Mode_Compile is
       "ada_mode-interactive_case_statement.adb",
       "ada_mode-interactive_1.adb",
       "ada_mode-interactive_2.adb",
-      "ada_mode-interactive_gps_fallback.adb",
 
       -- This has incomplete code; tests a former bug in syntax-ppss
       "ada_mode-long_paren.adb",

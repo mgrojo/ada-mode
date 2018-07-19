@@ -52,6 +52,9 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+add lr1 as wisi indent option
+    ada_process_action.ad? written twice; cm lr1 because it is last
+
 better constrain_terminals:
     o.w.s-1
     store kernel (with dot)

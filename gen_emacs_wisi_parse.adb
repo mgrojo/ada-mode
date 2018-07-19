@@ -70,7 +70,7 @@ is
       Put_Line ("04quit");
    end Usage;
 
-   Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
    Parser     : WisiToken.LR.Parser.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
@@ -250,7 +250,7 @@ begin
 
                Parse_Data.Initialize
                  (Post_Parse_Action => Post_Parse_Action,
-                  Descriptor        => Descriptor'Access,
+                  Descriptor        => Descriptor'Unrestricted_Access,
                   Source_File_Name  => -Source_File_Name,
                   Line_Count        => Line_Count,
                   Params            => Command_Line (Last + 2 .. Command_Line'Last));

@@ -82,9 +82,10 @@
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 
 %start compilation_unit
-%generate LALR elisp
-;; output_language and lexer are overridden on the command line; this file is
-;; used to generate elisp and Ada_Emacs parsers.
+
+%generate LALR elisp elisp
+%generate LR1 Ada_Emacs re2c Process
+;; LR1 gives better error correction performance.
 
 %elisp_face font-lock-function-name-face
 %elisp_face nil

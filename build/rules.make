@@ -62,7 +62,7 @@ elisp-clean :
 	rm -f ../*-wy.el ../*.elc
 
 %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe --generate LALR Elisp Elisp --generate LALR Ada_Emacs re2c Process $(<F)
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe --time $(<F)
 	cd ./$(<D); dos2unix $(*F)-lalr-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads
 
 %_re2c.c : %.re2c
