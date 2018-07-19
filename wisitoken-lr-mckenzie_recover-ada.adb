@@ -1001,6 +1001,9 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             end if;
 
             Local_Config_Heap.Add (New_Config);
+         exception
+         when Bad_Config =>
+            null;
          end;
          return Abandon;
       end if;

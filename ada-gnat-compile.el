@@ -394,7 +394,9 @@ Prompt user if more than one."
 	   t)
 
 	  ;; must be after above
-	  ((looking-at "missing \"\\(.+\\)\"")
+	  ;;
+	  ;; missing "end;" for "begin" at line 234
+	  ((looking-at "missing \"\\([^ ]+\\)\"")
 	   (let ((stuff (match-string-no-properties 1)))
 	     (set-buffer source-buffer)
 	     (insert (concat stuff)));; if missing ")", don't need space; otherwise do?
