@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS gpr.wy
+--  command line: wisi-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS gpr.wy
 --
 
 --  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.

@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Gpr_Process_Actions; use Gpr_Process_Actions;
-with Gpr_Process_Main;
+with Gpr_Process_LR1_Main;
 with WisiToken.LR.Parser.Gen_AUnit;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
@@ -97,7 +97,7 @@ package body Test_Gpr_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Gpr_Process_Main.Create_Parser
+      Gpr_Process_LR1_Main.Create_Parser
         (Parser,
          Language_Fixes               => null, -- WisiToken.LR.McKenzie_Recover.Gpr.Language_Fixes'Access,
          Language_Constrain_Terminals => null,

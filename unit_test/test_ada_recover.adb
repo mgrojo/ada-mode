@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with AUnit.Checks;
 with Ada_Process_Actions; use Ada_Process_Actions;
-with Ada_Process_Main;
+with Ada_Process_LALR_Main;
 with WisiToken.LR.McKenzie_Recover.Ada;
 with WisiToken.LR.Parser.Gen_AUnit;
 with WisiToken.LR.Parser_Lists;
@@ -128,7 +128,7 @@ package body Test_Ada_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Ada_Process_Main.Create_Parser
+      Ada_Process_LALR_Main.Create_Parser
         (Parser,
          Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
          Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,

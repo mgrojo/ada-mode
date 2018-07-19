@@ -386,7 +386,7 @@ private
    overriding
    function Image
      (Item       : in Augmented_Token;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String;
    --  Return a string for debug/test messages
 
@@ -408,7 +408,7 @@ private
 
    function Image
      (Item       : in Augmented_Token_Access_Array;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String;
 
    package Augmented_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Augmented_Token);

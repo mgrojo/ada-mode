@@ -1565,7 +1565,7 @@ package body WisiToken.Wisi_Runtime is
    overriding
    function Image
      (Item       : in Augmented_Token;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String
    is
       ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
@@ -1584,7 +1584,7 @@ package body WisiToken.Wisi_Runtime is
 
    function Image
      (Item       : in Augmented_Token_Access_Array;
-      Descriptor : in WisiToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor)
      return String
    is
       use all type SAL.Base_Peek_Type;

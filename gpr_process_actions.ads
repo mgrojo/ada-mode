@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS gpr.wy
+--  command line: wisi-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS gpr.wy
 --
 
 --  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
@@ -111,7 +111,8 @@ package Gpr_Process_Actions is
          new String'("typed_string_declaration"),
          new String'("with_clause")),
       Terminal_Image_Width => 16,
-      Image_Width          => 26);
+      Image_Width          => 26,
+      Last_Lookahead       => 37);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,

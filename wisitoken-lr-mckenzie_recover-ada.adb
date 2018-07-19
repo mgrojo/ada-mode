@@ -1038,7 +1038,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
    begin
       Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
       Goto_Node := Goto_For (Table, Config.Stack (1).State, Action.Production.Nonterm);
-      Prod_ID := LR.Prod_ID (Goto_Node);
+      Prod_ID := Action.Production;
       Config.Stack.Push
         ((State (Goto_Node),
           Syntax_Trees.Invalid_Node_Index,
@@ -1116,7 +1116,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
                      if Trace_McKenzie > Extra then
                         Put_Line
-                          (Trace, Parser_Label, "constrain:" & Image (State) & " " &
+                          (Trace, Parser_Label, "constrain:" & Trimmed_Image (State) & " " &
                              Image (Reductions (1), Trace.Descriptor.all));
                      end if;
 
@@ -1127,7 +1127,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
                      if Trace_McKenzie > Extra then
                         Put_Line
-                          (Trace, Parser_Label, "constrain:" & Image (State) & " " & Image
+                          (Trace, Parser_Label, "constrain:" & Trimmed_Image (State) & " " & Image
                              (Reductions (Prod_Index), Trace.Descriptor.all));
                      end if;
 
