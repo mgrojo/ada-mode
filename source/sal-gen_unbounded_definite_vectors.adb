@@ -19,17 +19,17 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Unbounded_Definite_Vectors is
 
-   function To_Peek_Type (Item : in Extended_Index) return Peek_Type'Base
+   function To_Peek_Type (Item : in Extended_Index) return Base_Peek_Type
    is begin
-      return Peek_Type'Base (Item - Index_Type'First) + Peek_Type'First;
+      return Base_Peek_Type'Base (Item - Index_Type'First) + Peek_Type'First;
    end To_Peek_Type;
 
-   function To_Index_Type (Item : in Peek_Type'Base) return Extended_Index
+   function To_Index_Type (Item : in Base_Peek_Type) return Extended_Index
    is begin
       return Extended_Index (Item - Peek_Type'First) + Index_Type'First;
    end To_Index_Type;
 
-   procedure Grow (Elements : in out Array_Access; Index : in Base_Peek_Type'Base)
+   procedure Grow (Elements : in out Array_Access; Index : in Base_Peek_Type)
    is
       --  Reallocate Elements so Elements (Index) is a valid element.
 
@@ -105,7 +105,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       else
          declare
             I : constant Peek_Type := To_Peek_Type (Left.First);
-            J : constant Peek_Type := To_Peek_Type (Left.Last);
+            J : constant Base_Peek_Type := To_Peek_Type (Left.Last);
          begin
             return Left.Elements (I .. J) = Right.Elements (I .. J);
          end;
@@ -170,7 +170,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
 
       declare
-         J : constant Peek_Type := To_Peek_Type (Container.Last);
+         J : constant Base_Peek_Type := To_Peek_Type (Container.Last);
       begin
          if Container.Elements = null then
             Container.Elements := new Array_Type (J .. J);
@@ -280,7 +280,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
 
          declare
             J : constant Peek_Type := To_Peek_Type (Before);
-            K : constant Peek_Type := To_Peek_Type (Container.Last);
+            K : constant Base_Peek_Type := To_Peek_Type (Container.Last);
          begin
             if K > Container.Elements'Last then
                Grow (Container.Elements, K);
@@ -310,7 +310,7 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
             New_First : constant Index_Type := Extended_Index'Min (Target.First, Source.First);
             New_Last  : constant Index_Type := Extended_Index'Max (Target.Last, Source.Last);
             New_I     : constant Peek_Type  := To_Peek_Type (New_First);
-            New_J     : constant Peek_Type  := To_Peek_Type (New_Last);
+            New_J     : constant Base_Peek_Type  := To_Peek_Type (New_Last);
          begin
             if New_I < Target.Elements'First then
                Grow (Target.Elements, New_I);
@@ -380,9 +380,9 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Set_First;
 
-   procedure Set_Last (Container : in out Vector; Last : in Index_Type)
+   procedure Set_Last (Container : in out Vector; Last : in Extended_Index)
    is
-      J : constant Peek_Type := To_Peek_Type (Last);
+      J : constant Base_Peek_Type := To_Peek_Type (Last);
    begin
       Container.Last := Last;
       if Container.First = No_Index then

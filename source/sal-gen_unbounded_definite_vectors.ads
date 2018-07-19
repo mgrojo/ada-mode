@@ -111,7 +111,7 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    function "&" (Left : in Vector; Right : in Element_Type) return Vector;
 
    procedure Set_First (Container : in out Vector; First : in Index_Type);
-   procedure Set_Last (Container : in out Vector; Last : in Index_Type);
+   procedure Set_Last (Container : in out Vector; Last : in Extended_Index);
    --  Default First is Index_Type'First.
    --  Elements with First <= index <= Last that have not been set have
    --  Element_Type default value.
@@ -217,6 +217,6 @@ private
    ----------
    --  Visible for child package
 
-   function To_Peek_Type (Item : in Extended_Index) return Peek_Type'Base with Inline;
+   function To_Peek_Type (Item : in Extended_Index) return Base_Peek_Type with Inline;
 
 end SAL.Gen_Unbounded_Definite_Vectors;
