@@ -17,6 +17,7 @@
 ^build/.*\.parse_table$
 ^build/.*\.profile$
 ^build/.*\.re2c$
+^build/.*\.txt$
 ^build/.*\.wy$
 ^build/.*\.zip$
 ^build/exec_pro$

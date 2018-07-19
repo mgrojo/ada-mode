@@ -409,6 +409,4 @@ package WisiToken is
      return String;
    --  Return Gnu-formatted error message.
 
-   type Generator_Algorithm_Type is (LALR, LR1);
-
 end WisiToken;

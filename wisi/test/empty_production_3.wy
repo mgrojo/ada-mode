@@ -1,6 +1,10 @@
 ;;; finding bug in parse table generator; two nonterms at end of
 ;;; production, where first can be empty, were handled wrong.
 
+%generate LALR Ada 
+%generate Packrat_Gen Ada 
+%generate Packrat_Proc Ada
+
 %keyword IN "in"
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]+ ]%

@@ -20,10 +20,12 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
 with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
+with Wisi;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
@@ -39,10 +41,15 @@ package body Wisi_WY_Test is
       use Ada.Text_IO;
       use AUnit.Checks;
       use GNAT.OS_Lib;
+      Exe         : constant String_Access := Locate_Exec_On_Path (Program);
       Success     : Boolean;
       Return_Code : Integer;
       pragma Unreferenced (Return_Code);
    begin
+      if Exe = null then
+         AUnit.Assertions.Assert (False, "'" & Program & "' not found on path");
+      end if;
+
       if WisiToken.Trace_Action > WisiToken.Outline then
          Put (Standard_Error, Program);
          for Str_Acc of Args loop
@@ -54,12 +61,12 @@ package body Wisi_WY_Test is
 
       if Output_File = "" then
          Spawn
-           (Program_Name => Locate_Exec_On_Path (Program).all,
+           (Program_Name => Exe.all,
             Args         => Args,
             Success      => Success);
       else
          Spawn
-           (Program_Name => Locate_Exec_On_Path (Program).all,
+           (Program_Name => Exe.all,
             Args         => Args,
             Output_File  => Output_File,
             Err_To_Out   => False,
@@ -70,126 +77,62 @@ package body Wisi_WY_Test is
       Check (Program, Success, True);
    end Spawn;
 
-   procedure Generate
-     (Root_Name    : in     String;
-      Generate_Set : in out Wisi.Generate_Set_Access)
+   procedure Get_Gen_Set
+     (Root_Name        : in     String;
+      Generate_Set     :    out Wisi.Generate_Set_Access;
+      If_Lexer_Present :    out Boolean)
    is
-      use GNAT.OS_Lib;
-      use Wisi;
-      Args : String_List (1 .. 6 + 5 * (if Generate_Set = null then 0 else Generate_Set'Length));
-      Last : Integer := 0;
-
-      Gen_Alg_Arg : constant String_Access := new String'("--generate");
-      Do_re2c     : Boolean                := False;
+      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
+      Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
    begin
-      Last     := Last + 1;
-      Args (1) := new String'("--test_main");
+      Wisi_Grammar_Main.Create_Parser
+        (Parser    => Grammar_Parser,
+         Trace     => Trace'Unchecked_Access,
+         User_Data => Input_Data'Unchecked_Access);
 
-      if Generate_Set = null then
-         declare
-            Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
-            Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-            Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
-         begin
-            Wisi_Grammar_Main.Create_Parser
-              (Parser    => Grammar_Parser,
-               Trace     => Trace'Unchecked_Access,
-               User_Data => Input_Data'Unchecked_Access);
+      Grammar_Parser.Lexer.Reset_With_File ("../wisi/test/" & Root_Name & ".wy");
+      Grammar_Parser.Parse;
+      Grammar_Parser.Execute_Actions;
 
-            Grammar_Parser.Lexer.Reset_With_File ("../../wisi/test/" & Root_Name & ".wy");
-            Grammar_Parser.Parse;
-            Grammar_Parser.Execute_Actions;
-
-            Generate_Set := Input_Data.Generate_Set;
-         exception
-         when WisiToken.Syntax_Error =>
-            Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
-            raise;
-         end;
-
-         Last := Last + 1;
-         Args (Last) := new String'("../../wisi/test/" & Root_Name & ".wy");
-         Spawn ("../wisi-generate.exe", Args (1 .. Last));
-      else
-         Args (1) := new String'("--test_main");
-
-         for Quad of Generate_Set.all loop
-            Last := Last + 1;
-            Args (Last) := Gen_Alg_Arg;
-            Last := Last + 1;
-            Args (Last) := new String'(Generate_Algorithm'Image (Quad.Gen_Alg));
-            Last := Last + 1;
-            Args (Last) := new String'(Wisi.Output_Language'Image (Quad.Out_Lang));
-
-            if Quad.Lexer /= None then
-               Last := Last + 1;
-               Args (Last) := new String'(Wisi.Lexer_Image (Quad.Lexer).all);
-            end if;
-
-            case Quad.Lexer is
-            when re2c_Lexer =>
-               Do_re2c := True;
-            when Elisp_Lexer =>
-               null;
-
-            when None =>
-               if Quad.Out_Lang in Ada_Output_Language then
-                  Do_re2c := True;
-               end if;
-            end case;
-
-            if Quad.Interface_Kind /= None then
-               Last := Last + 1;
-               Args (Last) := new String'(Wisi.Interface_Type'Image (Quad.Interface_Kind));
-            end if;
-         end loop;
-
-         Last := Last + 1;
-         Args (Last) := new String'("../../wisi/test/" & Root_Name & ".wy");
-         Spawn ("../wisi-generate.exe", Args (1 .. Last));
-      end if;
-
-      if Do_re2c then
-         Spawn
-           (Program => "re2c",
-            Args    =>
-              (1    => new String'("--no-generation-date"),
-               2    => new String'("--debug-output"),
-               3    => new String'("--input"),
-               4    => new String'("custom"),
-               5    => new String'("-W"),
-               6    => new String'("-Werror"),
-               7    => new String'("--utf-8"),
-               8    => new String'("-o"),
-               9    => new String'(Root_Name & "_re2c.c"),
-               10   => new String'(Root_Name & ".re2c")));
-      end if;
-   end Generate;
+      Generate_Set     := Input_Data.Generate_Set;
+      If_Lexer_Present := Input_Data.If_Lexer_Present;
+   exception
+   when WisiToken.Syntax_Error =>
+      Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
+      raise;
+   end Get_Gen_Set;
 
    procedure Diff_Gen
      (Root_Name        : in String;
-      Quad             : in Wisi.Generate_Quad;
+      Tuple            : in Wisi.Generate_Tuple;
       If_Lexer_Present : in Boolean)
    is
       use Wisi;
 
-      Gen_Alg  : constant String := "_" & To_Lower (Generate_Algorithm'Image (Quad.Gen_Alg));
-      Int_Kind : constant String := "_" & To_Lower (Interface_Type'Image (Quad.Interface_Kind));
+      Gen_Alg  : constant String := "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg));
+      Int_Kind : constant String := "_" & To_Lower (Interface_Type'Image (Tuple.Interface_Kind));
 
       procedure Diff_One
         (Computed : in String;
-         Skip : in AUnit.Checks.Text_IO.Line_Number_Array_Type := (1 .. 0 => 1))
+         Skip     : in AUnit.Checks.Text_IO.Line_Number_Array_Type := (1 .. 0 => 1))
       is begin
-         AUnit.Checks.Text_IO.Check_Files ("", Computed, "../../wisi/test/" & Computed & "_good", Skip);
+         AUnit.Checks.Text_IO.Check_Files ("", Computed, "../wisi/test/" & Computed & "_good", Skip);
       end Diff_One;
 
    begin
-      case Quad.Gen_Alg is
+      case Tuple.Gen_Alg is
       when LR_Generate_Algorithm =>
          Diff_One
            (Root_Name & Gen_Alg &
               (if If_Lexer_Present
-               then "_" & Lexer_Image (Quad.Lexer).all
+               then "_" & Lexer_Image
+                 ((if Tuple.Lexer = None
+                   then
+                     (case Tuple.Out_Lang is
+                      when Wisi.Ada | Ada_Emacs => re2c_Lexer,
+                      when Elisp => Elisp_Lexer)
+                   else Tuple.Lexer)).all
                else "") &
               ".parse_table");
 
@@ -197,7 +140,7 @@ package body Wisi_WY_Test is
          null;
       end case;
 
-      case Quad.Out_Lang is
+      case Tuple.Out_Lang is
       when Wisi.Ada =>
          --  Not useful to diff the generated Ada source here; the fact that
          --  the parse succeeds is enough.
@@ -206,36 +149,12 @@ package body Wisi_WY_Test is
       when Ada_Emacs =>
          Diff_One (Root_Name & Int_Kind & "_actions.adb", Skip => (1 => 2));
          Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
+         Diff_One (Root_Name & "-process.el");
 
       when Elisp =>
-         Diff_One (Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Quad.Gen_Alg)) & "-elisp.el");
+         Diff_One (Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "-elisp.el");
       end case;
    end Diff_Gen;
-
-   procedure Compile
-     (Root_Name    : in String;
-      Generate_Alg : in Wisi.Generate_Algorithm)
-   is
-      use Wisi;
-
-      --  We know Output_Language is Ada
-
-      Main : constant String := Root_Name & "_" &
-        To_Lower (Generate_Algorithm'Image (Generate_Alg)) & "_run";
-   begin
-      if WisiToken.Trace_Action > WisiToken.Outline then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "compile " & Root_Name);
-      end if;
-
-      Spawn
-        (Program => "gprbuild",
-         Args    =>
-           (1    => new String'("-p"),
-            2    => new String'("-q"), -- quiet; no [compile] in test_all_harness.out
-            3    => new String'("-P"),
-            4    => new String'("wisi_test.gpr"),
-            5    => new String'(Main)));
-   end Compile;
 
    procedure Execute_Parse
      (Root_Name    : in String;
@@ -259,10 +178,10 @@ package body Wisi_WY_Test is
          Args        =>
            (1        => new String'("-v"),
             2        => new String'("2"),
-            3        => new String'("../../wisi/test/" & Root_Name & ".input")),
+            3        => new String'("../wisi/test/" & Root_Name & ".input")),
          Output_File => Output);
 
-      AUnit.Checks.Text_IO.Check_Files ("", Output, "../../wisi/test/" & Output & "_good");
+      AUnit.Checks.Text_IO.Check_Files ("", Output, "../wisi/test/" & Output & "_good");
    end Execute_Parse;
 
    ----------
@@ -272,15 +191,19 @@ package body Wisi_WY_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Gen_Set     : Wisi.Generate_Set_Access := Test.Generate_Set;
-      Simple_Name : constant String          := Ada.Directories.Simple_Name (Test.Root_Name.all);
+      Simple_Name      : constant String := Ada.Directories.Simple_Name (Test.Root_Name.all);
+      Gen_Set          : Wisi.Generate_Set_Access;
+      If_Lexer_Present : Boolean;
    begin
-      Generate (Simple_Name, Gen_Set);
-      for Quad of Gen_Set.all loop
-         case Quad.Out_Lang is
+      --  wisi-generate, re2c, gprbuild are run from the Makefile, since
+      --  some of the generated files are shared with other tests.
+
+      Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present);
+
+      for Tuple of Gen_Set.all loop
+         case Tuple.Out_Lang is
          when Wisi.Ada =>
-            Compile (Simple_Name, Quad.Gen_Alg);
-            Execute_Parse (Simple_Name, Quad.Gen_Alg);
+            Execute_Parse (Simple_Name, Tuple.Gen_Alg);
 
          when Wisi.Ada_Emacs | Wisi.Elisp =>
             null;
@@ -288,7 +211,7 @@ package body Wisi_WY_Test is
 
          --  Do Diff_Gen after compile and execute, so we know the code is
          --  correct before we update _good.
-         Diff_Gen (Simple_Name, Quad, Test.If_Lexer_Present);
+         Diff_Gen (Simple_Name, Tuple, If_Lexer_Present);
       end loop;
    end Run_Test;
 
@@ -306,21 +229,5 @@ package body Wisi_WY_Test is
    is begin
       return new String'("wisi_wy_test.adb-" & T.Root_Name.all);
    end Name;
-
-   Orig_Dir : constant String := Ada.Directories.Current_Directory;
-
-   overriding procedure Set_Up_Case (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      Ada.Directories.Set_Directory (Orig_Dir & "/wisi");
-   end Set_Up_Case;
-
-   overriding procedure Tear_Down_Case (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      Ada.Directories.Set_Directory (Orig_Dir);
-   end Tear_Down_Case;
 
 end Wisi_WY_Test;

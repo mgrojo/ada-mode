@@ -28,15 +28,31 @@ else
 endif
 
 tests :: wisi-generate.exe
-tests :: ada_lite_re2c.c
-tests :: character_literal_re2c.c
-tests :: skip_to_grammar_re2c.c
-tests :: dragon_4_43_packrat_re2c.c
-tests :: warth_left_recurse_expr_1_re2c.c
-
+tests :: gen
 tests :: test_all_harness.diff
 
-test_all_harness.out : test_all_harness.exe wisi-generate.exe
+# generated code used by test_wisi_suite.adb and others.
+gen :: ada_lite_re2c.c
+gen :: body_instantiation_conflict_re2c.c
+gen :: case_expression_re2c.c
+gen :: character_literal_re2c.c
+gen :: conflict_name_re2c.c
+gen :: dragon_4_43_re2c.c
+gen :: empty_production_1_re2c.c
+gen :: empty_production_2_re2c.c
+gen :: empty_production_3_re2c.c
+gen :: empty_production_4_re2c.c
+gen :: empty_production_5_re2c.c
+gen :: empty_production_6_re2c.c
+gen :: empty_production_7_re2c.c
+gen :: empty_production_8_re2c.c
+gen :: identifier_list_name_conflict_re2c.c
+gen :: range_conflict_re2c.c
+gen :: skip_to_grammar_re2c.c
+gen :: subprograms_re2c.c
+gen :: warth_left_recurse_expr_1_re2c.c
+
+test_all_harness.out : test_all_harness.exe wisi-generate.exe gen test-executables
 
 install: library wisi-generate.exe
 	make -f Install.make install
@@ -52,16 +68,16 @@ clean :: test-clean
 	rm -rf obj_pro exec_pro
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
-test-clean : wisi-clean re2c-clean
-	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *.wy
-	rm -f wisi/*.el wisi/*.re2c wisi/*.ad? wisi/*.exe wisi/*.parse* wisi/*.c
+# don't delete prj.el
+test-clean :
+	rm -f *.ad? *.c *.diff *-elisp.el *-process.el *.in *.re2c *.exe *.out *.parse* *.txt *.wy
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
-# We want the files generated for wisi_grammar in ../wisi, for CM, and to avoid deleting them in wisi-clean.
+# We want the files generated for wisi_grammar in ../wisi, for CM, and to avoid deleting them in clean.
 # We don't include wisi-generate.exe in the dependencies here, to allow bootstrapping.
 ../wisi/wisi_grammar.re2c : wisi_grammar.wy
 	cd ../wisi; $(CURDIR)/wisi-generate.exe wisi_grammar.wy
@@ -82,6 +98,9 @@ update-wisi_grammar : wisi_grammar-clean ../wisi/wisi_grammar_re2c.c
 wisi-generate.exe : force
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisi-generate $(GPRBUILD_LINK_ARGS)
 
+test-executables : force
+	gprbuild -p --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
+
 %.out : %.exe
 	./$*.exe $(RUN_ARGS) > $*.out
 	dos2unix -q $*.out
@@ -92,26 +111,14 @@ DIFF_OPT := -u -w
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
 %.re2c : %.wy wisi-generate.exe
-	./wisi-generate.exe $<
+	./wisi-generate.exe --test_main $<
 	dos2unix -q $**
-
-%_packrat.re2c : %.wy wisi-generate.exe
-	./wisi-generate.exe --suffix "_packrat" --generate Packrat_Gen Ada $<
-	dos2unix -q $**
-
-# delete files created by wisi-generate in tests
-# don't delete prj.el
-wisi-clean :
-	rm -f *-elisp.el *-process.el *.*parse_table *.ads *.adb
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
-
-re2c-clean :
-	rm -f *.c *.re2c
 
 # clean rules
 source-clean ::

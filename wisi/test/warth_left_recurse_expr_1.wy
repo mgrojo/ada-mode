@@ -23,6 +23,10 @@
 
 %code actions body context %{with Warth_Left_Recurse_Expr_1_Runtime; use Warth_Left_Recurse_Expr_1_Runtime;}%
 
+%generate Packrat_Gen Ada re2c
+%generate LALR Ada
+%generate Packrat_Proc Ada
+
 %token <punctuation> MINUS "-"
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
 
@@ -32,7 +36,6 @@
 ;; no mckenzie
 
 %start expr
-%generate Packrat_Gen Ada re2c
 
 expr
   : expr MINUS NUMERIC_LITERAL

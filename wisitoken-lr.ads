@@ -113,7 +113,7 @@ package WisiToken.LR is
    type Action_Node_Ptr is access Action_Node;
 
    type Action_Node is record
-      Symbol : Token_ID; -- ignored if Action is Error
+      Symbol : Token_ID := Invalid_Token_ID; -- ignored if Action is Error
       Action : Parse_Action_Node_Ptr;
       Next   : Action_Node_Ptr;
    end record;
@@ -267,13 +267,6 @@ package WisiToken.LR is
    procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor);
    --  Put Item to Ada.Text_IO.Current_Output
 
-   type Production is record
-      --  Subset of info in wisitoken-productions.ads type; only what is
-      --  needed at runtime for error recovery.
-      LHS : Token_ID;
-      RHS : Token_ID_Arrays.Vector;
-   end record;
-
    procedure Set_Token_Sequence (Vector : in out Token_ID_Arrays.Vector; Tokens : in Token_ID_Array);
 
    procedure Set_Production
@@ -284,7 +277,9 @@ package WisiToken.LR is
    procedure Set_RHS
      (Prod      : in out Productions.Instance;
       RHS_Index : in     Natural;
-      RHS       : in     Token_ID_Array);
+      Tokens    : in     Token_ID_Array;
+      Action    : in     WisiToken.Syntax_Trees.Semantic_Action   := null;
+      Check     : in     WisiToken.Semantic_Checks.Semantic_Check := null);
 
    type Parse_Table
      (State_First       : State_Index;
@@ -337,6 +332,30 @@ package WisiToken.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Parse_Action_Rec);
    procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr);
    procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State);
+   --  In human-readable parse_table format
+
+   function Get_Action
+     (Prod        : in Production_ID;
+      Productions : in WisiToken.Productions.Prod_Arrays.Vector)
+     return WisiToken.Syntax_Trees.Semantic_Action;
+
+   function Get_Check
+     (Prod        : in Production_ID;
+      Productions : in WisiToken.Productions.Prod_Arrays.Vector)
+     return WisiToken.Semantic_Checks.Semantic_Check;
+
+   procedure Put_Text_Rep (Table : in Parse_Table; File_Name : in String);
+   --  Write machine-readable text format of Table.States to a file
+   --  File_Name, to be read by the parser executable at startup.
+
+   function Get_Text_Rep
+     (File_Name                  : in     String;
+      McKenzie_Param             : in     McKenzie_Param_Type;
+      Productions                : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Minimal_Terminal_Sequences : in     Token_Sequence_Arrays.Vector)
+     return Parse_Table_Ptr;
+   --  Read machine-readable text format of states from a file File_Name.
+   --  Result has actions, checks from Productions.
 
    ----------
    --  For McKenzie_Recover. Declared here because Parser_Lists needs

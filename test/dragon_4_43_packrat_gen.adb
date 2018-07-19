@@ -22,16 +22,16 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with Dragon_4_43_Packrat_Actions;
-with Dragon_4_43_Packrat_Main;
+with Dragon_4_43_Actions;
+with Dragon_4_43_Packrat_Gen_Main;
 with WisiToken.Parse.Packrat.Generated;
 with WisiToken.Text_IO_Trace;
 package body Dragon_4_43_Packrat_Gen is
 
-   Trace : aliased WisiToken.Text_IO_Trace.Trace (Dragon_4_43_Packrat_Actions.Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Dragon_4_43_Actions.Descriptor'Access);
    --  FIXME: why does Trace need a Descriptor?
 
-   Parser : aliased WisiToken.Parse.Base_Parser'Class := Dragon_4_43_Packrat_Main.Create_Parser
+   Parser : aliased WisiToken.Parse.Base_Parser'Class := Dragon_4_43_Packrat_Gen_Main.Create_Parser
      (Trace     => Trace'Access,
       User_Data => null);
 

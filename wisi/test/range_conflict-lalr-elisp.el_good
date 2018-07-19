@@ -1,5 +1,5 @@
 ;;; range_conflict-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisi-generate.exe  --generate LALR ELISP ../../wisi/test/range_conflict.wy
+;;  command line: wisi-generate.exe  --generate LALR ELISP ../wisi/test/range_conflict.wy
 
 ;;  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 

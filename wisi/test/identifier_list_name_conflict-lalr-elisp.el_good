@@ -1,5 +1,5 @@
 ;;; identifier_list_name_conflict-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisi-generate.exe  --generate LALR ELISP ../../wisi/test/identifier_list_name_conflict.wy
+;;  command line: wisi-generate.exe  --generate LALR ELISP ../wisi/test/identifier_list_name_conflict.wy
 
 (require 'wisi)
 (require 'wisi-compile)

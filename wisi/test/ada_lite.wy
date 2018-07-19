@@ -36,6 +36,11 @@
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 }%
 
+;; Declare all variants tested by wisi_wy_test.adb
+%generate LALR Ada re2c
+%generate LR1 Ada re2c text_rep
+;; FIXME: support indirect left recursion, add Packrat_Gen, Packrat_Proc
+
 %keyword AND "and"
 %keyword BEGIN "begin"
 %keyword BODY "body"
@@ -97,7 +102,6 @@
 %non_grammar <comment> COMMENT %[ "--"[^\n]*[\n] ]%
 
 %start compilation_unit_list
-%generate LALR Ada re2c
 
 ;; Set costs to take advantage of syntax to get to solution faster.
 

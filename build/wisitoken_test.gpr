@@ -28,6 +28,61 @@ project WisiToken_Test is
 
    for Languages use ("Ada", "C");
 
+   for Main use
+     (
+      "ada_lite_lalr_run.ads",
+      "ada_lite_lr1_run.ads",
+      "body_instantiation_conflict_lalr_run.ads",
+      "body_instantiation_conflict_lr1_run.ads",
+      "body_instantiation_conflict_packrat_gen_run.ads",
+      "body_instantiation_conflict_packrat_proc_run.ads",
+      "case_expression_lalr_run.ads",
+      "case_expression_lr1_run.ads",
+      "case_expression_packrat_gen_run.ads",
+      "case_expression_packrat_proc_run.ads",
+      "character_literal_lr1_run.ads",
+      "character_literal_packrat_gen_run.ads",
+      "character_literal_packrat_proc_run.ads",
+      "conflict_name_lalr_run.ads",
+      "dragon_4_43_lalr_run.ads",
+      "dragon_4_43_packrat_gen_run.ads",
+      "dragon_4_43_packrat_proc_run.ads",
+      "empty_production_1_lalr_run.ads",
+      "empty_production_1_packrat_gen_run.ads",
+      "empty_production_1_packrat_proc_run.ads",
+      "empty_production_2_lalr_run.ads",
+      "empty_production_2_packrat_gen_run.ads",
+      "empty_production_2_packrat_proc_run.ads",
+      "empty_production_3_lalr_run.ads",
+      "empty_production_3_packrat_gen_run.ads",
+      "empty_production_3_packrat_proc_run.ads",
+      "empty_production_4_lalr_run.ads",
+      "empty_production_4_packrat_gen_run.ads",
+      "empty_production_4_packrat_proc_run.ads",
+      "empty_production_5_lalr_run.ads",
+      "empty_production_5_packrat_gen_run.ads",
+      "empty_production_5_packrat_proc_run.ads",
+      "empty_production_6_lalr_run.ads",
+      "empty_production_6_packrat_gen_run.ads",
+      "empty_production_6_packrat_proc_run.ads",
+      "empty_production_7_lalr_run.ads",
+      "empty_production_7_packrat_gen_run.ads",
+      "empty_production_7_packrat_proc_run.ads",
+      "empty_production_8_lalr_run.ads",
+      "empty_production_8_packrat_gen_run.ads",
+      "empty_production_8_packrat_proc_run.ads",
+      "identifier_list_name_conflict_lalr_run.ads",
+      "identifier_list_name_conflict_packrat_gen_run.ads",
+      "identifier_list_name_conflict_packrat_proc_run.ads",
+      "range_conflict_lalr_run.ads",
+      "range_conflict_packrat_gen_run.ads",
+      "range_conflict_packrat_proc_run.ads",
+      "skip_to_grammar_lalr_run.ads",
+      "warth_left_recurse_expr_1_lalr_run.ads",
+      "warth_left_recurse_expr_1_packrat_gen_run.ads",
+      "warth_left_recurse_expr_1_packrat_proc_run.ads"
+     );
+
    case Standard_Common.Profile is
    when "On" =>
       for Object_Dir use "obj_pro";
@@ -43,9 +98,8 @@ project WisiToken_Test is
 
       --  User actions are not properly indented; leave out style 'il' layout
       --  redundant with clauses; add -gnatwR
-      --  *_main.adb: some lines too long
-      Generated_Debug_Switches := ("-gnaty3abcefhknOprtx") & Standard_Common.Compiler.Debug_Switches & ("-gnatwR");
-      Generated_Release_Switches := ("-gnaty3abcefhknOprtx") & Standard_Common.Compiler.Release_Switches & ("-gnatwR");
+      Generated_Debug_Switches := ("-gnaty3abcefhkl120nOprtx") & Standard_Common.Compiler.Debug_Switches & ("-gnatwR");
+      Generated_Release_Switches := ("-gnaty3abcefhkl120nOprtx") & Standard_Common.Compiler.Release_Switches & ("-gnatwR");
 
       case Standard_Common.Build is
       when "Debug" =>

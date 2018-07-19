@@ -51,26 +51,26 @@ package body Test_Ada_Lite_Terminal_Sequence is
 
       Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
       Grammar_Parser.Parse;
+      Input_Data.User_Parser := Wisi.LALR;
       Grammar_Parser.Execute_Actions;
 
       declare
          use Wisi.Generate_Utils;
 
-         Generate_Data : aliased constant Wisi.Generate_Utils.Generate_Data := Initialize
-           (Input_Data.Grammar_Lexer.File_Name, Input_Data.Tokens, Start_Token => "compilation_unit");
+         Generate_Data : aliased constant Wisi.Generate_Utils.Generate_Data := Initialize (Input_Data);
 
          Computed : WisiToken.Token_Sequence_Arrays.Vector;
          Sequence : WisiToken.Token_ID_Arrays.Vector;
       begin
          WisiToken.LR.Generate_Utils.Compute_Minimal_Terminal_Sequences
-           (Generate_Data.Grammar, Generate_Data.LALR_Descriptor.all, Computed);
+           (Generate_Data.Grammar, Generate_Data.Descriptor.all, Computed);
 
          if WisiToken.Trace_Generate > WisiToken.Detail then
             Ada.Text_IO.New_Line;
             for I in Computed.First_Index .. Computed.Last_Index loop
                Ada.Text_IO.Put_Line
-                 (WisiToken.Image (I, Generate_Data.LALR_Descriptor.all) & " => " &
-                    WisiToken.Image (Computed (I), Generate_Data.LALR_Descriptor.all));
+                 (WisiToken.Image (I, Generate_Data.Descriptor.all) & " => " &
+                    WisiToken.Image (Computed (I), Generate_Data.Descriptor.all));
             end loop;
          end if;
 

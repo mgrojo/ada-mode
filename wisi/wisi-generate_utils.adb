@@ -104,7 +104,7 @@ package body Wisi.Generate_Utils is
       Start_Token      :         in     String)
    is
       use WisiToken.Wisi_Ada;
-      Descriptor : WisiToken.Descriptor renames Data.LR1_Descriptor.all;
+      Descriptor : WisiToken.Descriptor renames Data.Descriptor.all;
    begin
       Data.Grammar.Set_First (Descriptor.First_Nonterminal);
       Data.Grammar.Set_Last (Descriptor.Last_Nonterminal);
@@ -186,88 +186,70 @@ package body Wisi.Generate_Utils is
    ----------
    --  Public subprograms, declaration order
 
-   function Initialize
-     (Source_File_Name :         in String;
-      Tokens           : aliased in Wisi.Tokens;
-      Start_Token      :         in String)
-     return Generate_Data
+   function Initialize (Input_Data : aliased in WisiToken.Wisi_Grammar_Runtime.User_Data_Type) return Generate_Data
    is
       EOF_ID : constant Token_ID := Token_ID
-        (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + Token_ID'First;
+        (Count (Input_Data.Tokens.Non_Grammar) + Count (Input_Data.Tokens.Tokens)) + Token_ID
+          (Input_Data.Tokens.Keywords.Length) + Token_ID'First;
    begin
       return Result : aliased Generate_Data :=
-        (Tokens => Tokens'Access,
+        (Tokens => Input_Data.Tokens'Access,
 
-         LR1_Descriptor => new WisiToken.Descriptor
+         Descriptor => new WisiToken.Descriptor
            (First_Terminal    =>
-              (if Count (Tokens.Non_Grammar) > 0
-               then Token_ID (Count (Tokens.Non_Grammar)) + Token_ID'First
+              (if Count (Input_Data.Tokens.Non_Grammar) > 0
+               then Token_ID (Count (Input_Data.Tokens.Non_Grammar)) + Token_ID'First
                else Token_ID'First),
             Last_Terminal     => EOF_ID,
             EOF_ID            => EOF_ID,
             Accept_ID         => EOF_ID + 1,
             First_Nonterminal => EOF_ID + 1,
-            Last_Nonterminal  => EOF_ID + 1 + Token_ID (Tokens.Rules.Length)),
+            Last_Nonterminal  => EOF_ID + 1 + Token_ID (Input_Data.Tokens.Rules.Length)),
 
          others => <>)
       do
+         Result.Descriptor.Case_Insensitive := Input_Data.Language_Params.Case_Insensitive;
+         Result.Descriptor.New_Line_ID      := Find_Kind (Result, "new-line");
+         Result.Descriptor.Comment_ID       := Find_Kind (Result, "comment");
+         Result.Descriptor.Left_Paren_ID    := Find_Kind (Result, "left-paren");
+         Result.Descriptor.Right_Paren_ID   := Find_Kind (Result, "right-paren");
+         Result.Descriptor.String_1_ID      := Find_Kind (Result, "string-single");
+         Result.Descriptor.String_2_ID      := Find_Kind (Result, "string-double");
 
-         --  FIXME: We don't set Descriptor.Case_Insensitive,
-         --  Embedded_Quote_Escape_Doubled here, because we don't have access
-         --  to Generate_Params. They are set in the generated code in
-         --  wisi-gen_output_ada_common.adb.
-         Result.LR1_Descriptor.New_Line_ID    := Find_Kind (Result, "new-line");
-         Result.LR1_Descriptor.Comment_ID     := Find_Kind (Result, "comment");
-         Result.LR1_Descriptor.Left_Paren_ID  := Find_Kind (Result, "left-paren");
-         Result.LR1_Descriptor.Right_Paren_ID := Find_Kind (Result, "right-paren");
-         Result.LR1_Descriptor.String_1_ID    := Find_Kind (Result, "string-single");
-         Result.LR1_Descriptor.String_2_ID    := Find_Kind (Result, "string-double");
+         Result.Descriptor.Embedded_Quote_Escape_Doubled := Input_Data.Language_Params.Embedded_Quote_Escape_Doubled;
 
-         Result.LR1_Descriptor.Terminal_Image_Width := 0;
-         Result.LR1_Descriptor.Image_Width          := 0;
-         Result.LR1_Descriptor.Last_Lookahead       := Result.LR1_Descriptor.Last_Terminal;
+         --  Image set in loop below, which also updates these widths.
+         Result.Descriptor.Terminal_Image_Width := 0;
+         Result.Descriptor.Image_Width          := 0;
+
+         Result.Descriptor.Last_Lookahead       :=
+           (case (Input_Data.User_Parser) is
+            when None                       => raise Programmer_Error,
+            when LR1                        => Result.Descriptor.Last_Terminal,
+            when LALR                       => Result.Descriptor.First_Nonterminal,
+            when Packrat_Generate_Algorithm => Invalid_Token_ID);
 
          for Cursor in All_Tokens (Result).Iterate loop
-            Result.LR1_Descriptor.Image (ID (Cursor)) := new String'(Name_1 (Cursor));
+            Result.Descriptor.Image (ID (Cursor)) := new String'(Name_1 (Cursor));
          end loop;
 
-         for ID in Result.LR1_Descriptor.Image'Range loop
-            if ID in Result.LR1_Descriptor.First_Terminal .. Result.LR1_Descriptor.Last_Terminal then
-               if Result.LR1_Descriptor.Image (ID).all'Length > Result.LR1_Descriptor.Terminal_Image_Width then
-                  Result.LR1_Descriptor.Terminal_Image_Width := Result.LR1_Descriptor.Image (ID).all'Length;
+         for ID in Result.Descriptor.Image'Range loop
+            if ID in Result.Descriptor.First_Terminal .. Result.Descriptor.Last_Terminal then
+               if Result.Descriptor.Image (ID).all'Length > Result.Descriptor.Terminal_Image_Width then
+                  Result.Descriptor.Terminal_Image_Width := Result.Descriptor.Image (ID).all'Length;
                end if;
             end if;
 
-            if Result.LR1_Descriptor.Image (ID).all'Length > Result.LR1_Descriptor.Image_Width then
-               Result.LR1_Descriptor.Image_Width := Result.LR1_Descriptor.Image (ID).all'Length;
+            if Result.Descriptor.Image (ID).all'Length > Result.Descriptor.Image_Width then
+               Result.Descriptor.Image_Width := Result.Descriptor.Image (ID).all'Length;
             end if;
          end loop;
 
-         Result.LALR_Descriptor := new WisiToken.Descriptor'
-           (First_Terminal                => Result.LR1_Descriptor.First_Terminal,
-            Last_Terminal                 => Result.LR1_Descriptor.Last_Terminal,
-            First_Nonterminal             => EOF_ID + 1,
-            Last_Nonterminal              => Result.LR1_Descriptor.Last_Nonterminal,
-            EOF_ID                        => Result.LR1_Descriptor.EOF_ID,
-            Accept_ID                     => EOF_ID + 1,
-            Case_Insensitive              => False, --  FIXME:
-            New_Line_ID                   => Result.LR1_Descriptor.New_Line_ID,
-            Comment_ID                    => Result.LR1_Descriptor.Comment_ID,
-            Left_Paren_ID                 => Result.LR1_Descriptor.Left_Paren_ID,
-            Right_Paren_ID                => Result.LR1_Descriptor.Right_Paren_ID,
-            String_1_ID                   => Result.LR1_Descriptor.String_1_ID,
-            String_2_ID                   => Result.LR1_Descriptor.String_2_ID,
-            Embedded_Quote_Escape_Doubled => False, --  FIXME:
-            Image                         => Result.LR1_Descriptor.Image,
-            Terminal_Image_Width          => Result.LR1_Descriptor.Terminal_Image_Width,
-            Image_Width                   => Result.LR1_Descriptor.Image_Width,
-            Last_Lookahead                => Result.LR1_Descriptor.First_Nonterminal);
-
-         To_Grammar (Result, Source_File_Name, Start_Token);
+         To_Grammar (Result, Input_Data.Grammar_Lexer.File_Name, -Input_Data.Language_Params.Start_Token);
       end return;
    end Initialize;
 
-   function Find_Token_ID (Data : aliased Generate_Data; Token : in String) return Token_ID
+   function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID
    is begin
       for Cursor in All_Tokens (Data).Iterate loop
          if Name (Cursor) = Token then
@@ -382,7 +364,7 @@ package body Wisi.Generate_Utils is
          Cursor :=
            (Data        => Cursor.Data,
             Kind        => Terminals_Keywords,
-            ID          => Cursor.Data.LR1_Descriptor.First_Terminal,
+            ID          => Cursor.Data.Descriptor.First_Terminal,
             Token_Kind  => Wisi.Token_Lists.No_Element,
             Token_Item  => String_Pair_Lists.No_Element,
             Keyword     => Cursor.Data.Tokens.Keywords.First,
@@ -588,7 +570,7 @@ package body Wisi.Generate_Utils is
 
    function Name (Cursor : in Token_Cursor) return String
    is begin
-      return Cursor.Data.LR1_Descriptor.Image (Cursor.ID).all;
+      return Cursor.Data.Descriptor.Image (Cursor.ID).all;
    end Name;
 
    function Kind (Cursor : in Token_Cursor) return String
@@ -708,7 +690,7 @@ package body Wisi.Generate_Utils is
       Item :         in String_Lists.List)
      return Token_ID_Set
    is
-      Result : Token_ID_Set := (Data.LR1_Descriptor.First_Nonterminal .. Data.LR1_Descriptor.Last_Nonterminal => False);
+      Result : Token_ID_Set := (Data.Descriptor.First_Nonterminal .. Data.Descriptor.Last_Nonterminal => False);
    begin
       for Token of Item loop
          Result (Find_Token_ID (Data, Token)) := True;
@@ -726,10 +708,10 @@ package body Wisi.Generate_Utils is
       Result : WisiToken.LR.McKenzie_Param_Type :=
         --  We use an aggregate, and overwrite some below, so the compiler
         --  reminds us to change this when we modify McKenzie_Param_Type.
-        (Data.LR1_Descriptor.First_Terminal,
-         Data.LR1_Descriptor.Last_Terminal,
-         Data.LR1_Descriptor.First_Nonterminal,
-         Data.LR1_Descriptor.Last_Nonterminal,
+        (Data.Descriptor.First_Terminal,
+         Data.Descriptor.Last_Terminal,
+         Data.Descriptor.First_Nonterminal,
+         Data.Descriptor.Last_Nonterminal,
          Insert            => (others => Item.Default_Insert),
          Delete            => (others => Item.Default_Delete_Terminal),
          Push_Back         => (others => Item.Default_Push_Back),
@@ -755,14 +737,12 @@ package body Wisi.Generate_Utils is
       return Result;
    end To_McKenzie_Param;
 
-   procedure Count_Actions
-     (Data : in out Generate_Utils.Generate_Data;
-      Alg  : in     LR_Generate_Algorithm)
+   procedure Count_Actions (Data : in out Generate_Utils.Generate_Data)
    is begin
       Data.Table_Actions_Count := 0;
-      for State_Index in Data.LR_Parsers (Alg).States'Range loop
+      for State_Index in Data.LR_Parse_Table.States'Range loop
          Data.Table_Actions_Count := Data.Table_Actions_Count +
-           WisiToken.LR.Actions_Length (Data.LR_Parsers (Alg).States (State_Index)) + 1;
+           WisiToken.LR.Actions_Length (Data.LR_Parse_Table.States (State_Index)) + 1;
       end loop;
    end Count_Actions;
 

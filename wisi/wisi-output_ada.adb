@@ -34,17 +34,17 @@ procedure Wisi.Output_Ada
    Output_File_Name_Root :         in String;
    Generate_Data         : aliased in Wisi.Generate_Utils.Generate_Data;
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
-   Quad                  :         in Generate_Quad;
+   Tuple                 :         in Generate_Tuple;
    Test_Main             :         in Boolean;
-   Multiple_Quads        :         in Boolean)
+   Multiple_Tuples       :         in Boolean)
 is
    Common_Data : Output_Ada_Common.Common_Data := Wisi.Output_Ada_Common.Initialize
-     (Input_Data, Quad, Generate_Data.LR1_Descriptor.First_Nonterminal,
-      Generate_Data.LR1_Descriptor.Last_Nonterminal, Output_File_Name_Root,
+     (Input_Data, Tuple, Generate_Data.Descriptor.First_Nonterminal,
+      Generate_Data.Descriptor.Last_Nonterminal, Output_File_Name_Root,
       Check_Interface => False);
 
    Gen_Alg_Name : constant String :=
-     (if Test_Main or Multiple_Quads
+     (if Test_Main or Multiple_Tuples
       then "_" & Generate_Algorithm_Image (Common_Data.Generate_Algorithm).all
       else "");
 
@@ -80,7 +80,7 @@ is
       Create (Body_File, Out_File, File_Name);
       Set_Output (Body_File);
       Indent := 1;
-      Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
+      Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Body_Context));
       New_Line;
@@ -271,7 +271,7 @@ is
       Set_Output (Body_File);
       Indent := 1;
 
-      Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
+      Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
@@ -285,7 +285,10 @@ is
       end if;
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         null;
+         if Tuple.Text_Rep or Input_Data.Language_Params.Error_Recover then
+            Put_Line ("with WisiToken.Productions;");
+         end if;
+
       when Packrat_Gen =>
          Put_Line ("with WisiToken.Parse.Packrat.Generated;");
       when Packrat_Proc =>
@@ -310,7 +313,7 @@ is
 
       when Packrat_Gen =>
          Wisi.Generate_Packrat
-           (Packrat_Data, Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Generate_Data.LR1_Descriptor.all);
+           (Packrat_Data, Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Generate_Data.Descriptor.all);
 
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
 
@@ -332,9 +335,14 @@ is
       Generic_Package_Name : constant String :=
         (case Common_Data.Generate_Algorithm is
          when LR_Generate_Algorithm =>
-           (if Input_Data.Generate_Params.Error_Recover
-            then "Gen_LR_Parser_Run"
-            else "Gen_LR_Parser_No_Recover_Run"),
+           (if Input_Data.Language_Params.Error_Recover then
+              (if Common_Data.Text_Rep
+               then "Gen_LR_Text_Rep_Parser_Run"
+               else "Gen_LR_Parser_Run")
+            else
+               (if Common_Data.Text_Rep
+               then "Gen_LR_Text_Rep_Parser_No_Recover_Run"
+               else "Gen_LR_Parser_No_Recover_Run")),
 
          when Packrat_Generate_Algorithm => "Gen_Packrat_Parser_Run");
 
@@ -349,7 +357,7 @@ is
       Set_Output (File);
       Indent := 1;
 
-      Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
+      Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
       --  no Copyright_License; just a test file
       New_Line;
 
@@ -361,6 +369,11 @@ is
       Put_Line
         ("  (" &
            Actions_Package_Name & ".Descriptor, " &
+           (if Common_Data.Text_Rep
+            then """" & Output_File_Name_Root & "_" &
+               To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
+               "_parse_table.txt"", "
+            else "") &
            Main_Package_Name & ".Create_Parser);");
       Close (File);
       Set_Output (Standard_Output);
@@ -377,7 +390,7 @@ begin
            (Common_Data.Lexer).all & " lexer");
    end case;
 
-   case Quad.Interface_Kind is
+   case Tuple.Interface_Kind is
    when None  =>
       null;
 
@@ -397,14 +410,13 @@ begin
 
       Create_Ada_Actions_Spec
         (Output_File_Name_Root & "_actions.ads", Actions_Package_Name,
-         Generate_Data.LR1_Descriptor.all, Input_Data, Quad, Generate_Data, Common_Data.Ada_Action_Names,
-         Common_Data.Ada_Check_Names, Input_Data.Action_Count > 0, Input_Data.Check_Count > 0);
+         Generate_Data.Descriptor.all, Input_Data, Common_Data, Generate_Data);
 
       Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
 
       Create_Ada_Main_Spec
         (Output_File_Name_Root & To_Lower (Gen_Alg_Name) & "_main.ads", Main_Package_Name,
-         Input_Data, Quad, Common_Data);
+         Input_Data, Common_Data);
 
       if Test_Main then
          Create_Ada_Test_Main (Actions_Package_Name, Main_Package_Name);

@@ -50,17 +50,18 @@ package body WisiToken.Generate.Packrat.Test is
 
       Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
       Grammar_Parser.Parse;
+      Grammar_Parse_Data.User_Parser := Wisi.Packrat_Gen;
       Grammar_Parser.Execute_Actions;
 
       declare
          use AUnit.Checks;
 
          Generate_Data : constant Wisi.Generate_Utils.Generate_Data := Wisi.Generate_Utils.Initialize
-           (Grammar_File_Name, Grammar_Parse_Data.Tokens, -Grammar_Parse_Data.Generate_Params.Start_Token);
+           (Grammar_Parse_Data);
 
          Packrat_Data : constant WisiToken.Generate.Packrat.Data := WisiToken.Generate.Packrat.Initialize
            (Grammar_File_Name, Generate_Data.Grammar,
-            Generate_Data.Source_Line_Map, Generate_Data.LR1_Descriptor.First_Terminal);
+            Generate_Data.Source_Line_Map, Generate_Data.Descriptor.First_Terminal);
 
          --  From ada_lite.parse_table
          Name_ID               : constant Token_ID := 104;
@@ -82,15 +83,15 @@ package body WisiToken.Generate.Packrat.Test is
 
          if Trace_Action > Outline then
             Ada.Text_IO.Put_Line ("Direct_Left_Recursive:");
-            Ada.Text_IO.Put_Line (Image (Packrat_Data.Direct_Left_Recursive, Generate_Data.LR1_Descriptor.all));
+            Ada.Text_IO.Put_Line (Image (Packrat_Data.Direct_Left_Recursive, Generate_Data.Descriptor.all));
             Ada.Text_IO.New_Line (2);
 
             Ada.Text_IO.Put_Line ("First:");
-            Put (Generate_Data.LR1_Descriptor.all, Packrat_Data.First);
+            Put (Generate_Data.Descriptor.all, Packrat_Data.First);
             Ada.Text_IO.New_Line;
 
             Ada.Text_IO.Put_Line ("Involved:");
-            Put (Generate_Data.LR1_Descriptor.all, Packrat_Data.Involved);
+            Put (Generate_Data.Descriptor.all, Packrat_Data.Involved);
             Ada.Text_IO.New_Line;
          end if;
 

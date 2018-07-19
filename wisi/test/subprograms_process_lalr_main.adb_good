@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS ../../wisi/test/subprograms.wy
+--  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS ../wisi/test/subprograms.wy
 --
 
 --  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
@@ -20,6 +20,7 @@
 with Subprograms_Process_Actions; use Subprograms_Process_Actions;
 with WisiToken.Lexer.re2c;
 with subprograms_re2c_c;
+with WisiToken.Productions;
 package body Subprograms_Process_LALR_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
@@ -37,6 +38,82 @@ package body Subprograms_Process_LALR_Main is
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
       use WisiToken.LR;
+      McKenzie_Param : constant McKenzie_Param_Type :=
+        (First_Terminal    => 3,
+         Last_Terminal     => 19,
+         First_Nonterminal => 20,
+         Last_Nonterminal  => 31,
+         Insert =>
+           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4),
+         Delete =>
+           (4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8),
+         Push_Back =>
+           (2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
+         Task_Count  => 0,
+         Cost_Limit  => 10,
+         Check_Limit => 3,
+         Check_Delta_Limit => 200,
+         Enqueue_Limit => 10000);
+
+      function Productions return WisiToken.Productions.Prod_Arrays.Vector
+      is begin
+         return Prods : WisiToken.Productions.Prod_Arrays.Vector do
+            Prods.Set_First (20);
+            Prods.Set_Last (31);
+            Set_Production (Prods (20), 20, 0);
+            Set_RHS (Prods (20), 0, (22, 19), null, null);
+            Set_Production (Prods (21), 21, 1);
+            Set_RHS (Prods (21), 0, (3, 25, 5, 11, 26, 4), block_0'Access, null);
+            Set_RHS (Prods (21), 1, (3, 4), null, null);
+            Set_Production (Prods (22), 22, 0);
+            Set_RHS (Prods (22), 0, (1 => 23), null, null);
+            Set_Production (Prods (23), 23, 1);
+            Set_RHS (Prods (23), 0, (23, 24), null, null);
+            Set_RHS (Prods (23), 1, (1 => 24), null, null);
+            Set_Production (Prods (24), 24, 1);
+            Set_RHS (Prods (24), 0, (1 => 29), null, null);
+            Set_RHS (Prods (24), 1, (1 => 31), null, null);
+            Set_Production (Prods (25), 25, 0);
+            Set_RHS (Prods (25), 0, (6, 18, 8, 30, 9, 17), loop_statement_0'Access, null);
+            Set_Production (Prods (26), 26, 1);
+            Set_RHS (Prods (26), 0, (26, 16, 18), name_0'Access, name_0_check'Access);
+            Set_RHS (Prods (26), 1, (1 => 18), name_1'Access, name_1_check'Access);
+            Set_Production (Prods (27), 27, 1);
+            Set_RHS (Prods (27), 0, (27, 15, 26), null, null);
+            Set_RHS (Prods (27), 1, (1 => 26), null, null);
+            Set_Production (Prods (28), 28, 2);
+            Set_RHS (Prods (28), 0, (13, 18, 14), parameter_list_0'Access, null);
+            Set_RHS (Prods (28), 1, (13, 14), parameter_list_1'Access, null);
+            Set_RHS (Prods (28), 2, (1 .. 0 => <>), null, null);
+            Set_Production (Prods (29), 29, 1);
+            Set_RHS (Prods (29), 0, (7, 26, 28, 21, 17), subprogram_0'Access, null);
+            Set_RHS (Prods (29), 1, (10, 26, 28, 4, 26, 17), subprogram_1'Access, null);
+            Set_Production (Prods (30), 30, 0);
+            Set_RHS (Prods (30), 0, (1 => 26), subtype_0'Access, null);
+            Set_Production (Prods (31), 31, 0);
+            Set_RHS (Prods (31), 0, (12, 27, 17), use_clause_0'Access, null);
+         end return;
+      end Productions;
+
+      function Minimal_Terminal_Sequences return WisiToken.Token_Sequence_Arrays.Vector
+      is begin
+         return Result : WisiToken.Token_Sequence_Arrays.Vector do
+            Result.Set_First (20);
+            Result.Set_Last (31);
+            Set_Token_Sequence (Result (20), (12, 18, 17, 19));
+            Set_Token_Sequence (Result (21), (3, 4));
+            Set_Token_Sequence (Result (22), (12, 18, 17));
+            Set_Token_Sequence (Result (23), (12, 18, 17));
+            Set_Token_Sequence (Result (24), (12, 18, 17));
+            Set_Token_Sequence (Result (25), (6, 18, 8, 18, 9, 17));
+            Set_Token_Sequence (Result (26), (1 => 18));
+            Set_Token_Sequence (Result (27), (1 => 18));
+            Set_Token_Sequence (Result (28), (1 .. 0 => <>));
+            Set_Token_Sequence (Result (29), (10, 18, 4, 18, 17));
+            Set_Token_Sequence (Result (30), (1 => 18));
+            Set_Token_Sequence (Result (31), (12, 18, 17));
+         end return;
+      end Minimal_Terminal_Sequences;
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
          State_Last        => 44,
@@ -45,83 +122,9 @@ package body Subprograms_Process_LALR_Main is
          First_Nonterminal => Trace.Descriptor.First_Nonterminal,
          Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);
    begin
-      Table.McKenzie_Param :=
-        (First_Terminal    => 3,
-         Last_Terminal     => 19,
-         First_Nonterminal => 20,
-         Last_Nonterminal  => 31,
-         Insert =>
-           (4, 4, 4, 4, 4, 4, 4, 4,
-            4, 4, 4, 4, 4, 4, 4, 4,
-            4, 4, 4, 4, 4, 4, 4, 4,
-            4, 4, 4, 4, 4),
-         Delete =>
-           (4, 4, 4, 4, 4, 4, 4, 4,
-            4, 4, 4, 4, 4, 4, 4, 4,
-            4, 8, 8, 8, 8, 8, 8, 8,
-            8, 8, 8, 8, 8),
-         Push_Back =>
-           (2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2),
-         Task_Count  => 0,
-         Cost_Limit  => 10,
-         Check_Limit => 3,
-         Check_Delta_Limit => 200,
-         Enqueue_Limit => 10000);
-
-
-      Table.Productions.Set_First (20);
-      Table.Productions.Set_Last (31);
-      Set_Production (Table.Productions (20), 20, 0);
-      Set_RHS (Table.Productions (20), 0, (22, 19));
-      Set_Production (Table.Productions (21), 21, 1);
-      Set_RHS (Table.Productions (21), 0, (3, 25, 5, 11, 26, 4));
-      Set_RHS (Table.Productions (21), 1, (3, 4));
-      Set_Production (Table.Productions (22), 22, 0);
-      Set_RHS (Table.Productions (22), 0, (1 => 23));
-      Set_Production (Table.Productions (23), 23, 1);
-      Set_RHS (Table.Productions (23), 0, (23, 24));
-      Set_RHS (Table.Productions (23), 1, (1 => 24));
-      Set_Production (Table.Productions (24), 24, 1);
-      Set_RHS (Table.Productions (24), 0, (1 => 29));
-      Set_RHS (Table.Productions (24), 1, (1 => 31));
-      Set_Production (Table.Productions (25), 25, 0);
-      Set_RHS (Table.Productions (25), 0, (6, 18, 8, 30, 9, 17));
-      Set_Production (Table.Productions (26), 26, 1);
-      Set_RHS (Table.Productions (26), 0, (26, 16, 18));
-      Set_RHS (Table.Productions (26), 1, (1 => 18));
-      Set_Production (Table.Productions (27), 27, 1);
-      Set_RHS (Table.Productions (27), 0, (27, 15, 26));
-      Set_RHS (Table.Productions (27), 1, (1 => 26));
-      Set_Production (Table.Productions (28), 28, 2);
-      Set_RHS (Table.Productions (28), 0, (13, 18, 14));
-      Set_RHS (Table.Productions (28), 1, (13, 14));
-      Set_RHS (Table.Productions (28), 2, (1 .. 0 => <>));
-      Set_Production (Table.Productions (29), 29, 1);
-      Set_RHS (Table.Productions (29), 0, (7, 26, 28, 21, 17));
-      Set_RHS (Table.Productions (29), 1, (10, 26, 28, 4, 26, 17));
-      Set_Production (Table.Productions (30), 30, 0);
-      Set_RHS (Table.Productions (30), 0, (1 => 26));
-      Set_Production (Table.Productions (31), 31, 0);
-      Set_RHS (Table.Productions (31), 0, (12, 27, 17));
-
-      Table.Minimal_Terminal_Sequences.Set_First (20);
-      Table.Minimal_Terminal_Sequences.Set_Last (31);
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (20), (12, 18, 17, 19));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (21), (3, 4));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (22), (12, 18, 17));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (23), (12, 18, 17));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (24), (12, 18, 17));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (25), (6, 18, 8, 18, 9, 17));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (26), (1 => 18));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (27), (1 => 18));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (28), (1 .. 0 => <>));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (29), (10, 18, 4, 18, 17));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (30), (1 => 18));
-      Set_Token_Sequence (Table.Minimal_Terminal_Sequences (31), (12, 18, 17));
-
+      Table.McKenzie_Param := McKenzie_Param;
+      Table.Productions := Productions;
+      Table.Minimal_Terminal_Sequences := Minimal_Terminal_Sequences;
       declare
          procedure Subr_1
          is begin

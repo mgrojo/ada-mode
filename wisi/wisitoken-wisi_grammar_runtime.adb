@@ -245,7 +245,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
       --  Perserve Generate_Set
       --  Preserve Terminals
       Data.Raw_Code          := (others => <>);
-      Data.Generate_Params   := (others => <>);
+      Data.Language_Params   := (others => <>);
       Wisi.Free (Data.Generate_Set);
       Data.Tokens            := (others => <>);
       Data.Elisp_Names       := (others => <>);
@@ -280,7 +280,6 @@ package body WisiToken.Wisi_Grammar_Runtime is
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
       use all type Ada.Strings.Unbounded.Unbounded_String;
-      use all type Wisi.Lexer_Type;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
@@ -302,8 +301,8 @@ package body WisiToken.Wisi_Grammar_Runtime is
         is (Token_Enum_ID'(-Token (Index).ID));
 
    begin
-      --  Add declaration to User_Data.Generate_Params, Tokens, Conflicts,
-      --  or McKenzie_Recover.
+      --  Add declaration to User_Data.Generate_Set, Language_Params,
+      --  Tokens, Conflicts, or McKenzie_Recover.
 
       if Data.Ignore_Lines then
          return;
@@ -443,7 +442,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
                Kind : constant String := Data.Grammar_Lexer.Buffer_Text (Token (2).Byte_Region);
             begin
                if Kind = "case_insensitive" then
-                  Data.Generate_Params.Case_Insensitive := True;
+                  Data.Language_Params.Case_Insensitive := True;
 
                elsif Kind = "conflict" then
                   declare
@@ -479,40 +478,49 @@ package body WisiToken.Wisi_Grammar_Runtime is
                       Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                elsif Kind = "embedded_quote_escape_doubled" then
-                  Data.Generate_Params.Embedded_Quote_Escape_Doubled := True;
+                  Data.Language_Params.Embedded_Quote_Escape_Doubled := True;
 
                elsif Kind = "end_names_optional_option" then
-                  Data.Generate_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tokens (3));
+                  Data.Language_Params.End_Names_Optional_Option := +Get_Text (Data, Tree, Tokens (3));
 
 
                elsif Kind = "generate" then
                   declare
                      Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Tokens (3));
-                     Quad     : constant Wisi.Generate_Quad                  :=
-                       (Gen_Alg        => Wisi.Generate_Algorithm'Value (Get_Text (Data, Tree, Children (1))),
-                        Out_Lang       => Wisi.Output_Language'Value (Get_Text (Data, Tree, Children (2))),
-                        Lexer =>
-                          (if Children'Length >= 3
-                           then Wisi.To_Lexer (Get_Text (Data, Tree, Children (3)))
-                           else Wisi.None),
-                        Interface_Kind =>
-                          (if Children'Length >= 4
-                           then Wisi.Valid_Interface'Value (Get_Text (Data, Tree, Children (4)))
-                           else Wisi.None));
+                     Tuple     : Wisi.Generate_Tuple;
                   begin
-                     Wisi.Add (Data.Generate_Set, Quad);
+                     Tuple.Gen_Alg  := Wisi.Generate_Algorithm'Value (Get_Text (Data, Tree, Children (1)));
+                     Tuple.Out_Lang := Wisi.Output_Language'Value (Get_Text (Data, Tree, Children (2)));
+                     for I in 3 .. SAL.Base_Peek_Type (Children'Length) loop
+                        declare
+                           Text : constant String := Get_Text (Data, Tree, Children (I));
+                        begin
+                           if Text = "text_rep" then
+                              Tuple.Text_Rep := True;
+
+                           elsif (for some I of Wisi.Lexer_Image => Text = I.all) then
+                              Tuple.Lexer := Wisi.To_Lexer (Text);
+
+                           elsif (for some I in Wisi.Valid_Interface =>
+                                    Wisi.To_Lower (Text) = Wisi.To_Lower (Wisi.Valid_Interface'Image (I)))
+                           then
+                              Tuple.Interface_Kind := Wisi.Valid_Interface'Value (Text);
+                           end if;
+                        end;
+                     end loop;
+                     Wisi.Add (Data.Generate_Set, Tuple);
                   end;
 
                elsif Kind = "mckenzie_check_limit" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Check_Limit := Token_Index'Value (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_check_delta_limit" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_cost_default" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 1));
                   Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
@@ -523,39 +531,39 @@ package body WisiToken.Wisi_Grammar_Runtime is
                     (Get_Child_Text (Data, Tree, Tokens (3), 4));
 
                elsif Kind = "mckenzie_cost_delete" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Delete.Append
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                elsif Kind = "mckenzie_cost_insert" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Insert.Append
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                elsif Kind = "mckenzie_cost_limit" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Cost_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_cost_push_back" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Push_Back.Append
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                elsif Kind = "mckenzie_enqueue_limit" then
-                  Data.Generate_Params.Error_Recover := True;
+                  Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "no_language_runtime" then
-                  Data.Generate_Params.Language_Runtime := False;
+                  Data.Language_Params.Language_Runtime := False;
 
                elsif Kind = "no_enum" then
-                  Data.Generate_Params.Declare_Enums := False;
+                  Data.Language_Params.Declare_Enums := False;
 
                elsif Kind = "start" then
-                  Data.Generate_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));
+                  Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));
 
                elsif Kind = "re2c_regexp" then
                   Data.Tokens.Regexps.Append

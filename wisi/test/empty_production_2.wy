@@ -18,6 +18,10 @@
 ;;
 ;; The packrat parser succeeds on the same input.
 
+%generate LALR Ada 
+%generate Packrat_Gen Ada 
+%generate Packrat_Proc Ada
+
 %keyword BEGIN "begin"
 %keyword IS "is"
 

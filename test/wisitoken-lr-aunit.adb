@@ -20,6 +20,7 @@ pragma License (GPL); --  AUnit
 
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
+with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.LR.AUnit is
 
@@ -31,15 +32,23 @@ package body WisiToken.LR.AUnit is
       use Standard.AUnit.Checks.Containers;
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
+      use WisiToken.AUnit.Production_ID_Arrays_AUnit;
+      use WisiToken.Syntax_Trees.AUnit_Public;
+      use WisiToken.Semantic_Checks.AUnit;
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
       when Shift =>
-         --  Ignoring Productions; not set in unit tests
+         if Strict then
+            Check (Label & ".Productions", Computed.Productions, Expected.Productions);
+         end if;
          Check (Label & ".State", Computed.State, Expected.State);
       when Reduce | Accept_It =>
          Check (Label & ".Production", Computed.Production, Expected.Production);
-         --  Ignoring Action, Check
+         if Strict then
+            Check (Label & ".Action", Computed.Action, Expected.Action);
+            Check (Label & ".Check", Computed.Check, Expected.Check);
+         end if;
          Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);
       when Error =>
          null;
@@ -141,7 +150,12 @@ package body WisiToken.LR.AUnit is
      (Label    : in String;
       Computed : in Parse_State;
       Expected : in Parse_State)
-   is begin
+   is
+      use WisiToken.AUnit.Production_ID_Arrays_AUnit;
+   begin
+      if Strict then
+         Check (Label & ".Productions", Computed.Productions, Expected.Productions);
+      end if;
       Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
       Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
    end Check;
@@ -157,7 +171,7 @@ package body WisiToken.LR.AUnit is
       Check (Label & ".States'last", Computed.States'Last, Expected.States'Last);
       for I in Computed.States'Range loop
          Check
-           (Label & ".States." & State_Index'Image (I), Computed.States (I), Expected.States (I));
+           (Label & ".States." & Trimmed_Image (I), Computed.States (I), Expected.States (I));
       end loop;
       --  Ignoring Production.
       --  We do not check McKenzie, since that is not computed.

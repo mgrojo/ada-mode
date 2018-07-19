@@ -27,7 +27,9 @@
 
 pragma License (GPL);
 
+with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Text_IO;
 package body WisiToken.LR is
 
@@ -490,14 +492,18 @@ package body WisiToken.LR is
    procedure Set_RHS
      (Prod      : in out Productions.Instance;
       RHS_Index : in     Natural;
-      RHS       : in     Token_ID_Array)
+      Tokens    : in     Token_ID_Array;
+      Action    : in     WisiToken.Syntax_Trees.Semantic_Action   := null;
+      Check     : in     WisiToken.Semantic_Checks.Semantic_Check := null)
    is begin
-      if RHS'Length > 0 then
+      if Tokens'Length > 0 then
          Prod.RHSs (RHS_Index).Tokens.Set_First (1);
-         Prod.RHSs (RHS_Index).Tokens.Set_Last (RHS'Length);
-         for I in RHS'Range loop
-            Prod.RHSs (RHS_Index).Tokens (I) := RHS (I);
+         Prod.RHSs (RHS_Index).Tokens.Set_Last (Tokens'Length);
+         for I in Tokens'Range loop
+            Prod.RHSs (RHS_Index).Tokens (I) := Tokens (I);
          end loop;
+         Prod.RHSs (RHS_Index).Action := Action;
+         Prod.RHSs (RHS_Index).Check  := Check;
       end if;
    end Set_RHS;
 
@@ -754,6 +760,332 @@ package body WisiToken.LR is
          Goto_Ptr := Goto_Ptr.Next;
       end loop;
    end Put;
+
+   function Get_Action
+     (Prod        : in Production_ID;
+      Productions : in WisiToken.Productions.Prod_Arrays.Vector)
+     return WisiToken.Syntax_Trees.Semantic_Action
+   is begin
+      return Productions (Prod.Nonterm).RHSs (Prod.RHS).Action;
+   end Get_Action;
+
+   function Get_Check
+     (Prod        : in Production_ID;
+      Productions : in WisiToken.Productions.Prod_Arrays.Vector)
+     return WisiToken.Semantic_Checks.Semantic_Check
+   is begin
+      return Productions (Prod.Nonterm).RHSs (Prod.RHS).Check;
+   end Get_Check;
+
+   procedure Put_Text_Rep (Table : in Parse_Table; File_Name : in String)
+   is
+      use Ada.Text_IO;
+      File : File_Type;
+   begin
+      --  Only space, semicolon, newline delimit object values. Bounds of
+      --  arrays output before each array, unless known from discriminants.
+      --  End of lists indicated by semicolon. Action, Check subprograms are
+      --  represented by True if present, False if not; look up the actual
+      --  address Table.Productions.
+
+      Create (File, Out_File, File_Name);
+
+      --  First the discriminants
+      Put (File,
+           Trimmed_Image (Table.State_First) & State_Index'Image (Table.State_Last) &
+             Token_ID'Image (Table.First_Terminal) & Token_ID'Image (Table.Last_Terminal) &
+             Token_ID'Image (Table.First_Nonterminal) & Token_ID'Image (Table.Last_Nonterminal));
+      New_Line (File);
+
+      for State of Table.States loop
+         Put (File, Integer'Image (State.Productions.First_Index));
+         Put (File, Integer'Image (State.Productions.Last_Index));
+         for Prod of State.Productions loop
+            Put (File, Token_ID'Image (Prod.Nonterm) & Integer'Image (Prod.RHS));
+         end loop;
+         New_Line (File);
+
+         declare
+            Node_I : Action_Node_Ptr := State.Action_List;
+         begin
+            loop
+               exit when Node_I = null;
+               --  Action first, so we know if Symbol is present (not when Error)
+               declare
+                  use all type WisiToken.Semantic_Checks.Semantic_Check;
+                  use all type WisiToken.Syntax_Trees.Semantic_Action;
+                  Node_J     : Parse_Action_Node_Ptr := Node_I.Action;
+                  Put_Symbol : Boolean               := True;
+               begin
+                  loop
+                     Put (File, Parse_Action_Verbs'Image (Node_J.Item.Verb));
+
+                     case Node_J.Item.Verb is
+                     when Shift =>
+                        Put (File, Integer'Image (Node_J.Item.Productions.First_Index));
+                        Put (File, Integer'Image (Node_J.Item.Productions.Last_Index));
+                        for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
+                           Put (File, Token_ID'Image (Node_J.Item.Productions (I).Nonterm)
+                                  & Integer'Image (Node_J.Item.Productions (I).RHS));
+                        end loop;
+
+                        Put (File, State_Index'Image (Node_J.Item.State));
+
+                     when Reduce | Accept_It =>
+                        Put (File, Token_ID'Image (Node_J.Item.Production.Nonterm) &
+                               Integer'Image (Node_J.Item.Production.RHS));
+                        Put (File, (if Node_J.Item.Action = null then " false" else " true"));
+                        Put (File, (if Node_J.Item.Check = null then " false" else " true"));
+                        Put (File, Ada.Containers.Count_Type'Image (Node_J.Item.Token_Count));
+
+                     when Error =>
+                        --  Error action terminates the action list
+                        Put_Symbol := False;
+                     end case;
+
+                     Node_J := Node_J.Next;
+                     exit when Node_J = null;
+                     Put (File, ' ');
+                  end loop;
+                  Put (File, ';');
+                  if Put_Symbol then
+                     Put (File, Token_ID'Image (Node_I.Symbol));
+                  end if;
+               end;
+               New_Line (File);
+
+               Node_I := Node_I.Next;
+            end loop;
+         end;
+
+         declare
+            Node_I : Goto_Node_Ptr := State.Goto_List;
+         begin
+            loop
+               exit when Node_I = null;
+               Put (File, Token_ID'Image (Node_I.Symbol) & State_Index'Image (Node_I.State));
+               Node_I := Node_I.Next;
+            end loop;
+            Put (File, ';');
+            New_Line (File);
+         end;
+      end loop;
+      Close (File);
+   end Put_Text_Rep;
+
+   function Get_Text_Rep
+     (File_Name                  : in     String;
+      McKenzie_Param             : in     McKenzie_Param_Type;
+      Productions                : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Minimal_Terminal_Sequences : in     Token_Sequence_Arrays.Vector)
+     return Parse_Table_Ptr
+   is
+      use Ada.Text_IO;
+      use Ada.Strings.Unbounded;
+
+      File  : File_Type;
+      Line  : Unbounded_String;
+      First : Integer;
+      Last  : Integer := 0;
+
+      Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ;");
+
+      procedure Skip_Char
+      is begin
+         if Last > 0 then
+            Last := Last + 1;
+            if Last > Length (Line) then
+               Last := 0;
+            end if;
+         end if;
+         if Last = 0 then
+            Line := +Get_Line (File);
+            Last := -1 + Index_Non_Blank (Line);
+         end if;
+      end Skip_Char;
+
+      function Next_Value return String
+      is begin
+         First := Last + 1;
+         Last  := Index (Line, Delimiters, First);
+         return Result : constant String := Slice (Line, First, (if Last = 0 then Length (Line) else Last - 1))
+         do
+            if Last = 0 then
+               Line := +Get_Line (File);
+               Last := -1 + Index_Non_Blank (Line);
+            end if;
+         end return;
+      end Next_Value;
+
+      generic
+         type Value_Type is (<>);
+         Name : in String;
+      function Gen_Next_Value return Value_Type;
+
+      function Gen_Next_Value return Value_Type
+      is
+         Val : constant String := Next_Value;
+      begin
+         return Value_Type'Value (Val);
+      exception
+      when Constraint_Error =>
+         raise Programmer_Error with Error_Message
+           (File_Name, Line_Number_Type (Ada.Text_IO.Line (File) - 1), Ada.Text_IO.Count (First),
+            "expecting " & Name & ", found '" & Val & "'");
+      end Gen_Next_Value;
+
+      function Next_State_Index is new Gen_Next_Value (State_Index, "State_Index");
+      function Next_Token_ID is new Gen_Next_Value (Token_ID, "Token_ID");
+      function Next_Integer is new Gen_Next_Value (Integer, "Integer");
+      function Next_Parse_Action_Verbs is new Gen_Next_Value (Parse_Action_Verbs, "Parse_Action_Verbs");
+      function Next_Boolean is new Gen_Next_Value (Boolean, "Boolean");
+      function Next_Count_Type is new Gen_Next_Value (Ada.Containers.Count_Type, "Count_Type");
+   begin
+      Open (File, In_File, File_Name);
+      Line := +Get_Line (File);
+
+      declare
+         --  We don't read the discriminants in the aggregate, because
+         --  aggregate evaluation order is not guaranteed.
+         State_First       : constant State_Index := Next_State_Index;
+         State_Last        : constant State_Index := Next_State_Index;
+         First_Terminal    : constant Token_ID    := Next_Token_ID;
+         Last_Terminal     : constant Token_ID    := Next_Token_ID;
+         First_Nonterminal : constant Token_ID    := Next_Token_ID;
+         Last_Nonterminal  : constant Token_ID    := Next_Token_ID;
+
+         Table : constant Parse_Table_Ptr := new Parse_Table
+           (State_First, State_Last, First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
+      begin
+         Table.McKenzie_Param             := McKenzie_Param;
+         Table.Productions                := Productions;
+         Table.Minimal_Terminal_Sequences := Minimal_Terminal_Sequences;
+
+         for State of Table.States loop
+            State.Productions.Set_First (Next_Integer);
+            State.Productions.Set_Last (Next_Integer);
+            for I in State.Productions.First_Index .. State.Productions.Last_Index loop
+               State.Productions (I).Nonterm := Next_Token_ID;
+               State.Productions (I).RHS     := Next_Integer;
+            end loop;
+
+            declare
+               Node_I       : Action_Node_Ptr := new Action_Node;
+               Actions_Done : Boolean         := False;
+            begin
+               State.Action_List := Node_I;
+               loop
+                  declare
+                     Node_J      : Parse_Action_Node_Ptr := new Parse_Action_Node;
+                     Action_Done : Boolean := False;
+                     Verb        : Parse_Action_Verbs;
+                  begin
+                     Node_I.Action := Node_J;
+                     loop
+                        Verb := Next_Parse_Action_Verbs;
+                        Node_J.Item :=
+                          (case Verb is
+                           when Shift     => (Verb => Shift, others => <>),
+                           when Reduce    => (Verb => Reduce, others => <>),
+                           when Accept_It => (Verb => Accept_It, others => <>),
+                           when Error     => (Verb => Error));
+
+                        case Verb is
+                        when Shift =>
+                           Node_J.Item.Productions.Set_First (Next_Integer);
+                           Node_J.Item.Productions.Set_Last (Next_Integer);
+                           for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
+                              Node_J.Item.Productions (I).Nonterm := Next_Token_ID;
+                              Node_J.Item.Productions (I).RHS     := Next_Integer;
+                           end loop;
+
+                           Node_J.Item.State := Next_State_Index;
+
+                        when Reduce | Accept_It =>
+                           Node_J.Item.Production.Nonterm := Next_Token_ID;
+                           Node_J.Item.Production.RHS     := Next_Integer;
+                           if Next_Boolean then
+                              Node_J.Item.Action := Get_Action (Node_J.Item.Production, Productions);
+                           else
+                              Node_J.Item.Action := null;
+                           end if;
+                           if Next_Boolean then
+                              Node_J.Item.Check := Get_Check (Node_J.Item.Production, Productions);
+                           else
+                              Node_J.Item.Check := null;
+                           end if;
+                           Node_J.Item.Token_Count := Next_Count_Type;
+
+                        when Error =>
+                           Actions_Done := True;
+                        end case;
+
+                        if Element (Line, Last) = ';' then
+                           Skip_Char;
+                           Action_Done := True;
+
+                           if not Actions_Done then
+                              Node_I.Symbol := Next_Token_ID;
+                           end if;
+                        end if;
+
+                        exit when Action_Done;
+
+                        Node_J.Next := new Parse_Action_Node;
+                        Node_J      := Node_J.Next;
+                     end loop;
+                  end;
+
+                  exit when Actions_Done;
+                  Node_I.Next := new Action_Node;
+                  Node_I      := Node_I.Next;
+               end loop;
+            end;
+
+            if Element (Line, 1) = ';' then
+               Skip_Char;
+            else
+               declare
+                  Node_I : Goto_Node_Ptr := new Goto_Node;
+               begin
+                  State.Goto_List  := Node_I;
+                  loop
+                     Node_I.Symbol := Next_Token_ID;
+                     Node_I.State  := Next_State_Index;
+                     exit when Element (Line, Last) = ';';
+                     Node_I.Next   := new Goto_Node;
+                     Node_I        := Node_I.Next;
+                  end loop;
+                  Skip_Char;
+               end;
+            end if;
+
+            --  loop exits on End_Error from Skip_Char after Goto_List getting next line
+         end loop;
+         --  real return value in End_Error handler; this satisfies the compiler
+         return null;
+      exception
+      when End_Error =>
+         Close (File);
+         return Table;
+      end;
+   exception
+   when Name_Error =>
+      raise User_Error with "parser table text file '" & File_Name & "' not found.";
+
+   when Programmer_Error =>
+      if Is_Open (File) then
+         Close (File);
+      end if;
+      raise;
+   when E : others =>
+      if Is_Open (File) then
+         Close (File);
+      end if;
+      raise Programmer_Error with Error_Message
+        (File_Name, Line_Number_Type (Ada.Text_IO.Line (File) - 1), Ada.Text_IO.Count (First),
+         Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+   end Get_Text_Rep;
 
    function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is begin

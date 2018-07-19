@@ -18,6 +18,10 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+;; Declare all variants tested by wisi_wy_test.adb
+%generate LALR Ada
+;; FIXME: conflict_name has indirect left recursion; add Packrat_Gen, Packrat_Proc
+
 %keyword LEFT_PAREN "("
 %keyword RIGHT_PAREN ")"
 

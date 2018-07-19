@@ -25,11 +25,12 @@ package Wisi.Output_Ada_Common is
    function To_Token_Ada_Name (WY_Name : in String) return String;
 
    type Common_Data is limited record
-      --  Validated versions of .wy values
+      --  Validated versions of Tuple values
       Generate_Algorithm : Wisi.Valid_Generate_Algorithm;
       Lexer              : Valid_Lexer;
       Output_Language    : Ada_Output_Language;
       Interface_Kind     : Valid_Interface;
+      Text_Rep           : Boolean;
 
       --  Various names
       Lower_File_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -42,7 +43,7 @@ package Wisi.Output_Ada_Common is
 
    function Initialize
      (Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad              : in Generate_Quad;
+      Tuple             : in Generate_Tuple;
       First_Nonterminal : in WisiToken.Token_ID;
       Last_Nonterminal  : in WisiToken.Token_ID;
       Output_File_Root  : in String;
@@ -56,24 +57,22 @@ package Wisi.Output_Ada_Common is
       Package_Name     :         in              String;
       Descriptor       :         in              WisiToken.Descriptor;
       Input_Data       :         in              WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad             :         in              Generate_Quad;
-      Generate_Data    : aliased in              Wisi.Generate_Utils.Generate_Data;
-      Ada_Action_Names :         not null access constant Names_Array_Array;
-      Ada_Check_Names  :         not null access constant Names_Array_Array;
-      Actions_Present  :         in              Boolean;
-      Checks_Present   :         in              Boolean);
+      Common_Data      :         in              Output_Ada_Common.Common_Data;
+      Generate_Data    : aliased in              Wisi.Generate_Utils.Generate_Data);
 
    procedure Create_Ada_Main_Spec
      (Output_File_Name  : in String;
       Main_Package_Name : in String;
       Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad              : in Generate_Quad;
       Common_Data       : in Output_Ada_Common.Common_Data);
 
    procedure LR_Create_Create_Parser
      (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Common_Data   :         in out Output_Ada_Common.Common_Data;
       Generate_Data : aliased in     Wisi.Generate_Utils.Generate_Data);
+   --  If not Tuple.Text_Rep, includes LR parse table in generated
+   --  source. Otherwise, includes call to LR.Get_Text_Rep; caller must
+   --  call Put_Text_Rep to create file.
 
    procedure Packrat_Create_Create_Parser
      (Common_Data   :         in out Output_Ada_Common.Common_Data;
@@ -82,9 +81,11 @@ package Wisi.Output_Ada_Common is
 
    procedure Create_re2c
      (Input_Data            :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad                  :         in Generate_Quad;
+      Tuple                 :         in Generate_Tuple;
       Generate_Data         : aliased in Wisi.Generate_Utils.Generate_Data;
       Output_File_Name_Root :         in String;
       Elisp_Regexps         :         in Wisi.String_Pair_Lists.List);
+   --  Create_re2c is called from wisi-generate, which does not declare
+   --  Common_Data.
 
 end Wisi.Output_Ada_Common;

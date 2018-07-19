@@ -17,6 +17,10 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%generate Packrat_Gen Ada re2c
+%generate LALR Ada
+%generate Packrat_Proc Ada
+
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"
 
@@ -29,7 +33,6 @@
 %no_language_runtime
 
 %start upper_s
-%generate Packrat_Gen Ada re2c
 
 ;; wisi-generate adds accept production
 

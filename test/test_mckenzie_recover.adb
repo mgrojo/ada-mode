@@ -23,7 +23,7 @@ with AUnit.Checks;
 with Ada.Containers;
 with Ada.Text_IO;
 with Ada_Lite_Actions;
-with Ada_Lite_Main;
+with Ada_Lite_LALR_Main;
 with WisiToken.AUnit;
 with WisiToken.LR.AUnit;
 with WisiToken.LR.McKenzie_Recover.Ada_Lite;
@@ -32,7 +32,7 @@ with WisiToken.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
-   use Ada_Lite_Main; use Ada_Lite_Actions;
+   use Ada_Lite_LALR_Main; use Ada_Lite_Actions;
    use WisiToken.LR.Config_Op_Arrays;
    use all type WisiToken.LR.Config_Op_Label;
    use all type WisiToken.Semantic_Checks.Check_Status_Label;
@@ -970,7 +970,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 11,
          Enqueue_High            => 57,
          Check_Low               => 2,
-         Check_High              => 14,
+         Check_High              => 15,
          Cost                    => 0,
          Code                    => Missing_Name_Error);
    end Missing_Name_2;
@@ -1354,7 +1354,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 4,
          Enqueue_High            => 10,
          Check_Low               => 3,
-         Check_High              => 4,
+         Check_High              => 5,
          Cost                    => 0);
    end Match_Selected_Component_1;
 
@@ -1409,7 +1409,7 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
-         Enqueue_Low             => 115,
+         Enqueue_Low             => 111,
          Enqueue_High            => 312,
          Check_Low               => 20,
          Check_High              => 48,

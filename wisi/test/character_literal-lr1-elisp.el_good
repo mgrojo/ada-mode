@@ -1,5 +1,5 @@
 ;;; character_literal-lr1-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisi-generate.exe  --generate LR1 ELISP elisp ../../wisi/test/character_literal.wy
+;;  command line: wisi-generate.exe  --generate LR1 ELISP ../wisi/test/character_literal.wy
 
 ;;  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 ;;

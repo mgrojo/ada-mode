@@ -17,6 +17,11 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%generate LALR Ada 
+%generate Packrat_Gen Ada 
+%generate Packrat_Proc Ada 
+%generate LALR Elisp
+
 %keyword IN "in"
 %keyword LEFT_PAREN "("
 %keyword RANGE "range"

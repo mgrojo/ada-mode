@@ -207,6 +207,7 @@ package body Dragon_4_45_LALR_Test is
 
    begin
       --  figure 4.41 pg 239
+      WisiToken.LR.AUnit.Strict := False;
 
       Add_Action (Expected.States (S0), +Lower_C_ID, S36);
       Add_Action (Expected.States (S0), +Lower_D_ID, S47);
@@ -293,5 +294,12 @@ package body Dragon_4_45_LALR_Test is
       Register_Routine (T, Parser_Table'Access, "Parser_Table");
       Register_Routine (T, Test_Parse'Access, "Test_Parse");
    end Register_Tests;
+
+   overriding procedure Tear_Down_Case (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      WisiToken.LR.AUnit.Strict := True;
+   end Tear_Down_Case;
 
 end Dragon_4_45_LALR_Test;

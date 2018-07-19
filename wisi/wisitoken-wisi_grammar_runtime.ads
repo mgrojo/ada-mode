@@ -21,16 +21,17 @@ with Wisi;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken.Wisi_Grammar_Runtime is
+   --  FIXME: should not be "wisitoken.*"
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       Grammar_Lexer : WisiToken.Lexer.Handle; -- used to read the .wy file now.
 
-      User_Lexer : Wisi.Lexer_Type;
+      User_Lexer : Wisi.Lexer_Type := Wisi.None;
       --  Used to read the user language file, after parser is generated;
       --  used now in '%if lexer' statements.
 
-      User_Parser : Wisi.Generate_Algorithm;
+      User_Parser : Wisi.Generate_Algorithm := Wisi.None;
       --  Used to generate the current parser; used in '%if parser'
       --  statements.
 
@@ -39,7 +40,7 @@ package WisiToken.Wisi_Grammar_Runtime is
 
       Terminals        : Base_Token_Array_Access;
       Raw_Code         : Wisi.Raw_Code;
-      Generate_Params  : Wisi.Generate_Param_Type;
+      Language_Params  : Wisi.Language_Param_Type;
       Tokens           : aliased Wisi.Tokens;
       Elisp_Names      : Wisi.Elisp_Names;
       Conflicts        : Wisi.Conflict_Lists.List;

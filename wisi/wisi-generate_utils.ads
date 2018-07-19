@@ -33,18 +33,16 @@ package Wisi.Generate_Utils is
 
    WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
-   type LR_Parser_Array is array (Generate_Algorithm range LALR .. LR1) of WisiToken.LR.Parse_Table_Ptr;
-
    type Generate_Data is limited record
+      --  FIXME: move token iterator to wisi, lr stuff to wisitoken-generate-lr?
       Tokens          : access constant Wisi.Tokens;
-      LR1_Descriptor  : access WisiToken.Descriptor;
-      LALR_Descriptor : access WisiToken.Descriptor;
+      Descriptor      : access WisiToken.Descriptor;
       Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
       Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
       Conflicts       : WisiToken.LR.Generate_Utils.Conflict_Lists.List;
 
-      LR_Parsers : LR_Parser_Array;
+      LR_Parse_Table : WisiToken.LR.Parse_Table_Ptr;
 
       --  LR parse table stats
       Table_Actions_Count          : Integer                       := -1; -- parse, not user, actions
@@ -52,14 +50,9 @@ package Wisi.Generate_Utils is
       Accept_Reduce_Conflict_Count : Integer                       := 0;
       Shift_Reduce_Conflict_Count  : Integer                       := 0;
       Reduce_Reduce_Conflict_Count : Integer                       := 0;
-
    end record;
 
-   function Initialize
-     (Source_File_Name :         in String;
-      Tokens           : aliased in Wisi.Tokens;
-      Start_Token      :         in String)
-     return Generate_Data;
+   function Initialize (Input_Data : aliased in WisiToken.Wisi_Grammar_Runtime.User_Data_Type) return Generate_Data;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
 
@@ -69,8 +62,7 @@ package Wisi.Generate_Utils is
      Default_Iterator  => Iterate,
      Iterator_Element  => Standard.Ada.Strings.Unbounded.Unbounded_String;
    --  We need a container type to define an iterator; the actual data is
-   --  in generic parameters Keywords, Non_Grammar, Tokens, and Rules. The
-   --  Iterator_Element is given by Token_Name below.
+   --  in Data.Tokens. The Iterator_Element is given by Token_Name below.
 
    function All_Tokens (Data : aliased in Generate_Data) return Token_Container;
 
@@ -150,9 +142,7 @@ package Wisi.Generate_Utils is
       Item :         in McKenzie_Recover_Param_Type)
      return WisiToken.LR.McKenzie_Param_Type;
 
-   procedure Count_Actions
-     (Data : in out Generate_Utils.Generate_Data;
-      Alg  : in     LR_Generate_Algorithm);
+   procedure Count_Actions (Data : in out Generate_Utils.Generate_Data);
 
    procedure Put_Stats
      (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;

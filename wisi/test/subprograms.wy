@@ -18,6 +18,10 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%generate LALR         Ada_Emacs re2c Process
+%generate Packrat_Gen  Ada_Emacs re2c Process
+%generate Packrat_Proc Ada_Emacs re2c Process
+
 %keyword BEGIN "begin"
 %keyword END "end"
 %keyword EXCEPTION "exception"
@@ -43,7 +47,6 @@
 %non_grammar <comment> COMMENT %[ "--"[^\n]* ]%
 
 %start compilation_unit
-%generate LALR Ada_Emacs Elisp Process
 
 %mckenzie_cost_limit 10
 %mckenzie_check_limit 3

@@ -30,16 +30,12 @@ package body Wisi.Output_Ada_Common is
    --  Public subprograms in alphabetical order
 
    procedure Create_Ada_Actions_Spec
-     (Output_File_Name :         in              String;
-      Package_Name     :         in              String;
-      Descriptor       :         in              WisiToken.Descriptor;
-      Input_Data       :         in              WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad             :         in              Generate_Quad;
-      Generate_Data    : aliased in              Wisi.Generate_Utils.Generate_Data;
-      Ada_Action_Names :         not null access constant Names_Array_Array;
-      Ada_Check_Names  :         not null access constant Names_Array_Array;
-      Actions_Present  :         in              Boolean;
-      Checks_Present   :         in              Boolean)
+     (Output_File_Name :         in String;
+      Package_Name     :         in String;
+      Descriptor       :         in WisiToken.Descriptor;
+      Input_Data       :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Common_Data      :         in Output_Ada_Common.Common_Data;
+      Generate_Data    : aliased in Wisi.Generate_Utils.Generate_Data)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -52,17 +48,20 @@ package body Wisi.Output_Ada_Common is
       Set_Output (Spec_File);
       Indent := 1;
 
-      Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
+      Put_File_Header
+        (Ada_Comment, Use_Tuple => True, Tuple =>
+           (Common_Data.Generate_Algorithm, Common_Data.Output_Language, Common_Data.Lexer, Common_Data.Interface_Kind,
+            Common_Data.Text_Rep));
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      if not (Actions_Present or Checks_Present) then
+      if not (Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0) then
          Put_Line ("with WisiToken;");
       end if;
-      if Actions_Present then
+      if Input_Data.Action_Count > 0 then
          Put_Line ("with WisiToken.Syntax_Trees;");
       end if;
-      if Checks_Present then
+      if Input_Data.Check_Count > 0 then
          Put_Line ("with WisiToken.Lexer;");
          Put_Line ("with WisiToken.Semantic_Checks;");
       end if;
@@ -81,7 +80,7 @@ package body Wisi.Output_Ada_Common is
       Indent_Line ("Last_Nonterminal              =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
       Indent_Line ("EOF_ID                        =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
       Indent_Line ("Accept_ID                     =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
-      Indent_Line ("Case_Insensitive              => " & Image (Input_Data.Generate_Params.Case_Insensitive) & ",");
+      Indent_Line ("Case_Insensitive              => " & Image (Input_Data.Language_Params.Case_Insensitive) & ",");
       Indent_Line ("New_Line_ID                   =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
       Indent_Line ("Comment_ID                    =>" & WisiToken.Token_ID'Image (Descriptor.Comment_ID) & ",");
       Indent_Line ("Left_Paren_ID                 =>" & WisiToken.Token_ID'Image (Descriptor.Left_Paren_ID) & ",");
@@ -89,7 +88,7 @@ package body Wisi.Output_Ada_Common is
       Indent_Line ("String_1_ID                   =>" & WisiToken.Token_ID'Image (Descriptor.String_1_ID) & ",");
       Indent_Line ("String_2_ID                   =>" & WisiToken.Token_ID'Image (Descriptor.String_2_ID) & ",");
       Indent_Line ("Embedded_Quote_Escape_Doubled => " & Image
-                     (Input_Data.Generate_Params.Embedded_Quote_Escape_Doubled) & ",");
+                     (Input_Data.Language_Params.Embedded_Quote_Escape_Doubled) & ",");
       Indent_Line ("Image                         =>");
       Indent_Start ("  (");
       Indent := Indent + 3;
@@ -116,7 +115,7 @@ package body Wisi.Output_Ada_Common is
       Indent := Indent - 3;
       New_Line;
 
-      if Input_Data.Generate_Params.Declare_Enums then
+      if Input_Data.Language_Params.Declare_Enums then
          Paren_Done := False;
 
          Cursor := First (Generate_Data, Non_Grammar => True, Nonterminals => True);
@@ -153,7 +152,7 @@ package body Wisi.Output_Ada_Common is
 
       end if;
 
-      for Name_List of Ada_Action_Names.all loop
+      for Name_List of Common_Data.Ada_Action_Names.all loop
          if Name_List /= null then
             for Name of Name_List.all loop
                if Name /= null then
@@ -167,7 +166,7 @@ package body Wisi.Output_Ada_Common is
          end if;
       end loop;
 
-      for Name_List of Ada_Check_Names.all loop
+      for Name_List of Common_Data.Ada_Check_Names.all loop
          if Name_List /= null then
             for Name of Name_List.all loop
                if Name /= null then
@@ -193,7 +192,6 @@ package body Wisi.Output_Ada_Common is
      (Output_File_Name  : in String;
       Main_Package_Name : in String;
       Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad              : in Generate_Quad;
       Common_Data       : in Output_Ada_Common.Common_Data)
    is
       use Wisi.Utils;
@@ -205,7 +203,7 @@ package body Wisi.Output_Ada_Common is
       procedure LR_Process
       is begin
          Indent_Line ("procedure Create_Parser");
-         if Input_Data.Generate_Params.Error_Recover then
+         if Input_Data.Language_Params.Error_Recover then
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
             Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;");
             Indent_Line
@@ -216,7 +214,14 @@ package body Wisi.Output_Ada_Common is
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
          end if;
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);");
+         Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");
+
+         if Common_Data.Text_Rep then
+            Put_Line (";");
+            Indent_Line ("   Text_Rep_File_Name : in String);");
+         else
+            Put_Line (");");
+         end if;
          New_Line;
       end LR_Process;
 
@@ -234,7 +239,10 @@ package body Wisi.Output_Ada_Common is
       Set_Output (Spec_File);
       Indent := 1;
 
-      Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
+      Put_File_Header
+        (Ada_Comment, Use_Tuple => True, Tuple =>
+           (Common_Data.Generate_Algorithm, Common_Data.Output_Language, Common_Data.Lexer, Common_Data.Interface_Kind,
+            Common_Data.Text_Rep));
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
@@ -257,7 +265,7 @@ package body Wisi.Output_Ada_Common is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         if Input_Data.Generate_Params.Error_Recover then
+         if Input_Data.Language_Params.Error_Recover then
             Put_Line ("with WisiToken.LR.Parser;");
          else
             Put_Line ("with WisiToken.LR.Parser_No_Recover;");
@@ -307,9 +315,8 @@ package body Wisi.Output_Ada_Common is
 
    end Create_Ada_Main_Spec;
 
-   procedure Create_LR_Parser_Core
-     (Input_Data    : in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Generate_Data : in     Wisi.Generate_Utils.Generate_Data;
+   procedure Create_LR_Parser_Core_1
+     (Generate_Data : in     Wisi.Generate_Utils.Generate_Data;
       Common_Data   : in out Output_Ada_Common.Common_Data;
       Table         : in     WisiToken.LR.Parse_Table_Ptr)
    is
@@ -317,12 +324,164 @@ package body Wisi.Output_Ada_Common is
       use Wisi.Utils;
       use WisiToken;
       use all type Standard.Ada.Containers.Count_Type;
-      use all type WisiToken.LR.McKenzie_Param_Type;
 
       subtype Nonterminal_ID is Token_ID range
         Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index;
 
-      Items_Per_Line   : constant := 8;
+      Line : Unbounded_String;
+
+      procedure Append (Item : in String)
+      is begin
+         Line := Line & Item;
+      end Append;
+
+      procedure Put (Label : in String; Item : in Token_ID_Array_Natural)
+      is begin
+         Indent_Line (Label & " =>");
+         Indent_Start ("  (");
+         Indent := Indent + 3;
+         Line := +"";
+         for I in Item'Range loop
+            Append (Trimmed_Image (Item (I)));
+
+            if I = Item'Last then
+               Append ("),");
+
+            else
+               Append (", ");
+            end if;
+         end loop;
+         Indent_Wrap (-Line);
+         Indent := Indent - 3;
+      end Put;
+
+   begin
+      Indent_Line ("McKenzie_Param : constant McKenzie_Param_Type :=");
+      Indent_Line ("  (First_Terminal    =>" & Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
+      Indent := Indent + 3;
+      Indent_Line ("Last_Terminal     =>" & Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
+      Indent_Line ("First_Nonterminal =>" & Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
+      Indent_Line ("Last_Nonterminal  =>" & Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
+      Put ("Insert", Table.McKenzie_Param.Insert);
+      Put ("Delete", Table.McKenzie_Param.Delete);
+      Put ("Push_Back", Table.McKenzie_Param.Push_Back);
+      Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
+                     (Table.McKenzie_Param.Task_Count) & ",");
+      Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");
+      Indent_Line ("Check_Limit =>" & Token_Index'Image (Table.McKenzie_Param.Check_Limit) & ",");
+      Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ",");
+      Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie_Param.Enqueue_Limit) & ");");
+      Indent := Indent - 3;
+      New_Line;
+
+      Indent_Line ("function Productions return WisiToken.Productions.Prod_Arrays.Vector");
+      Indent_Line ("is begin");
+      Indent := Indent + 3;
+      Indent_Line ("return Prods : WisiToken.Productions.Prod_Arrays.Vector do");
+      Indent := Indent + 3;
+      Indent_Line
+        ("Prods.Set_First (" & Trimmed_Image (Generate_Data.Grammar.First_Index) & ");");
+      Indent_Line
+        ("Prods.Set_Last (" & Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
+
+      for I in Nonterminal_ID loop
+         declare
+            P : Productions.Instance renames Generate_Data.Grammar (I);
+         begin
+            Indent_Line
+              ("Set_Production (Prods (" & Trimmed_Image (P.LHS) & "), " &
+                 Trimmed_Image (P.LHS) & "," & Integer'Image (P.RHSs.Last_Index) & ");");
+
+            for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
+               Line := +"Set_RHS (Prods (" & Trimmed_Image (P.LHS) & ")," & Natural'Image (J) & ", (";
+               declare
+                  RHS : Productions.Right_Hand_Side renames P.RHSs (J);
+               begin
+                  if RHS.Tokens.Length = 0 then
+                     Append ("1 .. 0 => <>");
+                  elsif RHS.Tokens.Length = 1 then
+                     Append ("1 => " & Trimmed_Image (RHS.Tokens (1)));
+                  else
+                     for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
+                        Append (Trimmed_Image (RHS.Tokens (I)));
+                        if I < RHS.Tokens.Last_Index then
+                           Append (", ");
+                        end if;
+                     end loop;
+                  end if;
+
+                  Append ("), ");
+                  Append
+                    ((if Common_Data.Ada_Action_Names (P.LHS) = null then "null"
+                      elsif Common_Data.Ada_Action_Names (P.LHS)(J) = null then "null"
+                      else Common_Data.Ada_Action_Names (P.LHS)(J).all & "'Access"));
+                  Append (", ");
+                  Append
+                    ((if Common_Data.Ada_Check_Names (P.LHS) = null then "null"
+                      elsif Common_Data.Ada_Check_Names (P.LHS)(J) = null then "null"
+                      else Common_Data.Ada_Check_Names (P.LHS)(J).all & "'Access"));
+               end;
+               Append (");");
+               Indent_Wrap (-Line);
+            end loop;
+         end;
+      end loop;
+      Indent := Indent - 3;
+      Indent_Line ("end return;");
+      Indent := Indent - 3;
+      Indent_Line ("end Productions;");
+      New_Line;
+
+      Indent_Line ("function Minimal_Terminal_Sequences return WisiToken.Token_Sequence_Arrays.Vector");
+      Indent_Line ("is begin");
+      Indent := Indent + 3;
+      Indent_Line ("return Result : WisiToken.Token_Sequence_Arrays.Vector do");
+      Indent := Indent + 3;
+      Indent_Line
+        ("Result.Set_First (" & Trimmed_Image
+           (Table.Minimal_Terminal_Sequences.First_Index) & ");");
+
+      Indent_Line
+        ("Result.Set_Last (" & Trimmed_Image
+           (Table.Minimal_Terminal_Sequences.Last_Index) & ");");
+
+      for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
+         Line := +"Set_Token_Sequence (Result (" & Trimmed_Image (I) & "), (";
+
+         declare
+            S : Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
+         begin
+            if S.Length = 0 then
+               Append ("1 .. 0 => <>");
+            elsif S.Length = 1 then
+               Append ("1 =>" & Token_ID'Image (S (S.First_Index)));
+            else
+               for J in S.First_Index .. S.Last_Index loop
+                  Append (Trimmed_Image (S (J)));
+                  if J /= S.Last_Index then
+                     Append (", ");
+                  end if;
+               end loop;
+            end if;
+         end;
+         Append ("));");
+         Indent_Wrap (-Line);
+      end loop;
+      Indent := Indent - 3;
+      Indent_Line ("end return;");
+      Indent := Indent - 3;
+      Indent_Line ("end Minimal_Terminal_Sequences;");
+   end Create_LR_Parser_Core_1;
+
+   procedure Create_LR_Parser_Table
+     (Input_Data    : in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Common_Data   : in out Output_Ada_Common.Common_Data;
+      Table         : in     WisiToken.LR.Parse_Table_Ptr)
+   is
+      use Standard.Ada.Strings.Unbounded;
+      use Wisi.Utils;
+      use WisiToken;
+
       Lines_Per_Subr   : constant := 1000;
       Subr_Count       : Integer  := 1;
       Last_Subr_Closed : Boolean := False;
@@ -332,130 +491,7 @@ package body Wisi.Output_Ada_Common is
       is begin
          Line := Line & Item;
       end Append;
-
-      procedure Put (Label : in String; Item : in Token_ID_Array_Natural)
-      is
-         Count : Integer := 0;
-      begin
-         Indent_Line (Label & " =>");
-         Indent_Start ("  (");
-         Indent := Indent + 3;
-         Count := 0;
-         for I in Item'Range loop
-            Count := Count + 1;
-            Put (Trimmed_Image (Item (I)));
-
-            if I = Item'Last then
-               Put_Line ("),");
-
-            elsif Count = Items_Per_Line then
-               Count := 0;
-               Put_Line (",");
-               Indent_Start ("");
-
-            else
-               Put (", ");
-            end if;
-         end loop;
-         Indent := Indent - 3;
-      end Put;
-
    begin
-      if Table.McKenzie_Param /= LR.Default_McKenzie_Param then
-         Indent_Line ("Table.McKenzie_Param :=");
-         Indent_Line ("  (First_Terminal    =>" & Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
-         Indent := Indent + 3;
-         Indent_Line ("Last_Terminal     =>" & Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
-         Indent_Line ("First_Nonterminal =>" & Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
-         Indent_Line ("Last_Nonterminal  =>" & Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
-         Put ("Insert", Table.McKenzie_Param.Insert);
-         Put ("Delete", Table.McKenzie_Param.Delete);
-         Put ("Push_Back", Table.McKenzie_Param.Push_Back);
-         Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
-                        (Table.McKenzie_Param.Task_Count) & ",");
-         Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");
-         Indent_Line ("Check_Limit =>" & Token_Index'Image (Table.McKenzie_Param.Check_Limit) & ",");
-         Indent_Line ("Check_Delta_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Delta_Limit) & ",");
-         Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie_Param.Enqueue_Limit) & ");");
-         Indent := Indent - 3;
-         New_Line;
-
-      end if;
-      New_Line;
-
-      if Input_Data.Generate_Params.Error_Recover then
-         Indent_Line
-           ("Table.Productions.Set_First (" & Trimmed_Image (Generate_Data.Grammar.First_Index) & ");");
-         Indent_Line
-           ("Table.Productions.Set_Last (" & Trimmed_Image (Generate_Data.Grammar.Last_Index) & ");");
-
-         for I in Nonterminal_ID loop
-            declare
-               P : Productions.Instance renames Generate_Data.Grammar (I);
-            begin
-               Indent_Start
-                 ("Set_Production (Table.Productions (" & Trimmed_Image (P.LHS) & "), " &
-                    Trimmed_Image (P.LHS) & "," & Integer'Image (P.RHSs.Last_Index) & ");");
-
-               for J in P.RHSs.First_Index .. P.RHSs.Last_Index loop
-                  Indent_Start
-                    ("Set_RHS (Table.Productions (" & Trimmed_Image (P.LHS) & ")," & Natural'Image (J) &
-                       ", (");
-                  declare
-                     RHS : Productions.Right_Hand_Side renames P.RHSs (J);
-                  begin
-                     if RHS.Tokens.Length = 0 then
-                        Put ("1 .. 0 => <>");
-                     elsif RHS.Tokens.Length = 1 then
-                        Put ("1 => " & Trimmed_Image (RHS.Tokens (1)));
-                     else
-                        for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
-                           Put (Trimmed_Image (RHS.Tokens (I)));
-                           if I < RHS.Tokens.Last_Index then
-                              Put (", ");
-                           end if;
-                        end loop;
-                     end if;
-                  end;
-                  Put_Line ("));");
-               end loop;
-            end;
-         end loop;
-         New_Line;
-
-         Indent_Line
-           ("Table.Minimal_Terminal_Sequences.Set_First (" & Trimmed_Image
-              (Table.Minimal_Terminal_Sequences.First_Index) & ");");
-
-         Indent_Line
-           ("Table.Minimal_Terminal_Sequences.Set_Last (" & Trimmed_Image
-              (Table.Minimal_Terminal_Sequences.Last_Index) & ");");
-
-         for I in Table.Minimal_Terminal_Sequences.First_Index .. Table.Minimal_Terminal_Sequences.Last_Index loop
-            Line := +"Set_Token_Sequence (Table.Minimal_Terminal_Sequences (" & Trimmed_Image (I) & "), (";
-
-            declare
-               S : Token_ID_Arrays.Vector renames Table.Minimal_Terminal_Sequences (I);
-            begin
-               if S.Length = 0 then
-                  Append ("1 .. 0 => <>");
-               elsif S.Length = 1 then
-                  Append ("1 =>" & Token_ID'Image (S (S.First_Index)));
-               else
-                  for J in S.First_Index .. S.Last_Index loop
-                     Append (Trimmed_Image (S (J)));
-                     if J /= S.Last_Index then
-                        Append (", ");
-                     end if;
-                  end loop;
-               end if;
-            end;
-            Append ("));");
-            Indent_Wrap (-Line);
-         end loop;
-         New_Line;
-      end if;
-
       --  Optimize source structure for GNAT compile time; one subroutine
       --  with thousands of "Table.States (*) := ..." takes forever to
       --  compile (apparently depending on available memory). But hundreds
@@ -473,7 +509,7 @@ package body Wisi.Output_Ada_Common is
       Declare_Subroutines :
       for State_Index in Table.States'Range loop
 
-         if Input_Data.Generate_Params.Error_Recover then
+         if Input_Data.Language_Params.Error_Recover then
             Indent_Wrap
               ("Table.States (" & Trimmed_Image (State_Index) & ").Productions := WisiToken.To_Vector (" &
                  Image (Table.States (State_Index).Productions, Strict => True) & ");");
@@ -651,7 +687,7 @@ package body Wisi.Output_Ada_Common is
       end loop;
       Indent := Indent - 3;
       Indent_Line ("end;");
-   end Create_LR_Parser_Core;
+   end Create_LR_Parser_Table;
 
    procedure LR_Create_Create_Parser
      (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
@@ -663,7 +699,7 @@ package body Wisi.Output_Ada_Common is
       Indent_Line ("procedure Create_Parser");
       case Common_Data.Interface_Kind is
       when Process =>
-         if Input_Data.Generate_Params.Error_Recover then
+         if Input_Data.Language_Params.Error_Recover then
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
             Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;");
             Indent_Line
@@ -674,54 +710,67 @@ package body Wisi.Output_Ada_Common is
             Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
          end if;
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
-         Indent_Line ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)");
+         Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");
 
       when Module =>
          Indent_Line ("  (Parser              :    out WisiToken.LR.Parser.Parser;");
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
-         Indent_Line ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value)");
+         Indent_Start ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value");
       end case;
+
+      if Common_Data.Text_Rep then
+         Put_Line (";");
+         Indent_Line ("   Text_Rep_File_Name : in String)");
+      else
+         Put_Line (")");
+      end if;
 
       Indent_Line ("is");
       Indent := Indent + 3;
 
       Indent_Line ("use WisiToken.LR;");
-      Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
-      Indent_Line ("  (State_First       => 0,");
-      Indent := Indent + 3;
-      Indent_Start ("State_Last        => ");
 
-      case LR_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
-      when LALR =>
-         Put_Line (WisiToken.Trimmed_Image (Generate_Data.LR_Parsers (LALR).State_Last) & ",");
-
-      when LR1 =>
-         Put_Line (WisiToken.Trimmed_Image (Generate_Data.LR_Parsers (LR1).State_Last) & ",");
-
-      end case;
-      Indent_Line ("First_Terminal    => Trace.Descriptor.First_Terminal,");
-      Indent_Line ("Last_Terminal     => Trace.Descriptor.Last_Terminal,");
-      Indent_Line ("First_Nonterminal => Trace.Descriptor.First_Nonterminal,");
-      Indent_Line ("Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);");
-      Indent := Indent - 3;
-
-      case LR_Generate_Algorithm'(Common_Data.Generate_Algorithm) is
-      when LALR =>
+      if Common_Data.Text_Rep then
+         Create_LR_Parser_Core_1
+           (Generate_Data, Common_Data, Generate_Data.LR_Parse_Table);
+         Indent_Line ("Table : constant Parse_Table_Ptr := Get_Text_Rep");
+         Indent_Line ("  (Text_Rep_File_Name, McKenzie_Param, Productions, Minimal_Terminal_Sequences);");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Create_LR_Parser_Core (Input_Data, Generate_Data, Common_Data, Generate_Data.LR_Parsers (LALR));
 
-      when LR1 =>
+      else
+         if Input_Data.Language_Params.Error_Recover then
+            Create_LR_Parser_Core_1
+              (Generate_Data, Common_Data, Generate_Data.LR_Parse_Table);
+         end if;
+
+         Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
+         Indent_Line ("  (State_First       => 0,");
+         Indent := Indent + 3;
+         Indent_Start ("State_Last        => ");
+         Put_Line
+           (WisiToken.Trimmed_Image (Generate_Data.LR_Parse_Table.State_Last) & ",");
+
+         Indent_Line ("First_Terminal    => Trace.Descriptor.First_Terminal,");
+         Indent_Line ("Last_Terminal     => Trace.Descriptor.Last_Terminal,");
+         Indent_Line ("First_Nonterminal => Trace.Descriptor.First_Nonterminal,");
+         Indent_Line ("Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);");
+         Indent := Indent - 3;
+
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Create_LR_Parser_Core (Input_Data, Generate_Data, Common_Data, Generate_Data.LR_Parsers (LR1));
+         if Input_Data.Language_Params.Error_Recover then
+            Indent_Line ("Table.McKenzie_Param := McKenzie_Param;");
+            Indent_Line ("Table.Productions := Productions;");
+            Indent_Line ("Table.Minimal_Terminal_Sequences := Minimal_Terminal_Sequences;");
+         end if;
+         Create_LR_Parser_Table (Input_Data, Common_Data, Generate_Data.LR_Parse_Table);
+         New_Line;
+      end if;
 
-      end case;
-      New_Line;
-
-      if Input_Data.Generate_Params.Error_Recover then
+      if Input_Data.Language_Params.Error_Recover then
          Indent_Line ("WisiToken.LR.Parser.New_Parser");
       else
          Indent_Line ("WisiToken.LR.Parser_No_Recover.New_Parser");
@@ -732,7 +781,7 @@ package body Wisi.Output_Ada_Common is
          Indent_Line ("   Trace,");
          Indent_Line ("   Lexer.New_Lexer (Trace),");
          Indent_Line ("   Table,");
-         if Input_Data.Generate_Params.Error_Recover then
+         if Input_Data.Language_Params.Error_Recover then
             Indent_Line ("   Language_Fixes,");
             Indent_Line ("   Language_Constrain_Terminals,");
             Indent_Line ("   Language_String_ID_Set,");
@@ -818,7 +867,7 @@ package body Wisi.Output_Ada_Common is
 
          Indent_Line ("return WisiToken.Parse.Packrat.Procedural.Create");
          Indent_Line
-           ("  (Grammar, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.LR1_Descriptor.Accept_ID) &
+           ("  (Grammar, Direct_Left_Recursive, " & Trimmed_Image (Generate_Data.Descriptor.Accept_ID) &
               ", Trace, Lexer.New_Lexer (Trace), User_Data);");
       end case;
       Indent := Indent - 3;
@@ -828,7 +877,7 @@ package body Wisi.Output_Ada_Common is
 
    procedure Create_re2c
      (Input_Data            :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad                  :         in Generate_Quad;
+      Tuple                 :         in Generate_Tuple;
       Generate_Data         : aliased in Wisi.Generate_Utils.Generate_Data;
       Output_File_Name_Root :         in String;
       Elisp_Regexps         :         in Wisi.String_Pair_Lists.List)
@@ -842,7 +891,7 @@ package body Wisi.Output_Ada_Common is
       Set_Output (File);
       Indent := 1;
 
-      Put_File_Header (C_Comment, " -*- mode: C -*-", Use_Quad => True, Quad => Quad);
+      Put_File_Header (C_Comment, " -*- mode: C -*-", Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (C_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
@@ -1025,7 +1074,7 @@ package body Wisi.Output_Ada_Common is
       Indent_Line ("if (lexer->cursor > lexer->buffer_last)");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.LR1_Descriptor.EOF_ID) & ";");
+      Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.Descriptor.EOF_ID) & ";");
       Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = 0;");
       Indent_Line ("*char_position = lexer->char_token_start;");
@@ -1081,7 +1130,7 @@ package body Wisi.Output_Ada_Common is
                --  not declared in definitions
                null;
 
-            elsif Kind (I) = "keyword" and Input_Data.Generate_Params.Case_Insensitive then
+            elsif Kind (I) = "keyword" and Input_Data.Language_Params.Case_Insensitive then
                Indent_Line (Name (I) & " = '" & Strip_Quotes (Val) & "';");
 
             else
@@ -1117,7 +1166,7 @@ package body Wisi.Output_Ada_Common is
                begin
                   Indent_Line
                     (Val (1 .. Start_Last - 1) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) &
-                     "; skip_to(lexer, " & Val (Start_Last + 1 .. Val'Last) & "); continue;}");
+                       "; skip_to(lexer, " & Val (Start_Last + 1 .. Val'Last) & "); continue;}");
                end;
 
             elsif 0 /= Index (Source => Val, Pattern => "/") then
@@ -1159,7 +1208,7 @@ package body Wisi.Output_Ada_Common is
          Create (File, Out_File, Output_File_Name_Root & "_re2c_c.ads");
          Set_Output (File);
          Indent := 1;
-         Put_File_Header (Ada_Comment, Use_Quad => True, Quad => Quad);
+         Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
          Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
          New_Line;
 
@@ -1232,7 +1281,7 @@ package body Wisi.Output_Ada_Common is
 
    function Initialize
      (Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Quad              : in Generate_Quad;
+      Tuple             : in Generate_Tuple;
       First_Nonterminal : in WisiToken.Token_ID;
       Last_Nonterminal  : in WisiToken.Token_ID;
       Output_File_Root  : in String;
@@ -1240,9 +1289,9 @@ package body Wisi.Output_Ada_Common is
      return Common_Data
    is begin
       return Data : Common_Data do
-         Data.Generate_Algorithm := Quad.Gen_Alg;
+         Data.Generate_Algorithm := Tuple.Gen_Alg;
 
-         Data.Output_Language := Ada_Output_Language (Quad.Out_Lang);
+         Data.Output_Language := Ada_Output_Language (Tuple.Out_Lang);
 
          if Input_Data.User_Lexer in Valid_Lexer then
             Data.Lexer := Valid_Lexer (Input_Data.User_Lexer);
@@ -1251,16 +1300,18 @@ package body Wisi.Output_Ada_Common is
          end if;
 
          if Check_Interface then
-            if Quad.Interface_Kind in Valid_Interface then
-               Data.Interface_Kind := Valid_Interface (Quad.Interface_Kind);
+            if Tuple.Interface_Kind in Valid_Interface then
+               Data.Interface_Kind := Valid_Interface (Tuple.Interface_Kind);
             else
                Put_Error
                  (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, 1, "Interface_Kind not set on command line"));
+                    (Input_Data.Grammar_Lexer.File_Name, 1, "Interface_Kind not set"));
             end if;
          else
             Data.Interface_Kind := Process;
          end if;
+
+         Data.Text_Rep := Tuple.Text_Rep;
 
          Data.Lower_File_Name_Root := +To_Lower (Output_File_Root);
 

@@ -87,24 +87,25 @@ package Wisi is
    type Interface_Type is (None, Process, Module);
    subtype Valid_Interface is Interface_Type range Process .. Module;
 
-   type Generate_Quad is record
+   type Generate_Tuple is record
       Gen_Alg        : Valid_Generate_Algorithm;
       Out_Lang       : Output_Language;
       Lexer          : Lexer_Type     := None;
       Interface_Kind : Interface_Type := None;
+      Text_Rep       : Boolean        := False;
    end record;
 
-   type Generate_Set is array (Natural range <>) of Generate_Quad;
+   type Generate_Set is array (Natural range <>) of Generate_Tuple;
    type Generate_Set_Access is access Generate_Set;
    procedure Free is new Standard.Ada.Unchecked_Deallocation (Generate_Set, Generate_Set_Access);
 
    procedure Add
-     (Set  : in out Generate_Set_Access;
-      Quad : in     Generate_Quad);
+     (Set   : in out Generate_Set_Access;
+      Tuple : in     Generate_Tuple);
 
    package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
-   type Generate_Param_Type is record
+   type Language_Param_Type is record
       --  Set by grammar file declarations or command line options. Error
       --  recover parameters are in McKenzie_Recover_Param_Type below.
       Case_Insensitive              : Boolean := False;
@@ -157,9 +158,9 @@ package Wisi is
 
    procedure Put_File_Header
      (Comment_Syntax : in String_2;
-      Emacs_Mode     : in String := "";
-      Use_Quad       : in Boolean       := False;
-      Quad           : in Generate_Quad := (others => <>));
+      Emacs_Mode     : in String         := "";
+      Use_Tuple      : in Boolean        := False;
+      Tuple          : in Generate_Tuple := (others => <>));
    --  Output "parser support file <emacs_mode> /n command line: " comment to Ada.Text_IO.Current_Output.
 
    type String_Pair_Type is record
@@ -249,7 +250,7 @@ package Wisi is
 
       Regexps : String_Pair_Lists.List;
       --  Regexps included here because they are used in defining the
-      --  Tokens., 2018
+      --  Tokens.
    end record;
 
    type Elisp_Names is record
@@ -295,8 +296,8 @@ package Wisi is
 
    procedure Put_Command_Line
      (Comment_Prefix : in String;
-      Use_Quad       : in Boolean       := False;
-      Quad           : in Generate_Quad := (others => <>));
-   --  Put command line to current output; indicate current quad.
+      Use_Tuple      : in Boolean        := False;
+      Tuple          : in Generate_Tuple := (others => <>));
+   --  Put command line to current output; indicate current tuple.
 
 end Wisi;

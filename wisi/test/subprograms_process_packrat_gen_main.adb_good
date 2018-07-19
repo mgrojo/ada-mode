@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe  --generate PACKRAT_GEN ADA_EMACS re2c PROCESS ../../wisi/test/subprograms.wy
+--  command line: wisi-generate.exe  --generate PACKRAT_GEN ADA_EMACS re2c PROCESS ../wisi/test/subprograms.wy
 --
 
 --  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.

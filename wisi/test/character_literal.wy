@@ -21,7 +21,11 @@
 
 %code actions spec context %{with WisiToken.Syntax_Trees;}%
 
-%generate LALR Ada re2c
+;; Declare all variants tested by wisi_wy_test.adb
+%generate LR1 Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
+%generate LR1 elisp
 
 ;; wisi-generate requires some keywords; test case insensitive
 %case_insensitive

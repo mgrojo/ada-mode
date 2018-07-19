@@ -1,5 +1,9 @@
 ;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
 
+%generate LALR Ada 
+%generate Packrat_Gen Ada 
+%generate Packrat_Proc Ada 
+                  
 %token <punctuation> SEMICOLON ";"
 
 %keyword ACCEPT "accept"

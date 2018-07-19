@@ -22,7 +22,7 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Skip_To_Grammar_Actions;
-with Skip_To_Grammar_Main;
+with Skip_To_Grammar_LALR_Main;
 with Test_Skip_To_Aux;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
@@ -72,6 +72,11 @@ package body Test_Skip_To is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
-begin
-   Skip_To_Grammar_Main.Create_Parser (Parser, Trace'Access, null);
+   overriding procedure Set_Up_Case (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      Skip_To_Grammar_LALR_Main.Create_Parser (Parser, Trace'Access, null, "skip_to_grammar_lalr_parse_table.txt");
+   end Set_Up_Case;
+
 end Test_Skip_To;

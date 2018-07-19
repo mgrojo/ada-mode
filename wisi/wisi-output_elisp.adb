@@ -30,7 +30,7 @@ procedure Wisi.Output_Elisp
    Elisp_Package :         in String;
    Generate_Data : aliased in Wisi.Generate_Utils.Generate_Data;
    Packrat_Data  :         in WisiToken.Generate.Packrat.Data;
-   Quad          :         in Generate_Quad)
+   Tuple         :         in Generate_Tuple)
 is
    pragma Unreferenced (Packrat_Data);
 
@@ -47,7 +47,7 @@ is
       Set_Output (File);
 
       Put_Line (";;; " & Elisp_Package_1 & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
-      Put_Command_Line (Elisp_Comment & "  ", Use_Quad => True, Quad => Quad);
+      Put_Command_Line (Elisp_Comment & "  ", Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (Elisp_Comment, Input_Data.Raw_Code (Copyright_License));
       Put_Raw_Code (Elisp_Comment, Input_Data.Raw_Code (Actions_Spec_Context));
       New_Line;
@@ -62,7 +62,7 @@ is
       Output_Elisp_Common.Indent_Token_Table (Elisp_Package_1, "elisp", Input_Data.Tokens.Tokens, To_String'Access);
       New_Line;
       WisiToken.LR.Wisi_Generate_Elisp.Output
-        (Elisp_Package_1, Input_Data.Tokens, Generate_Data.LR_Parsers (Algorithm), Generate_Data.LR1_Descriptor.all);
+        (Elisp_Package_1, Input_Data.Tokens, Generate_Data.LR_Parse_Table, Generate_Data.Descriptor.all);
       New_Line;
       Put_Line ("(provide '" & Elisp_Package_1 & "-elisp)");
       Put_Line (";; end of file");
@@ -72,7 +72,7 @@ is
    end Create_Elisp;
 
 begin
-   Create_Elisp (Quad.Gen_Alg);
+   Create_Elisp (Tuple.Gen_Alg);
 
    if WisiToken.Trace_Generate > 0 then
       Wisi.Generate_Utils.Put_Stats (Input_Data, Generate_Data);

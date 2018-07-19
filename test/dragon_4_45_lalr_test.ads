@@ -29,5 +29,6 @@ package Dragon_4_45_LALR_Test is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
+   overriding procedure Tear_Down_Case (T : in out Test_Case);
 
 end Dragon_4_45_LALR_Test;
