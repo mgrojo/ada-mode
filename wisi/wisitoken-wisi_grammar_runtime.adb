@@ -505,6 +505,10 @@ package body WisiToken.Wisi_Grammar_Runtime is
                                     Wisi.To_Lower (Text) = Wisi.To_Lower (Wisi.Valid_Interface'Image (I)))
                            then
                               Tuple.Interface_Kind := Wisi.Valid_Interface'Value (Text);
+                           else
+                              raise Grammar_Error with Error_Message
+                                (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column,
+                                 "invalid generate param '" & Text & "'");
                            end if;
                         end;
                      end loop;

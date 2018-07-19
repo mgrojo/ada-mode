@@ -378,7 +378,7 @@ begin
 
                   Put_Line
                     (Standard_Error,
-                     "LR1 " & Lexer_Image (Tuple.Lexer).all & "generate time:" &
+                     "LR1 " & Lexer_Image (Tuple.Lexer).all & " generate time:" &
                        Duration'Image (To_Duration (Time_End - Time_Start)));
                end if;
 
