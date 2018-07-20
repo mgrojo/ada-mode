@@ -39,7 +39,7 @@
   ;; - ’( nnn)’ in the unknown conflicts list
   (save-excursion
     (end-of-line)
-    (when (or (looking-back "[Ss]tate \\([0-9]+\\) ([0-9 ,]+),?" (line-beginning-position))
+    (when (or (looking-back "[Ss]tate \\([0-9]+\\)\\( ([0-9 ,]+)\\)?" (line-beginning-position))
 	      (looking-back "( \\([0-9]+\\))" (line-beginning-position)))
       (match-string 1))))
 
