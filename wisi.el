@@ -798,6 +798,7 @@ NOERROR is nil, throw an error, if non-nil, return nil."
       (when (or (>= (point) limit)
 		(eobp))
 	(goto-char limit)
+	(setq tok nil)
 	(if noerror
 	    (setq done t)
 	  (error "token %s not found" token))))

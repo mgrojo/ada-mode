@@ -130,4 +130,11 @@ package body Format_Paramlist is
       null;
    end Check_One;
 
+   --  Aggregate in default value
+   --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "   ") (ada-align))
+   procedure Put_File_Header
+     (Comment_Syntax : in String;
+      Tuple          : in Z := (others => <>))
+   is begin null; end Put_File_Header;
+
 end Format_Paramlist;

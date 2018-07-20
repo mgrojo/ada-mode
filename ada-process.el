@@ -1,4 +1,4 @@
-;;; ada-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; ada-process.el --- Generated parser support file  -*- lexical-binding:t -*-
 ;;  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS ada.wy
 
 ;;  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.

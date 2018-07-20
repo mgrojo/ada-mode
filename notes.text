@@ -55,14 +55,6 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
 add lr1 as wisi indent option
     ada_process_action.ad? written twice; cm lr1 because it is last
 
-format_param_list bug:
-   procedure Put_File_Header
-     (Comment_Syntax : in String_2;
-      Emacs_Mode     : in String := "";
-      Use_Tuple       : in Boolean       := False;
-      Tuple           : in Generate_Tuple := (others => <>))
-    looses closing )
-
 better constrain_terminals:
     o.w.s-1
     store kernel (with dot)

@@ -731,7 +731,6 @@ Function is called with one optional argument; syntax-ppss result.")
   ;; Recompute ’end’ after repair errors; closing paren is now there.
 
   (let* ((begin (point))
-	 ;; We use markers here, in case eror correction moves ‘end’.
 	 (delend (copy-marker (progn (forward-sexp) (point)))); just after matching closing paren
 	 (end (copy-marker
 	       (progn (backward-char) (forward-comment (- (point))) (point)))); end of last parameter-declaration
@@ -1508,7 +1507,7 @@ Include properties set via `ada-prj-default-compiler-alist',
 
 (defvar ada-prj-parser-alist
   (mapcar
-   (lambda (ext) (cons ext 'ada-prj-parse-file-1))
+   (lambda (ext) (cons ext #'ada-prj-parse-file-1))
    ada-prj-file-extensions)
   ;; project file parse
   "Alist of parsers for project files, indexed by file extension.
@@ -1902,9 +1901,11 @@ Deselects the current project first."
     (modify-syntax-entry ?\\ "." table); default is escape; not correct for Ada strings
     (modify-syntax-entry ?\|  "." table)
 
-    ;; and \f and \n end a comment
-    (modify-syntax-entry ?\f  ">" table)
-    (modify-syntax-entry ?\n  ">" table)
+    ;; \f and \n end a comment.
+    ;; comment start set in ada-syntax-propertize.
+    ;; flag ’s’ experimental; end unterminated string at newline.
+    (modify-syntax-entry ?\f  "> s" table)
+    (modify-syntax-entry ?\n  "> s" table)
 
     (modify-syntax-entry ?_ "_" table); symbol constituents, not word.
 

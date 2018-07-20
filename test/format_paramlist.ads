@@ -11,4 +11,8 @@ package Format_Paramlist is
                 B : access Integer;
                 A :    out Integer);
 
+   procedure Put_File_Header
+     (Comment_Syntax : in String;
+      Tuple          : in Z := (others => <>));
+
 end Format_Paramlist;

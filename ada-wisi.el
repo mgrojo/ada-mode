@@ -473,11 +473,13 @@ Also return cache at start."
        ((equal token 'COLON_EQUAL)
 	(setq type-end (save-excursion (goto-char (car (wisi-tok-region tok))) (skip-syntax-backward " ") (point)))
 	(setq default-begin (point))
-	(wisi-forward-find-token 'SEMICOLON end t)
-	(wisi-backward-token))
+	(if (wisi-forward-find-token 'SEMICOLON end t)
+	    (wisi-backward-token)
+	;; else at end of param-list; point is before closing paren.
+	  ))
 
        ((equal token 'LEFT_PAREN)
-	;; anonymous access procedure type
+	;; anonymous access procedure type, aggregate initial value
 	(goto-char (scan-sexps (1- (point)) 1)))
 
        ((member token '(SEMICOLON RIGHT_PAREN))

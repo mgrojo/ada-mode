@@ -3,7 +3,6 @@
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
---EMACSCMD:(wisi-validate-cache (point-max) t 'navigate)
 package body Ada_Mode.Recover_Navigate_1 is
    procedure Add_Param (Name : in String; Value : in String)
    is begin

@@ -30,7 +30,7 @@ ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 ADA_MODE_DIR ?= -L .. -l autoloads.el
 
 # compile with debug to get assertions for testing new code
-export Standard_Common_Build := Debug
+#export Standard_Common_Build := Debug
 
 elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test test-clean test
 
@@ -96,7 +96,8 @@ test-wisi :: force
 summarize :
 	cat test.log
 
-ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
+#ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
+ONE_TEST_FILES ?= format_paramlist.ads format_paramlist.adb
 one : build_ada_executables
 #one : byte-compile
 one : one-clean
