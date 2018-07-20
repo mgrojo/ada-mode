@@ -22,7 +22,7 @@ with AUnit.Checks.Containers;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Validate;
 package body Test_Definite_Doubly_Linked_Lists_Sorted is
 
-   package Integer_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Integer, ">");
+   package Integer_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Integer, ">", "=");
    use Integer_Lists;
 
    package Val is new Integer_Lists.Gen_Validate;
