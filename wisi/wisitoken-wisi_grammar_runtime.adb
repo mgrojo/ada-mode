@@ -506,9 +506,13 @@ package body WisiToken.Wisi_Grammar_Runtime is
                            then
                               Tuple.Interface_Kind := Wisi.Valid_Interface'Value (Text);
                            else
-                              raise Grammar_Error with Error_Message
-                                (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column,
-                                 "invalid generate param '" & Text & "'");
+                              declare
+                                 Token : Base_Token renames Data.Terminals.all (Tree.Terminal (Children (I)));
+                              begin
+                                 raise Grammar_Error with Error_Message
+                                   (Data.Grammar_Lexer.File_Name, Token.Line, Token.Column,
+                                    "invalid generate param '" & Text & "'");
+                              end;
                            end if;
                         end;
                      end loop;

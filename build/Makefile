@@ -31,9 +31,7 @@ one-clean :
 # one :: one-clean
 one :: export Standard_Common_Build := Debug
 one :: wisi-generate.exe
-one :: ada_lite_re2c.c
-one :: ada_lite_lr1_run.exe
-	./ada_lite_lr1_run.exe -v 2 ../wisi/test/ada_lite.input
+	./wisi-generate.exe -v 2 --generate LR1 Ada re2c ../wisi/test/range_conflict.wy > range_conflict_lr1_generate.log
 
 #c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
 
@@ -63,7 +61,7 @@ tag :
 	mtn tag h:org.fasttoken fasttoken-$(ZIP_VERSION)
 
 trace :
-	addr2line -e test_all_harness.exe 0x7912cf 0x754052 0x73b0bb 0x54f23c 0x609e0d 0x68511f 0x403c80 0x78f197 0x4013b3 0x4014e6 0x7ffc9c3913d0 0x7ffc9c5a54f2
+	addr2line -e test_all_harness.exe 0x6eb427 0x7728ff3f 0x7728ff11 0x7729068d
 
 include ../../org.stephe_leake.makerules/texinfo_rules.make
 include rules.make

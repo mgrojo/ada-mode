@@ -23,19 +23,20 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line; use Ada.Command_Line;
 with System.Multiprocessors;
+with Dragon_4_43_Packrat_Gen;
+with Dragon_4_43_Packrat_Hand;
 with WisiToken;
-with Compare_Goto_Transitions;
 procedure Test_One_Harness
 is
    --  command line arguments (all optional, order matters):
-   --  <verbose> test_name routine_name trace_generate trace_parse trace_action trace_mckenzie task_count cost_limit
+   --  <verbose> test_name routine_name trace_generate trace_parse trace_mckenzie trace_action task_count cost_limit
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  routine_name can be '' to set trace or cost for all routines.
 
    Task_Count : constant System.Multiprocessors.CPU_Range :=
-     (if Argument_Count >= 8 then System.Multiprocessors.CPU_Range'Value (Argument (8)) else 0);
-   Cost_Limit : constant Natural := (if Argument_Count >= 9 then Natural'Value (Argument (9)) else Natural'Last);
+     (if Argument_Count >= 7 then System.Multiprocessors.CPU_Range'Value (Argument (7)) else 0);
+   Cost_Limit : constant Natural := (if Argument_Count >= 8 then Natural'Value (Argument (8)) else Natural'Last);
    pragma Unreferenced (Task_Count, Cost_Limit);
 
    Filter : aliased AUnit.Test_Filters.Verbose.Filter;
@@ -50,15 +51,6 @@ is
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
-
-   --  function "+" (Item : in String) return Ada.Strings.Unbounded.String_Access
-   --  is begin
-   --     return Ada.Strings.Unbounded.String_Access'(new String'(Item));
-   --  end "+";
-   --  function "+" (Item : in Wisi.Generate_Algorithm_Set) return Wisi.Generate_Algorithm_Set_Access
-   --  is begin
-   --     return Wisi.Generate_Algorithm_Set_Access'(new Wisi.Generate_Algorithm_Set'(Item));
-   --  end "+";
 
 begin
    Filter.Verbose := Argument_Count > 0 and then Argument (1) = "1";
@@ -87,10 +79,10 @@ begin
 
    WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
    WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
-   WisiToken.Trace_Action   := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
-   WisiToken.Trace_McKenzie := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
+   WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
 
-   Add_Test (Suite, new Compare_Goto_Transitions.Test_Case);
+   Add_Test (Suite, new Dragon_4_43_Packrat_Gen.Test_Case);
+   Add_Test (Suite, new Dragon_4_43_Packrat_Hand.Test_Case);
 
    Run (Suite, Options, Result, Status);
 

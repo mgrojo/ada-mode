@@ -173,7 +173,7 @@ begin
                         Tuple.Text_Rep := True;
                         Arg_Next := Arg_Next + 1;
 
-                     elsif (for some I of Lexer_Image => Text = I.all) then
+                     elsif (for some I of Lexer_Image => To_Lower (Text) =  I.all) then
                         Tuple.Lexer := To_Lexer (Text);
                         Arg_Next := Arg_Next + 1;
 
