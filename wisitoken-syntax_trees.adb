@@ -808,6 +808,7 @@ package body WisiToken.Syntax_Trees is
    is begin
       Tree.Shared_Tree.Traversing := True;
       if Tree.Flush then
+         --  FIXME: use tree.root
          if Tree.Shared_Tree.Nodes (Tree.Shared_Tree.Nodes.Last_Index).Parent = 0 then
             Process_Tree (Tree, Tree.Shared_Tree.Nodes.Last_Index, Process_Node);
          else

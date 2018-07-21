@@ -14,7 +14,8 @@
 %start compilation_unit_list
 
 ;; testing text_rep parse table
-%generate LALR Ada text_rep
+%generate LALR Ada re2c text_rep
+%generate LR1 Ada re2c text_rep
 
 declaration
   : PERCENT IDENTIFIER declaration_item_list

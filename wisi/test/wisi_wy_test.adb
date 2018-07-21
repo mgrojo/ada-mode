@@ -56,7 +56,7 @@ package body Wisi_WY_Test is
             Put (Standard_Error, " ");
             Put (Standard_Error, Str_Acc.all);
          end loop;
-         New_Line;
+         New_Line (Standard_Error);
       end if;
 
       if Output_File = "" then
@@ -154,6 +154,10 @@ package body Wisi_WY_Test is
       when Elisp =>
          Diff_One (Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "-elisp.el");
       end case;
+
+      if Tuple.Text_Rep then
+         Diff_One (Root_Name & "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "_parse_table.txt");
+      end if;
    end Diff_Gen;
 
    procedure Execute_Parse

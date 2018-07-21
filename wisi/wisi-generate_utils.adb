@@ -111,6 +111,9 @@ package body Wisi.Generate_Utils is
       Data.Source_Line_Map.Set_First (Descriptor.First_Nonterminal);
       Data.Source_Line_Map.Set_Last (Descriptor.Last_Nonterminal);
 
+      Data.Action_Names := new Names_Array_Array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
+      Data.Check_Names  := new Names_Array_Array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal);
+
       pragma Assert (Descriptor.Accept_ID = Descriptor.First_Nonterminal);
       begin
          Data.Grammar (Descriptor.Accept_ID) :=
@@ -130,9 +133,13 @@ package body Wisi.Generate_Utils is
 
       for Rule of Data.Tokens.Rules loop
          declare
-            RHS_Index : Natural := 0;
-            RHSs      : WisiToken.Productions.RHS_Arrays.Vector;
-            LHS       : Token_ID; -- not initialized for exception handler
+            RHS_Index        : Natural := 0;
+            RHSs             : WisiToken.Productions.RHS_Arrays.Vector;
+            LHS              : Token_ID; -- not initialized for exception handler
+            Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Action_All_Empty : Boolean := True;
+            Check_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Check_All_Empty : Boolean := True;
          begin
             LHS := Find_Token_ID (Data, -Rule.Left_Hand_Side);
 
@@ -145,6 +152,7 @@ package body Wisi.Generate_Utils is
 
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
+                  use Standard.Ada.Strings.Unbounded;
                   use all type Standard.Ada.Containers.Count_Type;
                   Tokens : WisiToken.Token_ID_Arrays.Vector;
                   I      : Integer := 1;
@@ -158,6 +166,16 @@ package body Wisi.Generate_Utils is
                      end loop;
                   end if;
                   RHSs (RHS_Index) := (Tokens => Tokens, Action => null, Check => null);
+                  if Length (Right_Hand_Side.Action) > 0 then
+                     Action_All_Empty := False;
+                     Action_Names (RHS_Index) := new String'
+                       (-Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (RHS_Index));
+                  end if;
+                  if Length (Right_Hand_Side.Check) > 0 then
+                     Check_All_Empty := False;
+                     Check_Names (RHS_Index) := new String'
+                       (-Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (RHS_Index) & "_check");
+                  end if;
 
                   Data.Source_Line_Map (LHS).RHS_Map (RHS_Index) := Right_Hand_Side.Source_Line;
                exception
@@ -171,6 +189,13 @@ package body Wisi.Generate_Utils is
             end loop;
 
             Data.Grammar (LHS) := LHS <= RHSs;
+            if not Action_All_Empty then
+               Data.Action_Names (LHS) := new Names_Array'(Action_Names);
+            end if;
+            if not Check_All_Empty then
+               Data.Check_Names (LHS) := new Names_Array'(Check_Names);
+            end if;
+
          exception
          when E : Not_Found =>
             --  From Find_Token_ID (left_hand_side)

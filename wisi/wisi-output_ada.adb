@@ -39,9 +39,7 @@ procedure Wisi.Output_Ada
    Multiple_Tuples       :         in Boolean)
 is
    Common_Data : Output_Ada_Common.Common_Data := Wisi.Output_Ada_Common.Initialize
-     (Input_Data, Tuple, Generate_Data.Descriptor.First_Nonterminal,
-      Generate_Data.Descriptor.Last_Nonterminal, Output_File_Name_Root,
-      Check_Interface => False);
+     (Input_Data, Tuple, Output_File_Name_Root, Check_Interface => False);
 
    Gen_Alg_Name : constant String :=
      (if Test_Main or Multiple_Tuples
@@ -59,9 +57,9 @@ is
    end Symbol_Regexp;
 
    procedure Create_Ada_Actions_Body
-     (Ada_Action_Names : not null access Names_Array_Array;
-      Ada_Check_Names  : not null access Names_Array_Array;
-      Package_Name     : in     String)
+     (Action_Names : not null access WisiToken.Names_Array_Array;
+      Check_Names  : not null access WisiToken.Names_Array_Array;
+      Package_Name : in              String)
    is
       use Generate_Utils;
       use GNAT.Regexp;
@@ -96,8 +94,7 @@ is
 
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Body_Pre));
 
-      --  generate Action and Check subprograms, populate Ada_Action_Names.
-      --  Ada_Check_Names.
+      --  generate Action and Check subprograms.
 
       for Rule of Input_Data.Tokens.Rules loop
          --  No need for a Token_Cursor here, since we only need the
@@ -105,13 +102,8 @@ is
          declare
             use Standard.Ada.Strings.Unbounded;
 
-            LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
-
-            Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Check_Names      : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            RHS_Index        : Integer := 0;
-            Action_All_Empty : Boolean := True;
-            Check_All_Empty  : Boolean := True;
+            LHS_ID    : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
+            RHS_Index : Integer                     := 0;
 
             function Is_Elisp (Action : in Unbounded_String) return Boolean
             is begin
@@ -127,7 +119,7 @@ is
                      Line : constant String := -RHS.Action;
                      --  Actually multiple lines; we assume the formatting is adequate.
 
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (RHS_Index);
+                     Name : constant String := Action_Names (LHS_ID)(RHS_Index).all;
 
                      Unref_User_Data : Boolean := True;
                      Unref_Tree      : Boolean := True;
@@ -153,10 +145,6 @@ is
 
                   begin
                      Check_Unref (Line);
-
-                     Action_All_Empty := False;
-
-                     Action_Names (RHS_Index) := new String'(Name);
                      Indent_Line ("procedure " & Name);
                      Indent_Line (" (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;");
                      Indent_Line ("  Tree      : in out WisiToken.Syntax_Trees.Tree;");
@@ -199,17 +187,13 @@ is
                if Length (RHS.Check) > 0 and then not Is_Elisp (RHS.Check) then
                   declare
                      use Standard.Ada.Strings.Fixed;
-                     Line : constant String := -RHS.Check;
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (RHS_Index);
-
+                     Line          : constant String  := -RHS.Check;
+                     Name          : constant String  := Check_Names (LHS_ID)(RHS_Index).all;
                      Unref_Lexer   : constant Boolean := 0 = Index (Line, "Lexer");
                      Unref_Nonterm : constant Boolean := 0 = Index (Line, "Nonterm");
                      Unref_Tokens  : constant Boolean := 0 = Index (Line, "Tokens");
                   begin
-                     Check_All_Empty := False;
-
-                     Check_Names (RHS_Index) := new String'(Name & "_check");
-                     Indent_Line ("function " & Name & "_check");
+                     Indent_Line ("function " & Name);
                      Indent_Line (" (Lexer   : access constant WisiToken.Lexer.Instance'Class;");
                      Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
                      Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
@@ -230,20 +214,13 @@ is
                      Indent := Indent + 3;
                      Indent_Line (Line);
                      Indent := Indent - 3;
-                     Indent_Line ("end " & Name & "_check;");
+                     Indent_Line ("end " & Name & ";");
                      New_Line;
                   end;
                end if;
 
                RHS_Index := RHS_Index + 1;
             end loop;
-
-            if not Action_All_Empty then
-               Ada_Action_Names (LHS_ID) := new Names_Array'(Action_Names);
-            end if;
-            if not Check_All_Empty then
-               Ada_Check_Names (LHS_ID) := new Names_Array'(Check_Names);
-            end if;
          end;
       end loop;
 
@@ -312,8 +289,7 @@ is
          LR_Create_Create_Parser (Input_Data, Common_Data, Generate_Data);
 
       when Packrat_Gen =>
-         Wisi.Generate_Packrat
-           (Packrat_Data, Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Generate_Data.Descriptor.all);
+         Wisi.Generate_Packrat (Packrat_Data, Generate_Data);
 
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
 
@@ -405,7 +381,7 @@ begin
    begin
       if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
          --  Some WisiToken tests have no actions or checks.
-         Create_Ada_Actions_Body (Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Actions_Package_Name);
+         Create_Ada_Actions_Body (Generate_Data.Action_Names, Generate_Data.Check_Names, Actions_Package_Name);
       end if;
 
       Create_Ada_Actions_Spec

@@ -344,7 +344,11 @@ package WisiToken.LR is
       Productions : in WisiToken.Productions.Prod_Arrays.Vector)
      return WisiToken.Semantic_Checks.Semantic_Check;
 
-   procedure Put_Text_Rep (Table : in Parse_Table; File_Name : in String);
+   procedure Put_Text_Rep
+     (Table        : in Parse_Table;
+      File_Name    : in String;
+      Action_Names : in Names_Array_Array;
+      Check_Names  : in Names_Array_Array);
    --  Write machine-readable text format of Table.States to a file
    --  File_Name, to be read by the parser executable at startup.
 

@@ -777,7 +777,11 @@ package body WisiToken.LR is
       return Productions (Prod.Nonterm).RHSs (Prod.RHS).Check;
    end Get_Check;
 
-   procedure Put_Text_Rep (Table : in Parse_Table; File_Name : in String)
+   procedure Put_Text_Rep
+     (Table        : in Parse_Table;
+      File_Name    : in String;
+      Action_Names : in Names_Array_Array;
+      Check_Names  : in Names_Array_Array)
    is
       use Ada.Text_IO;
       File : File_Type;
@@ -812,8 +816,6 @@ package body WisiToken.LR is
                exit when Node_I = null;
                --  Action first, so we know if Symbol is present (not when Error)
                declare
-                  use all type WisiToken.Semantic_Checks.Semantic_Check;
-                  use all type WisiToken.Syntax_Trees.Semantic_Action;
                   Node_J     : Parse_Action_Node_Ptr := Node_I.Action;
                   Put_Symbol : Boolean               := True;
                begin
@@ -834,8 +836,22 @@ package body WisiToken.LR is
                      when Reduce | Accept_It =>
                         Put (File, Token_ID'Image (Node_J.Item.Production.Nonterm) &
                                Integer'Image (Node_J.Item.Production.RHS));
-                        Put (File, (if Node_J.Item.Action = null then " false" else " true"));
-                        Put (File, (if Node_J.Item.Check = null then " false" else " true"));
+
+                        if Action_Names (Node_J.Item.Production.Nonterm) /= null and then
+                          Action_Names (Node_J.Item.Production.Nonterm)(Node_J.Item.Production.RHS) /= null
+                        then
+                           Put (File, " true");
+                        else
+                           Put (File, " false");
+                        end if;
+                        if Check_Names (Node_J.Item.Production.Nonterm) /= null and then
+                          Check_Names (Node_J.Item.Production.Nonterm)(Node_J.Item.Production.RHS) /= null
+                        then
+                           Put (File, " true");
+                        else
+                           Put (File, " false");
+                        end if;
+
                         Put (File, Ada.Containers.Count_Type'Image (Node_J.Item.Token_Count));
 
                      when Error =>

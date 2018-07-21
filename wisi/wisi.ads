@@ -261,10 +261,6 @@ package Wisi is
       Regexps : String_Pair_Lists.List;
    end record;
 
-   type Names_Array is array (Integer range <>) of access constant String;
-   type Names_Array_Access is access Names_Array;
-   type Names_Array_Array is array (WisiToken.Token_ID range <>) of Names_Array_Access;
-
    function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String
      renames Standard.Ada.Strings.Unbounded.To_Unbounded_String;
 

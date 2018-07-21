@@ -328,6 +328,12 @@ package body WisiToken.LR.LR1_Generate is
       Add_Actions
         (Item_Sets, Grammar, Has_Empty_Production, First_Nonterm_Set, Unknown_Conflicts, Table.all, Descriptor);
 
+      --  Set Table.States.Productions for McKenzie_Recover
+      for State in Table.States'Range loop
+         Table.States (State).Productions := LR1_Items.Productions
+           (LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access));
+      end loop;
+
       if Put_Parse_Table then
          LR1_Generate.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
       end if;

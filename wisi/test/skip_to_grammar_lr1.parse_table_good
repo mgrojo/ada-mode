@@ -24,9 +24,9 @@ Productions:
 12.0: compilation_unit_list <= compilation_unit_list compilation_unit
 12.1: compilation_unit_list <= compilation_unit
 
-LALR Parse Table:
+LR1 Parse Table:
 State 0:
-      7.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI, 
+      7.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI, Wisi_EOI
 
    PERCENT               => shift and goto state 1 (8.0)
    PREAMBLE              => shift and goto state 2 (11.0)
@@ -67,7 +67,7 @@ State 4:
    default               => ERROR
 
 State 5:
-      7.0:wisitoken_accept <= compilation_unit_list ^ Wisi_EOI, 
+      7.0:wisitoken_accept <= compilation_unit_list ^ Wisi_EOI, Wisi_EOI
      12.0:compilation_unit_list <= compilation_unit_list ^ compilation_unit, PERCENT/PREAMBLE/Wisi_EOI
 
    PERCENT               => shift and goto state 1 (8.0)

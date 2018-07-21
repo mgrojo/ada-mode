@@ -22,18 +22,18 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
+with Wisi.Generate_Utils;
 with Wisi.Utils;  use Wisi.Utils;
 with WisiToken.Generate.Packrat;
 with WisiToken.Productions;
 procedure Wisi.Generate_Packrat
-  (Data         : in WisiToken.Generate.Packrat.Data;
-   Action_Names : not null access constant Names_Array_Array;
-   Check_Names  : not null access constant Names_Array_Array;
-   Descriptor   : in WisiToken.Descriptor)
+  (Data          : in WisiToken.Generate.Packrat.Data;
+   Generate_Data : in Wisi.Generate_Utils.Generate_Data)
 is
-   pragma Unreferenced (Check_Names);
-
    use WisiToken;
+
+   Descriptor   : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
+   Action_Names : Names_Array_Array renames Generate_Data.Action_Names.all;
 
    subtype Terminal is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
 

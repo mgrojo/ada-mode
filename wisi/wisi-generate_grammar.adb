@@ -21,8 +21,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 with WisiToken.Productions;
 procedure Wisi.Generate_Grammar
-  (Grammar      : in              WisiToken.Productions.Prod_Arrays.Vector;
-   Action_Names : not null access constant Names_Array_Array)
+  (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
+   Action_Names : in WisiToken.Names_Array_Array)
 is
    use all type Standard.Ada.Containers.Count_Type;
    use Standard.Ada.Strings.Unbounded;

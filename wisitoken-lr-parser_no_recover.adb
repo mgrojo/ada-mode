@@ -485,7 +485,6 @@ package body WisiToken.LR.Parser_No_Recover is
          end case;
 
       end loop;
-      New_Line (Current_Error);
    end Put_Errors;
 
 end WisiToken.LR.Parser_No_Recover;

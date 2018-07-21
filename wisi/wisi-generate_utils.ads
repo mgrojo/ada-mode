@@ -38,6 +38,12 @@ package Wisi.Generate_Utils is
       Tokens          : access constant Wisi.Tokens;
       Descriptor      : access WisiToken.Descriptor;
       Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
+
+      Action_Names : access Names_Array_Array;
+      Check_Names  : access Names_Array_Array;
+      --  Names of subprograms for each grammar semantic action and check;
+      --  non-null only if there is an action or check in the grammar.
+
       Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
       Conflicts       : WisiToken.LR.Generate_Utils.Conflict_Lists.List;

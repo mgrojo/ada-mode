@@ -32,20 +32,12 @@ package Wisi.Output_Ada_Common is
       Interface_Kind     : Valid_Interface;
       Text_Rep           : Boolean;
 
-      --  Various names
       Lower_File_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
-
-      Ada_Action_Names : access Names_Array_Array;
-      Ada_Check_Names  : access Names_Array_Array;
-      --  Ada names of subprograms for each grammar semantic action and check;
-      --  non-null only if there is an action or check in the grammar.
    end record;
 
    function Initialize
      (Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Tuple             : in Generate_Tuple;
-      First_Nonterminal : in WisiToken.Token_ID;
-      Last_Nonterminal  : in WisiToken.Token_ID;
       Output_File_Root  : in String;
       Check_Interface   : in Boolean)
      return Common_Data;

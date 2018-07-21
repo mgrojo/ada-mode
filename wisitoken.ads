@@ -409,4 +409,8 @@ package WisiToken is
      return String;
    --  Return Gnu-formatted error message.
 
+   type Names_Array is array (Integer range <>) of access constant String;
+   type Names_Array_Access is access Names_Array;
+   type Names_Array_Array is array (WisiToken.Token_ID range <>) of Names_Array_Access;
+
 end WisiToken;

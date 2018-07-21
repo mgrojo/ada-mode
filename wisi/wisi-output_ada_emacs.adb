@@ -56,9 +56,7 @@ is
    Blank_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ");
 
    Common_Data : Output_Ada_Common.Common_Data := Wisi.Output_Ada_Common.Initialize
-     (Input_Data, Tuple, Generate_Data.Descriptor.First_Nonterminal,
-      Generate_Data.Descriptor.Last_Nonterminal, Output_File_Name_Root,
-      Check_Interface => True);
+     (Input_Data, Tuple, Output_File_Name_Root, Check_Interface => True);
 
    Gen_Alg_Name : constant String :=
      (if Test_Main or Multiple_Tuples
@@ -976,9 +974,9 @@ is
    end Any_Motion_Actions;
 
    procedure Create_Ada_Actions_Body
-     (Ada_Action_Names : not null access Names_Array_Array;
-      Ada_Check_Names  : not null access Names_Array_Array;
-      Package_Name     : in     String)
+     (Action_Names : not null access WisiToken.Names_Array_Array;
+      Check_Names  : not null access WisiToken.Names_Array_Array;
+      Package_Name : in              String)
    is
       use Standard.Ada.Strings.Unbounded;
       use Generate_Utils;
@@ -1030,51 +1028,33 @@ is
       end if;
       New_Line;
 
-      --  generate Action and Check subprograms, populate Ada_Action_Names,
-      --  Ada_Check_Names.
+      --  generate Action and Check subprograms.
 
       for Rule of Input_Data.Tokens.Rules loop
          --  No need for a Token_Cursor here, since we only need the
          --  nonterminals.
          declare
-            LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
-
-            Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Check_Names      : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Prod_Index       : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
-            Action_All_Empty : Boolean := True;
-            Check_All_Empty  : Boolean := True;
+            LHS_ID     : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
+            Prod_Index : Integer                     := 0; -- Semantic_Action defines Prod_Index as zero-origin
          begin
             for RHS of Rule.Right_Hand_Sides loop
                if Length (RHS.Action) > 0 then
-                  Action_All_Empty := False;
                   declare
-                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Trimmed_Image (Prod_Index);
+                     Name : constant String := Action_Names (LHS_ID)(Prod_Index).all;
                   begin
-                     Action_Names (Prod_Index) := new String'(Name);
                      Create_Ada_Action (Name, RHS, RHS.Action, Check => False);
                   end;
                end if;
 
                if Length (RHS.Check) > 0 then
-                  Check_All_Empty := False;
                   declare
-                     Name : constant String := -Rule.Left_Hand_Side & '_' &
-                       WisiToken.Trimmed_Image (Prod_Index) & "_check";
+                     Name : constant String := Check_Names (LHS_ID)(Prod_Index).all;
                   begin
-                     Check_Names (Prod_Index) := new String'(Name);
                      Create_Ada_Action (Name, RHS, RHS.Check, Check => True);
                   end;
                end if;
                Prod_Index := Prod_Index + 1;
             end loop;
-
-            if not Action_All_Empty then
-               Ada_Action_Names (LHS_ID) := new Names_Array'(Action_Names);
-            end if;
-            if not Check_All_Empty then
-               Ada_Check_Names (LHS_ID) := new Names_Array'(Check_Names);
-            end if;
          end;
       end loop;
 
@@ -1086,16 +1066,13 @@ is
    end Create_Ada_Actions_Body;
 
    procedure Create_Ada_Main_Body
-     (File_Name            : in              String;
-      Ada_Action_Names     : not null access constant Names_Array_Array;
-      Ada_Check_Names      : not null access constant Names_Array_Array;
-      Actions_Package_Name : in              String;
-      Main_Package_Name    : in              String)
+     (File_Name            : in String;
+      Actions_Package_Name : in String;
+      Main_Package_Name    : in String)
    is
       use Wisi.Utils;
 
       Body_File : File_Type;
-
    begin
       Create (Body_File, Out_File, File_Name);
       Set_Output (Body_File);
@@ -1134,7 +1111,7 @@ is
          LR_Create_Create_Parser (Input_Data, Common_Data, Generate_Data);
 
       when Packrat_Gen =>
-         Wisi.Generate_Packrat (Packrat_Data, Ada_Action_Names, Ada_Check_Names, Generate_Data.Descriptor.all);
+         Wisi.Generate_Packrat (Packrat_Data, Generate_Data);
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
 
       when Packrat_Proc =>
@@ -1482,7 +1459,7 @@ begin
          when Module  => "_Module") &
         Gen_Alg_Name & "_Main";
    begin
-      Create_Ada_Actions_Body (Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Actions_Package_Name);
+      Create_Ada_Actions_Body (Generate_Data.Action_Names, Generate_Data.Check_Names, Actions_Package_Name);
 
       Create_Ada_Actions_Spec
         (Output_File_Name => Output_File_Name_Root &
@@ -1499,7 +1476,7 @@ begin
         (Output_File_Name_Root & "_" &
            To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
            To_Lower (Gen_Alg_Name) & "_main.adb",
-         Common_Data.Ada_Action_Names, Common_Data.Ada_Check_Names, Actions_Package_Name, Main_Package_Name);
+         Actions_Package_Name, Main_Package_Name);
 
       Create_Ada_Main_Spec
         (Output_File_Name  => Output_File_Name_Root & "_" &

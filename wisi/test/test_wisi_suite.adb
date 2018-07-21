@@ -62,9 +62,7 @@ begin
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_8"));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"identifier_list_name_conflict"));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"range_conflict"));
-
-   --  skip_to_grammar has AUnit in user actions; Wisi_WY_Test can't handle that.
-
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"skip_to_grammar"));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"subprograms"));
    Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"warth_left_recurse_expr_1"));
 

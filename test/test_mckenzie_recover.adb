@@ -416,7 +416,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
          Enqueue_Low             => 6,
-         Enqueue_High            => 40,
+         Enqueue_High            => 42,
          Check_Low               => 2,
          Check_High              => 20,
          Cost                    => 1);

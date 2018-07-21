@@ -1023,7 +1023,6 @@ package body WisiToken.LR.Parser is
             Put_Line (Current_Error, "   recovered: " & Image (Item.Recover.Ops, Descriptor));
          end if;
       end loop;
-      New_Line (Current_Error);
    end Put_Errors;
 
 end WisiToken.LR.Parser;

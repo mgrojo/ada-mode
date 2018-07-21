@@ -37,6 +37,7 @@ package body Wisi.Output_Ada_Common is
       Common_Data      :         in Output_Ada_Common.Common_Data;
       Generate_Data    : aliased in Wisi.Generate_Utils.Generate_Data)
    is
+      use all type WisiToken.Names_Array_Access;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -152,7 +153,7 @@ package body Wisi.Output_Ada_Common is
 
       end if;
 
-      for Name_List of Common_Data.Ada_Action_Names.all loop
+      for Name_List of Generate_Data.Action_Names.all loop
          if Name_List /= null then
             for Name of Name_List.all loop
                if Name /= null then
@@ -166,7 +167,7 @@ package body Wisi.Output_Ada_Common is
          end if;
       end loop;
 
-      for Name_List of Common_Data.Ada_Check_Names.all loop
+      for Name_List of Generate_Data.Check_Names.all loop
          if Name_List /= null then
             for Name of Name_List.all loop
                if Name /= null then
@@ -315,10 +316,7 @@ package body Wisi.Output_Ada_Common is
 
    end Create_Ada_Main_Spec;
 
-   procedure Create_LR_Parser_Core_1
-     (Generate_Data : in     Wisi.Generate_Utils.Generate_Data;
-      Common_Data   : in out Output_Ada_Common.Common_Data;
-      Table         : in     WisiToken.LR.Parse_Table_Ptr)
+   procedure Create_LR_Parser_Core_1 (Generate_Data : in Wisi.Generate_Utils.Generate_Data)
    is
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
@@ -328,7 +326,8 @@ package body Wisi.Output_Ada_Common is
       subtype Nonterminal_ID is Token_ID range
         Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index;
 
-      Line : Unbounded_String;
+      Table : WisiToken.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
+      Line  : Unbounded_String;
 
       procedure Append (Item : in String)
       is begin
@@ -412,14 +411,14 @@ package body Wisi.Output_Ada_Common is
 
                   Append ("), ");
                   Append
-                    ((if Common_Data.Ada_Action_Names (P.LHS) = null then "null"
-                      elsif Common_Data.Ada_Action_Names (P.LHS)(J) = null then "null"
-                      else Common_Data.Ada_Action_Names (P.LHS)(J).all & "'Access"));
+                    ((if Generate_Data.Action_Names (P.LHS) = null then "null"
+                      elsif Generate_Data.Action_Names (P.LHS)(J) = null then "null"
+                      else Generate_Data.Action_Names (P.LHS)(J).all & "'Access"));
                   Append (", ");
                   Append
-                    ((if Common_Data.Ada_Check_Names (P.LHS) = null then "null"
-                      elsif Common_Data.Ada_Check_Names (P.LHS)(J) = null then "null"
-                      else Common_Data.Ada_Check_Names (P.LHS)(J).all & "'Access"));
+                    ((if Generate_Data.Check_Names (P.LHS) = null then "null"
+                      elsif Generate_Data.Check_Names (P.LHS)(J) = null then "null"
+                      else Generate_Data.Check_Names (P.LHS)(J).all & "'Access"));
                end;
                Append (");");
                Indent_Wrap (-Line);
@@ -474,17 +473,17 @@ package body Wisi.Output_Ada_Common is
    end Create_LR_Parser_Core_1;
 
    procedure Create_LR_Parser_Table
-     (Input_Data    : in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Common_Data   : in out Output_Ada_Common.Common_Data;
-      Table         : in     WisiToken.LR.Parse_Table_Ptr)
+     (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Generate_Data : in Wisi.Generate_Utils.Generate_Data)
    is
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
       use WisiToken;
 
+      Table            : WisiToken.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
       Lines_Per_Subr   : constant := 1000;
       Subr_Count       : Integer  := 1;
-      Last_Subr_Closed : Boolean := False;
+      Last_Subr_Closed : Boolean  := False;
       Line             : Unbounded_String;
 
       procedure Append (Item : in String)
@@ -533,17 +532,17 @@ package body Wisi.Output_Ada_Common is
                     Count_Type'Image (Action.Token_Count) & ", ";
 
                   Append
-                    ((if Common_Data.Ada_Action_Names (Action.Production.Nonterm) = null then "null"
-                      elsif Common_Data.Ada_Action_Names
+                    ((if Generate_Data.Action_Names (Action.Production.Nonterm) = null then "null"
+                      elsif Generate_Data.Action_Names
                         (Action.Production.Nonterm)(Action.Production.RHS) = null then "null"
-                      else Common_Data.Ada_Action_Names
+                      else Generate_Data.Action_Names
                         (Action.Production.Nonterm)(Action.Production.RHS).all & "'Access"));
                   Append (", ");
                   Append
-                    ((if Common_Data.Ada_Check_Names (Action.Production.Nonterm) = null then "null"
-                      elsif Common_Data.Ada_Check_Names
+                    ((if Generate_Data.Check_Names (Action.Production.Nonterm) = null then "null"
+                      elsif Generate_Data.Check_Names
                         (Action.Production.Nonterm)(Action.Production.RHS) = null then "null"
-                      else Common_Data.Ada_Check_Names
+                      else Generate_Data.Check_Names
                         (Action.Production.Nonterm)(Action.Production.RHS).all & "'Access"));
 
                   Indent_Wrap (-Line & ");");
@@ -578,20 +577,20 @@ package body Wisi.Output_Ada_Common is
                         Append (Image (Action_Node.Item.Production) & ",");
                         Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                         Append
-                          ((if Common_Data.Ada_Action_Names (Action_Node.Item.Production.Nonterm) = null then "null"
-                            elsif Common_Data.Ada_Action_Names
+                          ((if Generate_Data.Action_Names (Action_Node.Item.Production.Nonterm) = null then "null"
+                            elsif Generate_Data.Action_Names
                               (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS) = null
                             then "null"
-                            else Common_Data.Ada_Action_Names
+                            else Generate_Data.Action_Names
                               (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS).all &
                                "'Access"));
                         Append (", ");
                         Append
-                          ((if Common_Data.Ada_Check_Names (Action_Node.Item.Production.Nonterm) = null then "null"
-                            elsif Common_Data.Ada_Check_Names
+                          ((if Generate_Data.Check_Names (Action_Node.Item.Production.Nonterm) = null then "null"
+                            elsif Generate_Data.Check_Names
                               (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS) = null
                             then "null"
-                            else Common_Data.Ada_Check_Names
+                            else Generate_Data.Check_Names
                               (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS).all &
                                "'Access"));
 
@@ -609,20 +608,20 @@ package body Wisi.Output_Ada_Common is
                            Append (Image (Action_Node.Item.Production) & ",");
                            Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                            Append
-                             ((if Common_Data.Ada_Action_Names (Action_Node.Item.Production.Nonterm) = null then "null"
-                               elsif Common_Data.Ada_Action_Names
+                             ((if Generate_Data.Action_Names (Action_Node.Item.Production.Nonterm) = null then "null"
+                               elsif Generate_Data.Action_Names
                                  (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS) = null
                                then "null"
-                               else Common_Data.Ada_Action_Names
+                               else Generate_Data.Action_Names
                                  (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS).all &
                                   "'Access"));
                            Append (", ");
                            Append
-                             ((if Common_Data.Ada_Check_Names (Action_Node.Item.Production.Nonterm) = null then "null"
-                               elsif Common_Data.Ada_Check_Names
+                             ((if Generate_Data.Check_Names (Action_Node.Item.Production.Nonterm) = null then "null"
+                               elsif Generate_Data.Check_Names
                                  (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS) = null
                                then "null"
-                               else Common_Data.Ada_Check_Names
+                               else Generate_Data.Check_Names
                                  (Action_Node.Item.Production.Nonterm)(Action_Node.Item.Production.RHS).all &
                                   "'Access"));
 
@@ -731,8 +730,7 @@ package body Wisi.Output_Ada_Common is
       Indent_Line ("use WisiToken.LR;");
 
       if Common_Data.Text_Rep then
-         Create_LR_Parser_Core_1
-           (Generate_Data, Common_Data, Generate_Data.LR_Parse_Table);
+         Create_LR_Parser_Core_1 (Generate_Data);
          Indent_Line ("Table : constant Parse_Table_Ptr := Get_Text_Rep");
          Indent_Line ("  (Text_Rep_File_Name, McKenzie_Param, Productions, Minimal_Terminal_Sequences);");
          Indent := Indent - 3;
@@ -741,8 +739,7 @@ package body Wisi.Output_Ada_Common is
 
       else
          if Input_Data.Language_Params.Error_Recover then
-            Create_LR_Parser_Core_1
-              (Generate_Data, Common_Data, Generate_Data.LR_Parse_Table);
+            Create_LR_Parser_Core_1 (Generate_Data);
          end if;
 
          Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
@@ -766,7 +763,7 @@ package body Wisi.Output_Ada_Common is
             Indent_Line ("Table.Productions := Productions;");
             Indent_Line ("Table.Minimal_Terminal_Sequences := Minimal_Terminal_Sequences;");
          end if;
-         Create_LR_Parser_Table (Input_Data, Common_Data, Generate_Data.LR_Parse_Table);
+         Create_LR_Parser_Table (Input_Data, Generate_Data);
          New_Line;
       end if;
 
@@ -863,7 +860,7 @@ package body Wisi.Output_Ada_Common is
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Wisi.Generate_Grammar (Generate_Data.Grammar, Common_Data.Ada_Action_Names);
+         Wisi.Generate_Grammar (Generate_Data.Grammar, Generate_Data.Action_Names.all);
 
          Indent_Line ("return WisiToken.Parse.Packrat.Procedural.Create");
          Indent_Line
@@ -1282,8 +1279,6 @@ package body Wisi.Output_Ada_Common is
    function Initialize
      (Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Tuple             : in Generate_Tuple;
-      First_Nonterminal : in WisiToken.Token_ID;
-      Last_Nonterminal  : in WisiToken.Token_ID;
       Output_File_Root  : in String;
       Check_Interface   : in Boolean)
      return Common_Data
@@ -1314,9 +1309,6 @@ package body Wisi.Output_Ada_Common is
          Data.Text_Rep := Tuple.Text_Rep;
 
          Data.Lower_File_Name_Root := +To_Lower (Output_File_Root);
-
-         Data.Ada_Action_Names := new Names_Array_Array (First_Nonterminal .. Last_Nonterminal);
-         Data.Ada_Check_Names := new Names_Array_Array (First_Nonterminal .. Last_Nonterminal);
       end return;
    end Initialize;
 

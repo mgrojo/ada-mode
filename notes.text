@@ -20,6 +20,8 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+multi-cpu for lr1 generate
+
 set lines_per_subr on wisitoken command line
     optimize for ada_lite, ada
 
@@ -28,8 +30,6 @@ LR1 Ada 1092.640 = 18 min, barely tolerable
     101_484 states, 1_367_186 parse actions
     ada_lr1_re2c.parse_table is 2_145_051 lines, 150.5MB
     ada_process_lr1_main.adb 72.7MB, 1_406_676 lines
-
-    consider multi-cpu for lr1 ada
 
 gnat deadly slow compiling ada_process_lr1_main.adb; too many lines in one subroutine
     o.e.a.s-2 ada_process_lalr_main.adb has 14_089 lines in create_parser - deadly slow

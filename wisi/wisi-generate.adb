@@ -423,7 +423,8 @@ begin
                     (Generate_Data.LR_Parse_Table.all,
                      -Output_File_Name_Root & "_" &
                        To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
-                       "_parse_table.txt");
+                       "_parse_table.txt",
+                    Generate_Data.Action_Names.all, Generate_Data.Check_Names.all);
                end if;
 
             when others =>
