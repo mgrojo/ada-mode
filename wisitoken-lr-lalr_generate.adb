@@ -322,10 +322,11 @@ package body WisiToken.LR.LALR_Generate is
                   exit when not Has_Element (To_Match);
 
                   declare
+                     use all type SAL.Compare_Result;
                      Cur       : Item_Lists.Cursor renames Constant_Ref (To_Match);
                      Test_Item : LR1_Items.Item renames Constant_Ref (Cur);
                   begin
-                     if LR1_Items.Item_Equal (Test_Item, Constant_Ref (To_Item)) then
+                     if Equal = LR1_Items.Item_Compare (Test_Item, Constant_Ref (To_Item)) then
                         exit Find_From;
                      end if;
                   end;

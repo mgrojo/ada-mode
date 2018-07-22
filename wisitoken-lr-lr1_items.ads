@@ -111,14 +111,11 @@ package WisiToken.LR.LR1_Items is
    function Lookahead_Image (Item : in Lookahead; Descriptor : in WisiToken.Descriptor) return String;
    --  Returns the format used in parse table output.
 
-   function Item_Greater (Left, Right : in Item) return Boolean;
+   function Item_Compare (Left, Right : in Item) return SAL.Compare_Result;
    --  Sort Item_Lists in ascending order of Prod.Nonterm, Prod.RHS, Dot;
    --  ignores Lookaheads.
 
-   function Item_Equal (Left, Right : in Item) return Boolean;
-   --  Compare Prod.Nonterm, Prod.RHS, Dot, ignore Lookaheads.
-
-   package Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Item, Item_Greater, Item_Equal);
+   package Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Item, Item_Compare);
 
    procedure Include
      (Item  : in out LR1_Items.Item;
@@ -151,15 +148,14 @@ package WisiToken.LR.LR1_Items is
       State  : State_Index;
    end record;
 
-   function Goto_Item_Greater (Left, Right : in Goto_Item) return Boolean is
-     (Left.Symbol > Right.Symbol);
+   function Goto_Item_Compare (Left, Right : in Goto_Item) return SAL.Compare_Result is
+     (if Left.Symbol > Right.Symbol then SAL.Greater
+      elsif Left.Symbol < Right.Symbol then SAL.Less
+      else SAL.Equal);
    --  Sort Goto_Item_Lists in ascending order of Symbol.
 
-   function Goto_Item_Equal (Left, Right : in Goto_Item) return Boolean is
-     (Left.Symbol = Right.Symbol);
-
    package Goto_Item_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted
-     (Goto_Item, Goto_Item_Greater, Goto_Item_Equal);
+     (Goto_Item, Goto_Item_Compare);
 
    type Item_Set is record
       Set       : Item_Lists.List;
@@ -266,8 +262,9 @@ package WisiToken.LR.LR1_Items is
       Item_Set_Tree    : in Item_Set_Trees.Tree;
       Match_Lookaheads : in Boolean)
      return Unknown_State_Index;
-   --  Return the index into Right of an element matching Left, Unknown_State if
-   --  not found.
+   --  Return the index into Item_Set_Array of an element matching
+   --  New_Item_Set, Unknown_State if not found. Item_Set_Tree must match
+   --  Item_Set_Array.
    --
    --  Match_Lookaheads is True in LR1_Generate.
 

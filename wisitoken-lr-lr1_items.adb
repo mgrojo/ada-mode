@@ -88,33 +88,33 @@ package body WisiToken.LR.LR1_Items is
       return To_String (Result);
    end Lookahead_Image;
 
-   function Item_Greater (Left, Right : in Item) return Boolean
+   function Item_Compare (Left, Right : in Item) return SAL.Compare_Result
    is begin
       if Left.Prod.Nonterm > Right.Prod.Nonterm then
-         return True;
+         return SAL.Greater;
       elsif Left.Prod.Nonterm < Right.Prod.Nonterm then
-         return False;
+         return SAL.Less;
 
       elsif Left.Prod.RHS > Right.Prod.RHS then
-         return True;
+         return SAL.Greater;
       elsif Left.Prod.RHS < Right.Prod.RHS then
-         return False;
+         return SAL.Less;
 
       else
-         return Token_ID_Arrays.To_Index (Left.Dot) > Token_ID_Arrays.To_Index (Right.Dot);
+         declare
+            Left_Index : Integer renames Token_ID_Arrays.To_Index (Left.Dot);
+            Right_Index : Integer renames Token_ID_Arrays.To_Index (Right.Dot);
+         begin
+            if Left_Index > Right_Index then
+               return SAL.Greater;
+            elsif Left_Index < Right_Index then
+               return SAL.Less;
+            else
+               return SAL.Equal;
+            end if;
+         end;
       end if;
-   end Item_Greater;
-
-   function Item_Equal (Left, Right : in Item) return Boolean
-   is begin
-      if Left.Prod.Nonterm /= Right.Prod.Nonterm then
-         return False;
-      elsif Left.Prod.RHS /= Right.Prod.RHS then
-         return False;
-      else
-         return Token_ID_Arrays.To_Index (Left.Dot) = Token_ID_Arrays.To_Index (Right.Dot);
-      end if;
-   end Item_Equal;
+   end Item_Compare;
 
    procedure Include
      (Item  : in out LR1_Items.Item;
