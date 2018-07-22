@@ -22,23 +22,92 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    ----------
    --  Body subprograms, alphabetical
 
-   function Find (Container : in List; Element : in Element_Type) return Node_Access
+   procedure Find
+     (Container     : in     List;
+      Element       : in     Element_Type;
+      Found         :    out Node_Access;
+      Found_Compare :    out Compare_Result)
    is
-      --  Return pointer to first item in Container for which Element_Order
-      --  (item, element) returns True.
-      Node : Node_Access := Container.Head;
+      --  Return pointer to first item in Container for which Compare (item,
+      --  element) returns True or Greater. If no such element exists, Found
+      --  is null, Found_Compare is Less.
+      use Ada.Containers;
    begin
-      loop
-         exit when Node = null;
+      if Container.Head = null then
+         Found         := null;
+         Found_Compare := Less;
+         return;
+      end if;
 
-         if Element_Order (Node.Element, Element) then
-            return Node;
-         end if;
+      declare
+         Low_Index  : Count_Type  := 1;
+         High_Index : Count_Type  := Container.Count;
+         Next_Node  : Node_Access := Container.Head;
+         Next_Index : Count_Type  := Low_Index;
+         Old_Index  : Count_Type;
+      begin
+         loop
+            Old_Index  := Next_Index;
+            Next_Index := (Low_Index + High_Index) / 2;
 
-         Node := Node.Next;
-      end loop;
+            if Next_Index > Old_Index then
+               for I in Old_Index + 1 .. Next_Index loop
+                  Next_Node := Next_Node.Next;
+               end loop;
+            elsif Next_Index < Old_Index then
+               for I in Next_Index .. Old_Index - 1 loop
+                  Next_Node := Next_Node.Prev;
+               end loop;
+            end if;
 
-      return null;
+            case Element_Compare (Next_Node.Element, Element) is
+            when Less =>
+               if Next_Index = High_Index then
+                  --  no more nodes to check
+                  Found         := null;
+                  Found_Compare := Less;
+                  return;
+               elsif Next_Index = Low_Index then
+                  --  force check of high_index
+                  Low_Index := High_Index;
+               else
+                  Low_Index := Next_Index;
+               end if;
+
+            when Equal =>
+               Found         := Next_Node;
+               Found_Compare := Equal;
+               return;
+
+            when Greater =>
+               if Low_Index = Next_Index then
+                  --  no more nodes to check
+                  Found         := Next_Node;
+                  Found_Compare := Greater;
+                  return;
+               elsif High_Index = Next_Index then
+                  --  Desired result is either high_index or low_index
+                  pragma Assert (Low_Index + 1 = High_Index);
+                  case Element_Compare (Next_Node.Prev.Element, Element) is
+                  when Less =>
+                     Found         := Next_Node;
+                     Found_Compare := Greater;
+                     return;
+                  when Equal =>
+                     Found         := Next_Node.Prev;
+                     Found_Compare := Equal;
+                     return;
+                  when Greater =>
+                     Found         := Next_Node.Prev;
+                     Found_Compare := Greater;
+                     return;
+                  end case;
+               else
+                  High_Index := Next_Index;
+               end if;
+            end case;
+         end loop;
+      end;
    end Find;
 
    procedure Insert_Before
@@ -161,12 +230,13 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    procedure Insert (Container : in out List; Element : in Element_Type)
    is
       use all type Ada.Containers.Count_Type;
-      Node : Node_Access := Container.Head;
+      Node    : Node_Access := Container.Head;
+      Compare : Compare_Result;
    begin
       if Node = null then
          Container := To_List (Element);
       else
-         Node := Find (Container, Element);
+         Find (Container, Element, Node, Compare);
 
          Container.Count := Container.Count + 1;
 
@@ -179,8 +249,12 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    end Insert;
 
    function Contains (Container : in List; Element : in Element_Type) return Boolean
-   is begin
-      return null /= Find (Container, Element);
+   is
+      Node    : Node_Access := Container.Head;
+      Compare : Compare_Result;
+   begin
+      Find (Container, Element, Node, Compare);
+      return Compare /= Equal;
    end Contains;
 
    procedure Merge
@@ -218,18 +292,21 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
                Insert_After_Tail (Target, Source_I.Element);
                Source_I := Source_I.Next;
 
-            elsif Element_Order (Target_I.Element, Source_I.Element) then
-               Added := True;
-               Target.Count := Target.Count + 1;
-               Insert_Before (Target, Target_I, Source_I.Element);
-               Source_I := Source_I.Next;
-
-            elsif Target_I.Element = Source_I.Element then
-               Target_I := Target_I.Next;
-               Source_I := Source_I.Next;
-
             else
-               Target_I := Target_I.Next;
+               case Element_Compare (Target_I.Element, Source_I.Element) is
+               when Greater =>
+                  Added := True;
+                  Target.Count := Target.Count + 1;
+                  Insert_Before (Target, Target_I, Source_I.Element);
+                  Source_I := Source_I.Next;
+
+               when Equal =>
+                  Target_I := Target_I.Next;
+                  Source_I := Source_I.Next;
+
+               when Less =>
+                  Target_I := Target_I.Next;
+               end case;
             end if;
          end loop;
       end if;
@@ -277,18 +354,21 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
             Insert_After_Tail (Target, Source_I.Element);
             Source_I := Source_I.Next;
 
-         elsif Element_Order (Target_I.Element, Source_I.Element) then
-            Added := True;
-            Target.Count := Target.Count + 1;
-            Insert_Before (Target, Target_I, Source_I.Element);
-            Source_I := Source_I.Next;
-
-         elsif Target_I.Element = Source_I.Element then
-            Target_I := Target_I.Next;
-            Source_I := Source_I.Next;
-
          else
-            Target_I := Target_I.Next;
+            case Element_Compare (Target_I.Element, Source_I.Element) is
+            when Greater =>
+               Added := True;
+               Target.Count := Target.Count + 1;
+               Insert_Before (Target, Target_I, Source_I.Element);
+               Source_I := Source_I.Next;
+
+            when Equal =>
+               Target_I := Target_I.Next;
+               Source_I := Source_I.Next;
+
+            when Less =>
+               Target_I := Target_I.Next;
+            end case;
          end if;
       end loop;
    end Merge;
@@ -318,24 +398,17 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
 
    function Find (Container : in List; Element : in Element_Type) return Cursor
    is
-      Node : constant Node_Access := Find (Container, Element);
+      Node    : Node_Access;
+      Compare : Compare_Result;
    begin
+      Find (Container, Element, Node, Compare);
+
       if Node = null then
-         if Container.Tail = null then
-            return No_Element;
-         elsif Element_Equal (Container.Tail.Element, Element) then
-            return (Container'Unrestricted_Access, Container.Tail);
-         else
-            return No_Element;
-         end if;
+         return No_Element;
+      elsif Compare = Equal then
+         return (Container'Unrestricted_Access, Node);
       else
-         if Node.Prev = null then
-            return No_Element;
-         elsif Element_Equal (Node.Prev.Element, Element) then
-            return (Container'Unrestricted_Access, Node.Prev);
-         else
-            return No_Element;
-         end if;
+         return No_Element;
       end if;
    end Find;
 

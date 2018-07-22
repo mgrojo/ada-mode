@@ -23,7 +23,18 @@ with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Validate;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit;
 package body Test_Definite_Doubly_Linked_Lists_Sorted is
 
-   package Integer_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Integer, ">", "=");
+   function Compare_Int (Left, Right : in Integer) return SAL.Compare_Result
+   is begin
+      if Left > Right then
+         return SAL.Greater;
+      elsif Left = Right then
+         return SAL.Equal;
+      else
+         return SAL.Less;
+      end if;
+   end Compare_Int;
+
+   package Integer_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Integer, Compare_Int);
    use Integer_Lists;
 
    package Val is new Integer_Lists.Gen_Validate;
@@ -147,15 +158,45 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
       Check ("1", Cur, No_Element);
 
       Insert (List, 1);
+      Check ("2a", Constant_Ref (Find (List, 1)), 1);
+      Check ("2b", Find (List, 0), No_Element);
+      Check ("2c", Find (List, 4), No_Element);
+
       Insert (List, 5);
+      Check ("3a", Constant_Ref (Find (List, 1)), 1);
+      Check ("3b", Constant_Ref (Find (List, 5)), 5);
+      Check ("3c", Find (List, 0), No_Element);
+      Check ("3d", Find (List, 4), No_Element);
+      Check ("3e", Find (List, 6), No_Element);
+
       Insert (List, 3);
 
-      Check ("2", Constant_Ref (Find (List, 1)), 1);
-      Check ("3", Constant_Ref (Find (List, 3)), 3);
-      Check ("4", Constant_Ref (Find (List, 5)), 5);
-      Check ("5", Find (List, 4), No_Element);
-      Check ("6", Find (List, 0), No_Element);
-      Check ("7", Find (List, 6), No_Element);
+      Check ("4a", Constant_Ref (Find (List, 1)), 1);
+      Check ("4b", Constant_Ref (Find (List, 3)), 3);
+      Check ("4c", Constant_Ref (Find (List, 5)), 5);
+      Check ("4d", Find (List, 0), No_Element);
+      Check ("4e", Find (List, 4), No_Element);
+      Check ("4f", Find (List, 6), No_Element);
+
+      Insert (List, 6);
+      Insert (List, 7);
+      Insert (List, 8);
+
+      Val.Validate ("5a", List);
+      Check ("5b", List.Length, 6);
+      Cur := List.First;
+      Check ("5c", Constant_Ref (Cur), 1);
+      Next (Cur);
+      Check ("5d", Constant_Ref (Cur), 3);
+      Next (Cur);
+      Check ("5e", Constant_Ref (Cur), 5);
+      Next (Cur);
+      Check ("5f", Constant_Ref (Cur), 6);
+      Next (Cur);
+      Check ("5g", Constant_Ref (Cur), 7);
+      Next (Cur);
+      Check ("5h", Constant_Ref (Cur), 8);
+      Check ("5i", Constant_Ref (List.Find (8)), 8);
    end Test_Find;
 
    ----------
