@@ -20,12 +20,15 @@ pragma License (GPL);
 
 with AUnit.Checks.Containers;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Validate;
+with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit;
 package body Test_Definite_Doubly_Linked_Lists_Sorted is
 
    package Integer_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted (Integer, ">", "=");
    use Integer_Lists;
 
    package Val is new Integer_Lists.Gen_Validate;
+
+   package Lists_AUnit is new Integer_Lists.Gen_AUnit;
 
    ----------
    --  Test procedures
@@ -127,6 +130,34 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
       end;
    end Nominal;
 
+   procedure Test_Find (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+      use Lists_AUnit;
+
+      List : Integer_Lists.List;
+      Cur : Cursor;
+   begin
+      Check ("0", List.Length, 0);
+
+      Cur := Find (List, 1);
+      Check ("1", Cur, No_Element);
+
+      Insert (List, 1);
+      Insert (List, 5);
+      Insert (List, 3);
+
+      Check ("2", Constant_Ref (Find (List, 1)), 1);
+      Check ("3", Constant_Ref (Find (List, 3)), 3);
+      Check ("4", Constant_Ref (Find (List, 5)), 5);
+      Check ("5", Find (List, 4), No_Element);
+      Check ("6", Find (List, 0), No_Element);
+      Check ("7", Find (List, 6), No_Element);
+   end Test_Find;
+
    ----------
    --  Public routines
 
@@ -135,6 +166,7 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Test_Find'Access, "Test_Find");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

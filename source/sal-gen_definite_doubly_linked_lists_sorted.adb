@@ -22,6 +22,25 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    ----------
    --  Body subprograms, alphabetical
 
+   function Find (Container : in List; Element : in Element_Type) return Node_Access
+   is
+      --  Return pointer to first item in Container for which Element_Order
+      --  (item, element) returns True.
+      Node : Node_Access := Container.Head;
+   begin
+      loop
+         exit when Node = null;
+
+         if Element_Order (Node.Element, Element) then
+            return Node;
+         end if;
+
+         Node := Node.Next;
+      end loop;
+
+      return null;
+   end Find;
+
    procedure Insert_Before
      (Container : in out List;
       Before    : in     Node_Access;
@@ -147,40 +166,21 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       if Node = null then
          Container := To_List (Element);
       else
+         Node := Find (Container, Element);
+
          Container.Count := Container.Count + 1;
 
-         loop
-            exit when Node = null;
-
-            if Element_Order (Node.Element, Element) then
-               Insert_Before (Container, Node, Element);
-               return;
-            end if;
-
-            Node := Node.Next;
-         end loop;
-
-         Insert_After_Tail (Container, Element);
+         if Node = null then
+            Insert_After_Tail (Container, Element);
+         else
+            Insert_Before (Container, Node, Element);
+         end if;
       end if;
    end Insert;
 
    function Contains (Container : in List; Element : in Element_Type) return Boolean
-   is
-      Node : Node_Access := Container.Head;
-   begin
-      loop
-         exit when Node = null;
-
-         if Element_Order (Node.Element, Element) then
-            return False;
-
-         elsif Node.Element = Element then
-            return True;
-         end if;
-
-         Node := Node.Next;
-      end loop;
-      return False;
+   is begin
+      return null /= Find (Container, Element);
    end Contains;
 
    procedure Merge
@@ -318,21 +318,25 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
 
    function Find (Container : in List; Element : in Element_Type) return Cursor
    is
-      Node : Node_Access := Container.Head;
+      Node : constant Node_Access := Find (Container, Element);
    begin
-      loop
-         exit when Node = null;
-
-         if Element_Order (Node.Element, Element) then
+      if Node = null then
+         if Container.Tail = null then
             return No_Element;
-
-         elsif Element_Equal (Node.Element, Element) then
-            return (Container'Unrestricted_Access, Node);
+         elsif Element_Equal (Container.Tail.Element, Element) then
+            return (Container'Unrestricted_Access, Container.Tail);
+         else
+            return No_Element;
          end if;
-
-         Node := Node.Next;
-      end loop;
-      return No_Element;
+      else
+         if Node.Prev = null then
+            return No_Element;
+         elsif Element_Equal (Node.Prev.Element, Element) then
+            return (Container'Unrestricted_Access, Node.Prev);
+         else
+            return No_Element;
+         end if;
+      end if;
    end Find;
 
    procedure Next (Position : in out Cursor)
