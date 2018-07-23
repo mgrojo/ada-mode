@@ -2,13 +2,13 @@
 
 all : test_all_harness.diff
 
+export Standard_Common_Build := Debug
+
 #../test/test_all_harness.adb
 #../test/test_one_harness.adb
-t_one : export Standard_Common_Build := Debug
 #t_one : export GPRBUILD_ARGS := -gnatG -gnatL
 t_one : test_one_harness.run
 
-t_all : export Standard_Common_Build := Debug
 t_all : test_all_harness.run
 
 trace :
