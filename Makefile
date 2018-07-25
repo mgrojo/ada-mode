@@ -17,6 +17,8 @@ update-elisp : build_ada_executables
 update-elisp : autoloads
 update-elisp : byte-compile
 
+update-install : update-elisp install_ada_executables
+
 test : test-wisi_grammar.stamp
 
 ONE_TEST_FILE := ada.wy

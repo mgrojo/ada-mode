@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS wisi_grammar_1.wy
+--  command line: wisi-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS wisi_grammar_1.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -80,7 +80,7 @@ package Wisi_Grammar_1_Process_Actions is
          new String'("compilation_unit_list")),
       Terminal_Image_Width => 23,
       Image_Width          => 25,
-      Last_Lookahead       => 26);
+      Last_Lookahead       => 25);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,

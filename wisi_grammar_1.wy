@@ -68,7 +68,8 @@
 %elisp_face font-lock-type-face
 %elisp_face nil
 
-%generate LALR Ada_Emacs re2c Process
+;; LR1 for better error correction
+%generate LR1 Ada_Emacs re2c Process
 %start compilation_unit_list
 
 %mckenzie_cost_default 2 2 4 1 1
