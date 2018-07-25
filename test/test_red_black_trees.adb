@@ -22,7 +22,6 @@ with Ada.Containers;
 with AUnit.Assertions;
 with AUnit.Checks;
 with AUnit.Checks.Containers;
-with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test;
 package body Test_Red_Black_Trees is
 
@@ -31,14 +30,18 @@ package body Test_Red_Black_Trees is
    end record;
 
    function Key (Item : in Cache_Type) return Integer
-   is begin
-      return Item.Pos;
-   end Key;
+   is (Item.Pos);
+
+   function Key_Compare (Left, Right : in Integer) return SAL.Compare_Result is
+     (if Left > Right then SAL.Greater
+      elsif Left < Right then SAL.Less
+      else SAL.Equal);
 
    package Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
      (Element_Type => Cache_Type,
       Key_Type     => Integer,
-      Key          => Key);
+      Key          => Key,
+      Key_Compare  => Key_Compare);
 
    package Tree_Test is new Trees.Gen_Test (Integer'Image);
    use Tree_Test;

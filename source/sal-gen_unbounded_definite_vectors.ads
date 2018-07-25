@@ -48,7 +48,9 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    overriding procedure Finalize (Container : in out Vector);
    overriding procedure Adjust (Container : in out Vector);
 
-   overriding function "=" (Left, Right : in Vector) return Boolean;
+   overriding function "=" (Left, Right : in Vector) return Boolean is
+     (raise Programmer_Error);
+   --  Use Gen_Comparable child.
 
    function Length (Container : in Vector) return Ada.Containers.Count_Type;
    function Capacity (Container : in Vector) return Ada.Containers.Count_Type;

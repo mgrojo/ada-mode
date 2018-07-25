@@ -41,15 +41,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    ----------
    --  local bodies (alphabetical order)
 
-   function "<=" (Left, Right : in Key_Type) return Boolean is
-     (Left < Right or Left = Right);
-
-   function ">" (Left, Right : in Key_Type) return Boolean is
-     (not (Left < Right) and not (Left = Right));
-
-   function ">=" (Left, Right : in Key_Type) return Boolean is
-     (not (Left < Right));
-
    function Count_Tree (Item : in Node_Access; Nil : in Node_Access) return Ada.Containers.Count_Type
    is
       use all type Ada.Containers.Count_Type;
@@ -136,13 +127,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Node : Node_Access := Root;
    begin
       while Node /= Nil loop
-         if Key = Pkg.Key (Node.Element) then
+         case Key_Compare (Key, Pkg.Key (Node.Element)) is
+         when Equal =>
             return Node;
-         elsif Key < Pkg.Key (Node.Element) then
+         when Less =>
             Node := Node.Left;
-         else
+         when Greater =>
             Node := Node.Right;
-         end if;
+         end case;
       end loop;
       return null;
    end Find;
@@ -559,22 +551,24 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          declare
             Current_Key : Key_Type renames Pkg.Key (Node.Element);
          begin
-            if Key = Current_Key then
-               return Previous (Iterator, (Node, Descending, Right_Done => True, Left_Done => False));
+            case Key_Compare (Key, Current_Key) is
+            when Equal =>
+                  return Previous (Iterator, (Node, Descending, Right_Done => True, Left_Done => False));
 
-            elsif Key < Current_Key then
+            when Less =>
                if Node.Left = Nil then
                   return Previous (Iterator, (Node, Descending, Right_Done => True, Left_Done => True));
                else
                   Node := Node.Left;
                end if;
-            else
+
+            when Greater =>
                if Node.Right = Nil then
                   return (Node, Descending, Right_Done => True, Left_Done => False);
                else
                   Node := Node.Right;
                end if;
-            end if;
+            end case;
          end;
       end loop;
 
@@ -627,31 +621,37 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    begin
       while Node /= Nil loop
          declare
-            Current_Key : Key_Type renames Pkg.Key (Node.Element);
+            Current_Key : Key_Type renames Key (Node.Element);
          begin
             case Direction is
             when Ascending =>
-               if First = Current_Key then
-                  return (Node, Ascending, Right_Done => False, Left_Done => True);
+               case Key_Compare (First, Current_Key) is
+               when Equal =>
+                     return (Node, Ascending, Right_Done => False, Left_Done => True);
 
-               elsif First < Current_Key then
+               when Less =>
                   if Node.Left = Nil then
-                     if Current_Key <= Last then
+                     case Key_Compare (Current_Key, Last) is
+                     when Less | Equal =>
                         return (Node, Ascending, Right_Done => False, Left_Done => True);
-                     else
+                     when Greater =>
                         if Candidate = null then
                            return No_Element;
                         else
                            return (Candidate, Ascending, Right_Done => False, Left_Done => True);
                         end if;
-                     end if;
+                     end case;
                   else
-                     if Last >= Current_Key then
+                     case Key_Compare (Last, Current_Key) is
+                     when Greater | Equal =>
                         Candidate := Node;
-                     end if;
+                     when Less =>
+                        null;
+                     end case;
                      Node := Node.Left;
                   end if;
-               else
+
+               when Greater =>
                   if Node.Right = Nil then
                      if Candidate = null then
                         return No_Element;
@@ -661,39 +661,46 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
                   else
                      Node := Node.Right;
                   end if;
-               end if;
+               end case;
 
             when Descending =>
                if Last = Current_Key then
                   return (Node, Descending, Right_Done => True, Left_Done => False);
 
-               elsif Last > Current_Key then
-                  if Node.Right = Nil then
-                     if Current_Key >= First then
-                        return (Node, Descending, Right_Done => True, Left_Done => False);
+               else
+                  case Key_Compare (Last, Current_Key) is
+                  when Greater =>
+                     if Node.Right = Nil then
+                        case Key_Compare (Current_Key, First) is
+                        when Greater | Equal =>
+                           return (Node, Descending, Right_Done => True, Left_Done => False);
+                        when Less =>
+                           if Candidate = null then
+                              return No_Element;
+                           else
+                              return (Candidate, Ascending, Right_Done => False, Left_Done => True);
+                           end if;
+                        end case;
                      else
+                        case Key_Compare (First, Current_Key) is
+                        when Less | Equal =>
+                           Candidate := Node;
+                        when Greater =>
+                           null;
+                        end case;
+                        Node := Node.Right;
+                     end if;
+                  when Equal | Less =>
+                     if Node.Left = Nil then
                         if Candidate = null then
                            return No_Element;
                         else
                            return (Candidate, Ascending, Right_Done => False, Left_Done => True);
                         end if;
-                     end if;
-                  else
-                     if First <= Current_Key then
-                        Candidate := Node;
-                     end if;
-                     Node := Node.Right;
-                  end if;
-               else
-                  if Node.Left = Nil then
-                     if Candidate = null then
-                        return No_Element;
                      else
-                        return (Candidate, Ascending, Right_Done => False, Left_Done => True);
+                        Node := Node.Left;
                      end if;
-                  else
-                     Node := Node.Left;
-                  end if;
+                  end case;
                end if;
             end case;
          end;
@@ -717,13 +724,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Node : Node_Access := Container.Root;
    begin
       while Node /= Nil loop
-         if Key = Pkg.Key (Node.Element) then
+         case Key_Compare (Key, Pkg.Key (Node.Element)) is
+         when Equal =>
             return True;
-         elsif Key < Pkg.Key (Node.Element) then
+         when Less =>
             Node := Node.Left;
-         else
+         when Greater =>
             Node := Node.Right;
-         end if;
+         end case;
       end loop;
       return False;
    end Present;
@@ -731,34 +739,40 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor
    is
       --  [1] 13.3 RB-Insert (T, z)
-      Nil : Node_Access renames Tree.Nil;
-      Z   : Node_Access := new Node'(Element, Nil, Nil, Nil, Red);
-      Y   : Node_Access := Nil;
-      X   : Node_Access := Tree.Root;
+      Nil   : Node_Access renames Tree.Nil;
+      Z     : Node_Access       := new Node'(Element, Nil, Nil, Nil, Red);
+      Key_Z : constant Key_Type := Key (Z.Element);
+      Y     : Node_Access       := Nil;
+      X     : Node_Access       := Tree.Root;
 
-      Result : Node_Access;
+      Result      : Node_Access;
+      Compare_Z_Y : Compare_Result;
    begin
-      --  Catch logic errors in use of Nil
       Nil.Parent := null;
       Nil.Left   := null;
       Nil.Right  := null;
 
       while X /= Nil loop
          Y := X;
-         if Key (Z.Element) < Key (X.Element) then
+         Compare_Z_Y := Key_Compare (Key_Z, Key (X.Element));
+         case Compare_Z_Y is
+         when Less =>
             X := X.Left;
-         else
+         when Equal | Greater =>
             X := X.Right;
-         end if;
+         end case;
       end loop;
 
       Z.Parent := Y;
       if Y = Nil then
          Tree.Root := Z;
-      elsif Key (Z.Element) < Key (Y.Element) then
-         Y.Left := Z;
       else
-         Y.Right := Z;
+         case Compare_Z_Y is
+         when Less =>
+            Y.Left := Z;
+         when Equal | Greater =>
+            Y.Right := Z;
+         end case;
       end if;
 
       Result := Z;

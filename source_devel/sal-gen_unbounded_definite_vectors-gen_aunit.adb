@@ -31,10 +31,11 @@ package body SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit is
       Computed : in Vector;
       Expected : in Vector)
    is
+      use all type Ada.Containers.Count_Type;
       use Standard.AUnit.Checks;
    begin
-      if Computed = Empty_Vector then
-         Check (Label & ".empty", Expected = Empty_Vector, True);
+      if Computed.Length = 0 then
+         Check (Label & ".empty", Expected.Length = 0, True);
       else
          Check_Index (Label & ".First_Index", Computed.First_Index, Expected.First_Index);
          Check_Index (Label & ".Last_Index", Computed.Last_Index, Expected.Last_Index);

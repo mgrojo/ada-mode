@@ -22,7 +22,7 @@ with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
 generic
    type Element_Type is private;
-   with function Element_Compare (Left, Right : in Element_Type) return SAL.Compare_Result;
+   with function Element_Compare (Left, Right : in Element_Type) return Compare_Result;
 package SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
 
    type List is new Ada.Finalization.Controlled with private

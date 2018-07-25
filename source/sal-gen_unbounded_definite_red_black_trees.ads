@@ -29,7 +29,7 @@ generic
    type Element_Type is private;
    type Key_Type is private;
    with function Key (Element : in Element_Type) return Key_Type is <>;
-   with function "<" (Left, Right : in Key_Type) return Boolean is <>;
+   with function Key_Compare (Left, Right : in Key_Type) return Compare_Result is <>;
 package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    package Pkg renames Gen_Unbounded_Definite_Red_Black_Trees;

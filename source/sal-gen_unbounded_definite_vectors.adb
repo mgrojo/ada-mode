@@ -92,26 +92,6 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Adjust;
 
-   overriding function "=" (Left, Right : in Vector) return Boolean
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
-      if Left.Length = 0 then
-         return Right.Length = 0;
-      elsif Left.First /= Right.First then
-         return False;
-      elsif Left.Last /= Right.Last then
-         return False;
-      else
-         declare
-            I : constant Peek_Type := To_Peek_Type (Left.First);
-            J : constant Base_Peek_Type := To_Peek_Type (Left.Last);
-         begin
-            return Left.Elements (I .. J) = Right.Elements (I .. J);
-         end;
-      end if;
-   end "=";
-
    function Length (Container : in Vector) return Ada.Containers.Count_Type
    is begin
       --  We assume the type ranges are sensible, so no exceptions occur
