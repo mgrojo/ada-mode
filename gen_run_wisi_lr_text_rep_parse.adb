@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
@@ -83,14 +84,16 @@ is
    Lang_Params  : Ada.Strings.Unbounded.Unbounded_String;
    Start        : Ada.Real_Time.Time;
 begin
-   --  Create parser first so Put_Usage has defaults from Parser.Table.
-   Create_Parser
-     (Parser, Language_Fixes, Language_Constrain_Terminals, Language_String_ID_Set,
-      Trace'Unrestricted_Access, Parse_Data'Unchecked_Access, Text_Rep_File_Name);
-
    declare
       use Ada.Command_Line;
    begin
+      --  Create parser first so Put_Usage has defaults from Parser.Table.
+      --  text_rep file is in same directory as exectuable.
+      Create_Parser
+        (Parser, Language_Fixes, Language_Constrain_Terminals, Language_String_ID_Set,
+         Trace'Unrestricted_Access, Parse_Data'Unchecked_Access,
+         Ada.Directories.Containing_Directory (Command_Name) & "/" & Text_Rep_File_Name);
+
       if Argument_Count < 1 then
          Put_Usage;
          Set_Exit_Status (Failure);

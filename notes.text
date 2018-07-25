@@ -53,7 +53,14 @@ c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
 add lr1 as wisi indent option
-    ada_process_action.ad? written twice; cm lr1 because it is last
+    edited
+    running recover tests
+        test/ada_mode-recover_1.ads
+            indent not computed; no actions in table
+            fixed for ada_lite, but not for ada? later
+
+speed up lr1 generate
+    see wisitoken
 
 better constrain_terminals:
     o.w.s-1
@@ -248,7 +255,7 @@ d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
 
 wisi-generate
-    time $WISI_WISITOKEN/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum ada.wy > ada.ada_parse_table
+    $WISI_WISITOKEN/wisi-generate.exe --time ada.wy
 
     04 mar 2018
         o.e.a.s-2 12.919s
@@ -259,6 +266,12 @@ wisi-generate
 
     23 May 2018
         11.967s, 12.035s
+
+    25 Jul 2018
+        trees in lr1_items search, -O3
+        LALR elisp generate time: 3.290167687
+        LALR re2c generate time: 3.309398246
+        LR1 re2c generate time: 602.235431713
 
 mckenzie recover
     ./run_ada_parse.exe test/slow_recover_1.adb Indent --verbosity 1 1 0

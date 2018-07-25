@@ -4,7 +4,7 @@
 (setq ada-parser 'process)
 
 ;; Don’t require installing executables to run tests
-(setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_parse.exe"))
+(setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_lalr_parse.exe"))
 (setq gpr-process-parse-exec (expand-file-name "../gpr_mode_wisi_parse.exe"))
 
 (setq wisi-test-parser 'process) ;; for non-Ada tests

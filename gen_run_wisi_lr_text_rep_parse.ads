@@ -2,7 +2,7 @@
 --
 --  Run an Emacs LR text_rep parser as a standalone executable, for debugging.
 --
---  See gen_emacs_wisi_parse.ads for the Emacs background process.
+--  See gen_emacs_wisi_*_parse.ads for the Emacs background process.
 --
 --  Copyright (C) 2018 Stephen Leake All Rights Reserved.
 --

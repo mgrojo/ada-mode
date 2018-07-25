@@ -442,6 +442,11 @@ private
 
    function Key (Cache : in Navigate_Cache_Type) return Buffer_Pos is (Cache.Pos);
 
+   function Key_Compare (Left, Right : in Buffer_Pos) return SAL.Compare_Result is
+     (if Left > Right then SAL.Greater
+      elsif Left = Right then SAL.Equal
+      else SAL.Less);
+
    package Navigate_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Navigate_Cache_Type, Buffer_Pos);
 
    type Nil_Integer (Set : Boolean := False) is record
