@@ -100,7 +100,7 @@ package body WisiToken.LR.LR1_Generate is
       C (First_State_Index) := Closure
         (New_Item_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-      C_Tree.Insert ((To_Item_Set_Tree_Key (C (First_State_Index)), State_Index_Arrays.To_Vector (First_State_Index)));
+      C_Tree.Insert ((To_Item_Set_Tree_Key (C (First_State_Index), Include_Lookaheads => True), First_State_Index));
 
       loop
          Added_Item := False;
@@ -121,14 +121,14 @@ package body WisiToken.LR.LR1_Generate is
 
                if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
 
-                  Found_State := Find (New_Item_Set, C, C_Tree, Match_Lookaheads => True); -- 'not in C'
+                  Found_State := Find (New_Item_Set, C_Tree, Match_Lookaheads => True); -- 'not in C'
 
                   if Found_State = Unknown_State then
                      Added_Item := True;
 
                      New_Item_Set.State := C.Last_Index + 1;
 
-                     Add (New_Item_Set, C, C_Tree);
+                     Add (New_Item_Set, C, C_Tree, Include_Lookaheads => True);
 
                      if Trace_Generate > Outline then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (C.Last_Index));

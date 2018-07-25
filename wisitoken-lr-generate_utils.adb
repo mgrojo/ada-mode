@@ -190,8 +190,7 @@ package body WisiToken.LR.Generate_Utils is
          Default_Action : constant Action_Node :=
            --  The symbol here is actually irrelevant; it is the
            --  position as the last on a state's action list that makes
-           --  it the default. The various Put routines replace
-           --  this with 'default'.
+           --  it the default.
            (Symbol => Invalid_Token_ID,
             Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => LR.Error), null),
             Next   => null);
@@ -218,11 +217,10 @@ package body WisiToken.LR.Generate_Utils is
             WisiToken.Generate.Error := True;
 
             Ada.Text_IO.Put_Line
-              ("Error: Generating parser: state" & State_Index'Image (State) &
+              (Ada.Text_IO.Current_Error, "Error: state" & State_Index'Image (State) &
                  " has no actions; bad grammar, or " &
                  "first production in grammar must be the only start symbol production, " &
                  "and it must must have an explicit EOF.");
-            Ada.Text_IO.New_Line;
          else
             while Last_Action.Next /= null loop
                Last_Action := Last_Action.Next;

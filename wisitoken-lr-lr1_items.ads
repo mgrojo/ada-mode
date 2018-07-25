@@ -28,11 +28,14 @@
 
 pragma License (Modified_GPL);
 
+with Interfaces;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
-with SAL.Gen_Unbounded_Definite_Vectors;
+with SAL.Gen_Unbounded_Definite_Vectors.Gen_Comparable;
 with WisiToken.Productions;
 package WisiToken.LR.LR1_Items is
+
+   use all type Interfaces.Integer_16;
 
    subtype Lookahead is Token_ID_Set;
    --  Picking a type for Lookahead is not straight-forward. The
@@ -218,39 +221,39 @@ package WisiToken.LR.LR1_Items is
 
    package State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, State_Index);
 
-   type Item_Set_Tree_Key is record
-      Prod_Count : Integer  := 0;
-      Prod_1_LHS : Token_ID := Invalid_Token_ID;
-      Prod_1_RHS : Integer  := 0;
-      Prod_1_Dot : Integer  := 0;
-      Prod_2_LHS : Token_ID := Invalid_Token_ID;
-      Prod_2_RHS : Integer  := 0;
-      Prod_2_Dot : Integer  := 0;
-      --  We want a key that is definite (hence not String or unconstrained
-      --  array), and has enough info to significantly speed the search for
-      --  an item set. Most states have only one or two productions in the
-      --  kernel.
-      --
-      --  FIXME: prod_count, rhs, dot are all small; use 8 bit integers, add
-      --  rep clause.
-   end record;
+   package Int_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Interfaces.Integer_16);
+   function Compare_Integer_16 (Left, Right : in Interfaces.Integer_16) return SAL.Compare_Result is
+     (if Left > Right then SAL.Greater
+      elsif Left < Right then SAL.Less
+      else SAL.Equal);
+
+   package Int_Arrays_Comparable is new Int_Arrays.Gen_Comparable (Compare_Integer_16);
+
+   subtype Item_Set_Tree_Key is Int_Arrays_Comparable.Vector;
+   --  We want a key that is fast to compare, and has enough info to
+   --  significantly speed the search for an item set. So we convert all
+   --  relevant data in an item into a string of integers. We need 16 bit
+   --  because Ada token_ids max is 332. LR1 keys include lookaheads,
+   --  LALR keys do not.
 
    type Item_Set_Tree_Node is record
-      Key    : Item_Set_Tree_Key;
-      States : State_Index_Arrays.Vector;
+      Key   : Item_Set_Tree_Key;
+      State : Unknown_State_Index;
    end record;
 
-   function To_Item_Set_Tree_Key (Item_Set : in LR1_Items.Item_Set) return Item_Set_Tree_Key;
+   function To_Item_Set_Tree_Key
+     (Item_Set           : in LR1_Items.Item_Set;
+      Include_Lookaheads : in Boolean)
+     return Item_Set_Tree_Key;
+
    function To_Item_Set_Tree_Key (Node : in Item_Set_Tree_Node) return Item_Set_Tree_Key is
      (Node.Key);
-
-   function Item_Set_Tree_Key_Less (Left, Right : in Item_Set_Tree_Key) return Boolean;
 
    package Item_Set_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
      (Element_Type => Item_Set_Tree_Node,
       Key_Type     => Item_Set_Tree_Key,
       Key          => To_Item_Set_Tree_Key,
-      "<"          => Item_Set_Tree_Key_Less);
+      Key_Compare  => Int_Arrays_Comparable.Compare);
    --  Item_Set_Arrays.Vector holds state item sets indexed by state, for
    --  iterating in state order. Item_Set_Trees.Tree holds lists of state
    --  indices sorted by LR1 item info, for fast Find in LR1_Item_Sets
@@ -258,20 +261,19 @@ package WisiToken.LR.LR1_Items is
 
    function Find
      (New_Item_Set     : in Item_Set;
-      Item_Set_Array   : in Item_Set_List;
       Item_Set_Tree    : in Item_Set_Trees.Tree;
       Match_Lookaheads : in Boolean)
      return Unknown_State_Index;
-   --  Return the index into Item_Set_Array of an element matching
-   --  New_Item_Set, Unknown_State if not found. Item_Set_Tree must match
-   --  Item_Set_Array.
+   --  Return the State of an element in Item_Set_Tree matching
+   --  New_Item_Set, Unknown_State if not found.
    --
    --  Match_Lookaheads is True in LR1_Generate.
 
    procedure Add
-     (New_Item_Set    : in     Item_Set;
-      Item_Set_Vector : in out Item_Set_List;
-      Item_Set_Tree   : in out Item_Set_Trees.Tree);
+     (New_Item_Set       : in     Item_Set;
+      Item_Set_Vector    : in out Item_Set_List;
+      Item_Set_Tree      : in out Item_Set_Trees.Tree;
+      Include_Lookaheads : in     Boolean);
    --  Add New_Item_Set to Item_Set_Vector, Item_Set_Tree
 
    function Is_In

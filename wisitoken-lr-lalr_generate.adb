@@ -226,7 +226,7 @@ package body WisiToken.LR.LALR_Generate is
       Kernels.Set_First (First_State_Index);
       Kernels.Set_Last (First_State_Index);
       Kernels (First_State_Index) := New_Item_Set;
-      Kernel_Tree.Insert ((To_Item_Set_Tree_Key (New_Item_Set), State_Index_Arrays.To_Vector (First_State_Index)));
+      Kernel_Tree.Insert ((To_Item_Set_Tree_Key (New_Item_Set, Include_Lookaheads => False), First_State_Index));
 
       while New_Items_To_Check loop
 
@@ -249,14 +249,14 @@ package body WisiToken.LR.LALR_Generate is
 
                if New_Item_Set.Set.Length > 0 then
 
-                  Found_State := Find (New_Item_Set, Kernels, Kernel_Tree, Match_Lookaheads => False);
+                  Found_State := Find (New_Item_Set, Kernel_Tree, Match_Lookaheads => False);
 
                   if Found_State = Unknown_State then
                      New_Items_To_Check := True;
 
                      New_Item_Set.State := Kernels.Last_Index + 1;
 
-                     Add (New_Item_Set, Kernels, Kernel_Tree);
+                     Add (New_Item_Set, Kernels, Kernel_Tree, Include_Lookaheads => False);
 
                      if Trace_Generate > Detail then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));

@@ -21,39 +21,7 @@ update-wisi_grammar
 
  current work
 speed up lr1 generate
-    build/generate_ada_lite_lr1.gprof
-  6.38      3.42     0.31 14273399     0.00     0.00  wisitoken__lr__lr1_items__include
-    can't improve - dictated by boolean array
-
-  4.73      3.65     0.23 128987208     0.00     0.00  wisitoken__lr__lr1_items__item_greater
-    call it less; binary search
-
-  2.47      3.77     0.12  4608786     0.00     0.00  wisitoken__lr__lr1_generate__lr1_goto_transitions
-    uses above
-
-  2.06      3.87     0.10  7454674     0.00     0.00  wisitoken__lr__lr1_items__item_lists__find
-    binary search
-
-  1.85      3.96     0.09  4821257     0.00     0.00  wisitoken__lr__lr1_items__to_lookahead
-    can't improve - dictated by boolean array
-
-  1.65      4.04     0.08 38812715     0.00     0.00  wisitoken__token_id_arrays__element__2
-    for item.dot; store index?
-        started to, requires passing array everywhere
-
-  1.65      4.12     0.08   141101     0.00     0.00  wisitoken__lr__lr1_items__find__4
-    already red-black tree
-
-  1.03      4.17     0.05 14150083     0.00     0.00  wisitoken__lr__lr1_items__goto_item_lists__finalize
-    copied with Item_Set.
-    don't need goto_set until all item_sets computed? don't bother freeing?
-
-    use binary search for find in item_lists
-
-    multi-cpu
-
     wisi-generate --time ../wisi/test/ada_lite.wy
-
     baseline
         LALR re2c generate time: 0.383392342
         LR1  re2c generate time: 8.180992139
@@ -75,10 +43,37 @@ speed up lr1 generate
         LALR re2c generate time: 3.118595052
         LR1 re2c generate time: 1086.665714660
 
+    accurate tree key; use 'compare' in vectors.gen_comparable, red_black_trees
+        LALR re2c generate time: 0.182767523
+        LR1 re2c generate time: 3.306645683
+
+        ada:
+        LALR elisp generate time: 3.290167687
+        LALR re2c generate time: 3.309398246
+        LR1 re2c generate time: 602.235431713
+
+    change verbosity in lr1_generate;
+        move from lr1_goto-transitions to lr1_item_sets "adding state"
+            show actual set for state added
+
+    replace boolean New_Items_To_Check with list of state ids.
+
+    try lalr with include_lookaheads => true
+
+    implement DeRemer, keep all => lr1
+
+    add 'pragma inline'
+
+    multi-cpu
+
 compare to bison
 
 set lines_per_subr on wisitoken command line
     optimize for ada_lite, ada
+
+lr1 only store kernels?
+    find other documentation of lr1 algorithm
+    just adding 'filter in_kernel' in lr1_item_sets causes infinite loop or big slowdown.
 
 LR1 Ada 1092.640 = 18 min, barely tolerable
     has 1 exccess known conflict;
