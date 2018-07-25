@@ -52,10 +52,6 @@ speed up lr1 generate
         LALR re2c generate time: 3.309398246
         LR1 re2c generate time: 602.235431713
 
-    change verbosity in lr1_generate;
-        move from lr1_goto-transitions to lr1_item_sets "adding state"
-            show actual set for state added
-
     replace boolean New_Items_To_Check with list of state ids.
 
     try lalr with include_lookaheads => true

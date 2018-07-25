@@ -54,11 +54,6 @@ package body WisiToken.LR.LR1_Generate is
       end loop;
 
       if Goto_Set.Set.Length > 0 then
-         if Trace_Generate > Outline then
-            Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Image (Symbol, Descriptor));
-            Put (Grammar, Descriptor, Goto_Set, Show_Lookaheads => True);
-         end if;
-
          return Closure (Goto_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
       else
          return Goto_Set;
@@ -132,6 +127,7 @@ package body WisiToken.LR.LR1_Generate is
 
                      if Trace_Generate > Outline then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (C.Last_Index));
+                        Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
                      end if;
 
                      C (I).Goto_List.Insert ((Symbol, C.Last_Index));
