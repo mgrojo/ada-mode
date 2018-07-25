@@ -17,11 +17,9 @@ t_one :: one-clean
 t_one :: wisi-generate.exe
 t_one :: ada_lite_re2c.c
 t_one :: ada_lite_lr1_run.exe
-t_one :: export Standard_Common_Build := Debug
 # t_one :: RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
 t_one :: test_one_harness.run
 
-t_all :: export Standard_Common_Build := Debug
 t_all :: wisi-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
@@ -29,9 +27,8 @@ one-clean :
 	rm -rf ada_lite*
 
 # one :: one-clean
-one :: export Standard_Common_Build := Debug
 one :: wisi-generate.exe
-	./wisi-generate.exe -v 2 --generate LR1 Ada re2c ../wisi/test/range_conflict.wy > range_conflict_lr1_generate.log
+	./wisi-generate.exe -v 2 --generate LR1 Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lr1_generate.log
 
 #c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
 
