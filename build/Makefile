@@ -2,7 +2,7 @@
 
 all : test_all_harness.diff
 
-export Standard_Common_Build := Debug
+# export Standard_Common_Build := Debug
 
 #../test/test_all_harness.adb
 #../test/test_one_harness.adb
