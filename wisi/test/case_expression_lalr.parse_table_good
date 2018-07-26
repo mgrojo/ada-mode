@@ -74,7 +74,7 @@ State 4:
 
    DOT_DOT           => reduce 1 tokens to factor 15.0
    EQUAL_GREATER     => reduce 1 tokens to factor 15.0
-   TICK              => shift and goto state 13 (17.0)
+   TICK              => shift and goto state 11 (17.0)
    default           => ERROR
 
 State 5:
@@ -106,7 +106,7 @@ State 9:
      13.0:choice_relation <= factor_list ^, EQUAL_GREATER
      17.1:range_nt <= factor_list ^ DOT_DOT factor_list, EQUAL_GREATER
 
-   DOT_DOT           => shift and goto state 11 (17.1)
+   DOT_DOT           => shift and goto state 13 (17.1)
    EQUAL_GREATER     => reduce 1 tokens to choice_relation 13.0
    default           => ERROR
 
@@ -117,14 +117,10 @@ State 10:
    default           => ERROR
 
 State 11:
-     17.1:range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
+     17.0:range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
 
-   NUMBER_LITERAL    => shift and goto state 3 (15.1)
-   IDENTIFIER        => shift and goto state 15 (15.0)
+   RANGE             => shift and goto state 14 (17.0)
    default           => ERROR
-
-   factor            goto state 8
-   factor_list       goto state 17
 
 State 12:
      11.0:case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor, Wisi_EOI
@@ -136,10 +132,14 @@ State 12:
    factor            goto state 16
 
 State 13:
-     17.0:range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
+     17.1:range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
 
-   RANGE             => shift and goto state 14 (17.0)
+   NUMBER_LITERAL    => shift and goto state 3 (15.1)
+   IDENTIFIER        => shift and goto state 15 (15.0)
    default           => ERROR
+
+   factor            goto state 8
+   factor_list       goto state 17
 
 State 14:
      17.0:range_nt <= IDENTIFIER TICK RANGE ^, EQUAL_GREATER

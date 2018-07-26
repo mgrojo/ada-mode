@@ -40,7 +40,7 @@ State 1:
    default          => ERROR
 
    declaration      goto state 2
-   declarations     goto state 6
+   declarations     goto state 5
    body             goto state 4
 
 State 2:
@@ -61,7 +61,7 @@ State 3:
                        reduce 0 tokens to declaration 7.1
    default          => ERROR
 
-   declaration      goto state 5
+   declaration      goto state 6
    body             goto state 4
 
 State 4:
@@ -73,14 +73,6 @@ State 4:
    default          => ERROR
 
 State 5:
-      8.0:declarations <= declarations declaration ^, BEGIN/IS/Wisi_EOI
-
-   BEGIN            => reduce 2 tokens to declarations 8.0
-   IS               => reduce 2 tokens to declarations 8.0
-   Wisi_EOI         => reduce 2 tokens to declarations 8.0
-   default          => ERROR
-
-State 6:
       8.0:declarations <= declarations ^ declaration, BEGIN/IS
       9.0:body <= IS declarations ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
@@ -90,8 +82,16 @@ State 6:
                        reduce 0 tokens to declaration 7.1
    default          => ERROR
 
-   declaration      goto state 5
+   declaration      goto state 6
    body             goto state 4
+
+State 6:
+      8.0:declarations <= declarations declaration ^, BEGIN/IS/Wisi_EOI
+
+   BEGIN            => reduce 2 tokens to declarations 8.0
+   IS               => reduce 2 tokens to declarations 8.0
+   Wisi_EOI         => reduce 2 tokens to declarations 8.0
+   default          => ERROR
 
 State 7:
       9.0:body <= IS declarations BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI

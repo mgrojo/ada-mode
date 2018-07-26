@@ -67,16 +67,25 @@ package body WisiToken.LR.LR1_Generate is
       Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
+      use all type Token_ID_Arrays.Cursor;
       use all type Ada.Containers.Count_Type;
-      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
+
+      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
+      --  "items", with some optimizations.
 
       use LR1_Items;
 
       First_State_Index : constant State_Index := 0;
 
-      C          : LR1_Items.Item_Set_List;       -- result
-      C_Tree     : LR1_Items.Item_Set_Trees.Tree; -- for fast find
-      Added_Item : Boolean := True;               -- 'until no more items can be added'
+      C               : LR1_Items.Item_Set_List;       -- result
+      C_Tree          : LR1_Items.Item_Set_Trees.Tree; -- for fast find
+      States_To_Check : State_Queues.Queue;
+      --  [dragon] specifies 'until no more items can be added', but we use
+      --  a queue to avoid checking unecessary states. Ada LR1 has over
+      --  100,000 states, so this is a significant gain (reduced time from
+      --  600 seconds to 40).
+
+      I : State_Index;
 
       New_Item_Set : Item_Set :=
         (Set            => Item_Lists.To_List
@@ -97,59 +106,56 @@ package body WisiToken.LR.LR1_Generate is
 
       C_Tree.Insert ((To_Item_Set_Tree_Key (C (First_State_Index), Include_Lookaheads => True), First_State_Index));
 
+      States_To_Check.Put (First_State_Index);
       loop
-         Added_Item := False;
+         exit when States_To_Check.Is_Empty;
+         I := States_To_Check.Get;
 
-         for I in reverse C.First_Index .. C.Last_Index loop
-            --  Reverse for consistency with a previous version that used a linked
-            --  list for C.
+         if Trace_Generate > Outline then
+            Ada.Text_IO.Put ("Checking ");
+            Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
+         end if;
 
-            if Trace_Generate > Outline then
-               Ada.Text_IO.Put ("Checking ");
-               Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
-            end if;
+         for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
 
-            for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
+            New_Item_Set := LR1_Goto_Transitions
+              (C (I), Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-               New_Item_Set := LR1_Goto_Transitions
-                 (C (I), Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
+            if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
 
-               if New_Item_Set.Set.Length > 0 then -- 'goto (I, X) not empty'
+               Found_State := Find (New_Item_Set, C_Tree, Match_Lookaheads => True); -- 'not in C'
 
-                  Found_State := Find (New_Item_Set, C_Tree, Match_Lookaheads => True); -- 'not in C'
+               if Found_State = Unknown_State then
+                  New_Item_Set.State := C.Last_Index + 1;
 
-                  if Found_State = Unknown_State then
-                     Added_Item := True;
+                  States_To_Check.Put (New_Item_Set.State);
 
-                     New_Item_Set.State := C.Last_Index + 1;
+                  Add (New_Item_Set, C, C_Tree, Include_Lookaheads => True);
 
-                     Add (New_Item_Set, C, C_Tree, Include_Lookaheads => True);
+                  if Trace_Generate > Outline then
+                     Ada.Text_IO.Put_Line
+                       ("  adding state" & Unknown_State_Index'Image (C.Last_Index) & ": from state" &
+                          Unknown_State_Index'Image (I) & " on " & Image (Symbol, Descriptor));
+                     Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
+                  end if;
 
+                  C (I).Goto_List.Insert ((Symbol, C.Last_Index));
+               else
+
+                  --  If there's not already a goto entry between these two sets, create one.
+                  if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
                      if Trace_Generate > Outline then
-                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (C.Last_Index));
-                        Put (Grammar, Descriptor, New_Item_Set, Show_Lookaheads => True);
+                        Ada.Text_IO.Put_Line
+                          ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
+                             Unknown_State_Index'Image (Found_State));
+
                      end if;
 
-                     C (I).Goto_List.Insert ((Symbol, C.Last_Index));
-                  else
-
-                     --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In ((Symbol, Found_State), Goto_List => C (I).Goto_List) then
-                        if Trace_Generate > Outline then
-                           Ada.Text_IO.Put_Line
-                             ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                                Unknown_State_Index'Image (Found_State));
-
-                        end if;
-
-                        C (I).Goto_List.Insert ((Symbol, Found_State));
-                     end if;
+                     C (I).Goto_List.Insert ((Symbol, Found_State));
                   end if;
                end if;
-            end loop;
+            end if;
          end loop;
-         exit when not Added_Item;
-
       end loop;
 
       if Trace_Generate > Outline then

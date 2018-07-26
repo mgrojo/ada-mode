@@ -205,13 +205,15 @@ package body WisiToken.LR.LALR_Generate is
       Descriptor        : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
+      use all type Token_ID_Arrays.Cursor;
       use all type Ada.Containers.Count_Type;
       use LR1_Items;
 
-      First_State_Index  : constant State_Index := 0;
-      Kernels            : LR1_Items.Item_Set_List;
-      Kernel_Tree        : LR1_Items.Item_Set_Trees.Tree; -- for fast find
-      New_Items_To_Check : Boolean              := True;
+      First_State_Index : constant State_Index := 0;
+      Kernels           : LR1_Items.Item_Set_List;
+      Kernel_Tree       : LR1_Items.Item_Set_Trees.Tree; -- for fast find
+      States_To_Check   : State_Queues.Queue;
+      Checking_State    : State_Index;
 
       New_Item_Set : Item_Set :=
         (Set            => Item_Lists.To_List
@@ -228,58 +230,53 @@ package body WisiToken.LR.LALR_Generate is
       Kernels (First_State_Index) := New_Item_Set;
       Kernel_Tree.Insert ((To_Item_Set_Tree_Key (New_Item_Set, Include_Lookaheads => False), First_State_Index));
 
-      while New_Items_To_Check loop
+      States_To_Check.Put (First_State_Index);
+      loop
+         exit when States_To_Check.Is_Empty;
+         Checking_State := States_To_Check.Get;
 
-         New_Items_To_Check := False;
+         if Trace_Generate > Detail then
+            Ada.Text_IO.Put ("Checking ");
+            Put (Grammar, Descriptor, Kernels (Checking_State));
+         end if;
 
-         for Checking_State in reverse Kernels.First_Index .. Kernels.Last_Index loop
-            --  Note that Kernels.Last_Index is not updated to reflect kernels
-            --  added in the body of the loop. Reverse for consistency with a
-            --  previous version that used a linked list for Kernels.
+         for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop
 
-            if Trace_Generate > Detail then
-               Ada.Text_IO.Put ("Checking ");
-               Put (Grammar, Descriptor, Kernels (Checking_State));
-            end if;
+            New_Item_Set := LALR_Goto_Transitions
+              (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
 
-            for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop
+            if New_Item_Set.Set.Length > 0 then
 
-               New_Item_Set := LALR_Goto_Transitions
-                 (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
+               Found_State := Find (New_Item_Set, Kernel_Tree, Match_Lookaheads => False);
 
-               if New_Item_Set.Set.Length > 0 then
+               if Found_State = Unknown_State then
+                  New_Item_Set.State := Kernels.Last_Index + 1;
 
-                  Found_State := Find (New_Item_Set, Kernel_Tree, Match_Lookaheads => False);
+                  States_To_Check.Put (New_Item_Set.State);
 
-                  if Found_State = Unknown_State then
-                     New_Items_To_Check := True;
+                  Add (New_Item_Set, Kernels, Kernel_Tree, Include_Lookaheads => False);
 
-                     New_Item_Set.State := Kernels.Last_Index + 1;
+                  if Trace_Generate > Detail then
+                     Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
+                  end if;
 
-                     Add (New_Item_Set, Kernels, Kernel_Tree, Include_Lookaheads => False);
+                  Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
+               else
 
+                  --  If there's not already a goto entry between these two sets, create one.
+                  if not Is_In ((Symbol, Found_State), Kernels (Checking_State).Goto_List) then
                      if Trace_Generate > Detail then
-                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
+                        Ada.Text_IO.Put_Line
+                          ("  state" & Unknown_State_Index'Image (Checking_State) &
+                             " adding goto on " & Image (Symbol, Descriptor) & " to state" &
+                             Unknown_State_Index'Image (Found_State));
+
                      end if;
 
-                     Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
-                  else
-
-                     --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In ((Symbol, Found_State), Kernels (Checking_State).Goto_List) then
-                        if Trace_Generate > Detail then
-                           Ada.Text_IO.Put_Line
-                             ("  state" & Unknown_State_Index'Image (Checking_State) &
-                                " adding goto on " & Image (Symbol, Descriptor) & " to state" &
-                                Unknown_State_Index'Image (Found_State));
-
-                        end if;
-
-                        Kernels (Checking_State).Goto_List.Insert ((Symbol, Found_State));
-                     end if;
+                     Kernels (Checking_State).Goto_List.Insert ((Symbol, Found_State));
                   end if;
                end if;
-            end loop;
+            end if;
          end loop;
       end loop;
 

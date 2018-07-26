@@ -51,7 +51,7 @@ State 2:
 State 3:
      12.0:label_opt <= IDENTIFIER ^ COLON, IDENTIFIER
 
-   COLON                  => shift and goto state 10 (12.0)
+   COLON                  => shift and goto state 7 (12.0)
    default                => ERROR
 
 State 4:
@@ -76,13 +76,13 @@ State 5:
 State 6:
      10.0:statement <= label_opt ^ IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   IDENTIFIER             => shift and goto state 7 (10.0)
+   IDENTIFIER             => shift and goto state 10 (10.0)
    default                => ERROR
 
 State 7:
-     10.0:statement <= label_opt IDENTIFIER ^ COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
+     12.0:label_opt <= IDENTIFIER COLON ^, IDENTIFIER
 
-   COLON_EQUAL            => shift and goto state 12 (10.0)
+   IDENTIFIER             => reduce 2 tokens to label_opt 12.0
    default                => ERROR
 
 State 8:
@@ -99,9 +99,9 @@ State 9:
    default                => ERROR
 
 State 10:
-     12.0:label_opt <= IDENTIFIER COLON ^, IDENTIFIER
+     10.0:statement <= label_opt IDENTIFIER ^ COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   IDENTIFIER             => reduce 2 tokens to label_opt 12.0
+   COLON_EQUAL            => shift and goto state 12 (10.0)
    default                => ERROR
 
 State 11:

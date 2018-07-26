@@ -72,27 +72,27 @@ State 0:
 State 1:
      29.0:subprogram <= FUNCTION ^ name parameter_list block SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
-   SYMBOL           => shift and goto state 10 (26.1)
+   SYMBOL           => shift and goto state 9 (26.1)
    default          => ERROR
 
-   name             goto state 14
+   name             goto state 10
 
 State 2:
      29.1:subprogram <= PROCEDURE ^ name parameter_list END name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
-   SYMBOL           => shift and goto state 10 (26.1)
+   SYMBOL           => shift and goto state 9 (26.1)
    default          => ERROR
 
-   name             goto state 13
+   name             goto state 11
 
 State 3:
      31.0:use_clause <= USE ^ name_list SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
-   SYMBOL           => shift and goto state 10 (26.1)
+   SYMBOL           => shift and goto state 9 (26.1)
    default          => ERROR
 
-   name             goto state 11
-   name_list        goto state 12
+   name             goto state 12
+   name_list        goto state 13
 
 State 4:
      20.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
@@ -110,7 +110,7 @@ State 5:
    Wisi_EOI         => reduce 1 tokens to compilation_unit 22.0
    default          => ERROR
 
-   declaration      goto state 9
+   declaration      goto state 14
    subprogram       goto state 7
    use_clause       goto state 8
 
@@ -142,15 +142,6 @@ State 8:
    default          => ERROR
 
 State 9:
-     23.0:declarations <= declarations declaration ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
-
-   FUNCTION         => reduce 2 tokens to declarations 23.0
-   PROCEDURE        => reduce 2 tokens to declarations 23.0
-   USE              => reduce 2 tokens to declarations 23.0
-   Wisi_EOI         => reduce 2 tokens to declarations 23.0
-   default          => ERROR
-
-State 10:
      26.1:name <= SYMBOL ^, BEGIN/END/LOOP/LEFT_PAREN/COMMA/DOT/SEMICOLON
 
    BEGIN            => reduce 1 tokens to name 26.1
@@ -162,35 +153,7 @@ State 10:
    SEMICOLON        => reduce 1 tokens to name 26.1
    default          => ERROR
 
-State 11:
-     26.0:name <= name ^ DOT SYMBOL, COMMA/DOT/SEMICOLON
-     27.1:name_list <= name ^, COMMA/SEMICOLON
-
-   COMMA            => reduce 1 tokens to name_list 27.1
-   DOT              => shift and goto state 16 (26.0)
-   SEMICOLON        => reduce 1 tokens to name_list 27.1
-   default          => ERROR
-
-State 12:
-     27.0:name_list <= name_list ^ COMMA name, COMMA/SEMICOLON
-     31.0:use_clause <= USE name_list ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
-
-   COMMA            => shift and goto state 19 (27.0)
-   SEMICOLON        => shift and goto state 20 (31.0)
-   default          => ERROR
-
-State 13:
-     26.0:name <= name ^ DOT SYMBOL, END/LEFT_PAREN/DOT
-     29.1:subprogram <= PROCEDURE name ^ parameter_list END name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
-
-   END              => reduce 0 tokens to parameter_list 28.2
-   LEFT_PAREN       => shift and goto state 15 (28.0, 28.1)
-   DOT              => shift and goto state 16 (26.0)
-   default          => ERROR
-
-   parameter_list   goto state 18
-
-State 14:
+State 10:
      26.0:name <= name ^ DOT SYMBOL, BEGIN/LEFT_PAREN/DOT
      29.0:subprogram <= FUNCTION name ^ parameter_list block SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
@@ -201,41 +164,78 @@ State 14:
 
    parameter_list   goto state 17
 
+State 11:
+     26.0:name <= name ^ DOT SYMBOL, END/LEFT_PAREN/DOT
+     29.1:subprogram <= PROCEDURE name ^ parameter_list END name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
+
+   END              => reduce 0 tokens to parameter_list 28.2
+   LEFT_PAREN       => shift and goto state 15 (28.0, 28.1)
+   DOT              => shift and goto state 16 (26.0)
+   default          => ERROR
+
+   parameter_list   goto state 18
+
+State 12:
+     26.0:name <= name ^ DOT SYMBOL, COMMA/DOT/SEMICOLON
+     27.1:name_list <= name ^, COMMA/SEMICOLON
+
+   COMMA            => reduce 1 tokens to name_list 27.1
+   DOT              => shift and goto state 16 (26.0)
+   SEMICOLON        => reduce 1 tokens to name_list 27.1
+   default          => ERROR
+
+State 13:
+     27.0:name_list <= name_list ^ COMMA name, COMMA/SEMICOLON
+     31.0:use_clause <= USE name_list ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
+
+   COMMA            => shift and goto state 19 (27.0)
+   SEMICOLON        => shift and goto state 20 (31.0)
+   default          => ERROR
+
+State 14:
+     23.0:declarations <= declarations declaration ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
+
+   FUNCTION         => reduce 2 tokens to declarations 23.0
+   PROCEDURE        => reduce 2 tokens to declarations 23.0
+   USE              => reduce 2 tokens to declarations 23.0
+   Wisi_EOI         => reduce 2 tokens to declarations 23.0
+   default          => ERROR
+
 State 15:
      28.0:parameter_list <= LEFT_PAREN ^ SYMBOL RIGHT_PAREN, BEGIN/END
      28.1:parameter_list <= LEFT_PAREN ^ RIGHT_PAREN, BEGIN/END
 
-   RIGHT_PAREN      => shift and goto state 26 (28.1)
-   SYMBOL           => shift and goto state 27 (28.0)
+   RIGHT_PAREN      => shift and goto state 21 (28.1)
+   SYMBOL           => shift and goto state 22 (28.0)
    default          => ERROR
 
 State 16:
      26.0:name <= name DOT ^ SYMBOL, BEGIN/END/LOOP/LEFT_PAREN/COMMA/DOT/SEMICOLON
 
-   SYMBOL           => shift and goto state 25 (26.0)
+   SYMBOL           => shift and goto state 23 (26.0)
    default          => ERROR
 
 State 17:
      29.0:subprogram <= FUNCTION name parameter_list ^ block SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
-   BEGIN            => shift and goto state 23 (21.0, 21.1)
+   BEGIN            => shift and goto state 24 (21.0, 21.1)
    default          => ERROR
 
-   block            goto state 24
+   block            goto state 25
 
 State 18:
      29.1:subprogram <= PROCEDURE name parameter_list ^ END name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
-   END              => shift and goto state 22 (29.1)
+   END              => shift and goto state 26 (29.1)
    default          => ERROR
 
 State 19:
      27.0:name_list <= name_list COMMA ^ name, COMMA/SEMICOLON
 
-   SYMBOL           => shift and goto state 10 (26.1)
+   SYMBOL           => shift and goto state 9 (26.1)
    default          => ERROR
 
-   name             goto state 21
+   name             goto state 27
 
 State 20:
      31.0:use_clause <= USE name_list SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
@@ -247,39 +247,19 @@ State 20:
    default          => ERROR
 
 State 21:
-     26.0:name <= name ^ DOT SYMBOL, COMMA/DOT/SEMICOLON
-     27.0:name_list <= name_list COMMA name ^, COMMA/SEMICOLON
+     28.1:parameter_list <= LEFT_PAREN RIGHT_PAREN ^, BEGIN/END
 
-   COMMA            => reduce 3 tokens to name_list 27.0
-   DOT              => shift and goto state 16 (26.0)
-   SEMICOLON        => reduce 3 tokens to name_list 27.0
+   BEGIN            => reduce 2 tokens to parameter_list 28.1
+   END              => reduce 2 tokens to parameter_list 28.1
    default          => ERROR
 
 State 22:
-     29.1:subprogram <= PROCEDURE name parameter_list END ^ name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
+     28.0:parameter_list <= LEFT_PAREN SYMBOL ^ RIGHT_PAREN, BEGIN/END
 
-   SYMBOL           => shift and goto state 10 (26.1)
+   RIGHT_PAREN      => shift and goto state 28 (28.0)
    default          => ERROR
-
-   name             goto state 33
 
 State 23:
-     21.0:block <= BEGIN ^ loop_statement EXCEPTION WHEN name END, SEMICOLON
-     21.1:block <= BEGIN ^ END, SEMICOLON
-
-   END              => shift and goto state 30 (21.1)
-   FOR              => shift and goto state 31 (25.0)
-   default          => ERROR
-
-   loop_statement   goto state 32
-
-State 24:
-     29.0:subprogram <= FUNCTION name parameter_list block ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
-
-   SEMICOLON        => shift and goto state 29 (29.0)
-   default          => ERROR
-
-State 25:
      26.0:name <= name DOT SYMBOL ^, BEGIN/END/LOOP/LEFT_PAREN/COMMA/DOT/SEMICOLON
 
    BEGIN            => reduce 3 tokens to name 26.0
@@ -291,17 +271,37 @@ State 25:
    SEMICOLON        => reduce 3 tokens to name 26.0
    default          => ERROR
 
-State 26:
-     28.1:parameter_list <= LEFT_PAREN RIGHT_PAREN ^, BEGIN/END
+State 24:
+     21.0:block <= BEGIN ^ loop_statement EXCEPTION WHEN name END, SEMICOLON
+     21.1:block <= BEGIN ^ END, SEMICOLON
 
-   BEGIN            => reduce 2 tokens to parameter_list 28.1
-   END              => reduce 2 tokens to parameter_list 28.1
+   END              => shift and goto state 29 (21.1)
+   FOR              => shift and goto state 30 (25.0)
    default          => ERROR
 
-State 27:
-     28.0:parameter_list <= LEFT_PAREN SYMBOL ^ RIGHT_PAREN, BEGIN/END
+   loop_statement   goto state 31
 
-   RIGHT_PAREN      => shift and goto state 28 (28.0)
+State 25:
+     29.0:subprogram <= FUNCTION name parameter_list block ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
+
+   SEMICOLON        => shift and goto state 32 (29.0)
+   default          => ERROR
+
+State 26:
+     29.1:subprogram <= PROCEDURE name parameter_list END ^ name SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
+
+   SYMBOL           => shift and goto state 9 (26.1)
+   default          => ERROR
+
+   name             goto state 33
+
+State 27:
+     26.0:name <= name ^ DOT SYMBOL, COMMA/DOT/SEMICOLON
+     27.0:name_list <= name_list COMMA name ^, COMMA/SEMICOLON
+
+   COMMA            => reduce 3 tokens to name_list 27.0
+   DOT              => shift and goto state 16 (26.0)
+   SEMICOLON        => reduce 3 tokens to name_list 27.0
    default          => ERROR
 
 State 28:
@@ -312,6 +312,24 @@ State 28:
    default          => ERROR
 
 State 29:
+     21.1:block <= BEGIN END ^, SEMICOLON
+
+   SEMICOLON        => reduce 2 tokens to block 21.1
+   default          => ERROR
+
+State 30:
+     25.0:loop_statement <= FOR ^ SYMBOL IN subtype LOOP SEMICOLON, EXCEPTION
+
+   SYMBOL           => shift and goto state 34 (25.0)
+   default          => ERROR
+
+State 31:
+     21.0:block <= BEGIN loop_statement ^ EXCEPTION WHEN name END, SEMICOLON
+
+   EXCEPTION        => shift and goto state 35 (21.0)
+   default          => ERROR
+
+State 32:
      29.0:subprogram <= FUNCTION name parameter_list block SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
    FUNCTION         => reduce 5 tokens to subprogram 29.0
@@ -320,39 +338,18 @@ State 29:
    Wisi_EOI         => reduce 5 tokens to subprogram 29.0
    default          => ERROR
 
-State 30:
-     21.1:block <= BEGIN END ^, SEMICOLON
-
-   SEMICOLON        => reduce 2 tokens to block 21.1
-   default          => ERROR
-
-State 31:
-     25.0:loop_statement <= FOR ^ SYMBOL IN subtype LOOP SEMICOLON, EXCEPTION
-
-   SYMBOL           => shift and goto state 36 (25.0)
-   default          => ERROR
-
-State 32:
-     21.0:block <= BEGIN loop_statement ^ EXCEPTION WHEN name END, SEMICOLON
-
-   EXCEPTION        => shift and goto state 35 (21.0)
-   default          => ERROR
-
 State 33:
      26.0:name <= name ^ DOT SYMBOL, DOT/SEMICOLON
      29.1:subprogram <= PROCEDURE name parameter_list END name ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
    DOT              => shift and goto state 16 (26.0)
-   SEMICOLON        => shift and goto state 34 (29.1)
+   SEMICOLON        => shift and goto state 36 (29.1)
    default          => ERROR
 
 State 34:
-     29.1:subprogram <= PROCEDURE name parameter_list END name SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
+     25.0:loop_statement <= FOR SYMBOL ^ IN subtype LOOP SEMICOLON, EXCEPTION
 
-   FUNCTION         => reduce 6 tokens to subprogram 29.1
-   PROCEDURE        => reduce 6 tokens to subprogram 29.1
-   USE              => reduce 6 tokens to subprogram 29.1
-   Wisi_EOI         => reduce 6 tokens to subprogram 29.1
+   IN               => shift and goto state 37 (25.0)
    default          => ERROR
 
 State 35:
@@ -362,37 +359,32 @@ State 35:
    default          => ERROR
 
 State 36:
-     25.0:loop_statement <= FOR SYMBOL ^ IN subtype LOOP SEMICOLON, EXCEPTION
+     29.1:subprogram <= PROCEDURE name parameter_list END name SEMICOLON ^, FUNCTION/PROCEDURE/USE/Wisi_EOI
 
-   IN               => shift and goto state 37 (25.0)
+   FUNCTION         => reduce 6 tokens to subprogram 29.1
+   PROCEDURE        => reduce 6 tokens to subprogram 29.1
+   USE              => reduce 6 tokens to subprogram 29.1
+   Wisi_EOI         => reduce 6 tokens to subprogram 29.1
    default          => ERROR
 
 State 37:
      25.0:loop_statement <= FOR SYMBOL IN ^ subtype LOOP SEMICOLON, EXCEPTION
 
-   SYMBOL           => shift and goto state 10 (26.1)
+   SYMBOL           => shift and goto state 9 (26.1)
    default          => ERROR
 
-   name             goto state 40
-   subtype          goto state 41
+   name             goto state 39
+   subtype          goto state 40
 
 State 38:
      21.0:block <= BEGIN loop_statement EXCEPTION WHEN ^ name END, SEMICOLON
 
-   SYMBOL           => shift and goto state 10 (26.1)
+   SYMBOL           => shift and goto state 9 (26.1)
    default          => ERROR
 
-   name             goto state 39
+   name             goto state 41
 
 State 39:
-     21.0:block <= BEGIN loop_statement EXCEPTION WHEN name ^ END, SEMICOLON
-     26.0:name <= name ^ DOT SYMBOL, END/DOT
-
-   END              => shift and goto state 43 (21.0)
-   DOT              => shift and goto state 16 (26.0)
-   default          => ERROR
-
-State 40:
      26.0:name <= name ^ DOT SYMBOL, LOOP/DOT
      30.0:subtype <= name ^, LOOP
 
@@ -400,10 +392,18 @@ State 40:
    DOT              => shift and goto state 16 (26.0)
    default          => ERROR
 
-State 41:
+State 40:
      25.0:loop_statement <= FOR SYMBOL IN subtype ^ LOOP SEMICOLON, EXCEPTION
 
    LOOP             => shift and goto state 42 (25.0)
+   default          => ERROR
+
+State 41:
+     21.0:block <= BEGIN loop_statement EXCEPTION WHEN name ^ END, SEMICOLON
+     26.0:name <= name ^ DOT SYMBOL, END/DOT
+
+   END              => shift and goto state 43 (21.0)
+   DOT              => shift and goto state 16 (26.0)
    default          => ERROR
 
 State 42:

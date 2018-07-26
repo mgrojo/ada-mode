@@ -47,6 +47,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Trimmed_Image;
+with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux;
 package WisiToken is
@@ -72,6 +73,8 @@ package WisiToken is
    Unknown_State : constant Unknown_State_Index := -1;
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Unknown_State_Index);
+
+   package State_Queues is new SAL.Gen_Unbounded_Definite_Queues (State_Index);
 
    ----------
    --  Token IDs

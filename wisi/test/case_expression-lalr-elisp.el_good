@@ -64,16 +64,16 @@
       ((default . error) (NUMBER_LITERAL .  3) (IDENTIFIER .  4))
       ((default . error) (Wisi_EOI . accept))
       ((default . error) (DOT_DOT . (factor . 1)) (EQUAL_GREATER . (factor . 1)) (Wisi_EOI . (factor . 1)))
-      ((default . error) (DOT_DOT . (factor . 0)) (EQUAL_GREATER . (factor . 0)) (TICK .  13))
+      ((default . error) (DOT_DOT . (factor . 0)) (EQUAL_GREATER . (factor . 0)) (TICK .  11))
       ((default . error) (EQUAL_GREATER . (discrete_choice . 0)))
       ((default . error) (EQUAL_GREATER . (choice_expression . 0)))
       ((default . error) (EQUAL_GREATER .  12))
       ((default . error) (DOT_DOT . (factor_list . 0)) (EQUAL_GREATER . (factor_list . 0)))
-      ((default . error) (DOT_DOT .  11) (EQUAL_GREATER . (choice_relation . 0)))
+      ((default . error) (DOT_DOT .  13) (EQUAL_GREATER . (choice_relation . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice . 1)))
-      ((default . error) (NUMBER_LITERAL .  3) (IDENTIFIER .  15))
-      ((default . error) (NUMBER_LITERAL .  3) (IDENTIFIER .  15))
       ((default . error) (RANGE .  14))
+      ((default . error) (NUMBER_LITERAL .  3) (IDENTIFIER .  15))
+      ((default . error) (NUMBER_LITERAL .  3) (IDENTIFIER .  15))
       ((default . error) (EQUAL_GREATER . (range_nt . 0)))
       ((default . error) (EQUAL_GREATER . (factor . 0)) (Wisi_EOI . (factor . 0)))
       ((default . error) (Wisi_EOI . (case_expression . 0)))
@@ -89,9 +89,9 @@
       nil
       nil
       nil
-      ((factor . 8)(factor_list . 17))
-      ((factor . 16))
       nil
+      ((factor . 16))
+      ((factor . 8)(factor_list . 17))
       nil
       nil
       nil

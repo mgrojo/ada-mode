@@ -131,7 +131,7 @@ package body Association_Grammar_Test is
       Orig_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
 
       Trace_File_Name : constant String := "association_grammar_test.out";
-      Expected_Trace_File_Name : constant String := "../Test/association_grammar_test.good_out";
+      Expected_Trace_File_Name : constant String := "../Test/association_grammar_test.out_good";
    begin
       --  The test is that there are no exceptions, and that the parse
       --  trace matches the known good trace.

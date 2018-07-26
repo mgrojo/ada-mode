@@ -136,7 +136,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
          raise Grammar_Error with
            Error_Message
              (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (A_Index)).Line,
-              "invalid '%if'; only 'lexer' supported");
+              "invalid '%if'; must be one of {lexer | parser}");
       end if;
    end Start_If_1;
 

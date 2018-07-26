@@ -48,12 +48,12 @@ State 1:
      14.2:primary <= LEFT_PAREN ^ relation RIGHT_PAREN, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
    LEFT_PAREN        => shift and goto state 1 (14.2)
-   IDENTIFIER        => shift and goto state 12 (14.0)
+   IDENTIFIER        => shift and goto state 8 (14.0)
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-   primary           goto state 13
-   relation          goto state 14
+   primary           goto state 9
+   relation          goto state 10
 
 State 2:
      14.0:primary <= IDENTIFIER ^, LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL
@@ -94,8 +94,8 @@ State 5:
    STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
-   primary           goto state 9
-   range_g           goto state 10
+   primary           goto state 12
+   range_g           goto state 13
 
 State 6:
      13.0:membership_choice <= primary ^, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL
@@ -103,7 +103,7 @@ State 6:
 
    LEFT_PAREN        => reduce 1 tokens to membership_choice 13.0
    RIGHT_PAREN       => reduce 1 tokens to membership_choice 13.0
-   DOT_DOT           => shift and goto state 8 (15.2)
+   DOT_DOT           => shift and goto state 14 (15.2)
    IDENTIFIER        => reduce 1 tokens to membership_choice 13.0
    STRING_LITERAL    => reduce 1 tokens to membership_choice 13.0
    default           => ERROR
@@ -118,35 +118,6 @@ State 7:
    default           => ERROR
 
 State 8:
-     15.2:range_g <= primary DOT_DOT ^ primary, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
-
-   LEFT_PAREN        => shift and goto state 1 (14.2)
-   IDENTIFIER        => shift and goto state 12 (14.0)
-   STRING_LITERAL    => shift and goto state 3 (14.1)
-   default           => ERROR
-
-   primary           goto state 18
-
-State 9:
-     15.2:range_g <= primary ^ DOT_DOT primary, Wisi_EOI
-
-   DOT_DOT           => shift and goto state 8 (15.2)
-   default           => ERROR
-
-State 10:
-     12.0:compilation_unit <= membership_choice range_g ^, Wisi_EOI
-
-   Wisi_EOI          => reduce 2 tokens to compilation_unit 12.0
-   default           => ERROR
-
-State 11:
-     15.0:range_g <= IDENTIFIER TICK ^ RANGE LEFT_PAREN relation RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
-     15.1:range_g <= IDENTIFIER TICK ^ RANGE, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
-
-   RANGE             => shift and goto state 17 (15.0, 15.1)
-   default           => ERROR
-
-State 12:
      14.0:primary <= IDENTIFIER ^, IN/LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
    IN                => reduce 1 tokens to primary 14.0
@@ -157,19 +128,60 @@ State 12:
    Wisi_EOI          => reduce 1 tokens to primary 14.0
    default           => ERROR
 
-State 13:
+State 9:
      16.0:relation <= primary ^ IN membership_choice, RIGHT_PAREN
 
-   IN                => shift and goto state 16 (16.0)
+   IN                => shift and goto state 15 (16.0)
+   default           => ERROR
+
+State 10:
+     14.2:primary <= LEFT_PAREN relation ^ RIGHT_PAREN, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+
+   RIGHT_PAREN       => shift and goto state 16 (14.2)
+   default           => ERROR
+
+State 11:
+     15.0:range_g <= IDENTIFIER TICK ^ RANGE LEFT_PAREN relation RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     15.1:range_g <= IDENTIFIER TICK ^ RANGE, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+
+   RANGE             => shift and goto state 17 (15.0, 15.1)
+   default           => ERROR
+
+State 12:
+     15.2:range_g <= primary ^ DOT_DOT primary, Wisi_EOI
+
+   DOT_DOT           => shift and goto state 14 (15.2)
+   default           => ERROR
+
+State 13:
+     12.0:compilation_unit <= membership_choice range_g ^, Wisi_EOI
+
+   Wisi_EOI          => reduce 2 tokens to compilation_unit 12.0
    default           => ERROR
 
 State 14:
-     14.2:primary <= LEFT_PAREN relation ^ RIGHT_PAREN, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+     15.2:range_g <= primary DOT_DOT ^ primary, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   RIGHT_PAREN       => shift and goto state 15 (14.2)
+   LEFT_PAREN        => shift and goto state 1 (14.2)
+   IDENTIFIER        => shift and goto state 8 (14.0)
+   STRING_LITERAL    => shift and goto state 3 (14.1)
    default           => ERROR
 
+   primary           goto state 18
+
 State 15:
+     16.0:relation <= primary IN ^ membership_choice, RIGHT_PAREN
+
+   LEFT_PAREN        => shift and goto state 1 (14.2)
+   IDENTIFIER        => shift and goto state 2 (14.0, 15.0, 15.1)
+   STRING_LITERAL    => shift and goto state 3 (14.1)
+   default           => ERROR
+
+   membership_choice goto state 19
+   primary           goto state 6
+   range_g           goto state 7
+
+State 16:
      14.2:primary <= LEFT_PAREN relation RIGHT_PAREN ^, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
    IN                => reduce 3 tokens to primary 14.2
@@ -181,23 +193,11 @@ State 15:
    Wisi_EOI          => reduce 3 tokens to primary 14.2
    default           => ERROR
 
-State 16:
-     16.0:relation <= primary IN ^ membership_choice, RIGHT_PAREN
-
-   LEFT_PAREN        => shift and goto state 1 (14.2)
-   IDENTIFIER        => shift and goto state 2 (14.0, 15.0, 15.1)
-   STRING_LITERAL    => shift and goto state 3 (14.1)
-   default           => ERROR
-
-   membership_choice goto state 20
-   primary           goto state 6
-   range_g           goto state 7
-
 State 17:
      15.0:range_g <= IDENTIFIER TICK RANGE ^ LEFT_PAREN relation RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
      15.1:range_g <= IDENTIFIER TICK RANGE ^, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
 
-   LEFT_PAREN        => shift and goto state 19 (15.0),
+   LEFT_PAREN        => shift and goto state 20 (15.0),
                         reduce 3 tokens to range_g 15.1
    RIGHT_PAREN       => reduce 3 tokens to range_g 15.1
    IDENTIFIER        => reduce 3 tokens to range_g 15.1
@@ -216,21 +216,21 @@ State 18:
    default           => ERROR
 
 State 19:
-     15.0:range_g <= IDENTIFIER TICK RANGE LEFT_PAREN ^ relation RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
-
-   LEFT_PAREN        => shift and goto state 1 (14.2)
-   IDENTIFIER        => shift and goto state 12 (14.0)
-   STRING_LITERAL    => shift and goto state 3 (14.1)
-   default           => ERROR
-
-   primary           goto state 13
-   relation          goto state 21
-
-State 20:
      16.0:relation <= primary IN membership_choice ^, RIGHT_PAREN
 
    RIGHT_PAREN       => reduce 3 tokens to relation 16.0
    default           => ERROR
+
+State 20:
+     15.0:range_g <= IDENTIFIER TICK RANGE LEFT_PAREN ^ relation RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI
+
+   LEFT_PAREN        => shift and goto state 1 (14.2)
+   IDENTIFIER        => shift and goto state 8 (14.0)
+   STRING_LITERAL    => shift and goto state 3 (14.1)
+   default           => ERROR
+
+   primary           goto state 9
+   relation          goto state 21
 
 State 21:
      15.0:range_g <= IDENTIFIER TICK RANGE LEFT_PAREN relation ^ RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI

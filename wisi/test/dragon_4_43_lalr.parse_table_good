@@ -32,7 +32,7 @@ State 1:
    LOWER_D          => shift and goto state 2 (7.1)
    default          => ERROR
 
-   upper_c          goto state 6
+   upper_c          goto state 5
 
 State 2:
       7.1:upper_c <= LOWER_D ^, LOWER_C/LOWER_D/Wisi_EOI
@@ -55,20 +55,20 @@ State 4:
    LOWER_D          => shift and goto state 2 (7.1)
    default          => ERROR
 
-   upper_c          goto state 5
+   upper_c          goto state 6
 
 State 5:
-      6.0:upper_s <= upper_c upper_c ^, Wisi_EOI
-
-   Wisi_EOI         => reduce 2 tokens to upper_s 6.0
-   default          => ERROR
-
-State 6:
       7.0:upper_c <= LOWER_C upper_c ^, LOWER_C/LOWER_D/Wisi_EOI
 
    LOWER_C          => reduce 2 tokens to upper_c 7.0
    LOWER_D          => reduce 2 tokens to upper_c 7.0
    Wisi_EOI         => reduce 2 tokens to upper_c 7.0
+   default          => ERROR
+
+State 6:
+      6.0:upper_s <= upper_c upper_c ^, Wisi_EOI
+
+   Wisi_EOI         => reduce 2 tokens to upper_s 6.0
    default          => ERROR
 
 Minimal_Terminal_Sequences:

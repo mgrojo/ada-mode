@@ -59,27 +59,27 @@
       (generic_instantiation
        ((PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON ))))
      [((default . error) (PROCEDURE .  1))
-      ((default . error) (IDENTIFIER .  9))
+      ((default . error) (IDENTIFIER .  7))
       ((default . error) (Wisi_EOI . accept))
       ((default . error) (PROCEDURE .  1))
       ((default . error) (PROCEDURE . (library_item . 0)) (Wisi_EOI . (library_item . 0)))
-      ((default . error) (IS .  7))
+      ((default . error) (IS .  9))
       ((default . error) (PROCEDURE . (library_item . 1)) (Wisi_EOI . (library_item . 1)))
-      ((default . error) (BEGIN .  13))
-      ((default . error) (Wisi_EOI . (compilation_unit . 0)))
       ((default . error) (IS . ( 10 (parameter_list . 1))) (LEFT_PAREN .  11))
-      ((default . error) (NEW .  16))
+      ((default . error) (Wisi_EOI . (compilation_unit . 0)))
+      ((default . error) (BEGIN .  13))
+      ((default . error) (NEW .  14))
       ((default . error) (IDENTIFIER .  15))
       ((default . error) (IS . (subprogram_specification . 0)))
-      ((default . error) (NULL .  14))
-      ((default . error) (END .  19))
-      ((default . error) (RIGHT_PAREN .  18))
+      ((default . error) (NULL .  16))
       ((default . error) (IDENTIFIER .  17))
-      ((default . error) (LEFT_PAREN .  21))
+      ((default . error) (RIGHT_PAREN .  18))
+      ((default . error) (END .  19))
+      ((default . error) (LEFT_PAREN .  20))
       ((default . error) (IS . (parameter_list . 0)))
-      ((default . error) (SEMICOLON .  20))
-      ((default . error) (PROCEDURE . (subprogram_body . 0)) (Wisi_EOI . (subprogram_body . 0)))
+      ((default . error) (SEMICOLON .  21))
       ((default . error) (IDENTIFIER .  22))
+      ((default . error) (PROCEDURE . (subprogram_body . 0)) (Wisi_EOI . (subprogram_body . 0)))
       ((default . error) (RIGHT_PAREN .  23))
       ((default . error) (SEMICOLON .  24))
       ((default . error) (PROCEDURE . (generic_instantiation . 0)) (Wisi_EOI . (generic_instantiation . 0)))]
@@ -90,9 +90,9 @@
       nil
       nil
       nil
-      nil
-      nil
       ((parameter_list . 12))
+      nil
+      nil
       nil
       nil
       nil

@@ -33,10 +33,10 @@ State 0:
 State 1:
       9.0:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
-   IDENTIFIER        => shift and goto state 5 (10.0)
+   IDENTIFIER        => shift and goto state 4 (10.0)
    default           => ERROR
 
-   name              goto state 6
+   name              goto state 5
 
 State 2:
       7.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
@@ -50,22 +50,16 @@ State 3:
    ACCEPT            => shift and goto state 1 (9.0)
    default           => ERROR
 
-   accept_statement  goto state 4
+   accept_statement  goto state 6
 
 State 4:
-      8.0:compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
-
-   Wisi_EOI          => reduce 2 tokens to compilation_unit 8.0
-   default           => ERROR
-
-State 5:
      10.0:name <= IDENTIFIER ^, LEFT_PAREN/SEMICOLON
 
    LEFT_PAREN        => reduce 1 tokens to name 10.0
    SEMICOLON         => reduce 1 tokens to name 10.0
    default           => ERROR
 
-State 6:
+State 5:
       9.0:accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
    LEFT_PAREN        => shift and goto state 7 (11.0)
@@ -74,29 +68,35 @@ State 6:
 
    parameter_profile goto state 8
 
+State 6:
+      8.0:compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
+
+   Wisi_EOI          => reduce 2 tokens to compilation_unit 8.0
+   default           => ERROR
+
 State 7:
      11.0:parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
 
-   IDENTIFIER        => shift and goto state 10 (11.0)
+   IDENTIFIER        => shift and goto state 9 (11.0)
    default           => ERROR
 
 State 8:
       9.0:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/Wisi_EOI
 
-   SEMICOLON         => shift and goto state 9 (9.0)
+   SEMICOLON         => shift and goto state 10 (9.0)
    default           => ERROR
 
 State 9:
+     11.0:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
+
+   RIGHT_PAREN       => shift and goto state 11 (11.0)
+   default           => ERROR
+
+State 10:
       9.0:accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT/Wisi_EOI
 
    ACCEPT            => reduce 4 tokens to accept_statement 9.0
    Wisi_EOI          => reduce 4 tokens to accept_statement 9.0
-   default           => ERROR
-
-State 10:
-     11.0:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
-
-   RIGHT_PAREN       => shift and goto state 11 (11.0)
    default           => ERROR
 
 State 11:

@@ -35,6 +35,7 @@ speed up lr1 generate
         LR1  re2c generate time: 3.137268302
 
     binary search
+        ada_lite:
         LALR re2c generate time: 0.164738803
         LR1  re2c generate time: 2.999708130
 
@@ -44,6 +45,7 @@ speed up lr1 generate
         LR1 re2c generate time: 1086.665714660
 
     accurate tree key; use 'compare' in vectors.gen_comparable, red_black_trees
+        ada_lite:
         LALR re2c generate time: 0.182767523
         LR1 re2c generate time: 3.306645683
 
@@ -53,12 +55,28 @@ speed up lr1 generate
         LR1 re2c generate time: 602.235431713
 
     replace boolean New_Items_To_Check with list of state ids.
+        ada_lite:
+        LALR re2c generate time: 0.035681746
+        LR1 re2c generate time: 0.350127867
+
+        ada
+        LALR elisp generate time: 0.429532318
+        LALR re2c generate time: 0.443560947
+        LR1 re2c generate time: 39.895565354
+
+    don't loop on all token_ids; loop on set?
+        renumbers states again, and it's slower!
+
+        extract list of dot_id when build state
+            --  LR1_Goto_Transitions rejects Symbols that are not the Dot of some
+            --  item, so it is tempting to iterate on those instead. However, that
+            --  turns out to be slower.
+
+    add 'pragma inline'
 
     try lalr with include_lookaheads => true
 
     implement DeRemer, keep all => lr1
-
-    add 'pragma inline'
 
     multi-cpu
 

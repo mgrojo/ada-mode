@@ -61,7 +61,7 @@ State 4:
    PROCEDURE              => reduce 0 tokens to overriding_indicator 10.1
    default                => ERROR
 
-   subprogram_declaration goto state 7
+   subprogram_declaration goto state 6
    overriding_indicator   goto state 5
 
 State 5:
@@ -71,15 +71,9 @@ State 5:
    PROCEDURE              => reduce 0 tokens to other_indicator 11.1
    default                => ERROR
 
-   other_indicator        goto state 6
+   other_indicator        goto state 7
 
 State 6:
-      9.0:subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
-
-   PROCEDURE              => shift and goto state 9 (9.0)
-   default                => ERROR
-
-State 7:
       8.0:compilation_unit <= subprogram_declaration subprogram_declaration ^ subprogram_declaration, Wisi_EOI
 
    OVERRIDING             => shift and goto state 1 (10.0)
@@ -89,6 +83,12 @@ State 7:
 
    subprogram_declaration goto state 8
    overriding_indicator   goto state 5
+
+State 7:
+      9.0:subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
+
+   PROCEDURE              => shift and goto state 9 (9.0)
+   default                => ERROR
 
 State 8:
       8.0:compilation_unit <= subprogram_declaration subprogram_declaration subprogram_declaration ^, Wisi_EOI

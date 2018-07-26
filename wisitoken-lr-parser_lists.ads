@@ -57,7 +57,7 @@ package WisiToken.LR.Parser_Lists is
       Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
       --  Last token read from Shared_Parser.Terminals.
 
-      Recover_Insert_Delete : Config_Op_Queues.Queue_Type;
+      Recover_Insert_Delete : Config_Op_Queues.Queue;
       --  Tokens in that were inserted during error recovery, or should be
       --  deleted/skipped when read. Contains only Insert and Delete ops.
 

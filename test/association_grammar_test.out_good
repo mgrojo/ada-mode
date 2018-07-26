@@ -8,8 +8,8 @@ association_id_2: (association_id, (2 . 11)) <= ( 2:(IDENTIFIER_ID, (2 . 11)))
  0: 5:  3:(PAREN_RIGHT_ID, (12 . 12)) : reduce 1 tokens to association_list_id
 association_list_id_1: (association_list_id, (2 . 11)) <= ((association_id, (2 . 11)))
  ... goto state 6
- 0: 6:  3:(PAREN_RIGHT_ID, (12 . 12)) : shift and goto state 7
- 0: 7:  4:(EOF_ID, (13 . 12)) : reduce 3 tokens to aggregate_id
+ 0: 6:  3:(PAREN_RIGHT_ID, (12 . 12)) : shift and goto state 10
+ 0: 10:  4:(EOF_ID, (13 . 12)) : reduce 3 tokens to aggregate_id
 aggregate_id_0: (aggregate_id, (1 . 12)) <= ( 1:(PAREN_LEFT_ID, (1 . 1)), (association_list_id, (2 . 11)),  3:(PAREN_RIGHT_ID, (12 . 12)))
  ... goto state 2
  0: 2:  4:(EOF_ID, (13 . 12)) : accept it
@@ -24,8 +24,8 @@ success
  0: 3:  3:(COMMA_ID, (12 . 12)) : reduce 1 tokens to association_id
 association_id_2: (association_id, (2 . 11)) <= ( 2:(IDENTIFIER_ID, (2 . 11)))
  ... goto state 5
- 0: 5:  3:(COMMA_ID, (12 . 12)) : shift and goto state 8
- 0: 8:  4:(IDENTIFIER_ID, (14 . 23)) : shift and goto state 3
+ 0: 5:  3:(COMMA_ID, (12 . 12)) : shift and goto state 9
+ 0: 9:  4:(IDENTIFIER_ID, (14 . 23)) : shift and goto state 3
  0: 3:  5:(PAREN_RIGHT_ID, (24 . 24)) : reduce 1 tokens to association_id
 association_id_2: (association_id, (14 . 23)) <= ( 4:(IDENTIFIER_ID, (14 . 23)))
  ... goto state 5
@@ -35,8 +35,8 @@ association_list_id_1: (association_list_id, (14 . 23)) <= ((association_id, (14
  0: 13:  5:(PAREN_RIGHT_ID, (24 . 24)) : reduce 3 tokens to association_list_id
 association_list_id_0: (association_list_id, (2 . 23)) <= ((association_id, (2 . 11)),  3:(COMMA_ID, (12 . 12)), (association_list_id, (14 . 23)))
  ... goto state 6
- 0: 6:  5:(PAREN_RIGHT_ID, (24 . 24)) : shift and goto state 7
- 0: 7:  6:(EOF_ID, (25 . 24)) : reduce 3 tokens to aggregate_id
+ 0: 6:  5:(PAREN_RIGHT_ID, (24 . 24)) : shift and goto state 10
+ 0: 10:  6:(EOF_ID, (25 . 24)) : reduce 3 tokens to aggregate_id
 aggregate_id_0: (aggregate_id, (1 . 24)) <= ( 1:(PAREN_LEFT_ID, (1 . 1)), (association_list_id, (2 . 23)),  5:(PAREN_RIGHT_ID, (24 . 24)))
  ... goto state 2
  0: 2:  6:(EOF_ID, (25 . 24)) : accept it
@@ -48,16 +48,16 @@ success
  6 tokens lexed
  0: 0:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 1
  0: 1:  2:(IDENTIFIER_ID, (2 . 11)) : shift and goto state 3
- 0: 3:  3:(EQUAL_GREATER_ID, (13 . 14)) : shift and goto state 10
- 0: 10:  4:(IDENTIFIER_ID, (16 . 25)) : shift and goto state 11
+ 0: 3:  3:(EQUAL_GREATER_ID, (13 . 14)) : shift and goto state 7
+ 0: 7:  4:(IDENTIFIER_ID, (16 . 25)) : shift and goto state 11
  0: 11:  5:(PAREN_RIGHT_ID, (26 . 26)) : reduce 3 tokens to association_id
 association_id_0: (association_id, (2 . 25)) <= ( 2:(IDENTIFIER_ID, (2 . 11)),  3:(EQUAL_GREATER_ID, (13 . 14)),  4:(IDENTIFIER_ID, (16 . 25)))
  ... goto state 5
  0: 5:  5:(PAREN_RIGHT_ID, (26 . 26)) : reduce 1 tokens to association_list_id
 association_list_id_1: (association_list_id, (2 . 25)) <= ((association_id, (2 . 25)))
  ... goto state 6
- 0: 6:  5:(PAREN_RIGHT_ID, (26 . 26)) : shift and goto state 7
- 0: 7:  6:(EOF_ID, (27 . 26)) : reduce 3 tokens to aggregate_id
+ 0: 6:  5:(PAREN_RIGHT_ID, (26 . 26)) : shift and goto state 10
+ 0: 10:  6:(EOF_ID, (27 . 26)) : reduce 3 tokens to aggregate_id
 aggregate_id_0: (aggregate_id, (1 . 26)) <= ( 1:(PAREN_LEFT_ID, (1 . 1)), (association_list_id, (2 . 25)),  5:(PAREN_RIGHT_ID, (26 . 26)))
  ... goto state 2
  0: 2:  6:(EOF_ID, (27 . 26)) : accept it
@@ -69,16 +69,16 @@ success
  6 tokens lexed
  0: 0:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 1
  0: 1:  2:(IDENTIFIER_ID, (2 . 8)) : shift and goto state 3
- 0: 3:  3:(EQUAL_GREATER_ID, (10 . 11)) : shift and goto state 10
- 0: 10:  4:(IDENTIFIER_ID, (13 . 22)) : shift and goto state 11
+ 0: 3:  3:(EQUAL_GREATER_ID, (10 . 11)) : shift and goto state 7
+ 0: 7:  4:(IDENTIFIER_ID, (13 . 22)) : shift and goto state 11
  0: 11:  5:(PAREN_RIGHT_ID, (23 . 23)) : reduce 3 tokens to association_id
 association_id_0: (association_id, (2 . 22)) <= ( 2:(IDENTIFIER_ID, (2 . 8)),  3:(EQUAL_GREATER_ID, (10 . 11)),  4:(IDENTIFIER_ID, (13 . 22)))
  ... goto state 5
  0: 5:  5:(PAREN_RIGHT_ID, (23 . 23)) : reduce 1 tokens to association_list_id
 association_list_id_1: (association_list_id, (2 . 22)) <= ((association_id, (2 . 22)))
  ... goto state 6
- 0: 6:  5:(PAREN_RIGHT_ID, (23 . 23)) : shift and goto state 7
- 0: 7:  6:(EOF_ID, (24 . 23)) : reduce 3 tokens to aggregate_id
+ 0: 6:  5:(PAREN_RIGHT_ID, (23 . 23)) : shift and goto state 10
+ 0: 10:  6:(EOF_ID, (24 . 23)) : reduce 3 tokens to aggregate_id
 aggregate_id_0: (aggregate_id, (1 . 23)) <= ( 1:(PAREN_LEFT_ID, (1 . 1)), (association_list_id, (2 . 22)),  5:(PAREN_RIGHT_ID, (23 . 23)))
  ... goto state 2
  0: 2:  6:(EOF_ID, (24 . 23)) : accept it
@@ -90,15 +90,15 @@ success
  10 tokens lexed
  0: 0:  1:(PAREN_LEFT_ID, (1 . 1)) : shift and goto state 1
  0: 1:  2:(IDENTIFIER_ID, (2 . 11)) : shift and goto state 3
- 0: 3:  3:(EQUAL_GREATER_ID, (13 . 14)) : shift and goto state 10
- 0: 10:  4:(IDENTIFIER_ID, (16 . 25)) : shift and goto state 11
+ 0: 3:  3:(EQUAL_GREATER_ID, (13 . 14)) : shift and goto state 7
+ 0: 7:  4:(IDENTIFIER_ID, (16 . 25)) : shift and goto state 11
  0: 11:  5:(COMMA_ID, (26 . 26)) : reduce 3 tokens to association_id
 association_id_0: (association_id, (2 . 25)) <= ( 2:(IDENTIFIER_ID, (2 . 11)),  3:(EQUAL_GREATER_ID, (13 . 14)),  4:(IDENTIFIER_ID, (16 . 25)))
  ... goto state 5
- 0: 5:  5:(COMMA_ID, (26 . 26)) : shift and goto state 8
- 0: 8:  6:(IDENTIFIER_ID, (28 . 34)) : shift and goto state 3
- 0: 3:  7:(EQUAL_GREATER_ID, (36 . 37)) : shift and goto state 10
- 0: 10:  8:(IDENTIFIER_ID, (39 . 48)) : shift and goto state 11
+ 0: 5:  5:(COMMA_ID, (26 . 26)) : shift and goto state 9
+ 0: 9:  6:(IDENTIFIER_ID, (28 . 34)) : shift and goto state 3
+ 0: 3:  7:(EQUAL_GREATER_ID, (36 . 37)) : shift and goto state 7
+ 0: 7:  8:(IDENTIFIER_ID, (39 . 48)) : shift and goto state 11
  0: 11:  9:(PAREN_RIGHT_ID, (49 . 49)) : reduce 3 tokens to association_id
 association_id_0: (association_id, (28 . 48)) <= ( 6:(IDENTIFIER_ID, (28 . 34)),  7:(EQUAL_GREATER_ID, (36 . 37)),  8:(IDENTIFIER_ID, (39 . 48)))
  ... goto state 5
@@ -108,8 +108,8 @@ association_list_id_1: (association_list_id, (28 . 48)) <= ((association_id, (28
  0: 13:  9:(PAREN_RIGHT_ID, (49 . 49)) : reduce 3 tokens to association_list_id
 association_list_id_0: (association_list_id, (2 . 48)) <= ((association_id, (2 . 25)),  5:(COMMA_ID, (26 . 26)), (association_list_id, (28 . 48)))
  ... goto state 6
- 0: 6:  9:(PAREN_RIGHT_ID, (49 . 49)) : shift and goto state 7
- 0: 7:  10:(EOF_ID, (50 . 49)) : reduce 3 tokens to aggregate_id
+ 0: 6:  9:(PAREN_RIGHT_ID, (49 . 49)) : shift and goto state 10
+ 0: 10:  10:(EOF_ID, (50 . 49)) : reduce 3 tokens to aggregate_id
 aggregate_id_0: (aggregate_id, (1 . 49)) <= ( 1:(PAREN_LEFT_ID, (1 . 1)), (association_list_id, (2 . 48)),  9:(PAREN_RIGHT_ID, (49 . 49)))
  ... goto state 2
  0: 2:  10:(EOF_ID, (50 . 49)) : accept it
