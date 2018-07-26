@@ -67,7 +67,6 @@ package body WisiToken.LR.LR1_Generate is
       Descriptor              : in WisiToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
-      use all type Token_ID_Arrays.Cursor;
       use all type Ada.Containers.Count_Type;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure
@@ -85,26 +84,25 @@ package body WisiToken.LR.LR1_Generate is
       --  100,000 states, so this is a significant gain (reduced time from
       --  600 seconds to 40).
 
-      I : State_Index;
+      I       : State_Index;
+      Dot_IDs : Token_ID_Arrays.Vector;
 
-      New_Item_Set : Item_Set :=
-        (Set            => Item_Lists.To_List
-           ((Prod       => (Grammar.First_Index, 0),
-             Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-             Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOF_ID, Descriptor)))),
-         Goto_List      => <>,
-         State          => First_State_Index);
+      New_Item_Set : Item_Set := Closure
+        ((Set            => Item_Lists.To_List
+            ((Prod       => (Grammar.First_Index, 0),
+              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
+              Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOF_ID, Descriptor)))),
+          Goto_List      => <>,
+          Dot_IDs        => <>,
+          State          => First_State_Index),
+        Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
       Found_State  : Unknown_State_Index;
 
    begin
       C.Set_First (First_State_Index);
-      C.Set_Last (First_State_Index);
 
-      C (First_State_Index) := Closure
-        (New_Item_Set, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
-
-      C_Tree.Insert ((To_Item_Set_Tree_Key (C (First_State_Index), Include_Lookaheads => True), First_State_Index));
+      Add (New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
 
       States_To_Check.Put (First_State_Index);
       loop
@@ -116,7 +114,13 @@ package body WisiToken.LR.LR1_Generate is
             Put (Grammar, Descriptor, C (I), Show_Lookaheads => True, Show_Goto_List => True);
          end if;
 
-         for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
+         Dot_IDs := C (I).Dot_IDs;
+         --  We can't iterate on C (I).Dot_IDs when the loop adds items to C;
+         --  it might be reallocated to grow.
+
+         for Symbol of Dot_IDs loop
+            --  [dragon] has 'for each grammar symbol X', but LR1_Goto_Transitions
+            --  rejects Symbol that is not in Dot_IDs, so we iterate over that.
 
             New_Item_Set := LR1_Goto_Transitions
               (C (I), Symbol, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
@@ -130,7 +134,7 @@ package body WisiToken.LR.LR1_Generate is
 
                   States_To_Check.Put (New_Item_Set.State);
 
-                  Add (New_Item_Set, C, C_Tree, Include_Lookaheads => True);
+                  Add (New_Item_Set, C, C_Tree, Descriptor, Include_Lookaheads => True);
 
                   if Trace_Generate > Outline then
                      Ada.Text_IO.Put_Line

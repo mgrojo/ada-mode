@@ -100,6 +100,7 @@ package body Compare_Goto_Transitions is
            ((Set       => +Get_Item
                (Grammar, Prod, 1, To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
              Goto_List => <>,
+             Dot_IDs   => <>,
              State     => Unknown_State),
             Has_Empty_Production, First_Terminal_Sequence, Grammar, Token_Enum.LALR_Descriptor);
 

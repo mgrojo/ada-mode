@@ -175,6 +175,8 @@ package WisiToken is
    procedure To_Set (Item : in Token_ID_Arrays.Vector; Set : out Token_ID_Set);
    --  For each element of Item, set Set (element) True.
 
+   function To_Array (Item : in Token_ID_Set) return Token_ID_Arrays.Vector;
+
    function Any (Item : in Token_ID_Set) return Boolean;
 
    function Count (Item : in Token_ID_Set) return Integer;

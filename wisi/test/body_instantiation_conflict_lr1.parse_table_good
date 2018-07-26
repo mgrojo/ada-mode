@@ -48,7 +48,7 @@ State 1:
      17.0:subprogram_specification <= PROCEDURE ^ IDENTIFIER parameter_list, IS
      19.0:generic_instantiation <= PROCEDURE ^ IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
 
-   IDENTIFIER               => shift and goto state 13 (17.0, 19.0)
+   IDENTIFIER               => shift and goto state 7 (17.0, 19.0)
    default                  => ERROR
 
 State 2:
@@ -77,7 +77,7 @@ State 4:
 State 5:
      16.0:subprogram_body <= subprogram_specification ^ IS BEGIN NULL END SEMICOLON, PROCEDURE
 
-   IS                       => shift and goto state 7 (16.0)
+   IS                       => shift and goto state 13 (16.0)
    default                  => ERROR
 
 State 6:
@@ -87,16 +87,21 @@ State 6:
    default                  => ERROR
 
 State 7:
-     16.0:subprogram_body <= subprogram_specification IS ^ BEGIN NULL END SEMICOLON, PROCEDURE
+     17.0:subprogram_specification <= PROCEDURE IDENTIFIER ^ parameter_list, IS
+     19.0:generic_instantiation <= PROCEDURE IDENTIFIER ^ IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
 
-   BEGIN                    => shift and goto state 19 (16.0)
+   IS                       => shift and goto state 14 (19.0),
+                               reduce 0 tokens to parameter_list 18.1
+   LEFT_PAREN               => shift and goto state 15 (18.0)
    default                  => ERROR
+
+   parameter_list           goto state 16
 
 State 8:
      17.0:subprogram_specification <= PROCEDURE ^ IDENTIFIER parameter_list, IS
      19.0:generic_instantiation <= PROCEDURE ^ IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
 
-   IDENTIFIER               => shift and goto state 18 (17.0, 19.0)
+   IDENTIFIER               => shift and goto state 17 (17.0, 19.0)
    default                  => ERROR
 
 State 9:
@@ -114,7 +119,7 @@ State 10:
 State 11:
      16.0:subprogram_body <= subprogram_specification ^ IS BEGIN NULL END SEMICOLON, Wisi_EOI
 
-   IS                       => shift and goto state 17 (16.0)
+   IS                       => shift and goto state 18 (16.0)
    default                  => ERROR
 
 State 12:
@@ -124,26 +129,21 @@ State 12:
    default                  => ERROR
 
 State 13:
-     17.0:subprogram_specification <= PROCEDURE IDENTIFIER ^ parameter_list, IS
-     19.0:generic_instantiation <= PROCEDURE IDENTIFIER ^ IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
+     16.0:subprogram_body <= subprogram_specification IS ^ BEGIN NULL END SEMICOLON, PROCEDURE
 
-   IS                       => shift and goto state 14 (19.0),
-                               reduce 0 tokens to parameter_list 18.1
-   LEFT_PAREN               => shift and goto state 15 (18.0)
+   BEGIN                    => shift and goto state 19 (16.0)
    default                  => ERROR
-
-   parameter_list           goto state 16
 
 State 14:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS ^ NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
 
-   NEW                      => shift and goto state 24 (19.0)
+   NEW                      => shift and goto state 20 (19.0)
    default                  => ERROR
 
 State 15:
      18.0:parameter_list <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, IS
 
-   IDENTIFIER               => shift and goto state 23 (18.0)
+   IDENTIFIER               => shift and goto state 21 (18.0)
    default                  => ERROR
 
 State 16:
@@ -153,62 +153,62 @@ State 16:
    default                  => ERROR
 
 State 17:
-     16.0:subprogram_body <= subprogram_specification IS ^ BEGIN NULL END SEMICOLON, Wisi_EOI
-
-   BEGIN                    => shift and goto state 22 (16.0)
-   default                  => ERROR
-
-State 18:
      17.0:subprogram_specification <= PROCEDURE IDENTIFIER ^ parameter_list, IS
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER ^ IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
 
-   IS                       => shift and goto state 21 (19.0),
+   IS                       => shift and goto state 22 (19.0),
                                reduce 0 tokens to parameter_list 18.1
    LEFT_PAREN               => shift and goto state 15 (18.0)
    default                  => ERROR
 
    parameter_list           goto state 16
 
+State 18:
+     16.0:subprogram_body <= subprogram_specification IS ^ BEGIN NULL END SEMICOLON, Wisi_EOI
+
+   BEGIN                    => shift and goto state 23 (16.0)
+   default                  => ERROR
+
 State 19:
      16.0:subprogram_body <= subprogram_specification IS BEGIN ^ NULL END SEMICOLON, PROCEDURE
 
-   NULL                     => shift and goto state 20 (16.0)
+   NULL                     => shift and goto state 24 (16.0)
    default                  => ERROR
 
 State 20:
-     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL ^ END SEMICOLON, PROCEDURE
-
-   END                      => shift and goto state 29 (16.0)
-   default                  => ERROR
-
-State 21:
-     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS ^ NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
-
-   NEW                      => shift and goto state 28 (19.0)
-   default                  => ERROR
-
-State 22:
-     16.0:subprogram_body <= subprogram_specification IS BEGIN ^ NULL END SEMICOLON, Wisi_EOI
-
-   NULL                     => shift and goto state 27 (16.0)
-   default                  => ERROR
-
-State 23:
-     18.0:parameter_list <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, IS
-
-   RIGHT_PAREN              => shift and goto state 26 (18.0)
-   default                  => ERROR
-
-State 24:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW ^ IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
 
    IDENTIFIER               => shift and goto state 25 (19.0)
    default                  => ERROR
 
+State 21:
+     18.0:parameter_list <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, IS
+
+   RIGHT_PAREN              => shift and goto state 26 (18.0)
+   default                  => ERROR
+
+State 22:
+     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS ^ NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
+
+   NEW                      => shift and goto state 27 (19.0)
+   default                  => ERROR
+
+State 23:
+     16.0:subprogram_body <= subprogram_specification IS BEGIN ^ NULL END SEMICOLON, Wisi_EOI
+
+   NULL                     => shift and goto state 28 (16.0)
+   default                  => ERROR
+
+State 24:
+     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL ^ END SEMICOLON, PROCEDURE
+
+   END                      => shift and goto state 29 (16.0)
+   default                  => ERROR
+
 State 25:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER ^ LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
 
-   LEFT_PAREN               => shift and goto state 33 (19.0)
+   LEFT_PAREN               => shift and goto state 30 (19.0)
    default                  => ERROR
 
 State 26:
@@ -218,75 +218,75 @@ State 26:
    default                  => ERROR
 
 State 27:
-     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL ^ END SEMICOLON, Wisi_EOI
-
-   END                      => shift and goto state 32 (16.0)
-   default                  => ERROR
-
-State 28:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW ^ IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
 
    IDENTIFIER               => shift and goto state 31 (19.0)
    default                  => ERROR
 
+State 28:
+     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL ^ END SEMICOLON, Wisi_EOI
+
+   END                      => shift and goto state 32 (16.0)
+   default                  => ERROR
+
 State 29:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END ^ SEMICOLON, PROCEDURE
 
-   SEMICOLON                => shift and goto state 30 (16.0)
+   SEMICOLON                => shift and goto state 33 (16.0)
    default                  => ERROR
 
 State 30:
-     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END SEMICOLON ^, PROCEDURE
-
-   PROCEDURE                => reduce 6 tokens to subprogram_body 16.0
-   default                  => ERROR
-
-State 31:
-     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER ^ LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
-
-   LEFT_PAREN               => shift and goto state 36 (19.0)
-   default                  => ERROR
-
-State 32:
-     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END ^ SEMICOLON, Wisi_EOI
-
-   SEMICOLON                => shift and goto state 35 (16.0)
-   default                  => ERROR
-
-State 33:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN SEMICOLON, PROCEDURE
 
    IDENTIFIER               => shift and goto state 34 (19.0)
    default                  => ERROR
 
+State 31:
+     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER ^ LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
+
+   LEFT_PAREN               => shift and goto state 35 (19.0)
+   default                  => ERROR
+
+State 32:
+     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END ^ SEMICOLON, Wisi_EOI
+
+   SEMICOLON                => shift and goto state 36 (16.0)
+   default                  => ERROR
+
+State 33:
+     16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END SEMICOLON ^, PROCEDURE
+
+   PROCEDURE                => reduce 6 tokens to subprogram_body 16.0
+   default                  => ERROR
+
 State 34:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN SEMICOLON, PROCEDURE
 
-   RIGHT_PAREN              => shift and goto state 38 (19.0)
+   RIGHT_PAREN              => shift and goto state 37 (19.0)
    default                  => ERROR
 
 State 35:
+     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
+
+   IDENTIFIER               => shift and goto state 38 (19.0)
+   default                  => ERROR
+
+State 36:
      16.0:subprogram_body <= subprogram_specification IS BEGIN NULL END SEMICOLON ^, Wisi_EOI
 
    Wisi_EOI                 => reduce 6 tokens to subprogram_body 16.0
    default                  => ERROR
 
-State 36:
-     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN SEMICOLON, Wisi_EOI
-
-   IDENTIFIER               => shift and goto state 37 (19.0)
-   default                  => ERROR
-
 State 37:
-     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN SEMICOLON, Wisi_EOI
-
-   RIGHT_PAREN              => shift and goto state 40 (19.0)
-   default                  => ERROR
-
-State 38:
      19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN ^ SEMICOLON, PROCEDURE
 
    SEMICOLON                => shift and goto state 39 (19.0)
+   default                  => ERROR
+
+State 38:
+     19.0:generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN SEMICOLON, Wisi_EOI
+
+   RIGHT_PAREN              => shift and goto state 40 (19.0)
    default                  => ERROR
 
 State 39:

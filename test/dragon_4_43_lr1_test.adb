@@ -38,7 +38,7 @@ with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 package body Dragon_4_43_LR1_Test is
 
-   --  grammar in eqn (4.21) example 4.42 pg 231
+   --  [dragon] example 4.43 pg 235
 
    type Token_Enum_ID is
      (
@@ -66,7 +66,6 @@ package body Dragon_4_43_LR1_Test is
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
-     --  [dragon] (2.21) pg 231
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
      Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
@@ -83,10 +82,10 @@ package body Dragon_4_43_LR1_Test is
       2 => 4,
       3 => 1,
       4 => 2,
-      5 => 7,
-      6 => 5,
-      7 => 6,
-      8 => 8,
+      5 => 8,
+      6 => 6,
+      7 => 7,
+      8 => 5,
       9 => 9);
 
    package Lexer renames WisiToken.Lexer.Regexp;
@@ -154,7 +153,7 @@ package body Dragon_4_43_LR1_Test is
       Expected : Item_Set_List :=
         --  [dragon] fig 4.39 pg 235 shows the item sets and gotos. We
         --  search in a different order, which causes state numbers to
-        --  not match, so we use Map.
+        --  not match, so we use Map, and list them in our search order.
         (Map (0) +
            (Get_Item (Grammar, (+Accept_ID, 0), 1, +EOF_ID) &
               Get_Item (Grammar, (+Upper_S_ID, 0), 1, +EOF_ID) &
@@ -172,6 +171,8 @@ package body Dragon_4_43_LR1_Test is
            (Get_Item (Grammar, (+Upper_S_ID, 0), 2, +EOF_ID) &
               Get_Item (Grammar, (+Upper_C_ID, 0), 1, +EOF_ID) &
               Get_Item (Grammar, (+Upper_C_ID, 1), 1, +EOF_ID))) &
+        (Map (8) +
+           Get_Item (Grammar, (+Upper_C_ID, 0), 3, +(Lower_C_ID, Lower_D_ID))) &
         (Map (6) +
            (Get_Item (Grammar, (+Upper_C_ID, 0), 2, +EOF_ID) &
               Get_Item (Grammar, (+Upper_C_ID, 0), 1, +EOF_ID) &
@@ -180,8 +181,6 @@ package body Dragon_4_43_LR1_Test is
            Get_Item (Grammar, (+Upper_C_ID, 1), 2, +EOF_ID)) &
         (Map (5) +
            Get_Item (Grammar, (+Upper_S_ID, 0), 3, +EOF_ID)) &
-        (Map (8) +
-           Get_Item (Grammar, (+Upper_C_ID, 0), 3, +(Lower_C_ID, Lower_D_ID))) &
         (Map (9) +
            Get_Item (Grammar, (+Upper_C_ID, 0), 3, +EOF_ID))
       ;

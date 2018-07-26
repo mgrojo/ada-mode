@@ -221,14 +221,14 @@ package body WisiToken.LR.LALR_Generate is
              Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
              Lookaheads => Null_Lookahead (Descriptor))),
          Goto_List      => <>,
+         Dot_IDs        => <>,
          State          => First_State_Index);
 
       Found_State : Unknown_State_Index;
    begin
       Kernels.Set_First (First_State_Index);
-      Kernels.Set_Last (First_State_Index);
-      Kernels (First_State_Index) := New_Item_Set;
-      Kernel_Tree.Insert ((To_Item_Set_Tree_Key (New_Item_Set, Include_Lookaheads => False), First_State_Index));
+
+      Add (New_Item_Set, Kernels, Kernel_Tree, Descriptor, Include_Lookaheads => False);
 
       States_To_Check.Put (First_State_Index);
       loop
@@ -241,6 +241,9 @@ package body WisiToken.LR.LALR_Generate is
          end if;
 
          for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop
+            --  LALR_Goto_Transitions does _not_ ignore Symbol if it is not in
+            --  Item_Set.Dot_IDs, so we can't iterate on that here as we do in
+            --  LR1_Generate.
 
             New_Item_Set := LALR_Goto_Transitions
               (Kernels (Checking_State), Symbol, First_Nonterm_Set, Grammar, Descriptor);
@@ -254,7 +257,7 @@ package body WisiToken.LR.LALR_Generate is
 
                   States_To_Check.Put (New_Item_Set.State);
 
-                  Add (New_Item_Set, Kernels, Kernel_Tree, Include_Lookaheads => False);
+                  Add (New_Item_Set, Kernels, Kernel_Tree, Descriptor, Include_Lookaheads => False);
 
                   if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
@@ -462,6 +465,7 @@ package body WisiToken.LR.LALR_Generate is
              Dot        => <>,
              Lookaheads => Propagate_Lookahead (Descriptor))),
          Goto_List      => <>,
+         Dot_IDs        => <>,
          State          => <>);
 
       Closure : LR1_Items.Item_Set;

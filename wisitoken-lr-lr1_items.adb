@@ -36,6 +36,22 @@ package body WisiToken.LR.LR1_Items is
    ----------
    --  body subprograms
 
+   function Get_Dot_IDs (Set : in Item_Lists.List; Descriptor : in WisiToken.Descriptor) return Token_ID_Arrays.Vector
+   is
+      use all type Token_ID_Arrays.Cursor;
+      use Item_Lists;
+      IDs : Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal) := (others => False);
+   begin
+      for Item of Set loop
+         if Item.Dot /= Token_ID_Arrays.No_Element then
+            if Element (Item.Dot) /= Descriptor.EOF_ID then
+               IDs (Element (Item.Dot)) := True;
+            end if;
+         end if;
+      end loop;
+      return To_Array (IDs);
+   end Get_Dot_IDs;
+
    function Merge
      (Prod         : in     Production_ID;
       Dot          : in     Token_ID_Arrays.Cursor;
@@ -173,7 +189,7 @@ package body WisiToken.LR.LR1_Items is
         return Boolean)
      return Item_Set
    is begin
-      return Result : Item_Set := (Set => <>, Goto_List => Set.Goto_List, State => Set.State)
+      return Result : Item_Set := (Set => <>, Goto_List => Set.Goto_List, Dot_IDs => Set.Dot_IDs, State => Set.State)
       do
          for Item of Set.Set loop
             if Include (Grammar, Descriptor, Item) then
@@ -296,14 +312,16 @@ package body WisiToken.LR.LR1_Items is
    end Find;
 
    procedure Add
-     (New_Item_Set       : in     Item_Set;
+     (New_Item_Set       : in out Item_Set;
       Item_Set_Vector    : in out Item_Set_List;
       Item_Set_Tree      : in out Item_Set_Trees.Tree;
+      Descriptor         : in     WisiToken.Descriptor;
       Include_Lookaheads : in     Boolean)
    is
       use Item_Set_Trees;
       Key : constant Item_Set_Tree_Key := To_Item_Set_Tree_Key (New_Item_Set, Include_Lookaheads);
    begin
+      New_Item_Set.Dot_IDs := Get_Dot_IDs (New_Item_Set.Set, Descriptor);
       Item_Set_Vector.Append (New_Item_Set);
       Item_Set_Tree.Insert ((Key, New_Item_Set.State));
    end Add;

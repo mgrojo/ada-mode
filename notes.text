@@ -64,13 +64,18 @@ speed up lr1 generate
         LALR re2c generate time: 0.443560947
         LR1 re2c generate time: 39.895565354
 
-    don't loop on all token_ids; loop on set?
-        renumbers states again, and it's slower!
-
+    don't loop on all token_ids; loop on set
         extract list of dot_id when build state
-            --  LR1_Goto_Transitions rejects Symbols that are not the Dot of some
-            --  item, so it is tempting to iterate on those instead. However, that
-            --  turns out to be slower.
+        renumbers states again
+
+        ada_lite.wy
+        LALR re2c generate time: 0.047267808
+        LR1 re2c generate time: 0.269839502
+
+        ada.wy
+        LALR elisp generate time: 0.445727505
+        LALR re2c generate time: 0.450525800
+        LR1 re2c generate time: 31.202567095
 
     add 'pragma inline'
 

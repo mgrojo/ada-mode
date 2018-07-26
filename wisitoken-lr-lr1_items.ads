@@ -163,6 +163,7 @@ package WisiToken.LR.LR1_Items is
    type Item_Set is record
       Set       : Item_Lists.List;
       Goto_List : Goto_Item_Lists.List;
+      Dot_IDs   : Token_ID_Arrays.Vector;
       State     : Unknown_State_Index := Unknown_State;
    end record;
 
@@ -270,11 +271,12 @@ package WisiToken.LR.LR1_Items is
    --  Match_Lookaheads is True in LR1_Generate.
 
    procedure Add
-     (New_Item_Set       : in     Item_Set;
+     (New_Item_Set       : in out Item_Set;
       Item_Set_Vector    : in out Item_Set_List;
       Item_Set_Tree      : in out Item_Set_Trees.Tree;
+      Descriptor         : in     WisiToken.Descriptor;
       Include_Lookaheads : in     Boolean);
-   --  Add New_Item_Set to Item_Set_Vector, Item_Set_Tree
+   --  Set New_Item_Set.Dot_IDs, add New_Item_Set to Item_Set_Vector, Item_Set_Tree
 
    function Is_In
      (Item      : in Goto_Item;

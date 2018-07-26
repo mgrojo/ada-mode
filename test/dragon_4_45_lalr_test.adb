@@ -65,13 +65,13 @@ package body Dragon_4_45_LALR_Test is
    Null_Action : WisiToken.Syntax_Trees.Semantic_Action renames WisiToken.Syntax_Trees.Null_Action;
 
    Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
-     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
+     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action
      and
-     Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
+     Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action
      and
-     (Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action -- 3
+     (Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action
       or
-                    Lower_D_ID + Null_Action) -- 4
+                    Lower_D_ID + Null_Action)
      ;
 
    --  See comment in Test_LALR_Kernels about state numbering
@@ -80,8 +80,8 @@ package body Dragon_4_45_LALR_Test is
    S2  : constant := 4;
    S36 : constant := 1;
    S47 : constant := 2;
-   S5  : constant := 5;
-   S89 : constant := 6;
+   S5  : constant := 6;
+   S89 : constant := 5;
 
    package Lexer renames WisiToken.Lexer.Regexp;
 
@@ -147,8 +147,8 @@ package body Dragon_4_45_LALR_Test is
         (S47 + Get_Item (Grammar, (+Upper_C_ID, 1), 2, Null_Lookaheads)) &
         (S1 + Get_Item (Grammar, (+Accept_ID, 0), 2, Null_Lookaheads)) &
         (S2 + Get_Item (Grammar, (+Upper_S_ID, 0), 2, Null_Lookaheads)) &
-        (S5 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, Null_Lookaheads)) &
-        (S89 + Get_Item (Grammar, (+Upper_C_ID, 0), 3, Null_Lookaheads));
+        (S89 + Get_Item (Grammar, (+Upper_C_ID, 0), 3, Null_Lookaheads)) &
+        (S5 + Get_Item (Grammar, (+Upper_S_ID, 0), 3, Null_Lookaheads));
 
    begin
       Add_Gotos

@@ -1,45 +1,45 @@
  20 tokens lexed
  0: 0:  1:(PROCEDURE, (1 . 9)) : shift and goto state 1
- 0: 1:  2:(IDENTIFIER, (11 . 13)) : shift and goto state 13
- 0: 13:  3:(LEFT_PAREN, (15 . 15)) : shift and goto state 15
- 0: 15:  4:(IDENTIFIER, (16 . 18)) : shift and goto state 23
- 0: 23:  5:(RIGHT_PAREN, (19 . 19)) : shift and goto state 26
+ 0: 1:  2:(IDENTIFIER, (11 . 13)) : shift and goto state 7
+ 0: 7:  3:(LEFT_PAREN, (15 . 15)) : shift and goto state 15
+ 0: 15:  4:(IDENTIFIER, (16 . 18)) : shift and goto state 21
+ 0: 21:  5:(RIGHT_PAREN, (19 . 19)) : shift and goto state 26
  0: 26:  6:(IS, (21 . 22)) : reduce 3 tokens to parameter_list
 parameter_list_0: (parameter_list, (15 . 19)) <= ( 3:(LEFT_PAREN, (15 . 15)),  4:(IDENTIFIER, (16 . 18)),  5:(RIGHT_PAREN, (19 . 19)))
  ... goto state 16
  0: 16:  6:(IS, (21 . 22)) : reduce 3 tokens to subprogram_specification
 subprogram_specification_0: (subprogram_specification, (1 . 19)) <= ( 1:(PROCEDURE, (1 . 9)),  2:(IDENTIFIER, (11 . 13)), (parameter_list, (15 . 19)))
  ... goto state 5
- 0: 5:  6:(IS, (21 . 22)) : shift and goto state 7
- 0: 7:  7:(BEGIN, (24 . 28)) : shift and goto state 19
- 0: 19:  8:(NULL, (30 . 33)) : shift and goto state 20
- 0: 20:  9:(END, (35 . 37)) : shift and goto state 29
- 0: 29:  10:(SEMICOLON, (38 . 38)) : shift and goto state 30
- 0: 30:  11:(PROCEDURE, (43 . 51)) : reduce 6 tokens to subprogram_body
+ 0: 5:  6:(IS, (21 . 22)) : shift and goto state 13
+ 0: 13:  7:(BEGIN, (24 . 28)) : shift and goto state 19
+ 0: 19:  8:(NULL, (30 . 33)) : shift and goto state 24
+ 0: 24:  9:(END, (35 . 37)) : shift and goto state 29
+ 0: 29:  10:(SEMICOLON, (38 . 38)) : shift and goto state 33
+ 0: 33:  11:(PROCEDURE, (43 . 51)) : reduce 6 tokens to subprogram_body
 subprogram_body_0: (subprogram_body, (1 . 38)) <= ((subprogram_specification, (1 . 19)),  6:(IS, (21 . 22)),  7:(BEGIN, (24 . 28)),  8:(NULL, (30 . 33)),  9:(END, (35 . 37)),  10:(SEMICOLON, (38 . 38)))
  ... goto state 4
  0: 4:  11:(PROCEDURE, (43 . 51)) : reduce 1 tokens to library_item
 library_item_0: (library_item, (1 . 38)) <= ((subprogram_body, (1 . 38)))
  ... goto state 3
  0: 3:  11:(PROCEDURE, (43 . 51)) : shift and goto state 8
- 0: 8:  12:(IDENTIFIER, (53 . 55)) : shift and goto state 18
+ 0: 8:  12:(IDENTIFIER, (53 . 55)) : shift and goto state 17
 spawn parser from 0 (2 active)
- 1: 18:  13:(IS, (57 . 58)) : reduce 0 tokens to parameter_list
+ 1: 17:  13:(IS, (57 . 58)) : reduce 0 tokens to parameter_list
 parameter_list_1: (parameter_list) <= ()
  ... goto state 16
- 0: 18:  13:(IS, (57 . 58)) : shift and goto state 21
+ 0: 17:  13:(IS, (57 . 58)) : shift and goto state 22
  1: 16:  13:(IS, (57 . 58)) : reduce 3 tokens to subprogram_specification
 subprogram_specification_0: (subprogram_specification, (43 . 55)) <= ( 11:(PROCEDURE, (43 . 51)),  12:(IDENTIFIER, (53 . 55)), (parameter_list))
  ... goto state 11
- 1: 11:  13:(IS, (57 . 58)) : shift and goto state 17
- 1: 17:  14:(NEW, (60 . 62)) : ERROR
+ 1: 11:  13:(IS, (57 . 58)) : shift and goto state 18
+ 1: 18:  14:(NEW, (60 . 62)) : ERROR
  1: expecting: BEGIN
  1: terminate (1 active)
- 0: 21:  14:(NEW, (60 . 62)) : shift and goto state 28
- 0: 28:  15:(IDENTIFIER, (64 . 66)) : shift and goto state 31
- 0: 31:  16:(LEFT_PAREN, (68 . 68)) : shift and goto state 36
- 0: 36:  17:(IDENTIFIER, (69 . 71)) : shift and goto state 37
- 0: 37:  18:(RIGHT_PAREN, (72 . 72)) : shift and goto state 40
+ 0: 22:  14:(NEW, (60 . 62)) : shift and goto state 27
+ 0: 27:  15:(IDENTIFIER, (64 . 66)) : shift and goto state 31
+ 0: 31:  16:(LEFT_PAREN, (68 . 68)) : shift and goto state 35
+ 0: 35:  17:(IDENTIFIER, (69 . 71)) : shift and goto state 38
+ 0: 38:  18:(RIGHT_PAREN, (72 . 72)) : shift and goto state 40
  0: 40:  19:(SEMICOLON, (73 . 73)) : shift and goto state 41
  0: 41:  20:(Wisi_EOI, (75 . 74)) : reduce 9 tokens to generic_instantiation
 generic_instantiation_0: (generic_instantiation, (43 . 73)) <= ( 11:(PROCEDURE, (43 . 51)),  12:(IDENTIFIER, (53 . 55)),  13:(IS, (57 . 58)),  14:(NEW, (60 . 62)),  15:(IDENTIFIER, (64 . 66)),  16:(LEFT_PAREN, (68 . 68)),  17:(IDENTIFIER, (69 . 71)),  18:(RIGHT_PAREN, (72 . 72)),  19:(SEMICOLON, (73 . 73)))

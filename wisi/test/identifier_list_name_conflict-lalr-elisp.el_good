@@ -52,25 +52,25 @@
        ((IDENTIFIER ))
        ((STRING_LITERAL ))))
      [((default . error) (LEFT_PAREN .  1) (STRING_LITERAL .  2) (IDENTIFIER .  3))
-      ((default . error) (STRING_LITERAL .  12) (IDENTIFIER .  13))
+      ((default . error) (STRING_LITERAL .  9) (IDENTIFIER .  10))
       ((default . error) (LEFT_PAREN . (name . 1)) (RIGHT_PAREN . (name . 1)) (COMMA . (name . 1)) (STRING_LITERAL . (name . 1)) (IDENTIFIER . (name . 1)) (Wisi_EOI . (name . 1)))
       ((default . error) (LEFT_PAREN . ((identifier_list . 1) (name . 0))) (COMMA . ((identifier_list . 1) (name . 0))) (STRING_LITERAL . ((identifier_list . 1) (name . 0))) (IDENTIFIER . ((identifier_list . 1) (name . 0))) (Wisi_EOI . ((identifier_list . 1) (name . 0))))
       ((default . error) (Wisi_EOI . accept))
       ((default . error) (LEFT_PAREN .  1) (STRING_LITERAL .  2) (IDENTIFIER .  3))
-      ((default . error) (LEFT_PAREN . (compilation_unit . 0)) (COMMA .  10) (STRING_LITERAL . (compilation_unit . 0)) (IDENTIFIER . (compilation_unit . 0)) (Wisi_EOI . (compilation_unit . 0)))
+      ((default . error) (LEFT_PAREN . (compilation_unit . 0)) (COMMA .  15) (STRING_LITERAL . (compilation_unit . 0)) (IDENTIFIER . (compilation_unit . 0)) (Wisi_EOI . (compilation_unit . 0)))
       ((default . error) (LEFT_PAREN . (name_list . 1)) (COMMA . (name_list . 1)) (STRING_LITERAL . (name_list . 1)) (IDENTIFIER . (name_list . 1)) (Wisi_EOI . (name_list . 1)))
-      ((default . error) (LEFT_PAREN . (compilation_unit . 1)) (COMMA .  9) (STRING_LITERAL . (compilation_unit . 1)) (IDENTIFIER . (compilation_unit . 1)) (Wisi_EOI . (compilation_unit . 1)))
-      ((default . error) (STRING_LITERAL .  2) (IDENTIFIER .  22))
-      ((default . error) (IDENTIFIER .  21))
-      ((default . error) (LEFT_PAREN .  1) (STRING_LITERAL .  2) (IDENTIFIER .  3))
+      ((default . error) (LEFT_PAREN . (compilation_unit . 1)) (COMMA .  16) (STRING_LITERAL . (compilation_unit . 1)) (IDENTIFIER . (compilation_unit . 1)) (Wisi_EOI . (compilation_unit . 1)))
       ((default . error) (EQUAL_GREATER . (selector_name . 1)))
       ((default . error) (EQUAL_GREATER . (selector_name . 0)))
       ((default . error) (RIGHT_PAREN . (association_list . 1)) (COMMA . (association_list . 1)))
-      ((default . error) (RIGHT_PAREN .  18) (COMMA .  19))
-      ((default . error) (EQUAL_GREATER .  17))
+      ((default . error) (RIGHT_PAREN .  17) (COMMA .  18))
+      ((default . error) (EQUAL_GREATER .  19))
+      ((default . error) (LEFT_PAREN .  1) (STRING_LITERAL .  2) (IDENTIFIER .  3))
+      ((default . error) (IDENTIFIER .  21))
       ((default . error) (STRING_LITERAL .  2) (IDENTIFIER .  22))
       ((default . error) (LEFT_PAREN . (compilation_unit . 2)) (STRING_LITERAL . (compilation_unit . 2)) (IDENTIFIER . (compilation_unit . 2)) (Wisi_EOI . (compilation_unit . 2)))
-      ((default . error) (STRING_LITERAL .  12) (IDENTIFIER .  13))
+      ((default . error) (STRING_LITERAL .  9) (IDENTIFIER .  10))
+      ((default . error) (STRING_LITERAL .  2) (IDENTIFIER .  22))
       ((default . error) (Wisi_EOI . (compilation . 0)))
       ((default . error) (LEFT_PAREN . (identifier_list . 0)) (COMMA . (identifier_list . 0)) (STRING_LITERAL . (identifier_list . 0)) (IDENTIFIER . (identifier_list . 0)) (Wisi_EOI . (identifier_list . 0)))
       ((default . error) (LEFT_PAREN . (name . 0)) (RIGHT_PAREN . (name . 0)) (COMMA . (name . 0)) (STRING_LITERAL . (name . 0)) (IDENTIFIER . (name . 0)) (Wisi_EOI . (name . 0)))
@@ -78,25 +78,25 @@
       ((default . error) (RIGHT_PAREN . (association_list . 0)) (COMMA . (association_list . 0)))
       ((default . error) (RIGHT_PAREN . (association . 0)) (COMMA . (association . 0)))]
      [((compilation . 4)(compilation_unit . 5)(identifier_list . 6)(name . 7)(name_list . 8))
-      ((association . 14)(association_list . 15)(selector_name . 16))
+      ((association . 11)(association_list . 12)(selector_name . 13))
       nil
       nil
       nil
-      ((compilation_unit . 11)(identifier_list . 6)(name . 7)(name_list . 8))
+      ((compilation_unit . 14)(identifier_list . 6)(name . 7)(name_list . 8))
       nil
       nil
       nil
-      ((name . 23))
+      nil
+      nil
+      nil
+      nil
       nil
       ((compilation_unit . 20)(identifier_list . 6)(name . 7)(name_list . 8))
       nil
+      ((name . 23))
       nil
-      nil
-      nil
-      nil
+      ((association . 24)(selector_name . 13))
       ((name . 25))
-      nil
-      ((association . 24)(selector_name . 16))
       nil
       nil
       nil

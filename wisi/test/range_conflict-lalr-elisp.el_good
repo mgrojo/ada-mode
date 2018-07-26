@@ -60,49 +60,49 @@
       (relation
        ((primary IN membership_choice ))))
      [((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  2) (STRING_LITERAL .  3))
-      ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  12) (STRING_LITERAL .  3))
+      ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  8) (STRING_LITERAL .  3))
       ((default . error) (LEFT_PAREN . (primary . 0)) (RIGHT_PAREN . (primary . 0)) (DOT_DOT . (primary . 0)) (TICK .  11) (IDENTIFIER . (primary . 0)) (STRING_LITERAL . (primary . 0)))
       ((default . error) (IN . (primary . 1)) (LEFT_PAREN . (primary . 1)) (RIGHT_PAREN . (primary . 1)) (DOT_DOT . (primary . 1)) (IDENTIFIER . (primary . 1)) (STRING_LITERAL . (primary . 1)) (Wisi_EOI . (primary . 1)))
       ((default . error) (Wisi_EOI . accept))
       ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  2) (STRING_LITERAL .  3))
-      ((default . error) (LEFT_PAREN . (membership_choice . 0)) (RIGHT_PAREN . (membership_choice . 0)) (DOT_DOT .  8) (IDENTIFIER . (membership_choice . 0)) (STRING_LITERAL . (membership_choice . 0)))
+      ((default . error) (LEFT_PAREN . (membership_choice . 0)) (RIGHT_PAREN . (membership_choice . 0)) (DOT_DOT .  14) (IDENTIFIER . (membership_choice . 0)) (STRING_LITERAL . (membership_choice . 0)))
       ((default . error) (LEFT_PAREN . (membership_choice . 1)) (RIGHT_PAREN . (membership_choice . 1)) (IDENTIFIER . (membership_choice . 1)) (STRING_LITERAL . (membership_choice . 1)))
-      ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  12) (STRING_LITERAL .  3))
-      ((default . error) (DOT_DOT .  8))
-      ((default . error) (Wisi_EOI . (compilation_unit . 0)))
-      ((default . error) (RANGE .  17))
       ((default . error) (IN . (primary . 0)) (LEFT_PAREN . (primary . 0)) (RIGHT_PAREN . (primary . 0)) (IDENTIFIER . (primary . 0)) (STRING_LITERAL . (primary . 0)) (Wisi_EOI . (primary . 0)))
-      ((default . error) (IN .  16))
-      ((default . error) (RIGHT_PAREN .  15))
-      ((default . error) (IN . (primary . 2)) (LEFT_PAREN . (primary . 2)) (RIGHT_PAREN . (primary . 2)) (DOT_DOT . (primary . 2)) (IDENTIFIER . (primary . 2)) (STRING_LITERAL . (primary . 2)) (Wisi_EOI . (primary . 2)))
+      ((default . error) (IN .  15))
+      ((default . error) (RIGHT_PAREN .  16))
+      ((default . error) (RANGE .  17))
+      ((default . error) (DOT_DOT .  14))
+      ((default . error) (Wisi_EOI . (compilation_unit . 0)))
+      ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  8) (STRING_LITERAL .  3))
       ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  2) (STRING_LITERAL .  3))
-      ((default . error) (LEFT_PAREN . ( 19 (range_g . 1))) (RIGHT_PAREN . (range_g . 1)) (IDENTIFIER . (range_g . 1)) (STRING_LITERAL . (range_g . 1)) (Wisi_EOI . (range_g . 1)))
+      ((default . error) (IN . (primary . 2)) (LEFT_PAREN . (primary . 2)) (RIGHT_PAREN . (primary . 2)) (DOT_DOT . (primary . 2)) (IDENTIFIER . (primary . 2)) (STRING_LITERAL . (primary . 2)) (Wisi_EOI . (primary . 2)))
+      ((default . error) (LEFT_PAREN . ( 20 (range_g . 1))) (RIGHT_PAREN . (range_g . 1)) (IDENTIFIER . (range_g . 1)) (STRING_LITERAL . (range_g . 1)) (Wisi_EOI . (range_g . 1)))
       ((default . error) (LEFT_PAREN . (range_g . 2)) (RIGHT_PAREN . (range_g . 2)) (IDENTIFIER . (range_g . 2)) (STRING_LITERAL . (range_g . 2)) (Wisi_EOI . (range_g . 2)))
-      ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  12) (STRING_LITERAL .  3))
       ((default . error) (RIGHT_PAREN . (relation . 0)))
+      ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  8) (STRING_LITERAL .  3))
       ((default . error) (RIGHT_PAREN .  22))
       ((default . error) (LEFT_PAREN . (range_g . 0)) (RIGHT_PAREN . (range_g . 0)) (IDENTIFIER . (range_g . 0)) (STRING_LITERAL . (range_g . 0)) (Wisi_EOI . (range_g . 0)))]
      [((compilation_unit . 4)(membership_choice . 5)(primary . 6)(range_g . 7))
-      ((primary . 13)(relation . 14))
+      ((primary . 9)(relation . 10))
       nil
       nil
       nil
-      ((primary . 9)(range_g . 10))
+      ((primary . 12)(range_g . 13))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
       nil
       nil
       ((primary . 18))
+      ((membership_choice . 19)(primary . 6)(range_g . 7))
       nil
       nil
       nil
       nil
-      nil
-      nil
-      nil
-      ((membership_choice . 20)(primary . 6)(range_g . 7))
-      nil
-      nil
-      ((primary . 13)(relation . 21))
-      nil
+      ((primary . 9)(relation . 21))
       nil
       nil]))
   "Parser table.")

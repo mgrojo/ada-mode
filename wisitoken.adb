@@ -105,6 +105,17 @@ package body WisiToken is
       end loop;
    end To_Set;
 
+   function To_Array (Item : in Token_ID_Set) return Token_ID_Arrays.Vector
+   is begin
+      return Result : Token_ID_Arrays.Vector do
+         for ID in Item'Range loop
+            if Item (ID) then
+               Result.Append (ID);
+            end if;
+         end loop;
+      end return;
+   end To_Array;
+
    function Any (Item : in Token_ID_Set) return Boolean
    is begin
       for I in Item'Range loop

@@ -77,7 +77,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
    is begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Set", Computed.Set, Expected.Set, Match_Lookaheads);
-      --  ignoring Goto_List;
+      --  ignoring Goto_List, Dot_IDs
    end Check;
 
    procedure Check
@@ -141,6 +141,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
       return Item_Set'
         (Set       => Item_Lists.To_List (Item),
          Goto_List => <>,
+         Dot_IDs   => <>,
          State     => <>);
    end "+";
 
@@ -171,7 +172,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
       Item  : in LR1_Items.Item)
      return Item_Set
    is begin
-      return (Set => Item_Lists.To_List (Item), Goto_List => <>, State => State);
+      return (Set => Item_Lists.To_List (Item), Goto_List => <>, Dot_IDs => <>, State => State);
    end "+";
 
    function "+"
@@ -179,7 +180,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
       Item  : in Item_Lists.List)
      return Item_Set
    is begin
-      return (Set => Item, Goto_List => <>, State => State);
+      return (Set => Item, Goto_List => <>, Dot_IDs => <>, State => State);
    end "+";
 
    function "&"
@@ -238,13 +239,14 @@ package body WisiToken.LR.LR1_Items.AUnit is
      return Item_Set
    is begin
       return
-        (Set => +Get_Item
+        (Set           => +Get_Item
            (Grammar,
             Prod       => Prod,
             Dot        => Dot,
             Lookaheads => Lookahead),
-         Goto_List       => <>,
-         State           => WisiToken.Unknown_State);
+         Goto_List     => <>,
+         Dot_IDs       => <>,
+         State         => WisiToken.Unknown_State);
    end Get_Item_Set;
 
 end WisiToken.LR.LR1_Items.AUnit;

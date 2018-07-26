@@ -39,7 +39,7 @@ State 0:
 State 1:
       8.0:declaration <= PERCENT ^ IDENTIFIER declaration_item_list, PERCENT/PREAMBLE/Wisi_EOI
 
-   IDENTIFIER            => shift and goto state 7 (8.0)
+   IDENTIFIER            => shift and goto state 6 (8.0)
    default               => ERROR
 
 State 2:
@@ -76,17 +76,9 @@ State 5:
    default               => ERROR
 
    declaration           goto state 3
-   compilation_unit      goto state 6
+   compilation_unit      goto state 7
 
 State 6:
-     12.0:compilation_unit_list <= compilation_unit_list compilation_unit ^, PERCENT/PREAMBLE/Wisi_EOI
-
-   PERCENT               => reduce 2 tokens to compilation_unit_list 12.0
-   PREAMBLE              => reduce 2 tokens to compilation_unit_list 12.0
-   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 12.0
-   default               => ERROR
-
-State 7:
       8.0:declaration <= PERCENT IDENTIFIER ^ declaration_item_list, PERCENT/PREAMBLE/Wisi_EOI
 
    IDENTIFIER            => shift and goto state 8 (10.0)
@@ -94,6 +86,14 @@ State 7:
 
    declaration_item_list goto state 9
    declaration_item      goto state 10
+
+State 7:
+     12.0:compilation_unit_list <= compilation_unit_list compilation_unit ^, PERCENT/PREAMBLE/Wisi_EOI
+
+   PERCENT               => reduce 2 tokens to compilation_unit_list 12.0
+   PREAMBLE              => reduce 2 tokens to compilation_unit_list 12.0
+   Wisi_EOI              => reduce 2 tokens to compilation_unit_list 12.0
+   default               => ERROR
 
 State 8:
      10.0:declaration_item <= IDENTIFIER ^, PERCENT/PREAMBLE/IDENTIFIER/Wisi_EOI
