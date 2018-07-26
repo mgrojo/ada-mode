@@ -20,4 +20,4 @@ pragma License (Modified_GPL);
 generic
    type Aux_Data (<>) is private;
    with function Element_Image (Item : in Element_Type; Aux : in Aux_Data) return String;
-function SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux (Item : in Queue_Type; Aux : in Aux_Data) return String;
+function SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux (Item : in Queue; Aux : in Aux_Data) return String;

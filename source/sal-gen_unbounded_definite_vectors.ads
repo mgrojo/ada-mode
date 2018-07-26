@@ -153,7 +153,8 @@ package SAL.Gen_Unbounded_Definite_Vectors is
    No_Element : constant Cursor;
 
    function Has_Element (Position : Cursor) return Boolean;
-   function Element (Position : Cursor) return Element_Type;
+   function Element (Position : Cursor) return Element_Type
+   with Pre => Position /= No_Element;
    function First (Container : aliased in Vector) return Cursor;
    function Next (Position : in Cursor) return Cursor;
    procedure Next (Position : in out Cursor);

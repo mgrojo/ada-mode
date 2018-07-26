@@ -18,7 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
-function SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux (Item : in Queue_Type; Aux : in Aux_Data) return String
+function SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux (Item : in Queue; Aux : in Aux_Data) return String
 is
    use Ada.Strings.Unbounded;
    Result : Unbounded_String        := To_Unbounded_String ("(");
