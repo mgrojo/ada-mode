@@ -55,18 +55,11 @@ package WisiToken.LR.Parser is
    --  caused the error. Return Abandon if a known good solution is
    --  enqueued, Continue otherwise.
 
-   type Language_Constrain_Terminals_Access is access function
-     (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Table        : in     Parse_Table;
-      Config       : in     Configuration;
-      Next_Token   : in     Token_ID)
-     return Token_ID_Set;
-   --  Return a token ID set that constrains McKenzie explore.
+   type Language_Use_Minimal_Complete_Actions_Access is access function (Next_Token : in Token_ID) return Boolean;
+   --  Return True if using Minimal_Complete_Actions is appropriate.
    --
-   --  For example, in some cases, the best strategy is to complete the
-   --  current production as quickly as possible; only insert terminals
-   --  that are in the minimal terminal sequence for each production.
+   --  For example, if Next_Token is a block end, return True to complete
+   --  the current statement/declaration as quickly as possible..
 
    type Language_String_ID_Set_Access is access function
      (Descriptor        : in WisiToken.Descriptor;
@@ -79,10 +72,10 @@ package WisiToken.LR.Parser is
    type Post_Recover_Access is access procedure;
 
    type Parser is new WisiToken.Parse.Base_Parser with record
-      Table                        : Parse_Table_Ptr;
-      Language_Fixes               : Language_Fixes_Access;
-      Language_Constrain_Terminals : Language_Constrain_Terminals_Access;
-      Language_String_ID_Set       : Language_String_ID_Set_Access;
+      Table                                 : Parse_Table_Ptr;
+      Language_Fixes                        : Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set                : Language_String_ID_Set_Access;
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
@@ -113,16 +106,16 @@ package WisiToken.LR.Parser is
    --  Deep free Object.Table.
 
    procedure New_Parser
-     (Parser                       :    out          LR.Parser.Parser;
-      Trace                        : not null access WisiToken.Trace'Class;
-      Lexer                        : in              WisiToken.Lexer.Handle;
-      Table                        : in              Parse_Table_Ptr;
-      Language_Fixes               : in              Language_Fixes_Access;
-      Language_Constrain_Terminals : in              Language_Constrain_Terminals_Access;
-      Language_String_ID_Set       : in              Language_String_ID_Set_Access;
-      User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      Terminate_Same_State         : in              Boolean            := True);
+     (Parser                                :    out          LR.Parser.Parser;
+      Trace                                 : not null access WisiToken.Trace'Class;
+      Lexer                                 : in              WisiToken.Lexer.Handle;
+      Table                                 : in              Parse_Table_Ptr;
+      Language_Fixes                        : in              Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : in              Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set                : in              Language_String_ID_Set_Access;
+      User_Data                             : in              WisiToken.Syntax_Trees.User_Data_Access;
+      Max_Parallel                          : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      Terminate_Same_State                  : in              Boolean            := True);
 
    overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser);
    --  Attempt a parse. Calls Parser.Lexer.Reset, runs lexer to end of

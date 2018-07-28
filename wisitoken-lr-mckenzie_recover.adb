@@ -255,7 +255,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Shared_Parser.Lexer.all'Access,
          Shared_Parser.Table,
          Shared_Parser.Language_Fixes,
-         Shared_Parser.Language_Constrain_Terminals,
+         Shared_Parser.Language_Use_Minimal_Complete_Actions,
          Shared_Parser.Language_String_ID_Set,
          Shared_Parser.Terminals'Access,
          Shared_Parser.Line_Begin_Token'Access);

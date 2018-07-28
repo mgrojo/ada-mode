@@ -29,13 +29,7 @@ package WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Config            : in     Configuration)
      return Non_Success_Status;
 
-   function Constrain_Terminals
-     (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Table        : in     Parse_Table;
-      Config       : in     Configuration;
-      Next_Token   : in     Token_ID)
-     return WisiToken.Token_ID_Set;
+   function Use_Minimal_Complete_Actions (Next_Token : in Token_ID) return Boolean;
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

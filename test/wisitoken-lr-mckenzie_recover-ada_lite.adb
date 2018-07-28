@@ -695,14 +695,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       return Continue;
    end Handle_Parse_Error;
 
-   function Member (ID : in Token_ID; Item : in Token_ID_Arrays.Vector) return Boolean
-   is begin
-      for I of Item loop
-         if I = ID then return True; end if;
-      end loop;
-      return False;
-   end Member;
-
    ----------
    --  Public subprograms
 
@@ -730,96 +722,20 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       end case;
    end Language_Fixes;
 
-   function Constrain_Terminals
-     (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Table        : in     Parse_Table;
-      Config       : in     Configuration;
-      Next_Token   : in     Token_ID)
-     return WisiToken.Token_ID_Set
-   is
-      All_Ok : constant WisiToken.Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => True);
-   begin
+   function Use_Minimal_Complete_Actions (Next_Token : in Token_ID) return Boolean
+   is begin
+      if Next_Token = Invalid_Token_ID then
+         return False;
+      end if;
+
       case Ada_Lite_Actions.Token_Enum_ID'(-Next_Token) is
       when END_ID =>
-         declare
-            Temp_Config : Configuration := Config;
-            Result      : WisiToken.Token_ID_Set  := (Table.First_Terminal .. Table.Last_Terminal => False);
-         begin
-            Reduce_To_Shift :
-            loop
-               declare
-                  use all type Ada.Containers.Count_Type;
-                  State       : State_Index renames Temp_Config.Stack (1).State;
-                  Shift_Count : Integer;
-                  Reductions  : constant Reduce_Action_Array := Table.Reductions (State, Shift_Count);
-               begin
-                  if Reductions'Length = 1 and then Reductions (1).Token_Count > 0 then
-                     declare
-                        Action : Reduce_Action_Rec renames Reductions (1);
-                     begin
-                        Temp_Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
-                        Temp_Config.Stack.Push
-                          ((Goto_For (Table, Temp_Config.Stack (1).State, Action.Production.Nonterm),
-                            Syntax_Trees.Invalid_Node_Index,
-                            (Action.Production.Nonterm, others => <>)));
-                     end;
-
-                  elsif Shift_Count > 0 then
-                     declare
-                        Item        : Recover_Stack_Item renames Temp_Config.Stack (1);
-                        Table_Entry : Parse_State renames Table.States (Item.State);
-                        I           : Action_List_Iterator                 := First (Table_Entry);
-                        Prods       : constant Production_ID_Arrays.Vector := Table.States (Item.State).Productions;
-                        LHS         : constant Token_ID                    := Prods (1).Nonterm;
-                        One_LHS     : Boolean                              := True;
-                     begin
-                        for P of Prods loop
-                           if LHS /= P.Nonterm then
-                              One_LHS := False;
-                           end if;
-                        end loop;
-
-                        if One_LHS then
-                           To_Set (Table.Minimal_Terminal_Sequences (LHS), Result);
-                        else
-                           loop
-                              exit when Is_Done (I);
-                              if I.Action.Verb = Shift then
-                                 declare
-                                    Action : Parse_Action_Rec renames I.Action;
-                                 begin
-                                    for J of Action.Productions loop
-                                       if Member (I.Symbol, Table.Minimal_Terminal_Sequences (J.Nonterm)) then
-                                          --  FIXME: store 'dot' in Table.Productions; ie kernels
-                                          Result (I.Symbol) := True;
-                                       end if;
-                                    end loop;
-                                 end;
-                              end if;
-
-                              Next (I);
-                           end loop;
-                        end if;
-                     end;
-                     exit Reduce_To_Shift;
-                  else
-                     --  FIXME: conflicts
-                     raise Programmer_Error with "conflicts in Constrain_Terminals; state" & State_Index'Image (State);
-                  end if;
-               end;
-            end loop Reduce_To_Shift;
-
-            if Trace_McKenzie > Detail then
-               Put_Line (Trace, Parser_Label, "constrain_terminals: " & Image (Result, Trace.Descriptor.all));
-            end if;
-            return Result;
-         end;
+         return True;
 
       when others =>
-         return All_Ok;
+         return False;
       end case;
-   end Constrain_Terminals;
+   end Use_Minimal_Complete_Actions;
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

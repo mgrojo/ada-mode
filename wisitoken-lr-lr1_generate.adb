@@ -222,16 +222,6 @@ package body WisiToken.LR.LR1_Generate is
          Put_Line ("McKenzie:");
          WisiToken.LR.Put (Table.McKenzie_Param, Descriptor);
       end if;
-
-      New_Line;
-      Put_Line ("Minimal_Terminal_Sequences:");
-      for I in Table.Minimal_Terminal_Sequences.First_Index ..
-        Table.Minimal_Terminal_Sequences.Last_Index
-      loop
-         Put_Line
-           (WisiToken.Image (I, Descriptor) & " => " & WisiToken.Image
-              (Table.Minimal_Terminal_Sequences (I), Descriptor));
-      end loop;
    end Put_Parse_Table;
 
    function Check_Unused_Tokens
@@ -284,6 +274,9 @@ package body WisiToken.LR.LR1_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
+      Minimal_Terminal_First : constant Token_Array_Token_ID :=
+        WisiToken.Generate.LR.Minimal_Terminal_First (Grammar, Descriptor);
+
       First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
@@ -329,19 +322,36 @@ package body WisiToken.LR.LR1_Generate is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
-
       Add_Actions
         (Item_Sets, Grammar, Has_Empty_Production, First_Nonterm_Set, Unknown_Conflicts, Table.all, Descriptor);
 
-      --  Set Table.States.Productions for McKenzie_Recover
+      --  Set Table.States.Productions, Minimal_Terminal_First for McKenzie_Recover
       for State in Table.States'Range loop
          Table.States (State).Productions := LR1_Items.Productions
            (LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access));
+         WisiToken.Generate.LR.Set_Minimal_Complete_Actions
+           (Table.States (State),
+            LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access),
+            Minimal_Terminal_First, Descriptor, Grammar);
       end loop;
 
       if Put_Parse_Table then
          LR1_Generate.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
+      end if;
+
+      if Trace_Generate > Outline then
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("Has_Empty_Production: " & Image (Has_Empty_Production, Descriptor));
+
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("Minimal_Terminal_First:");
+         for ID in Minimal_Terminal_First'Range loop
+            Ada.Text_IO.Put_Line
+              (Image (ID, Descriptor) & " =>" &
+                 (if Minimal_Terminal_First (ID) = Invalid_Token_ID
+                  then ""
+                  else ' ' & Image (Minimal_Terminal_First (ID), Descriptor)));
+         end loop;
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);

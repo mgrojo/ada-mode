@@ -108,8 +108,8 @@
 %mckenzie_cost_limit 10
 %mckenzie_check_limit 3
 
-;; Default insert terminal, delete terminal, delete nonterminal, push back, undo_reduce cost.
-%mckenzie_cost_default 4 4 8 2 2
+;; Default cost for insert terminal, delete terminal, push back.
+%mckenzie_cost_default 4 4 4
 
 ;; Prefer inserting keywords over identifiers and operators to take
 ;; advantage of empty expressions.
@@ -143,8 +143,10 @@
 ;; that requires popping it and the corresponding nonterm off the
 ;; parse stack. Similarly, we often have an extra 'end'; deleting that
 ;; is simple.
+%mckenzie_cost_push_back BEGIN 1
 %mckenzie_cost_delete BEGIN 1
-%mckenzie_cost_delete declarative_part_opt 1
+%mckenzie_cost_push_back declarative_part_opt 1
+%mckenzie_cost_push_back END 1
 %mckenzie_cost_delete END 1
 
 ;; Recovering from a missing quote yields a STRING_LITERAL, but the

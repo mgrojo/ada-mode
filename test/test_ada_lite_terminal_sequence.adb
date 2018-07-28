@@ -22,7 +22,7 @@ with AUnit.Checks.Containers;
 with Ada.Text_IO;
 with Wisi.Generate_Utils;
 with WisiToken.AUnit;
-with WisiToken.LR.Generate_Utils;
+with WisiToken.Generate.LR;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -62,7 +62,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
          Computed : WisiToken.Token_Sequence_Arrays.Vector;
          Sequence : WisiToken.Token_ID_Arrays.Vector;
       begin
-         WisiToken.LR.Generate_Utils.Compute_Minimal_Terminal_Sequences
+         WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences
            (Generate_Data.Grammar, Generate_Data.Descriptor.all, Computed);
 
          if WisiToken.Trace_Generate > WisiToken.Detail then

@@ -56,7 +56,6 @@ package body WisiToken.LR is
          end if;
       end loop;
       Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
-      New_Line;
    end Put;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID
@@ -202,6 +201,52 @@ package body WisiToken.LR is
          Trace.Put ("ERROR");
       end case;
    end Put;
+
+   function Compare_Minimal_Action (Left, Right : in Minimal_Action) return SAL.Compare_Result
+   is begin
+      if Left.Verb > Right.Verb then
+         return SAL.Greater;
+      elsif Left.Verb < Right.Verb then
+         return SAL.Less;
+      else
+         case Left.Verb is
+         when Shift =>
+            if Left.ID > Right.ID then
+               return SAL.Greater;
+            elsif Left.ID < Right.ID then
+               return SAL.Less;
+            else
+               return SAL.Equal;
+            end if;
+         when Reduce =>
+            if Left.Nonterm > Right.Nonterm then
+               return SAL.Greater;
+            elsif Left.Nonterm < Right.Nonterm then
+               return SAL.Less;
+            else
+               return SAL.Equal;
+            end if;
+         end case;
+      end if;
+   end Compare_Minimal_Action;
+
+   function Strict_Image (Item : in Minimal_Action) return String
+   is begin
+      case Item.Verb is
+      when Shift =>
+         return "(Shift," & Token_ID'Image (Item.ID) & "," & State_Index'Image (Item.State) & ")";
+      when Reduce =>
+         return "(Reduce," & Token_ID'Image (Item.Nonterm) & "," &
+           Ada.Containers.Count_Type'Image (Item.Token_Count) & ")";
+      end case;
+   end Strict_Image;
+
+   procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array)
+   is begin
+      for Action of Actions loop
+         List.Insert (Action);
+      end loop;
+   end Set_Minimal_Action;
 
    procedure Add
      (List   : in out Action_Node_Ptr;
@@ -728,10 +773,12 @@ package body WisiToken.LR is
 
    procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State)
    is
+      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
       Action_Ptr : Action_Node_Ptr := State.Action_List;
       Goto_Ptr   : Goto_Node_Ptr   := State.Goto_List;
+      Need_Comma : Boolean := False;
    begin
       while Action_Ptr /= null loop
          Put ("   ");
@@ -759,6 +806,25 @@ package body WisiToken.LR is
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;
       end loop;
+
+      if State.Minimal_Complete_Actions.Length > 0 then
+         New_Line;
+         Put ("   Minimal_Complete_Actions => (");
+         for Action of State.Minimal_Complete_Actions loop
+            if Need_Comma then
+               Put (", ");
+            else
+               Need_Comma := True;
+            end if;
+            case Action.Verb is
+            when Shift =>
+               Put (Image (Action.ID, Descriptor));
+            when Reduce =>
+               Put (Image (Action.Nonterm, Descriptor));
+            end case;
+         end loop;
+         Put_Line (")");
+      end if;
    end Put;
 
    function Get_Action
@@ -890,10 +956,9 @@ package body WisiToken.LR is
    end Put_Text_Rep;
 
    function Get_Text_Rep
-     (File_Name                  : in     String;
-      McKenzie_Param             : in     McKenzie_Param_Type;
-      Productions                : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Minimal_Terminal_Sequences : in     Token_Sequence_Arrays.Vector)
+     (File_Name      : in String;
+      McKenzie_Param : in McKenzie_Param_Type;
+      Productions    : in WisiToken.Productions.Prod_Arrays.Vector)
      return Parse_Table_Ptr
    is
       use Ada.Text_IO;
@@ -973,9 +1038,8 @@ package body WisiToken.LR is
          Table : constant Parse_Table_Ptr := new Parse_Table
            (State_First, State_Last, First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       begin
-         Table.McKenzie_Param             := McKenzie_Param;
-         Table.Productions                := Productions;
-         Table.Minimal_Terminal_Sequences := Minimal_Terminal_Sequences;
+         Table.McKenzie_Param := McKenzie_Param;
+         Table.Productions    := Productions;
 
          for State of Table.States loop
             State.Productions.Set_First (Next_Integer);

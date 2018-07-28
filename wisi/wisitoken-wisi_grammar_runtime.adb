@@ -529,14 +529,21 @@ package body WisiToken.Wisi_Grammar_Runtime is
 
                elsif Kind = "mckenzie_cost_default" then
                   Data.Language_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Source_Line := Data.Terminals.all (Tree.Min_Terminal_Index (Tokens (1))).Line;
+
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 1));
                   Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 2));
-                  Data.McKenzie_Recover.Default_Delete_Nonterminal  := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tokens (3), 3));
                   Data.McKenzie_Recover.Default_Push_Back       := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tokens (3), 4));
+                    (Get_Child_Text (Data, Tree, Tokens (3), 3));
+
+                  if Tree.Get_Terminals (Tokens (3))'Length > 3 then
+                     raise Grammar_Error with
+                       Error_Message
+                         (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (Tokens (3))).Line,
+                          "too many default costs; should be 'insert delete push_back'.");
+                  end if;
 
                elsif Kind = "mckenzie_cost_delete" then
                   Data.Language_Params.Error_Recover := True;

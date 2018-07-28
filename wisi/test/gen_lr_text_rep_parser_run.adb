@@ -52,12 +52,12 @@ is
    begin
       Create_Parser
         (Parser,
-         Language_Fixes               => null,
-         Language_Constrain_Terminals => null,
-         Language_String_ID_Set       => null,
-         Trace                        => Trace'Unchecked_Access,
-         User_Data                    => null,
-         Text_Rep_File_Name           => Text_Rep_File_Name);
+         Language_Fixes                        => null,
+         Language_Use_Minimal_Complete_Actions => null,
+         Language_String_ID_Set                => null,
+         Trace                                 => Trace'Unchecked_Access,
+         User_Data                             => null,
+         Text_Rep_File_Name                    => Text_Rep_File_Name);
 
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;

@@ -153,14 +153,14 @@ private package WisiToken.LR.McKenzie_Recover.Base is
    end Supervisor;
 
    type Shared
-     (Trace                        : not null access WisiToken.Trace'Class;
-      Lexer                        : not null access constant WisiToken.Lexer.Instance'Class;
-      Table                        : not null access constant Parse_Table;
-      Language_Fixes               : WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Constrain_Terminals : WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
-      Language_String_ID_Set       : WisiToken.LR.Parser.Language_String_ID_Set_Access;
-      Terminals                    : not null access constant Base_Token_Arrays.Vector;
-      Line_Begin_Token             : not null access constant Line_Begin_Token_Vectors.Vector)
+     (Trace                                 : not null access WisiToken.Trace'Class;
+      Lexer                                 : not null access constant WisiToken.Lexer.Instance'Class;
+      Table                                 : not null access constant Parse_Table;
+      Language_Fixes                        : WisiToken.LR.Parser.Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set                : WisiToken.LR.Parser.Language_String_ID_Set_Access;
+      Terminals                             : not null access constant Base_Token_Arrays.Vector;
+      Line_Begin_Token                      : not null access constant Line_Begin_Token_Vectors.Vector)
      is null record;
    --  There is only one object of this type, declared in Recover. It
    --  provides appropriate access to Shared_Parser components.

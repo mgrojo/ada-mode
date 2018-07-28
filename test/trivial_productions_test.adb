@@ -90,10 +90,10 @@ package body Trivial_Productions_Test is
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
-            User_Data                    => null,
-            Language_Fixes               => null,
-            Language_Constrain_Terminals => null,
-            Language_String_ID_Set       => null);
+            User_Data                             => null,
+            Language_Fixes                        => null,
+            Language_Use_Minimal_Complete_Actions => null,
+            Language_String_ID_Set                => null);
 
          Parser.Lexer.Reset_With_String (Text);
 
@@ -181,10 +181,10 @@ package body Trivial_Productions_Test is
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
-            User_Data                    => null,
-            Language_Fixes               => null,
-            Language_Constrain_Terminals => null,
-            Language_String_ID_Set       => null);
+            User_Data                             => null,
+            Language_Fixes                        => null,
+            Language_Use_Minimal_Complete_Actions => null,
+            Language_String_ID_Set                => null);
 
          Parser.Lexer.Reset_With_String (Text);
          Parser.Parse;

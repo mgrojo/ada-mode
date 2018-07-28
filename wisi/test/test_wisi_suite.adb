@@ -46,25 +46,25 @@ begin
 
    --  generate succeeds; grammar file name order
 
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"ada_lite"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"body_instantiation_conflict"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"case_expression"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"character_literal"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"conflict_name"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"dragon_4_43"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_1"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_2"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_3"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_4"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_5"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_6"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_7"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_8"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"identifier_list_name_conflict"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"range_conflict"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"skip_to_grammar"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"subprograms"));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"warth_left_recurse_expr_1"));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"ada_lite", +"ada_lite_recover_repeatable"));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"body_instantiation_conflict", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"case_expression", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"character_literal", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"conflict_name", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"dragon_4_43", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_1", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_2", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_3", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_4", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_5", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_6", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_7", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"empty_production_8", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"identifier_list_name_conflict", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"range_conflict", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"skip_to_grammar", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"subprograms", null));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.

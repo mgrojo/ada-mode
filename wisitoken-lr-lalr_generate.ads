@@ -21,7 +21,7 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.Generate_Utils; use WisiToken.LR.Generate_Utils;
+with WisiToken.Generate.LR; use WisiToken.Generate.LR;
 with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
 package WisiToken.LR.LALR_Generate is

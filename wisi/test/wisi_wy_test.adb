@@ -69,7 +69,7 @@ package body Wisi_WY_Test is
            (Program_Name => Exe.all,
             Args         => Args,
             Output_File  => Output_File,
-            Err_To_Out   => False,
+            Err_To_Out   => True,
             Return_Code  => Return_Code,
             Success      => Success);
       end if;
@@ -162,6 +162,7 @@ package body Wisi_WY_Test is
 
    procedure Execute_Parse
      (Root_Name    : in String;
+      Input_Name   : in String;
       Generate_Alg : in Wisi.Generate_Algorithm)
    is
       use Wisi;
@@ -186,6 +187,23 @@ package body Wisi_WY_Test is
          Output_File => Output);
 
       AUnit.Checks.Text_IO.Check_Files ("", Output, "../wisi/test/" & Output & "_good");
+
+      if Input_Name'Length > 0 then
+         declare
+            Output : constant String := Input_Name & "_" &
+              To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
+         begin
+            Spawn
+              (Program     => Exe,
+               Args        =>
+                 (1        => new String'("-v"),
+                  2        => new String'("2"),
+                  3        => new String'("../wisi/test/" & Input_Name & ".input")),
+               Output_File => Output);
+
+            AUnit.Checks.Text_IO.Check_Files ("", Output, "../wisi/test/" & Output & "_good");
+         end;
+      end if;
    end Execute_Parse;
 
    ----------
@@ -207,7 +225,7 @@ package body Wisi_WY_Test is
       for Tuple of Gen_Set.all loop
          case Tuple.Out_Lang is
          when Wisi.Ada =>
-            Execute_Parse (Simple_Name, Tuple.Gen_Alg);
+            Execute_Parse (Simple_Name, (if Test.Input_Name = null then "" else Test.Input_Name.all), Tuple.Gen_Alg);
 
          when Wisi.Ada_Emacs | Wisi.Elisp =>
             null;

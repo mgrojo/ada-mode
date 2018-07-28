@@ -162,6 +162,7 @@ package WisiToken is
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Trimmed_Image is new Token_ID_Arrays.Gen_Image (Trimmed_Image);
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
 
@@ -200,6 +201,8 @@ package WisiToken is
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set);
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate
    --  syntax.
+
+   type Token_Array_Token_ID is array (Token_ID range <>) of Token_ID;
 
    package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
 

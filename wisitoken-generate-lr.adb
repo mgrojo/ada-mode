@@ -19,7 +19,7 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with WisiToken.Generate;
-package body WisiToken.LR.Generate_Utils is
+package body WisiToken.Generate.LR is
 
    procedure Add_Action
      (Symbol               : in     Token_ID;
@@ -110,7 +110,7 @@ package body WisiToken.LR.Generate_Utils is
             end;
          end if;
       else
-         Add (Action_List, Symbol, Action);
+         WisiToken.LR.Add (Action_List, Symbol, Action);
       end if;
    end Add_Action;
 
@@ -192,7 +192,7 @@ package body WisiToken.LR.Generate_Utils is
            --  position as the last on a state's action list that makes
            --  it the default.
            (Symbol => Invalid_Token_ID,
-            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => LR.Error), null),
+            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => WisiToken.LR.Error), null),
             Next   => null);
 
          Last_Action : Action_Node_Ptr := Table.States (State).Action_List;
@@ -415,7 +415,7 @@ package body WisiToken.LR.Generate_Utils is
             end if;
          end loop;
 
-      when LR.Error =>
+      when WisiToken.LR.Error =>
          raise Programmer_Error;
       end case;
 
@@ -618,4 +618,101 @@ package body WisiToken.LR.Generate_Utils is
       end loop;
    end Compute_Minimal_Terminal_Sequences;
 
-end WisiToken.LR.Generate_Utils;
+   function Minimal_Terminal_First
+     (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor)
+     return Token_Array_Token_ID
+   is
+      use all type Ada.Containers.Count_Type;
+
+      --  For now, rely on the complete minimal terminal sequence. FIXME:
+      --  may be able to optimize;
+      Minimal_Terminal_Sequences : Token_Sequence_Arrays.Vector;
+   begin
+      Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Minimal_Terminal_Sequences);
+
+      return Result : Token_Array_Token_ID (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) do
+         for ID in Result'Range loop
+            if Minimal_Terminal_Sequences (ID).Length = 0 then
+               Result (ID) := Invalid_Token_ID;
+            else
+               Result (ID) := Minimal_Terminal_Sequences (ID)(Minimal_Terminal_Sequences (ID).First);
+            end if;
+         end loop;
+      end return;
+   end Minimal_Terminal_First;
+
+   procedure Set_Minimal_Complete_Actions
+     (State                  : in out Parse_State;
+      Kernel                 : in     LR1_Items.Item_Set;
+      Minimal_Terminal_First : in     Token_Array_Token_ID;
+      Descriptor             : in     WisiToken.Descriptor;
+      Grammar                : in     WisiToken.Productions.Prod_Arrays.Vector)
+   is
+      use Token_ID_Arrays;
+      subtype Terminals is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
+      ID  : Token_ID;
+
+      procedure Append_No_Dup (Item : in Minimal_Action)
+      is begin
+         if not State.Minimal_Complete_Actions.Contains (Item) then
+            State.Minimal_Complete_Actions.Insert (Item);
+         end if;
+      end Append_No_Dup;
+
+      function Find_Action (List : in Action_Node_Ptr; ID : in Token_ID) return Minimal_Action
+      is
+         Node : Action_Node_Ptr := List;
+      begin
+         loop
+            if Node.Symbol = ID then
+               case Node.Action.Item.Verb is
+               when Shift =>
+                  return (Shift, ID, Node.Action.Item.State);
+               when Reduce =>
+                  --  Item.Dot is a nonterm that starts with a nullable nonterm; reduce
+                  --  to that first.
+                  return (Reduce, Node.Action.Item.Production.Nonterm, 0);
+               when Accept_It | WisiToken.LR.Error =>
+                  raise Programmer_Error;
+               end case;
+            end if;
+            Node := Node.Next;
+            exit when Node = null;
+         end loop;
+         raise Programmer_Error;
+      end Find_Action;
+
+   begin
+      for Item of Kernel.Set loop
+         if Item.Dot = No_Element then
+            --  Item has no next terminal. Include a reduce action; the
+            --  Minimal_Terminal_First for the resulting state will be used.
+            Append_No_Dup
+              ((Reduce, Item.Prod.Nonterm,
+                Token_Count => Grammar (Item.Prod.Nonterm).RHSs (Item.Prod.RHS).Tokens.Length));
+         else
+            ID := Element (Item.Dot);
+
+            if ID /= Descriptor.EOF_ID then
+
+               if ID in Terminals then
+                  Append_No_Dup (Find_Action (State.Action_List, ID));
+
+               else
+                  if Minimal_Terminal_First (ID) = Invalid_Token_ID then
+                     --  Item.Dot is a nullable nonterm, include a reduce of the null
+                     --  nonterm, rather than a shift of the following terminal; recover
+                     --  must do the reduce first.
+                     Append_No_Dup ((Reduce, ID, Token_Count => 0));
+
+                  else
+                     Append_No_Dup (Find_Action (State.Action_List, Minimal_Terminal_First (ID)));
+                  end if;
+               end if;
+            end if;
+         end if;
+      end loop;
+   end Set_Minimal_Complete_Actions;
+
+end WisiToken.Generate.LR;

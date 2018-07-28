@@ -20,7 +20,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
-with WisiToken.LR.Generate_Utils;
+with WisiToken.Generate.LR;
+with WisiToken.LR;
 with WisiToken.Productions;
 with WisiToken.Wisi_Grammar_Runtime;
 package Wisi.Generate_Utils is
@@ -46,7 +47,7 @@ package Wisi.Generate_Utils is
 
       Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
-      Conflicts       : WisiToken.LR.Generate_Utils.Conflict_Lists.List;
+      Conflicts       : WisiToken.Generate.LR.Conflict_Lists.List;
 
       LR_Parse_Table : WisiToken.LR.Parse_Table_Ptr;
 
@@ -135,7 +136,7 @@ package Wisi.Generate_Utils is
      (Data             : aliased in out Generate_Data;
       Conflicts        :         in     Wisi.Conflict_Lists.List;
       Source_File_Name :         in     String)
-     return WisiToken.LR.Generate_Utils.Conflict_Lists.List;
+     return WisiToken.Generate.LR.Conflict_Lists.List;
    --  Not included in Initialize because algorithms have no conflicts.
 
    function To_Nonterminal_ID_Set
@@ -144,8 +145,9 @@ package Wisi.Generate_Utils is
      return Token_ID_Set;
 
    function To_McKenzie_Param
-     (Data : aliased in Generate_Data;
-      Item :         in McKenzie_Recover_Param_Type)
+     (Data             : aliased in Generate_Data;
+      Item             :         in McKenzie_Recover_Param_Type;
+      Source_File_Name :         in String)
      return WisiToken.LR.McKenzie_Param_Type;
 
    procedure Count_Actions (Data : in out Generate_Utils.Generate_Data);

@@ -24,7 +24,6 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Text_IO;
 with SAL.Gen_Definite_Doubly_Linked_Lists;
-with WisiToken.Generate;
 package body WisiToken.LR.LALR_Generate is
 
    package Item_List_Cursor_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (LR1_Items.Item_Lists.Cursor);
@@ -104,16 +103,6 @@ package body WisiToken.LR.LALR_Generate is
          Put_Line ("McKenzie:");
          WisiToken.LR.Put (Table.McKenzie_Param, Descriptor);
       end if;
-
-      New_Line;
-      Put_Line ("Minimal_Terminal_Sequences:");
-      for I in Table.Minimal_Terminal_Sequences.First_Index ..
-        Table.Minimal_Terminal_Sequences.Last_Index
-      loop
-         Put_Line
-           (WisiToken.Image (I, Descriptor) & " => " & WisiToken.Image
-              (Table.Minimal_Terminal_Sequences (I), Descriptor));
-      end loop;
    end Put_Parse_Table;
 
    ----------
@@ -548,6 +537,9 @@ package body WisiToken.LR.LALR_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
+      Minimal_Terminal_First : constant Token_Array_Token_ID :=
+        WisiToken.Generate.LR.Minimal_Terminal_First (Grammar, Descriptor);
+
       First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
@@ -617,15 +609,15 @@ package body WisiToken.LR.LALR_Generate is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Generate_Utils.Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
-
       Add_Actions
         (Kernels, Grammar, Has_Empty_Production, First_Nonterm_Set, First_Terminal_Sequence, Unknown_Conflicts,
          Table.all, Descriptor);
 
-      --  Set Table.States.Productions for McKenzie_Recover
+      --  Set Table.States.Productions, Minimal_Terminal_First for McKenzie_Recover
       for State in Table.States'Range loop
          Table.States (State).Productions := LR1_Items.Productions (Kernels (State));
+         WisiToken.Generate.LR.Set_Minimal_Complete_Actions
+           (Table.States (State), Kernels (State), Minimal_Terminal_First, Descriptor, Grammar);
       end loop;
 
       if Put_Parse_Table then
