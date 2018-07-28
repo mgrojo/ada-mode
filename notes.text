@@ -23,12 +23,6 @@ update-wisi_grammar
 Minimal_Complete_Actions
     seems to be working
 
-    add miminal_complete_actions to text_rep
-        add a wisi_wy_test of that; check in ada-mode project.
-        ada_lite_recover_repeatable_lr1.parse succeeds without minimal_complete_actions!?
-            gen_lr_text_rep_parser_run sets it to null.
-            put back deleted tests from ada_lite_recover.input
-
     test case for two reductions: ada_lite_lalr state 24; actual_parameter_part vs formal_part
 
     when one item.dot is at end, can ignore any others that reduce to the same nonterm via 1 token reductions

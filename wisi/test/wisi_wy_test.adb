@@ -80,8 +80,10 @@ package body Wisi_WY_Test is
    procedure Get_Gen_Set
      (Root_Name        : in     String;
       Generate_Set     :    out Wisi.Generate_Set_Access;
-      If_Lexer_Present :    out Boolean)
+      If_Lexer_Present :    out Boolean;
+      McKenzie_Recover :    out Boolean)
    is
+      use all type WisiToken.Line_Number_Type;
       Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
       Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
@@ -97,6 +99,7 @@ package body Wisi_WY_Test is
 
       Generate_Set     := Input_Data.Generate_Set;
       If_Lexer_Present := Input_Data.If_Lexer_Present;
+      McKenzie_Recover := Input_Data.McKenzie_Recover.Source_Line /= WisiToken.Invalid_Line_Number;
    exception
    when WisiToken.Syntax_Error =>
       Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
@@ -161,9 +164,10 @@ package body Wisi_WY_Test is
    end Diff_Gen;
 
    procedure Execute_Parse
-     (Root_Name    : in String;
-      Input_Name   : in String;
-      Generate_Alg : in Wisi.Generate_Algorithm)
+     (Root_Name        : in String;
+      Input_Name       : in String;
+      Generate_Alg     : in Wisi.Generate_Algorithm;
+      McKenzie_Recover : in Boolean)
    is
       use Wisi;
 
@@ -173,18 +177,30 @@ package body Wisi_WY_Test is
 
       Output : constant String := Root_Name & "_" &
         To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
+
+      Args : GNAT.OS_Lib.String_List (1 .. 7);
+      Last : Integer := Args'First - 1;
    begin
       if WisiToken.Trace_Action > WisiToken.Outline then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "parse " & Exe);
       end if;
 
-      Spawn
-        (Program     => Exe,
-         Args        =>
-           (1        => new String'("-v"),
-            2        => new String'("2"),
-            3        => new String'("../wisi/test/" & Root_Name & ".input")),
-         Output_File => Output);
+      Args (1) := new String'("-v");
+      Args (2) := new String'("2");
+      Last     := 2;
+
+      if Generate_Alg in LR_Generate_Algorithm and McKenzie_Recover then
+         --  one task in McKenzie_Recover for repeatable results.
+         Last := Last + 1;
+         Args (Last) := new String'("-t");
+         Last := Last + 1;
+         Args (Last) := new String'("1");
+      end if;
+
+      Last := Last + 1;
+      Args (Last) := new String'("../wisi/test/" & Root_Name & ".input");
+
+      Spawn (Exe, Args (1 .. Last), Output);
 
       AUnit.Checks.Text_IO.Check_Files ("", Output, "../wisi/test/" & Output & "_good");
 
@@ -193,13 +209,8 @@ package body Wisi_WY_Test is
             Output : constant String := Input_Name & "_" &
               To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
          begin
-            Spawn
-              (Program     => Exe,
-               Args        =>
-                 (1        => new String'("-v"),
-                  2        => new String'("2"),
-                  3        => new String'("../wisi/test/" & Input_Name & ".input")),
-               Output_File => Output);
+            Args (Last) := new String'("../wisi/test/" & Input_Name & ".input");
+            Spawn (Exe, Args (1 .. Last), Output);
 
             AUnit.Checks.Text_IO.Check_Files ("", Output, "../wisi/test/" & Output & "_good");
          end;
@@ -216,16 +227,20 @@ package body Wisi_WY_Test is
       Simple_Name      : constant String := Ada.Directories.Simple_Name (Test.Root_Name.all);
       Gen_Set          : Wisi.Generate_Set_Access;
       If_Lexer_Present : Boolean;
+      McKenzie_Recover : Boolean;
    begin
       --  wisi-generate, re2c, gprbuild are run from the Makefile, since
       --  some of the generated files are shared with other tests.
 
-      Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present);
+      Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover);
 
       for Tuple of Gen_Set.all loop
          case Tuple.Out_Lang is
          when Wisi.Ada =>
-            Execute_Parse (Simple_Name, (if Test.Input_Name = null then "" else Test.Input_Name.all), Tuple.Gen_Alg);
+            Execute_Parse
+              (Simple_Name,
+               (if Test.Input_Name = null then "" else Test.Input_Name.all),
+               Tuple.Gen_Alg, McKenzie_Recover);
 
          when Wisi.Ada_Emacs | Wisi.Elisp =>
             null;

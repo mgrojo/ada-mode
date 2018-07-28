@@ -951,6 +951,18 @@ package body WisiToken.LR is
             Put (File, ';');
             New_Line (File);
          end;
+
+         for Action of State.Minimal_Complete_Actions loop
+            Put (File, ' ' & Minimal_Verbs'Image (Action.Verb));
+            case Action.Verb is
+            when Shift =>
+               Put (File, Token_ID'Image (Action.ID) & State_Index'Image (Action.State));
+            when Reduce =>
+               Put (File, Token_ID'Image (Action.Nonterm) & Ada.Containers.Count_Type'Image (Action.Token_Count));
+            end case;
+         end loop;
+         Put (File, ';');
+         New_Line (File);
       end loop;
       Close (File);
    end Put_Text_Rep;
@@ -970,6 +982,15 @@ package body WisiToken.LR is
       Last  : Integer := 0;
 
       Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ;");
+
+      function Last_Char return Character
+      is begin
+         if Last = 0 then
+            return Element (Line, Last + 1);
+         else
+            return Element (Line, Last);
+         end if;
+      end Last_Char;
 
       procedure Skip_Char
       is begin
@@ -1123,6 +1144,7 @@ package body WisiToken.LR is
             end;
 
             if Element (Line, 1) = ';' then
+               --  No Gotos
                Skip_Char;
             else
                declare
@@ -1140,7 +1162,32 @@ package body WisiToken.LR is
                end;
             end if;
 
-            --  loop exits on End_Error from Skip_Char after Goto_List getting next line
+            declare
+               Verb         : Minimal_Verbs;
+               ID           : Token_ID;
+               Action_State : State_Index;
+               Count        : Ada.Containers.Count_Type;
+            begin
+               loop
+                  if Last_Char = ';' then
+                     Skip_Char;
+                     exit;
+                  end if;
+
+                  Verb := Next_Parse_Action_Verbs;
+                  case Verb is
+                  when Shift =>
+                     ID           := Next_Token_ID;
+                     Action_State := Next_State_Index;
+                     State.Minimal_Complete_Actions.Insert ((Shift, ID, Action_State));
+                  when Reduce =>
+                     ID    := Next_Token_ID;
+                     Count := Next_Count_Type;
+                     State.Minimal_Complete_Actions.Insert ((Reduce, ID, Count));
+                  end case;
+               end loop;
+            end;
+            --  loop exits on End_Error
          end loop;
          --  real return value in End_Error handler; this satisfies the compiler
          return null;

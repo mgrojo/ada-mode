@@ -1,5 +1,6 @@
 -- All input texts from test_mckenzie_recover.adb that produce
--- repeatable parse results with both LALR and LR1, for wisi_wy_test.
+-- repeatable parse results with both LALR and LR1 with 1 task in
+-- McKenzie_Recover, for wisi_wy_test.
 
 procedure Proc_1 is begin if A = 2 then end; end;
 
@@ -17,6 +18,8 @@ function Find_Path return Path is begin return Result : Path (1 .. Result_Length
 
 procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end;
 
+procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;
+
 procedure Test_CASE_1 is begin case I is when 1 => A; end;
 
 procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;
@@ -25,7 +28,12 @@ procedure Test_IF is begin if A then B; end;
 
 procedure Test_LOOP is begin for I in A loop B; end;
 
+procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);
+
 procedure One is begin if  and B then C; end if; end;
+
+procedure Journal_To_TSV is procedure Process_Text_File
+is begin exception if then end if; end Process_Text_File; begin begin end; end Journal_To_TSV;
 
 procedure Remove is begin loop A := B; loop; end Remove;
 
@@ -33,6 +41,10 @@ procedure Remove is begin A := "B"; A := "C" & at";
 end Remove;
 
 package body P is procedure Remove is begin A := B; exception end; end P; procedure Q;
+
+package body P is procedure Remove is begin A := B; exception end; A := B; end Remove; end P; procedure Q;
+
+package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;
 
 package body P is procedure Remove is begin A := B; end; end P; procedure Q;
 
@@ -43,6 +55,8 @@ procedure Proc_1 is procedure Proc_2 is begin null; end; begin null; end Proc_1;
 package body Debug is procedure Find_First is begin begin Match (Middle_Initial_Pat); end Find_First;
 
 procedure Swap_Names is begin end Swap_Names; begin end Debug;
+
+package body Debug is procedure A is end Debug;
 
 procedure Journal_To_TSV is procedure Process_CSV_File is procedure To_Month is begin
 begin end Process_CSV_File; begin end Journal_To_TSV;

@@ -698,7 +698,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
    ----------
    --  Public subprograms
 
-   function Language_Fixes
+   function Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
@@ -720,7 +720,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       when others =>
          return Handle_Check_Fail (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);
       end case;
-   end Language_Fixes;
+   end Fixes;
 
    function Use_Minimal_Complete_Actions (Next_Token : in Token_ID) return Boolean
    is begin

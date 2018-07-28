@@ -688,25 +688,19 @@ package body WisiToken.LR.Parser is
                --  Parsers(*).Current_Token and Parsers(*).Verb.
 
                if Shared_Parser.Enable_McKenzie_Recover then
+                  if Trace_Parse > Outline then
+                     Trace.Put_Line ("recover");
+                  end if;
                   Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
                end if;
 
                if Trace_Parse > Outline then
                   if Recover_Result = Success  then
-                     if Shared_Parser.Parsers.Count > 1 then
-                        Trace.Put_Line
-                          ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-                     else
-                        --  single parser
-                        Trace.Put_Line ("recover: succeed");
-                     end if;
+                     Trace.Put_Line
+                       ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
                   else
-                     if Shared_Parser.Parsers.Count > 1 then
-                        Trace.Put_Line
-                          ("recover: fail, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-                     else
-                        Trace.Put_Line ("recover: fail");
-                     end if;
+                     Trace.Put_Line
+                       ("recover: fail, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
                   end if;
                end if;
 

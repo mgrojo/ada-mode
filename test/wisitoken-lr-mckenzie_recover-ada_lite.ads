@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 package WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
-   function Language_Fixes
+   function Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;

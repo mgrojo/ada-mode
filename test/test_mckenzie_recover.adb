@@ -1712,7 +1712,7 @@ package body Test_McKenzie_Recover is
       --  FIXME: add run-time choice of LR1 vs LALR
       Create_Parser
         (Parser,
-         Language_Fixes                        => WisiToken.LR.McKenzie_Recover.Ada_Lite.Language_Fixes'Access,
+         Language_Fixes                        => WisiToken.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Use_Minimal_Complete_Actions =>
            WisiToken.LR.McKenzie_Recover.Ada_Lite.Use_Minimal_Complete_Actions'Access,
          Language_String_ID_Set                => WisiToken.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,

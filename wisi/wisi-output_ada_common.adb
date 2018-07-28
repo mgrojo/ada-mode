@@ -437,7 +437,6 @@ package body Wisi.Output_Ada_Common is
      (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Generate_Data : in Wisi.Generate_Utils.Generate_Data)
    is
-      use all type Standard.Ada.Containers.Count_Type;
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
       use WisiToken;
@@ -616,11 +615,9 @@ package body Wisi.Output_Ada_Common is
             end loop;
          end Gotos;
 
-         if Table.States (State_Index).Minimal_Complete_Actions.Length > 0 then
-            Indent_Wrap
-              ("Set_Minimal_Action (Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions, " &
-                 WisiToken.LR.Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
-         end if;
+         Indent_Wrap
+           ("Set_Minimal_Action (Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions, " &
+              WisiToken.LR.Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
 
          if Line_Count > Lines_Per_Subr then
             Line_Count := 0;
