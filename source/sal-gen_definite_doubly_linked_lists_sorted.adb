@@ -254,7 +254,7 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       Compare : Compare_Result;
    begin
       Find (Container, Element, Node, Compare);
-      return Compare /= Equal;
+      return Compare = Equal;
    end Contains;
 
    procedure Merge
