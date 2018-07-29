@@ -1469,6 +1469,11 @@ package body WisiToken.Wisi_Runtime is
                      Buffer_Pos'Image (Safe_Pos (Item.Check_Status.Begin_Name)) &
                      Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name)) &
                        " ""block name error""]"));
+
+         when LR.Message =>
+            Put_Line
+              ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
+                 """" & (-Item.Msg) & """]");
          end case;
 
          if Item.Recover.Stack.Depth > 0 then

@@ -47,7 +47,7 @@
 
 (cl-defstruct (gpr-query--session)
   (process nil) ;; running gpr_query
-  (buffer nil)) ;; receives output of gpr_query
+  (buffer nil)) ;; receives output of gpr_query; default-directory gives location of db
 
 ;; Starting the buffer name with a space hides it from some lists, and
 ;; also disables font-lock. We sometimes use it to display xref
@@ -437,12 +437,20 @@ Enable mode if ARG is positive."
 (defun gpr-query-refresh ()
   "For `ada-xref-refresh-function', using gpr_query."
   (interactive)
-  ;; need to kill session to get changed env vars etc
+  ;; Kill the current session and delete the database, to get changed
+  ;; env vars etc when it restarts.
   ;;
-  ;; sometimes need to delete database, if the compiler version
-  ;; changed; that's beyond the scope of this package.
-  (let ((session (gpr-query-cached-session)))
+  ;; We need to delete the database files if the compiler version
+  ;; changed, or the database was built with an incorrect environment
+  ;; variable, or something else screwed up.
+  (let* ((session (gpr-query-cached-session))
+	 (db-filename
+	  (with-current-buffer (gpr-query-session-send "db_name" t)
+	    (goto-char (point-min))
+	    (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
+
     (gpr-query-kill-session session)
+    (delete-file db-filename)
     (gpr-query--start-process session)))
 
 (defun gpr-query-other (identifier file line col)
