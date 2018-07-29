@@ -68,12 +68,18 @@ private package WisiToken.LR.McKenzie_Recover.Base is
    --  configurations are checked, before the final solutions are found.
 
    type Config_Status is (Valid, All_Done);
-   type Parser_Status is (Active, Ready, Success, Fail);
-   type Parser_Status_Array is array (SAL.Peek_Type range <>) of Parser_Status;
-   type Parser_Natural_Array is array (SAL.Peek_Type range <>) of Natural;
+   type Recover_State is (Active, Ready, Success, Fail);
 
-   type Parser_State_Array is array (SAL.Peek_Type range <>) of Parser_Lists.State_Access;
-   --  Index is same as Parser_Status.
+   type Parser_Status is record
+      Recover_State : Base.Recover_State;
+      Parser_State  : Parser_Lists.State_Access;
+      Fail_Mode     : Recover_Status;
+
+      Active_Workers : Natural;
+      --  Count of Worker_Tasks that have done Get but not Put or Success.
+   end record;
+
+   type Parser_Status_Array is array (SAL.Peek_Type range <>) of Parser_Status;
 
    protected type Supervisor
      (Trace             : not null access WisiToken.Trace'Class;
@@ -136,10 +142,6 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       Parsers   : access Parser_Lists.List;
       Terminals : access constant Base_Token_Arrays.Vector;
 
-      Active_Workers : Parser_Natural_Array (1 .. Parser_Count);
-      --  Worker_Tasks for each Parser that have done Get but not Put or
-      --  Success.
-
       All_Parsers_Done        : Boolean;
       Success_Counter         : Natural;
       Min_Success_Check_Count : Natural;
@@ -148,8 +150,6 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       Error_ID                : Ada.Exceptions.Exception_Id;
       Error_Message           : Ada.Strings.Unbounded.Unbounded_String;
       Parser_Status           : Parser_Status_Array (1 .. Parser_Count);
-      Parser_States           : Parser_State_Array (1 .. Parser_Count);
-      Parser_Labels           : Parser_Natural_Array (1 .. Parser_Count); -- For Trace
    end Supervisor;
 
    type Shared

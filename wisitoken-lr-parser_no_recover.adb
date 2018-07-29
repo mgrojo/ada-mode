@@ -482,6 +482,9 @@ package body WisiToken.LR.Parser_No_Recover is
 
          when Check =>
             null;
+
+         when Message =>
+            Put_Line (Current_Error, -Item.Msg);
          end case;
 
       end loop;

@@ -1155,6 +1155,9 @@ package body WisiToken.LR is
 
       when Check =>
          return "Check, " & Semantic_Checks.Image (Item.Check_Status, Descriptor);
+
+      when Message =>
+         return -Item.Msg;
       end case;
    end Image;
 

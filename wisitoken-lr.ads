@@ -582,7 +582,7 @@ package WisiToken.LR is
 
    type McKenzie_Access is access all McKenzie_Data;
 
-   type Parse_Error_Label is (Action, Check);
+   type Parse_Error_Label is (Action, Check, Message);
 
    type Parse_Error
      (Label          : Parse_Error_Label;
@@ -598,6 +598,9 @@ package WisiToken.LR is
 
       when Check =>
          Check_Status : Semantic_Checks.Check_Status;
+
+      when Message =>
+         Msg : Ada.Strings.Unbounded.Unbounded_String;
       end case;
    end record;
 

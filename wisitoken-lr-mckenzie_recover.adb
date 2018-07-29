@@ -227,6 +227,11 @@ package body WisiToken.LR.McKenzie_Recover is
                     Shared_Parser.Terminals, Config.all, Task_ID => False);
             end if;
          end if;
+
+      when Message =>
+         --  Last error entry should be the failure that caused us to enter
+         --  recovery.
+         raise Programmer_Error;
       end case;
 
       Parser_State.Recover.Enqueue_Count := Parser_State.Recover.Enqueue_Count + 1;

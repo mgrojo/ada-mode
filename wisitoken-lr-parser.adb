@@ -678,8 +678,9 @@ package body WisiToken.LR.Parser is
          when Error =>
             --  All parsers errored; attempt recovery
             declare
+               use all type Ada.Strings.Unbounded.Unbounded_String;
                use all type McKenzie_Recover.Recover_Status;
-               Recover_Result : McKenzie_Recover.Recover_Status := Fail;
+               Recover_Result : McKenzie_Recover.Recover_Status := McKenzie_Recover.Recover_Status'First;
             begin
                --  Recover algorithms expect current token at
                --  Parsers(*).Current_Token, will set
@@ -693,20 +694,12 @@ package body WisiToken.LR.Parser is
 
                if Trace_Parse > Outline then
                   if Recover_Result = Success  then
-                     if Shared_Parser.Parsers.Count > 1 then
-                        Trace.Put_Line
-                          ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-                     else
-                        --  single parser
-                        Trace.Put_Line ("recover: succeed");
-                     end if;
+                     Trace.Put_Line
+                       ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
                   else
-                     if Shared_Parser.Parsers.Count > 1 then
-                        Trace.Put_Line
-                          ("recover: fail, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-                     else
-                        Trace.Put_Line ("recover: fail");
-                     end if;
+                     Trace.Put_Line
+                       ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
+                          ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
                   end if;
                end if;
 
@@ -765,8 +758,17 @@ package body WisiToken.LR.Parser is
                   end;
 
                else
-                  --  Terminate with error. Semantic_State has all the required info
-                  --  (recorded by Error in Do_Action), so we just raise the exception.
+                  --  Terminate with error. Parser_State has all the required info on
+                  --  the original error (recorded by Error in Do_Action); report reason
+                  --  recover failed.
+                  for Parser_State of Shared_Parser.Parsers loop
+                     Parser_State.Errors.Append
+                       ((Label          => LR.Message,
+                         First_Terminal => Trace.Descriptor.First_Terminal,
+                         Last_Terminal  => Trace.Descriptor.Last_Terminal,
+                         Recover        => <>,
+                         Msg            => +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)));
+                  end loop;
                   raise Syntax_Error;
                end if;
             end;
@@ -1017,6 +1019,8 @@ package body WisiToken.LR.Parser is
               (Current_Error,
                File_Name & ":0:0: semantic check error: " &
                  Semantic_Checks.Image (Item.Check_Status, Descriptor));
+         when Message =>
+            Put_Line (Current_Error, -Item.Msg);
          end case;
 
          if Item.Recover.Stack.Depth /= 0 then
