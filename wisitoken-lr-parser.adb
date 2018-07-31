@@ -139,7 +139,7 @@ package body WisiToken.LR.Parser is
            ((State    => Goto_For
                (Table => Shared_Parser.Table.all,
                 State => Parser_State.Stack (1).State,
-                ID    => Action.Production.Nonterm),
+                ID    => Action.Production.LHS),
              Token    => Nonterm));
 
          Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);
@@ -480,6 +480,8 @@ package body WisiToken.LR.Parser is
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Verb = Error then
                   if Shared_Parser.Enable_McKenzie_Recover then
+                     --  FIXME: the parsers are no longer synced, so this is wrong. Wait
+                     --  until all other parsers are at current_token + check_limit (or error)
                      Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
                      if Trace_Parse > Extra then
                         Trace.Put_Line

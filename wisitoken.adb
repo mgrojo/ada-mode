@@ -179,12 +179,12 @@ package body WisiToken is
 
    function Image (Item : in Production_ID) return String
    is begin
-      return '(' & Trimmed_Image (Item.Nonterm) & ',' & Natural'Image (Item.RHS) & ')';
+      return '(' & Trimmed_Image (Item.LHS) & ',' & Natural'Image (Item.RHS) & ')';
    end Image;
 
    function Trimmed_Image (Item : in Production_ID) return String
    is begin
-      return Trimmed_Image (Item.Nonterm) & '.' & Trimmed_Image (Item.RHS);
+      return Trimmed_Image (Item.LHS) & '.' & Trimmed_Image (Item.RHS);
    end Trimmed_Image;
 
    function Padded_Image (Item : in Production_ID; Width : in Integer) return String

@@ -22,6 +22,11 @@ Productions:
 10.2: name <= qualified_expression
 11.0: qualified_expression <= name TICK aggregate
 
+Ancestors:
+attribute_reference => attribute_designator, name
+name => attribute_designator
+qualified_expression => attribute_designator, name
+
 LALR Parse Table:
 State 0:
       6.0:wisitoken_accept <= ^ name Wisi_EOI, 
@@ -33,6 +38,8 @@ State 0:
    name                 goto state 3
    qualified_expression goto state 4
 
+   Minimal_Complete_Actions => (IDENTIFIER)
+
 State 1:
      10.0:name <= IDENTIFIER ^, RIGHT_PAREN/TICK/Wisi_EOI
 
@@ -41,6 +48,8 @@ State 1:
    Wisi_EOI             => reduce 1 tokens to name 10.0
    default              => ERROR
 
+   Minimal_Complete_Actions => (name)
+
 State 2:
      10.1:name <= attribute_reference ^, RIGHT_PAREN/TICK/Wisi_EOI
 
@@ -48,6 +57,8 @@ State 2:
    TICK                 => reduce 1 tokens to name 10.1
    Wisi_EOI             => reduce 1 tokens to name 10.1
    default              => ERROR
+
+   Minimal_Complete_Actions => (name)
 
 State 3:
       6.0:wisitoken_accept <= name ^ Wisi_EOI, 
@@ -58,6 +69,8 @@ State 3:
    Wisi_EOI             => accept it 6.0
    default              => ERROR
 
+   Minimal_Complete_Actions => (TICK)
+
 State 4:
      10.2:name <= qualified_expression ^, RIGHT_PAREN/TICK/Wisi_EOI
 
@@ -65,6 +78,8 @@ State 4:
    TICK                 => reduce 1 tokens to name 10.2
    Wisi_EOI             => reduce 1 tokens to name 10.2
    default              => ERROR
+
+   Minimal_Complete_Actions => (name)
 
 State 5:
       8.0:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
@@ -80,6 +95,8 @@ State 5:
    name                 goto state 9
    qualified_expression goto state 4
 
+   Minimal_Complete_Actions => (LEFT_PAREN, IDENTIFIER)
+
 State 6:
       7.0:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
 
@@ -90,6 +107,8 @@ State 6:
    name                 goto state 10
    qualified_expression goto state 4
 
+   Minimal_Complete_Actions => (IDENTIFIER)
+
 State 7:
      11.0:qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/TICK/Wisi_EOI
 
@@ -98,6 +117,8 @@ State 7:
    Wisi_EOI             => reduce 3 tokens to qualified_expression 11.0
    default              => ERROR
 
+   Minimal_Complete_Actions => (qualified_expression)
+
 State 8:
       8.0:attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/TICK/Wisi_EOI
 
@@ -105,6 +126,8 @@ State 8:
    TICK                 => reduce 3 tokens to attribute_reference 8.0
    Wisi_EOI             => reduce 3 tokens to attribute_reference 8.0
    default              => ERROR
+
+   Minimal_Complete_Actions => (attribute_reference)
 
 State 9:
       8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
@@ -117,6 +140,8 @@ State 9:
    Wisi_EOI             => reduce 1 tokens to attribute_designator 9.0
    default              => ERROR
 
+   Minimal_Complete_Actions => (TICK, attribute_designator)
+
 State 10:
       7.0:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
       8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
@@ -126,6 +151,8 @@ State 10:
    TICK                 => shift and goto state 5 (8.0, 11.0)
    default              => ERROR
 
+   Minimal_Complete_Actions => (RIGHT_PAREN, TICK)
+
 State 11:
       7.0:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/TICK/Wisi_EOI
 
@@ -134,13 +161,9 @@ State 11:
    Wisi_EOI             => reduce 3 tokens to aggregate 7.0
    default              => ERROR
 
-Minimal_Terminal_Sequences:
-wisitoken_accept => (IDENTIFIER, Wisi_EOI)
-aggregate => (LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
-attribute_reference => (IDENTIFIER, TICK, IDENTIFIER)
-attribute_designator => (IDENTIFIER)
-name => (IDENTIFIER)
-qualified_expression => (IDENTIFIER, TICK, LEFT_PAREN, IDENTIFIER, RIGHT_PAREN)
+   Minimal_Complete_Actions => (aggregate)
+
+States with conflicts: 9
 
  5 rules, 0 user actions, 1 checks, 12 states, 41 parse actions
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts

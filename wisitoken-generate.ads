@@ -82,4 +82,29 @@ package WisiToken.Generate is
    --  tokens that can follow it. Implements algorithm FOLLOW from
    --  [dragon] pg 189.
 
+   ----------
+   --  Indented text output. Mostly used for code generation in wisi,
+   --  also used in outputing the parse_table and other debug stuff.
+
+   Max_Line_Length : constant := 120;
+
+   Indent     : Standard.Ada.Text_IO.Positive_Count := 1;
+   Line_Count : Integer;
+
+   procedure Indent_Line (Text : in String);
+   --  Put Text, indented to Indent, to Current_Output, with newline.
+
+   procedure Indent_Start (Text : in String);
+   --  Put Text indented to Indent to Current_Output, without newline.
+   --  Should be followed by Put_Line, not Indent_Line.
+
+   procedure Indent_Wrap (Text : in String);
+   --  Put Text, indented to Indent, wrapped at Max_Line_Length, to
+   --  Current_Output, ending with newline.
+
+   procedure Indent_Wrap_Comment (Text : in String; Comment_Syntax : in String);
+   --  Put Text, prefixed by Comment_Syntax and two spaces, indented to
+   --  Indent, wrapped at Max_Line_Length, to Current_Output, ending with
+   --  newline.
+
 end WisiToken.Generate;

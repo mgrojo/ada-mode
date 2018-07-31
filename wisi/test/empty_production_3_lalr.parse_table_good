@@ -17,6 +17,8 @@ Productions:
 7.0: name <= IDENTIFIER
 8.0: parameter_specification <= IDENTIFIER mode name
 
+Ancestors:
+
 LALR Parse Table:
 State 0:
       4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -27,6 +29,8 @@ State 0:
    compilation_unit        goto state 2
    parameter_specification goto state 3
 
+   Minimal_Complete_Actions => (IDENTIFIER)
+
 State 1:
       8.0:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER/Wisi_EOI
 
@@ -35,6 +39,8 @@ State 1:
    default                 => ERROR
 
    mode                    goto state 5
+
+   Minimal_Complete_Actions => (mode)
 
 State 2:
       4.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
@@ -50,11 +56,15 @@ State 3:
 
    parameter_specification goto state 6
 
+   Minimal_Complete_Actions => (IDENTIFIER)
+
 State 4:
       6.0:mode <= IN ^, IDENTIFIER
 
    IDENTIFIER              => reduce 1 tokens to mode 6.0
    default                 => ERROR
+
+   Minimal_Complete_Actions => (mode)
 
 State 5:
       8.0:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER/Wisi_EOI
@@ -64,11 +74,15 @@ State 5:
 
    name                    goto state 8
 
+   Minimal_Complete_Actions => (IDENTIFIER)
+
 State 6:
       5.0:compilation_unit <= parameter_specification parameter_specification ^, Wisi_EOI
 
    Wisi_EOI                => reduce 2 tokens to compilation_unit 5.0
    default                 => ERROR
+
+   Minimal_Complete_Actions => (compilation_unit)
 
 State 7:
       7.0:name <= IDENTIFIER ^, IDENTIFIER/Wisi_EOI
@@ -77,6 +91,8 @@ State 7:
    Wisi_EOI                => reduce 1 tokens to name 7.0
    default                 => ERROR
 
+   Minimal_Complete_Actions => (name)
+
 State 8:
       8.0:parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER/Wisi_EOI
 
@@ -84,12 +100,7 @@ State 8:
    Wisi_EOI                => reduce 3 tokens to parameter_specification 8.0
    default                 => ERROR
 
-Minimal_Terminal_Sequences:
-wisitoken_accept => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, Wisi_EOI)
-compilation_unit => (IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER)
-mode => ()
-name => (IDENTIFIER)
-parameter_specification => (IDENTIFIER, IDENTIFIER)
+   Minimal_Complete_Actions => (parameter_specification)
 
  4 rules, 1 user actions, 1 checks, 9 states, 21 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

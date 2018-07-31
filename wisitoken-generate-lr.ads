@@ -46,9 +46,6 @@ package WisiToken.Generate.LR is
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
 
-   ----------
-   --  Subpgrograms, alphabetical order
-
    procedure Add_Action
      (Symbol               : in     Token_ID;
       Action               : in     Parse_Action_Rec;
@@ -120,6 +117,15 @@ package WisiToken.Generate.LR is
       File       : in Ada.Text_IO.File_Type;
       Descriptor : in WisiToken.Descriptor);
 
+   procedure Put_Parse_Table
+     (Table      : in Parse_Table_Ptr;
+      Title      : in String;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Kernels    : in LR1_Items.Item_Set_List;
+      Ancestors  : in Token_Array_Token_Set;
+      Conflicts  : in Conflict_Lists.List;
+      Descriptor : in WisiToken.Descriptor);
+
    procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor;
@@ -136,10 +142,18 @@ package WisiToken.Generate.LR is
    --  sequence of terminals that will complete it; Invalid_Token_ID if
    --  the minimal sequence is empty.
 
+   function Ancestors
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
+     return Token_Array_Token_Set;
+   --  For each nonterm, record the nonterms it reduces to via one token
+   --  reductions, recursively.
+
    procedure Set_Minimal_Complete_Actions
      (State                  : in out Parse_State;
       Kernel                 : in     LR1_Items.Item_Set;
       Minimal_Terminal_First : in     Token_Array_Token_ID;
+      Ancestors              : in     Token_Array_Token_Set;
       Descriptor             : in     WisiToken.Descriptor;
       Grammar                : in     WisiToken.Productions.Prod_Arrays.Vector);
    --  Set State.Minimal_Terminal_First to the set of terminals that will

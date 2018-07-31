@@ -71,40 +71,6 @@ package body WisiToken.LR.LALR_Generate is
       end loop;
    end Put;
 
-   procedure Put_Parse_Table
-     (Table      : in Parse_Table_Ptr;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Kernels    : in LR1_Items.Item_Set_List;
-      Descriptor : in WisiToken.Descriptor)
-   is
-      use Ada.Text_IO;
-   begin
-      Put_Line ("Tokens:");
-      WisiToken.Put_Tokens (Descriptor);
-      New_Line;
-      Put_Line ("Productions:");
-      WisiToken.Productions.Put (Grammar, Descriptor);
-      New_Line;
-
-      Put_Line ("LALR Parse Table:");
-
-      for State in Table.States'Range loop
-         LR1_Items.Put (Grammar, Descriptor, Kernels (State), Show_Lookaheads => True);
-         New_Line;
-         Put (Descriptor, Table.States (State));
-
-         if State /= Table.States'Last then
-            New_Line;
-         end if;
-      end loop;
-
-      if Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
-         New_Line;
-         Put_Line ("McKenzie:");
-         WisiToken.LR.Put (Table.McKenzie_Param, Descriptor);
-      end if;
-   end Put_Parse_Table;
-
    ----------
    --  Generate utils
 
@@ -201,7 +167,7 @@ package body WisiToken.LR.LALR_Generate is
       First_State_Index : constant State_Index := 0;
       Kernels           : LR1_Items.Item_Set_List;
       Kernel_Tree       : LR1_Items.Item_Set_Trees.Tree; -- for fast find
-      States_To_Check   : State_Queues.Queue;
+      States_To_Check   : State_Index_Queues.Queue;
       Checking_State    : State_Index;
 
       New_Item_Set : Item_Set :=
@@ -540,6 +506,8 @@ package body WisiToken.LR.LALR_Generate is
       Minimal_Terminal_First : constant Token_Array_Token_ID :=
         WisiToken.Generate.LR.Minimal_Terminal_First (Grammar, Descriptor);
 
+      Ancestors : constant Token_Array_Token_Set := WisiToken.Generate.LR.Ancestors (Grammar, Descriptor);
+
       First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
@@ -617,11 +585,12 @@ package body WisiToken.LR.LALR_Generate is
       for State in Table.States'Range loop
          Table.States (State).Productions := LR1_Items.Productions (Kernels (State));
          WisiToken.Generate.LR.Set_Minimal_Complete_Actions
-           (Table.States (State), Kernels (State), Minimal_Terminal_First, Descriptor, Grammar);
+           (Table.States (State), Kernels (State), Minimal_Terminal_First, Ancestors, Descriptor, Grammar);
       end loop;
 
       if Put_Parse_Table then
-         LALR_Generate.Put_Parse_Table (Table, Grammar, Kernels, Descriptor);
+         WisiToken.Generate.LR.Put_Parse_Table
+           (Table, "LALR", Grammar, Kernels, Ancestors, Unknown_Conflicts, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);

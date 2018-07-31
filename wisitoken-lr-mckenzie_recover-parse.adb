@@ -74,7 +74,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Last   : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type (Action.Token_Count);
       Tokens : Recover_Token_Array (1 .. Last);
    begin
-      Compute_Nonterm (Action.Production.Nonterm, Stack, Tokens, Nonterm, Default_Virtual);
+      Compute_Nonterm (Action.Production.LHS, Stack, Tokens, Nonterm, Default_Virtual);
 
       if Action.Check = null then
          --  Now we can pop the stack.
@@ -221,7 +221,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                case Config.Check_Status.Label is
                when Ok =>
                   New_State := Config.Stack.Peek.State;
-                  New_State := Goto_For (Table, New_State, Action.Item.Production.Nonterm);
+                  New_State := Goto_For (Table, New_State, Action.Item.Production.LHS);
 
                   if New_State = Unknown_State then
                      --  Most likely from an inappropriate language fix.

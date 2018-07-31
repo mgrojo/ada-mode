@@ -74,7 +74,9 @@ package WisiToken is
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Unknown_State_Index);
 
-   package State_Queues is new SAL.Gen_Unbounded_Definite_Queues (State_Index);
+   package State_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (State_Index);
+   package State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, State_Index);
+   function Image is new State_Index_Arrays.Gen_Image (Trimmed_Image);
 
    ----------
    --  Token IDs
@@ -210,8 +212,8 @@ package WisiToken is
    --  Production IDs; see wisitoken-productions.ads for more
 
    type Production_ID is record
-      Nonterm : Token_ID := Invalid_Token_ID;
-      RHS     : Natural  := 0;
+      LHS : Token_ID := Invalid_Token_ID;
+      RHS : Natural  := 0;
       --  Index into the production table.
    end record;
 

@@ -157,6 +157,8 @@ package WisiToken.LR is
 
    function Image is new Minimal_Action_Lists.Gen_Image (Strict_Image);
 
+   function Count_Reduce (List : in Minimal_Action_Lists.List) return Integer;
+
    procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array);
 
    type Parse_State is record

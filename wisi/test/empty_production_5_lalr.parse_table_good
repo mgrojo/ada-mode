@@ -20,6 +20,8 @@ Productions:
 11.0: parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN
 11.1: parameter_profile <=
 
+Ancestors:
+
 LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -30,6 +32,8 @@ State 0:
    compilation_unit  goto state 2
    accept_statement  goto state 3
 
+   Minimal_Complete_Actions => (ACCEPT)
+
 State 1:
       9.0:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
@@ -37,6 +41,8 @@ State 1:
    default           => ERROR
 
    name              goto state 5
+
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 2:
       7.0:wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
@@ -52,12 +58,16 @@ State 3:
 
    accept_statement  goto state 6
 
+   Minimal_Complete_Actions => (ACCEPT)
+
 State 4:
      10.0:name <= IDENTIFIER ^, LEFT_PAREN/SEMICOLON
 
    LEFT_PAREN        => reduce 1 tokens to name 10.0
    SEMICOLON         => reduce 1 tokens to name 10.0
    default           => ERROR
+
+   Minimal_Complete_Actions => (name)
 
 State 5:
       9.0:accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
@@ -68,11 +78,15 @@ State 5:
 
    parameter_profile goto state 8
 
+   Minimal_Complete_Actions => (parameter_profile)
+
 State 6:
       8.0:compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
 
    Wisi_EOI          => reduce 2 tokens to compilation_unit 8.0
    default           => ERROR
+
+   Minimal_Complete_Actions => (compilation_unit)
 
 State 7:
      11.0:parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
@@ -80,17 +94,23 @@ State 7:
    IDENTIFIER        => shift and goto state 9 (11.0)
    default           => ERROR
 
+   Minimal_Complete_Actions => (IDENTIFIER)
+
 State 8:
       9.0:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/Wisi_EOI
 
    SEMICOLON         => shift and goto state 10 (9.0)
    default           => ERROR
 
+   Minimal_Complete_Actions => (SEMICOLON)
+
 State 9:
      11.0:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
 
    RIGHT_PAREN       => shift and goto state 11 (11.0)
    default           => ERROR
+
+   Minimal_Complete_Actions => (RIGHT_PAREN)
 
 State 10:
       9.0:accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT/Wisi_EOI
@@ -99,18 +119,15 @@ State 10:
    Wisi_EOI          => reduce 4 tokens to accept_statement 9.0
    default           => ERROR
 
+   Minimal_Complete_Actions => (accept_statement)
+
 State 11:
      11.0:parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN ^, SEMICOLON
 
    SEMICOLON         => reduce 3 tokens to parameter_profile 11.0
    default           => ERROR
 
-Minimal_Terminal_Sequences:
-wisitoken_accept => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON, Wisi_EOI)
-compilation_unit => (ACCEPT, IDENTIFIER, SEMICOLON, ACCEPT, IDENTIFIER, SEMICOLON)
-accept_statement => (ACCEPT, IDENTIFIER, SEMICOLON)
-name => (IDENTIFIER)
-parameter_profile => ()
+   Minimal_Complete_Actions => (parameter_profile)
 
  4 rules, 0 user actions, 1 checks, 12 states, 27 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

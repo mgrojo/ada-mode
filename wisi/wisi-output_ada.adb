@@ -26,7 +26,6 @@ with GNAT.Regexp;
 with Wisi.Generate_Packrat;
 with Wisi.Generate_Utils;
 with Wisi.Output_Ada_Common; use Wisi.Output_Ada_Common;
-with Wisi.Utils;
 with WisiToken.Generate.Packrat;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Ada
@@ -61,9 +60,9 @@ is
       Check_Names  : not null access WisiToken.Names_Array_Array;
       Package_Name : in              String)
    is
-      use Generate_Utils;
       use GNAT.Regexp;
-      use Wisi.Utils;
+      use Generate_Utils;
+      use WisiToken.Generate;
 
       File_Name : constant String := Output_File_Name_Root & "_actions.adb";
       --  No generate_algorithm when Test_Main; the generated actions file is independent of that.
@@ -237,7 +236,7 @@ is
      (Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       File_Name         : constant String := Output_File_Name_Root & To_Lower (Gen_Alg_Name) & "_main.adb";
       re2c_Package_Name : constant String := -Common_Data.Lower_File_Name_Root & "_re2c_c";
@@ -306,7 +305,7 @@ is
      (Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       Generic_Package_Name : constant String :=
         (case Common_Data.Generate_Algorithm is

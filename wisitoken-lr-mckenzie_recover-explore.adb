@@ -119,7 +119,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
       end case;
 
-      New_State := Goto_For (Table, Config.Stack (1).State, Action.Production.Nonterm);
+      New_State := Goto_For (Table, Config.Stack (1).State, Action.Production.LHS);
 
       Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
       return Continue;
@@ -648,7 +648,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                         Put_Line
                           (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions reduce to" &
                              State_Index'Image (New_Config.Stack.Peek.State) & ", " &
-                             Image (Reduce_Action.Production.Nonterm, Descriptor));
+                             Image (Reduce_Action.Production.LHS, Descriptor));
                      end if;
 
                      State := New_Config.Stack.Peek.State;
@@ -1120,6 +1120,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       function Allow_Insert_Terminal (Config : in Configuration) return Boolean
       is
+         use all type Ada.Containers.Count_Type;
          use all type WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
       begin
          if Shared.Language_Use_Minimal_Complete_Actions = null then
@@ -1138,13 +1139,19 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
 
          if Use_Minimal_Complete_Actions then
+            if Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions.Length = 0 then
+               --  This happens when there is an extra token after an acceptable
+               --  grammar statement. There is no production to complete, so try
+               --  other things.
+               Use_Minimal_Complete_Actions := False;
+            else
                if Trace_McKenzie > Outline then
                   Put_Line (Super.Trace.all, Super.Label (Parser_Index), "use Minimal_Complete_Actions");
                end if;
                return True;
-         else
-            return None_Since_FF (Config.Ops, Delete);
+            end if;
          end if;
+         return None_Since_FF (Config.Ops, Delete);
       end Allow_Insert_Terminal;
 
    begin

@@ -217,7 +217,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 11,
          Enqueue_High            => 56,
          Check_Low               => 5,
-         Check_High              => 30,
+         Check_High              => 33,
          Cost                    => 2);
    end Error_1;
 
@@ -448,7 +448,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
          Enqueue_Low             => 4,
-         Enqueue_High            => 25,
+         Enqueue_High            => 30,
          Check_Low               => 2,
          Check_High              => 7,
          Cost                    => 1);
@@ -634,8 +634,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (52, 52),
          Ops                     => +(Push_Back, +END_ID, 12) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) &
            (Insert, +SEMICOLON_ID, 12),
-         Enqueue_Low             => 49,
-         Enqueue_High            => 98,
+         Enqueue_Low             => 31,
+         Enqueue_High            => 111,
          Check_Low               => 10,
          Check_High              => 21,
          Cost                    => 2);
@@ -752,7 +752,7 @@ package body Test_McKenzie_Recover is
              (Delete, +EXCEPTION_ID, 8),
          Enqueue_Low             => 44,
          Enqueue_High            => 150,
-         Check_Low               => 13,
+         Check_Low               => 12,
          Check_High              => 35,
          Cost                    => 4);
    end If_In_Handler;
@@ -1414,7 +1414,7 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
-         Enqueue_Low             => 79,
+         Enqueue_Low             => 74,
          Enqueue_High            => 145,
          Check_Low               => 20,
          Check_High              => 35,
@@ -1460,7 +1460,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +RIGHT_PAREN_ID,
          Error_Token_Byte_Region => (124, 124),
          Ops                     => +(Insert, +IDENTIFIER_ID, 22),
-         Enqueue_Low             => 7,
+         Enqueue_Low             => 4,
          Enqueue_High            => 15,
          Check_Low               => 3,
          Check_High              => 7,

@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with Wisi.Utils; use Wisi.Utils;
+with WisiToken.Generate;
 package body Wisi.Output_Elisp_Common is
 
    function Find_Elisp_ID (List : in String_Lists.List; Elisp_Name : in String) return Integer
@@ -66,6 +66,7 @@ package body Wisi.Output_Elisp_Common is
       Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String)
    is
       use Standard.Ada.Text_IO;
+      use WisiToken.Generate;
    begin
       Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-keyword-table-raw");
       Indent_Line ("  '(");
@@ -85,6 +86,7 @@ package body Wisi.Output_Elisp_Common is
    is
       use Standard.Ada.Strings.Unbounded;
       use Standard.Ada.Text_IO;
+      use WisiToken.Generate;
    begin
       Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-token-table-raw");
       Indent_Line ("  '(");
@@ -127,6 +129,7 @@ package body Wisi.Output_Elisp_Common is
       Names            : in     String_Lists.List)
    is
       use Standard.Ada.Text_IO;
+      use WisiToken.Generate;
    begin
       Indent_Line ("(defconst " & Output_File_Root & "-" & Label);
       Indent_Line ("  [");

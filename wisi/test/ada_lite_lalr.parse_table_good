@@ -309,6 +309,174 @@ Productions:
 140.0: unary_adding_operator <= PLUS
 140.1: unary_adding_operator <= MINUS
 
+McKenzie:
+(Insert =>
+ AND             => 4,
+ BEGIN           => 3,
+ BODY            => 4,
+ CASE            => 3,
+ DECLARE         => 3,
+ ELSE            => 3,
+ ELSIF           => 3,
+ END             => 1,
+ EXIT            => 3,
+ EXCEPTION       => 4,
+ FOR             => 4,
+ FUNCTION        => 3,
+ IF              => 2,
+ IN              => 4,
+ IS              => 3,
+ LEFT_PAREN      => 4,
+ LOOP            => 2,
+ NEW             => 3,
+ NOT             => 4,
+ OR              => 4,
+ PACKAGE         => 4,
+ PROCEDURE       => 3,
+ RANGE           => 4,
+ RETURN          => 3,
+ RIGHT_PAREN     => 3,
+ SEPARATE        => 4,
+ THEN            => 3,
+ TYPE            => 4,
+ WHEN            => 3,
+ WITH            => 4,
+ XOR             => 4,
+ AMPERSAND       => 4,
+ COLON           => 4,
+ COLON_EQUAL     => 4,
+ COMMA           => 4,
+ DOT             => 4,
+ DOT_DOT         => 4,
+ EQUAL           => 4,
+ EQUAL_GREATER   => 4,
+ GREATER         => 4,
+ GREATER_EQUAL   => 4,
+ LESS            => 4,
+ LESS_EQUAL      => 4,
+ MINUS           => 4,
+ PLUS            => 4,
+ SEMICOLON       => 1,
+ SLASH           => 4,
+ SLASH_EQUAL     => 4,
+ STAR            => 4,
+ STRING_LITERAL  => 4,
+ NUMERIC_LITERAL => 4,
+ IDENTIFIER      => 3,
+ Wisi_EOI        => 4)
+(Delete =>
+ AND             => 4,
+ BEGIN           => 1,
+ BODY            => 4,
+ CASE            => 4,
+ DECLARE         => 4,
+ ELSE            => 4,
+ ELSIF           => 4,
+ END             => 1,
+ EXIT            => 4,
+ EXCEPTION       => 4,
+ FOR             => 4,
+ FUNCTION        => 4,
+ IF              => 4,
+ IN              => 4,
+ IS              => 4,
+ LEFT_PAREN      => 4,
+ LOOP            => 4,
+ NEW             => 4,
+ NOT             => 4,
+ OR              => 4,
+ PACKAGE         => 4,
+ PROCEDURE       => 4,
+ RANGE           => 4,
+ RETURN          => 4,
+ RIGHT_PAREN     => 4,
+ SEPARATE        => 4,
+ THEN            => 4,
+ TYPE            => 4,
+ WHEN            => 4,
+ WITH            => 4,
+ XOR             => 4,
+ AMPERSAND       => 4,
+ COLON           => 4,
+ COLON_EQUAL     => 4,
+ COMMA           => 4,
+ DOT             => 4,
+ DOT_DOT         => 4,
+ EQUAL           => 4,
+ EQUAL_GREATER   => 4,
+ GREATER         => 4,
+ GREATER_EQUAL   => 4,
+ LESS            => 4,
+ LESS_EQUAL      => 4,
+ MINUS           => 4,
+ PLUS            => 4,
+ SEMICOLON       => 4,
+ SLASH           => 4,
+ SLASH_EQUAL     => 4,
+ STAR            => 4,
+ STRING_LITERAL  => 2,
+ NUMERIC_LITERAL => 4,
+ IDENTIFIER      => 4,
+ Wisi_EOI        => 4)
+Cost_Limit => 10
+
+Ancestors:
+assignment_statement => handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
+association_opt => association_list
+block_statement => compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
+body_g => declaration, declarations, declarative_part_opt
+body_stub => body_g, declaration, declarations, declarative_part_opt
+case_statement => compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
+case_statement_alternative => case_statement_alternative_list
+compilation_unit => compilation_unit_list
+compound_statement => handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
+declaration => declarations, declarative_part_opt
+declarations => declarative_part_opt
+elsif_statement_item => elsif_statement_list
+enumeration_type_definition => type_definition
+exception_handler => exception_handler_list, exception_handler_list_opt
+exception_handler_list => exception_handler_list_opt
+exit_statement => handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
+expression => association_opt, association_list, expression_opt
+extended_return_statement => compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
+factor => association_opt, association_list, expression, expression_opt, relation, simple_expression, term, term_list
+formal_part => parameter_profile_opt
+full_type_declaration => declaration, declarations, declarative_part_opt, type_declaration
+function_specification => subprogram_specification
+generic_instantiation => compilation_unit, compilation_unit_list, library_item
+if_statement => compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
+index_constraint => constraint
+library_item => compilation_unit, compilation_unit_list
+loop_statement => compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
+name => association_opt, association_list, discrete_subtype_definition, exception_choice, expression, expression_opt, factor, name_opt, primary, relation, simple_expression, subtype_indication, term, term_list
+object_declaration => declaration, declarations, declarative_part_opt
+package_body => body_g, compilation_unit, compilation_unit_list, declaration, declarations, declarative_part_opt, library_item, proper_body
+parameter_specification => parameter_specification_list
+paren_expression => association_opt, association_list, expression, expression_opt, factor, primary, relation, simple_expression, term, term_list
+primary => association_opt, association_list, expression, expression_opt, factor, relation, simple_expression, term, term_list
+procedure_call_statement => handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
+procedure_specification => subprogram_specification
+proper_body => body_g, declaration, declarations, declarative_part_opt
+range_g => discrete_subtype_definition, range_list
+relation_and_list => association_opt, association_list, expression, expression_opt
+relation_or_list => association_opt, association_list, expression, expression_opt
+relation_xor_list => association_opt, association_list, expression, expression_opt
+relation => association_opt, association_list, expression, expression_opt
+selected_component => association_opt, association_list, discrete_subtype_definition, exception_choice, expression, expression_opt, factor, name, name_opt, primary, relation, simple_expression, subtype_indication, term, term_list
+sequence_of_statements => handled_sequence_of_statements, sequence_of_statements_opt
+sequence_of_statements_opt => handled_sequence_of_statements
+simple_expression => association_opt, association_list, expression, expression_opt, relation
+simple_return_statement => handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
+simple_statement => handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
+statement => handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt
+subprogram_body => body_g, compilation_unit, compilation_unit_list, declaration, declarations, declarative_part_opt, library_item, proper_body
+subprogram_body_stub => body_g, body_stub, declaration, declarations, declarative_part_opt
+subprogram_declaration => compilation_unit, compilation_unit_list, declaration, declarations, declarative_part_opt, library_item
+subtype_indication => discrete_subtype_definition
+term => association_opt, association_list, expression, expression_opt, relation, simple_expression, term_list
+term_list => association_opt, association_list, expression, expression_opt, relation, simple_expression
+type_declaration => declaration, declarations, declarative_part_opt
+
 LALR Parse Table:
 State 0:
      56.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI, 
@@ -398,8 +566,6 @@ State 5:
    subprogram_body                    goto state 11
    subprogram_declaration             goto state 12
    subprogram_specification           goto state 13
-
-   Minimal_Complete_Actions => (PROCEDURE)
 
 State 6:
     134.1:subprogram_specification <= function_specification ^, IS/WITH/SEMICOLON
@@ -539,7 +705,7 @@ State 15:
    formal_part                        goto state 28
    parameter_and_result_profile       goto state 29
 
-   Minimal_Complete_Actions => (LEFT_PAREN, RETURN, DOT)
+   Minimal_Complete_Actions => (RETURN, DOT)
 
 State 16:
     104.3:name <= selected_component ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -601,7 +767,7 @@ State 18:
 
    actual_parameter_part              goto state 27
 
-   Minimal_Complete_Actions => (IS, LEFT_PAREN, DOT)
+   Minimal_Complete_Actions => (IS, DOT)
 
 State 19:
      95.1:generic_instantiation <= PROCEDURE name ^ IS NEW name SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -622,7 +788,7 @@ State 19:
    formal_part                        goto state 34
    parameter_profile_opt              goto state 35
 
-   Minimal_Complete_Actions => (IS, LEFT_PAREN, DOT, parameter_profile_opt)
+   Minimal_Complete_Actions => (IS, DOT, parameter_profile_opt)
 
 State 20:
      71.0:compilation_unit_list <= compilation_unit_list compilation_unit ^, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -817,7 +983,7 @@ State 30:
    actual_parameter_part              goto state 27
    aspect_specification_opt           goto state 69
 
-   Minimal_Complete_Actions => (LEFT_PAREN, DOT, aspect_specification_opt)
+   Minimal_Complete_Actions => (DOT, aspect_specification_opt)
 
 State 31:
      95.0:generic_instantiation <= PACKAGE name IS ^ NEW name SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -1048,7 +1214,7 @@ State 42:
    STAR                               => reduce 1 tokens to name 104.2
    default                            => ERROR
 
-   Minimal_Complete_Actions => (EQUAL_GREATER, name)
+   Minimal_Complete_Actions => (name)
 
 State 43:
      61.1:association_list <= association_opt ^, IS/RIGHT_PAREN/COMMA
@@ -1068,7 +1234,7 @@ State 44:
    COMMA                              => shift and goto state 76 (61.0)
    default                            => ERROR
 
-   Minimal_Complete_Actions => (COMMA, aspect_specification_opt)
+   Minimal_Complete_Actions => (aspect_specification_opt)
 
 State 45:
      60.1:association_opt <= expression ^, IS/RIGHT_PAREN/COMMA
@@ -1143,7 +1309,7 @@ State 47:
 
    actual_parameter_part              goto state 27
 
-   Minimal_Complete_Actions => (LEFT_PAREN, DOT, primary)
+   Minimal_Complete_Actions => (DOT, primary)
 
 State 48:
     113.3:primary <= paren_expression ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1215,7 +1381,7 @@ State 50:
    SEMICOLON                          => reduce 1 tokens to expression 87.1
    default                            => ERROR
 
-   Minimal_Complete_Actions => (AND, expression)
+   Minimal_Complete_Actions => (expression)
 
 State 51:
      87.2:expression <= relation_or_list ^, IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -1229,7 +1395,7 @@ State 51:
    SEMICOLON                          => reduce 1 tokens to expression 87.2
    default                            => ERROR
 
-   Minimal_Complete_Actions => (OR, expression)
+   Minimal_Complete_Actions => (expression)
 
 State 52:
      87.3:expression <= relation_xor_list ^, IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -1243,7 +1409,7 @@ State 52:
    SEMICOLON                          => reduce 1 tokens to expression 87.3
    default                            => ERROR
 
-   Minimal_Complete_Actions => (XOR, expression)
+   Minimal_Complete_Actions => (expression)
 
 State 53:
      87.0:expression <= relation ^, IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
@@ -1285,7 +1451,7 @@ State 54:
 
    relational_operator                goto state 89
 
-   Minimal_Complete_Actions => (GREATER_EQUAL, relation)
+   Minimal_Complete_Actions => (relation)
 
 State 55:
     136.0:term <= term ^ multiplying_operator factor, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1317,7 +1483,7 @@ State 55:
 
    multiplying_operator               goto state 92
 
-   Minimal_Complete_Actions => (SLASH, term_list)
+   Minimal_Complete_Actions => (term_list)
 
 State 56:
     127.1:simple_expression <= term_list ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/SEMICOLON/SLASH_EQUAL
@@ -1347,7 +1513,7 @@ State 56:
 
    binary_adding_operator             goto state 96
 
-   Minimal_Complete_Actions => (AMPERSAND, simple_expression)
+   Minimal_Complete_Actions => (simple_expression)
 
 State 57:
     127.0:simple_expression <= unary_adding_operator ^ term_list, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/SEMICOLON/SLASH_EQUAL
@@ -1428,7 +1594,7 @@ State 59:
    STAR                               => reduce 1 tokens to name 104.2
    default                            => ERROR
 
-   Minimal_Complete_Actions => (COLON, EQUAL_GREATER, name)
+   Minimal_Complete_Actions => (COLON, name)
 
 State 60:
      57.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1438,7 +1604,7 @@ State 60:
    COMMA                              => shift and goto state 76 (61.0)
    default                            => ERROR
 
-   Minimal_Complete_Actions => (RIGHT_PAREN, COMMA)
+   Minimal_Complete_Actions => (RIGHT_PAREN)
 
 State 61:
     111.1:parameter_specification_list <= parameter_specification ^, RIGHT_PAREN/SEMICOLON
@@ -1457,7 +1623,7 @@ State 62:
    SEMICOLON                          => shift and goto state 119 (111.0)
    default                            => ERROR
 
-   Minimal_Complete_Actions => (RIGHT_PAREN, SEMICOLON)
+   Minimal_Complete_Actions => (RIGHT_PAREN)
 
 State 63:
     118.1:range_list <= range_g ^, RIGHT_PAREN/COMMA
@@ -1476,7 +1642,7 @@ State 64:
    COMMA                              => shift and goto state 121 (118.0)
    default                            => ERROR
 
-   Minimal_Complete_Actions => (RIGHT_PAREN, COMMA)
+   Minimal_Complete_Actions => (RIGHT_PAREN)
 
 State 65:
     117.0:range_g <= simple_expression ^ DOT_DOT simple_expression, RIGHT_PAREN/COMMA
@@ -1499,7 +1665,7 @@ State 65:
 
    relational_operator                goto state 89
 
-   Minimal_Complete_Actions => (DOT_DOT, GREATER_EQUAL, relation)
+   Minimal_Complete_Actions => (DOT_DOT, relation)
 
 State 66:
     108.1:parameter_and_result_profile <= RETURN IDENTIFIER ^, IS/WITH/SEMICOLON
@@ -2083,7 +2249,7 @@ State 97:
 
    binary_adding_operator             goto state 96
 
-   Minimal_Complete_Actions => (AMPERSAND, simple_expression)
+   Minimal_Complete_Actions => (simple_expression)
 
 State 98:
     107.0:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -2192,7 +2358,7 @@ State 105:
    subprogram_specification           goto state 114
    type_declaration                   goto state 115
 
-   Minimal_Complete_Actions => (PROCEDURE, declarative_part_opt)
+   Minimal_Complete_Actions => (declarative_part_opt)
 
 State 106:
     131.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -2535,7 +2701,7 @@ State 125:
 
    actual_parameter_part              goto state 27
 
-   Minimal_Complete_Actions => (LEFT_PAREN, DOT, SEMICOLON)
+   Minimal_Complete_Actions => (DOT, SEMICOLON)
 
 State 126:
      95.1:generic_instantiation <= PROCEDURE name IS NEW name ^ SEMICOLON, FUNCTION/PACKAGE/PROCEDURE/Wisi_EOI
@@ -2550,7 +2716,7 @@ State 126:
 
    actual_parameter_part              goto state 27
 
-   Minimal_Complete_Actions => (LEFT_PAREN, DOT, SEMICOLON)
+   Minimal_Complete_Actions => (DOT, SEMICOLON)
 
 State 127:
     112.0:paren_expression <= LEFT_PAREN expression_opt RIGHT_PAREN ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -2753,7 +2919,7 @@ State 138:
 
    multiplying_operator               goto state 92
 
-   Minimal_Complete_Actions => (SLASH, term_list)
+   Minimal_Complete_Actions => (term_list)
 
 State 139:
     104.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, IS/LEFT_PAREN/WITH/DOT/SEMICOLON
@@ -2772,7 +2938,7 @@ State 139:
    formal_part                        goto state 34
    parameter_profile_opt              goto state 35
 
-   Minimal_Complete_Actions => (LEFT_PAREN, DOT, parameter_profile_opt)
+   Minimal_Complete_Actions => (DOT, parameter_profile_opt)
 
 State 140:
      93.0:full_type_declaration <= TYPE IDENTIFIER ^ IS type_definition SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -2864,7 +3030,7 @@ State 145:
    SEMICOLON                          => reduce 3 tokens to parameter_specification 110.1
    default                            => ERROR
 
-   Minimal_Complete_Actions => (COLON_EQUAL, parameter_specification)
+   Minimal_Complete_Actions => (parameter_specification)
 
 State 146:
     110.0:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER COLON_EQUAL expression_opt, RIGHT_PAREN/SEMICOLON
@@ -2974,7 +3140,7 @@ State 155:
    constraint                         goto state 191
    index_constraint                   goto state 192
 
-   Minimal_Complete_Actions => (LEFT_PAREN, RANGE, DOT, subtype_indication)
+   Minimal_Complete_Actions => (DOT, subtype_indication)
 
 State 156:
     106.0:object_declaration <= IDENTIFIER COLON subtype_indication ^ COLON_EQUAL expression_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -3365,7 +3531,7 @@ State 175:
 
    actual_parameter_part              goto state 27
 
-   Minimal_Complete_Actions => (LEFT_PAREN, COLON_EQUAL, DOT, SEMICOLON)
+   Minimal_Complete_Actions => (COLON_EQUAL, DOT, SEMICOLON)
 
 State 176:
     129.2:simple_statement <= procedure_call_statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -3425,7 +3591,7 @@ State 177:
    simple_statement                   goto state 180
    statement                          goto state 212
 
-   Minimal_Complete_Actions => (RETURN, sequence_of_statements_opt)
+   Minimal_Complete_Actions => (sequence_of_statements_opt)
 
 State 178:
      96.0:handled_sequence_of_statements <= sequence_of_statements_opt ^ EXCEPTION exception_handler_list_opt, END
@@ -3435,7 +3601,7 @@ State 178:
    EXCEPTION                          => shift and goto state 213 (96.0)
    default                            => ERROR
 
-   Minimal_Complete_Actions => (EXCEPTION, handled_sequence_of_statements)
+   Minimal_Complete_Actions => (handled_sequence_of_statements)
 
 State 179:
     129.3:simple_statement <= simple_return_statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4121,7 +4287,7 @@ State 217:
 
    actual_parameter_part              goto state 27
 
-   Minimal_Complete_Actions => (LEFT_PAREN, DOT, name_opt)
+   Minimal_Complete_Actions => (DOT, name_opt)
 
 State 218:
     107.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER/Wisi_EOI
@@ -4148,7 +4314,7 @@ State 220:
    COMMA                              => shift and goto state 249 (80.0)
    default                            => ERROR
 
-   Minimal_Complete_Actions => (RIGHT_PAREN, COMMA)
+   Minimal_Complete_Actions => (RIGHT_PAREN)
 
 State 221:
      93.0:full_type_declaration <= TYPE IDENTIFIER IS type_definition SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
@@ -4208,7 +4374,7 @@ State 223:
    constraint                         goto state 191
    index_constraint                   goto state 192
 
-   Minimal_Complete_Actions => (LEFT_PAREN, RANGE, DOT, primary, subtype_indication)
+   Minimal_Complete_Actions => (DOT, primary, subtype_indication)
 
 State 224:
      77.1:discrete_subtype_definition <= range_g ^, RIGHT_PAREN
@@ -4513,7 +4679,7 @@ State 244:
 
    exception_handler                  goto state 268
 
-   Minimal_Complete_Actions => (WHEN, exception_handler_list_opt)
+   Minimal_Complete_Actions => (exception_handler_list_opt)
 
 State 245:
      96.0:handled_sequence_of_statements <= sequence_of_statements_opt EXCEPTION exception_handler_list_opt ^, END
@@ -4619,7 +4785,7 @@ State 254:
 
    case_statement_alternative         goto state 273
 
-   Minimal_Complete_Actions => (END, WHEN)
+   Minimal_Complete_Actions => (END)
 
 State 255:
      86.0:exit_statement <= EXIT identifier_opt WHEN expression_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -4794,7 +4960,7 @@ State 267:
 
    actual_parameter_part              goto state 27
 
-   Minimal_Complete_Actions => (LEFT_PAREN, DOT, exception_choice)
+   Minimal_Complete_Actions => (DOT, exception_choice)
 
 State 268:
      84.0:exception_handler_list <= exception_handler_list exception_handler ^, END/WHEN
@@ -4965,7 +5131,7 @@ State 279:
 
    elsif_statement_item               goto state 293
 
-   Minimal_Complete_Actions => (ELSE, ELSIF, END)
+   Minimal_Complete_Actions => (ELSE, END)
 
 State 280:
     102.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
@@ -5507,116 +5673,8 @@ State 315:
 
    Minimal_Complete_Actions => (if_statement)
 
-McKenzie:
-(Insert =>
- AND             => 4,
- BEGIN           => 3,
- BODY            => 4,
- CASE            => 3,
- DECLARE         => 3,
- ELSE            => 3,
- ELSIF           => 3,
- END             => 1,
- EXIT            => 3,
- EXCEPTION       => 4,
- FOR             => 4,
- FUNCTION        => 3,
- IF              => 2,
- IN              => 4,
- IS              => 3,
- LEFT_PAREN      => 4,
- LOOP            => 2,
- NEW             => 3,
- NOT             => 4,
- OR              => 4,
- PACKAGE         => 4,
- PROCEDURE       => 3,
- RANGE           => 4,
- RETURN          => 3,
- RIGHT_PAREN     => 3,
- SEPARATE        => 4,
- THEN            => 3,
- TYPE            => 4,
- WHEN            => 3,
- WITH            => 4,
- XOR             => 4,
- AMPERSAND       => 4,
- COLON           => 4,
- COLON_EQUAL     => 4,
- COMMA           => 4,
- DOT             => 4,
- DOT_DOT         => 4,
- EQUAL           => 4,
- EQUAL_GREATER   => 4,
- GREATER         => 4,
- GREATER_EQUAL   => 4,
- LESS            => 4,
- LESS_EQUAL      => 4,
- MINUS           => 4,
- PLUS            => 4,
- SEMICOLON       => 1,
- SLASH           => 4,
- SLASH_EQUAL     => 4,
- STAR            => 4,
- STRING_LITERAL  => 4,
- NUMERIC_LITERAL => 4,
- IDENTIFIER      => 3,
- Wisi_EOI        => 4)
-(Delete =>
- AND             => 4,
- BEGIN           => 1,
- BODY            => 4,
- CASE            => 4,
- DECLARE         => 4,
- ELSE            => 4,
- ELSIF           => 4,
- END             => 1,
- EXIT            => 4,
- EXCEPTION       => 4,
- FOR             => 4,
- FUNCTION        => 4,
- IF              => 4,
- IN              => 4,
- IS              => 4,
- LEFT_PAREN      => 4,
- LOOP            => 4,
- NEW             => 4,
- NOT             => 4,
- OR              => 4,
- PACKAGE         => 4,
- PROCEDURE       => 4,
- RANGE           => 4,
- RETURN          => 4,
- RIGHT_PAREN     => 4,
- SEPARATE        => 4,
- THEN            => 4,
- TYPE            => 4,
- WHEN            => 4,
- WITH            => 4,
- XOR             => 4,
- AMPERSAND       => 4,
- COLON           => 4,
- COLON_EQUAL     => 4,
- COMMA           => 4,
- DOT             => 4,
- DOT_DOT         => 4,
- EQUAL           => 4,
- EQUAL_GREATER   => 4,
- GREATER         => 4,
- GREATER_EQUAL   => 4,
- LESS            => 4,
- LESS_EQUAL      => 4,
- MINUS           => 4,
- PLUS            => 4,
- SEMICOLON       => 4,
- SLASH           => 4,
- SLASH_EQUAL     => 4,
- STAR            => 4,
- STRING_LITERAL  => 2,
- NUMERIC_LITERAL => 4,
- IDENTIFIER      => 4,
- Wisi_EOI        => 4)
-Cost_Limit => 10
+States with multiple reduce in Minimal_Complete_Action: (24, 223, 224)
+States with conflicts: 19 24 114 162 223 224
 
  84 rules, 1 user actions, 15 checks, 316 states, 2309 parse actions
  0 accept/reduce conflicts, 3 shift/reduce conflicts, 3 reduce/reduce conflicts

@@ -155,7 +155,7 @@ package body WisiToken.LR is
 
       when Reduce =>
          return "(Reduce," & Count_Type'Image (Item.Token_Count) & ", " &
-           Image (Item.Production.Nonterm, Descriptor) & "," & Trimmed_Image (Item.Production.RHS) & ")";
+           Image (Item.Production.LHS, Descriptor) & "," & Trimmed_Image (Item.Production.RHS) & ")";
       when Accept_It =>
          return "(Accept It)";
       when Error =>
@@ -173,7 +173,7 @@ package body WisiToken.LR is
             return Left.State = Right.State;
 
          when Reduce | Accept_It =>
-            return Left.Production.Nonterm = Right.Production.Nonterm and Left.Token_Count = Right.Token_Count;
+            return Left.Production.LHS = Right.Production.LHS and Left.Token_Count = Right.Token_Count;
 
          when Error =>
             return True;
@@ -194,7 +194,7 @@ package body WisiToken.LR is
       when Reduce =>
          Trace.Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.Production.Nonterm, Trace.Descriptor.all));
+              Image (Item.Production.LHS, Trace.Descriptor.all));
       when Accept_It =>
          Trace.Put ("accept it");
       when Error =>
@@ -240,6 +240,18 @@ package body WisiToken.LR is
            Ada.Containers.Count_Type'Image (Item.Token_Count) & ")";
       end case;
    end Strict_Image;
+
+   function Count_Reduce (List : in Minimal_Action_Lists.List) return Integer
+   is
+      Count : Integer := 0;
+   begin
+      for Item of List loop
+         if Item.Verb = Reduce then
+            Count := Count + 1;
+         end if;
+      end loop;
+      return Count;
+   end Count_Reduce;
 
    procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array)
    is begin
@@ -637,7 +649,7 @@ package body WisiToken.LR is
          exit when Is_Done (Iter);
 
          if Iter.Item.Item.Verb = Reduce then
-            if Action.Production.Nonterm = Invalid_Token_ID then
+            if Action.Production.LHS = Invalid_Token_ID then
                Action       := Iter.Item.Item;
                Reduce_Count := 1;
             else
@@ -746,7 +758,7 @@ package body WisiToken.LR is
       when Reduce =>
          Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.Production.Nonterm, Descriptor));
+              Image (Item.Production.LHS, Descriptor));
          Put (" " & Trimmed_Image (Item.Production));
       when Accept_It =>
          Put ("accept it");
@@ -832,7 +844,7 @@ package body WisiToken.LR is
       Productions : in WisiToken.Productions.Prod_Arrays.Vector)
      return WisiToken.Syntax_Trees.Semantic_Action
    is begin
-      return Productions (Prod.Nonterm).RHSs (Prod.RHS).Action;
+      return Productions (Prod.LHS).RHSs (Prod.RHS).Action;
    end Get_Action;
 
    function Get_Check
@@ -840,7 +852,7 @@ package body WisiToken.LR is
       Productions : in WisiToken.Productions.Prod_Arrays.Vector)
      return WisiToken.Semantic_Checks.Semantic_Check
    is begin
-      return Productions (Prod.Nonterm).RHSs (Prod.RHS).Check;
+      return Productions (Prod.LHS).RHSs (Prod.RHS).Check;
    end Get_Check;
 
    procedure Put_Text_Rep
@@ -871,7 +883,7 @@ package body WisiToken.LR is
          Put (File, Integer'Image (State.Productions.First_Index));
          Put (File, Integer'Image (State.Productions.Last_Index));
          for Prod of State.Productions loop
-            Put (File, Token_ID'Image (Prod.Nonterm) & Integer'Image (Prod.RHS));
+            Put (File, Token_ID'Image (Prod.LHS) & Integer'Image (Prod.RHS));
          end loop;
          New_Line (File);
 
@@ -893,25 +905,25 @@ package body WisiToken.LR is
                         Put (File, Integer'Image (Node_J.Item.Productions.First_Index));
                         Put (File, Integer'Image (Node_J.Item.Productions.Last_Index));
                         for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
-                           Put (File, Token_ID'Image (Node_J.Item.Productions (I).Nonterm)
+                           Put (File, Token_ID'Image (Node_J.Item.Productions (I).LHS)
                                   & Integer'Image (Node_J.Item.Productions (I).RHS));
                         end loop;
 
                         Put (File, State_Index'Image (Node_J.Item.State));
 
                      when Reduce | Accept_It =>
-                        Put (File, Token_ID'Image (Node_J.Item.Production.Nonterm) &
+                        Put (File, Token_ID'Image (Node_J.Item.Production.LHS) &
                                Integer'Image (Node_J.Item.Production.RHS));
 
-                        if Action_Names (Node_J.Item.Production.Nonterm) /= null and then
-                          Action_Names (Node_J.Item.Production.Nonterm)(Node_J.Item.Production.RHS) /= null
+                        if Action_Names (Node_J.Item.Production.LHS) /= null and then
+                          Action_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
                         then
                            Put (File, " true");
                         else
                            Put (File, " false");
                         end if;
-                        if Check_Names (Node_J.Item.Production.Nonterm) /= null and then
-                          Check_Names (Node_J.Item.Production.Nonterm)(Node_J.Item.Production.RHS) /= null
+                        if Check_Names (Node_J.Item.Production.LHS) /= null and then
+                          Check_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
                         then
                            Put (File, " true");
                         else
@@ -1066,8 +1078,8 @@ package body WisiToken.LR is
             State.Productions.Set_First (Next_Integer);
             State.Productions.Set_Last (Next_Integer);
             for I in State.Productions.First_Index .. State.Productions.Last_Index loop
-               State.Productions (I).Nonterm := Next_Token_ID;
-               State.Productions (I).RHS     := Next_Integer;
+               State.Productions (I).LHS := Next_Token_ID;
+               State.Productions (I).RHS := Next_Integer;
             end loop;
 
             declare
@@ -1096,15 +1108,15 @@ package body WisiToken.LR is
                            Node_J.Item.Productions.Set_First (Next_Integer);
                            Node_J.Item.Productions.Set_Last (Next_Integer);
                            for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
-                              Node_J.Item.Productions (I).Nonterm := Next_Token_ID;
-                              Node_J.Item.Productions (I).RHS     := Next_Integer;
+                              Node_J.Item.Productions (I).LHS := Next_Token_ID;
+                              Node_J.Item.Productions (I).RHS := Next_Integer;
                            end loop;
 
                            Node_J.Item.State := Next_State_Index;
 
                         when Reduce | Accept_It =>
-                           Node_J.Item.Production.Nonterm := Next_Token_ID;
-                           Node_J.Item.Production.RHS     := Next_Integer;
+                           Node_J.Item.Production.LHS := Next_Token_ID;
+                           Node_J.Item.Production.RHS := Next_Integer;
                            if Next_Boolean then
                               Node_J.Item.Action := Get_Action (Node_J.Item.Production, Productions);
                            else

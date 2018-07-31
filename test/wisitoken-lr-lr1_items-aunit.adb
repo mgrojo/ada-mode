@@ -131,7 +131,7 @@ package body WisiToken.LR.LR1_Items.AUnit is
       Lookaheads : in Lookahead)
      return Item
    is
-      Dot_I : constant Token_ID_Arrays.Cursor := Grammar (Prod.Nonterm).RHSs (Prod.RHS).Tokens.To_Cursor (Dot);
+      Dot_I : constant Token_ID_Arrays.Cursor := Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens.To_Cursor (Dot);
    begin
       return (Prod, Dot_I, new Token_ID_Set'(Lookaheads));
    end Get_Item;
