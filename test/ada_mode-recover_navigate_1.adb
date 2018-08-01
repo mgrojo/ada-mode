@@ -11,7 +11,7 @@ package body Ada_Mode.Recover_Navigate_1 is
          end if;
          Need_Comma := True;
 
-         --  Deleted 'if' here
+         --  Deleted 'if then' here
          Statement := Statement & Name & " = ?";
       else
          Statement := Statement & Name;

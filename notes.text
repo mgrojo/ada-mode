@@ -52,6 +52,55 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+investigate slowdown in generate lr1
+
+propagate to main
+
+improve use_minimum_complete_actions
+    also apply when:
+        token after error token is ':='
+        error token is 'then' (terminate expression)
+            or similar
+        ) for parameter list, aggregate
+        _not_ ';' - not a typical error?
+
+recover fail:
+   function Ancestor
+     (Grammar       : in WisiToken.Productions.Prod_Arrays.Vector;
+      All_Ancestors : in Token_Array_Token_ID;
+      Recursing     : in Token_ID_Set;
+      Nonterm       : in Token_ID)
+     return Token_ID
+   is
+      Prod : WisiToken.Productions.Instance renames Grammar (Nonterm);
+   begin
+      for R of Prod.RHSs loop
+      if R.Tokens.Length = 1 then
+      declare
+      ID : Token_ID := R.Tokens (1);
+      begin
+      Recursing (ID) := True;
+      return Ancestor (Grammar, Recursing, ID);
+      end;
+
+      end loop;
+   end Ancestor;
+    "no configs left"
+
+    function Key_Compare (Left, Right : in Navigate_Cache_Type) return SAL.Compare_Result is
+     (if Left > Right then return Greater
+      elsif Left = Right return Equal
+      else return Less);
+
+    test all phases of "convert if >, elsif =, else <" to "case compare ..."
+
+review FIXMES
+
+revert "allow everything to be empty"
+    see if error handling is good enough
+
+    or start over from annex P, see how many mods are actually required
+
 add lr1 as wisi indent option
     edited
     running recover tests
@@ -61,12 +110,6 @@ add lr1 as wisi indent option
 
 speed up lr1 generate
     see wisitoken
-
-better constrain_terminals:
-    o.w.s-1
-    store kernel (with dot)
-    store minimial_completing_terminal_sequence for each kernel
-    just lookup that, insert it
 
 running all tests
     elisp indent errors:
@@ -272,6 +315,12 @@ wisi-generate
         LALR elisp generate time: 3.290167687
         LALR re2c generate time: 3.309398246
         LR1 re2c generate time: 602.235431713
+
+    26  Jul 2018
+        don't loop on all token_ids; loop on set
+        LALR elisp generate time: 0.445727505
+        LALR re2c generate time: 0.450525800
+        LR1 re2c generate time: 31.202567095
 
 mckenzie recover
     ./run_ada_parse.exe test/slow_recover_1.adb Indent --verbosity 1 1 0

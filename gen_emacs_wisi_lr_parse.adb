@@ -163,7 +163,7 @@ is
 
 begin
    Create_Parser
-     (Parser, Language_Fixes, Language_Constrain_Terminals, Language_String_ID_Set, Trace'Unrestricted_Access,
+     (Parser, Language_Fixes, Language_Use_Minimal_Complete_Actions, Language_String_ID_Set, Trace'Unrestricted_Access,
       Parse_Data'Unchecked_Access);
 
    declare

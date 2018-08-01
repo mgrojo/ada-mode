@@ -190,8 +190,8 @@
 
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
-;; Default insert, delete terminal, delete nonterminal, push_back cost.
-%mckenzie_cost_default 3 3 6 2
+;; Default cost for insert, delete, push back, ignore check fail.
+%mckenzie_cost_default 3 3 2 2
 
 ;; Prefer inserting important/common keywords over identifiers and
 ;; operators to take advantage of empty expressions.
@@ -248,7 +248,6 @@
 %mckenzie_cost_push_back LOOP 2
 %mckenzie_cost_delete LOOP 2
 %mckenzie_cost_push_back declarative_part_opt 1
-%mckenzie_cost_delete declarative_part_opt 1
 
 ;; Most common paren error is missing closing paren.
 %mckenzie_cost_insert RIGHT_PAREN 1

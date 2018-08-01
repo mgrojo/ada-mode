@@ -32,7 +32,7 @@ package body Ada_Process_LR1_Main is
    procedure Create_Parser
      (Parser                       :    out WisiToken.LR.Parser.Parser;
       Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Constrain_Terminals : in     WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
+      Language_Use_Minimal_Complete_Actions : in    WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
       Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access;
@@ -47,25 +47,11 @@ package body Ada_Process_LR1_Main is
          Insert =>
            (3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 3, 2, 3, 3, 3, 3, 2, 3, 1, 3, 3, 2, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 3,
             3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 2, 3, 3,
-            3, 2, 1, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3),
+            3, 2, 1, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3),
          Delete =>
            (3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 3, 2, 3, 1, 3, 3, 3, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 2, 3,
             3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 6, 6, 6,
-            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-            6, 6, 6, 6, 6, 6),
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3),
          Push_Back =>
            (2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -77,6 +63,7 @@ package body Ada_Process_LR1_Main is
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2),
+         Ignore_Check_Fail  => 2,
          Task_Count  => 0,
          Cost_Limit  => 20,
          Check_Limit => 4,
@@ -933,240 +920,8 @@ package body Ada_Process_LR1_Main is
          end return;
       end Productions;
 
-      function Minimal_Terminal_Sequences return WisiToken.Token_Sequence_Arrays.Vector
-      is begin
-         return Result : WisiToken.Token_Sequence_Arrays.Vector do
-            Result.Set_First (108);
-            Result.Set_Last (332);
-            Set_Token_Sequence (Result (108), (52, 96, 107));
-            Set_Token_Sequence (Result (109), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (110), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (111), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (112), (50, 105, 35, 6, 96));
-            Set_Token_Sequence (Result (113), (4, 104, 96));
-            Set_Token_Sequence (Result (114), (7, 105));
-            Set_Token_Sequence (Result (115), (76, 77));
-            Set_Token_Sequence (Result (116), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (117), (76, 77));
-            Set_Token_Sequence (Result (118), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (119), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (120), (11, 76, 105, 102, 53, 77, 42, 105));
-            Set_Token_Sequence (Result (121), (28, 105, 71, 12, 96));
-            Set_Token_Sequence (Result (122), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (123), (105, 82, 96));
-            Set_Token_Sequence (Result (124), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (125), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (126), (61, 105, 68, 5, 24, 61, 96));
-            Set_Token_Sequence (Result (127), (28, 105, 71, 12, 96));
-            Set_Token_Sequence (Result (128), (105, 102, 38));
-            Set_Token_Sequence (Result (129), (1 => 38));
-            Set_Token_Sequence (Result (130), (1 => 78));
-            Set_Token_Sequence (Result (131), (104, 81));
-            Set_Token_Sequence (Result (132), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (133), (13, 24, 96));
-            Set_Token_Sequence (Result (134), (50, 105, 35, 60, 96));
-            Set_Token_Sequence (Result (135), (50, 105, 35, 60, 96));
-            Set_Token_Sequence (Result (136), (15, 35, 72, 87));
-            Set_Token_Sequence (Result (137), (72, 87));
-            Set_Token_Sequence (Result (138), (72, 87));
-            Set_Token_Sequence (Result (139), (15, 35, 72, 87, 24, 15, 96));
-            Set_Token_Sequence (Result (140), (72, 87));
-            Set_Token_Sequence (Result (141), (72, 87));
-            Set_Token_Sequence (Result (142), (52, 96));
-            Set_Token_Sequence (Result (143), (52, 96));
-            Set_Token_Sequence (Result (144), (104, 12, 105, 53, 105, 85, 105, 96));
-            Set_Token_Sequence (Result (145), (104, 12, 105, 53, 105, 85, 105, 96));
-            Set_Token_Sequence (Result (146), (104, 81, 105, 96));
-            Set_Token_Sequence (Result (147), (1 => 105));
-            Set_Token_Sequence (Result (148), (104, 81, 105, 96));
-            Set_Token_Sequence (Result (149), (41, 96));
-            Set_Token_Sequence (Result (150), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (151), (4, 104, 96));
-            Set_Token_Sequence (Result (152), (61, 105, 22, 24, 61, 96));
-            Set_Token_Sequence (Result (153), (32, 68));
-            Set_Token_Sequence (Result (154), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (155), (53, 105, 102, 53));
-            Set_Token_Sequence (Result (156), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (157), (71, 105, 96));
-            Set_Token_Sequence (Result (158), (48, 104, 96));
-            Set_Token_Sequence (Result (159), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (160), (18, 96));
-            Set_Token_Sequence (Result (161), (18, 96));
-            Set_Token_Sequence (Result (162), (39, 105));
-            Set_Token_Sequence (Result (163), (1 => 105));
-            Set_Token_Sequence (Result (164), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (165), (1 => 44));
-            Set_Token_Sequence (Result (166), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (167), (105, 102, 53));
-            Set_Token_Sequence (Result (168), (105, 102, 53));
-            Set_Token_Sequence (Result (169), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (170), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (171), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (172), (23, 68));
-            Set_Token_Sequence (Result (173), (23, 68));
-            Set_Token_Sequence (Result (174), (23, 68));
-            Set_Token_Sequence (Result (175), (23, 68));
-            Set_Token_Sequence (Result (176), (25, 104, 72, 35, 13, 24, 96));
-            Set_Token_Sequence (Result (177), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (178), (1 => 105));
-            Set_Token_Sequence (Result (179), (25, 104, 96));
-            Set_Token_Sequence (Result (180), (1 => 106));
-            Set_Token_Sequence (Result (181), (1 => 106));
-            Set_Token_Sequence (Result (182), (28, 105, 71, 76, 77, 96));
-            Set_Token_Sequence (Result (183), (76, 106, 77));
-            Set_Token_Sequence (Result (184), (1 => 44));
-            Set_Token_Sequence (Result (185), (1 => 44));
-            Set_Token_Sequence (Result (186), (104, 81, 26, 96));
-            Set_Token_Sequence (Result (187), (72, 44, 87));
-            Set_Token_Sequence (Result (188), (72, 44, 87));
-            Set_Token_Sequence (Result (189), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (190), (27, 96));
-            Set_Token_Sequence (Result (191), (1 => 105));
-            Set_Token_Sequence (Result (192), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (193), (29, 105, 58, 35, 76, 77, 96));
-            Set_Token_Sequence (Result (194), (104, 81, 105));
-            Set_Token_Sequence (Result (195), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (196), (58, 104, 81, 105, 96));
-            Set_Token_Sequence (Result (197), (1 => 105));
-            Set_Token_Sequence (Result (198), (104, 81, 105, 96));
-            Set_Token_Sequence (Result (199), (76, 77));
-            Set_Token_Sequence (Result (200), (74, 50, 105, 96));
-            Set_Token_Sequence (Result (201), (69, 104, 96));
-            Set_Token_Sequence (Result (202), (1 => 34));
-            Set_Token_Sequence (Result (203), (39, 105));
-            Set_Token_Sequence (Result (204), (74, 47, 105, 35, 39, 105, 96));
-            Set_Token_Sequence (Result (205), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (206), (66, 69, 104, 96));
-            Set_Token_Sequence (Result (207), (29, 105, 58));
-            Set_Token_Sequence (Result (208), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (209), (30, 50, 105, 96));
-            Set_Token_Sequence (Result (210), (1 => 30));
-            Set_Token_Sequence (Result (211), (71, 105, 96));
-            Set_Token_Sequence (Result (212), (71, 105, 96));
-            Set_Token_Sequence (Result (213), (29, 105, 35, 39, 105, 96));
-            Set_Token_Sequence (Result (214), (30, 47, 105, 35, 24, 96));
-            Set_Token_Sequence (Result (215), (30, 29, 105, 56, 105, 96));
-            Set_Token_Sequence (Result (216), (30, 50, 105, 96));
-            Set_Token_Sequence (Result (217), (93, 104, 90));
-            Set_Token_Sequence (Result (218), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (219), (1 => 104));
-            Set_Token_Sequence (Result (220), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (221), (32, 68));
-            Set_Token_Sequence (Result (222), (32, 68, 24, 32, 96));
-            Set_Token_Sequence (Result (223), (69, 104, 96));
-            Set_Token_Sequence (Result (224), (76, 105, 102, 53, 77));
-            Set_Token_Sequence (Result (225), (105, 53, 80));
-            Set_Token_Sequence (Result (226), (105, 53, 80));
-            Set_Token_Sequence (Result (227), (1 => 105));
-            Set_Token_Sequence (Result (228), (1 => 34));
-            Set_Token_Sequence (Result (229), (1 => 28));
-            Set_Token_Sequence (Result (230), (104, 42, 105));
-            Set_Token_Sequence (Result (231), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (232), (37, 24, 37, 96));
-            Set_Token_Sequence (Result (233), (1 => 105));
-            Set_Token_Sequence (Result (234), (1 => 105));
-            Set_Token_Sequence (Result (235), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (236), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (237), (1 => 55));
-            Set_Token_Sequence (Result (238), (1 => 105));
-            Set_Token_Sequence (Result (239), (1 => 105));
-            Set_Token_Sequence (Result (240), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (241), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (242), (1 => 104));
-            Set_Token_Sequence (Result (243), (50, 105, 35, 41, 96));
-            Set_Token_Sequence (Result (244), (66, 104, 96));
-            Set_Token_Sequence (Result (245), (104, 81, 26, 56, 105, 96));
-            Set_Token_Sequence (Result (246), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (247), (47, 14, 105, 35, 24, 96));
-            Set_Token_Sequence (Result (248), (47, 14, 105, 35, 60, 96));
-            Set_Token_Sequence (Result (249), (47, 105, 35, 24, 96));
-            Set_Token_Sequence (Result (250), (47, 105, 56, 105, 96));
-            Set_Token_Sequence (Result (251), (47, 105, 35, 24));
-            Set_Token_Sequence (Result (252), (1 => 58));
-            Set_Token_Sequence (Result (253), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (254), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (255), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (256), (76, 77));
-            Set_Token_Sequence (Result (257), (48, 104, 96));
-            Set_Token_Sequence (Result (258), (1 => 105));
-            Set_Token_Sequence (Result (259), (69, 104, 35, 39, 105, 74, 49, 96));
-            Set_Token_Sequence (Result (260), (69, 104, 35, 49, 96));
-            Set_Token_Sequence (Result (261), (105, 96));
-            Set_Token_Sequence (Result (262), (50, 105));
-            Set_Token_Sequence (Result (263), (51, 14, 104, 35, 24, 96));
-            Set_Token_Sequence (Result (264), (51, 14, 104, 35, 24, 96));
-            Set_Token_Sequence (Result (265), (51, 14, 104, 35, 60, 96));
-            Set_Token_Sequence (Result (266), (1 => 24));
-            Set_Token_Sequence (Result (267), (50, 105, 96));
-            Set_Token_Sequence (Result (268), (50, 105, 96));
-            Set_Token_Sequence (Result (269), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (270), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (271), (51, 69, 104, 35, 24, 96));
-            Set_Token_Sequence (Result (272), (105, 102, 76, 77));
-            Set_Token_Sequence (Result (273), (28, 62, 104, 42, 105, 87));
-            Set_Token_Sequence (Result (274), (1 => 62));
-            Set_Token_Sequence (Result (275), (52, 105));
-            Set_Token_Sequence (Result (276), (52, 96));
-            Set_Token_Sequence (Result (277), (105, 102, 53));
-            Set_Token_Sequence (Result (278), (105, 102, 53));
-            Set_Token_Sequence (Result (279), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (280), (41, 54));
-            Set_Token_Sequence (Result (281), (28, 105, 71, 54, 104, 12, 105, 53, 105, 85, 105, 96, 24, 54, 96));
-            Set_Token_Sequence (Result (282), (105, 10, 105));
-            Set_Token_Sequence (Result (283), (105, 10, 68, 105));
-            Set_Token_Sequence (Result (284), (105, 43, 105));
-            Set_Token_Sequence (Result (285), (105, 43, 22, 105));
-            Set_Token_Sequence (Result (286), (105, 75, 105));
-            Set_Token_Sequence (Result (287), (1 => 105));
-            Set_Token_Sequence (Result (288), (1 => 89));
-            Set_Token_Sequence (Result (289), (50, 105, 56, 105, 96));
-            Set_Token_Sequence (Result (290), (57, 105, 96));
-            Set_Token_Sequence (Result (291), (1 => 58));
-            Set_Token_Sequence (Result (292), (1 => 105));
-            Set_Token_Sequence (Result (293), (105, 84, 9));
-            Set_Token_Sequence (Result (294), (61, 24, 61, 96));
-            Set_Token_Sequence (Result (295), (67, 96));
-            Set_Token_Sequence (Result (296), (67, 96));
-            Set_Token_Sequence (Result (297), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (298), (61, 24, 61, 96));
-            Set_Token_Sequence (Result (299), (52, 96));
-            Set_Token_Sequence (Result (300), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (301), (1 => 105));
-            Set_Token_Sequence (Result (302), (58, 96));
-            Set_Token_Sequence (Result (303), (52, 96));
-            Set_Token_Sequence (Result (304), (51, 104, 35, 24, 96));
-            Set_Token_Sequence (Result (305), (66, 104, 96));
-            Set_Token_Sequence (Result (306), (52, 96));
-            Set_Token_Sequence (Result (307), (50, 105, 35, 13, 24, 96));
-            Set_Token_Sequence (Result (308), (50, 105, 35, 60, 96));
-            Set_Token_Sequence (Result (309), (50, 105, 96));
-            Set_Token_Sequence (Result (310), (1 => 41));
-            Set_Token_Sequence (Result (311), (50, 105, 56, 105, 96));
-            Set_Token_Sequence (Result (312), (50, 105));
-            Set_Token_Sequence (Result (313), (63, 104, 35, 105, 96));
-            Set_Token_Sequence (Result (314), (1 => 105));
-            Set_Token_Sequence (Result (315), (60, 76, 105, 77, 51, 14, 104, 35, 24, 96));
-            Set_Token_Sequence (Result (316), (66, 14, 104, 35, 13, 24, 96));
-            Set_Token_Sequence (Result (317), (66, 14, 104, 35, 60, 96));
-            Set_Token_Sequence (Result (318), (1 .. 0 => <>));
-            Set_Token_Sequence (Result (319), (66, 69, 104, 96));
-            Set_Token_Sequence (Result (320), (1 => 105));
-            Set_Token_Sequence (Result (321), (1 => 105));
-            Set_Token_Sequence (Result (322), (1 => 102));
-            Set_Token_Sequence (Result (323), (61, 105, 43, 18, 96, 24, 61, 96));
-            Set_Token_Sequence (Result (324), (1 => 105));
-            Set_Token_Sequence (Result (325), (69, 104, 96));
-            Set_Token_Sequence (Result (326), (1 => 34));
-            Set_Token_Sequence (Result (327), (15, 35, 72, 87, 24, 15, 96));
-            Set_Token_Sequence (Result (328), (72, 87));
-            Set_Token_Sequence (Result (329), (72, 87));
-            Set_Token_Sequence (Result (330), (1 => 94));
-            Set_Token_Sequence (Result (331), (71, 105, 96));
-            Set_Token_Sequence (Result (332), (74, 105, 96));
-         end return;
-      end Minimal_Terminal_Sequences;
       Table : constant Parse_Table_Ptr := Get_Text_Rep
-        (Text_Rep_File_Name, McKenzie_Param, Productions, Minimal_Terminal_Sequences);
+        (Text_Rep_File_Name, McKenzie_Param, Productions);
    begin
       WisiToken.LR.Parser.New_Parser
         (Parser,
@@ -1174,7 +929,7 @@ package body Ada_Process_LR1_Main is
          Lexer.New_Lexer (Trace),
          Table,
          Language_Fixes,
-         Language_Constrain_Terminals,
+         Language_Use_Minimal_Complete_Actions,
          Language_String_ID_Set,
          User_Data,
          Max_Parallel         => 15,

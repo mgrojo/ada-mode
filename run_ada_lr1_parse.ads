@@ -28,7 +28,7 @@ procedure Run_Ada_LR1_Parse is new Gen_Run_Wisi_LR_Text_Rep_Parse
    "Ada",
    Ada_Process_Actions.Descriptor,
    WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-   WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,
+   WisiToken.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
    WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
    "ada_lr1_parse_table.txt",
    Ada_Process_LR1_Main.Create_Parser);

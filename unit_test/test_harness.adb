@@ -33,7 +33,7 @@ with WisiToken;
 procedure Test_Harness
 is
    --  command line arguments:
-   --  [<verbose> [test_name [routine_name [trace_parse [trace_mckenzie [task_count cost_limit trace_action]]]]]
+   --  <verbose> test_name routine_name trace_parse trace_mckenzie task_count cost_limit trace_action
    --  <verbose> is 1 | 0; 1 lists each enabled test/routine name before running it
    --
    --  test_name, routine_name can be '' to set trace for all routines.

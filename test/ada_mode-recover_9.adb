@@ -34,8 +34,8 @@ procedure Ada_Mode.Recover_9 is
                          Include_Children => True)); -- missing right paren
 
       --  These lines should be in Indent_Line("...");
-         end if;
-         Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
+      end if;
+      Indent_Line ("   return Parser.Derivs (" & Result_Id & ")(Pos);");
 
    end Generate_Parser_Body;
 

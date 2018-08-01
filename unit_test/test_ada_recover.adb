@@ -85,7 +85,7 @@ package body Test_Ada_Recover is
            """UTF-16""; end case; end Slow_Recover_4;");
       --     |196     |204  |210      |220      |230
       --
-      --  Enters recovery 1 with 2 parsers, finds solutions quickly:
+      --  Enters recovery 1 at 'when' 153 with 1 parser, finds solutions quickly:
       --  (insert 'case is')
       --  (delete 'when' 36)
       --  (push_back 'is')
@@ -131,7 +131,7 @@ package body Test_Ada_Recover is
       Ada_Process_LALR_Main.Create_Parser
         (Parser,
          Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-         Language_Constrain_Terminals => WisiToken.LR.McKenzie_Recover.Ada.Constrain_Terminals'Access,
+         Language_Use_Minimal_Complete_Actions => WisiToken.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
          Language_String_ID_Set       => WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
          Trace                        => Trace'Access,
          User_Data                    => User_Data'Access);

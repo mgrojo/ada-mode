@@ -11,7 +11,7 @@ package body Ada_Mode.Recover_End_1 is
       case  is
          when =>
          --  end case;
-   end;
+      end;
 
    procedure If_Example
    is begin
@@ -32,6 +32,6 @@ package body Ada_Mode.Recover_End_1 is
       return A : Integer := 0 do
          null;
          -- end return;
-   end;
+end;
 
 end Ada_Mode.Recover_End_1;
