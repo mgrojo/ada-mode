@@ -229,7 +229,6 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
 
    procedure Insert (Container : in out List; Element : in Element_Type)
    is
-      use all type Ada.Containers.Count_Type;
       Node    : Node_Access := Container.Head;
       Compare : Compare_Result;
    begin
@@ -262,7 +261,6 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       Source : in     List;
       Added  :    out Boolean)
    is
-      use all type Ada.Containers.Count_Type;
       Target_I : Node_Access := Target.Head;
       Source_I : Node_Access := Source.Head;
    begin
@@ -318,7 +316,6 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       Added   :    out Boolean;
       Exclude : in     Element_Type)
    is
-      use all type Ada.Containers.Count_Type;
       Target_I : Node_Access := Target.Head;
       Source_I : Node_Access := Source.Head;
    begin
@@ -456,7 +453,6 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
 
    procedure Delete (Container : in out List; Position : in out Cursor)
    is
-      use all type Ada.Containers.Count_Type;
       Node : Node_Access renames Position.Ptr;
    begin
       if Node.Next = null then
@@ -473,6 +469,22 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
       Position        := No_Element;
       Container.Count := Container.Count - 1;
    end Delete;
+
+   function Pop (Container : in out List) return Element_Type
+   is
+      Node : Node_Access := Container.Head;
+   begin
+      return Result : constant Element_Type := Container.Head.Element do
+         Container.Head := Node.Next;
+         if Node.Next = null then
+            Container.Tail := null;
+         else
+            Node.Next.Prev := null;
+         end if;
+         Free (Node);
+         Container.Count := Container.Count - 1;
+      end return;
+   end Pop;
 
    function Constant_Reference (Container : in List; Position : in Cursor) return Constant_Reference_Type
    is

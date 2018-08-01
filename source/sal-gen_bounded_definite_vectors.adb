@@ -66,6 +66,10 @@ package body SAL.Gen_Bounded_Definite_Vectors is
    is
       J : constant Peek_Type := Peek_Type (Container.Last + 1 - Index_Type'First + 1);
    begin
+      if J > Container.Elements'Last then
+         raise Container_Full;
+      end if;
+
       Container.Elements (2 .. J) := Container.Elements (1 .. J - 1);
       Container.Elements (1) := New_Item;
       Container.Last := Container.Last + 1;
@@ -79,6 +83,10 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       J : constant Peek_Type := To_Peek_Index ((if Before = No_Index then Container.Last + 1 else Before));
       K : constant Base_Peek_Type := To_Peek_Index (Container.Last);
    begin
+      if K + 1 > Container.Elements'Last then
+         raise Container_Full;
+      end if;
+
       Container.Elements (J + 1 .. K + 1) := Container.Elements (J .. K);
       Container.Elements (J) := New_Item;
       Container.Last := Container.Last + 1;

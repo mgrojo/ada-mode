@@ -21,7 +21,6 @@ with Ada.Strings.Unbounded;
 function SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Image
   (Item : in List; Strict : in Boolean := False) return String
 is
-   use all type Ada.Containers.Count_Type;
    use Ada.Strings;
    use Ada.Strings.Unbounded;
    Result     : Unbounded_String := To_Unbounded_String ("(");
