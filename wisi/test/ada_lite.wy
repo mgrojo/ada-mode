@@ -108,8 +108,8 @@
 %mckenzie_cost_limit 10
 %mckenzie_check_limit 3
 
-;; Default cost for insert terminal, delete terminal, push back.
-%mckenzie_cost_default 4 4 4
+;; Default cost for insert terminal, delete terminal, push back, ignore check fail.
+%mckenzie_cost_default 4 4 4 4
 
 ;; Prefer inserting keywords over identifiers and operators to take
 ;; advantage of empty expressions.

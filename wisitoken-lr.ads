@@ -280,6 +280,10 @@ package WisiToken.LR is
       Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
 
+      Ignore_Check_Fail : Natural;
+      --  Cost of ignoring a semantic check failure. Should be at least the
+      --  cost of a typical fix for such a failure.
+
       Task_Count : System.Multiprocessors.CPU_Range;
       --  Number of parallel tasks during recovery. If 0, use
       --  System.Multiprocessors.Number_Of_CPUs - 1.
@@ -298,6 +302,7 @@ package WisiToken.LR is
       Insert            => (others => 0),
       Delete            => (others => 0),
       Push_Back         => (others => 0),
+      Ignore_Check_Fail => 0,
       Task_Count        => System.Multiprocessors.CPU_Range'Last,
       Cost_Limit        => Natural'Last,
       Check_Limit       => Token_Index'Last,

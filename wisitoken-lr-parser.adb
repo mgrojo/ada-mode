@@ -778,7 +778,7 @@ package body WisiToken.LR.Parser is
 
             if Shared_Parser.Terminate_Same_State and
               Current_Verb in Shift | Shift_Recover and
-              Current_Parser.State_Ref.Recover_Insert_Delete.Count = 0
+              (for all Parser of Shared_Parser.Parsers => Parser.Recover_Insert_Delete.Count = 0)
             then
                Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Trace.all);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now

@@ -141,8 +141,6 @@ package WisiToken is
       Last_Lookahead : Token_ID;
    end record;
 
-   type Token_ID_Set is array (Token_ID range <>) of Boolean;
-
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
    --  is a terminal) or to Image_Width.
@@ -170,6 +168,11 @@ package WisiToken is
 
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
    --  Return last index in A of a prefix shared between A, B; 0 if none.
+
+   type Token_ID_Set is array (Token_ID range <>) of Boolean;
+
+   function "&" (Left : in Token_ID_Set; Right : in Token_ID) return Token_ID_Set;
+   --  Include Left and Right in result.
 
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set;
    --  First, Last determine size of result.

@@ -20,76 +20,42 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-update ada-mode
+wisi_wy_test use different registered routines to report more failures at once
+
+investigate slowdown in generate lr1
+
+propagate to main
 
 Minimal_Complete_Actions
     seems to be working
 
-    ignore all direct left-recursive; can't be minimal
-
-    when one item.dot is at end, can ignore others where finish one production also finishes the other
-            => let 'cur' = dot at end item; ignore others where lhs = cur.lhs or lhs is ancestor of cur.lhs
-               = lhs = cur.lhs or all_ancestors (cur.lhs, lhs)
-
-    states where left-recursion is present with no end dot:
-    15, 18, 19, 30, 125, 139, 175, 267: drop LEFT_PARE
-    44, 60, 65, 220: drop COMMA
-    62: drop SEMICOLON
-    254: drop WHEN
-    279: drop ELSIF
-
-    ada_lite_lalr states with more than one item, at least one of which has dot at end:
-        5: ^ Wisi_EOI; other left_recursive  => Minimal_Complete_Actions is empty
-            if get an error there, there are extra tokens after a valid sentence; fall back on explore
-        42: drop GREATER_EQUAL; association_opt ancestor of name
-        47: drop LEFT_PAREN; left_recursive. keep DOT selected_component not ancestor of primary
-        50: drop AND; relation_and_list left-recursive
-        51: drop OR; ""
-        52: drop XOR; ""
-        53: keep AND, OR, XOR;  relation_*_list is _not_ ancestor of expression; only of simple_expression!
-        54: drop GREATER_EQUAL: relation = relation
-        55: drop SLASH; left recursive
-        56: drop AMPERSAND; left recursive
-        59: drop EQUAL_GREATER; association_opt ancestor of name
-        65: drop GREATER_EQUAL: cur_lhs = lhs. keep DOT_DOT
-        97: drop AMPERSAND; left-recursive
-        105: drop PROCEDURE; left-recursive
-        138: drop SLASH; left-recursive
-        145: drop COLON_EQUAL; cur.lhs = lhs
-        155: drop LEFT_PAREN; left-recursive. drop RANGE cur_lhs = lhs. keep DOT
-        163: no change
-        177: drop RETURN: left-recursive.
-        178: drop EXCEPTION; cur.lhs = lhs
-        202: no change
-        217: drop LEFT_PAREN; left-recursive.
-        223: drop LEFT_PAREN left-recursive. drop RANGE cur_lhs = lhs
-        224: no change
-        244: drop WHEN, left-recursive
-
     empty_production_8_lalr.parse_table state 1
         right answer is actually (aliased_opt); constant_opt leads to more terminals
             could look in minimal_terminal_sequences
-            list states with more than one reduction in minimal_complete_actions.
+
+    ada_lalr state 507
+    222.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
+    222.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ ELSE sequence_of_statements_opt END IF SEMICOLON
+    222.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list END IF SEMICOLON
+    222.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ END IF SEMICOLON
+   Minimal_Complete_Actions => (ELSE, ELSIF, END)
+        should be just (END)
+        if all same LHS, check tokens.length? check Minimum_Terminal_Sequence? record prod_id in that?
 
     test case for two reductions:
         ada_lite_lalr (24, 223, 224)
-            state 24; actual_parameter_part vs formal_part
-                construct an input that gets there; work backward thru gotos
-                19, 139: LEFT_PAREN                         => shift and goto state 24 (57.0, 92.0, 104.0)
-                no reduce actions goto 24 => can't encounter problem
+            construct an input that gets there; work backward thru gotos
 
             state 223
-                state 189, 231: name                               goto state 223
-                _no_ terminal gotos
-
-            state 224
-                state 189: range_g                            goto state 224
-
-            state 189:
+                189, 231: name                               goto state 223
+                189: range_g                            goto state 224
                 155, 223:    LEFT_PAREN                         => shift and goto state 189 (57.0, 99.0, 104.0)
-
-            state 155:
                 141 234: name                               goto state 155
+                101: COLON                              => shift and goto state 141 (106.0, 106.1)
+                105: IDENTIFIER                         => shift and goto state 101 (106.0, 106.1)
+                58, 124, 207: declarations                       goto state 105
+
+            124: package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part_opt END name_opt SEMICOLON
 
         ada_lite_lr1 (28, 42, 1103, 1104, 1392)
 
@@ -100,7 +66,8 @@ Minimal_Complete_Actions
             state 3
 
 hint in grammar to prefer "null;" over "return;"?
-    %minimum_terminal statement NULL
+    ada: IDENTIFIER for 'name'
+    %prefer_minimum_terminal <nonterm> <terminal>
 
 review fixmes
     eliminate stuff no longer used for recover
@@ -166,6 +133,13 @@ speed up lr1 generate
         LALR elisp generate time: 0.445727505
         LALR re2c generate time: 0.450525800
         LR1 re2c generate time: 31.202567095
+
+    add Minimal_Complete_Actions
+
+        ada.wy
+        LALR elisp generate time: 1.108213473
+        LALR re2c generate time: 1.124334655
+        LR1 re2c generate time: 79.602312077
 
     add 'pragma inline'
 

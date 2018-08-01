@@ -31,15 +31,14 @@ package WisiToken.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
 
-   type Language_Fixes_Access is access function
+   type Language_Fixes_Access is access procedure
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration)
-     return Non_Success_Status;
+      Config            : in     Configuration);
    --  Config encountered a parse table Error action, or failed a
    --  semantic check; attempt to provide a language-specific fix,
    --  enqueuing new configs on Local_Config_Heap.
@@ -48,14 +47,15 @@ package WisiToken.LR.Parser is
    --  state, Config.Error_Token gives the nonterm token,
    --  Config.Check_Token_Count the token count for the reduce. May be
    --  called with Nonterm.Virtual = True or Tree.Valid_Indices (stack
-   --  top token_count items) false. Return Continue if ignoring the
-   --  error is a viable solution, Abandon otherwise.
+   --  top token_count items) false.
    --
    --  For an Error action, Config.Error_Token gives the terminal that
-   --  caused the error. Return Abandon if a known good solution is
-   --  enqueued, Continue otherwise.
+   --  caused the error.
 
-   type Language_Use_Minimal_Complete_Actions_Access is access function (Next_Token : in Token_ID) return Boolean;
+   type Language_Use_Minimal_Complete_Actions_Access is access function
+     (Next_Token : in Token_ID;
+      Config     : in Configuration)
+     return Boolean;
    --  Return True if using Minimal_Complete_Actions is appropriate.
    --
    --  For example, if Next_Token is a block end, return True to complete

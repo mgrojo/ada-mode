@@ -88,6 +88,13 @@ package body WisiToken is
       return I - 1;
    end Shared_Prefix;
 
+   function "&" (Left : in Token_ID_Set; Right : in Token_ID) return Token_ID_Set
+   is begin
+      return Result : Token_ID_Set := Left do
+         Result (Right) := True;
+      end return;
+   end "&";
+
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set
    is begin
       return Result : Token_ID_Set := (First .. Last => False)

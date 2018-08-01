@@ -52,7 +52,7 @@
 %mckenzie_check_limit 3
 %mckenzie_check_delta_limit 200
 %mckenzie_enqueue_limit 10_000
-%mckenzie_cost_default 4 4 4
+%mckenzie_cost_default 4 4 4 4
 
 ;; elisp names in face actions
 %elisp_face font-lock-keyword-face

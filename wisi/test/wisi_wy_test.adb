@@ -77,6 +77,26 @@ package body Wisi_WY_Test is
       Check (Program, Success, True);
    end Spawn;
 
+   procedure Dos2unix (File_Name : in String)
+   is
+      use GNAT.OS_Lib;
+   begin
+      if GNAT.OS_Lib.Directory_Separator = '\' then
+         declare
+            Exe : constant String_Access := Locate_Exec_On_Path ("dos2unix.exe");
+            Success : Boolean;
+            pragma Unreferenced (Success);
+         begin
+            Spawn
+              (Program_Name => Exe.all,
+               Args         =>
+                 (1         => new String'("-q"),
+                  2         => new String'(File_Name)),
+               Success      => Success);
+         end;
+      end if;
+   end Dos2unix;
+
    procedure Get_Gen_Set
      (Root_Name        : in     String;
       Generate_Set     :    out Wisi.Generate_Set_Access;
@@ -201,6 +221,7 @@ package body Wisi_WY_Test is
       Args (Last) := new String'("../wisi/test/" & Root_Name & ".input");
 
       Spawn (Exe, Args (1 .. Last), Output);
+      Dos2unix (Output);
 
       AUnit.Checks.Text_IO.Check_Files ("", Output, "../wisi/test/" & Output & "_good");
 
@@ -211,6 +232,7 @@ package body Wisi_WY_Test is
          begin
             Args (Last) := new String'("../wisi/test/" & Input_Name & ".input");
             Spawn (Exe, Args (1 .. Last), Output);
+            Dos2unix (Output);
 
             AUnit.Checks.Text_IO.Check_Files ("", Output, "../wisi/test/" & Output & "_good");
          end;
