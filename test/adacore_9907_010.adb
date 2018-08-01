@@ -4,7 +4,7 @@ procedure Adacore_9907_010 is
    is
    begin
       return "world";
-   end;
+   end F;
 begin
    Put_Line ("hello " &
                "world" &
@@ -18,4 +18,4 @@ begin
    Put_Line ("hello "
                & F(1)
                & " in ada");
-end;
+end Adacore_9907_010;

@@ -25,10 +25,10 @@ is begin
                   -- clauses here.
                   return
                     (Header, To_String_List (
-                                                when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
-                                                   raise SAL.Not_Implemented with "UTF-16 string";
+         when Text_Encoding_UTF_16 | Text_Encoding_UTF_16be =>
+            raise SAL.Not_Implemented with "UTF-16 string";
 
-                                                when others =>
-                                                   raise SAL.Invalid_Format;
-               end case;
+         when others =>
+            raise SAL.Invalid_Format;
+      end case;
 end Slow_Recover_4;

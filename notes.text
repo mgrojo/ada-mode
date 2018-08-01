@@ -337,6 +337,11 @@ wisi-generate
         LALR re2c generate time: 0.450525800
         LR1 re2c generate time: 31.202567095
 
+    1 Aug 2018 replace Constrain_Terminals with Minimal_Complete_Actions
+        LALR elisp generate time: 0.472614643
+        LALR re2c generate time: 0.480273867
+        LR1 re2c generate time: 31.820868201
+
 mckenzie recover
     ./run_ada_parse.exe test/slow_recover_1.adb Indent --verbosity 1 1 0
     ./run_ada_parse.exe test/slow_recover_1.adb Indent --repeat_count 5

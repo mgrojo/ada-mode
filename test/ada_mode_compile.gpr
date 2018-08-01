@@ -47,6 +47,10 @@ project Ada_Mode_Compile is
       "ada_mode-recover_14.adb",
       "ada_mode-recover_15.adb",
       "ada_mode-recover_16.adb",
+      "ada_mode-recover_17.adb",
+      "ada_mode-recover_18.adb",
+      "ada_mode-recover_19.adb",
+      "ada_mode-recover_20.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",
@@ -71,6 +75,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_string_quote_3.adb",
       "ada_mode-recover_type_1.ads",
       "ada_mode-recover_virtual.adb",
+      "ada_mode-recover_virtual_renames.adb",
 
       -- This has illegal code; used for testing skeleton expansion
       "ada_skel.adb",
@@ -82,16 +87,7 @@ project Ada_Mode_Compile is
 
       "bug_2016_11_21_01.adb", -- missing declarations
       "g-comlin.adb", -- copied from gnat runtime; gnat won't compile it!
-      "gnatprep.adb", -- could run thru gnatprep, but it's not worth it.
-
-      -- deliberate errors to test error recovery
-      "slow_recover_1.adb",
-      "slow_recover_2.adb",
-      "slow_recover_3.adb",
-      "slow_recover_4.adb",
-
-      -- deliberate errors to test error recovery
-      "virtual_renames.adb"
+      "gnatprep.adb" -- could run thru gnatprep, but it's not worth it.
      );
 
    -- .ali files are in source dir, so they are shared between backend
