@@ -52,9 +52,19 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
-investigate slowdown in generate lr1
+navigate error
+   function Compare_Integer_16 (Left, Right : in Interfaces.Integer_16) return SAL.Compare_Result is
+     (if Left > Right then SAL.Greater
+      elsif Left < Right then SAL.Less
+      else SAL.Equal);
 
-propagate to main
+    point at ">", goto-declarative-region-start (for 'insert use all type')
+
+recover fail
+    function Key_Compare (Left, Right : in Navigate_Cache_Type) return SAL.Compare_Result is
+     (if Left > Right then return Greater
+      elsif Left = Right return Equal
+      else return Less);
 
 improve use_minimum_complete_actions
     also apply when:
@@ -122,6 +132,8 @@ running all tests
         ./ada_mode-recover_type_1.ads.diff
         ./non_ascii.ads.diff
 
+option to stack/append xref results
+
 Test indent when narrowed to subprogram
 
 packrat
@@ -164,6 +176,9 @@ wisi-generate create_parser supposed to respect line limits
 
 test/ada_mode-recover_*.adb failing
     fix them
+
+add test cases for all phases of "convert if to case"
+    see sal red_black_trees
 
 test/ada_mode-recover_type_1.ads
     desired solution: (insert 'end case ; end record ;') cost (+ 1 1 1 1 2 1) => 7

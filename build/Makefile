@@ -109,7 +109,6 @@ one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
 #two : RUN_ARGS ?= --verbosity 2 2 > debug.log
 #two : RUN_ARGS ?= --repeat_count 5
-two : export Standard_Common_Build := Debug
 two : build_ada_executables
 two :
 	../run_ada_parse.exe $(RUN_ARGS)

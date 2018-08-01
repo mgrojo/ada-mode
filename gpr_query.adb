@@ -5,7 +5,7 @@
 --
 --  requires gnatcoll 1.7w 20140330, gnat 7.2.1
 --
---  Copyright (C) 2014-2017 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2014-2018 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -159,6 +159,7 @@ procedure Gpr_Query is
    --  Infrastructure commands
    procedure Process_Help (Args : GNATCOLL.Arg_Lists.Arg_List);
    procedure Process_Refresh (Args : GNATCOLL.Arg_Lists.Arg_List);
+   procedure Process_DB_Name (Args : GNATCOLL.Arg_Lists.Arg_List);
 
    --  Queries; alphabetical
    procedure Process_Overridden is new Process_Command_Single (GNATCOLL.Xref.Overrides);
@@ -185,6 +186,11 @@ procedure Gpr_Query is
        null,
        new String'("Refresh the contents of the xref database."),
        Process_Refresh'Access),
+
+      (new String'("db_name"),
+       null,
+       new String'("Report the root name of the database files."),
+       Process_DB_Name'Access),
 
       --  queries
 
@@ -232,6 +238,16 @@ procedure Gpr_Query is
 
    ----------
    --  Procedure bodies, alphabetical
+
+   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Expected : in Integer)
+   is
+      Count : constant Integer := GNATCOLL.Arg_Lists.Args_Length (Args);
+   begin
+      if Count /= Expected then
+         raise Invalid_Command with "Invalid number of arguments" & Integer'Image (Count) &
+           "; expecting" & Integer'Image (Expected);
+      end if;
+   end Check_Arg_Count;
 
    procedure Display_Progress (Current, Total : Integer) is
       Now : constant Integer := Integer (Float'Floor
@@ -351,15 +367,12 @@ procedure Gpr_Query is
       end if;
    end Image;
 
-   procedure Check_Arg_Count (Args : in GNATCOLL.Arg_Lists.Arg_List; Expected : in Integer)
+   procedure Process_DB_Name (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
-      Count : constant Integer := GNATCOLL.Arg_Lists.Args_Length (Args);
+      pragma Unreferenced (Args);
    begin
-      if Count /= Expected then
-         raise Invalid_Command with "Invalid number of arguments" & Integer'Image (Count) &
-           "; expecting" & Integer'Image (Expected);
-      end if;
-   end Check_Arg_Count;
+      Ada.Text_IO.Put_Line (DB_Name.all);
+   end Process_DB_Name;
 
    procedure Process_Help (Args : GNATCOLL.Arg_Lists.Arg_List)
    is
