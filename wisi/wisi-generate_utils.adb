@@ -669,12 +669,12 @@ package body Wisi.Generate_Utils is
      (Data             : aliased in out Generate_Data;
       Conflicts        :         in     Wisi.Conflict_Lists.List;
       Source_File_Name :         in     String)
-     return WisiToken.LR.Generate_Utils.Conflict_Lists.List
+     return WisiToken.Generate.LR.Conflict_Lists.List
    is
-      use WisiToken.LR.Generate_Utils;
+      use WisiToken.Generate.LR;
       use all type WisiToken.LR.Parse_Action_Verbs;
-      Result   : WisiToken.LR.Generate_Utils.Conflict_Lists.List;
-      Conflict : WisiToken.LR.Generate_Utils.Conflict;
+      Result   : WisiToken.Generate.LR.Conflict_Lists.List;
+      Conflict : WisiToken.Generate.LR.Conflict;
    begin
       Data.Accept_Reduce_Conflict_Count := 0;
       Data.Shift_Reduce_Conflict_Count  := 0;
@@ -724,8 +724,9 @@ package body Wisi.Generate_Utils is
    end To_Nonterminal_ID_Set;
 
    function To_McKenzie_Param
-     (Data : aliased in Generate_Data;
-      Item :         in McKenzie_Recover_Param_Type)
+     (Data             : aliased in Generate_Data;
+      Item             :         in McKenzie_Recover_Param_Type;
+      Source_File_Name :         in String)
      return WisiToken.LR.McKenzie_Param_Type
    is
       use Standard.Ada.Strings.Unbounded;
@@ -740,17 +741,25 @@ package body Wisi.Generate_Utils is
          Insert            => (others => Item.Default_Insert),
          Delete            => (others => Item.Default_Delete_Terminal),
          Push_Back         => (others => Item.Default_Push_Back),
+         Ignore_Check_Fail => Item.Ignore_Check_Fail,
          Task_Count        => 0,
          Cost_Limit        => Item.Cost_Limit,
          Check_Limit       => Item.Check_Limit,
          Check_Delta_Limit => Item.Check_Delta_Limit,
          Enqueue_Limit     => Item.Enqueue_Limit);
-   begin
-      Result.Delete (Result.First_Nonterminal .. Result.Last_Nonterminal) :=
-        (others => Item.Default_Delete_Nonterminal);
 
+      ID : Token_ID;
+   begin
       for Pair of Item.Delete loop
-         Result.Delete (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);
+         ID := Find_Token_ID (Data, -Pair.Name);
+         if ID in Result.Delete'Range then
+            Result.Delete (ID) := Natural'Value (-Pair.Value);
+         else
+            Put_Error
+              (Error_Message
+                 (Source_File_Name, Item.Source_Line, "delete cost is only valid for terminals (" &
+                    WisiToken.Image (ID, Data.Descriptor.all) & ")"));
+         end if;
       end loop;
       for Pair of Item.Insert loop
          Result.Insert (Find_Token_ID (Data, -Pair.Name)) := Natural'Value (-Pair.Value);

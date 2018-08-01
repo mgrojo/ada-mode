@@ -528,14 +528,24 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   Data.McKenzie_Recover.Check_Delta_Limit := Integer'Value (Get_Text (Data, Tree, Tokens (3)));
 
                elsif Kind = "mckenzie_cost_default" then
+                  if Tree.Get_Terminals (Tokens (3))'Length /= 4 then
+                     raise Grammar_Error with
+                       Error_Message
+                         (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (Tokens (3))).Line,
+                          "too " & (if Tree.Get_Terminals (Tokens (3))'Length > 4 then "many" else "few") &
+                            " default costs; should be 'insert, delete, push back, ignore check fail'.");
+                  end if;
+
                   Data.Language_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Source_Line := Data.Terminals.all (Tree.Min_Terminal_Index (Tokens (1))).Line;
+
                   Data.McKenzie_Recover.Default_Insert          := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 1));
                   Data.McKenzie_Recover.Default_Delete_Terminal := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 2));
-                  Data.McKenzie_Recover.Default_Delete_Nonterminal  := Natural'Value
-                    (Get_Child_Text (Data, Tree, Tokens (3), 3));
                   Data.McKenzie_Recover.Default_Push_Back       := Natural'Value
+                    (Get_Child_Text (Data, Tree, Tokens (3), 3));
+                  Data.McKenzie_Recover.Ignore_Check_Fail       := Natural'Value
                     (Get_Child_Text (Data, Tree, Tokens (3), 4));
 
                elsif Kind = "mckenzie_cost_delete" then

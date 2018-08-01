@@ -19,23 +19,19 @@ pragma License (Modified_GPL);
 
 package WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
-   function Language_Fixes
+   procedure Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
-      Config            : in     Configuration)
-     return Non_Success_Status;
+      Config            : in     Configuration);
 
-   function Constrain_Terminals
-     (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Table        : in     Parse_Table;
-      Config       : in     Configuration;
-      Next_Token   : in     Token_ID)
-     return WisiToken.Token_ID_Set;
+   function Use_Minimal_Complete_Actions
+     (Next_Token : in Token_ID;
+      Config     : in Configuration)
+     return Boolean;
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

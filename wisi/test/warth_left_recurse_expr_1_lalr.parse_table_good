@@ -12,6 +12,8 @@ Productions:
 6.0: expr <= expr MINUS NUMERIC_LITERAL
 6.1: expr <= NUMERIC_LITERAL
 
+Ancestors:
+
 LALR Parse Table:
 State 0:
       5.0:wisitoken_accept <= ^ expr Wisi_EOI, 
@@ -21,12 +23,16 @@ State 0:
 
    expr             goto state 2
 
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
+
 State 1:
       6.1:expr <= NUMERIC_LITERAL ^, MINUS/Wisi_EOI
 
    MINUS            => reduce 1 tokens to expr 6.1
    Wisi_EOI         => reduce 1 tokens to expr 6.1
    default          => ERROR
+
+   Minimal_Complete_Actions => (expr)
 
 State 2:
       5.0:wisitoken_accept <= expr ^ Wisi_EOI, 
@@ -42,6 +48,8 @@ State 3:
    NUMERIC_LITERAL  => shift and goto state 4 (6.0)
    default          => ERROR
 
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
+
 State 4:
       6.0:expr <= expr MINUS NUMERIC_LITERAL ^, MINUS/Wisi_EOI
 
@@ -49,9 +57,7 @@ State 4:
    Wisi_EOI         => reduce 3 tokens to expr 6.0
    default          => ERROR
 
-Minimal_Terminal_Sequences:
-wisitoken_accept => (NUMERIC_LITERAL, Wisi_EOI)
-expr => (NUMERIC_LITERAL)
+   Minimal_Complete_Actions => (expr)
 
  1 rules, 2 user actions, 0 checks, 5 states, 13 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

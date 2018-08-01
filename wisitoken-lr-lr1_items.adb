@@ -106,9 +106,9 @@ package body WisiToken.LR.LR1_Items is
 
    function Item_Compare (Left, Right : in Item) return SAL.Compare_Result
    is begin
-      if Left.Prod.Nonterm > Right.Prod.Nonterm then
+      if Left.Prod.LHS > Right.Prod.LHS then
          return SAL.Greater;
-      elsif Left.Prod.Nonterm < Right.Prod.Nonterm then
+      elsif Left.Prod.LHS < Right.Prod.LHS then
          return SAL.Less;
 
       elsif Left.Prod.RHS > Right.Prod.RHS then
@@ -206,7 +206,7 @@ package body WisiToken.LR.LR1_Items is
      return Boolean
    is
       use Token_ID_Arrays;
-      Prod : WisiToken.Productions.Instance renames Grammar (Item.Prod.Nonterm);
+      Prod : WisiToken.Productions.Instance renames Grammar (Item.Prod.LHS);
       RHS  : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
    begin
       return
@@ -275,7 +275,7 @@ package body WisiToken.LR.LR1_Items is
             declare
                Item_1 : Item renames Item_Set.Set (Cur);
             begin
-               Result.Append (Integer_16 (Item_1.Prod.Nonterm));
+               Result.Append (Integer_16 (Item_1.Prod.LHS));
                Result.Append (Integer_16 (Item_1.Prod.RHS));
                Result.Append (Integer_16 (Token_ID_Arrays.To_Index (Item_1.Dot)));
                if Include_Lookaheads then
@@ -484,7 +484,7 @@ package body WisiToken.LR.LR1_Items is
 
       I : Cursor;
 
-      Prod   : WisiToken.Productions.Instance renames Grammar (Item.Prod.Nonterm);
+      Prod   : WisiToken.Productions.Instance renames Grammar (Item.Prod.LHS);
       RHS    : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         +Padded_Image (Item.Prod, Width => Prod_ID_Image_Width) & ":" & Image (Prod.LHS, Descriptor) & " <=";

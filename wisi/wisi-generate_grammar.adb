@@ -18,7 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
-with Wisi.Utils;  use Wisi.Utils;
+with WisiToken.Generate;
 with WisiToken.Productions;
 procedure Wisi.Generate_Grammar
   (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
@@ -27,6 +27,7 @@ is
    use all type Standard.Ada.Containers.Count_Type;
    use Standard.Ada.Strings.Unbounded;
    use WisiToken;
+   use WisiToken.Generate;
    use WisiToken.Productions;
    Text : Unbounded_String;
    Need_Comma : Boolean := False;

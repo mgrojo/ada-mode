@@ -36,7 +36,6 @@ with Wisi.Generate_Packrat;
 with Wisi.Generate_Utils;
 with Wisi.Output_Ada_Common; use Wisi.Output_Ada_Common;
 with Wisi.Output_Elisp_Common; use Wisi.Output_Elisp_Common;
-with Wisi.Utils;
 with WisiToken.Generate.Packrat;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Ada_Emacs
@@ -166,7 +165,6 @@ is
       use Standard.Ada.Strings;
       use Standard.Ada.Strings.Fixed;
       use Standard.Ada.Strings.Unbounded;
-      use Wisi.Utils;
       use WisiToken.Generate;
 
       Sexps : constant String_Lists.List := Split_Sexp
@@ -980,7 +978,7 @@ is
    is
       use Standard.Ada.Strings.Unbounded;
       use Generate_Utils;
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       File_Name : constant String := Output_File_Name_Root &
         (case Common_Data.Interface_Kind is
@@ -1070,7 +1068,7 @@ is
       Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       Body_File : File_Type;
    begin
@@ -1186,7 +1184,7 @@ is
    procedure Create_Process_Elisp
    is
       use Generate_Utils;
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       File : File_Type;
 
@@ -1232,7 +1230,7 @@ is
    is
       use Standard.Ada.Strings.Unbounded;
       use Generate_Utils;
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       Lower_Package_Name_Root : constant String := To_Lower (File_Name_To_Ada (Output_File_Name_Root));
 
@@ -1320,7 +1318,7 @@ is
 
    procedure Create_Module_Aux
    is
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       Package_Name_Root       : constant String := File_Name_To_Ada (Output_File_Name_Root);
       Lower_Package_Name_Root : constant String := To_Lower (Package_Name_Root);

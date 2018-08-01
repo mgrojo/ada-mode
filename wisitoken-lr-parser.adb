@@ -139,7 +139,7 @@ package body WisiToken.LR.Parser is
            ((State    => Goto_For
                (Table => Shared_Parser.Table.all,
                 State => Parser_State.Stack (1).State,
-                ID    => Action.Production.Nonterm),
+                ID    => Action.Production.LHS),
              Token    => Nonterm));
 
          Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);
@@ -344,30 +344,30 @@ package body WisiToken.LR.Parser is
    end Finalize;
 
    procedure New_Parser
-     (Parser                       :    out          LR.Parser.Parser;
-      Trace                        : not null access WisiToken.Trace'Class;
-      Lexer                        : in              WisiToken.Lexer.Handle;
-      Table                        : in              Parse_Table_Ptr;
-      Language_Fixes               : in              Language_Fixes_Access;
-      Language_Constrain_Terminals : in              Language_Constrain_Terminals_Access;
-      Language_String_ID_Set       : in              Language_String_ID_Set_Access;
-      User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;
-      Max_Parallel                 : in              SAL.Base_Peek_Type := Default_Max_Parallel;
-      Terminate_Same_State         : in              Boolean            := True)
+     (Parser                                :    out          LR.Parser.Parser;
+      Trace                                 : not null access WisiToken.Trace'Class;
+      Lexer                                 : in              WisiToken.Lexer.Handle;
+      Table                                 : in              Parse_Table_Ptr;
+      Language_Fixes                        : in              Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : in              Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set                : in              Language_String_ID_Set_Access;
+      User_Data                             : in              WisiToken.Syntax_Trees.User_Data_Access;
+      Max_Parallel                          : in              SAL.Base_Peek_Type := Default_Max_Parallel;
+      Terminate_Same_State                  : in              Boolean            := True)
    is
       use all type Syntax_Trees.User_Data_Access;
    begin
-      Parser.Lexer                        := Lexer;
-      Parser.Trace                        := Trace;
-      Parser.Table                        := Table;
-      Parser.Language_Fixes               := Language_Fixes;
-      Parser.Language_Constrain_Terminals := Language_Constrain_Terminals;
-      Parser.Language_String_ID_Set       := Language_String_ID_Set;
-      Parser.User_Data                    := User_Data;
-      Parser.Enable_McKenzie_Recover      :=
+      Parser.Lexer                               := Lexer;
+      Parser.Trace                               := Trace;
+      Parser.Table                               := Table;
+      Parser.Language_Fixes                      := Language_Fixes;
+      Parser.Language_Use_Minimal_Complete_Actions := Language_Use_Minimal_Complete_Actions;
+      Parser.Language_String_ID_Set              := Language_String_ID_Set;
+      Parser.User_Data                           := User_Data;
+      Parser.Enable_McKenzie_Recover             :=
         Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
-      Parser.Max_Parallel                 := Max_Parallel;
-      Parser.Terminate_Same_State         := Terminate_Same_State;
+      Parser.Max_Parallel                        := Max_Parallel;
+      Parser.Terminate_Same_State                := Terminate_Same_State;
 
       if User_Data /= null then
          User_Data.Set_Lexer_Terminals (Lexer, Parser.Terminals'Unchecked_Access);
@@ -480,6 +480,8 @@ package body WisiToken.LR.Parser is
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Verb = Error then
                   if Shared_Parser.Enable_McKenzie_Recover then
+                     --  FIXME: the parsers are no longer synced, so this is wrong. Wait
+                     --  until all other parsers are at current_token + check_limit (or error)
                      Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
                      if Trace_Parse > Extra then
                         Trace.Put_Line
@@ -689,6 +691,9 @@ package body WisiToken.LR.Parser is
                --  Parsers(*).Current_Token and Parsers(*).Verb.
 
                if Shared_Parser.Enable_McKenzie_Recover then
+                  if Trace_Parse > Outline then
+                     Trace.Put_Line ("recover");
+                  end if;
                   Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
                end if;
 
@@ -784,7 +789,7 @@ package body WisiToken.LR.Parser is
 
             if Shared_Parser.Terminate_Same_State and
               Current_Verb in Shift | Shift_Recover and
-              Current_Parser.State_Ref.Recover_Insert_Delete.Count = 0
+              (for all Parser of Shared_Parser.Parsers => Parser.Recover_Insert_Delete.Count = 0)
             then
                Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Trace.all);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now

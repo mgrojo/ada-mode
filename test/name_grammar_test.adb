@@ -152,10 +152,10 @@ package body Name_Grammar_Test is
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor),
-            User_Data                    => null,
-            Language_Fixes               => null,
-            Language_Constrain_Terminals => null,
-            Language_String_ID_Set       => null);
+            User_Data                             => null,
+            Language_Fixes                        => null,
+            Language_Use_Minimal_Complete_Actions => null,
+            Language_String_ID_Set                => null);
 
          Parse_Command ("Full Parser", Parser, "Module.Symbol");
          Parse_Command ("Full Parser", Parser, "Module.Symbol (Index)");

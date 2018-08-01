@@ -61,7 +61,7 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
 
                         when Reduce =>
                            Put
-                             ("(" & Image (Parse_Action.Production.Nonterm, Descriptor) & " ." &
+                             ("(" & Image (Parse_Action.Production.LHS, Descriptor) & " ." &
                                 Integer'Image (Parse_Action.Production.RHS) & ")");
 
                         when Shift =>

@@ -56,7 +56,6 @@ package body WisiToken.LR is
          end if;
       end loop;
       Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
-      New_Line;
    end Put;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID
@@ -156,7 +155,7 @@ package body WisiToken.LR is
 
       when Reduce =>
          return "(Reduce," & Count_Type'Image (Item.Token_Count) & ", " &
-           Image (Item.Production.Nonterm, Descriptor) & "," & Trimmed_Image (Item.Production.RHS) & ")";
+           Image (Item.Production.LHS, Descriptor) & "," & Trimmed_Image (Item.Production.RHS) & ")";
       when Accept_It =>
          return "(Accept It)";
       when Error =>
@@ -174,7 +173,7 @@ package body WisiToken.LR is
             return Left.State = Right.State;
 
          when Reduce | Accept_It =>
-            return Left.Production.Nonterm = Right.Production.Nonterm and Left.Token_Count = Right.Token_Count;
+            return Left.Production.LHS = Right.Production.LHS and Left.Token_Count = Right.Token_Count;
 
          when Error =>
             return True;
@@ -195,13 +194,71 @@ package body WisiToken.LR is
       when Reduce =>
          Trace.Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.Production.Nonterm, Trace.Descriptor.all));
+              Image (Item.Production.LHS, Trace.Descriptor.all));
       when Accept_It =>
          Trace.Put ("accept it");
       when Error =>
          Trace.Put ("ERROR");
       end case;
    end Put;
+
+   function Compare_Minimal_Action (Left, Right : in Minimal_Action) return SAL.Compare_Result
+   is begin
+      if Left.Verb > Right.Verb then
+         return SAL.Greater;
+      elsif Left.Verb < Right.Verb then
+         return SAL.Less;
+      else
+         case Left.Verb is
+         when Shift =>
+            if Left.ID > Right.ID then
+               return SAL.Greater;
+            elsif Left.ID < Right.ID then
+               return SAL.Less;
+            else
+               return SAL.Equal;
+            end if;
+         when Reduce =>
+            if Left.Nonterm > Right.Nonterm then
+               return SAL.Greater;
+            elsif Left.Nonterm < Right.Nonterm then
+               return SAL.Less;
+            else
+               return SAL.Equal;
+            end if;
+         end case;
+      end if;
+   end Compare_Minimal_Action;
+
+   function Strict_Image (Item : in Minimal_Action) return String
+   is begin
+      case Item.Verb is
+      when Shift =>
+         return "(Shift," & Token_ID'Image (Item.ID) & "," & State_Index'Image (Item.State) & ")";
+      when Reduce =>
+         return "(Reduce," & Token_ID'Image (Item.Nonterm) & "," &
+           Ada.Containers.Count_Type'Image (Item.Token_Count) & ")";
+      end case;
+   end Strict_Image;
+
+   function Count_Reduce (List : in Minimal_Action_Lists.List) return Integer
+   is
+      Count : Integer := 0;
+   begin
+      for Item of List loop
+         if Item.Verb = Reduce then
+            Count := Count + 1;
+         end if;
+      end loop;
+      return Count;
+   end Count_Reduce;
+
+   procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array)
+   is begin
+      for Action of Actions loop
+         List.Insert (Action);
+      end loop;
+   end Set_Minimal_Action;
 
    procedure Add
      (List   : in out Action_Node_Ptr;
@@ -592,7 +649,7 @@ package body WisiToken.LR is
          exit when Is_Done (Iter);
 
          if Iter.Item.Item.Verb = Reduce then
-            if Action.Production.Nonterm = Invalid_Token_ID then
+            if Action.Production.LHS = Invalid_Token_ID then
                Action       := Iter.Item.Item;
                Reduce_Count := 1;
             else
@@ -701,7 +758,7 @@ package body WisiToken.LR is
       when Reduce =>
          Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.Production.Nonterm, Descriptor));
+              Image (Item.Production.LHS, Descriptor));
          Put (" " & Trimmed_Image (Item.Production));
       when Accept_It =>
          Put ("accept it");
@@ -728,10 +785,12 @@ package body WisiToken.LR is
 
    procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State)
    is
+      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
       Action_Ptr : Action_Node_Ptr := State.Action_List;
       Goto_Ptr   : Goto_Node_Ptr   := State.Goto_List;
+      Need_Comma : Boolean := False;
    begin
       while Action_Ptr /= null loop
          Put ("   ");
@@ -759,6 +818,25 @@ package body WisiToken.LR is
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;
       end loop;
+
+      if State.Minimal_Complete_Actions.Length > 0 then
+         New_Line;
+         Put ("   Minimal_Complete_Actions => (");
+         for Action of State.Minimal_Complete_Actions loop
+            if Need_Comma then
+               Put (", ");
+            else
+               Need_Comma := True;
+            end if;
+            case Action.Verb is
+            when Shift =>
+               Put (Image (Action.ID, Descriptor));
+            when Reduce =>
+               Put (Image (Action.Nonterm, Descriptor));
+            end case;
+         end loop;
+         Put_Line (")");
+      end if;
    end Put;
 
    function Get_Action
@@ -766,7 +844,7 @@ package body WisiToken.LR is
       Productions : in WisiToken.Productions.Prod_Arrays.Vector)
      return WisiToken.Syntax_Trees.Semantic_Action
    is begin
-      return Productions (Prod.Nonterm).RHSs (Prod.RHS).Action;
+      return Productions (Prod.LHS).RHSs (Prod.RHS).Action;
    end Get_Action;
 
    function Get_Check
@@ -774,7 +852,7 @@ package body WisiToken.LR is
       Productions : in WisiToken.Productions.Prod_Arrays.Vector)
      return WisiToken.Semantic_Checks.Semantic_Check
    is begin
-      return Productions (Prod.Nonterm).RHSs (Prod.RHS).Check;
+      return Productions (Prod.LHS).RHSs (Prod.RHS).Check;
    end Get_Check;
 
    procedure Put_Text_Rep
@@ -805,7 +883,7 @@ package body WisiToken.LR is
          Put (File, Integer'Image (State.Productions.First_Index));
          Put (File, Integer'Image (State.Productions.Last_Index));
          for Prod of State.Productions loop
-            Put (File, Token_ID'Image (Prod.Nonterm) & Integer'Image (Prod.RHS));
+            Put (File, Token_ID'Image (Prod.LHS) & Integer'Image (Prod.RHS));
          end loop;
          New_Line (File);
 
@@ -827,25 +905,25 @@ package body WisiToken.LR is
                         Put (File, Integer'Image (Node_J.Item.Productions.First_Index));
                         Put (File, Integer'Image (Node_J.Item.Productions.Last_Index));
                         for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
-                           Put (File, Token_ID'Image (Node_J.Item.Productions (I).Nonterm)
+                           Put (File, Token_ID'Image (Node_J.Item.Productions (I).LHS)
                                   & Integer'Image (Node_J.Item.Productions (I).RHS));
                         end loop;
 
                         Put (File, State_Index'Image (Node_J.Item.State));
 
                      when Reduce | Accept_It =>
-                        Put (File, Token_ID'Image (Node_J.Item.Production.Nonterm) &
+                        Put (File, Token_ID'Image (Node_J.Item.Production.LHS) &
                                Integer'Image (Node_J.Item.Production.RHS));
 
-                        if Action_Names (Node_J.Item.Production.Nonterm) /= null and then
-                          Action_Names (Node_J.Item.Production.Nonterm)(Node_J.Item.Production.RHS) /= null
+                        if Action_Names (Node_J.Item.Production.LHS) /= null and then
+                          Action_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
                         then
                            Put (File, " true");
                         else
                            Put (File, " false");
                         end if;
-                        if Check_Names (Node_J.Item.Production.Nonterm) /= null and then
-                          Check_Names (Node_J.Item.Production.Nonterm)(Node_J.Item.Production.RHS) /= null
+                        if Check_Names (Node_J.Item.Production.LHS) /= null and then
+                          Check_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
                         then
                            Put (File, " true");
                         else
@@ -885,15 +963,26 @@ package body WisiToken.LR is
             Put (File, ';');
             New_Line (File);
          end;
+
+         for Action of State.Minimal_Complete_Actions loop
+            Put (File, ' ' & Minimal_Verbs'Image (Action.Verb));
+            case Action.Verb is
+            when Shift =>
+               Put (File, Token_ID'Image (Action.ID) & State_Index'Image (Action.State));
+            when Reduce =>
+               Put (File, Token_ID'Image (Action.Nonterm) & Ada.Containers.Count_Type'Image (Action.Token_Count));
+            end case;
+         end loop;
+         Put (File, ';');
+         New_Line (File);
       end loop;
       Close (File);
    end Put_Text_Rep;
 
    function Get_Text_Rep
-     (File_Name                  : in     String;
-      McKenzie_Param             : in     McKenzie_Param_Type;
-      Productions                : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Minimal_Terminal_Sequences : in     Token_Sequence_Arrays.Vector)
+     (File_Name      : in String;
+      McKenzie_Param : in McKenzie_Param_Type;
+      Productions    : in WisiToken.Productions.Prod_Arrays.Vector)
      return Parse_Table_Ptr
    is
       use Ada.Text_IO;
@@ -905,6 +994,15 @@ package body WisiToken.LR is
       Last  : Integer := 0;
 
       Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ;");
+
+      function Last_Char return Character
+      is begin
+         if Last = 0 then
+            return Element (Line, Last + 1);
+         else
+            return Element (Line, Last);
+         end if;
+      end Last_Char;
 
       procedure Skip_Char
       is begin
@@ -973,16 +1071,15 @@ package body WisiToken.LR is
          Table : constant Parse_Table_Ptr := new Parse_Table
            (State_First, State_Last, First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       begin
-         Table.McKenzie_Param             := McKenzie_Param;
-         Table.Productions                := Productions;
-         Table.Minimal_Terminal_Sequences := Minimal_Terminal_Sequences;
+         Table.McKenzie_Param := McKenzie_Param;
+         Table.Productions    := Productions;
 
          for State of Table.States loop
             State.Productions.Set_First (Next_Integer);
             State.Productions.Set_Last (Next_Integer);
             for I in State.Productions.First_Index .. State.Productions.Last_Index loop
-               State.Productions (I).Nonterm := Next_Token_ID;
-               State.Productions (I).RHS     := Next_Integer;
+               State.Productions (I).LHS := Next_Token_ID;
+               State.Productions (I).RHS := Next_Integer;
             end loop;
 
             declare
@@ -1011,15 +1108,15 @@ package body WisiToken.LR is
                            Node_J.Item.Productions.Set_First (Next_Integer);
                            Node_J.Item.Productions.Set_Last (Next_Integer);
                            for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
-                              Node_J.Item.Productions (I).Nonterm := Next_Token_ID;
-                              Node_J.Item.Productions (I).RHS     := Next_Integer;
+                              Node_J.Item.Productions (I).LHS := Next_Token_ID;
+                              Node_J.Item.Productions (I).RHS := Next_Integer;
                            end loop;
 
                            Node_J.Item.State := Next_State_Index;
 
                         when Reduce | Accept_It =>
-                           Node_J.Item.Production.Nonterm := Next_Token_ID;
-                           Node_J.Item.Production.RHS     := Next_Integer;
+                           Node_J.Item.Production.LHS := Next_Token_ID;
+                           Node_J.Item.Production.RHS := Next_Integer;
                            if Next_Boolean then
                               Node_J.Item.Action := Get_Action (Node_J.Item.Production, Productions);
                            else
@@ -1059,6 +1156,7 @@ package body WisiToken.LR is
             end;
 
             if Element (Line, 1) = ';' then
+               --  No Gotos
                Skip_Char;
             else
                declare
@@ -1076,7 +1174,32 @@ package body WisiToken.LR is
                end;
             end if;
 
-            --  loop exits on End_Error from Skip_Char after Goto_List getting next line
+            declare
+               Verb         : Minimal_Verbs;
+               ID           : Token_ID;
+               Action_State : State_Index;
+               Count        : Ada.Containers.Count_Type;
+            begin
+               loop
+                  if Last_Char = ';' then
+                     Skip_Char;
+                     exit;
+                  end if;
+
+                  Verb := Next_Parse_Action_Verbs;
+                  case Verb is
+                  when Shift =>
+                     ID           := Next_Token_ID;
+                     Action_State := Next_State_Index;
+                     State.Minimal_Complete_Actions.Insert ((Shift, ID, Action_State));
+                  when Reduce =>
+                     ID    := Next_Token_ID;
+                     Count := Next_Count_Type;
+                     State.Minimal_Complete_Actions.Insert ((Reduce, ID, Count));
+                  end case;
+               end loop;
+            end;
+            --  loop exits on End_Error
          end loop;
          --  real return value in End_Error handler; this satisfies the compiler
          return null;

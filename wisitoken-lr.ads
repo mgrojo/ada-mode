@@ -38,6 +38,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
+with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
@@ -61,6 +62,7 @@ package WisiToken.LR is
 
    type All_Parse_Action_Verbs is (Pause, Shift_Recover, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
+   subtype Minimal_Verbs is All_Parse_Action_Verbs range Shift .. Reduce;
    --  Pause, Shift_Recover are only used for error recovery.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
@@ -70,13 +72,13 @@ package WisiToken.LR is
          --  Index into Parse_Table.Productions, for McKenzie_Recover. A Shift
          --  action for the same token may occur in several productions in one
          --  state (ie push the first token in a statement that has several
-         --  variants).
+         --  variants). FIXME: still needed?
 
          State : State_Index := State_Index'Last;
 
       when Reduce | Accept_It =>
          Production : Production_ID;
-         --  Index into Parse_Table.Productions, and the result nonterm.
+         --  Index into Parse_Table.Productions, and the result nonterm. FIXME: still needed? put back nonterm here.
 
          --  FIXME: use Action, Check in table.productions
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
@@ -90,15 +92,14 @@ package WisiToken.LR is
    subtype Shift_Action_Rec is Parse_Action_Rec (Shift);
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
-   type Reduce_Action_Array is array (Positive range <>) of Reduce_Action_Rec;
-
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String;
-   --  Ada aggregate syntax, leaving out Action, Check in reduce.
+   --  Ada aggregate syntax, leaving out Action, Check in reduce; for debug output
 
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
    --  Ignore Action, Check.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
+   --  Put a line for Item in parse table output.
 
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;
@@ -119,6 +120,12 @@ package WisiToken.LR is
    end record;
    procedure Free is new Ada.Unchecked_Deallocation (Action_Node, Action_Node_Ptr);
 
+   procedure Add
+     (List   : in out Action_Node_Ptr;
+      Symbol : in     Token_ID;
+      Action : in     Parse_Action_Rec);
+   --  Add action to List, sorted on ascending Symbol.
+
    type Goto_Node is private;
    type Goto_Node_Ptr is access Goto_Node;
 
@@ -126,10 +133,43 @@ package WisiToken.LR is
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
+   type Minimal_Action (Verb : Minimal_Verbs := Shift) is record
+      case Verb is
+      when Shift =>
+         ID    : Token_ID;
+         State : State_Index;
+
+      when Reduce =>
+         Nonterm     : Token_ID;
+         Token_Count : Ada.Containers.Count_Type;
+      end case;
+   end record;
+
+   function Compare_Minimal_Action (Left, Right : in Minimal_Action) return SAL.Compare_Result;
+
+   type Minimal_Action_Array is array (Positive range <>) of Minimal_Action;
+
+   package Minimal_Action_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted
+     (Minimal_Action, Compare_Minimal_Action);
+
+   function Strict_Image (Item : in Minimal_Action) return String;
+   --  Strict Ada aggregate syntax, for generated code.
+
+   function Image is new Minimal_Action_Lists.Gen_Image (Strict_Image);
+
+   function Count_Reduce (List : in Minimal_Action_Lists.List) return Integer;
+
+   procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array);
+
    type Parse_State is record
-      Productions : Production_ID_Arrays.Vector; -- used in error recovery
+      Productions : Production_ID_Arrays.Vector;
+      --  Used in parse and error recovery. FIXME: still true?
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
+
+      Minimal_Complete_Actions : Minimal_Action_Lists.List;
+      --  Set of parse actions that will most quickly complete the
+      --  productions in this state; used in error recovery
    end record;
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
@@ -235,10 +275,14 @@ package WisiToken.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
-      Delete    : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
+      Insert    : Token_ID_Array_Natural (First_Terminal .. Last_Terminal);
+      Delete    : Token_ID_Array_Natural (First_Terminal .. Last_Terminal);
       Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
+
+      Ignore_Check_Fail : Natural;
+      --  Cost of ignoring a semantic check failure. Should be at least the
+      --  cost of a typical fix for such a failure.
 
       Task_Count : System.Multiprocessors.CPU_Range;
       --  Number of parallel tasks during recovery. If 0, use
@@ -258,6 +302,7 @@ package WisiToken.LR is
       Insert            => (others => 0),
       Delete            => (others => 0),
       Push_Back         => (others => 0),
+      Ignore_Check_Fail => 0,
       Task_Count        => System.Multiprocessors.CPU_Range'Last,
       Cost_Limit        => Natural'Last,
       Check_Limit       => Token_Index'Last,
@@ -293,8 +338,6 @@ package WisiToken.LR is
       States         : Parse_State_Array (State_First .. State_Last);
       McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       Productions    : WisiToken.Productions.Prod_Arrays.Vector;
-
-      Minimal_Terminal_Sequences : Token_Sequence_Arrays.Vector; -- Indexed by nonterminal Token_ID
    end record;
 
    function Goto_For
@@ -320,11 +363,13 @@ package WisiToken.LR is
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
+   type Reduce_Action_Array is array (Positive range <>) of Reduce_Action_Rec;
    function Reductions
      (Table       : in     Parse_Table;
       State       : in     State_Index;
       Shift_Count :    out Natural)
      return Reduce_Action_Array;
+   --   FIXME: used?
 
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
@@ -353,10 +398,9 @@ package WisiToken.LR is
    --  File_Name, to be read by the parser executable at startup.
 
    function Get_Text_Rep
-     (File_Name                  : in     String;
-      McKenzie_Param             : in     McKenzie_Param_Type;
-      Productions                : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Minimal_Terminal_Sequences : in     Token_Sequence_Arrays.Vector)
+     (File_Name      : in String;
+      McKenzie_Param : in McKenzie_Param_Type;
+      Productions    : in WisiToken.Productions.Prod_Arrays.Vector)
      return Parse_Table_Ptr;
    --  Read machine-readable text format of states from a file File_Name.
    --  Result has actions, checks from Productions.
@@ -622,12 +666,6 @@ private
       Next       : Goto_Node_Ptr;
    end record;
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Node, Goto_Node_Ptr);
-
-   procedure Add
-     (List   : in out Action_Node_Ptr;
-      Symbol : in     Token_ID;
-      Action : in     Parse_Action_Rec);
-   --  Add action to List, sorted on ascending Symbol.
 
    type Action_List_Iterator is tagged record
       Node : Action_Node_Ptr;

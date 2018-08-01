@@ -260,7 +260,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Shared_Parser.Lexer.all'Access,
          Shared_Parser.Table,
          Shared_Parser.Language_Fixes,
-         Shared_Parser.Language_Constrain_Terminals,
+         Shared_Parser.Language_Use_Minimal_Complete_Actions,
          Shared_Parser.Language_String_ID_Set,
          Shared_Parser.Terminals'Access,
          Shared_Parser.Line_Begin_Token'Access);
@@ -365,7 +365,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   if Data.Results.Count > 1 then
                      for I in 1 .. SAL.Base_Peek_Type'Min (Spawn_Limit, Data.Results.Count - 1) loop
                         Parsers.Prepend_Copy (Cur); --  does not copy recover
-                        if Trace_McKenzie > Outline then
+                        if Trace_McKenzie > Outline or Trace_Parse > Outline then
                            Trace.Put_Line
                              ("spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
                                 Trimmed_Image (Cur.Label) & " (" & Trimmed_Image (Integer (Parsers.Count)) &
@@ -379,7 +379,7 @@ package body WisiToken.LR.McKenzie_Recover is
                      end loop;
                   end if;
 
-                  if Trace_McKenzie > Outline then
+                  if Trace_McKenzie > Outline or Trace_Parse > Outline then
                      Put ("", Trace, Cur.State_Ref.Label, Shared_Parser.Terminals, Data.Results.Peek,
                           Task_ID => False);
                   end if;

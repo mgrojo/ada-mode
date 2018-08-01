@@ -21,7 +21,12 @@ pragma License (GPL);
 with AUnit.Test_Cases;
 package Wisi_WY_Test is
 
-   type Test_Case (Root_Name : access String) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case
+     (Root_Name  : not null access String;
+      Input_Name : access String)
+     is new AUnit.Test_Cases.Test_Case with null record;
+   --  Always parse ../wisi/test/<Root_Name>.input. If Input_Name is non-null, also
+   --  parse ../wisi/test/<Input_Name>.input.
 
    type Test_Case_Access is access all Test_Case;
 

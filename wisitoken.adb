@@ -88,6 +88,13 @@ package body WisiToken is
       return I - 1;
    end Shared_Prefix;
 
+   function "&" (Left : in Token_ID_Set; Right : in Token_ID) return Token_ID_Set
+   is begin
+      return Result : Token_ID_Set := Left do
+         Result (Right) := True;
+      end return;
+   end "&";
+
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set
    is begin
       return Result : Token_ID_Set := (First .. Last => False)
@@ -179,12 +186,12 @@ package body WisiToken is
 
    function Image (Item : in Production_ID) return String
    is begin
-      return '(' & Trimmed_Image (Item.Nonterm) & ',' & Natural'Image (Item.RHS) & ')';
+      return '(' & Trimmed_Image (Item.LHS) & ',' & Natural'Image (Item.RHS) & ')';
    end Image;
 
    function Trimmed_Image (Item : in Production_ID) return String
    is begin
-      return Trimmed_Image (Item.Nonterm) & '.' & Trimmed_Image (Item.RHS);
+      return Trimmed_Image (Item.LHS) & '.' & Trimmed_Image (Item.RHS);
    end Trimmed_Image;
 
    function Padded_Image (Item : in Production_ID; Width : in Integer) return String

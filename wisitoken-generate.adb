@@ -287,4 +287,77 @@ package body WisiToken.Generate is
       return Result;
    end Follow;
 
+   ----------
+   --  Indented text output
+
+   procedure Indent_Line (Text : in String)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Set_Col (Indent);
+      Put_Line (Text);
+      Line_Count := Line_Count + 1;
+   end Indent_Line;
+
+   procedure Indent_Start (Text : in String)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Set_Col (Indent);
+      Put (Text);
+   end Indent_Start;
+
+   procedure Indent_Wrap (Text : in String)
+   is
+      use all type Standard.Ada.Text_IO.Count;
+      use Standard.Ada.Strings;
+      use Standard.Ada.Strings.Fixed;
+      I     : Natural;
+      First : Integer := Text'First;
+   begin
+      if Text'Length + Indent <= Max_Line_Length then
+         Indent_Line (Text);
+      else
+         loop
+            I := Text'Last;
+            loop
+               I := Index (Text (First .. Text'Last), " ", From => I, Going => Backward);
+               exit when I - First + Integer (Indent) <= Max_Line_Length;
+               I := I - 1;
+            end loop;
+            Indent_Line (Text (First .. I - 1));
+            First := I + 1;
+            exit when Text'Last - First + Integer (Indent) <= Max_Line_Length;
+         end loop;
+         Indent_Line (Text (First .. Text'Last));
+      end if;
+   end Indent_Wrap;
+
+   procedure Indent_Wrap_Comment (Text : in String; Comment_Syntax : in String)
+   is
+      use all type Standard.Ada.Text_IO.Count;
+      use Standard.Ada.Strings;
+      use Standard.Ada.Strings.Fixed;
+      Prefix : constant String := Comment_Syntax & "  ";
+      I      : Natural;
+      First  : Integer         := Text'First;
+   begin
+      if Text'Length + Indent <= Max_Line_Length - 4 then
+         Indent_Line (Prefix & Text);
+      else
+         loop
+            I := Text'Last;
+            loop
+               I := Index (Text (First .. Text'Last), " ", From => I, Going => Backward);
+               exit when I - First + Integer (Indent) <= Max_Line_Length - 4;
+               I := I - 1;
+            end loop;
+            Indent_Line (Prefix & Text (First .. I - 1));
+            First := I + 1;
+            exit when Text'Last - First + Integer (Indent) <= Max_Line_Length - 4;
+         end loop;
+         Indent_Line (Prefix & Text (First .. Text'Last));
+      end if;
+   end Indent_Wrap_Comment;
+
 end WisiToken.Generate;

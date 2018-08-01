@@ -327,10 +327,10 @@ package body Dragon_4_43_LR1_Test is
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
-         User_Data                    => null,
-         Language_Fixes               => null,
-         Language_Constrain_Terminals => null,
-         Language_String_ID_Set       => null);
+         User_Data                             => null,
+         Language_Fixes                        => null,
+         Language_Use_Minimal_Complete_Actions => null,
+         Language_String_ID_Set                => null);
 
       Execute_Command ("cdcd");
    end Test_Parse;

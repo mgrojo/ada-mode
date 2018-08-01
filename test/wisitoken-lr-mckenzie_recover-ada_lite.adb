@@ -184,7 +184,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       end loop;
    end Insert;
 
-   function Handle_Check_Fail
+   procedure Handle_Check_Fail
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
@@ -192,7 +192,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
-     return Non_Success_Status
    with Pre => Config.Check_Status.Label /= Ok
    is
       use all type Ada.Containers.Count_Type;
@@ -223,7 +222,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          if Trace_McKenzie > Outline then
             Put ("Handle_Check_Fail test case for Ops_Insert_Point", Config);
          end if;
-         return Continue;
+         return;
       end if;
 
       case Config.Check_Status.Label is
@@ -237,8 +236,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --
          --  where the names do not match, because the user is changing them.
          --
-         --  The fix is to ignore the error; return Continue. See
-         --  propagate_names.ada_lite Proc_1.
+         --  The fix is to ignore the error. See propagate_names.ada_lite
+         --  Proc_1.
          --
          --  1. The mismatch indicates one or more missing 'end's. The input
          --  looks like:
@@ -275,7 +274,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
             if Matching_Name_Index = Config.Stack.Depth then
                --  case 0.
-               return Continue;
+               return;
 
             else
                --  Case 1.
@@ -304,7 +303,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                      --  We don't check earlier for Invalid_Indices, because we can handle
                      --  other tokens having invalid indices.
 
-                     return Abandon; -- ignore error is not valid
+                     return;
                   end if;
 
                   Push_Back_Check (New_Config, +END_ID);
@@ -320,7 +319,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                      end if;
                   end if;
                end;
-               return Abandon;
             end if;
          end;
 
@@ -335,8 +333,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  0a looks like a subprogram or named block; 0b looks like a package
          --  body.
          --
-         --  The fix is to ignore the error; return Continue. See
-         --  test_mckenzie_recover Missing_Name_*.
+         --  The fix is to ignore the error. See test_mckenzie_recover
+         --  Missing_Name_*.
          --
          --  1. missing 'begin' or extra 'end'. The stack looks like:
          --
@@ -359,19 +357,19 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  inside that using the syntax tree.
          --
          --  We cannot distinguish between cases 0 and 1, other than by parsing
-         --  ahead, except in case 0b. So we return two solutions; 'ignore
+         --  ahead, except in case 0b. So we enqueue two solutions; 'ignore
          --  error' and either 'insert begin' or 'delete end;'.
 
          if not Valid_Tree_Indices (Config.Stack, SAL.Base_Peek_Type (Config.Check_Token_Count)) then
             --  Invalid tree indices happens when recover enqueues a config that
             --  contains tokens pushed during recover.
 
-            return Abandon; -- ignore error is not valid in this case.
+            return;
          end if;
 
          if Config.Error_Token.ID = +package_body_ID then
             --  case 0b.
-            return Continue;
+            return;
          end if;
 
          if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack (4).Tree_Index, +EXCEPTION_ID) then
@@ -447,7 +445,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                end if;
             end;
          end if;
-         return Continue; -- 'ignore error'.
 
       when Extra_Name_Error =>
          --  The input looks like
@@ -458,8 +455,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --  with '<end_name_Token>'.
          --
          --  0. If a matching <begin_name_token> is found, this is not a
-         --  plausible user name error; return Abandon. If it is not found, the
-         --  user could be adding/deleting names; return Continue.
+         --  plausible user name error. If it is not found, the user could be
+         --  adding/deleting names.
          --
          --  1. There is at least one missing 'end' before 'begin'. See
          --  test_mckenzie_recover.adb Extra_Name_1, Extra_Name_2,
@@ -496,7 +493,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
             if Matching_Name_Index > Config.Stack.Depth then
                --  case 0
-               return Continue;
+               return;
             end if;
 
             if Other_Counts (1) = 0 or Other_Counts (2) = 0 then
@@ -564,18 +561,16 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   end if;
                end;
             end if;
-            return Abandon;
          end;
       end case;
    end Handle_Check_Fail;
 
-   function Handle_Parse_Error
+   procedure Handle_Parse_Error
      (Trace             : in out WisiToken.Trace'Class;
       Parser_Label      : in     Natural;
       Terminals         : in     Base_Token_Arrays.Vector;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
-     return Non_Success_Status
    with Pre => Config.Check_Status.Label = Ok
    is
       use all type SAL.Base_Peek_Type;
@@ -599,7 +594,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                if Trace_McKenzie > Outline then
                   Put ("Handle_Parse_Error test case for Ops_Insert_Point", Config);
                end if;
-               return Continue;
+               return;
             end if;
 
             --  The input looks like one of:
@@ -659,7 +654,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                             (New_Config_1.Stack (3).Token.ID, Descriptor), Config);
                      Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
                   end if;
-                  return Abandon;
+                  return;
                end case;
 
                if Trace_McKenzie > Detail then
@@ -677,7 +672,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                      end if;
                   end if;
                end if;
-               return Abandon;
             exception
             when System.Assertions.Assert_Failure =>
                --  From *_Check
@@ -685,28 +679,18 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
                   Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
                end if;
-               return Abandon;
             end;
          end if;
 
       when others =>
          null;
       end case;
-      return Continue;
    end Handle_Parse_Error;
-
-   function Member (ID : in Token_ID; Item : in Token_ID_Arrays.Vector) return Boolean
-   is begin
-      for I of Item loop
-         if I = ID then return True; end if;
-      end loop;
-      return False;
-   end Member;
 
    ----------
    --  Public subprograms
 
-   function Language_Fixes
+   procedure Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
@@ -714,7 +698,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
-     return Non_Success_Status
    is begin
       if Trace_McKenzie > Extra then
          Put ("Ada_Lite Language_Fixes", Trace, Parser_Label, Terminals, Config);
@@ -723,103 +706,32 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
       case Config.Check_Status.Label is
       when Ok =>
-         return Handle_Parse_Error (Trace, Parser_Label, Terminals, Local_Config_Heap, Config);
+         Handle_Parse_Error (Trace, Parser_Label, Terminals, Local_Config_Heap, Config);
 
       when others =>
-         return Handle_Check_Fail (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);
+         Handle_Check_Fail (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);
       end case;
-   end Language_Fixes;
+   end Fixes;
 
-   function Constrain_Terminals
-     (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Table        : in     Parse_Table;
-      Config       : in     Configuration;
-      Next_Token   : in     Token_ID)
-     return WisiToken.Token_ID_Set
+   function Use_Minimal_Complete_Actions
+     (Next_Token : in Token_ID;
+      Config     : in Configuration)
+     return Boolean
    is
-      All_Ok : constant WisiToken.Token_ID_Set := (Table.First_Terminal .. Table.Last_Terminal => True);
+      pragma Unreferenced (Config);
    begin
+      if Next_Token = Invalid_Token_ID then
+         return False;
+      end if;
+
       case Ada_Lite_Actions.Token_Enum_ID'(-Next_Token) is
       when END_ID =>
-         declare
-            Temp_Config : Configuration := Config;
-            Result      : WisiToken.Token_ID_Set  := (Table.First_Terminal .. Table.Last_Terminal => False);
-         begin
-            Reduce_To_Shift :
-            loop
-               declare
-                  use all type Ada.Containers.Count_Type;
-                  State       : State_Index renames Temp_Config.Stack (1).State;
-                  Shift_Count : Integer;
-                  Reductions  : constant Reduce_Action_Array := Table.Reductions (State, Shift_Count);
-               begin
-                  if Reductions'Length = 1 and then Reductions (1).Token_Count > 0 then
-                     declare
-                        Action : Reduce_Action_Rec renames Reductions (1);
-                     begin
-                        Temp_Config.Stack.Pop (SAL.Base_Peek_Type (Action.Token_Count));
-                        Temp_Config.Stack.Push
-                          ((Goto_For (Table, Temp_Config.Stack (1).State, Action.Production.Nonterm),
-                            Syntax_Trees.Invalid_Node_Index,
-                            (Action.Production.Nonterm, others => <>)));
-                     end;
-
-                  elsif Shift_Count > 0 then
-                     declare
-                        Item        : Recover_Stack_Item renames Temp_Config.Stack (1);
-                        Table_Entry : Parse_State renames Table.States (Item.State);
-                        I           : Action_List_Iterator                 := First (Table_Entry);
-                        Prods       : constant Production_ID_Arrays.Vector := Table.States (Item.State).Productions;
-                        LHS         : constant Token_ID                    := Prods (1).Nonterm;
-                        One_LHS     : Boolean                              := True;
-                     begin
-                        for P of Prods loop
-                           if LHS /= P.Nonterm then
-                              One_LHS := False;
-                           end if;
-                        end loop;
-
-                        if One_LHS then
-                           To_Set (Table.Minimal_Terminal_Sequences (LHS), Result);
-                        else
-                           loop
-                              exit when Is_Done (I);
-                              if I.Action.Verb = Shift then
-                                 declare
-                                    Action : Parse_Action_Rec renames I.Action;
-                                 begin
-                                    for J of Action.Productions loop
-                                       if Member (I.Symbol, Table.Minimal_Terminal_Sequences (J.Nonterm)) then
-                                          --  FIXME: store 'dot' in Table.Productions; ie kernels
-                                          Result (I.Symbol) := True;
-                                       end if;
-                                    end loop;
-                                 end;
-                              end if;
-
-                              Next (I);
-                           end loop;
-                        end if;
-                     end;
-                     exit Reduce_To_Shift;
-                  else
-                     --  FIXME: conflicts
-                     raise Programmer_Error with "conflicts in Constrain_Terminals; state" & State_Index'Image (State);
-                  end if;
-               end;
-            end loop Reduce_To_Shift;
-
-            if Trace_McKenzie > Detail then
-               Put_Line (Trace, Parser_Label, "constrain_terminals: " & Image (Result, Trace.Descriptor.all));
-            end if;
-            return Result;
-         end;
+         return True;
 
       when others =>
-         return All_Ok;
+         return False;
       end case;
-   end Constrain_Terminals;
+   end Use_Minimal_Complete_Actions;
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;

@@ -88,7 +88,7 @@ package body WisiToken.LR.Parser_No_Recover is
            ((State    => Goto_For
                (Table => Shared_Parser.Table.all,
                 State => Parser_State.Stack (1).State,
-                ID    => Action.Production.Nonterm),
+                ID    => Action.Production.LHS),
              Token    => Nonterm));
 
          Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);

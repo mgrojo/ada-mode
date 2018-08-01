@@ -174,17 +174,21 @@ package Wisi is
    function Value (List : in String_Pair_Lists.List; Name : in String) return String;
 
    type McKenzie_Recover_Param_Type is record
-      Default_Insert             : Natural               := 0;
-      Default_Delete_Terminal    : Natural               := 0;
-      Default_Delete_Nonterminal : Natural               := 0;
-      Default_Push_Back          : Natural               := 0;
-      Delete                     : String_Pair_Lists.List;
-      Insert                     : String_Pair_Lists.List;
-      Push_Back                  : String_Pair_Lists.List;
-      Cost_Limit                 : Natural               := Integer'Last;
-      Check_Limit                : WisiToken.Token_Index := WisiToken.Token_Index'Last;
-      Check_Delta_Limit          : Natural               := Integer'Last;
-      Enqueue_Limit              : Natural               := Integer'Last;
+      Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+      --  Of the %mckenzie_cost_default declaration; we assume the others
+      --  are near.
+
+      Default_Insert          : Natural               := 0;
+      Default_Delete_Terminal : Natural               := 0;
+      Default_Push_Back       : Natural               := 0;
+      Delete                  : String_Pair_Lists.List;
+      Insert                  : String_Pair_Lists.List;
+      Push_Back               : String_Pair_Lists.List;
+      Ignore_Check_Fail       : Natural               := 0;
+      Cost_Limit              : Natural               := Integer'Last;
+      Check_Limit             : WisiToken.Token_Index := WisiToken.Token_Index'Last;
+      Check_Delta_Limit       : Natural               := Integer'Last;
+      Enqueue_Limit           : Natural               := Integer'Last;
    end record;
 
    type Token_Kind_Type is record

@@ -26,10 +26,17 @@ generic
    Descriptor         : in WisiToken.Descriptor;
    Text_Rep_File_Name : in String;
 
+   Language_Fixes : in WisiToken.LR.Parser.Language_Fixes_Access;
+
+   Language_Use_Minimal_Complete_Actions : in WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+
+   Language_String_ID_Set : in WisiToken.LR.Parser.Language_String_ID_Set_Access;
+
    with procedure Create_Parser
      (Parser                       :    out          WisiToken.LR.Parser.Parser;
       Language_Fixes               : in              WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Constrain_Terminals : in              WisiToken.LR.Parser.Language_Constrain_Terminals_Access;
+      Language_Use_Minimal_Complete_Actions : in
+        WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
       Language_String_ID_Set       : in              WisiToken.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in              WisiToken.Syntax_Trees.User_Data_Access;

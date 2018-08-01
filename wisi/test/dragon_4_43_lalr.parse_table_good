@@ -14,6 +14,8 @@ Productions:
 7.0: upper_c <= LOWER_C upper_c
 7.1: upper_c <= LOWER_D
 
+Ancestors:
+
 LALR Parse Table:
 State 0:
       5.0:wisitoken_accept <= ^ upper_s Wisi_EOI, 
@@ -25,6 +27,8 @@ State 0:
    upper_s          goto state 3
    upper_c          goto state 4
 
+   Minimal_Complete_Actions => (LOWER_D)
+
 State 1:
       7.0:upper_c <= LOWER_C ^ upper_c, LOWER_C/LOWER_D/Wisi_EOI
 
@@ -34,6 +38,8 @@ State 1:
 
    upper_c          goto state 5
 
+   Minimal_Complete_Actions => (LOWER_D)
+
 State 2:
       7.1:upper_c <= LOWER_D ^, LOWER_C/LOWER_D/Wisi_EOI
 
@@ -41,6 +47,8 @@ State 2:
    LOWER_D          => reduce 1 tokens to upper_c 7.1
    Wisi_EOI         => reduce 1 tokens to upper_c 7.1
    default          => ERROR
+
+   Minimal_Complete_Actions => (upper_c)
 
 State 3:
       5.0:wisitoken_accept <= upper_s ^ Wisi_EOI, 
@@ -57,6 +65,8 @@ State 4:
 
    upper_c          goto state 6
 
+   Minimal_Complete_Actions => (LOWER_D)
+
 State 5:
       7.0:upper_c <= LOWER_C upper_c ^, LOWER_C/LOWER_D/Wisi_EOI
 
@@ -65,16 +75,15 @@ State 5:
    Wisi_EOI         => reduce 2 tokens to upper_c 7.0
    default          => ERROR
 
+   Minimal_Complete_Actions => (upper_c)
+
 State 6:
       6.0:upper_s <= upper_c upper_c ^, Wisi_EOI
 
    Wisi_EOI         => reduce 2 tokens to upper_s 6.0
    default          => ERROR
 
-Minimal_Terminal_Sequences:
-wisitoken_accept => (LOWER_D, LOWER_D, Wisi_EOI)
-upper_s => (LOWER_D, LOWER_D)
-upper_c => (LOWER_D)
+   Minimal_Complete_Actions => (upper_s)
 
  2 rules, 0 user actions, 0 checks, 7 states, 21 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

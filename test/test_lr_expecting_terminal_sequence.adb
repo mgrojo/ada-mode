@@ -24,7 +24,7 @@ with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.LR.AUnit;
-with WisiToken.LR.Generate_Utils;
+with WisiToken.Generate.LR;
 with WisiToken.LR.LALR_Generate;
 with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
@@ -148,10 +148,10 @@ package body Test_LR_Expecting_Terminal_Sequence is
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
-         User_Data                    => null,
-         Language_Fixes               => null,
-         Language_Constrain_Terminals => null,
-         Language_String_ID_Set       => null);
+         User_Data                             => null,
+         Language_Fixes                        => null,
+         Language_Use_Minimal_Complete_Actions => null,
+         Language_String_ID_Set                => null);
 
       Execute
         ("set A = 2",
@@ -185,7 +185,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
       Expected : WisiToken.Token_Sequence_Arrays.Vector;
       Sequence : WisiToken.Token_ID_Arrays.Vector;
    begin
-      WisiToken.LR.Generate_Utils.Compute_Minimal_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
+      WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
 
       Expected.Set_First (+Parse_Sequence_ID);
       Expected.Set_Last (+Statement_ID);

@@ -21,7 +21,7 @@ package body WisiToken.AUnit is
 
    procedure Check (Label : in String; Computed, Expected : in Production_ID)
    is begin
-      Check (Label & ".nonterm", Computed.Nonterm, Expected.Nonterm);
+      Check (Label & ".nonterm", Computed.LHS, Expected.LHS);
       Standard.AUnit.Checks.Check (Label & ".rhs", Computed.RHS, Expected.RHS);
    end Check;
 

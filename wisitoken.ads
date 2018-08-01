@@ -74,7 +74,9 @@ package WisiToken is
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Unknown_State_Index);
 
-   package State_Queues is new SAL.Gen_Unbounded_Definite_Queues (State_Index);
+   package State_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (State_Index);
+   package State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, State_Index);
+   function Image is new State_Index_Arrays.Gen_Image (Trimmed_Image);
 
    ----------
    --  Token IDs
@@ -139,8 +141,6 @@ package WisiToken is
       Last_Lookahead : Token_ID;
    end record;
 
-   type Token_ID_Set is array (Token_ID range <>) of Boolean;
-
    function Padded_Image (Item : in Token_ID; Desc : in Descriptor) return String;
    --  Return Desc.Image (Item), padded to Terminal_Image_Width (if Item
    --  is a terminal) or to Image_Width.
@@ -162,11 +162,17 @@ package WisiToken is
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Trimmed_Image is new Token_ID_Arrays.Gen_Image (Trimmed_Image);
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);
 
    function Shared_Prefix (A, B : in Token_ID_Arrays.Vector) return Natural;
    --  Return last index in A of a prefix shared between A, B; 0 if none.
+
+   type Token_ID_Set is array (Token_ID range <>) of Boolean;
+
+   function "&" (Left : in Token_ID_Set; Right : in Token_ID) return Token_ID_Set;
+   --  Include Left and Right in result.
 
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Token_ID_Array) return Token_ID_Set;
    --  First, Last determine size of result.
@@ -201,14 +207,16 @@ package WisiToken is
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate
    --  syntax.
 
+   type Token_Array_Token_ID is array (Token_ID range <>) of Token_ID;
+
    package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
 
    ----------
    --  Production IDs; see wisitoken-productions.ads for more
 
    type Production_ID is record
-      Nonterm : Token_ID := Invalid_Token_ID;
-      RHS     : Natural  := 0;
+      LHS : Token_ID := Invalid_Token_ID;
+      RHS : Natural  := 0;
       --  Index into the production table.
    end record;
 

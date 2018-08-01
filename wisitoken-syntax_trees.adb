@@ -77,7 +77,7 @@ package body WisiToken.Syntax_Trees is
       if Tree.Flush then
          Tree.Shared_Tree.Nodes.Append
            ((Label      => Syntax_Trees.Nonterm,
-             ID         => Production.Nonterm,
+             ID         => Production.LHS,
              Action     => Action,
              RHS_Index  => Production.RHS,
              Virtual    => (if Children'Length = 0 then Default_Virtual else False),
@@ -87,7 +87,7 @@ package body WisiToken.Syntax_Trees is
       else
          Tree.Branched_Nodes.Append
            ((Label     => Syntax_Trees.Nonterm,
-             ID        => Production.Nonterm,
+             ID        => Production.LHS,
              Action    => Action,
              RHS_Index => Production.RHS,
              Virtual   => (if Children'Length = 0 then Default_Virtual else False),

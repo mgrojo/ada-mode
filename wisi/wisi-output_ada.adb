@@ -26,7 +26,6 @@ with GNAT.Regexp;
 with Wisi.Generate_Packrat;
 with Wisi.Generate_Utils;
 with Wisi.Output_Ada_Common; use Wisi.Output_Ada_Common;
-with Wisi.Utils;
 with WisiToken.Generate.Packrat;
 with WisiToken.Wisi_Grammar_Runtime;
 procedure Wisi.Output_Ada
@@ -61,9 +60,9 @@ is
       Check_Names  : not null access WisiToken.Names_Array_Array;
       Package_Name : in              String)
    is
-      use Generate_Utils;
       use GNAT.Regexp;
-      use Wisi.Utils;
+      use Generate_Utils;
+      use WisiToken.Generate;
 
       File_Name : constant String := Output_File_Name_Root & "_actions.adb";
       --  No generate_algorithm when Test_Main; the generated actions file is independent of that.
@@ -237,7 +236,7 @@ is
      (Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       File_Name         : constant String := Output_File_Name_Root & To_Lower (Gen_Alg_Name) & "_main.adb";
       re2c_Package_Name : constant String := -Common_Data.Lower_File_Name_Root & "_re2c_c";
@@ -306,7 +305,7 @@ is
      (Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
-      use Wisi.Utils;
+      use WisiToken.Generate;
 
       Generic_Package_Name : constant String :=
         (case Common_Data.Generate_Algorithm is
@@ -325,6 +324,9 @@ is
       Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         "_" & Generate_Algorithm'Image (Common_Data.Generate_Algorithm) & "_Run";
 
+      Language_Package_Name : constant String := "WisiToken.LR.McKenzie_Recover." & File_Name_To_Ada
+        (Output_File_Name_Root);
+
       File_Name : constant String := To_Lower (Unit_Name) & ".ads";
 
       File : File_Type;
@@ -340,17 +342,21 @@ is
       Put_Line ("with " & Generic_Package_Name & ";");
       Put_Line ("with " & Actions_Package_Name & ";");
       Put_Line ("with " & Main_Package_Name & ";");
+      if Input_Data.Language_Params.Error_Recover then
+         Put_Line ("with " & Language_Package_Name & "; use " & Language_Package_Name & ";");
+      end if;
 
       Put_Line ("procedure " & Unit_Name & " is new " & Generic_Package_Name);
-      Put_Line
-        ("  (" &
-           Actions_Package_Name & ".Descriptor, " &
-           (if Common_Data.Text_Rep
-            then """" & Output_File_Name_Root & "_" &
-               To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
-               "_parse_table.txt"", "
-            else "") &
-           Main_Package_Name & ".Create_Parser);");
+      Put_Line ("  (" & Actions_Package_Name & ".Descriptor,");
+      if Common_Data.Text_Rep then
+         Put_Line ("   """ & Output_File_Name_Root & "_" &
+                     To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
+                     "_parse_table.txt"",");
+      end if;
+      if Input_Data.Language_Params.Error_Recover then
+         Put_Line ("Fixes'Access, Use_Minimal_Complete_Actions'Access, String_ID_Set'Access,");
+      end if;
+      Put_Line (Main_Package_Name & ".Create_Parser);");
       Close (File);
       Set_Output (Standard_Output);
    end Create_Ada_Test_Main;

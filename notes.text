@@ -20,6 +20,63 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+wisi_wy_test use different registered routines to report more failures at once
+
+investigate slowdown in generate lr1
+
+propagate to main
+
+Minimal_Complete_Actions
+    seems to be working
+
+    empty_production_8_lalr.parse_table state 1
+        right answer is actually (aliased_opt); constant_opt leads to more terminals
+            could look in minimal_terminal_sequences
+
+    ada_lalr state 507
+    222.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
+    222.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ ELSE sequence_of_statements_opt END IF SEMICOLON
+    222.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list END IF SEMICOLON
+    222.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ END IF SEMICOLON
+   Minimal_Complete_Actions => (ELSE, ELSIF, END)
+        should be just (END)
+        if all same LHS, check tokens.length? check Minimum_Terminal_Sequence? record prod_id in that?
+
+    test case for two reductions:
+        ada_lite_lalr (24, 223, 224)
+            construct an input that gets there; work backward thru gotos
+
+            state 223
+                189, 231: name                               goto state 223
+                189: range_g                            goto state 224
+                155, 223:    LEFT_PAREN                         => shift and goto state 189 (57.0, 99.0, 104.0)
+                141 234: name                               goto state 155
+                101: COLON                              => shift and goto state 141 (106.0, 106.1)
+                105: IDENTIFIER                         => shift and goto state 101 (106.0, 106.1)
+                58, 124, 207: declarations                       goto state 105
+
+            124: package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part_opt END name_opt SEMICOLON
+
+        ada_lite_lr1 (28, 42, 1103, 1104, 1392)
+
+        empty_production_8_lalr.parse_table state 1
+            no reduce action goto
+
+        identifier_list_name_conflict_lalr.parse_table
+            state 3
+
+hint in grammar to prefer "null;" over "return;"?
+    ada: IDENTIFIER for 'name'
+    %prefer_minimum_terminal <nonterm> <terminal>
+
+review fixmes
+    eliminate stuff no longer used for recover
+        review in ada-mode
+
+capture diff between lr1, lalr recover
+
+use trace for trace_generate; separate from parse_table
+
 speed up lr1 generate
     wisi-generate --time ../wisi/test/ada_lite.wy
     baseline
@@ -77,6 +134,13 @@ speed up lr1 generate
         LALR re2c generate time: 0.450525800
         LR1 re2c generate time: 31.202567095
 
+    add Minimal_Complete_Actions
+
+        ada.wy
+        LALR elisp generate time: 1.108213473
+        LALR re2c generate time: 1.124334655
+        LR1 re2c generate time: 79.602312077
+
     add 'pragma inline'
 
     try lalr with include_lookaheads => true
@@ -94,47 +158,8 @@ lr1 only store kernels?
     find other documentation of lr1 algorithm
     just adding 'filter in_kernel' in lr1_item_sets causes infinite loop or big slowdown.
 
-LR1 Ada 1092.640 = 18 min, barely tolerable
-    has 1 exccess known conflict;
-    101_484 states, 1_367_186 parse actions
-    ada_lr1_re2c.parse_table is 2_145_051 lines, 150.5MB
-    ada_process_lr1_main.adb 72.7MB, 1_406_676 lines
-
-gnat deadly slow compiling ada_process_lr1_main.adb; too many lines in one subroutine
-    o.e.a.s-2 ada_process_lalr_main.adb has 14_089 lines in create_parser - deadly slow
-    o.e.a.s-4 ada_process_lalr_main.adb has 16640 lines in create_parser declare, 1280 build_state_n calls
-        ~ 13 lines per subr; not worth it.
-
-    in lr1, only 2 lines per state subr in large majority of states; not worth it
-
-    just split lines arbitrarily, at 1000 lines; don't pass State
-
-    lr1 still doesn't compile; strange memory error
-        ada_process_lr1_main.adb:696429:30: "" is undefined
-
-    table is already compressed; it's an array of lists
-        might be able to share some list tails
-
-    write table to text file
-        not Ada syntax; just space separated within one field, semicolon between fields, newline between states
-
-
-
 distinquish between reset for lex, reset for execute_actions.
     wisi_grammar don't reset command line args?
-
-review fixmes
-
-propagate to main
-
-better constrain_terminals:
-    o.w.s-1
-    when constrain_Terminals_Pred True, map (state) => (set of terminals to insert)
-    store kernel (set of prod with dot)
-    store set of first terminal of minimial_completing_terminal_sequence for each kernel
-
-    apply when error token is :=
-        language predicate for when to apply?
 
 add delete to config heap, use when configuration_access is abandoned?
 

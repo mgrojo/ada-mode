@@ -345,7 +345,8 @@ begin
                   Generate_Data.Descriptor.all,
                   Generate_Utils.To_Conflicts
                     (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
-                  Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                  Generate_Utils.To_McKenzie_Param
+                    (Generate_Data, Input_Data.McKenzie_Recover, Input_Data.Grammar_Lexer.File_Name),
                   Put_Parse_Table => True);
 
                if Do_Time then
@@ -370,7 +371,8 @@ begin
                   Generate_Data.Descriptor.all,
                   Generate_Utils.To_Conflicts
                     (Generate_Data, Input_Data.Conflicts, Input_Data.Grammar_Lexer.File_Name),
-                  Generate_Utils.To_McKenzie_Param (Generate_Data, Input_Data.McKenzie_Recover),
+                  Generate_Utils.To_McKenzie_Param
+                    (Generate_Data, Input_Data.McKenzie_Recover, Input_Data.Grammar_Lexer.File_Name),
                   Put_Parse_Table => True);
 
                if Do_Time then

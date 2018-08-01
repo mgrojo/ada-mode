@@ -78,7 +78,7 @@ package body WisiToken.LR.LR1_Generate is
 
       C               : LR1_Items.Item_Set_List;       -- result
       C_Tree          : LR1_Items.Item_Set_Trees.Tree; -- for fast find
-      States_To_Check : State_Queues.Queue;
+      States_To_Check : State_Index_Queues.Queue;
       --  [dragon] specifies 'until no more items can be added', but we use
       --  a queue to avoid checking unecessary states. Ada LR1 has over
       --  100,000 states, so this is a significant gain (reduced time from
@@ -189,51 +189,6 @@ package body WisiToken.LR.LR1_Generate is
       end if;
    end Add_Actions;
 
-   procedure Put_Parse_Table
-     (Table      : in Parse_Table_Ptr;
-      Item_Sets  : in LR1_Items.Item_Set_List;
-      Descriptor : in WisiToken.Descriptor;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
-   is
-      use Ada.Text_IO;
-   begin
-      Put_Line ("Tokens:");
-      WisiToken.Put_Tokens (Descriptor);
-      New_Line;
-      Put_Line ("Productions:");
-      WisiToken.Productions.Put (Grammar, Descriptor);
-      New_Line;
-
-      Put_Line ("LR1 Parse Table:");
-
-      for State in Table.States'Range loop
-         LR1_Items.Put
-           (Grammar, Descriptor, Item_Sets (State), Kernel_Only => True, Show_Lookaheads => True);
-         New_Line;
-         Put (Descriptor, Table.States (State));
-
-         if State /= Table.States'Last then
-            New_Line;
-         end if;
-      end loop;
-
-      if Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
-         New_Line;
-         Put_Line ("McKenzie:");
-         WisiToken.LR.Put (Table.McKenzie_Param, Descriptor);
-      end if;
-
-      New_Line;
-      Put_Line ("Minimal_Terminal_Sequences:");
-      for I in Table.Minimal_Terminal_Sequences.First_Index ..
-        Table.Minimal_Terminal_Sequences.Last_Index
-      loop
-         Put_Line
-           (WisiToken.Image (I, Descriptor) & " => " & WisiToken.Image
-              (Table.Minimal_Terminal_Sequences (I), Descriptor));
-      end loop;
-   end Put_Parse_Table;
-
    function Check_Unused_Tokens
      (Descriptor : in WisiToken.Descriptor;
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
@@ -284,6 +239,11 @@ package body WisiToken.LR.LR1_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
+      Minimal_Terminal_First : constant Token_Array_Token_ID :=
+        WisiToken.Generate.LR.Minimal_Terminal_First (Grammar, Descriptor);
+
+      Ancestors : constant Token_Array_Token_Set := WisiToken.Generate.LR.Ancestors (Grammar, Descriptor);
+
       First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
 
@@ -320,6 +280,7 @@ package body WisiToken.LR.LR1_Generate is
             Insert            => (others => 0),
             Delete            => (others => 0),
             Push_Back         => (others => 0),
+            Ignore_Check_Fail => Default_McKenzie_Param.Ignore_Check_Fail,
             Task_Count        => Default_McKenzie_Param.Task_Count,
             Cost_Limit        => Default_McKenzie_Param.Cost_Limit,
             Check_Limit       => Default_McKenzie_Param.Check_Limit,
@@ -329,19 +290,37 @@ package body WisiToken.LR.LR1_Generate is
          Table.McKenzie_Param := McKenzie_Param;
       end if;
 
-      Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Table.Minimal_Terminal_Sequences);
-
       Add_Actions
         (Item_Sets, Grammar, Has_Empty_Production, First_Nonterm_Set, Unknown_Conflicts, Table.all, Descriptor);
 
-      --  Set Table.States.Productions for McKenzie_Recover
+      --  Set Table.States.Productions, Minimal_Terminal_First for McKenzie_Recover
       for State in Table.States'Range loop
          Table.States (State).Productions := LR1_Items.Productions
            (LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access));
+         WisiToken.Generate.LR.Set_Minimal_Complete_Actions
+           (Table.States (State),
+            LR1_Items.Filter (Item_Sets (State), Grammar, Descriptor, LR1_Items.In_Kernel'Access),
+            Minimal_Terminal_First, Ancestors, Descriptor, Grammar);
       end loop;
 
       if Put_Parse_Table then
-         LR1_Generate.Put_Parse_Table (Table, Item_Sets, Descriptor, Grammar);
+         WisiToken.Generate.LR.Put_Parse_Table
+           (Table, "LR1", Grammar, Item_Sets, Ancestors, Unknown_Conflicts, Descriptor);
+      end if;
+
+      if Trace_Generate > Outline then
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("Has_Empty_Production: " & Image (Has_Empty_Production, Descriptor));
+
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line ("Minimal_Terminal_First:");
+         for ID in Minimal_Terminal_First'Range loop
+            Ada.Text_IO.Put_Line
+              (Image (ID, Descriptor) & " =>" &
+                 (if Minimal_Terminal_First (ID) = Invalid_Token_ID
+                  then ""
+                  else ' ' & Image (Minimal_Terminal_First (ID), Descriptor)));
+         end loop;
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);

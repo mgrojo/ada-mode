@@ -22,7 +22,8 @@ pragma License (Modified_GPL);
 with Ada.Containers.Doubly_Linked_Lists;
 with WisiToken.LR.LR1_Items;
 with WisiToken.Productions;
-package WisiToken.LR.Generate_Utils is
+package WisiToken.Generate.LR is
+   use WisiToken.LR;
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict is record
@@ -44,9 +45,6 @@ package WisiToken.LR.Generate_Utils is
    end record;
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
-
-   ----------
-   --  Subpgrograms, alphabetical order
 
    procedure Add_Action
      (Symbol               : in     Token_ID;
@@ -119,9 +117,48 @@ package WisiToken.LR.Generate_Utils is
       File       : in Ada.Text_IO.File_Type;
       Descriptor : in WisiToken.Descriptor);
 
+   procedure Put_Parse_Table
+     (Table      : in Parse_Table_Ptr;
+      Title      : in String;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Kernels    : in LR1_Items.Item_Set_List;
+      Ancestors  : in Token_Array_Token_Set;
+      Conflicts  : in Conflict_Lists.List;
+      Descriptor : in WisiToken.Descriptor);
+
    procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor;
       Result     : in out Token_Sequence_Arrays.Vector);
+   --  For each production in Grammar, compute the minimal sequence of
+   --  terminals that will complete it. Result is an empty sequence if
+   --  the production may be empty. FIXME: delete?
 
-end WisiToken.LR.Generate_Utils;
+   function Minimal_Terminal_First
+     (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in     WisiToken.Descriptor)
+      return Token_Array_Token_ID;
+   --  For each nonterminal in Grammar, return the first of the minimal
+   --  sequence of terminals that will complete it; Invalid_Token_ID if
+   --  the minimal sequence is empty.
+
+   function Ancestors
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
+     return Token_Array_Token_Set;
+   --  For each nonterm, record the nonterms it reduces to via one token
+   --  reductions, recursively.
+
+   procedure Set_Minimal_Complete_Actions
+     (State                  : in out Parse_State;
+      Kernel                 : in     LR1_Items.Item_Set;
+      Minimal_Terminal_First : in     Token_Array_Token_ID;
+      Ancestors              : in     Token_Array_Token_Set;
+      Descriptor             : in     WisiToken.Descriptor;
+      Grammar                : in     WisiToken.Productions.Prod_Arrays.Vector);
+   --  Set State.Minimal_Terminal_First to the set of terminals that will
+   --  most quickly complete the productions in Kernel (which must be for
+   --  State). Useful in error correction when we know the next actual
+   --  terminal is a block ending or statement start.
+
+end WisiToken.Generate.LR;
