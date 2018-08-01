@@ -5686,7 +5686,7 @@ package_body_0: (package_body, (1693 . 1768)) <= ( 332:(PACKAGE, (1693 . 1699)),
 semantic check (MATCH_NAMES_ERROR, (name, (1706 . 1706)),(name_opt, (1762 . 1767)))
  44: zombie
 recover
-recover: fail, parser count 2
+recover: fail FAIL_COST, parser count 2
 ../wisi/test/ada_lite_recover_repeatable.input:0:0: lexer unrecognized character at 1481
 ../wisi/test/ada_lite_recover_repeatable.input:0:0: lexer unrecognized character at 3324
 ../wisi/test/ada_lite_recover_repeatable.input:0:0: lexer unrecognized character at 3444
@@ -5735,3 +5735,4 @@ recover: fail, parser count 2
 ../wisi/test/ada_lite_recover_repeatable.input:47:59: syntax error: expecting COLON, found ':='
    recovered: ((INSERT, COLON, 347), (INSERT, IDENTIFIER, 347))
 ../wisi/test/ada_lite_recover_repeatable.input:0:0: semantic check error: (MATCH_NAMES_ERROR, (name, (1706 . 1706)),(name_opt, (1762 . 1767)))
+recover: fail FAIL_COST

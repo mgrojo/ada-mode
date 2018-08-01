@@ -308,7 +308,8 @@ package body Test_McKenzie_Recover is
 
    exception
    when WisiToken.Syntax_Error =>
-      Check ("error.length", Parser.Parsers.First.State_Ref.Errors.Length, 1);
+      --  One error message from the syntax error, one from recover fail
+      Check ("error.length", Parser.Parsers.First.State_Ref.Errors.Length, 2);
    end Error_4;
 
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -681,9 +682,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (23, 25),
          Ops                     => +(Insert, +NEW_ID, 4),
-         Enqueue_Low             => 10,
+         Enqueue_Low             => 4,
          Enqueue_High            => 31,
-         Check_Low               => 4,
+         Check_Low               => 2,
          Check_High              => 9,
          Cost                    => 3);
    end Revive_Zombie_Parser;
@@ -713,7 +714,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +IDENTIFIER_ID, 6),
          Enqueue_Low             => 23,
          Enqueue_High            => 88,
-         Check_Low               => 4,
+         Check_Low               => 3,
          Check_High              => 15,
          Cost                    => 3);
    end Error_Token_When_Parallel;
@@ -1424,7 +1425,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 74,
          Enqueue_High            => 164,
          Check_Low               => 20,
-         Check_High              => 40,
+         Check_High              => 44,
          Cost                    => 5);
    end Actual_Parameter_Part_1;
 
@@ -1644,8 +1645,10 @@ package body Test_McKenzie_Recover is
          null;
       end;
 
+      --  One error message from the syntax error, one from recover fail
       Check_Recover
-        (Errors_Length           => 1,
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (35, 36),
          Ops_Race_Condition      => True,
@@ -1672,7 +1675,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +RIGHT_PAREN_ID, 16) & (Insert, +SEMICOLON_ID, 16),
          Enqueue_Low             => 45,
          Enqueue_High            => 110,
-         Check_Low               => 13,
+         Check_Low               => 11,
          Check_High              => 20,
          Cost                    => 2);
    end Multiple_Complete_Reduce;
