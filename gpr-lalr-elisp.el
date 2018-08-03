@@ -1,5 +1,5 @@
 ;;; gpr-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisi-generate.exe  --generate LALR ELISP elisp gpr.wy
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR ELISP elisp gpr.wy
 
 ;;  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
 

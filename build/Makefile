@@ -110,7 +110,6 @@ one : $(addsuffix .diff, $(ONE_TEST_FILES))
 #two : RUN_ARGS ?= --verbosity 2 2 > debug.log
 #two : RUN_ARGS ?= --repeat_count 5
 two : build_ada_executables
-two :
 	../run_ada_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
@@ -147,8 +146,8 @@ endif
 
 include rules.make
 
-$(WISI_WISITOKEN)/wisi-generate.exe : force
-	$(MAKE) -C $(WISI_WISITOKEN) wisi-generate.exe
+$(WISI_WISITOKEN)/wisitoken-bnf-generate.exe : force
+	$(MAKE) -C $(WISI_WISITOKEN) wisitoken-bnf-generate.exe
 
 test-ada-elisp-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
 test-ada-elisp-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))

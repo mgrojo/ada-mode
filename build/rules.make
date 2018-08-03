@@ -53,16 +53,16 @@ run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
-%-lalr-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe --generate LALR Elisp Elisp $(<F)
+%-lalr-elisp.el : %.wy $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe --generate LALR Elisp Elisp $(<F)
 	cd ./$(<D); dos2unix $(*F)-lalr-elisp.el
 
 elisp-clean :
 	rm -f ../*.output ../autoloads.el
 	rm -f ../*-wy.el ../*.elc
 
-%.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe --time $(<F)
+%.re2c : %.wy $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe --time $(<F)
 	cd ./$(<D); dos2unix $(*F)-lalr-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads
 
 %_re2c.c : %.re2c

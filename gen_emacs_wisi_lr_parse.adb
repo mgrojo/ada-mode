@@ -44,7 +44,7 @@ is
    procedure Usage
    is
    begin
-      Put_Line ("usage: " & Name & "_wisi_parse");
+      Put_Line ("usage: " & Name);
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -129,7 +129,7 @@ is
          From    => First + 1);
 
       if First = 0 or Last = 0 then
-         raise Protocol_Error with Name & "_wisi_parse: no '""' found for string";
+         raise Protocol_Error with Name & ": no '""' found for string";
       end if;
 
       return Source (First + 1 .. Last - 1);
@@ -208,8 +208,8 @@ begin
             --  [elisp error form]...
             --  prompt
             declare
-               use WisiToken.Wisi_Runtime;
-               Post_Parse_Action : constant Post_Parse_Action_Type := Wisi_Runtime.Post_Parse_Action_Type'Val
+               use Wisi;
+               Post_Parse_Action : constant Post_Parse_Action_Type := Post_Parse_Action_Type'Val
                  (Get_Integer (Command_Line, Last));
 
                Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);

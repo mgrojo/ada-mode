@@ -211,8 +211,8 @@ begin
             --  [elisp error form]...
             --  prompt
             declare
-               use WisiToken.Wisi_Runtime;
-               Post_Parse_Action : constant Post_Parse_Action_Type := Wisi_Runtime.Post_Parse_Action_Type'Val
+               use Wisi;
+               Post_Parse_Action : constant Post_Parse_Action_Type := Post_Parse_Action_Type'Val
                  (Get_Integer (Command_Line, Last));
 
                Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);

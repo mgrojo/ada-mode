@@ -32,11 +32,11 @@ pragma License (GPL);
 
 with WisiToken.LR.Parser;
 with WisiToken.Syntax_Trees;
-with WisiToken.Wisi_Runtime;
+with Wisi;
 generic
-   type Parse_Data_Type  is new WisiToken.Wisi_Runtime.Parse_Data_Type with private;
+   type Parse_Data_Type  is new Wisi.Parse_Data_Type with private;
 
-   Name                         : in String; --  for Usage, error messages. "_wisi_parse" will be appended
+   Name                         : in String; --  for Usage, error messages.
    Descriptor                   : in WisiToken.Descriptor;
    Language_Fixes               : in WisiToken.LR.Parser.Language_Fixes_Access;
    Language_Use_Minimal_Complete_Actions : in WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;

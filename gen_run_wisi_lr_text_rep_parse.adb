@@ -43,7 +43,7 @@ is
    is
       use all type WisiToken.LR.Parse_Table_Ptr;
    begin
-      Put_Line ("usage: " & Name & "_wisi_parse <file_name> <parse_action> [options]");
+      Put_Line ("usage: <file_name> <parse_action> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
       Put_Line ("options:");
       Put_Line ("--verbosity n m l:");
@@ -74,7 +74,7 @@ is
    end Put_Usage;
 
    Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
-   Post_Parse_Action : WisiToken.Wisi_Runtime.Post_Parse_Action_Type;
+   Post_Parse_Action : Wisi.Post_Parse_Action_Type;
 
    Line_Count   : WisiToken.Line_Number_Type := 1;
    Lexer_Only   : Boolean                    := False;
@@ -101,7 +101,7 @@ begin
       end if;
 
       Source_File_Name  := +Ada.Command_Line.Argument (1);
-      Post_Parse_Action := WisiToken.Wisi_Runtime.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
+      Post_Parse_Action := Wisi.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
       Arg               := 3;
 
       loop

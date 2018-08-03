@@ -38,20 +38,27 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-4")))
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
+'((xmtn . "/Projects/org.stephe_leake.makerules")
+  (xmtn . "/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "/Projects/org.stephe_leake.aunit_ext")
+  (xmtn . "/Projects/org.wisitoken.stephe-1")
+  (xmtn . "/Projects/org.emacs.ada-mode.stephe-5/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
-c:/Projects/org.wisitoken.grammar_mode/Makefile
-
  current work
+convert libadalang tree to wisitoken syntax tree, use for indent
+    make two
+
+    major renaming:
+        o.w.s-1, o.e.a-m.s-5
+        org.wisitoken/wisi/wisi.* => org.wisitoken/wisitoken.bnf.*
+
+        org.emacs.ada-mode/wisitoken-wisi_runtime* -> org.emacs.ada-mode/wisi*
+
 navigate error
    function Compare_Integer_16 (Left, Right : in Interfaces.Integer_16) return SAL.Compare_Result is
      (if Left > Right then SAL.Greater

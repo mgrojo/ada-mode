@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe  --generate LALR ADA_EMACS re2c PROCESS ada.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR ADA_EMACS re2c PROCESS ada.wy
 --
 
 --  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.

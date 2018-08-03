@@ -1,5 +1,5 @@
 ;;; ada-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisi-generate.exe  --generate LALR ELISP elisp ada.wy
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR ELISP elisp ada.wy
 
 ;;  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
 
