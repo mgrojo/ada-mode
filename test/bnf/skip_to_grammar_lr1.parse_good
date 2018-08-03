@@ -1,0 +1,36 @@
+ 6 tokens lexed
+ 0: 0:  1:(PREAMBLE, (1 . 6)) : shift and goto state 2
+ 0: 2:  2:(PERCENT, (11 . 11)) : reduce 1 tokens to compilation_unit
+compilation_unit_0: (compilation_unit, (1 . 6)) <= ( 1:(PREAMBLE, (1 . 6)))
+ ... goto state 4
+ 0: 4:  2:(PERCENT, (11 . 11)) : reduce 1 tokens to compilation_unit_list
+compilation_unit_list_1: (compilation_unit_list, (1 . 6)) <= ((compilation_unit, (1 . 6)))
+ ... goto state 5
+ 0: 5:  2:(PERCENT, (11 . 11)) : shift and goto state 1
+ 0: 1:  3:(IDENTIFIER, (12 . 16)) : shift and goto state 6
+ 0: 6:  4:(IDENTIFIER, (18 . 22)) : shift and goto state 8
+ 0: 8:  5:(IDENTIFIER, (24 . 28)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (18 . 22)) <= ( 4:(IDENTIFIER, (18 . 22)))
+ ... goto state 10
+ 0: 10:  5:(IDENTIFIER, (24 . 28)) : reduce 1 tokens to declaration_item_list
+declaration_item_list_1: (declaration_item_list, (18 . 22)) <= ((declaration_item, (18 . 22)))
+ ... goto state 9
+ 0: 9:  5:(IDENTIFIER, (24 . 28)) : shift and goto state 8
+ 0: 8:  6:(Wisi_EOI, (48 . 47)) : reduce 1 tokens to declaration_item
+declaration_item_0: (declaration_item, (24 . 28)) <= ( 5:(IDENTIFIER, (24 . 28)))
+ ... goto state 11
+ 0: 11:  6:(Wisi_EOI, (48 . 47)) : reduce 2 tokens to declaration_item_list
+declaration_item_list_0: (declaration_item_list, (18 . 28)) <= ((declaration_item_list, (18 . 22)), (declaration_item, (24 . 28)))
+ ... goto state 9
+ 0: 9:  6:(Wisi_EOI, (48 . 47)) : reduce 3 tokens to declaration
+declaration_0: (declaration, (11 . 28)) <= ( 2:(PERCENT, (11 . 11)),  3:(IDENTIFIER, (12 . 16)), (declaration_item_list, (18 . 28)))
+ ... goto state 3
+ 0: 3:  6:(Wisi_EOI, (48 . 47)) : reduce 1 tokens to compilation_unit
+compilation_unit_1: (compilation_unit, (11 . 28)) <= ((declaration, (11 . 28)))
+ ... goto state 7
+ 0: 7:  6:(Wisi_EOI, (48 . 47)) : reduce 2 tokens to compilation_unit_list
+compilation_unit_list_0: (compilation_unit_list, (1 . 28)) <= ((compilation_unit_list, (1 . 6)), (compilation_unit, (11 . 28)))
+ ... goto state 5
+ 0: 5:  6:(Wisi_EOI, (48 . 47)) : accept it
+wisitoken_accept_0: (wisitoken_accept, (1 . 28)) <= ((compilation_unit_list, (1 . 28)))
+ 0: succeed

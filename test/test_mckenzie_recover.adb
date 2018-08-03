@@ -188,7 +188,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
 
-      File_Name : constant String := "../wisi/test/ada_lite.input";
+      File_Name : constant String := "../Test/bnf/ada_lite.input";
    begin
       --  The test is that there is no exception and no errors.
 
@@ -252,7 +252,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (63, 69),
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
-         Enqueue_Low             => 25,
+         Enqueue_Low             => 21,
          Enqueue_High            => 123,
          Check_Low               => 6,
          Check_High              => 29,
@@ -285,9 +285,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (84, 84),
          Ops                     => +(Push_Back, +END_ID, 22) & (Insert, +END_ID, 22) & (Insert, +IF_ID, 22) &
            (Insert, +SEMICOLON_ID, 22),
-         Enqueue_Low             => 45,
+         Enqueue_Low             => 20,
          Enqueue_High            => 149,
-         Check_Low               => 10,
+         Check_Low               => 9,
          Check_High              => 36,
          Cost                    => 2,
          Expecting               => WisiToken.To_Token_ID_Set
@@ -328,9 +328,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +Wisi_EOI_ID,
          Error_Token_Byte_Region => (27, 27),
          Ops                     => +(Insert, +END_ID, 7) & (Insert, +SEMICOLON_ID, 7),
-         Enqueue_Low             => 37,
+         Enqueue_Low             => 33,
          Enqueue_High            => 178,
-         Check_Low               => 6,
+         Check_Low               => 5,
          Check_High              => 26,
          Cost                    => 2);
    end Check_Accept;
@@ -378,9 +378,9 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +BEGIN_ID, 4) &
              (Push_Back, +declarative_part_opt_ID, 4) &
              (Delete, +BEGIN_ID, 4),
-         Enqueue_Low             => 32,
+         Enqueue_Low             => 28,
          Enqueue_High            => 110,
-         Check_Low               => 7,
+         Check_Low               => 6,
          Check_High              => 17,
          Cost                    => 1);
    end Extra_Begin;
@@ -417,7 +417,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
-         Enqueue_Low             => 6,
+         Enqueue_Low             => 4,
          Enqueue_High            => 42,
          Check_Low               => 2,
          Check_High              => 20,
@@ -570,9 +570,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (58, 58),
          Ops                     => +(Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +CASE_ID, 13) &
            (Insert, +SEMICOLON_ID, 13),
-         Enqueue_Low             => 20,
+         Enqueue_Low             => 18,
          Enqueue_High            => 64,
-         Check_Low               => 10,
+         Check_Low               => 9,
          Check_High              => 21,
          Cost                    => 3);
 
@@ -594,9 +594,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (59, 69),
          Ops                     => +(Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +CASE_ID, 13) &
            (Insert, +SEMICOLON_ID, 13),
-         Enqueue_Low             => 35,
+         Enqueue_Low             => 16,
          Enqueue_High            => 52,
-         Check_Low               => 11,
+         Check_Low               => 9,
          Check_High              => 19,
          Cost                    => 3);
 
@@ -614,9 +614,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Push_Back, +END_ID, 10)  & (Insert, +END_ID, 10) & (Insert, +IF_ID, 10) &
            (Insert, +SEMICOLON_ID, 10),
-         Enqueue_Low             => 52,
+         Enqueue_Low             => 20,
          Enqueue_High            => 110,
-         Check_Low               => 10,
+         Check_Low               => 9,
          Check_High              => 28,
          Cost                    => 2);
 
@@ -635,9 +635,9 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (52, 52),
          Ops                     => +(Push_Back, +END_ID, 12) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) &
            (Insert, +SEMICOLON_ID, 12),
-         Enqueue_Low             => 31,
+         Enqueue_Low             => 19,
          Enqueue_High            => 111,
-         Check_Low               => 10,
+         Check_Low               => 9,
          Check_High              => 23,
          Cost                    => 2);
    end Pattern_1;
@@ -751,9 +751,9 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +EXCEPTION_ID, 8) & (Push_Back, +sequence_of_statements_opt_ID, 8) &
              (Delete, +EXCEPTION_ID, 8),
-         Enqueue_Low             => 44,
+         Enqueue_Low             => 39,
          Enqueue_High            => 150,
-         Check_Low               => 12,
+         Check_Low               => 10,
          Check_High              => 35,
          Cost                    => 4);
    end If_In_Handler;
@@ -784,9 +784,9 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +Wisi_EOI_ID,
          Ops                     => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
-         Enqueue_Low             => 41,
+         Enqueue_Low             => 36,
          Enqueue_High            => 270,
-         Check_Low               => 10,
+         Check_Low               => 9,
          Check_High              => 36,
          Cost                    => 5);
    end Zombie_In_Resume;
@@ -1160,9 +1160,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (38, 40),
          Ops_Race_Condition      => True,
-         Enqueue_Low             => 11,
+         Enqueue_Low             => 7,
          Enqueue_High            => 56,
-         Check_Low               => 5,
+         Check_Low               => 4,
          Check_High              => 19,
          Cost                    => 3);
    end Two_Parsers_1;
@@ -1422,9 +1422,9 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
-         Enqueue_Low             => 74,
+         Enqueue_Low             => 38,
          Enqueue_High            => 164,
-         Check_Low               => 20,
+         Check_Low               => 15,
          Check_High              => 44,
          Cost                    => 5);
    end Actual_Parameter_Part_1;
@@ -1654,7 +1654,7 @@ package body Test_McKenzie_Recover is
          Ops_Race_Condition      => True,
          Enqueue_Low             => 100,
          Enqueue_High            => 167,
-         Check_Low               => 15,
+         Check_Low               => 14,
          Check_High              => 25,
          Cost                    => 0);
    end Enqueue_Limit;
@@ -1673,9 +1673,9 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (65, 67),
          Ops                     => +(Insert, +RIGHT_PAREN_ID, 16) & (Insert, +SEMICOLON_ID, 16),
-         Enqueue_Low             => 45,
+         Enqueue_Low             => 12,
          Enqueue_High            => 110,
-         Check_Low               => 11,
+         Check_Low               => 6,
          Check_High              => 20,
          Cost                    => 2);
    end Multiple_Complete_Reduce;

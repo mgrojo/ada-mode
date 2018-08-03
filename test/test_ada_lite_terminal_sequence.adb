@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with AUnit.Checks.Containers;
 with Ada.Text_IO;
-with Wisi.Generate_Utils;
+with WisiToken.BNF.Generate_Utils;
 with WisiToken.AUnit;
 with WisiToken.Generate.LR;
 with WisiToken.LR.Parser_No_Recover;
@@ -41,7 +41,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
       use WisiToken.AUnit.Token_ID_Arrays_AUnit;
       use AUnit.Checks.Containers;
 
-      Input_File_Name  : constant String := "../wisi/test/ada_lite.wy";
+      Input_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
 
       Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
       Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
@@ -51,13 +51,13 @@ package body Test_Ada_Lite_Terminal_Sequence is
 
       Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
       Grammar_Parser.Parse;
-      Input_Data.User_Parser := Wisi.LALR;
+      Input_Data.User_Parser := WisiToken.BNF.LALR;
       Grammar_Parser.Execute_Actions;
 
       declare
-         use Wisi.Generate_Utils;
+         use WisiToken.BNF.Generate_Utils;
 
-         Generate_Data : aliased constant Wisi.Generate_Utils.Generate_Data := Initialize (Input_Data);
+         Generate_Data : aliased constant WisiToken.BNF.Generate_Utils.Generate_Data := Initialize (Input_Data);
 
          Computed : WisiToken.Token_Sequence_Arrays.Vector;
          Sequence : WisiToken.Token_ID_Arrays.Vector;

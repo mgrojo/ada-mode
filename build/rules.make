@@ -9,8 +9,7 @@
 
 VPATH := ../..
 VPATH += ../Test
-VPATH += ../wisi
-VPATH += ../wisi/test
+VPATH += ../Test/bnf
 
 vpath %.texinfo ../Docs
 vpath %.wy ../wisi/test
@@ -27,7 +26,7 @@ else
    $(error "Don't know dynamic lib file extension for $(GPRBUILD_TARGET)")
 endif
 
-tests :: wisi-generate.exe
+tests :: wisitoken-bnf-generate.exe
 tests :: gen
 tests :: test_all_harness.diff
 
@@ -52,9 +51,9 @@ gen :: skip_to_grammar_re2c.c
 gen :: subprograms_re2c.c
 gen :: warth_left_recurse_expr_1_re2c.c
 
-test_all_harness.out : test_all_harness.exe wisi-generate.exe gen test-executables
+test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-executables
 
-install: library wisi-generate.exe
+install: library wisitoken-bnf-generate.exe
 	make -f Install.make install
 
 uninstall:
@@ -78,9 +77,9 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
 # We want the files generated for wisi_grammar in ../wisi, for CM, and to avoid deleting them in clean.
-# We don't include wisi-generate.exe in the dependencies here, to allow bootstrapping.
+# We don't include wisitoken-bnf-generate.exe in the dependencies here, to allow bootstrapping.
 ../wisi/wisi_grammar.re2c : wisi_grammar.wy
-	cd ../wisi; $(CURDIR)/wisi-generate.exe wisi_grammar.wy
+	cd ../wisi; $(CURDIR)/wisitoken-bnf-generate.exe wisi_grammar.wy
 	dos2unix ../wisi/wisi_grammar*
 
 ../wisi/wisi_grammar_re2c.c : ../wisi/wisi_grammar.re2c
@@ -94,9 +93,9 @@ wisi_grammar-clean :
 update-wisi_grammar : wisi_grammar-clean ../wisi/wisi_grammar_re2c.c
 
 # Executables are normally compiled by the test project file, which requires AUnit
-# Override the project file for wisi-generate.exe, for use with Emacs Ada mode without AUnit
-wisi-generate.exe : force
-	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisi-generate $(GPRBUILD_LINK_ARGS)
+# Override the project file for wisitoken-bnf-generate.exe, for use with Emacs Ada mode without AUnit
+wisitoken-bnf-generate.exe : force
+	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisitoken-bnf-generate $(GPRBUILD_LINK_ARGS)
 
 test-executables : force
 	gprbuild -p --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
@@ -110,8 +109,8 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-%.re2c : %.wy wisi-generate.exe
-	./wisi-generate.exe --test_main $<
+%.re2c : %.wy wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --test_main $<
 	dos2unix -q $**
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*

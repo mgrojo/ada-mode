@@ -1,4 +1,4 @@
---  Copyright (c) 2009, 2010 Stephen Leake <stephen_leake@stephe-leake.org>
+--  Copyright (c) 2009, 2010, 2018 Stephen Leake <stephen_leake@stephe-leake.org>
 --
 --  This program is free software; you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ project WisiToken_Test is
      (
       ".",
       "../Test",
-      "../wisi/test"
+      "../Test/bnf"
      );
 
    for Languages use ("Ada", "C");

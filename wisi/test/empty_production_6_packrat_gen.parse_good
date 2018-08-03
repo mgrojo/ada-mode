@@ -1,7 +1,0 @@
- 10 tokens lexed
-label_opt_0: (label_opt, (10 . 16)) <= ( 2:(IDENTIFIER, (10 . 14)),  3:(COLON, (16 . 16)))
-statement_0: (statement, (10 . 27)) <= ((label_opt, (10 . 16)),  4:(IDENTIFIER, (21 . 21)),  5:(COLON_EQUAL, (23 . 24)),  6:(IDENTIFIER, (26 . 26)),  7:(SEMICOLON, (27 . 27)))
-sequence_of_statements_1: (sequence_of_statements, (10 . 27)) <= ((statement, (10 . 27)))
-label_opt_1: (label_opt) <= ()
-compilation_unit_0: (compilation_unit, (1 . 32)) <= ( 1:(BEGIN, (1 . 5)), (sequence_of_statements, (10 . 27)),  8:(END, (29 . 31)),  9:(SEMICOLON, (32 . 32)))
-wisitoken_accept_0: (wisitoken_accept, (1 . 34)) <= ((compilation_unit, (1 . 32)),  10:(Wisi_EOI, (35 . 34)))
