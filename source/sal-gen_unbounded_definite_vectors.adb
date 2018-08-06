@@ -379,6 +379,12 @@ package body SAL.Gen_Unbounded_Definite_Vectors is
       end if;
    end Set_Last;
 
+   procedure Set_First_Last (Container : in out Vector; First : in Index_Type; Last : in Extended_Index)
+   is begin
+      Set_First (Container, First);
+      Set_Last (Container, Last);
+   end Set_First_Last;
+
    procedure Set_Length (Container : in out Vector; Length : in Ada.Containers.Count_Type)
    is
       use all type Ada.Containers.Count_Type;

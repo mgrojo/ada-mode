@@ -114,6 +114,7 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    procedure Set_First (Container : in out Vector; First : in Index_Type);
    procedure Set_Last (Container : in out Vector; Last : in Extended_Index);
+   procedure Set_First_Last (Container : in out Vector; First : in Index_Type; Last : in Extended_Index);
    --  Default First is Index_Type'First.
    --  Elements with First <= index <= Last that have not been set have
    --  Element_Type default value.
