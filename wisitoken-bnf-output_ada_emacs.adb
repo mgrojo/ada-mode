@@ -50,7 +50,7 @@ procedure WisiToken.BNF.Output_Ada_Emacs
 is
    use all type Standard.Ada.Containers.Count_Type;
 
-   Language_Runtime_Package : constant String := "WisiToken.Wisi_Runtime." & Language_Name;
+   Language_Runtime_Package : constant String := "Wisi." & Language_Name;
 
    Blank_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ");
 
@@ -909,8 +909,8 @@ is
          Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
          Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
          Indent_Line ("is");
-         Indent_Start ("   Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames");
-         Put_Line (" WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);");
+         Indent_Start ("   Parse_Data : Wisi.Parse_Data_Type renames");
+         Put_Line (" Wisi.Parse_Data_Type (User_Data);");
          Indent_Line ("begin");
          Indent := Indent + 3;
 
@@ -998,7 +998,7 @@ is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
+      Put_Line ("with Wisi; use Wisi;");
       if Input_Data.Language_Params.Language_Runtime then
          Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
          --  For language-specific names in actions, checks.

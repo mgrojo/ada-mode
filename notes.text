@@ -20,9 +20,11 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-propagate from main
-
-propagate to main
+fix ada_mode-recover_23.adb
+    one fix inserts "end if ;", next pushes that back, inserts "if then"
+    reproduce in ada_lite
+    language_fixes insert in ops in token_index order
+    delete config.insert; parse, fast_forward use config.ops, handle delete.
 
 Minimal_Complete_Actions
     seems to be working

@@ -220,6 +220,8 @@ package WisiToken is
       --  Index into the production table.
    end record;
 
+   Invalid_Production_ID : constant Production_ID := (others => <>);
+
    function Image (Item : in Production_ID) return String;
    --  Ada positional aggregate syntax, for code generation.
 
