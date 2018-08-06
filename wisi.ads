@@ -356,14 +356,14 @@ private
       First_Terminals_Index : WisiToken.Base_Token_Index := WisiToken.Base_Token_Arrays.No_Index;
       --  For virtual tokens, No_Index.
       --
-      --  For terminal tokens, index of this token in State.Terminals.
+      --  For terminal tokens, index of this token in Parser.Terminals.
       --
       --  For nonterminal tokens, index of first contained token in
-      --  State.Terminals.
+      --  Parser.Terminals.
 
       Last_Terminals_Index : WisiToken.Base_Token_Index := WisiToken.Base_Token_Arrays.No_Index;
       --  For non-virtual nonterminal tokens, index of last contained
-      --  token in State.Terminals.
+      --  token in Parser.Terminals.
       --
       --  For all others, same as First_Terminals_Index.
 
@@ -610,7 +610,7 @@ private
       ID    : in WisiToken.Token_ID;
       Token : in Augmented_Token'Class)
      return WisiToken.Base_Token_Index;
-   --  Return index to State.Terminals of first token in
+   --  Return index in Parser.Terminals of first token in
    --  Token.Char_Region with ID. If not found, return
    --  No_Index.
    --  FIXME: use tree instead?

@@ -27,30 +27,35 @@ with WisiToken.Syntax_Trees;
 package Wisi.Libadalang is
 
    type Lexer is new WisiToken.Lexer.Instance with record
-     TDH : Standard.Libadalang.Lexer.Token_Data_Handlers.Token_Data_Handler_Access;
+     TDH : access constant Standard.Libadalang.Lexer.Token_Data_Handlers.Token_Data_Handler;
    end record;
-   procedure Reset_With_String (Lexer : in out Wisi.Libadalang.Lexer; Input : in String);
+   overriding procedure Reset_With_String (Lexer : in out Wisi.Libadalang.Lexer; Input : in String);
+   overriding
    procedure Reset_With_String_Access
      (Lexer : in out Wisi.Libadalang.Lexer;
       Input : in     Ada.Strings.Unbounded.String_Access);
-   procedure Reset_With_File (Lexer : in out Wisi.Libadalang.Lexer; File_Name : in String);
-   procedure Reset (Lexer : in out Wisi.Libadalang.Lexer);
-   procedure Discard_Rest_Of_Input (Lexer : in out Wisi.Libadalang.Lexer);
-   function Buffer_Text (Lexer : in Wisi.Libadalang.Lexer; Byte_Region : in WisiToken.Buffer_Region) return String;
-   function First (Lexer : in Wisi.Libadalang.Lexer) return Boolean
+   overriding procedure Reset_With_File (Lexer : in out Wisi.Libadalang.Lexer; File_Name : in String);
+   overriding procedure Reset (Lexer : in out Wisi.Libadalang.Lexer);
+   overriding procedure Discard_Rest_Of_Input (Lexer : in out Wisi.Libadalang.Lexer);
+   overriding
+   function Buffer_Text
+     (Lexer       : in Wisi.Libadalang.Lexer;
+      Byte_Region : in WisiToken.Buffer_Region)
+     return String;
+   overriding function First (Lexer : in Wisi.Libadalang.Lexer) return Boolean
      is (raise SAL.Not_Implemented);
-   function Find_Next
+   overriding function Find_Next
      (Lexer : in out Wisi.Libadalang.Lexer;
       Token :    out WisiToken.Base_Token)
      return Boolean
      is (raise SAL.Not_Implemented);
-   function File_Name (Lexer : in Wisi.Libadalang.Lexer) return String
+   overriding function File_Name (Lexer : in Wisi.Libadalang.Lexer) return String
      is (raise SAL.Not_Implemented);
 
    type Parser is new WisiToken.Parse.Base_Parser with record
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
 
-      Unit : Standard.Libadalang.Analysis.Analysis_Unit;
+      Unit : aliased Standard.Libadalang.Analysis.Analysis_Unit;
       --  FIXME: Errors : ?
 
       Tree : WisiToken.Syntax_Trees.Tree;

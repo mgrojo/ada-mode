@@ -765,10 +765,10 @@ constant_opt
 
 constraint
   : RANGE range_g ;; range_constraint
- ;; | digits_constraint
- ;; | delta_constraint
+ ;; FIXME: | digits_constraint
+ ;; FIXME: | delta_constraint
   | index_constraint
- ;; | discriminant_constraint
+ ;; | discriminant_constraint same as aspect_specification
   ;
 
 constraint_opt
@@ -1006,7 +1006,7 @@ exception_choice_list
   | exception_choice
   ;
 
-;; leaving out [aspect_specification]
+;; FIXME: leaving out [renaming] [aspect_specification]
 exception_declaration
   : identifier_list COLON EXCEPTION SEMICOLON
     %((wisi-statement-action [1 statement-start 4 statement-end]))%
@@ -1607,7 +1607,7 @@ name
 
   | name actual_parameter_part
  ;; type_conversion, function_call, procedure call, generic
- ;; instantiation.
+ ;; instantiation, indexed_component.
  ;;
  ;; test/ada_mode-parens.adb
  ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
@@ -1652,10 +1652,10 @@ name
     %()%
     %((wisi-propagate-name 1))%
 
-  ;; | explicit_dereference
-  ;; | indexed_component
-  ;; | generalized_reference
-  ;; | generalized_indexing
+  ;; | explicit_dereference in selected_component
+  ;; | indexed_component same as 'name actual_parameter_part' above
+  ;; | generalized_reference same as 'name'
+  ;; | generalized_indexing same as 'indexed_component'
   ;
 
 name_opt
@@ -1919,7 +1919,7 @@ primary
     %((wisi-indent-action [(ada-indent-aggregate)]))%
   | name
   | NEW name
- ;; allocator, leaving out subpool_specification.
+ ;; allocator, FIXME: leaving out subpool_specification.
     %((wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))%
  ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by aggregate
  ;; | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN ; covered by aggregate

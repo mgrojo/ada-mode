@@ -39,6 +39,7 @@ is
       Put_Line ("usage: <file_name> <parse_action> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
       Put_Line ("options:");
+      Put_Line ("--verbosity n m : parse, action");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       New_Line;
@@ -53,8 +54,6 @@ is
    Start        : Ada.Real_Time.Time;
 
 begin
-   Parser.Trace := Trace'Unrestricted_Access;
-
    declare
       use Ada.Command_Line;
    begin
@@ -79,6 +78,11 @@ begin
             Repeat_Count := Integer'Value (Argument (Arg + 1));
             Arg := Arg + 2;
 
+         elsif Argument (Arg) = "--verbosity" then
+            WisiToken.Trace_Parse  := Integer'Value (Argument (Arg + 1));
+            WisiToken.Trace_Action := Integer'Value (Argument (Arg + 2));
+            Arg                    := Arg + 3;
+
          else
             Put_Line ("unrecognized option: '" & Argument (Arg) & "'");
             Put_Usage;
@@ -86,6 +90,11 @@ begin
          end if;
       end loop;
    end;
+
+   Parser.Trace            := Trace'Unrestricted_Access;
+   Parser.Lexer            := new Wisi.Libadalang.Lexer (Trace'Unrestricted_Access);
+   Parser.User_Data        := Parse_Data'Unrestricted_Access;
+   Parser.Source_File_Name := Source_File_Name;
 
    Parse_Data.Initialize
      (Post_Parse_Action => Post_Parse_Action,
@@ -120,7 +129,10 @@ begin
          if Repeat_Count = 1 then
             Parse_Data.Put;
 
-            --  FIXME: errors!
+            --  FIXME: put errors via parse_data.put
+            if Parser.Any_Errors then
+               Parser.Put_Errors (-Source_File_Name);
+            end if;
             --  Parse_Data.Put
             --       (Parser.Lexer.Errors,
             --        Parser.Parsers.First.State_Ref.Errors,

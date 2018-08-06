@@ -26,15 +26,15 @@ package body Wisi.Gpr is
       Descriptor        : access constant WisiToken.Descriptor;
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
-      Line_Count        : in     Line_Number_Type;
+      Line_Count        : in     WisiToken.Line_Number_Type;
       Params            : in     String)
    is
       use Ada.Strings.Fixed;
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
-      Wisi_Runtime.Initialize
-        (Wisi_Runtime.Parse_Data_Type (Data), Descriptor, Source_File_Name, Post_Parse_Action, Line_Count, "");
+      Wisi.Initialize
+        (Wisi.Parse_Data_Type (Data), Descriptor, Source_File_Name, Post_Parse_Action, Line_Count, "");
 
       if Params /= "" then
          --  must match [1] wisi-parse-format-language-options
