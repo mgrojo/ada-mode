@@ -1091,6 +1091,9 @@ is
 
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");
+
+      when External =>
+         null;
       end case;
 
       Put_Line ("package body " & Main_Package_Name & " is");
@@ -1114,6 +1117,9 @@ is
 
       when Packrat_Proc =>
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+
+      when External =>
+         null;
       end case;
 
       case Common_Data.Interface_Kind is
@@ -1436,7 +1442,7 @@ is
 
 begin
    case Common_Data.Lexer is
-   when re2c_Lexer =>
+   when None | re2c_Lexer =>
       null;
 
    when Elisp_Lexer =>
@@ -1465,24 +1471,27 @@ begin
             when Process  => "_process_actions.ads",
             when Module   => "_module_actions.ads"),
          Package_Name     => Actions_Package_Name,
-         Descriptor       => Generate_Data.Descriptor.all,
          Input_Data       => Input_Data,
          Common_Data      => Common_Data,
          Generate_Data    => Generate_Data);
 
-      Create_Ada_Main_Body
-        (Output_File_Name_Root & "_" &
-           To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
-           To_Lower (Gen_Alg_Name) & "_main.adb",
-         Actions_Package_Name, Main_Package_Name);
+      if Tuple.Gen_Alg = External then
+         Create_External_Main_Spec (Actions_Package_Name, Main_Package_Name, Tuple, Input_Data, Generate_Data);
+      else
+         Create_Ada_Main_Body
+           (Output_File_Name_Root & "_" &
+              To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
+              To_Lower (Gen_Alg_Name) & "_main.adb",
+            Actions_Package_Name, Main_Package_Name);
 
-      Create_Ada_Main_Spec
-        (Output_File_Name  => Output_File_Name_Root & "_" &
-           To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
-           To_Lower (Gen_Alg_Name) & "_main.ads",
-         Main_Package_Name => Main_Package_Name,
-         Common_Data       => Common_Data,
-         Input_Data        => Input_Data);
+         Create_Ada_Main_Spec
+           (Output_File_Name  => Output_File_Name_Root & "_" &
+              To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
+              To_Lower (Gen_Alg_Name) & "_main.ads",
+            Main_Package_Name => Main_Package_Name,
+            Common_Data       => Common_Data,
+            Input_Data        => Input_Data);
+      end if;
    end;
 
    case Common_Data.Interface_Kind is

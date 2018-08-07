@@ -249,10 +249,10 @@ package body WisiToken.BNF.Generate_Utils is
 
          Result.Descriptor.Last_Lookahead       :=
            (case (Input_Data.User_Parser) is
-            when None                       => raise Programmer_Error,
-            when LR1                        => Result.Descriptor.Last_Terminal,
-            when LALR                       => Result.Descriptor.First_Nonterminal,
-            when Packrat_Generate_Algorithm => Invalid_Token_ID);
+            when None                                  => raise Programmer_Error,
+            when LR1                                   => Result.Descriptor.Last_Terminal,
+            when LALR                                  => Result.Descriptor.First_Nonterminal,
+            when Packrat_Generate_Algorithm | External => Invalid_Token_ID);
 
          for Cursor in All_Tokens (Result).Iterate loop
             Result.Descriptor.Image (ID (Cursor)) := new String'(Name_1 (Cursor));

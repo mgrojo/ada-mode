@@ -27,7 +27,7 @@ package WisiToken.BNF.Output_Ada_Common is
    type Common_Data is limited record
       --  Validated versions of Tuple values
       Generate_Algorithm : WisiToken.BNF.Valid_Generate_Algorithm;
-      Lexer              : Valid_Lexer;
+      Lexer              : Lexer_Type; --  'none' valid for Libadalang
       Output_Language    : Ada_Output_Language;
       Interface_Kind     : Valid_Interface;
       Text_Rep           : Boolean;
@@ -45,18 +45,25 @@ package WisiToken.BNF.Output_Ada_Common is
    function File_Name_To_Ada (File_Name : in String) return String;
 
    procedure Create_Ada_Actions_Spec
-     (Output_File_Name :         in              String;
-      Package_Name     :         in              String;
-      Descriptor       :         in              WisiToken.Descriptor;
-      Input_Data       :         in              WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Common_Data      :         in              Output_Ada_Common.Common_Data;
-      Generate_Data    : aliased in              WisiToken.BNF.Generate_Utils.Generate_Data);
+     (Output_File_Name :         in String;
+      Package_Name     :         in String;
+      Input_Data       :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Common_Data      :         in Output_Ada_Common.Common_Data;
+      Generate_Data    : aliased in WisiToken.BNF.Generate_Utils.Generate_Data);
 
    procedure Create_Ada_Main_Spec
      (Output_File_Name  : in String;
       Main_Package_Name : in String;
       Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Common_Data       : in Output_Ada_Common.Common_Data);
+      Common_Data       : in Output_Ada_Common.Common_Data)
+   with Pre => Common_Data.Generate_Algorithm /= External;
+
+   procedure Create_External_Main_Spec
+     (Actions_Package_Name : in String;
+      Main_Package_Name    : in String;
+      Tuple                : in Generate_Tuple;
+      Input_Data           : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Generate_Data        : in Generate_Utils.Generate_Data);
 
    procedure LR_Create_Create_Parser
      (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;

@@ -391,11 +391,8 @@ begin
                WisiToken.BNF.Generate_Utils.Put_Stats (Input_Data, Generate_Data);
 
             when Packrat_Generate_Algorithm =>
-               if Do_Time then
-                  --  The only significant computation done for Packrat is First, done
-                  --  in Initialize; not worth timing.
-                  Put_Line (Standard_Error, " --time not supported for Packrat");
-               end if;
+               --  The only significant computation done for Packrat is First, done
+               --  in Initialize; not worth timing.
 
                Packrat_Data := WisiToken.Generate.Packrat.Initialize
                  (Input_Data.Grammar_Lexer.File_Name, Generate_Data.Grammar, Generate_Data.Source_Line_Map,
@@ -408,6 +405,9 @@ begin
                WisiToken.Productions.Put (Generate_Data.Grammar, Generate_Data.Descriptor.all);
 
                Packrat_Data.Check_All (Generate_Data.Descriptor.all);
+
+            when External =>
+               null;
             end case;
 
             if WisiToken.Trace_Generate = 0 then

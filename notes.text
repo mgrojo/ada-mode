@@ -26,6 +26,8 @@ fix ada_mode-recover_23.adb
     language_fixes insert in ops in token_index order
     delete config.insert; parse, fast_forward use config.ops, handle delete.
 
+    fast_forward edit prev, don't insert two sequential
+
 Minimal_Complete_Actions
     seems to be working
 

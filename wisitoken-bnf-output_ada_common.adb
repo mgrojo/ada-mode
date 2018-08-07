@@ -20,11 +20,12 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Multiprocessors;
+with WisiToken.BNF.Generate_Grammar;
+with WisiToken.BNF.Utils;
 with WisiToken.Generate; use WisiToken.Generate;
 with WisiToken.LR;
 with WisiToken.Productions;
-with WisiToken.BNF.Generate_Grammar;
-with WisiToken.BNF.Utils;
+with WisiToken.Syntax_Trees;
 package body WisiToken.BNF.Output_Ada_Common is
 
    --  Public subprograms in alphabetical order
@@ -32,7 +33,6 @@ package body WisiToken.BNF.Output_Ada_Common is
    procedure Create_Ada_Actions_Spec
      (Output_File_Name :         in String;
       Package_Name     :         in String;
-      Descriptor       :         in WisiToken.Descriptor;
       Input_Data       :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Common_Data      :         in Output_Ada_Common.Common_Data;
       Generate_Data    : aliased in WisiToken.BNF.Generate_Utils.Generate_Data)
@@ -40,9 +40,10 @@ package body WisiToken.BNF.Output_Ada_Common is
       use all type WisiToken.Names_Array_Access;
       use Generate_Utils;
 
-      Spec_File  : File_Type;
-      Paren_Done : Boolean      := False;
-      Cursor     : Token_Cursor := First (Generate_Data, Non_Grammar => True, Nonterminals => True);
+      Descriptor  : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
+      Spec_File : File_Type;
+      Paren_Done  : Boolean      := False;
+      Cursor      : Token_Cursor := First (Generate_Data, Non_Grammar => True, Nonterminals => True);
    begin
       Create (Spec_File, Out_File, Output_File_Name);
       Set_Output (Spec_File);
@@ -234,6 +235,10 @@ package body WisiToken.BNF.Output_Ada_Common is
       end Packrat_Process;
 
    begin
+      if Common_Data.Generate_Algorithm = External then
+         raise Programmer_Error;
+      end if;
+
       Create (Spec_File, Out_File, Output_File_Name);
       Set_Output (Spec_File);
       Indent := 1;
@@ -273,6 +278,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       when Packrat_Generate_Algorithm =>
          Put_Line ("with WisiToken.Parse;");
 
+      when External =>
+         null;
       end case;
 
       Put_Line ("package " & Main_Package_Name & " is");
@@ -286,6 +293,8 @@ package body WisiToken.BNF.Output_Ada_Common is
             LR_Process;
          when Packrat_Generate_Algorithm =>
             Packrat_Process;
+         when External =>
+            null;
          end case;
 
       when Ada_Emacs =>
@@ -296,6 +305,8 @@ package body WisiToken.BNF.Output_Ada_Common is
                LR_Process;
             when Packrat_Generate_Algorithm =>
                Packrat_Process;
+            when External =>
+               null;
             end case;
 
          when Module =>
@@ -311,8 +322,101 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put_Line ("end " & Main_Package_Name & ";");
       Close (Spec_File);
       Set_Output (Standard_Output);
-
    end Create_Ada_Main_Spec;
+
+   procedure Create_External_Main_Spec
+     (Actions_Package_Name : in String;
+      Main_Package_Name    : in String;
+      Tuple                : in Generate_Tuple;
+      Input_Data           : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Generate_Data        : in Generate_Utils.Generate_Data)
+   is
+      Descriptor : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
+
+      File_Name : constant String := To_Lower (Main_Package_Name) & ".ads";
+      Spec_File : File_Type;
+   begin
+      Create (Spec_File, Out_File, File_Name);
+      Set_Output (Spec_File);
+      Indent := 1;
+
+      Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
+      Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
+      New_Line;
+
+      if Input_Data.Action_Count > 0 then
+         Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
+      end if;
+
+      Put_Line ("with Ada.Containers;");
+      Put_Line ("with WisiToken.Syntax_Trees;");
+      Put_Line ("package " & Main_Package_Name & " is");
+      Indent := Indent + 3;
+      New_Line;
+
+      Indent_Line ("type Action_Item is record");
+      Indent_Line ("   Token_Count : Ada.Containers.Count_Type;");
+      Indent_Line ("   Action      : WisiToken.Syntax_Trees.Semantic_Action;");
+      Indent_Line ("end record;");
+      Indent_Line ("type RHS_Array_Action is array (Natural range <>) of Action_Item;");
+
+      Indent_Wrap
+        ("Actions : constant array (Token_Enum_ID range " & Image (Descriptor.First_Nonterminal, Descriptor) &
+           "_ID .. " & Image (Descriptor.Last_Nonterminal, Descriptor) & "_ID) of access RHS_Array_Action :=");
+
+      Indent_Line ("  (");
+      Indent := Indent + 3;
+      for LHS in Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index loop
+         if Generate_Data.Action_Names (LHS) = null then
+            Indent_Line (Image (LHS, Descriptor) & "_ID => null,");
+
+         else
+            declare
+               use all type WisiToken.Syntax_Trees.Semantic_Action;
+               use all type Standard.Ada.Containers.Count_Type;
+               use Standard.Ada.Strings.Unbounded;
+               Grammar_RHSs : Productions.RHS_Arrays.Vector renames Generate_Data.Grammar (LHS).RHSs;
+               --  Grammar_RHSs.Action is not set.
+               Name_RHSs    : Names_Array renames Generate_Data.Action_Names (LHS).all;
+               Line         : Unbounded_String := +Image (LHS, Descriptor) & "_ID => new RHS_Array_Action'((";
+               Need_Comma   : Boolean          := False;
+            begin
+               if Grammar_RHSs.Length = 1 then
+                  Line := Line &
+                    (Trimmed_Image (Grammar_RHSs.First_Index) & " => (" &
+                       Trimmed_Image (Grammar_RHSs (Grammar_RHSs.First_Index).Tokens.Length) & ", " &
+                       Name_RHSs (Name_RHSs'First).all & "'Access)");
+               else
+                  for RHS_Index in Grammar_RHSs.First_Index .. Grammar_RHSs.Last_Index loop
+                     if Need_Comma then
+                        Line := Line & ", ";
+                     else
+                        Need_Comma := True;
+                     end if;
+                     if Name_RHSs (RHS_Index) = null then
+                        Line := Line & "(0, null)";
+                     else
+                        Line := Line & "(" & Trimmed_Image (Grammar_RHSs (RHS_Index).Tokens.Length) & ", " &
+                          Name_RHSs (RHS_Index).all & "'Access)";
+                     end if;
+                  end loop;
+               end if;
+               if LHS = Generate_Data.Grammar.Last_Index then
+                  Line := Line & "))";
+               else
+                  Line := Line & ")),";
+               end if;
+               Indent_Wrap (-Line);
+            end;
+         end if;
+      end loop;
+      Indent_Line (");");
+
+      Indent := Indent - 3;
+      Put_Line ("end " & Main_Package_Name & ";");
+      Close (Spec_File);
+      Set_Output (Standard_Output);
+   end Create_External_Main_Spec;
 
    procedure Create_LR_Parser_Core_1 (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
@@ -1249,8 +1353,8 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          Data.Output_Language := Ada_Output_Language (Tuple.Out_Lang);
 
-         if Input_Data.User_Lexer in Valid_Lexer then
-            Data.Lexer := Valid_Lexer (Input_Data.User_Lexer);
+         if Tuple.Gen_Alg = External or else Input_Data.User_Lexer in Valid_Lexer then
+            Data.Lexer := Input_Data.User_Lexer;
          else
             raise Programmer_Error;
          end if;

@@ -46,8 +46,8 @@ package WisiToken.BNF is
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
-   type Generate_Algorithm is (None, LALR, LR1, Packrat_Gen, Packrat_Proc);
-   subtype Valid_Generate_Algorithm is Generate_Algorithm range LALR .. Packrat_Proc;
+   type Generate_Algorithm is (None, LALR, LR1, Packrat_Gen, Packrat_Proc, External);
+   subtype Valid_Generate_Algorithm is Generate_Algorithm range LALR .. Generate_Algorithm'Last;
    subtype LR_Generate_Algorithm is Generate_Algorithm range LALR .. LR1;
    subtype Packrat_Generate_Algorithm is Generate_Algorithm range Packrat_Gen .. Packrat_Proc;
 
@@ -55,7 +55,8 @@ package WisiToken.BNF is
      (LALR         => new String'("LALR"),
       LR1          => new String'("LR1"),
       Packrat_Gen  => new String'("Packrat_Gen"),
-      Packrat_Proc => new String'("Packrat_Proc"));
+      Packrat_Proc => new String'("Packrat_Proc"),
+      External     => new String'("External"));
    --  Suitable for Ada package names.
 
    type Generate_Algorithm_Set is array (Generate_Algorithm) of Boolean;

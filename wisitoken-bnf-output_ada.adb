@@ -238,7 +238,7 @@ is
    is
       use WisiToken.Generate;
 
-      File_Name         : constant String := Output_File_Name_Root & To_Lower (Gen_Alg_Name) & "_main.adb";
+      File_Name         : constant String := To_Lower (Main_Package_Name) & ".adb";
       re2c_Package_Name : constant String := -Common_Data.Lower_File_Name_Root & "_re2c_c";
 
       Body_File : File_Type;
@@ -255,7 +255,7 @@ is
       Put_Line ("with " & re2c_Package_Name & ";");
       if (case Common_Data.Generate_Algorithm is
           when LR_Generate_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
-          when Packrat_Generate_Algorithm => Input_Data.Action_Count > 0)
+          when Packrat_Generate_Algorithm | External => Input_Data.Action_Count > 0)
       then
          Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
       end if;
@@ -270,6 +270,8 @@ is
       when Packrat_Proc =>
          Put_Line ("with WisiToken.Parse.Packrat.Procedural;");
          Put_Line ("with WisiToken.Productions;");
+      when External =>
+         raise Programmer_Error;
       end case;
 
       Put_Line ("package body " & Main_Package_Name & " is");
@@ -294,6 +296,8 @@ is
 
       when Packrat_Proc =>
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+      when External =>
+         raise Programmer_Error;
       end case;
 
       Put_Line ("end " & Main_Package_Name & ";");
@@ -315,11 +319,12 @@ is
                then "Gen_LR_Text_Rep_Parser_Run"
                else "Gen_LR_Parser_Run")
             else
-               (if Common_Data.Text_Rep
+              (if Common_Data.Text_Rep
                then "Gen_LR_Text_Rep_Parser_No_Recover_Run"
                else "Gen_LR_Parser_No_Recover_Run")),
 
-         when Packrat_Generate_Algorithm => "Gen_Packrat_Parser_Run");
+         when Packrat_Generate_Algorithm => "Gen_Packrat_Parser_Run",
+         when External => raise Programmer_Error);
 
       Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         "_" & Generate_Algorithm'Image (Common_Data.Generate_Algorithm) & "_Run";
@@ -363,7 +368,7 @@ is
 
 begin
    case Common_Data.Lexer is
-   when re2c_Lexer =>
+   when None | re2c_Lexer =>
       null;
 
    when Elisp_Lexer =>
@@ -391,17 +396,18 @@ begin
       end if;
 
       Create_Ada_Actions_Spec
-        (Output_File_Name_Root & "_actions.ads", Actions_Package_Name,
-         Generate_Data.Descriptor.all, Input_Data, Common_Data, Generate_Data);
+        (Output_File_Name_Root & "_actions.ads", Actions_Package_Name, Input_Data, Common_Data, Generate_Data);
 
-      Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
+      if Tuple.Gen_Alg = External then
+         Create_External_Main_Spec (Actions_Package_Name, Main_Package_Name, Tuple, Input_Data, Generate_Data);
+      else
+         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
 
-      Create_Ada_Main_Spec
-        (Output_File_Name_Root & To_Lower (Gen_Alg_Name) & "_main.ads", Main_Package_Name,
-         Input_Data, Common_Data);
+         Create_Ada_Main_Spec (To_Lower (Main_Package_Name) & ".ads", Main_Package_Name, Input_Data, Common_Data);
 
-      if Test_Main then
-         Create_Ada_Test_Main (Actions_Package_Name, Main_Package_Name);
+         if Test_Main then
+            Create_Ada_Test_Main (Actions_Package_Name, Main_Package_Name);
+         end if;
       end if;
    end;
 
