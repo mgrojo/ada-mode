@@ -14,37 +14,37 @@ all : test-clean tests
 # test_all_harness.adb
 #
 t_one :: one-clean
-t_one :: wisi-generate.exe
+t_one :: wisitoken-bnf-generate.exe
 t_one :: ada_lite_re2c.c
 t_one :: ada_lite_lr1_run.exe
 # t_one :: RUN_ARGS ?= Abandon_Pattern 2 3 > test_one_harness.log
 t_one :: test_one_harness.run
 
-t_all :: wisi-generate.exe gen test-executables
+t_all :: wisitoken-bnf-generate.exe gen test-executables
 t_all :: test_all_harness.run
 
 one-clean :
 	rm -rf ada_lite*
 
 # one :: one-clean
-one :: wisi-generate.exe
-	./wisi-generate.exe -v 2 --generate LR1 Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lr1_generate.log
+one :: wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe -v 2 --generate LR1 Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lr1_generate.log
 
 #c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make
-exec_pro/wisi-generate.exe : force
-	gprbuild -XStandard_Common_Profile=On -p -P wisitoken.gpr wisi-generate
+exec_pro/wisitoken-bnf-generate.exe : force
+	gprbuild -XStandard_Common_Profile=On -p -P wisitoken.gpr wisitoken-bnf-generate
 
-gmon.out : exec_pro/wisi-generate.exe
-	exec_pro/wisi-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
+gmon.out : exec_pro/wisitoken-bnf-generate.exe
+	exec_pro/wisitoken-bnf-generate.exe --generate LR1 Ada re2c ../wisi/test/ada_lite.wy
 
 generate_ada_lite_lr1.gprof : gmon.out
-	gprof exec_pro/wisi-generate.exe > generate_ada_lite_lr1.gprof
+	gprof exec_pro/wisitoken-bnf-generate.exe > generate_ada_lite_lr1.gprof
 
-two : wisi-generate.exe
-	./wisi-generate.exe -v 2 --generate LALR Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lalr_generate.log
+two : wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe -v 2 --generate LALR Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lalr_generate.log
 
 
 .PHONY : t_one_1 t_one_2

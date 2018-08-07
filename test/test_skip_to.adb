@@ -38,7 +38,7 @@ package body Test_Skip_To is
    is
       pragma Unreferenced (T);
 
-      File_Name : constant String := "../wisi/test/skip_to_grammar.input";
+      File_Name : constant String := "../Test/bnf/skip_to_grammar.input";
    begin
       Test_Skip_To_Aux.Enable := True;
 

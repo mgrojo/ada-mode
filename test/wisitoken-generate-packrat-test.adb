@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with AUnit.Checks;
 with Ada.Text_IO;
-with Wisi.Generate_Utils;
+with WisiToken.BNF.Generate_Utils;
 with WisiToken.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
@@ -35,7 +35,7 @@ package body WisiToken.Generate.Packrat.Test is
    is
       pragma Unreferenced (T);
 
-      Grammar_File_Name  : constant String := "../wisi/test/ada_lite.wy";
+      Grammar_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
       Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Grammar_Parser     : WisiToken.LR.Parser_No_Recover.Parser;
       Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
@@ -50,13 +50,13 @@ package body WisiToken.Generate.Packrat.Test is
 
       Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
       Grammar_Parser.Parse;
-      Grammar_Parse_Data.User_Parser := Wisi.Packrat_Gen;
+      Grammar_Parse_Data.User_Parser := WisiToken.BNF.Packrat_Gen;
       Grammar_Parser.Execute_Actions;
 
       declare
          use AUnit.Checks;
 
-         Generate_Data : constant Wisi.Generate_Utils.Generate_Data := Wisi.Generate_Utils.Initialize
+         Generate_Data : constant WisiToken.BNF.Generate_Utils.Generate_Data := WisiToken.BNF.Generate_Utils.Initialize
            (Grammar_Parse_Data);
 
          Packrat_Data : constant WisiToken.Generate.Packrat.Data := WisiToken.Generate.Packrat.Initialize

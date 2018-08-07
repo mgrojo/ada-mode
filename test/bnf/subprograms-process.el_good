@@ -1,0 +1,64 @@
+;;; subprograms-process.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;  command line: wisitoken-bnf-generate.exe  --generate PACKRAT_PROC ADA_EMACS re2c PROCESS ../Test/bnf/subprograms.wy
+
+;;  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
+;;
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+(require 'wisi-process-parse)
+
+(defconst subprograms-process-token-table
+  [WHITESPACE
+   NEW_LINE
+   COMMENT
+   BEGIN
+   END
+   EXCEPTION
+   FOR
+   FUNCTION
+   IN
+   LOOP
+   PROCEDURE
+   WHEN
+   USE
+   LEFT_PAREN
+   RIGHT_PAREN
+   COMMA
+   DOT
+   SEMICOLON
+   SYMBOL
+   Wisi_EOI
+   wisitoken_accept
+   block
+   compilation_unit
+   declarations
+   declaration
+   loop_statement
+   name
+   name_list
+   parameter_list
+   subprogram
+   subtype
+   use_clause
+   ])
+
+(defconst subprograms-process-face-table
+  [
+   font-lock-keyword-face
+   font-lock-type-face
+   font-lock-function-name-face
+   nil
+   ])
+
+(provide 'subprograms-process)

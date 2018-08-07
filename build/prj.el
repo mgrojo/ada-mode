@@ -60,4 +60,24 @@
 
 (add-hook 'ada-gnat-fix-error-hook 'wisitoken-gnat-fix-error)
 
+(defun wisitoken-ediff-good ()
+  (interactive)
+  ;; point is on a file in a test fail message:
+  ;;
+  ;; FAIL wisi_wy_test.adb-empty_production_2 : Run_Test
+  ;;     empty_production_2_lalr.parse_table:91
+  ;;
+  ;; ediff that file against the corresponding _good file.
+  ;;
+  ;; (thing-at-point ’filename) includes the trailing line number, so
+  ;; we need to strip it off.
+
+  (let* ((filename-line (thing-at-point 'filename))
+     (end (string-match ":[0-9]+$" filename-line))
+     (filename (if end (substring filename-line 0 end) filename-line))
+     (filename-good (concat filename "_good")))
+    (ediff (locate-file filename-good compilation-search-path)
+       (locate-file filename compilation-search-path))))
+
+(define-key compilation-mode-map "e" 'wisitoken-ediff-good)
 ;; end of file
