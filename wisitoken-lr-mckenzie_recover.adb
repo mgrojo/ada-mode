@@ -462,7 +462,7 @@ package body WisiToken.LR.McKenzie_Recover is
                      if Op.Op in Insert | Delete then
                         if Op.Token_Index < Last_Token_Index then
                            if Trace_McKenzie > Outline then
-                              Trace.Put
+                              Trace.Put_Line
                                 (Trimmed_Image (Parser_State.Label) &
                                    ": " & Image (Op, Descriptor) & ": insert/delete not in token_index order");
                            end if;
@@ -595,13 +595,15 @@ package body WisiToken.LR.McKenzie_Recover is
                end;
             exception
             when Bad_Config =>
+               if Parsers.Count = 1 then
+                  --  Oops. just give up
+                  return Fail_Programmer_Error;
+               end if;
                Parsers.Terminate_Parser (Current_Parser, "bad config in recover", Trace);
             end;
          end if;
          Current_Parser.Next;
       end loop;
-
-      Cleanup;
 
       if Shared_Parser.Post_Recover /= null then
          Shared_Parser.Post_Recover.all;

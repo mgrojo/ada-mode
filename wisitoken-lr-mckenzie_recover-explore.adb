@@ -78,6 +78,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Action            : in              Reduce_Action_Rec)
      return Non_Success_Status
    is
+      use all type SAL.Base_Peek_Type;
       --  Perform Action on Config, setting Config.Check_Status. If that is
       --  not Ok, call Language_Fixes (which may enqueue configs),
       --  return Abandon. Otherwise return Continue.
@@ -86,7 +87,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       Table     : Parse_Table renames Shared.Table.all;
       Nonterm   : Recover_Token;
-      New_State : State_Index;
+      New_State : Unknown_State_Index;
    begin
       Config.Check_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm, Default_Virtual => True);
       case Config.Check_Status.Label is
@@ -112,7 +113,15 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
       end case;
 
+      if Config.Stack.Depth = 0 or else Config.Stack (1).State = Unknown_State then
+         raise Bad_Config;
+      end if;
+
       New_State := Goto_For (Table, Config.Stack (1).State, Action.Production.LHS);
+
+      if New_State = Unknown_State then
+         raise Bad_Config;
+      end if;
 
       Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
       return Continue;
@@ -305,6 +314,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      Good_Item_Count := Good_Item_Count + 1;
 
                      Post_Fast_Forward_Fail := True;
+                     --  FIXME: just abandon this config; clearly the solution is wrong.
                      Insert_Ops_Count := SAL.Base_Peek_Type (Parsed_Config.Inserted.Length);
                      for I in reverse Parsed_Config.Ops.First_Index .. Parsed_Config.Ops.Last_Index loop
                         if Parsed_Config.Ops (I).Op = Insert then

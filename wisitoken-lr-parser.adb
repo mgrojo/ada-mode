@@ -49,7 +49,6 @@ package body WisiToken.LR.Parser is
 
       Parser_State  : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Children_Tree : Syntax_Trees.Valid_Node_Index_Array (1 .. SAL.Base_Peek_Type (Action.Token_Count));
-      --  for Set_Children.
    begin
       for I in reverse Children_Tree'Range loop
          Children_Tree (I) := Parser_State.Stack.Pop.Token;

@@ -35,9 +35,8 @@ package WisiToken.LR.McKenzie_Recover is
    --  convention; abandon it.
 
    type Recover_Status is
-     (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_Cost, Fail_No_Configs_Left,
+     (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_Cost, Fail_No_Configs_Left, Fail_Programmer_Error,
       Success);
-   subtype Fail_Recover_Status is Recover_Status range Fail_Check_Delta .. Fail_No_Configs_Left;
 
    function Recover (Shared_Parser : in out WisiToken.LR.Parser.Parser) return Recover_Status;
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to
