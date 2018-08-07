@@ -23,10 +23,10 @@ with Wisi_Grammar_1_Process_Main;
 with Gen_Emacs_Wisi_LR_Parse;
 with WisiToken.Wisi_Runtime;
 procedure Wisi_Grammar_Mode_Parse is new Gen_Emacs_Wisi_LR_Parse
-  (Parse_Data_Type              => WisiToken.Wisi_Runtime.Parse_Data_Type,
-   Name                         => "wisi_grammar_mode",
-   Descriptor                   => Wisi_Grammar_1_Process_Actions.Descriptor,
-   Language_Fixes               => null,
-   Language_Constrain_Terminals => null,
-   Language_String_ID_Set       => null,
-   Create_Parser                => Wisi_Grammar_1_Process_Main.Create_Parser);
+  (Parse_Data_Type                       => WisiToken.Wisi_Runtime.Parse_Data_Type,
+   Name                                  => "wisi_grammar_mode",
+   Descriptor                            => Wisi_Grammar_1_Process_Actions.Descriptor,
+   Language_Fixes                        => null,
+   Language_Use_Minimal_Complete_Actions => null,
+   Language_String_ID_Set                => null,
+   Create_Parser                         => Wisi_Grammar_1_Process_Main.Create_Parser);
