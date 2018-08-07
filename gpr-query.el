@@ -35,6 +35,10 @@
 (require 'cl-lib)
 (require 'compile)
 
+(eval-and-compile
+  (when (> emacs-major-version 24)
+    (require 'xref)))
+
 ;;;;; sessions
 
 ;; gpr_query reads the project files and the database at startup,
@@ -656,6 +660,9 @@ FILE must be non-nil; line, col can be nil."
   (setq ada-xref-overridden-function 'gpr-query-overridden-1)
   (setq ada-show-xref-tool-buffer    'gpr-query-show-buffer)
 
+  (when (> emacs-major-version 24)
+    (xref-ada-mode 1))
+
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
   )
 
@@ -672,6 +679,9 @@ FILE must be non-nil; line, col can be nil."
   (setq ada-xref-overriding-function nil)
   (setq ada-xref-overridden-function nil)
   (setq ada-show-xref-tool-buffer    nil)
+
+  (when (> emacs-major-version 24)
+    (xref-ada-mode 0))
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )

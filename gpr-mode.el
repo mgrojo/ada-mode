@@ -42,7 +42,7 @@
   "Major mode for editing gpr (Gnat Project File) source code in Emacs."
   :group 'languages)
 
-(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse"
+(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse.exe"
   "Name of executable to use for external process gpr parser,"
   :type 'string
   :group 'gpr)

@@ -52,6 +52,26 @@ run test from emacs -Q using source:
 c:/Projects/org.wisitoken.grammar_mode/Makefile
 
  current work
+test/ada_mode-recover_21.adb
+    if error_token is elsif, and 'if' is missing, insert 'if then'
+
+    recover not respecting spawn limit
+      aggregate_ID => new Int_Array_Action',
+      aliased_opt_ID => null,
+      and_interface_list_opt_ID => null,
+      array_type_definition_ID => new Int_Array_Action',
+      aspect_clause_ID => new Int_Array_Action',
+      aspect_specification_opt_ID => new Int_Array_Action',
+      assignment_statement_ID => new Int_Array_Action',
+      association_opt_ID => new Int_Array_Action',
+      association_list_ID => null,
+      asynchronous_select_ID => new Int_Array_Action',
+      at_clause_ID => new Int_Array_Action',
+      attribute_reference_ID => null,
+      attribute_designator_ID => null,
+      binary_adding_operator_ID => null,
+      block_label_ID => new Int_Array_Action',
+
 navigate error
    function Compare_Integer_16 (Left, Right : in Interfaces.Integer_16) return SAL.Compare_Result is
      (if Left > Right then SAL.Greater
