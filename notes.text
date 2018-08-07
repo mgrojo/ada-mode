@@ -24,7 +24,15 @@ fix ada_mode-recover_23.adb
     one fix inserts "end if ;", next pushes that back, inserts "if then"
     reproduce in ada_lite
     language_fixes insert in ops in token_index order
-    delete config.insert; parse, fast_forward use config.ops, handle delete.
+    doc config.insert
+        edits to terminals not yet parsed; created by language_fixes.
+        change to include delete
+        factor out 'next_token (next_terminal, next_insert_delete, insert_delete_list)'
+            handle delete
+            use in main parser, recover parse
+
+        remove token_id order constraint in recover
+            build parser_state.insert_delete in order
 
     fast_forward edit prev, don't insert two sequential
 
@@ -74,6 +82,8 @@ hint in grammar to prefer "null;" over "return;"?
 review fixmes
     eliminate stuff no longer used for recover
         review in ada-mode
+
+Error messages need gen_alg prefix - add to Error_message
 
 capture diff between lr1, lalr recover
 
@@ -154,6 +164,9 @@ speed up lr1 generate
     implement DeRemer, keep all => lr1
 
     multi-cpu
+
+Grune 9.10.6 Recursive Ascent for generated code, not table, LR parser.
+    Also 17.2.2
 
 compare to bison
 

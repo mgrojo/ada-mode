@@ -30,19 +30,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       ID                : in              Token_ID;
       Cost_Delta        : in              Integer)
    is
-      use all type SAL.Base_Peek_Type;
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
-
-      Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token);
    begin
       begin
-         if Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
-            Config.Ops.Append (Op);
-         else
-            Config.Ops.Insert (Op, Before => Config.Ops_Insert_Point);
-            Config.Inserted.Insert (ID, Before => Config.Current_Inserted);
-            Config.Current_Inserted := Config.Current_Inserted + 1;
-         end if;
+         Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
       exception
       when SAL.Container_Full =>
          if Trace_McKenzie > Outline then
@@ -194,12 +185,11 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
    end Do_Reduce_2;
 
    function Fast_Forward
-     (Super                  : not null access Base.Supervisor;
-      Shared                 : not null access Base.Shared;
-      Parser_Index           : in              SAL.Base_Peek_Type;
-      Local_Config_Heap      : in out          Config_Heaps.Heap_Type;
-      Config                 : in out          Configuration;
-      Post_Fast_Forward_Fail : in out          Boolean)
+     (Super             : not null access Base.Supervisor;
+      Shared            : not null access Base.Shared;
+      Parser_Index      : in              SAL.Base_Peek_Type;
+      Local_Config_Heap : in out          Config_Heaps.Heap_Type;
+      Config            : in out          Configuration)
      return Non_Success_Status
    is
       --  Apply the ops in Config; they were inserted by some fix.
@@ -223,13 +213,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          All_Conflicts     => True,
          Trace_Prefix      => "fast_forward")
       then
-         --  The config parsed without error, so continue with the parsed
-         --  config.
+         --  At least one config parsed without error, so continue with them.
          if Parse_Items.Length = 1 then
             Config := Parse_Items (1).Config;
             Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
-
-            Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
             return Continue;
          else
             for I in Parse_Items.First_Index .. Parse_Items.Last_Index loop
@@ -249,14 +236,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             if Success_Count = 1 then
                Config := Parse_Items (Success_Index).Config;
                Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
-               Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
                return Continue;
+               --  FIXME: this is an unnecessary optimization; always enqueue good configs, abandon current.
             else
                --  Enqueue all passing configs, abandon current.
                for Item of Parse_Items loop
                   if Item.Parsed and Item.Config.Error_Token.ID = Invalid_Token_ID then
                      Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
-                     Item.Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
                      Local_Config_Heap.Add (Item.Config);
 
                      if Trace_McKenzie > Detail then
@@ -269,74 +255,26 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
 
       else
-         --  This indicates that Config.Ops did not fix all the problems; see
-         --  test_mckenzie_recover Two_Missing_Ends. We hope it made progress,
-         --  so we try to keep going.
-         declare
-            Good_Item_Index : Natural := 0;
-            Good_Item_Count : Natural := 0;
-         begin
-            for I in Parse_Items.First_Index .. Parse_Items.Last_Index loop
-               declare
-                  Parsed_Config    : Configuration renames Parse_Items (I).Config;
-                  Insert_Ops_Count : SAL.Base_Peek_Type := 0;
-               begin
-                  if Parsed_Config.Current_Inserted = No_Inserted then
-                     --  Any tokens inserted by Language_Fixes were consumed, so we
-                     --  can continue with the parsed config.
-                     Parsed_Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
+         --  No parse item parsed without error. This indicates that Config.Ops
+         --  (enqueued by language_fixes) did not fix all the problems; see
+         --  test_mckenzie_recover Two_Missing_Ends. We assume it made
+         --  progress, so we try to keep going.
+         for Item of Parse_Items loop
+            declare
+               Parsed_Config : Configuration renames Item.Config;
+            begin
+               if Parsed_Config.Current_Inserted = No_Inserted then
+                  raise Programmer_Error; --  Parse should have returned True.
 
-                     Good_Item_Index := I;
-                     Good_Item_Count := Good_Item_Count + 1;
-
-                  elsif Config.Check_Status.Label /= Ok then
-                     --  The inserted tokens caused a check fail, so abandon the config.
-                     null;
-
-                  else
-                     --  We need new insertions to be made at the current input point in
-                     --  Config.Inserted, not at Config.Current_Shared_Token. Similarly,
-                     --  insert new Ops at the correct point in Config.Ops.
-                     --
-                     --  It doesn't matter if Parsed_Config.Ops_Insert_Point was previously
-                     --  set, we just change it to the new insert point.
-
-                     Good_Item_Index := I;
-                     Good_Item_Count := Good_Item_Count + 1;
-
-                     Post_Fast_Forward_Fail := True;
-                     Insert_Ops_Count := SAL.Base_Peek_Type (Parsed_Config.Inserted.Length);
-                     for I in reverse Parsed_Config.Ops.First_Index .. Parsed_Config.Ops.Last_Index loop
-                        if Parsed_Config.Ops (I).Op = Insert then
-                           if Insert_Ops_Count = Parsed_Config.Current_Inserted then
-                              Parsed_Config.Current_Shared_Token := Parsed_Config.Ops (I).Token_Index;
-                              Parsed_Config.Ops_Insert_Point := I;
-                              exit;
-                           end if;
-                           Insert_Ops_Count := Insert_Ops_Count - 1;
-                        end if;
-                     end loop;
-                     if Parsed_Config.Ops_Insert_Point = Config_Op_Arrays.No_Index then
-                        raise Programmer_Error;
-                     end if;
-                  end if;
-               end;
-            end loop;
-
-            if Good_Item_Count = 0 then
-               --  Nothing more to do; abandon config.
-               return Abandon;
-
-            elsif Good_Item_Count = 1 then
-               Config := Parse_Items (Good_Item_Index).Config;
-               Parse_Items.Clear;
-               return Continue;
-
-            else
-               --  FIXME: enqueue all good configs; need a test case
-               raise Programmer_Error with "Fast_Forward fail with multiple good configs";
-            end if;
-         end;
+               elsif Parsed_Config.Current_Inserted > 1 then
+                  --  Parsing made progress, then encountered a check fail or parse
+                  --  error; find fixes at the failure point.
+                  Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
+                  Local_Config_Heap.Add (Parsed_Config);
+               end if;
+            end;
+         end loop;
+         return Abandon;
       end if;
    exception
    when SAL.Container_Full | Bad_Config =>
@@ -805,8 +743,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                --  conflicts were encountered; we are not using the parse result.
                New_Config := Parse_Items (1).Config;
                New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
-
-               Config.Ops_Insert_Point := Config_Op_Arrays.No_Index;
             else
                raise Programmer_Error;
             end if;
@@ -1124,8 +1060,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  We collect all the variants to enqueue, then deliver them all at
       --  once to Super, to minimizes task interactions.
 
-      Post_Fast_Forward_Fail : Boolean := False;
-
       Use_Minimal_Complete_Actions : Boolean := False;
 
       function Allow_Insert_Terminal (Config : in Configuration) return Boolean
@@ -1177,11 +1111,11 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
       end if;
 
-      if Config.Current_Inserted /= No_Inserted then
-         --  It doesn't matter if Parsed_Config.Ops_Insert_Point was previously
-         --  set, we just change it to the new insert point.
+      if Config.Current_Inserted = 1 then
+         --  If Config.Current_Inserted > 1 then Fast_Forward failed on this
+         --  config; don't fast_forward again.
 
-         case Fast_Forward (Super, Shared, Parser_Index, Local_Config_Heap, Config, Post_Fast_Forward_Fail) is
+         case Fast_Forward (Super, Shared, Parser_Index, Local_Config_Heap, Config) is
          when Abandon =>
             --  We know Local_Config_Heap is empty; just tell
             --  Super we are done working.
@@ -1259,7 +1193,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
       end if;
 
-      if not Post_Fast_Forward_Fail then
+      if Config.Current_Inserted > 1 then
+         --  Fast_Forward failed on this config; no need to check it.
+         null;
+      else
          case Check (Super, Shared, Parser_Index, Config, Local_Config_Heap) is
          when Success =>
             Super.Success (Parser_Index, Config, Local_Config_Heap);
@@ -1287,8 +1224,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --
       --  All possible permutations will be explored.
 
-      if (not Post_Fast_Forward_Fail) and
-        None_Since_FF (Config.Ops, Delete) and
+      if None_Since_FF (Config.Ops, Delete) and
         None_Since_FF (Config.Ops, Insert) and
         Config.Stack.Depth > 1 -- can't delete the first state
       then

@@ -194,7 +194,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Config            : in     Configuration)
    with Pre => Config.Check_Status.Label /= Ok
    is
-      use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
       use all type Syntax_Trees.Node_Index;
 
@@ -216,13 +215,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
       if not Nonterm_IDs (Config.Error_Token.ID) then
          raise Programmer_Error with "unrecognized begin_name_token id " & Image (Config.Error_Token.ID, Descriptor);
-      end if;
-
-      if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
-         if Trace_McKenzie > Outline then
-            Put ("Handle_Check_Fail test case for Ops_Insert_Point", Config);
-         end if;
-         return;
       end if;
 
       case Config.Check_Status.Label is
@@ -573,7 +565,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Config            : in     Configuration)
    with Pre => Config.Check_Status.Label = Ok
    is
-      use all type SAL.Base_Peek_Type;
       procedure Put (Message : in String; Config : in Configuration)
       is begin
          Put (Message, Trace, Parser_Label, Terminals, Config);
@@ -590,13 +581,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          if Config.Stack (1).Token.ID = +IDENTIFIER_ID and
            Config.Stack (2).Token.ID = +END_ID
          then
-            if Config.Ops_Insert_Point /= Config_Op_Arrays.No_Index then
-               if Trace_McKenzie > Outline then
-                  Put ("Handle_Parse_Error test case for Ops_Insert_Point", Config);
-               end if;
-               return;
-            end if;
-
             --  The input looks like one of:
             --
             --  1. "<begin_name_token_1> ... <begin_name_token_2> ... begin ... begin ... end <end_name_token_1> ;"

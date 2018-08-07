@@ -574,8 +574,8 @@ package WisiToken.LR is
 
       Inserted         : Fast_Token_ID_Arrays.Vector;
       Current_Inserted : SAL.Base_Peek_Type := No_Inserted;
-      --  Index of current input token in Inserted. If No_Index, use
-      --  Current_Shared_Token.
+      --  parsed. Current_Inserted is the index of the current input token
+      --  in Inserted. If No_Index, use Current_Shared_Token.
 
       Error_Token       : Recover_Token;
       Check_Token_Count : Ada.Containers.Count_Type;
@@ -592,10 +592,10 @@ package WisiToken.LR is
       --  error is no longer meaningful (ie in explore when adding an op, or
       --  in languag_fixes when adding a fix).
 
-      Ops              : Config_Op_Arrays.Vector;
-      Ops_Insert_Point : SAL.Base_Peek_Type := Config_Op_Arrays.No_Index;
-      --  If Ops_Insert_Point is not No_Index, fast_forward failed partway
-      --  thru Ops, and we are trying to find a fix at that point.
+      Ops : Config_Op_Arrays.Vector;
+      --  Record of operations applied to this Config, in application order.
+      --  Insert and Delete ops that are not yet parsed are reflected in
+      --  Inserted, in token_index order.
 
       Cost : Natural := 0;
    end record;
