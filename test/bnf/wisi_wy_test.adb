@@ -159,7 +159,7 @@ package body Wisi_WY_Test is
                else "") &
               ".parse_table");
 
-      when Packrat_Generate_Algorithm =>
+      when Packrat_Generate_Algorithm | External =>
          null;
       end case;
 

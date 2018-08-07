@@ -303,7 +303,6 @@ begin
          Parse_Check (Input_Data.User_Lexer, Input_Data.User_Parser);
 
          declare
-            use all type WisiToken.Unknown_State_Index;
             use Standard.Ada.Real_Time;
 
             Time_Start : Time;

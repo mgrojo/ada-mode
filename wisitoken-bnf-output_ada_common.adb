@@ -37,7 +37,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Common_Data      :         in Output_Ada_Common.Common_Data;
       Generate_Data    : aliased in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
-      use all type WisiToken.Names_Array_Access;
       use Generate_Utils;
 
       Descriptor  : WisiToken.Descriptor renames Generate_Data.Descriptor.all;
@@ -372,7 +371,6 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          else
             declare
-               use all type WisiToken.Syntax_Trees.Semantic_Action;
                use all type Standard.Ada.Containers.Count_Type;
                use Standard.Ada.Strings.Unbounded;
                Grammar_RHSs : Productions.RHS_Arrays.Vector renames Generate_Data.Grammar (LHS).RHSs;
@@ -421,7 +419,6 @@ package body WisiToken.BNF.Output_Ada_Common is
    procedure Create_LR_Parser_Core_1 (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
       use Standard.Ada.Strings.Unbounded;
-      use WisiToken;
       use all type Standard.Ada.Containers.Count_Type;
 
       subtype Nonterminal_ID is Token_ID range
@@ -540,7 +537,6 @@ package body WisiToken.BNF.Output_Ada_Common is
    is
       use all type Standard.Ada.Containers.Count_Type;
       use Standard.Ada.Strings.Unbounded;
-      use WisiToken;
 
       Table            : WisiToken.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
       Lines_Per_Subr   : constant := 1000;
@@ -868,7 +864,6 @@ package body WisiToken.BNF.Output_Ada_Common is
       Packrat_Data  :         in     WisiToken.Generate.Packrat.Data)
    is
       use Standard.Ada.Strings.Unbounded;
-      use WisiToken;
 
       Text     : Unbounded_String;
       Need_Bar : Boolean := True;

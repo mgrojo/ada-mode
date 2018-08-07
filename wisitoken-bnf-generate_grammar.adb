@@ -26,7 +26,6 @@ procedure WisiToken.BNF.Generate_Grammar
 is
    use all type Standard.Ada.Containers.Count_Type;
    use Standard.Ada.Strings.Unbounded;
-   use WisiToken;
    use WisiToken.Generate;
    use WisiToken.Productions;
    Text : Unbounded_String;

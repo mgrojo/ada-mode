@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisi-generate.exe  --generate PACKRAT_PROC ADA_EMACS re2c PROCESS ../../wisi/test/subprograms.wy
+--  command line: wisitoken-bnf-generate.exe  --generate PACKRAT_PROC ADA_EMACS re2c PROCESS ../Test/bnf/subprograms.wy
 --
 
 --  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
@@ -17,8 +17,8 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
-with WisiToken.Wisi_Runtime.Subprograms; use WisiToken.Wisi_Runtime.Subprograms;
+with Wisi; use Wisi;
+with Wisi.Subprograms; use Wisi.Subprograms;
 package body Subprograms_Process_Actions is
 
    use WisiToken.Semantic_Checks;
@@ -30,7 +30,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -50,7 +50,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -70,7 +70,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -99,7 +99,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -128,7 +128,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -147,7 +147,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -165,7 +165,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -189,7 +189,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -210,7 +210,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>
@@ -228,7 +228,7 @@ package body Subprograms_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
-      Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type renames WisiToken.Wisi_Runtime.Parse_Data_Type (User_Data);
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
    begin
       case Parse_Data.Post_Parse_Action is
       when Navigate =>

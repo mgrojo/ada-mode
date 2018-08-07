@@ -29,7 +29,6 @@ procedure WisiToken.BNF.Generate_Packrat
   (Data          : in WisiToken.Generate.Packrat.Data;
    Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
 is
-   use WisiToken;
    use WisiToken.Generate;
 
    Descriptor   : WisiToken.Descriptor renames Generate_Data.Descriptor.all;

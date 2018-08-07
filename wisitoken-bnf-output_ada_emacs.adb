@@ -227,7 +227,6 @@ is
          --  Result: (..., Motion_Param_Array'((1, Empty_IDs) & (2, (3 & 8)) & (3, Empty_IDs))
          use Generate_Utils;
          use Standard.Ada.Strings.Maps;
-         use WisiToken;
 
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
@@ -1241,9 +1240,7 @@ is
       Lower_Package_Name_Root : constant String := To_Lower (File_Name_To_Ada (Output_File_Name_Root));
 
       function To_ID_Image (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
-      is
-         use WisiToken;
-      begin
+      is begin
          --  Ada 'Val is 0 origin; Token_ID is 1 origin
          return Token_ID'Image (-1 + Find_Token_ID (Generate_Data, -Name));
       end To_ID_Image;
