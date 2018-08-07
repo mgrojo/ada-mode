@@ -35,14 +35,14 @@ run test from emacs -Q using source:
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"        . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"               . "../org.wisitoken.stephe-1")
-   ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-5")))
+   ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-4")))
 
 (dvc-state-multiple
-'((xmtn . "/Projects/org.stephe_leake.makerules")
-  (xmtn . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "/Projects/org.wisitoken.stephe-1")
-  (xmtn . "/Projects/org.emacs.ada-mode.stephe-5/")))
+'((xmtn . "c:/Projects/org.stephe_leake.makerules")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
@@ -70,6 +70,102 @@ recover fail
      (if Left > Right then return Greater
       elsif Left = Right return Equal
       else return Less);
+
+   function Ancestor
+     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor    : in     WisiToken.Descriptor;
+      All_Ancestors : in     Token_Array_Token_ID;
+      Recursing     : in out Token_ID_Set;
+      Nonterm       : in     Token_ID)
+     return Token_ID
+   is
+      --  Return the ancestor of Nonterm
+      use all type Ada.Containers.Count_Type;
+   begin
+      for Prod of Grammar loop
+         for R of Prod.RHSs loop
+            if R.Tokens.Length = 1 and then R.Tokens (1) = Nonterm then
+            if All_Ancestors (Prod.LHS) = Invalid_Token_ID then
+            if Recursing (ID) then
+            raise Grammar_Error with "mutual recursion detected: " & Image (Recursing, Descriptor);
+                        end if;
+                        Recursing (ID) := True;
+                        return Result : constant Token_ID :=
+                          Ancestor (Grammar, Descriptor, All_Ancestors, Recursing, ID)
+                        do
+                           Recursing (ID) := False;
+                        end return;
+                     else
+                        return All_Ancestors (ID);
+                     end if;
+                  end if;
+                  end;
+                  end if;
+         end loop;
+      end loop;
+      return Nonterm;
+   end Ancestor;
+    enqueue_limit
+
+   function Ancestor
+     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor    : in     WisiToken.Descriptor;
+      All_Ancestors : in     Token_Array_Token_ID;
+      Recursing     : in out Token_ID_Set;
+      Nonterm       : in     Token_ID)
+     return Token_ID
+   is
+      --  Return the ancestor of Nonterm
+      use all type Ada.Containers.Count_Type;
+   begin
+      for Prod of Grammar loop
+         for R of Prod.RHSs loop
+            if R.Tokens.Length = 1 and then R.Tokens (1) = Nonterm then
+            if All_Ancestors (Prod.LHS) = Invalid_Token_ID then
+            if Recursing (ID) then
+            raise Grammar_Error with "mutual recursion detected: " & Image (Recursing, Descriptor);
+                        end if;
+                        Recursing (ID) := True;
+                        return Result : constant Token_ID :=
+                          Ancestor (Grammar, Descriptor, All_Ancestors, Recursing, ID)
+                        do
+                           Recursing (ID) := False;
+                        end return;
+                     else
+                        return All_Ancestors (ID);
+                     end if;
+                  end if;
+end loop;
+                  end;
+                  end if;
+         end loop;
+      end loop;
+      return Nonterm;
+   end Ancestor;
+CONSTRAINT_ERROR: sal-gen_bounded_definite_vectors.adb:82 range check failed
+[d:\Apps\GNAT-gpl_2018\bin\ada_mode_wisi_lalr_parse.exe]
+Adainit at sal-gen_bounded_definite_vectors.adb:82
+Adainit at wisitoken-lr-mckenzie_recover-explore.adb:42
+Adainit at wisitoken-lr-mckenzie_recover-explore.adb:554
+Adainit at wisitoken-lr-mckenzie_recover-explore.adb:1174
+Adainit at wisitoken-lr-mckenzie_recover.adb:127
+
+recover not respecting spawn limit
+  aggregate_ID => new Int_Array_Action',
+  aliased_opt_ID => null,
+  and_interface_list_opt_ID => null,
+  array_type_definition_ID => new Int_Array_Action',
+  aspect_clause_ID => new Int_Array_Action',
+  aspect_specification_opt_ID => new Int_Array_Action',
+  assignment_statement_ID => new Int_Array_Action',
+  association_opt_ID => new Int_Array_Action',
+  association_list_ID => null,
+  asynchronous_select_ID => new Int_Array_Action',
+  at_clause_ID => new Int_Array_Action',
+  attribute_reference_ID => null,
+  attribute_designator_ID => null,
+  binary_adding_operator_ID => null,
+  block_label_ID => new Int_Array_Action',
 
 improve use_minimum_complete_actions
     also apply when:
@@ -176,12 +272,6 @@ ada-gps-size-threshold not safe local variable
 
 allow set task count from Emacs
 
-wisi-generate create_parser supposed to respect line limits
-    fix it
-
-test/ada_mode-recover_*.adb failing
-    fix them
-
 add test cases for all phases of "convert if to case"
     see sal red_black_trees
 
@@ -226,11 +316,11 @@ clean up gpr-mode; delete 'we reuse ada' comments
 clean up Makefile, common.make
     see wisi_grammar
 
-AdaCore 18.1
-    libadalang
-
 compute align in grammar actions
     align-list action on ':', '=>' etc
+
+Grune 9.10.4 Incremental Parsing.
+    Compare new lex to old lex, update syntax tree
 
 support variable pitch fonts
     (put-text-property 118 120 'display '(space :width (10))))

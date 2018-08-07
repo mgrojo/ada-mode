@@ -312,7 +312,7 @@ nil, only the file name."
   :type 'boolean
   :safe #'booleanp)
 
-(defcustom ada-gps-indent-exec "ada_mode_gps_indent"
+(defcustom ada-gps-indent-exec "ada_mode_gps_indent.exe"
   ;; declared here, not in ada-gps.el, for auto-detection of indent engine below
   "Name of executable to use for ada_mode_gps_indent,"
   :type 'string

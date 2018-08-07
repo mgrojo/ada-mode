@@ -79,11 +79,11 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
    Statement_Declaration_Start_IDs : constant Terminal_Token_ID_Set :=
      To_Token_ID_Set
        (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-        +ABORT_ID & (+ACCEPT_ID) & (+BEGIN_ID) & (+CASE_ID) & (+DECLARE_ID) & (+DELAY_ID) & (+ELSE_ID) & (+END_ID) &
-          (+ENTRY_ID) & (+EXIT_ID) & (+FOR_ID) & (+FUNCTION_ID) & (+GENERIC_ID) & (+GOTO_ID) & (+IF_ID) &
-          (+LOOP_ID) & (+OVERRIDING_ID) & (+PACKAGE_ID) & (+PRAGMA_ID) & (+PROCEDURE_ID) & (+PROTECTED_ID) &
-          (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+SELECT_ID) & (+SUBTYPE_ID) & (+TASK_ID) & (+TYPE_ID) &
-          (+USE_ID) & (+WHEN_ID) & (+WITH_ID));
+        +ABORT_ID & (+ACCEPT_ID) & (+BEGIN_ID) & (+CASE_ID) & (+DECLARE_ID) & (+DELAY_ID) & (+ELSE_ID) & (+ELSIF_ID) &
+          (+END_ID) & (+ENTRY_ID) & (+EXCEPTION_ID) & (+EXIT_ID) & (+FOR_ID) & (+FUNCTION_ID) & (+GENERIC_ID) &
+          (+GOTO_ID) & (+IF_ID) & (+LOOP_ID) & (+OVERRIDING_ID) & (+PACKAGE_ID) & (+PRAGMA_ID) & (+PROCEDURE_ID) &
+          (+PROTECTED_ID) & (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+SELECT_ID) & (+SUBTYPE_ID) & (+TASK_ID) &
+          (+TYPE_ID) & (+USE_ID) & (+WHEN_ID) & (+WITH_ID));
    --  Terminal tokens that must be preceded by an end of statement/declaration.
 
    procedure Push_Back (Config : in out Configuration; Fast_Forward_Seen : in Boolean)
@@ -1023,7 +1023,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             null;
          end;
 
-      elsif Config.Error_Token.ID = +ELSE_ID then
+      elsif Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) in ELSE_ID | ELSIF_ID then
          declare
             Label         : constant String := "missing 'if then' ";
             New_Config    : Configuration;
@@ -1093,7 +1093,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       --  FIXME: add ')', 'then' for expressions?
       if Statement_Declaration_Start_IDs (Next_Token) then
          case Ada_Process_Actions.Token_Enum_ID'(-Next_Token) is
-         when ELSE_ID =>
+         when ELSE_ID | ELSIF_ID =>
             --  Check for missing 'if ... then'
             Find_ID (Config, +IF_ID, Matching_Index);
             return Matching_Index /= Config.Stack.Depth;
