@@ -36,6 +36,7 @@
 %generate LALR elisp elisp
 %generate LALR Ada_Emacs re2c Process
 %generate LR1 Ada_Emacs text_rep re2c Process
+%generate External Ada_Emacs Process
 
 %case_insensitive
 

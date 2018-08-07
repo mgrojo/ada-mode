@@ -58,7 +58,8 @@ package Wisi.Libadalang is
       Unit : aliased Standard.Libadalang.Analysis.Analysis_Unit;
       --  FIXME: Errors : ?
 
-      Tree : WisiToken.Syntax_Trees.Tree;
+      Base_Tree : aliased WisiToken.Syntax_Trees.Base_Tree;
+      Tree      : WisiToken.Syntax_Trees.Tree;
    end record;
 
    overriding procedure Parse (Parser : aliased in out Wisi.Libadalang.Parser);

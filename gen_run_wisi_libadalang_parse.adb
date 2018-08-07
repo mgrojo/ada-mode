@@ -96,6 +96,8 @@ begin
    Parser.User_Data        := Parse_Data'Unrestricted_Access;
    Parser.Source_File_Name := Source_File_Name;
 
+   Parser.Tree.Initialize (Shared_Tree => Parser.Base_Tree'Unrestricted_Access, Flush => True);
+
    Parse_Data.Initialize
      (Post_Parse_Action => Post_Parse_Action,
       Descriptor        => Descriptor'Unrestricted_Access,

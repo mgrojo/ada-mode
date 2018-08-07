@@ -55,7 +55,7 @@ run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
 # they can be saved in CM together.
 %-lalr-elisp.el : %.wy $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe
 	cd ./$(<D); $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe --generate LALR Elisp Elisp $(<F)
-	cd ./$(<D); dos2unix $(*F)-lalr-elisp.el
+	cd ./$(<D); dos2unix -q $(*F)-lalr-elisp.el
 
 elisp-clean :
 	rm -f ../*.output ../autoloads.el
@@ -63,11 +63,11 @@ elisp-clean :
 
 %.re2c : %.wy $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe
 	cd ./$(<D); $(WISI_WISITOKEN)/wisitoken-bnf-generate.exe --time $(<F)
-	cd ./$(<D); dos2unix $(*F)-lalr-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads
+	cd ./$(<D); dos2unix -q $(*F)-lalr-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
-	cd ./$(<D); dos2unix $(*F)_re2c.c
+	cd ./$(<D); dos2unix -q $(*F)_re2c.c
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'

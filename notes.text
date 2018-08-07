@@ -53,11 +53,7 @@ run test from emacs -Q using source:
 convert libadalang tree to wisitoken syntax tree, use for indent
     make two
 
-    need actions
-        wisi-generate libadalang output nonterm_id => action
-        or use packrat?
-
-    quex lexer loses emacs buffer_pos; error messages will be wrong.
+    need full grammar to find action
 
 review FIXMEs
 
