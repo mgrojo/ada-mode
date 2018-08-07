@@ -86,6 +86,85 @@ recover fail
       elsif Left = Right return Equal
       else return Less);
 
+   function Ancestor
+     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor    : in     WisiToken.Descriptor;
+      All_Ancestors : in     Token_Array_Token_ID;
+      Recursing     : in out Token_ID_Set;
+      Nonterm       : in     Token_ID)
+     return Token_ID
+   is
+      --  Return the ancestor of Nonterm
+      use all type Ada.Containers.Count_Type;
+   begin
+      for Prod of Grammar loop
+         for R of Prod.RHSs loop
+            if R.Tokens.Length = 1 and then R.Tokens (1) = Nonterm then
+            if All_Ancestors (Prod.LHS) = Invalid_Token_ID then
+            if Recursing (ID) then
+            raise Grammar_Error with "mutual recursion detected: " & Image (Recursing, Descriptor);
+                        end if;
+                        Recursing (ID) := True;
+                        return Result : constant Token_ID :=
+                          Ancestor (Grammar, Descriptor, All_Ancestors, Recursing, ID)
+                        do
+                           Recursing (ID) := False;
+                        end return;
+                     else
+                        return All_Ancestors (ID);
+                     end if;
+                  end if;
+                  end;
+                  end if;
+         end loop;
+      end loop;
+      return Nonterm;
+   end Ancestor;
+    enqueue_limit
+
+   function Ancestor
+     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor    : in     WisiToken.Descriptor;
+      All_Ancestors : in     Token_Array_Token_ID;
+      Recursing     : in out Token_ID_Set;
+      Nonterm       : in     Token_ID)
+     return Token_ID
+   is
+      --  Return the ancestor of Nonterm
+      use all type Ada.Containers.Count_Type;
+   begin
+      for Prod of Grammar loop
+         for R of Prod.RHSs loop
+            if R.Tokens.Length = 1 and then R.Tokens (1) = Nonterm then
+            if All_Ancestors (Prod.LHS) = Invalid_Token_ID then
+            if Recursing (ID) then
+            raise Grammar_Error with "mutual recursion detected: " & Image (Recursing, Descriptor);
+                        end if;
+                        Recursing (ID) := True;
+                        return Result : constant Token_ID :=
+                          Ancestor (Grammar, Descriptor, All_Ancestors, Recursing, ID)
+                        do
+                           Recursing (ID) := False;
+                        end return;
+                     else
+                        return All_Ancestors (ID);
+                     end if;
+                  end if;
+end loop;
+                  end;
+                  end if;
+         end loop;
+      end loop;
+      return Nonterm;
+   end Ancestor;
+CONSTRAINT_ERROR: sal-gen_bounded_definite_vectors.adb:82 range check failed
+[d:\Apps\GNAT-gpl_2018\bin\ada_mode_wisi_lalr_parse.exe]
+Adainit at sal-gen_bounded_definite_vectors.adb:82
+Adainit at wisitoken-lr-mckenzie_recover-explore.adb:42
+Adainit at wisitoken-lr-mckenzie_recover-explore.adb:554
+Adainit at wisitoken-lr-mckenzie_recover-explore.adb:1174
+Adainit at wisitoken-lr-mckenzie_recover.adb:127
+
 improve use_minimum_complete_actions
     also apply when:
         token after error token is ':='
@@ -191,12 +270,6 @@ ada-gps-size-threshold not safe local variable
 
 allow set task count from Emacs
 
-wisi-generate create_parser supposed to respect line limits
-    fix it
-
-test/ada_mode-recover_*.adb failing
-    fix them
-
 add test cases for all phases of "convert if to case"
     see sal red_black_trees
 
@@ -241,11 +314,11 @@ clean up gpr-mode; delete 'we reuse ada' comments
 clean up Makefile, common.make
     see wisi_grammar
 
-AdaCore 18.1
-    libadalang
-
 compute align in grammar actions
     align-list action on ':', '=>' etc
+
+Grune 9.10.4 Incremental Parsing.
+    Compare new lex to old lex, update syntax tree
 
 support variable pitch fonts
     (put-text-property 118 120 'display '(space :width (10))))

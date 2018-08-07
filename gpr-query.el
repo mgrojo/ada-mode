@@ -660,7 +660,7 @@ FILE must be non-nil; line, col can be nil."
   (setq ada-xref-overridden-function 'gpr-query-overridden-1)
   (setq ada-show-xref-tool-buffer    'gpr-query-show-buffer)
 
-  (when (> emacs-major-version 24)
+  (when (fboundp 'xref-ada-mode)
     (xref-ada-mode 1))
 
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files, used for cross reference
@@ -680,7 +680,7 @@ FILE must be non-nil; line, col can be nil."
   (setq ada-xref-overridden-function nil)
   (setq ada-show-xref-tool-buffer    nil)
 
-  (when (> emacs-major-version 24)
+  (when (fboundp 'xref-ada-mode)
     (xref-ada-mode 0))
 
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
