@@ -126,7 +126,7 @@ recursive-clean : force
 	gprclean -r -P ../ada_mode_wisi_parse.gpr
 
 clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
-	rm -f check_xref.gpr Makefile.conf
+	rm -f check.gpr Makefile.conf
 
 doc-clean ::
 	rm -f ../*.info ../*.html ../dir-ada-mode
@@ -145,10 +145,11 @@ exe-clean ::
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
 	rm -rf ../gpr_query-process_refresh.adb
 	rm -rf ../ada_mode_gps_indent$(EXE_EXT) ../ada_mode_gps_indent.gpr
-	rm -rf ../ada_mode_wisi_parse$(EXE_EXT)
+	rm -rf ../ada_mode_wisi_*_parse$(EXE_EXT)
 	rm -rf ../gpr_mode_wisi_parse$(EXE_EXT)
-	rm -rf ../run_ada_parser$(EXE_EXT)
-	rm -rf ../run_gpr_parser$(EXE_EXT)
+	rm -f ../ada_mode_wisi_parse.gpr
+	rm -rf ../run_ada_*_parse$(EXE_EXT)
+	rm -rf ../run_gpr_parse$(EXE_EXT)
 
 profile-clean ::
 	rm -rf ../exec_pro ../obj_pro

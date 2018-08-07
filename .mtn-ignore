@@ -1,7 +1,7 @@
 ^.*\.elc$
 ^.*\.exe$
-^.*\.re2c$
 ^.*\.parse_table$
+^.*\.re2c$
 ^ada-mode\.html$
 ^ada-mode\.info$
 ^ada_mode_gps_indent$
@@ -21,14 +21,13 @@
 ^build/.*\.tmp$
 ^build/.*\.wisi-test$
 ^build/Makefile\.conf$
-^build/check_xref\.gpr$
+^build/check\.gpr$
 ^build/gmem\.out$
 ^build/gmon\.out$
 ^build/gpr_query$
 ^build/obj$
 ^build/obj$
 ^build/test\.casing$
-^check_xref\.gpr$
 ^dir-ada-mode$
 ^exec_pro$
 ^gpr-mode\.html$
