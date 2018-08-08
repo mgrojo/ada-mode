@@ -57,10 +57,11 @@ package body WisiToken.LR.McKenzie_Recover is
       end if;
       Result := Result & Image (Config.Stack, Descriptor, Depth => 1);
 
-      if Config.Current_Inserted = No_Inserted then
+      if Config.Current_Insert_Delete = No_Insert_Delete then
          Result := Result & "|" & Image (Config.Current_Shared_Token, Terminals, Descriptor) & "|";
       else
-         Result := Result & "/" & Image (Config.Current_Inserted, Config.Inserted, Descriptor) & "/";
+         Result := Result & "/" & Trimmed_Image (Config.Current_Insert_Delete) & ":" &
+           Image (Config.Insert_Delete (Config.Current_Insert_Delete), Descriptor) & "/";
       end if;
 
       Result := Result & Image (Config.Ops, Descriptor);

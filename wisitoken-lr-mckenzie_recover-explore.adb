@@ -30,10 +30,18 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       ID                : in              Token_ID;
       Cost_Delta        : in              Integer)
    is
+      use all type SAL.Base_Peek_Type;
       McKenzie_Param : McKenzie_Param_Type renames Shared.Table.McKenzie_Param;
+
+      Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token);
    begin
       begin
-         Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
+         if Config.Current_Ops = No_Insert_Delete then
+            Config.Ops.Append (Op);
+         else
+            Config.Ops.Insert (Op, Before => Config.Current_Ops);
+            Config.Current_Ops := Config.Current_Ops + 1;
+         end if;
       exception
       when SAL.Container_Full =>
          if Trace_McKenzie > Outline then
@@ -262,14 +270,40 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          for Item of Parse_Items loop
             declare
                Parsed_Config : Configuration renames Item.Config;
+               Remaining : SAL.Base_Peek_Type;
             begin
-               if Parsed_Config.Current_Inserted = No_Inserted then
+               if Parsed_Config.Current_Insert_Delete = No_Insert_Delete then
                   raise Programmer_Error; --  Parse should have returned True.
 
-               elsif Parsed_Config.Current_Inserted > 1 then
-                  --  Parsing made progress, then encountered a check fail or parse
-                  --  error; find fixes at the failure point.
-                  Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
+               else
+                  --  Find fixes at the failure point. We don't reset
+                  --  Config.Current_Insert_Delete here, to allow skipping Check.
+                  --
+                  --  If the unparsed ops are at Config.Current_Shared_Token, then new
+                  --  ops applied in Process_One below must be inserted in Config.Ops
+                  --  before the unparsed ops, so the final order applied to the full
+                  --  parser is correct.
+                  if Parsed_Config.Insert_Delete (Parsed_Config.Current_Insert_Delete).Token_Index =
+                    Parsed_Config.Current_Shared_Token
+                  then
+                     Parsed_Config.Current_Ops := Parsed_Config.Ops.Last_Index;
+                     Remaining := Parsed_Config.Insert_Delete.Last_Index - Parsed_Config.Current_Insert_Delete;
+                     loop
+                        exit when Remaining = 0;
+                        Parsed_Config.Current_Ops := Parsed_Config.Current_Ops - 1;
+                        Remaining := Remaining - 1;
+                     end loop;
+                  end if;
+
+                  if Parsed_Config.Current_Insert_Delete > 1 then
+                     if Parsed_Config.Current_Ops = No_Insert_Delete then
+                        Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
+                     else
+                        Parsed_Config.Ops.Insert
+                          ((Fast_Forward, Config.Current_Shared_Token), Before => Parsed_Config.Current_Ops);
+                        Parsed_Config.Current_Ops := Parsed_Config.Current_Ops + 1;
+                     end if;
+                  end if;
                   Local_Config_Heap.Add (Parsed_Config);
                end if;
             end;
@@ -310,6 +344,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       begin
          for Item of Parse_Items loop
             if Item.Parsed then
+               --  FIXME: why not enqueue unparsed items?
+
                if Item.Config.Error_Token.ID /= Invalid_Token_ID and Item.Config.Check_Status.Label = Ok then
                   Parse_Error_Found := True;
 
@@ -328,8 +364,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
                if Item.Shift_Count > 0 and then
                  (Item.Config.Check_Status.Label /= Ok or
-                    (Item.Config.Error_Token.ID /= Invalid_Token_ID and then
-                       Item.Config.Ops (Item.Config.Ops.Last_Index).Op in Insert | Delete | Fast_Forward))
+                    Item.Config.Error_Token.ID /= Invalid_Token_ID)
                then
                   --  Some progress was made; let Language_Fixes try to fix the new
                   --  error.
@@ -339,7 +374,12 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                   --  test_mckenzie_recover Loop_Bounds.
                   Item.Config.Cost := Item.Config.Cost + 1;
                   begin
-                     Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+                     if Item.Config.Ops (Item.Config.Ops.Last_Index).Op = Fast_Forward then
+                        Item.Config.Ops (Item.Config.Ops.Last_Index).FF_Token_Index :=
+                          Item.Config.Current_Shared_Token;
+                     else
+                        Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+                     end if;
                   exception
                   when SAL.Container_Full =>
                      raise Bad_Config;
@@ -1111,8 +1151,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Put_Line (Trace, Super.Label (Parser_Index), "stack: " & Image (Config.Stack, Trace.Descriptor.all));
       end if;
 
-      if Config.Current_Inserted = 1 then
-         --  If Config.Current_Inserted > 1 then Fast_Forward failed on this
+      if Config.Current_Insert_Delete = 1 then
+         --  If Config.Current_Insert_Delete > 1 then Fast_Forward failed on this
          --  config; don't fast_forward again.
 
          case Fast_Forward (Super, Shared, Parser_Index, Local_Config_Heap, Config) is
@@ -1193,9 +1233,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
       end if;
 
-      if Config.Current_Inserted > 1 then
-         --  Fast_Forward failed on this config; no need to check it.
-         null;
+      if Config.Current_Insert_Delete > 1 then
+         --  Fast_Forward failed on this config; no need to check it. Remove
+         --  already parsed items from Insert_Delete, setting
+         --  Current_Insert_Delete to 1, so it will be checked after the Ops
+         --  applied below.
+         Config.Insert_Delete.Delete_First (Config.Current_Insert_Delete - 1);
+         Config.Current_Insert_Delete := 1;
       else
          case Check (Super, Shared, Parser_Index, Config, Local_Config_Heap) is
          when Success =>
@@ -1235,7 +1279,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Try_Insert_Terminal (Super, Shared, Parser_Index, Config, Local_Config_Heap, Use_Minimal_Complete_Actions);
       end if;
 
-      if Config.Current_Inserted = No_Inserted then
+      if Config.Current_Insert_Delete = No_Insert_Delete then
          if Config.Check_Status.Label = Ok and
            (Descriptor.String_1_ID /= Invalid_Token_ID or Descriptor.String_2_ID /= Invalid_Token_ID) and
            (Config.String_Quote_Checked = Invalid_Line_Number or else

@@ -571,9 +571,9 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +CASE_ID, 13) &
            (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 18,
-         Enqueue_High            => 64,
+         Enqueue_High            => 76,
          Check_Low               => 9,
-         Check_High              => 21,
+         Check_High              => 27,
          Cost                    => 3);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
@@ -595,9 +595,9 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +CASE_ID, 13) &
            (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 16,
-         Enqueue_High            => 52,
+         Enqueue_High            => 66,
          Check_Low               => 9,
-         Check_High              => 19,
+         Check_High              => 24,
          Cost                    => 3);
 
       Parse_Text
@@ -615,7 +615,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 10)  & (Insert, +END_ID, 10) & (Insert, +IF_ID, 10) &
            (Insert, +SEMICOLON_ID, 10),
          Enqueue_Low             => 20,
-         Enqueue_High            => 110,
+         Enqueue_High            => 115,
          Check_Low               => 9,
          Check_High              => 28,
          Cost                    => 2);
@@ -638,7 +638,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 19,
          Enqueue_High            => 111,
          Check_Low               => 9,
-         Check_High              => 23,
+         Check_High              => 28,
          Cost                    => 2);
    end Pattern_1;
 
@@ -815,7 +815,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Push_Back, +LOOP_ID, 10) & (Insert, +END_ID, 10),
          Enqueue_Low             => 103,
-         Enqueue_High            => 385,
+         Enqueue_High            => 416,
          Check_Low               => 13,
          Check_High              => 78,
          Cost                    => 5);
@@ -898,7 +898,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (19, 34),
          Ops                     => +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 15) &
            (Push_Back, +name_opt_ID, 15) & (Push_Back, +END_ID, 14) &
-           (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) & (Fast_Forward,  9) &
+           (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) &
            (Fast_Forward,  19) & (Push_Back, +SEMICOLON_ID, 18) & (Push_Back, +name_opt_ID, 17) &
            (Push_Back, +END_ID, 16) & (Insert, +END_ID, 16) & (Insert, +SEMICOLON_ID, 16) & (Fast_Forward,  16),
          Enqueue_Low             => 3,
@@ -1120,7 +1120,7 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +SEMICOLON_ID, 17) & (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
              (Insert, +END_ID, 15) & (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
          Enqueue_Low             => 4,
-         Enqueue_High            => 72,
+         Enqueue_High            => 81,
          Check_Low               => 2,
          Check_High              => 10,
          Cost                    => 0);
@@ -1244,7 +1244,7 @@ package body Test_McKenzie_Recover is
              (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 14) &
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 14) & (Insert, +SEMICOLON_ID, 14) &
-             (Fast_Forward, 14) & (Fast_Forward,  18) & (Push_Back, +SEMICOLON_ID, 17) &
+             (Fast_Forward,  18) & (Push_Back, +SEMICOLON_ID, 17) &
              (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
              (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15) & (Insert, +BEGIN_ID, 15),
          Enqueue_Low             => 10,
@@ -1309,7 +1309,7 @@ package body Test_McKenzie_Recover is
       --  the preceding block (no label on preceding 'begin').
       --
       --  The desired solution is (push_back block_statement, insert 'end
-      --  case ; end ;'). With help from Language_Fixes, that solution
+      --  case ; end ;'). With help from Language_Fixes, a similar solution
       --  is found.
 
       Check_Recover
@@ -1320,16 +1320,16 @@ package body Test_McKenzie_Recover is
            +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 23) &
              (Push_Back, +identifier_opt_ID, 22) & (Push_Back, +END_ID, 21) &
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 20) &
-             (Push_Back, +block_label_opt_ID, 0)  & (Insert, +END_ID, 20) &
-             (Insert, +CASE_ID, 20) & (Insert, +SEMICOLON_ID, 20) & (Fast_Forward, 20) & (Fast_Forward,  24) &
+             (Push_Back, +block_label_opt_ID, 0)  & (Insert, +END_ID, 20) & (Fast_Forward, 20) &
+             (Insert, +CASE_ID, 20) & (Insert, +SEMICOLON_ID, 20) & (Fast_Forward,  24) &
              (Push_Back, +SEMICOLON_ID, 23) & (Push_Back, +identifier_opt_ID, 22) & (Push_Back, +END_ID, 21) &
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 20) &
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 20) & (Insert, +SEMICOLON_ID, 20) &
              (Fast_Forward,  20),
          Enqueue_Low             => 5,
-         Enqueue_High            => 90,
+         Enqueue_High            => 129,
          Check_Low               => 5,
-         Check_High              => 26,
+         Check_High              => 35,
          Cost                    => 4,
          Code                    => Extra_Name_Error);
    end Two_Missing_Ends;
@@ -1365,7 +1365,7 @@ package body Test_McKenzie_Recover is
              (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
              (Fast_Forward, 12),
          Enqueue_Low             => 4,
-         Enqueue_High            => 44,
+         Enqueue_High            => 47,
          Check_Low               => 3,
          Check_High              => 9,
          Cost                    => 0);
@@ -1423,7 +1423,7 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 38,
-         Enqueue_High            => 164,
+         Enqueue_High            => 176,
          Check_Low               => 15,
          Check_High              => 44,
          Cost                    => 5);

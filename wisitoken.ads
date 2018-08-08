@@ -67,6 +67,7 @@ package WisiToken is
    Programmer_Error : exception; -- a programming convention has been violated
 
    subtype Positive_Index_Type is SAL.Peek_Type;
+   function Trimmed_Image is new SAL.Gen_Trimmed_Image (SAL.Base_Peek_Type);
 
    type Unknown_State_Index is new Integer range -1 .. Integer'Last;
    subtype State_Index is Unknown_State_Index range 0 .. Unknown_State_Index'Last;

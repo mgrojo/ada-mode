@@ -417,7 +417,7 @@ package WisiToken.LR is
    package Fast_Token_ID_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (SAL.Peek_Type, Token_ID, Capacity => 20);
 
-   No_Inserted : constant SAL.Base_Peek_Type := 0;
+   No_Insert_Delete : constant SAL.Base_Peek_Type := 0;
 
    function Image
      (Index      : in SAL.Peek_Type;
@@ -485,6 +485,7 @@ package WisiToken.LR is
    end record;
 
    package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
+   --  FIXME: add sort
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Config_Op, Capacity => 80);
@@ -492,7 +493,9 @@ package WisiToken.LR is
    --  McKenzie_Recover. The capacity is determined by the maximum number
    --  of repair operations, which is limited by the cost_limit McKenzie
    --  parameter plus an arbitrary number from the language-specific
-   --  repairs; in practice, a capacity of 80 is enough so far.
+   --  repairs; in practice, a capacity of 80 is enough so far. If a
+   --  config does hit that limit, it is abandoned; some other config is
+   --  likely to be cheaper.
 
    function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " &
@@ -572,10 +575,13 @@ package WisiToken.LR is
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Inserted         : Fast_Token_ID_Arrays.Vector;
-      Current_Inserted : SAL.Base_Peek_Type := No_Inserted;
-      --  parsed. Current_Inserted is the index of the current input token
-      --  in Inserted. If No_Index, use Current_Shared_Token.
+      Insert_Delete : Config_Op_Arrays.Vector;
+      --  Edits to the input stream that are not yet parsed; contains only
+      --  Insert and Delete ops, in token_index order.
+
+      Current_Insert_Delete : SAL.Base_Peek_Type := No_Insert_Delete;
+      --  Index of the next op in Insert_Delete. If No_Insert_Delete, use
+      --  Current_Shared_Token.
 
       Error_Token       : Recover_Token;
       Check_Token_Count : Ada.Containers.Count_Type;
@@ -595,7 +601,12 @@ package WisiToken.LR is
       Ops : Config_Op_Arrays.Vector;
       --  Record of operations applied to this Config, in application order.
       --  Insert and Delete ops that are not yet parsed are reflected in
-      --  Inserted, in token_index order.
+      --  Insert_Delete, in token_index order.
+
+      Current_Ops : SAL.Base_Peek_Type := No_Insert_Delete;
+      --  If No_Insert_Delete, append new ops to Ops. Otherwise insert
+      --  before Current_Ops. This happens when Fast_Forward fails with the
+      --  remaining ops at Current_Shared_Token.
 
       Cost : Natural := 0;
    end record;

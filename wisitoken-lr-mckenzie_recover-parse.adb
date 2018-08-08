@@ -124,11 +124,11 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Action : Parse_Action_Node_Ptr renames Item.Action;
 
       Current_Token : Base_Token :=
-        (if Config.Current_Inserted = No_Inserted
+        (if Config.Current_Insert_Delete = No_Insert_Delete
          then
             Shared.Terminals.all (Config.Current_Shared_Token)
          else
-           (ID     => Config.Inserted (Config.Current_Inserted),
+           (ID     => Config.Insert_Delete (Config.Current_Insert_Delete).ID, --  FIXME: handle delete
             others => <>));
 
       New_State : Unknown_State_Index;
@@ -185,23 +185,27 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                 (Current_Token.ID,
                  Byte_Region        => Current_Token.Byte_Region,
                  Min_Terminal_Index =>
-                   (if Config.Current_Inserted = No_Inserted
+                   (if Config.Current_Insert_Delete = No_Insert_Delete
                     then Config.Current_Shared_Token
                     else Invalid_Token_Index),
                  Name              => Null_Buffer_Region,
-                 Virtual           => Config.Current_Inserted /= No_Inserted)));
+                 Virtual           => Config.Current_Insert_Delete /= No_Insert_Delete)));
 
-            if Config.Inserted.Last_Index > 0 and Config.Current_Inserted = Config.Inserted.Last_Index then
-               Config.Current_Inserted := No_Inserted;
-               Config.Inserted.Clear;
+            if Config.Insert_Delete.Last_Index > 0 and
+              Config.Current_Insert_Delete = Config.Insert_Delete.Last_Index
+            then
+               Config.Current_Insert_Delete := No_Insert_Delete;
+               Config.Insert_Delete.Clear;
+
+               Config.Current_Ops := No_Insert_Delete;
 
                Current_Token := Shared.Terminals.all (Config.Current_Shared_Token);
 
-            elsif Config.Current_Inserted /= No_Inserted then
-               Config.Current_Inserted := Config.Current_Inserted + 1;
+            elsif Config.Current_Insert_Delete /= No_Insert_Delete then
+               Config.Current_Insert_Delete := Config.Current_Insert_Delete + 1;
 
                Current_Token :=
-                 (ID     => Config.Inserted (Config.Current_Inserted),
+                 (ID     => Config.Insert_Delete (Config.Current_Insert_Delete).ID, -- FIXME: handle delete
                   others => <>);
 
             else
@@ -216,7 +220,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
             begin
                Config.Check_Status := Reduce_Stack
                  (Shared, Config.Stack, Action.Item, Nonterm,
-                  Default_Virtual => Config.Current_Inserted /= No_Inserted);
+                  Default_Virtual => Config.Current_Insert_Delete /= No_Insert_Delete);
 
                case Config.Check_Status.Label is
                when Ok =>
@@ -258,7 +262,7 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
          exit when not Success or
            Action.Item.Verb = Accept_It or
            (if Shared_Token_Goal = Invalid_Token_Index
-            then Config.Inserted.Length = 0
+            then Config.Insert_Delete.Length = 0
             else Config.Current_Shared_Token > Shared_Token_Goal);
 
          Action := Action_For (Table, Config.Stack (1).State, Current_Token.ID);

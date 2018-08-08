@@ -153,10 +153,12 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
    procedure Insert
      (Config : in out Configuration;
       ID     : in     Token_ID)
-   is begin
-      Config.Ops.Append ((Insert, ID, Config.Current_Shared_Token));
-      Config.Inserted.Append (ID);
-      Config.Current_Inserted := 1;
+   is
+      Op : constant Config_Op := (Insert, ID, Config.Current_Shared_Token);
+   begin
+      Config.Ops.Append (Op);
+      Config.Insert_Delete.Append (Op);
+      Config.Current_Insert_Delete := 1;
    end Insert;
 
    procedure Insert
@@ -682,10 +684,19 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
-   is begin
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
       if Trace_McKenzie > Extra then
          Put ("Ada_Lite Language_Fixes", Trace, Parser_Label, Terminals, Config);
          Put_Line (Trace, Parser_Label, "config stack: " & Image (Config.Stack, Descriptor));
+      end if;
+
+      if Config.Current_Ops /= No_Insert_Delete then
+         if Trace_McKenzie > Outline then
+            Put_Line (Trace, Parser_Label, "Ada_Lite Language_Fixes: Config.Current_Ops /= No_Insert_Delete");
+         end if;
+         return;
       end if;
 
       case Config.Check_Status.Label is

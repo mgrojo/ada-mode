@@ -23,57 +23,12 @@ update-wisi_grammar
 fix ada_mode-recover_23.adb
     one fix inserts "end if ;", next pushes that back, inserts "if then"
     reproduce in ada_lite
-    language_fixes insert in ops in token_index order
-    doc config.insert
-        edits to terminals not yet parsed; created by language_fixes.
-        change to include delete
-        factor out 'next_token (next_terminal, next_insert_delete, insert_delete_list)'
-            handle delete
-            use in main parser, recover parse
-
+    language_fixes, edit main parser insert in insert_delete in token_index order
         remove token_id order constraint in recover
-            build parser_state.insert_delete in order
 
-    fast_forward edit prev, don't insert two sequential
-
-Minimal_Complete_Actions
-    seems to be working
-
-    empty_production_8_lalr.parse_table state 1
-        right answer is actually (aliased_opt); constant_opt leads to more terminals
-            could look in minimal_terminal_sequences
-
-    ada_lalr state 507
-    222.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
-    222.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ ELSE sequence_of_statements_opt END IF SEMICOLON
-    222.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list END IF SEMICOLON
-    222.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ END IF SEMICOLON
-   Minimal_Complete_Actions => (ELSE, ELSIF, END)
-        should be just (END)
-        if all same LHS, check tokens.length? check Minimum_Terminal_Sequence? record prod_id in that?
-
-    test case for two reductions:
-        ada_lite_lalr (24, 223, 224)
-            construct an input that gets there; work backward thru gotos
-
-            state 223
-                189, 231: name                               goto state 223
-                189: range_g                            goto state 224
-                155, 223:    LEFT_PAREN                         => shift and goto state 189 (57.0, 99.0, 104.0)
-                141 234: name                               goto state 155
-                101: COLON                              => shift and goto state 141 (106.0, 106.1)
-                105: IDENTIFIER                         => shift and goto state 101 (106.0, 106.1)
-                58, 124, 207: declarations                       goto state 105
-
-            124: package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part_opt END name_opt SEMICOLON
-
-        ada_lite_lr1 (28, 42, 1103, 1104, 1392)
-
-        empty_production_8_lalr.parse_table state 1
-            no reduce action goto
-
-        identifier_list_name_conflict_lalr.parse_table
-            state 3
+    factor out 'next_token (next_terminal, next_insert_delete, insert_delete_list)'
+        handle delete
+        use in main parser, recover parse
 
 hint in grammar to prefer "null;" over "return;"?
     ada: IDENTIFIER for 'name'
