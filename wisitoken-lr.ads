@@ -37,6 +37,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
+with SAL.Gen_Bounded_Definite_Vectors.Gen_Sorted;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
@@ -428,6 +429,7 @@ package WisiToken.LR is
            Image (Tokens (Index), Descriptor));
 
    type Config_Op_Label is (Fast_Forward, Undo_Reduce, Push_Back, Insert, Delete);
+   subtype Insert_Delete_Op_Label is Config_Op_Label range Insert .. Delete;
    --  Fast_Forward is a placeholder to mark a fast_forward parse; that
    --  resets what operations are allowed to be done on a config.
    --
@@ -462,10 +464,11 @@ package WisiToken.LR is
          --  token shifted.
 
       when Undo_Reduce =>
-         Nonterm     : Token_ID;
+         Nonterm : Token_ID;
+         --  The nonterminal popped off the stack.
+
          Token_Count : Ada.Containers.Count_Type;
          --  The number of tokens pushed on the stack.
-         --  Nonterm is the nonterminal popped off the stack.
 
       when Push_Back | Insert | Delete =>
          ID : Token_ID;
@@ -483,9 +486,11 @@ package WisiToken.LR is
 
       end case;
    end record;
+   subtype Insert_Delete_Op is Config_Op with Dynamic_Predicate => (Insert_Delete_Op.Op in Insert_Delete_Op_Label);
+
+   function Compare (Left, Right : in Insert_Delete_Op) return SAL.Compare_Result;
 
    package Config_Op_Queues is new SAL.Gen_Unbounded_Definite_Queues (Config_Op);
-   --  FIXME: add sort
 
    package Config_Op_Arrays is new SAL.Gen_Bounded_Definite_Vectors
      (Positive_Index_Type, Config_Op, Capacity => 80);
@@ -496,6 +501,11 @@ package WisiToken.LR is
    --  repairs; in practice, a capacity of 80 is enough so far. If a
    --  config does hit that limit, it is abandoned; some other config is
    --  likely to be cheaper.
+
+   package Insert_Delete_Arrays is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Insert_Delete_Op, Capacity => 80);
+
+   package Sorted_Insert_Delete_Arrays is new Insert_Delete_Arrays.Gen_Sorted (Compare);
 
    function Config_Op_Image (Item : in Config_Op; Descriptor : in WisiToken.Descriptor) return String
      is ("(" & Config_Op_Label'Image (Item.Op) & ", " &
@@ -568,14 +578,14 @@ package WisiToken.LR is
       --  increases with Delete; we increase Shared_Parser.Resume_Token_Goal
       --  only from successful configs.
 
-      Current_Shared_Token : Token_Index := Token_Index'Last;
+      Current_Shared_Token : Base_Token_Index := Token_Index'Last;
       --  Index into Shared_Parser.Terminals for current input token, after
       --  all of Inserted is input. Initially the error token.
 
       String_Quote_Checked : Line_Number_Type := Invalid_Line_Number;
       --  Max line checked for missing string quote.
 
-      Insert_Delete : Config_Op_Arrays.Vector;
+      Insert_Delete : Sorted_Insert_Delete_Arrays.Vector;
       --  Edits to the input stream that are not yet parsed; contains only
       --  Insert and Delete ops, in token_index order.
 

@@ -123,13 +123,13 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       Config : Configuration renames Item.Config;
       Action : Parse_Action_Node_Ptr renames Item.Action;
 
-      Current_Token : Base_Token :=
-        (if Config.Current_Insert_Delete = No_Insert_Delete
-         then
-            Shared.Terminals.all (Config.Current_Shared_Token)
-         else
-           (ID     => Config.Insert_Delete (Config.Current_Insert_Delete).ID, --  FIXME: handle delete
-            others => <>));
+      Restore_Terminals_Current : Base_Token_Index;
+      Current_Token             : Base_Token := McKenzie_Recover.Current_Token
+        (Terminals                 => Shared.Terminals.all,
+         Terminals_Current         => Config.Current_Shared_Token,
+         Restore_Terminals_Current => Restore_Terminals_Current,
+         Insert_Delete             => Config.Insert_Delete,
+         Current_Insert_Delete     => Config.Current_Insert_Delete);
 
       New_State : Unknown_State_Index;
       Success   : Boolean := True;
@@ -191,28 +191,12 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
                  Name              => Null_Buffer_Region,
                  Virtual           => Config.Current_Insert_Delete /= No_Insert_Delete)));
 
-            if Config.Insert_Delete.Last_Index > 0 and
-              Config.Current_Insert_Delete = Config.Insert_Delete.Last_Index
-            then
-               Config.Current_Insert_Delete := No_Insert_Delete;
-               Config.Insert_Delete.Clear;
-
-               Config.Current_Ops := No_Insert_Delete;
-
-               Current_Token := Shared.Terminals.all (Config.Current_Shared_Token);
-
-            elsif Config.Current_Insert_Delete /= No_Insert_Delete then
-               Config.Current_Insert_Delete := Config.Current_Insert_Delete + 1;
-
-               Current_Token :=
-                 (ID     => Config.Insert_Delete (Config.Current_Insert_Delete).ID, -- FIXME: handle delete
-                  others => <>);
-
-            else
-               Config.Current_Shared_Token := Config.Current_Shared_Token + 1;
-
-               Current_Token := Shared.Terminals.all (Config.Current_Shared_Token);
-            end if;
+            Current_Token := Next_Token
+              (Terminals                 => Shared.Terminals.all,
+               Terminals_Current         => Config.Current_Shared_Token,
+               Restore_Terminals_Current => Restore_Terminals_Current,
+               Insert_Delete             => Config.Insert_Delete,
+               Current_Insert_Delete     => Config.Current_Insert_Delete);
 
          when Reduce =>
             declare
@@ -267,6 +251,8 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
 
          Action := Action_For (Table, Config.Stack (1).State, Current_Token.ID);
       end loop;
+
+      Config.Current_Shared_Token := Restore_Terminals_Current;
 
       return Success;
    end Parse_One_Item;

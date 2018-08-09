@@ -35,9 +35,8 @@ package WisiToken.LR.McKenzie_Recover is
    --  convention; abandon it.
 
    type Recover_Status is
-     (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_Cost, Fail_No_Configs_Left,
+     (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_Cost, Fail_No_Configs_Left, Fail_Programmer_Error,
       Success);
-   subtype Fail_Recover_Status is Recover_Status range Fail_Check_Delta .. Fail_No_Configs_Left;
 
    function Recover (Shared_Parser : in out WisiToken.LR.Parser.Parser) return Recover_Status;
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to
@@ -56,6 +55,22 @@ private
 
    ----------
    --  Visible for language-specific child packages. Alphabetical.
+
+   procedure Check (ID : Token_ID; Expected_ID : in Token_ID)
+   with Inline => True;
+   --  Check that ID = Expected_ID; raise Assertion_Error if not.
+   --  Implemented using 'pragma Assert'.
+
+   function Current_Token
+     (Terminals                 : in     Base_Token_Arrays.Vector;
+      Terminals_Current         : in out Base_Token_Index;
+      Restore_Terminals_Current :    out WisiToken.Base_Token_Index;
+      Insert_Delete             : in out Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete     : in out SAL.Base_Peek_Type)
+     return Base_Token;
+   --  Return the current token, from either Terminals or Insert_Delete.
+   --
+   --  See Next_Token for more info.
 
    procedure Find_ID
      (Config         : in     Configuration;
@@ -108,6 +123,49 @@ private
    --
    --  Also count tokens with ID = Other_ID.
 
+   procedure Insert (Config : in out Configuration; ID : in Token_ID);
+   --  Append an Insert op to Config.Ops, and insert it in
+   --  Config.Insert_Deleted in token_index order.
+
+   procedure Insert (Config : in out Configuration; IDs : in Token_ID_Array);
+   --  Call Insert for each item in IDs.
+
+   function Next_Token
+     (Terminals                 : in     Base_Token_Arrays.Vector;
+      Terminals_Current         : in out Base_Token_Index;
+      Restore_Terminals_Current : in out WisiToken.Base_Token_Index;
+      Insert_Delete             : in out Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete     : in out SAL.Base_Peek_Type)
+     return Base_Token;
+   --  Return the next token, from either Terminals or Insert_Delete;
+   --  update Terminals_Current or Current_Insert_Delete.
+   --
+   --  If result is Insert_Delete.Last_Index, Current_Insert_Delete =
+   --  Last_Index; Insert_Delete is cleared and Current_Insert_Delete
+   --  reset on next call.
+   --
+   --  When done parsing, reset actual Terminals_Current to
+   --  Restore_Terminals_Current.
+   --
+   --  Insert_Delete contains only Insert and Delete ops, in token_index
+   --  order. Those ops are applied when Terminals_Current =
+   --  op.token_index.
+
+   procedure Push_Back (Config : in out Configuration);
+   --  Pop the top Config.Stack item, set Config.Current_Shared_Token to
+   --  the first terminal in that item. If the item is empty,
+   --  Config.Current_Shared_Token is unchanged.
+   --
+   --  If any earlier Insert or Delete items in Config.Ops are for a
+   --  token_index after that first terminal, they are added to
+   --  Config.Insert_Delete in token_index order.
+
+   procedure Push_Back_Check (Config : in out Configuration; Expected_ID : in Token_ID);
+   --  In effect, call Check and Push_Back.
+
+   procedure Push_Back_Check (Config : in out Configuration; Expected : in Token_ID_Array);
+   --  Call Push_Back_Check for each item in Expected.
+
    procedure Put
      (Message      : in     String;
       Trace        : in out WisiToken.Trace'Class;
@@ -131,5 +189,18 @@ private
    with Pre => Tree.Is_Nonterm (Stack (1).Tree_Index);
    --  Undo the reduction that produced the top stack item, return the
    --  token count for that reduction.
+
+   procedure Undo_Reduce_Check
+     (Config   : in out Configuration;
+      Tree     : in     Syntax_Trees.Tree;
+      Expected : in     Token_ID)
+   with Inline => True;
+   --  Call Check, Undo_Reduce.
+
+   procedure Undo_Reduce_Check
+     (Config   : in out Configuration;
+      Tree     : in     Syntax_Trees.Tree;
+      Expected : in     Token_ID_Array);
+   --  Call Undo_Reduce_Check for each item in Expected.
 
 end WisiToken.LR.McKenzie_Recover;

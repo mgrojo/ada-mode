@@ -399,6 +399,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          Error_ID := Supervisor.Error_ID;
          Message  := Error_Message;
          if Trace_McKenzie > Detail then
+            Trace.New_Line;
             Trace.Put_Line ("Supervisor: Done");
          end if;
       end Done;

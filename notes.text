@@ -20,15 +20,15 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-fix ada_mode-recover_23.adb
-    one fix inserts "end if ;", next pushes that back, inserts "if then"
-    reproduce in ada_lite
-    language_fixes, edit main parser insert in insert_delete in token_index order
-        remove token_id order constraint in recover
+need propagate from main
 
-    factor out 'next_token (next_terminal, next_insert_delete, insert_delete_list)'
-        handle delete
-        use in main parser, recover parse
+if push_back virtual tokens inserted before x, then insert more before x, order is wrong
+    detect and raise bad_config
+    should not happen; should always close innermost construct, thus be inserting after.
+    could add 'inserted index'
+
+split up wisitoken-lr
+    -bnf-generate not depend on mckenzie runtime
 
 hint in grammar to prefer "null;" over "return;"?
     ada: IDENTIFIER for 'name'

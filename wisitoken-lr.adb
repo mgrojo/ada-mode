@@ -1226,6 +1226,17 @@ package body WisiToken.LR is
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;
 
+   function Compare (Left, Right : in Insert_Delete_Op) return SAL.Compare_Result
+   is begin
+      if Left.Token_Index < Right.Token_Index then
+         return SAL.Less;
+      elsif Left.Token_Index = Right.Token_Index then
+         return SAL.Equal;
+      else
+         return SAL.Greater;
+      end if;
+   end Compare;
+
    function None_Since_FF (Ops : in Config_Op_Arrays.Vector; Op : in Config_Op_Label) return Boolean
    is begin
       for O of reverse Ops loop

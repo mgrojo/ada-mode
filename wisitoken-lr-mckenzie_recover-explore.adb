@@ -224,6 +224,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  At least one config parsed without error, so continue with them.
          if Parse_Items.Length = 1 then
             Config := Parse_Items (1).Config;
+            Config.Current_Ops := No_Insert_Delete;
             Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
             return Continue;
          else
@@ -265,8 +266,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       else
          --  No parse item parsed without error. This indicates that Config.Ops
          --  (enqueued by language_fixes) did not fix all the problems; see
-         --  test_mckenzie_recover Two_Missing_Ends. We assume it made
-         --  progress, so we try to keep going.
+         --  test_mckenzie_recover Two_Missing_Ends. If it made progress we try
+         --  more fixes.
          for Item of Parse_Items loop
             declare
                Parsed_Config : Configuration renames Item.Config;
@@ -274,6 +275,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             begin
                if Parsed_Config.Current_Insert_Delete = No_Insert_Delete then
                   raise Programmer_Error; --  Parse should have returned True.
+
+               elsif Parsed_Config.Current_Insert_Delete = 1 then
+                  --  No progress made; abandon config
+                  null;
 
                else
                   --  Find fixes at the failure point. We don't reset

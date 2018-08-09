@@ -452,23 +452,6 @@ package body WisiToken.LR.Parser is
             Trace.Put_Line ("cycle start; current_verb: " & Parse_Action_Verbs'Image (Current_Verb));
          end if;
 
-         --  When parsing in the absense of errors, the current token for all
-         --  parsers is at Shared_Parser.Terminals(last_index).
-         --
-         --  When there are zombie parsers (ie, parsers that have encountered
-         --  an error, but are not terminated yet), the current token for each
-         --  parser is Shared_Parser.Terminals (Parsers(*).Shared_Token).
-         --
-         --  When resuming after error recovery, the verb is Shift_Recover; the
-         --  current token is at either Parsers(*).Recover_Insert_Delete head
-         --  (inserted during error recovery), or Shared_Parser.Terminals
-         --  (Parsers(*).Shared_Token) (read ahead from Lexer during error
-         --  recovery). Resuming is finished when all parsers are at the same
-         --  current shared token, and Shared_Parser.Resume_Token_Goal is
-         --  reached.
-         --
-         --  Error recovery should ensure that the resume parsing can complete
-         --  without error, so we cannot have zombie parsers while resuming.
          case Current_Verb is
          when Pause =>
             null;
@@ -713,21 +696,21 @@ package body WisiToken.LR.Parser is
                      Shift_Recover_Count : Integer := 0;
                   begin
                      for Parser_State of Shared_Parser.Parsers loop
+                        Parser_State.Resume_Active          := True;
+                        Parser_State.Conflict_During_Resume := False;
+
                         if Trace_Parse > Outline then
                            Trace.Put_Line
                              (Integer'Image (Parser_State.Label) & ": Current_Token " &
                                 Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
                                 " Shared_Token " & Image
                                   (Parser_State.Shared_Token, Shared_Parser.Terminals, Trace.Descriptor.all));
-                           Trace.New_Line;
-                        end if;
 
-                        Parser_State.Resume_Active          := True;
-                        Parser_State.Conflict_During_Resume := False;
-                        if Trace_Parse > Detail then
-                           Shared_Parser.Trace.Put_Line
-                             (Integer'Image (Parser_State.Label) & ": resume_active: True, token goal" &
-                                Token_Index'Image (Parser_State.Resume_Token_Goal));
+                           if Trace_Parse > Detail then
+                              Shared_Parser.Trace.Put_Line
+                                (Integer'Image (Parser_State.Label) & ": resume_active: True, token goal" &
+                                   Token_Index'Image (Parser_State.Resume_Token_Goal));
+                           end if;
                         end if;
 
                         case Parser_State.Verb is

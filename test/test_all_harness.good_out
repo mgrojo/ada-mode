@@ -79,6 +79,7 @@ OK test_mckenzie_recover.adb : String_Quote_3
 OK test_mckenzie_recover.adb : String_Quote_4
 OK test_mckenzie_recover.adb : Enqueue_Limit
 OK test_mckenzie_recover.adb : Multiple_Complete_Reduce
+OK test_mckenzie_recover.adb : Out_Of_Order_Ops
 OK test_skip_to.adb : Nominal
 OK trivial_productions_test.adb : Expression
 OK trivial_productions_test.adb : Subprograms
@@ -87,7 +88,7 @@ OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   87
-Successful Tests:  87
+Total Tests Run:   88
+Successful Tests:  88
 Failed Assertions: 0
 Unexpected Errors: 0

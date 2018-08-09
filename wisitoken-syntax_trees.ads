@@ -284,7 +284,8 @@ package WisiToken.Syntax_Trees is
 
    function Min_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
    --  Returns lowest index of shared terminal in subtree under Node. If
-   --  result is Invalid_Token_Index, all terminals are virtual.
+   --  result is Invalid_Token_Index, all terminals are virtual, or a
+   --  nonterm is empty.
 
    function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array;
 
