@@ -57,23 +57,29 @@ package SAL.Gen_Indefinite_Doubly_Linked_Lists is
 
    function Next (Position : in Cursor) return Cursor;
 
-   function Element (Position : in Cursor) return Element_Type;
+   function Element (Position : in Cursor) return Element_Type
+   with Pre => Has_Element (Position);
 
-   procedure Delete (Container : in out List; Position : in out Cursor);
+   procedure Delete (Container : in out List; Position : in out Cursor)
+   with Pre => Has_Element (Position);
 
-   function Persistent_Ref (Position : in Cursor) return access Element_Type;
+   function Persistent_Ref (Position : in Cursor) return access Element_Type
+   with Pre => Has_Element (Position);
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Constant_Reference (Position : in Cursor) return Constant_Reference_Type;
+   function Constant_Reference (Position : in Cursor) return Constant_Reference_Type
+   with Pre => Has_Element (Position);
 
-   function Constant_Ref (Container : in List'Class; Position : in Peek_Type) return Constant_Reference_Type;
+   function Constant_Ref (Container : in List'Class; Position : in Peek_Type) return Constant_Reference_Type
+   with Pre => Position <= Container.Length;
 
    type Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Reference (Position : in Cursor) return Reference_Type;
+   function Reference (Position : in Cursor) return Reference_Type
+   with Pre => Has_Element (Position);
 
 private
    type Node_Type;
