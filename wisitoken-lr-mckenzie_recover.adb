@@ -660,10 +660,9 @@ package body WisiToken.LR.McKenzie_Recover is
          raise Bad_Config;
       end if;
 
-      Restore_Terminals_Current := Terminals_Current;
-
       loop
          if Current_Insert_Delete = No_Insert_Delete then
+            Restore_Terminals_Current := Terminals_Current;
             return Terminals (Terminals_Current);
 
          elsif Insert_Delete (Current_Insert_Delete).Token_Index = Terminals_Current then
@@ -674,10 +673,13 @@ package body WisiToken.LR.McKenzie_Recover is
                when Insert =>
                   --  Decrement Terminals_Current so Next_Token knows it should always
                   --  increment it. Save the initial value, to restore in case of error.
-                  Terminals_Current := Terminals_Current - 1;
+                  Restore_Terminals_Current := Terminals_Current;
+                  Terminals_Current         := Terminals_Current - 1;
                   return (ID => Op.ID, others => <>);
 
                when Delete =>
+                  Terminals_Current         := Terminals_Current + 1;
+                  Restore_Terminals_Current := Terminals_Current;
                   Inc_I_D;
                end case;
             end;
@@ -686,6 +688,18 @@ package body WisiToken.LR.McKenzie_Recover is
          end if;
       end loop;
    end Current_Token;
+
+   procedure Delete (Config : in out Configuration; ID : in Token_ID)
+   is
+      Op : constant Config_Op := (Delete, ID, Config.Current_Shared_Token);
+   begin
+      Config.Ops.Append (Op);
+      Config.Insert_Delete.Insert (Op);
+      Config.Current_Insert_Delete := 1;
+   exception
+   when SAL.Container_Full =>
+      raise Bad_Config;
+   end Delete;
 
    procedure Find_ID
      (Config         : in     Configuration;
@@ -865,7 +879,8 @@ package body WisiToken.LR.McKenzie_Recover is
                   return (ID => Op.ID, others => <>);
 
                when Delete =>
-                  null;
+                  Terminals_Current         := Terminals_Current + 1;
+                  Restore_Terminals_Current := Terminals_Current;
                end case;
             end;
 
@@ -887,7 +902,9 @@ package body WisiToken.LR.McKenzie_Recover is
             when Fast_Forward    => False,
             when Undo_Reduce     => False,
             when Push_Back       => False,
-            when Insert | Delete => Left <= Right.Token_Index);
+            when Insert | Delete => Left < Right.Token_Index);
+      --  If Left = Right.Token_Index, we assume the Right ops go _after_
+      --  the Left, so the Left do not need to be repeated.
    begin
       if Token_Index /= Invalid_Token_Index then
          Config.Current_Shared_Token := Token_Index;

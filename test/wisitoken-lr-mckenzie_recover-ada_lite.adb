@@ -19,7 +19,6 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 with Ada_Lite_Actions;
-with System.Assertions;
 package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
 
    use all type Standard.Ada_Lite_Actions.Token_Enum_ID; -- token names
@@ -139,8 +138,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          --
          --  where the names do not match, because the user is changing them.
          --
-         --  The fix is to ignore the error. See propagate_names.ada_lite
-         --  Proc_1.
+         --  The fix is to ignore the error.
          --
          --  1. The mismatch indicates one or more missing 'end's. The input
          --  looks like:
@@ -539,7 +537,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                   Insert (New_Config_2, (+END_ID, +SEMICOLON_ID));
 
                   if Trace_McKenzie > Detail then
-                     Put ("Language_Fixes selected_component 1 " & Image (Config.Error_Token.ID, Descriptor),
+                     Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor),
                           New_Config_2);
                      if Trace_McKenzie > Extra then
                         Trace.Put_Line ("config stack: " & Image (New_Config_2.Stack, Descriptor));
@@ -564,20 +562,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
                end case;
 
                if Trace_McKenzie > Detail then
-                  Put ("Language_Fixes selected_component 1 " & Image (Config.Error_Token.ID, Descriptor),
+                  Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor),
                        New_Config_1);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config_1.Stack, Descriptor));
                   end if;
                end if;
                Local_Config_Heap.Add (New_Config_1);
-            exception
-            when System.Assertions.Assert_Failure =>
-               --  From *_Check
-               if Trace_McKenzie > Outline then
-                  Put ("Language_Fixes " & Label & " ID mismatch " & Image (Config.Error_Token.ID, Descriptor), Config);
-                  Trace.Put_Line ("... new_config stack: " & Image (New_Config_1.Stack, Descriptor));
-               end if;
             end;
          end if;
 
@@ -628,13 +619,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
          exception
          when Bad_Config =>
             null;
-         when System.Assertions.Assert_Failure =>
-            --  From *_Check
-            if Trace_McKenzie > Outline then
-               Put ("Language_Fixes " & Label & " ID mismatch " &
-                      Image (Config.Error_Token.ID, Descriptor), Config);
-               Trace.Put_Line ("... new_config stack: " & Image (New_Config.Stack, Descriptor));
-            end if;
          end;
 
       elsif End_Keyword_IDs (Config.Error_Token.ID) and Config.Stack (1).Token.ID = +END_ID then

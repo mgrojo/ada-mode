@@ -20,13 +20,6 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-need propagate from main
-
-if push_back virtual tokens inserted before x, then insert more before x, order is wrong
-    detect and raise bad_config
-    should not happen; should always close innermost construct, thus be inserting after.
-    could add 'inserted index'
-
 split up wisitoken-lr
     -bnf-generate not depend on mckenzie runtime
 
@@ -41,6 +34,9 @@ review fixmes
 Error messages need gen_alg prefix - add to Error_message
 
 capture diff between lr1, lalr recover
+
+cost metric include number of lines affected?
+    for ada_mode-recover_24.adb
 
 use trace for trace_generate; separate from parse_table
 

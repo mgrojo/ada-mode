@@ -72,6 +72,10 @@ private
    --
    --  See Next_Token for more info.
 
+   procedure Delete (Config : in out Configuration; ID : in Token_ID);
+   --  Append a Delete op to Config.Ops, and insert it in
+   --  Config.Insert_Deleted in token_index order.
+
    procedure Find_ID
      (Config         : in     Configuration;
       ID             : in     Token_ID;

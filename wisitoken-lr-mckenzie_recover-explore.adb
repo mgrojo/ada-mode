@@ -265,7 +265,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      Local_Config_Heap.Add (Item.Config);
 
                      if Trace_McKenzie > Detail then
-                        Base.Put ("fast forward conflicts", Super, Shared, Parser_Index, Item.Config);
+                        Base.Put ("fast forward conflict", Super, Shared, Parser_Index, Item.Config);
                      end if;
                   end if;
                end loop;
@@ -284,7 +284,13 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                Remaining : SAL.Base_Peek_Type;
             begin
                if Parsed_Config.Current_Insert_Delete = No_Insert_Delete then
-                  raise Programmer_Error; --  Parse should have returned True.
+                  --  Insert_Delete contains only Deletes, and the next token caused an
+                  --  error.
+                  Parsed_Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
+                  Local_Config_Heap.Add (Parsed_Config);
+                  if Trace_McKenzie > Detail then
+                     Base.Put ("fast forward failure", Super, Shared, Parser_Index, Item.Config);
+                  end if;
 
                elsif Parsed_Config.Current_Insert_Delete = 1 then
                   --  No progress made; abandon config
@@ -305,8 +311,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      Remaining := Parsed_Config.Insert_Delete.Last_Index - Parsed_Config.Current_Insert_Delete;
                      loop
                         exit when Remaining = 0;
+                        if Parsed_Config.Ops (Parsed_Config.Current_Ops).Op in Insert_Delete_Op_Label then
+                           Remaining := Remaining - 1;
+                        end if;
                         Parsed_Config.Current_Ops := Parsed_Config.Current_Ops - 1;
-                        Remaining := Remaining - 1;
                      end loop;
                   end if;
 
@@ -320,6 +328,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                      end if;
                   end if;
                   Local_Config_Heap.Add (Parsed_Config);
+                  if Trace_McKenzie > Detail then
+                     Base.Put ("fast forward failure", Super, Shared, Parser_Index, Item.Config);
+                  end if;
                end if;
             end;
          end loop;

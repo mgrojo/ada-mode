@@ -28,6 +28,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Exceptions;
 with WisiToken.LR.McKenzie_Recover;
 package body WisiToken.LR.Parser is
 
@@ -375,6 +376,7 @@ package body WisiToken.LR.Parser is
 
    overriding procedure Parse (Shared_Parser : aliased in out LR.Parser.Parser)
    is
+      use all type Ada.Strings.Unbounded.Unbounded_String;
       use all type Syntax_Trees.User_Data_Access;
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
@@ -598,7 +600,7 @@ package body WisiToken.LR.Parser is
                         else
                            Temp := Current_Parser;
                            Current_Parser.Next;
-                           Shared_Parser.Parsers.Terminate_Parser (Current_Parser, "zombie", Shared_Parser.Trace.all);
+                           Shared_Parser.Parsers.Terminate_Parser (Temp, "zombie", Shared_Parser.Trace.all);
                         end if;
                         exit when Current_Parser.Is_Done;
                      end loop;
@@ -662,7 +664,6 @@ package body WisiToken.LR.Parser is
          when Error =>
             --  All parsers errored; attempt recovery
             declare
-               use all type Ada.Strings.Unbounded.Unbounded_String;
                use all type McKenzie_Recover.Recover_Status;
                Recover_Result : McKenzie_Recover.Recover_Status := McKenzie_Recover.Recover_Status'First;
             begin
@@ -756,7 +757,7 @@ package body WisiToken.LR.Parser is
                          Recover        => <>,
                          Msg            => +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)));
                   end loop;
-                  raise Syntax_Error;
+                  raise WisiToken.Parse_Error;
                end if;
             end;
          end case;
@@ -905,6 +906,25 @@ package body WisiToken.LR.Parser is
       --  We don't raise Syntax_Error for lexer errors, since they are all
       --  recovered, either by inserting a quote, or by ignoring the
       --  character.
+   exception
+   when Syntax_Error | WisiToken.Parse_Error =>
+      raise;
+
+   when E : others =>
+      declare
+         Msg : constant String := Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E);
+      begin
+         --  Emacs displays errors in the *syntax-errors* buffer
+         Shared_Parser.Parsers.First_State_Ref.Errors.Append
+           ((Label          => LR.Message,
+             First_Terminal => Trace.Descriptor.First_Terminal,
+             Last_Terminal  => Trace.Descriptor.Last_Terminal,
+             Recover        => <>,
+             Msg            => +Msg));
+
+         --  Emacs displays the exception message in the echo area; easy to miss
+         raise WisiToken.Parse_Error with Msg;
+      end;
    end Parse;
 
    overriding

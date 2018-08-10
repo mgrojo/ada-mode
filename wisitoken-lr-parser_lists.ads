@@ -151,6 +151,9 @@ package WisiToken.LR.Parser_Lists is
    function State_Ref (Position : in Cursor) return State_Reference;
    --  Direct access to visible components of Parser_State
 
+   function First_State_Ref (List : in Parser_Lists.List'Class) return State_Reference;
+   --  Direct access to visible components of first parser's Parser_State
+
    type Constant_State_Reference (Element : not null access constant Parser_State) is null record
    with Implicit_Dereference => Element;
 
