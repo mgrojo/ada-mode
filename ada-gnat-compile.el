@@ -545,7 +545,7 @@ Prompt user if more than one."
 	   (delete-region (point) (progn (forward-line 1) (point)))
 	   t)
 
-	  ((looking-at (concat "warning: use clause for \\(package\\|type\\|private type\\) " ada-gnat-quoted-name-regexp " \\(defined at\\|has no effect\\)"))
+	  ((looking-at (concat "warning: use clause for \\(package\\|type\\|private type\\) " ada-gnat-quoted-name-regexp " \\(defined at\\|from instance at\\|has no effect\\)"))
 	   ;; delete the 'use'; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)
