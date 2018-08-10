@@ -215,10 +215,13 @@
 %mckenzie_cost_insert ELSE 2
 %mckenzie_cost_insert EXIT 2
 %mckenzie_cost_insert IDENTIFIER 2
+%mckenzie_cost_insert IF 2
 %mckenzie_cost_insert IS 2
 %mckenzie_cost_insert LEFT_PAREN 2
 %mckenzie_cost_insert LOOP 2
+%mckenzie_cost_insert RECORD 2
 %mckenzie_cost_insert RETURN 2
+%mckenzie_cost_insert SELECT 2
 %mckenzie_cost_insert THEN 2
 %mckenzie_cost_insert WHEN 2
 
@@ -233,22 +236,25 @@
 ;; delete identifier the same cost as insert, since deleting
 ;; identifiers in other cases is not as helpful.
 ;;
-;; Similarly, we often have an extra 'end', or 'end loop' etc.
-%mckenzie_cost_push_back BEGIN 1
+;; Similarly, we often have an extra 'end;', or 'end loop;' etc.
 %mckenzie_cost_delete BEGIN 1
-%mckenzie_cost_push_back CASE 2
 %mckenzie_cost_delete CASE 2
-%mckenzie_cost_push_back DECLARE 1
 %mckenzie_cost_delete DECLARE 1
-%mckenzie_cost_push_back END 1
+%mckenzie_cost_delete ELSE 1
 %mckenzie_cost_delete END 1
-%mckenzie_cost_push_back IDENTIFIER 2
 %mckenzie_cost_delete IDENTIFIER 2
-%mckenzie_cost_push_back IF 2
 %mckenzie_cost_delete IF 2
-%mckenzie_cost_push_back LOOP 2
 %mckenzie_cost_delete LOOP 2
+%mckenzie_cost_delete SEMICOLON 1
+%mckenzie_cost_push_back BEGIN 1
+%mckenzie_cost_push_back CASE 2
+%mckenzie_cost_push_back DECLARE 1
+%mckenzie_cost_push_back END 1
+%mckenzie_cost_push_back IDENTIFIER 2
+%mckenzie_cost_push_back IF 2
+%mckenzie_cost_push_back LOOP 2
 %mckenzie_cost_push_back declarative_part_opt 1
+%mckenzie_cost_push_back SEMICOLON 1
 
 ;; Most common paren error is missing closing paren.
 %mckenzie_cost_insert RIGHT_PAREN 1

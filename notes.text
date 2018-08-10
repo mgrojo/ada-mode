@@ -50,6 +50,8 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
  current work
+run recover tests again
+
 convert libadalang tree to wisitoken syntax tree, use for indent
     make two
 

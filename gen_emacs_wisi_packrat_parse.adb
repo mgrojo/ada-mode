@@ -44,7 +44,7 @@ is
    procedure Usage
    is
    begin
-      Put_Line ("usage: " & Name & "_wisi_parse_packrat");
+      Put_Line ("usage: " & Name);
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -53,15 +53,16 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-      ("NNNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_disable> <mckenzie_cost_limit>" &
-           " <mckenzie_check_limit> <mckenzie_enqueue_limit> <source_byte_count> <language-specific params>" &
-           " <source bytes>");
+        ("NNNparse <action> <source_file_name> <line_count> <parse_verbosity> <mckenzie_verbosity>"  &
+           " <action_verbosity> <mckenzie_disable> <mckenzie_cost_limit> <mckenzie_check_limit>" &
+           " <mckenzie_enqueue_limit> <source_byte_count> <language-specific params> <source bytes>");
+
       --  The packrat parser does not support some of these options, but
       --  they must be there to be compatible with the Emacs ada-mode API.
       Put_Line ("  NNN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
-      Put_Line ("  <verbosity> is an integer; set parse trace output level");
+      Put_Line ("  <*verbosity> is an integer; set parse trace output level");
       Put_Line ("  <mckenzie_disable> is 0 | 1; 0 = use default, 1 = disable");
       Put_Line ("  <*_limit> is integer; -1 means use default");
       Put_Line ("  outputs: elisp vectors for set-text-property from parser actions or elisp forms for errors.");
@@ -131,7 +132,7 @@ is
          From    => First + 1);
 
       if First = 0 or Last = 0 then
-         raise Protocol_Error with Name & "_wisi_parse: no '""' found for string";
+         raise Protocol_Error with Name & ": no '""' found for string";
       end if;
 
       return Source (First + 1 .. Last - 1);
@@ -208,14 +209,16 @@ begin
             --  [elisp error form]...
             --  prompt
             declare
-               use WisiToken.Wisi_Runtime;
-               Post_Parse_Action : constant Post_Parse_Action_Type := Wisi_Runtime.Post_Parse_Action_Type'Val
+               use Wisi;
+               Post_Parse_Action : constant Post_Parse_Action_Type := Post_Parse_Action_Type'Val
                  (Get_Integer (Command_Line, Last));
 
                Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
 
                Line_Count : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
-               Verbosity  : constant Integer          := Get_Integer (Command_Line, Last);
+               Parse_Verbosity    : constant Integer          := Get_Integer (Command_Line, Last);
+               McKenzie_Verbosity : constant Integer          := Get_Integer (Command_Line, Last);
+               Action_Verbosity   : constant Integer          := Get_Integer (Command_Line, Last);
 
                --  Declared but not used to keep the argument numbers consistent with
                --  the Emacs ada-mode API.
@@ -239,7 +242,9 @@ begin
                --  Computing Line_Count in elisp allows parsing in parallel with
                --  sending source text.
 
-               Trace_Parse := Verbosity;
+               Trace_Parse    := Parse_Verbosity;
+               Trace_McKenzie := McKenzie_Verbosity;
+               Trace_Action   := Action_Verbosity;
 
                Parse_Data.Initialize
                  (Post_Parse_Action => Post_Parse_Action,

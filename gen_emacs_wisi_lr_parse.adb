@@ -53,9 +53,9 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-      ("NNNparse <action> <source_file_name> <line_count> <parse_verbosity> <mckenzie_verbosity> <mckenzie_disable>" &
-           " <mckenzie_cost_limit> <mckenzie_check_limit> <mckenzie_enqueue_limit> <source_byte_count>" &
-           " <language-specific params> <source bytes>");
+        ("NNNparse <action> <source_file_name> <line_count> <parse_verbosity> <mckenzie_verbosity>"  &
+           " <action_verbosity> <mckenzie_disable> <mckenzie_cost_limit> <mckenzie_check_limit>" &
+           " <mckenzie_enqueue_limit> <source_byte_count> <language-specific params> <source bytes>");
       Put_Line ("  NNN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
@@ -217,6 +217,7 @@ begin
                Line_Count         : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
                Parse_Verbosity    : constant Integer          := Get_Integer (Command_Line, Last);
                McKenzie_Verbosity : constant Integer          := Get_Integer (Command_Line, Last);
+               Action_Verbosity   : constant Integer          := Get_Integer (Command_Line, Last);
                McKenzie_Disable   : constant Integer          := Get_Integer (Command_Line, Last);
                Cost_Limit         : constant Integer          := Get_Integer (Command_Line, Last);
                Check_Limit        : constant Integer          := Get_Integer (Command_Line, Last);
@@ -240,6 +241,7 @@ begin
 
                Trace_Parse    := Parse_Verbosity;
                Trace_McKenzie := McKenzie_Verbosity;
+               Trace_Action   := Action_Verbosity;
 
                --  Default Enable_McKenzie_Recover is False if there is no McKenzie
                --  information; don't override that.

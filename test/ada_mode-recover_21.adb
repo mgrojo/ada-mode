@@ -1,3 +1,7 @@
+-- Example from real code.
+--
+--EMACS_SKIP_UNLESS: (eq ada-parser 'process)
+--EMACSCMD:(setq skip-recase-test t)
 procedure Ada_Mode.Recover_21
 is
 begin
@@ -11,11 +15,14 @@ begin
       end if;
 
       Source_File_Name  := +Ada.Command_Line.Argument (1);
-      Post_Parse_Action := WisiToken.Wisi_Runtime.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
+      Post_Parse_Action := Wisi_Runtime.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
       Arg               := 3;
 
       loop
-         exit when Arg > Argument_Count;
+            exit when Arg > Argument_Count;
+
+            --  Missing 'if then' here; recover inserts it after 'loop', so 'exit
+            -- ...' is indented.
 
          elsif Argument (Arg) = "--lang_params" then
             Lang_Params := +Argument (Arg + 1);

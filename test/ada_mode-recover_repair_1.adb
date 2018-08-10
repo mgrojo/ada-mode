@@ -8,8 +8,9 @@
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 
-procedure Apply_Pattern
+procedure Ada_Mode.Recover_Repair_1
 is
+   A : Integer;
 begin
    -- We have "a_bogus_identifier" because that's what the error
    -- repair inserts. (forward-sexp) triggers a parse.
@@ -26,4 +27,4 @@ begin
    --EMACSCMD:(progn(wisi-repair-errors)(and (looking-at "and") (looking-back "a_bogus_identifier ")))
    --EMACSRESULT:t
 
-end;
+end Ada_Mode.Recover_Repair_1;

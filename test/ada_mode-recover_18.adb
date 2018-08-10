@@ -3,10 +3,10 @@
 --
 --EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
-procedure Slow_Recover_3
+procedure Ada_Mode.Recover_18
 is begin
    return Result : String := Item do
       for I in Result'Range loop
          if Result (I) = '+' then
             --  missing 'end if; end loop; end return;'
-end Slow_Recover_3;
+end Ada_Mode.Recover_18;

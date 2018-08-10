@@ -1,19 +1,24 @@
-   procedure To_Non_Grammar
-   is begin
-      for I of Trivia loop
-         declare
-            Token : Token_Data_Type renames TDH.Trivas (I).T;
-            Line : constant Line_Number_Type := Line_Number_Type (Token.Sloc_Range.Start_Line);
-         begin
-            if Token.Kind = Ada_Comment then
-                           Token.Non_Grammar.Append
-                 ((ID    => +COMMENT_ID,
-                   Line  => Line,
-                   Col   => Ada.Text_IO.Count (Token.Sloc_Range.Start_Column),
-                   First => Line /= Token.Line));
-            end;
+-- Example from real code.
+--
+--EMACS_SKIP_UNLESS: (eq ada-parser 'process)
+--EMACSCMD:(setq skip-recase-test t)
+procedure Ada_Mode.Recover_23
+is begin
+   for I of Trivia loop
+      declare
+         Token : Token_Data_Type renames TDH.Trivas (I).T;
+         Line : constant Line_Number_Type := Line_Number_Type (Token.Sloc_Range.Start_Line);
+      begin
+         if Token.Kind = Ada_Comment then
+            Token.Non_Grammar.Append
+              ((ID    => +COMMENT_ID,
+                Line  => Line,
+                Col   => Ada.Text_IO.Count (Token.Sloc_Range.Start_Column),
+                First => Line /= Token.Line));
+
+         end; -- error here; misplaced 'end'; should be just before 'end loop;'
          else
             raise WisiToken.Programmer_Error;
          end if;
-      end loop;
-   end To_Non_Grammar;
+   end loop;
+end Ada_Mode.Recover_23;
