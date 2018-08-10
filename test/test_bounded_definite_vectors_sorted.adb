@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -16,16 +16,20 @@
 --  write to the Free Software Foundation, 59 Temple Place - Suite
 --  330, Boston, MA 02111-1307, USA.
 
-with AUnit.Assertions;
 with AUnit.Checks.Containers;
-with SAL.Gen_Bounded_Definite_Vectors;
-package body Test_Bounded_Definite_Vectors
+with SAL.Gen_Bounded_Definite_Vectors.Gen_Sorted;
+package body Test_Bounded_Definite_Vectors_Sorted
 is
    package Integer_Vectors is new SAL.Gen_Bounded_Definite_Vectors
      (Index_Type   => Positive,
       Element_Type => Integer,
       Capacity     => 5);
-   use Integer_Vectors;
+
+   function Compare (Left, Right : in Integer) return SAL.Compare_Result is
+     (if Left < Right then SAL.Less elsif Left = Right then SAL.Equal else SAL.Greater);
+
+   package Sorted_Integer_Vectors is new Integer_Vectors.Gen_Sorted (Compare);
+   use Sorted_Integer_Vectors;
 
    type Check_Array_Type is array (Positive range <>) of Integer;
 
@@ -49,36 +53,17 @@ is
    is
       pragma Unreferenced (T);
    begin
-      Append (Item, 1);
-      Check ("1", Item, (1 => 1));
-      Append (Item, 2);
-      Append (Item, 3);
-      Append (Item, 4);
+      Insert (Item, 2);
+      Check ("2", Item, (1 => 2));
+      Insert (Item, 1);
+      Check ("12", Item, (1, 2));
+      Insert (Item, 4);
+      Check ("124", Item, (1, 2, 4));
+      Insert (Item, 3);
       Check ("1234", Item, (1, 2, 3, 4));
-
-      Item.Clear;
-      Check ("clear", Item, (1 .. 0 => 0));
+      Insert (Item, 5);
+      Check ("12345", Item, (1, 2, 3, 4, 5));
    end Nominal;
-
-   procedure Errors (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-      use AUnit.Assertions;
-   begin
-      Clear (Item);
-      Append (Item, 1);
-      Append (Item, 2);
-      Append (Item, 3);
-      Append (Item, 4);
-      Append (Item, 5);
-      begin
-         Append (Item, 6);
-         Assert (False, "didn't get exception for append on full");
-      exception
-      when SAL.Container_Full =>
-         Assert (True, "");
-      end;
-   end Errors;
 
    ----------
    --  Public subprograms
@@ -95,7 +80,6 @@ is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
-      Register_Routine (T, Errors'Access, "Errors");
    end Register_Tests;
 
-end Test_Bounded_Definite_Vectors;
+end Test_Bounded_Definite_Vectors_Sorted;

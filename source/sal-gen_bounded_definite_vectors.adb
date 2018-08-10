@@ -106,12 +106,15 @@ package body SAL.Gen_Bounded_Definite_Vectors is
       end return;
    end "&";
 
-   procedure Delete_First (Container : in out Vector)
+   procedure Delete_First (Container : in out Vector; Count : in Index_Type := 1)
    is
-      J : constant Peek_Type := Peek_Type (Container.Last - Index_Type'First + 1);
+      J : constant Peek_Type := Peek_Type (Container.Last - Index_Type'First + Count);
    begin
+      if Count > Container.Last then
+         raise Container_Empty;
+      end if;
       Container.Elements (1 .. J - 1) := Container.Elements (2 .. J);
-      Container.Last := Container.Last - 1;
+      Container.Last := Container.Last - Count;
    end Delete_First;
 
    function Constant_Reference (Container : aliased Vector; Index : in Index_Type) return Constant_Reference_Type

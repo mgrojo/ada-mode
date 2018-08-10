@@ -30,6 +30,8 @@ with SAL.File_Names.Test;
 with SAL.Time_Conversions.Test;
 with Test.Config_Files.All_Suite;
 with Test_Bounded_Definite_Queues;
+with Test_Bounded_Definite_Vectors;
+with Test_Bounded_Definite_Vectors_Sorted;
 with Test_Definite_Doubly_Linked_Lists;
 with Test_Definite_Doubly_Linked_Lists_Sorted;
 with Test_Gen_Images;
@@ -100,6 +102,8 @@ begin
    Add_Test (Suite, new Test_Gen_Images.Test_Case);
    Add_Test (Suite, new Test_Graphs.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Queues.Test_Case);
+   Add_Test (Suite, new Test_Bounded_Definite_Vectors.Test_Case);
+   Add_Test (Suite, new Test_Bounded_Definite_Vectors_Sorted.Test_Case);
    Add_Test (Suite, new Test_Definite_Doubly_Linked_Lists.Test_Case);
    Add_Test (Suite, new Test_Definite_Doubly_Linked_Lists_Sorted.Test_Case);
    Add_Test (Suite, new Test_Min_Heap_Binary.Test_Case);

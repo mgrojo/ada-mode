@@ -73,7 +73,7 @@ package SAL.Gen_Bounded_Definite_Vectors is
    function "+" (Item : in Element_Type) return Vector;
    function "&" (Left : in Vector; Right : in Element_Type) return Vector;
 
-   procedure Delete_First (Container : in out Vector);
+   procedure Delete_First (Container : in out Vector; Count : in Index_Type := 1);
    --  Remaining elements slide down.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
