@@ -77,6 +77,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Action            : in              Reduce_Action_Rec)
      return Non_Success_Status
    is
+      use all type SAL.Base_Peek_Type;
       --  Perform Action on Config, setting Config.Check_Status. If that is
       --  not Ok, call Language_Fixes (which may enqueue configs),
       --  return Abandon. Otherwise return Continue.
@@ -85,7 +86,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       Table     : Parse_Table renames Shared.Table.all;
       Nonterm   : Recover_Token;
-      New_State : State_Index;
+      New_State : Unknown_State_Index;
    begin
       Config.Check_Status := Parse.Reduce_Stack (Shared, Config.Stack, Action, Nonterm, Default_Virtual => True);
       case Config.Check_Status.Label is
@@ -111,7 +112,15 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
       end case;
 
+      if Config.Stack.Depth = 0 or else Config.Stack (1).State = Unknown_State then
+         raise Bad_Config;
+      end if;
+
       New_State := Goto_For (Table, Config.Stack (1).State, Action.Production.LHS);
+
+      if New_State = Unknown_State then
+         raise Bad_Config;
+      end if;
 
       Config.Stack.Push ((New_State, Syntax_Trees.Invalid_Node_Index, Nonterm));
       return Continue;
@@ -252,6 +261,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                for Item of Parse_Items loop
                   if Item.Parsed and Item.Config.Error_Token.ID = Invalid_Token_ID then
                      Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+                     Config.Current_Ops := No_Insert_Delete;
                      Local_Config_Heap.Add (Item.Config);
 
                      if Trace_McKenzie > Detail then

@@ -614,8 +614,6 @@ package body WisiToken.LR.McKenzie_Recover is
          Current_Parser.Next;
       end loop;
 
-      Cleanup;
-
       if Shared_Parser.Post_Recover /= null then
          Shared_Parser.Post_Recover.all;
       end if;

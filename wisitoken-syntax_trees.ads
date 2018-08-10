@@ -129,8 +129,7 @@ package WisiToken.Syntax_Trees is
      return Valid_Node_Index
    with
      Pre  => not Tree.Traversing,
-     Post => Tree.Is_Empty (Add_Nonterm'Result) or
-             Tree.Min_Terminal_Index (Add_Nonterm'Result) /= Invalid_Token_Index;
+     Post => Tree.Min_Terminal_Index (Add_Nonterm'Result) /= Invalid_Token_Index;
    --  Add a new Nonterm node. Result points to the added node. If
    --  Children'Length = 0, set Nonterm.Virtual := Default_Virtual.
 
