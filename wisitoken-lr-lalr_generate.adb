@@ -301,7 +301,7 @@ package body WisiToken.LR.LALR_Generate is
          Ref (From_Match).To.Append (To_Item);
 
       else
-         raise Programmer_Error with "Add_Propagation: unexpected case";
+         raise SAL.Programmer_Error with "Add_Propagation: unexpected case";
       end if;
    end Add_Propagation;
 

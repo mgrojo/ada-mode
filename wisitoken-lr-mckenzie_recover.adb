@@ -154,7 +154,7 @@ package body WisiToken.LR.McKenzie_Recover is
       when Message =>
          --  Last error entry should be the failure that caused us to enter
          --  recovery.
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end case;
 
       Parser_State.Recover.Enqueue_Count := Parser_State.Recover.Enqueue_Count + 1;

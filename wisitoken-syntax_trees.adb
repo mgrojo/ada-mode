@@ -812,13 +812,13 @@ package body WisiToken.Syntax_Trees is
          if Tree.Shared_Tree.Nodes (Tree.Shared_Tree.Nodes.Last_Index).Parent = 0 then
             Process_Tree (Tree, Tree.Shared_Tree.Nodes.Last_Index, Process_Node);
          else
-            raise Programmer_Error with "last tree node is not a root";
+            raise SAL.Programmer_Error with "last tree node is not a root";
          end if;
       else
          if Tree.Branched_Nodes (Tree.Branched_Nodes.Last_Index).Parent = 0 then
             Process_Tree (Tree, Tree.Branched_Nodes.Last_Index, Process_Node);
          else
-            raise Programmer_Error with "last tree node is not a root";
+            raise SAL.Programmer_Error with "last tree node is not a root";
          end if;
       end if;
       Tree.Shared_Tree.Traversing := False;

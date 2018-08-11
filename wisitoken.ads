@@ -64,7 +64,7 @@ package WisiToken is
 
    User_Error : exception; -- other user error (ie command line parameter)
 
-   Programmer_Error : exception; -- a programming convention has been violated
+   --  SAL.Programmer_Error : exception; -- a programming convention has been violated
 
    subtype Positive_Index_Type is SAL.Peek_Type;
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (SAL.Base_Peek_Type);
@@ -363,7 +363,7 @@ package WisiToken is
    function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
    ----------
-   --  Trace
+   --  Trace, debug
 
    Trace_Parse : Integer  := 0;
    --  If Trace_Parse > 0, Parse prints messages helpful for debugging
@@ -388,6 +388,10 @@ package WisiToken is
 
    Trace_Generate : Integer := 0;
    --  Output during grammar generation.
+
+   Debug_Mode : Boolean := False;
+   --  If True, Output stack traces, propagate exceptions to top level.
+   --  Otherwise, be robust to errors, so user does not notice them.
 
    type Trace (Descriptor : not null access constant WisiToken.Descriptor) is abstract tagged limited null record;
    --  Output for tests/debugging. Not used during grammar generation;

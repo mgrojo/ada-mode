@@ -108,7 +108,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
             if Parsers.Reference (I).Recover_Insert_Delete.Length > 0 then
                --  Previous error recovery resume not finished; this is supposed to
                --  be checked in Parser.
-               raise Programmer_Error;
+               raise SAL.Programmer_Error;
             end if;
 
             Parser_Status (Index) :=
@@ -266,7 +266,7 @@ package body WisiToken.LR.McKenzie_Recover.Base is
             Set_All_Done;
             All_Parsers_Done := True;
          else
-            raise Programmer_Error with "Get_Barrier and Get logic do not match";
+            raise SAL.Programmer_Error with "Get_Barrier and Get logic do not match";
          end if;
       end Get;
 
@@ -389,8 +389,10 @@ package body WisiToken.LR.McKenzie_Recover.Base is
          Fatal_Called   := True;
          Error_ID       := Exception_Identity (E);
          Error_Message  := +Exception_Message (E);
-         Trace.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-         Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         if Debug_Mode then
+            Trace.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
+            Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+         end if;
       end Fatal;
 
       entry Done (Error_ID : out Ada.Exceptions.Exception_Id; Message : out Ada.Strings.Unbounded.Unbounded_String)

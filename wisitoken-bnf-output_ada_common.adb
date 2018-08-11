@@ -235,7 +235,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
    begin
       if Common_Data.Generate_Algorithm = External then
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end if;
 
       Create (Spec_File, Out_File, Output_File_Name);
@@ -684,7 +684,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                                   "'Access"));
 
                         when others =>
-                           raise Programmer_Error with "conflict second action verb: " &
+                           raise SAL.Programmer_Error with "conflict second action verb: " &
                              LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                         end case;
                      end if;
@@ -1351,7 +1351,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          if Tuple.Gen_Alg = External or else Input_Data.User_Lexer in Valid_Lexer then
             Data.Lexer := Input_Data.User_Lexer;
          else
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          end if;
 
          if Check_Interface then

@@ -57,7 +57,7 @@ package body WisiToken is
             return I;
          end if;
       end loop;
-      raise Programmer_Error with "token name '" & Name & "' not found in descriptor.image";
+      raise SAL.Programmer_Error with "token name '" & Name & "' not found in descriptor.image";
    end Find_ID;
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector)

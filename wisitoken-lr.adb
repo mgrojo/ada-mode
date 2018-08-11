@@ -471,7 +471,7 @@ package body WisiToken.LR is
            (Reduce, Production_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1),
          when Accept_It =>
            (Accept_It, Production_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1),
-         when others => raise WisiToken.Programmer_Error);
+         when others => raise SAL.Programmer_Error);
 
       Action_2 : constant Parse_Action_Rec :=
         (Reduce, Production_2, Semantic_Action_2, Semantic_Check_2, RHS_Token_Count_2);
@@ -486,7 +486,7 @@ package body WisiToken.LR is
       Node   : Action_Node_Ptr           := State.Action_List;
    begin
       if Node = null then
-         raise Programmer_Error with "adding an error action to a parse table state before other actions.";
+         raise SAL.Programmer_Error with "adding an error action to a parse table state before other actions.";
       end if;
       loop
          exit when Node.Next = null;
@@ -573,7 +573,7 @@ package body WisiToken.LR is
       Action_Node : Action_Node_Ptr := Table.States (State).Action_List;
    begin
       if Action_Node = null then
-         raise Programmer_Error with "no actions for state" & Unknown_State_Index'Image (State);
+         raise SAL.Programmer_Error with "no actions for state" & Unknown_State_Index'Image (State);
       end if;
 
       while Action_Node.Next /= null and Action_Node.Symbol /= ID loop
@@ -1043,7 +1043,7 @@ package body WisiToken.LR is
          return Value_Type'Value (Val);
       exception
       when Constraint_Error =>
-         raise Programmer_Error with Error_Message
+         raise SAL.Programmer_Error with Error_Message
            (File_Name, Line_Number_Type (Ada.Text_IO.Line (File) - 1), Ada.Text_IO.Count (First),
             "expecting " & Name & ", found '" & Val & "'");
       end Gen_Next_Value;
@@ -1212,7 +1212,7 @@ package body WisiToken.LR is
    when Name_Error =>
       raise User_Error with "parser table text file '" & File_Name & "' not found.";
 
-   when Programmer_Error =>
+   when SAL.Programmer_Error =>
       if Is_Open (File) then
          Close (File);
       end if;
@@ -1221,7 +1221,7 @@ package body WisiToken.LR is
       if Is_Open (File) then
          Close (File);
       end if;
-      raise Programmer_Error with Error_Message
+      raise SAL.Programmer_Error with Error_Message
         (File_Name, Line_Number_Type (Ada.Text_IO.Line (File) - 1), Ada.Text_IO.Count (First),
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;

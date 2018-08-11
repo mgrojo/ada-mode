@@ -103,7 +103,7 @@ package body WisiToken.Lexer.re2c is
       Lexer.Source.Buffer_Last := Last (Lexer.Source.Region);
 
       if Integer (Length (Lexer.Source.File)) /= Lexer.Source.Buffer_Last then
-         raise Programmer_Error with "not all of file is mapped; file length" &
+         raise SAL.Programmer_Error with "not all of file is mapped; file length" &
            File_Size'Image (Length (Lexer.Source.File)) & " mapped:" & Integer'Image (Lexer.Source.Buffer_Last);
       end if;
 

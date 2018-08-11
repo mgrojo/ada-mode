@@ -35,6 +35,7 @@ package WisiToken.LR.Parser is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
+      Parse_Table       : in     WisiToken.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;

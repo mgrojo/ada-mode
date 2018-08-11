@@ -37,14 +37,10 @@ with Ada.Unchecked_Deallocation;
 with WisiToken;
 package WisiToken.BNF is
 
-   User_Error : exception; -- error in command line options or parameters
-
-   --  See also WisiToken.Grammar_Error, Syntax_Error
+   --  See also WisiToken exceptions
 
    Not_Found : exception;
-   --  something not found; should be handled and converted to Syntax_ or Programmer_Error
-
-   Programmer_Error : exception; -- Error in Wisi Ada code
+   --  something not found; should be handled and converted to Syntax_ or Grammar_Error
 
    type Generate_Algorithm is (None, LALR, LR1, Packrat_Gen, Packrat_Proc, External);
    subtype Valid_Generate_Algorithm is Generate_Algorithm range LALR .. Generate_Algorithm'Last;

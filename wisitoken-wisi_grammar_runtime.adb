@@ -51,7 +51,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
          return Strip_Delimiters (Tree_Index);
 
       when Virtual_Terminal =>
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
 
       when Nonterm =>
          declare
@@ -220,7 +220,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
             Data.Ignore_Lines := False;
 
          when others =>
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          end case;
       end if;
    end Get_Right_Hand_Sides;
@@ -290,9 +290,9 @@ package body WisiToken.Wisi_Grammar_Runtime is
          use all type SAL.Base_Peek_Type;
       begin
          if Tokens'Last < Index then
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Shared_Terminal then
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          else
             return Data.Terminals.all (Tree.Terminal (Tokens (Index)));
          end if;
@@ -340,7 +340,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   Value => Get_Text (Data, Tree, Tokens (4)));
 
             when others =>
-               raise Programmer_Error;
+               raise SAL.Programmer_Error;
             end case;
          end;
 
@@ -384,7 +384,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
 
                            Node := Children (1);
                         else
-                           raise Programmer_Error;
+                           raise SAL.Programmer_Error;
                         end if;
                      end;
                   end loop;
@@ -603,7 +603,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
          end case;
 
       when Syntax_Trees.Virtual_Terminal =>
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end case;
    end Add_Declaration;
 

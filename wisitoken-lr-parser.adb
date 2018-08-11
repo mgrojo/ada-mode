@@ -323,7 +323,7 @@ package body WisiToken.LR.Parser is
          Verb := Shift;
 
       else
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end if;
 
       if Resume_Active then
@@ -420,7 +420,7 @@ package body WisiToken.LR.Parser is
                      Shared_Parser.Parsers.Terminate_Parser
                        (Check_Parser, "error in conflict during resume", Shared_Parser.Trace.all);
                   else
-                     raise Programmer_Error with "error during resume";
+                     raise SAL.Programmer_Error with "error during resume";
                   end if;
                end if;
             end if;
@@ -544,7 +544,7 @@ package body WisiToken.LR.Parser is
 
                   else
                      --  Set_Verb set the wrong verb.
-                     raise Programmer_Error;
+                     raise SAL.Programmer_Error;
                   end if;
                end if;
             end loop;
@@ -736,7 +736,7 @@ package body WisiToken.LR.Parser is
                            end if;
 
                         when Pause | Accept_It =>
-                           raise Programmer_Error;
+                           raise SAL.Programmer_Error;
                         end case;
                      end loop;
 

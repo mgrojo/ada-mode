@@ -271,7 +271,7 @@ is
          Put_Line ("with WisiToken.Parse.Packrat.Procedural;");
          Put_Line ("with WisiToken.Productions;");
       when External =>
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end case;
 
       Put_Line ("package body " & Main_Package_Name & " is");
@@ -297,7 +297,7 @@ is
       when Packrat_Proc =>
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
       when External =>
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end case;
 
       Put_Line ("end " & Main_Package_Name & ";");
@@ -324,7 +324,7 @@ is
                else "Gen_LR_Parser_No_Recover_Run")),
 
          when Packrat_Generate_Algorithm => "Gen_Packrat_Parser_Run",
-         when External => raise Programmer_Error);
+         when External => raise SAL.Programmer_Error);
 
       Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         "_" & Generate_Algorithm'Image (Common_Data.Generate_Algorithm) & "_Run";

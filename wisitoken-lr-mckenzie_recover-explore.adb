@@ -102,8 +102,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             return Abandon;
          else
             Shared.Language_Fixes
-              (Super.Trace.all, Shared.Lexer, Super.Label (Parser_Index),
-               Shared.Terminals.all, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
+              (Super.Trace.all, Shared.Lexer, Super.Label (Parser_Index), Shared.Table.all, Shared.Terminals.all,
+               Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config);
             --  Finish the reduce.
             Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
@@ -166,7 +166,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                end case;
 
             when Accept_It =>
-               raise Programmer_Error with "found test case for Do_Reduce Accept_It conflict";
+               raise SAL.Programmer_Error with "found test case for Do_Reduce Accept_It conflict";
 
             when Error =>
                null;
@@ -190,7 +190,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end case;
 
       when Accept_It =>
-         raise Programmer_Error with "found test case for Do_Reduce Accept_It";
+         raise SAL.Programmer_Error with "found test case for Do_Reduce Accept_It";
 
       when Error =>
          null;
@@ -576,7 +576,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                   end if;
 
                when Accept_It =>
-                  raise Programmer_Error with "found test case for Process_One Accept_It";
+                  raise SAL.Programmer_Error with "found test case for Process_One Accept_It";
 
                when Error =>
                   null;
@@ -810,11 +810,11 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                New_Config := Parse_Items (1).Config;
                New_Config.Ops.Append ((Fast_Forward, New_Config.Current_Shared_Token));
             else
-               raise Programmer_Error;
+               raise SAL.Programmer_Error;
             end if;
          exception
          when Bad_Config =>
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          end;
          J := New_Config.Current_Shared_Token; -- parse result
          loop
@@ -1199,7 +1199,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             null;
          else
             Shared.Language_Fixes
-              (Trace, Shared.Lexer, Super.Label (Parser_Index),
+              (Trace, Shared.Lexer, Super.Label (Parser_Index), Shared.Table.all,
                Shared.Terminals.all, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config);
 
@@ -1239,7 +1239,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                         Super.Put (Parser_Index, Local_Config_Heap);
                         return;
                      else
-                        raise Programmer_Error with
+                        raise SAL.Programmer_Error with
                           "process_one found test case for new_state = Unknown; old state " &
                           Trimmed_Image (Config.Stack (1).State) & " nonterm " & Image
                             (Config.Error_Token.ID, Trace.Descriptor.all);
@@ -1321,6 +1321,12 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       end if;
 
       Super.Put (Parser_Index, Local_Config_Heap);
+   exception
+   when others =>
+      --  Just abandon this config.
+      if Debug_Mode then
+         raise;
+      end if;
    end Process_One;
 
 end WisiToken.LR.McKenzie_Recover.Explore;

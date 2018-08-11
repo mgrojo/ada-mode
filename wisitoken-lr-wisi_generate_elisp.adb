@@ -87,7 +87,8 @@ package body WisiToken.LR.Wisi_Generate_Elisp is
 
                if Action.Next = null then
                   if Action.Action.Item.Verb /= Error then
-                     raise Programmer_Error with "state" & State_Index'Image (State) & ": default action is not error";
+                     raise SAL.Programmer_Error with "state" &
+                       State_Index'Image (State) & ": default action is not error";
                   end if;
                   --  let default handle it
                   Action := null;

@@ -529,13 +529,13 @@ package body WisiToken.Generate.LR is
          end loop;
 
       when WisiToken.LR.Error =>
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end case;
 
       Ada.Text_IO.Put_Line
         ("item for " & Image (Action, Descriptor) & " on " & Image (Lookahead, Descriptor) & " not found in");
       LR1_Items.Put (Grammar, Descriptor, Closure, Kernel_Only => True);
-      raise Programmer_Error;
+      raise SAL.Programmer_Error;
    end Find;
 
    function Image (Descriptor : in WisiToken.Descriptor; Item : in Conflict) return String
@@ -833,13 +833,13 @@ package body WisiToken.Generate.LR is
                   --  to that first.
                   return (Reduce, Node.Action.Item.Production.LHS, 0);
                when Accept_It | WisiToken.LR.Error =>
-                  raise Programmer_Error;
+                  raise SAL.Programmer_Error;
                end case;
             end if;
             Node := Node.Next;
             exit when Node = null;
          end loop;
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end Find_Action;
 
       Working_Set : LR1_Items.Item_Lists.List := Kernel.Set;

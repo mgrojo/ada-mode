@@ -94,7 +94,7 @@ package body WisiToken.BNF.Generate_Utils is
          end;
 
       when Done =>
-         raise Programmer_Error with "token cursor is done";
+         raise SAL.Programmer_Error with "token cursor is done";
       end case;
    end Name_1;
 
@@ -249,7 +249,7 @@ package body WisiToken.BNF.Generate_Utils is
 
          Result.Descriptor.Last_Lookahead       :=
            (case (Input_Data.User_Parser) is
-            when None                                  => raise Programmer_Error,
+            when None                                  => raise SAL.Programmer_Error,
             when LR1                                   => Result.Descriptor.Last_Terminal,
             when LALR                                  => Result.Descriptor.First_Nonterminal,
             when Packrat_Generate_Algorithm | External => Invalid_Token_ID);
@@ -340,7 +340,7 @@ package body WisiToken.BNF.Generate_Utils is
          end;
 
       when Done =>
-         raise Programmer_Error with "token cursor is done";
+         raise SAL.Programmer_Error with "token cursor is done";
       end case;
    end Constant_Reference;
 
@@ -562,14 +562,14 @@ package body WisiToken.BNF.Generate_Utils is
          if Next_Kind_Internal (Cursor, Nonterminals) then
             return;
          else
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          end if;
 
       when WisiToken_Accept =>
          if Next_Kind_Internal (Cursor, Nonterminals) then
             return;
          else
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          end if;
 
       when Nonterminal =>
@@ -620,7 +620,7 @@ package body WisiToken.BNF.Generate_Utils is
             return "nonterminal";
 
       when Done =>
-         raise Programmer_Error with "token cursor is done";
+         raise SAL.Programmer_Error with "token cursor is done";
       end case;
    end Kind;
 
@@ -661,7 +661,7 @@ package body WisiToken.BNF.Generate_Utils is
             return "";
 
       when Done =>
-         raise Programmer_Error with "token cursor is done";
+         raise SAL.Programmer_Error with "token cursor is done";
       end case;
    end Value;
 

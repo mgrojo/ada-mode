@@ -169,7 +169,7 @@ package body WisiToken.LR.Parser_No_Recover is
 
          when Pause | Shift_Recover =>
             --  This is parser_no_recover
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          end case;
       end loop;
 
@@ -183,7 +183,7 @@ package body WisiToken.LR.Parser_No_Recover is
          Verb := Shift;
 
       else
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
       end if;
    end Parse_Verb;
 
@@ -313,7 +313,7 @@ package body WisiToken.LR.Parser_No_Recover is
 
          when Pause | Shift_Recover =>
             --  This is parser_no_recover
-            raise Programmer_Error;
+            raise SAL.Programmer_Error;
          end case;
 
          --  We don't use 'for Parser_State of Parsers loop' here,
