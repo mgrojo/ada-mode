@@ -9,7 +9,7 @@ is begin
         Sof5  : constant Stream_Element := 16#C5#;
          --  Copied a list of constant declarations to construct a boolean expression
 
-   end loop;
+      end loop;
 exception
    when  Sal.Invalid_Format =>
       raise;

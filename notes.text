@@ -50,7 +50,20 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
  current work
-run recover tests again
+running all tests
+    run-indent-test-lalr-process-gpr_query
+        test/ada_mode-nominal.adb:532 ada-goto-declarative-region-start fails
+            wisi-debug-keys shows containing is ok
+
+    elisp ./ada_mode-parens.adb.diff
+        comment align diffs; elisp is wrong
+
+    elisp ./format_paramlist.adb.diff
+        elisp parse error?
+
+    build/ada_mode-recover_20.adb.diff
+        race condition?
+
 
 convert libadalang tree to wisitoken syntax tree, use for indent
     make two
