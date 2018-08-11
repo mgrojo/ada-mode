@@ -34,6 +34,15 @@ review fixmes
 Error messages need gen_alg prefix - add to Error_message
 
 capture diff between lr1, lalr recover
+    ./ada_lite_lalr_run.exe -m 1 -t 1
+    ada_lite_recover_repeatable.input:45:
+        package body P is procedure Remove is begin A := B; exception end; A := B; end Remove; end P; procedure Q;
+        lr1: reports syntax error, all 4 parsers find solutions quickly
+        lalr: reports match_names_error, two parsers fail on cost
+
+        similar on line 47; lalr finds no solutions
+
+    do the same on ada-mode tests
 
 cost metric include number of lines affected?
     for ada_mode-recover_24.adb

@@ -594,7 +594,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (59, 69),
          Ops                     => +(Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +CASE_ID, 13) &
            (Insert, +SEMICOLON_ID, 13) & (Fast_Forward, 13),
-         Enqueue_Low             => 12,
+         Enqueue_Low             => 11,
          Enqueue_High            => 66,
          Check_Low               => 5,
          Check_High              => 24,
@@ -1396,7 +1396,7 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
              (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
          Enqueue_Low             => 2,
-         Enqueue_High            => 48,
+         Enqueue_High            => 82,
          Check_Low               => 2,
          Check_High              => 13,
          Cost                    => 0);
@@ -1427,7 +1427,7 @@ package body Test_McKenzie_Recover is
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
              (Insert, +SEMICOLON_ID, 13),
          Enqueue_Low             => 38,
-         Enqueue_High            => 176,
+         Enqueue_High            => 188,
          Check_Low               => 15,
          Check_High              => 44,
          Cost                    => 5);
@@ -1724,7 +1724,7 @@ package body Test_McKenzie_Recover is
            (Insert, +IF_ID, 10) & (Insert, +THEN_ID, 10) & (Fast_Forward,  42),
          Enqueue_Low             => 25,
          Enqueue_High            => 99,
-         Check_Low               => 20,
+         Check_Low               => 17,
          Check_High              => 40,
          Cost                    => 1);
    end Out_Of_Order_Ops;

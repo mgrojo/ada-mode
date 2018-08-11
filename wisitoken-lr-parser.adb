@@ -757,7 +757,7 @@ package body WisiToken.LR.Parser is
                          Recover        => <>,
                          Msg            => +"recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result)));
                   end loop;
-                  raise WisiToken.Parse_Error;
+                  raise WisiToken.Syntax_Error;
                end if;
             end;
          end case;
