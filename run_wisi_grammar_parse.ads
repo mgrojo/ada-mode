@@ -21,9 +21,9 @@ pragma License (GPL);
 with Wisi_Grammar_1_Process_Actions;
 with Wisi_Grammar_1_Process_Main;
 with Gen_Run_Wisi_LR_Parse;
-with WisiToken.Wisi_Runtime;
+with Wisi;
 procedure Run_Wisi_Grammar_Parse is new Gen_Run_Wisi_LR_Parse
-  (WisiToken.Wisi_Runtime.Parse_Data_Type,
-   "Wisi_Grammar", Wisi_Grammar_1_Process_Actions.Descriptor,
+  (Wisi.Parse_Data_Type,
+   Wisi_Grammar_1_Process_Actions.Descriptor,
    null, null, null,
    Wisi_Grammar_1_Process_Main.Create_Parser);

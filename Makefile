@@ -37,8 +37,8 @@ two : build_ada_executables
 two : force
 	./run_wisi_grammar_1_parse.exe wisi_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
-%.re2c : %.wy $(WISITOKEN)/wisi-generate.exe
-	$(WISITOKEN)/wisi-generate.exe $(<F)
+%.re2c : %.wy $(WISITOKEN)/wisitoken-bnf-generate.exe
+	$(WISITOKEN)/wisitoken-bnf-generate.exe $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el $(*F).re2c
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 
@@ -76,8 +76,8 @@ export EMACS_WISI ?= c:/Projects/org.emacs.ada-mode.stephe-2
 
 endif
 
-$(WISITOKEN)/wisi-generate.exe : force
-	$(MAKE) -C $(WISITOKEN) wisi-generate.exe
+$(WISITOKEN)/wisitoken-bnf-generate.exe : force
+	$(MAKE) -C $(WISITOKEN) wisitoken-bnf-generate.exe
 
 vpath %.wy ../org.emacs.ada-mode.stephe-2 ../org.wisitoken/wisi/test/ ../org.emacs.java-wisi/source/
 
@@ -119,7 +119,7 @@ exe-clean :
 	rm -rf obj
 	rm -rf *.exe
 
-# delete all files created by wisi-generate
+# delete all files created by wisitoken-bnf-generate
 generate-clean :
 	rm -f *.parse_table *.re2c *_re2c.c *_re2c_c.ads *-process.el *_process*.ad?
 
