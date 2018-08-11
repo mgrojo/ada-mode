@@ -112,20 +112,21 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
       --  fix a particular use case, the trace messages will be enough.
 
       if not Begin_Name_IDs (Begin_Name_Token.ID) then
-         raise Programmer_Error with "unrecognized begin_name_token id " & Image (Begin_Name_Token.ID, Descriptor);
+         raise SAL.Programmer_Error with "unrecognized begin_name_token id " & Image (Begin_Name_Token.ID, Descriptor);
       end if;
 
       if not End_Name_IDs (End_Name_Token.ID) then
-         raise Programmer_Error with "unrecognized begin_name_token id " & Image (End_Name_Token.ID, Descriptor);
+         raise SAL.Programmer_Error with "unrecognized begin_name_token id " & Image (End_Name_Token.ID, Descriptor);
       end if;
 
       if not Named_Nonterm_IDs (Config.Error_Token.ID) then
-         raise Programmer_Error with "unrecognized name error token id " & Image (Config.Error_Token.ID, Descriptor);
+         raise SAL.Programmer_Error with "unrecognized name error token id " &
+           Image (Config.Error_Token.ID, Descriptor);
       end if;
 
       case Config.Check_Status.Label is
       when Ok =>
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
 
       when Match_Names_Error =>
          --  There are several cases:
@@ -249,7 +250,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                      Insert (New_Config, +BEGIN_ID);
 
                   when others =>
-                     raise Programmer_Error with "Match_Names_Error 2 " & Image (Config.Error_Token.ID, Descriptor);
+                     raise SAL.Programmer_Error with "Match_Names_Error 2 " & Image (Config.Error_Token.ID, Descriptor);
                   end case;
 
                   if Trace_McKenzie > Detail then
@@ -430,7 +431,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                          +sequence_of_statements_opt_ID));
                   end if;
                when others =>
-                  raise Programmer_Error with "unimplemented nonterm for Missing_Name_Error " &
+                  raise SAL.Programmer_Error with "unimplemented nonterm for Missing_Name_Error " &
                     Image (Config.Error_Token, Descriptor);
                end case;
 
@@ -593,7 +594,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
                   Insert (New_Config, (+END_ID, +LOOP_ID, +SEMICOLON_ID));
 
                when others =>
-                  raise Programmer_Error with "Extra_Name_Error 2: unrecognized Error_Token.ID " & Image
+                  raise SAL.Programmer_Error with "Extra_Name_Error 2: unrecognized Error_Token.ID " & Image
                     (Config.Error_Token.ID, Descriptor);
                end case;
 
@@ -616,6 +617,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
    procedure Handle_Parse_Error
      (Trace             : in out WisiToken.Trace'Class;
       Parser_Label      : in     Natural;
+      Parse_Table       : in     WisiToken.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
@@ -961,6 +963,26 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          when Bad_Config =>
             null;
          end;
+
+      elsif Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) in CONSTANT_ID | IDENTIFIER_ID and
+        (for some Prod of Parse_Table.States (Config.Stack.Peek.State).Productions => Prod.LHS = +block_label_ID)
+      then
+         --  Code looks like:
+         --
+         --  ... <subprogram|package start> begin ... <variable_name> : [constant] <type_name>;
+         --
+         --  There is a missing 'end;' before the <variable_name>. See test/ada_mode-recover_25.adb
+
+         declare
+            New_Config : Configuration := Config;
+         begin
+            Push_Back_Check (New_Config, (+COLON_ID, +IDENTIFIER_ID));
+            Insert (New_Config, (+END_ID, +SEMICOLON_ID));
+            Local_Config_Heap.Add (New_Config);
+            if Trace_McKenzie > Detail then
+               Put ("Language_Fixes terminate_subprogram" & Image (Config.Error_Token.ID, Descriptor), New_Config);
+            end if;
+         end;
       end if;
    end Handle_Parse_Error;
 
@@ -971,6 +993,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
+      Parse_Table       : in     WisiToken.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
@@ -992,7 +1015,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
       case Config.Check_Status.Label is
       when Ok =>
-         Handle_Parse_Error (Trace, Parser_Label, Terminals, Local_Config_Heap, Config);
+         Handle_Parse_Error (Trace, Parser_Label, Parse_Table, Terminals, Local_Config_Heap, Config);
 
       when others =>
          Handle_Check_Fail (Trace, Lexer, Parser_Label, Terminals, Tree, Local_Config_Heap, Config);

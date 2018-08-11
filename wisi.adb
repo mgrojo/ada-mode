@@ -343,7 +343,7 @@ package body Wisi is
          end;
 
       when Anchor | Anchored | Anchor_Anchored =>
-         raise Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
+         raise SAL.Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
       end case;
    end Put;
 
@@ -1447,7 +1447,7 @@ package body Wisi is
                else """ ?" & Item.Recover_Char (1)) &
               "]");
          if Item.Recover_Char (2) /= ASCII.NUL then
-            raise Programmer_Error with "lexer error with non-ascii or multiple repair char";
+            raise SAL.Programmer_Error with "lexer error with non-ascii or multiple repair char";
          end if;
       end loop;
 
@@ -1564,7 +1564,7 @@ package body Wisi is
       return
         (case Tree.Label (Tree_Index) is
          when Shared_Terminal => Data.Terminals.Variable_Ref (Tree.Terminal (Tree_Index)),
-         when Virtual_Terminal => raise Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
+         when Virtual_Terminal => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
          when Nonterm => (Element => Augmented_Token_Access (Tree.Augmented (Tree_Index))));
    end Get_Aug_Token;
 

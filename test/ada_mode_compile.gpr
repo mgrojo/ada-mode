@@ -55,6 +55,7 @@ project Ada_Mode_Compile is
       "ada_mode-recover_22.adb",
       "ada_mode-recover_23.adb",
       "ada_mode-recover_24.adb",
+      "ada_mode-recover_25.adb",
       "ada_mode-recover_align_1.adb",
       "ada_mode-recover_ambiguous_parse.adb",
       "ada_mode-recover_bad_char.adb",

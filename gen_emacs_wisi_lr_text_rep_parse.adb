@@ -18,151 +18,27 @@
 
 pragma License (GPL);
 
-with Ada.Directories;
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Exceptions;
-with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
-with GNAT.OS_Lib;
+with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with GNAT.Traceback.Symbolic;
-with System.Storage_Elements;
-with WisiToken.Lexer;
+with SAL;
 with WisiToken.LR.Parser;
+with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Text_Rep_Parse
 is
    use WisiToken; -- "+", "-" Unbounded_string
 
-   Protocol_Version : constant String := "1";
-   Version          : constant String := "0.0";
-
-   Prompt : constant String := ";;> ";
-
-   Protocol_Error   : exception;
-   Programmer_Error : exception;
-
-   procedure Usage
-   is
-   begin
-      Put_Line ("usage: " & Name);
-      Put_Line ("enters a loop waiting for commands:");
-      Put_Line ("Prompt is '" & Prompt & "'");
-      Put_Line ("commands are case sensitive");
-      Put_Line ("each command starts with a two-character decimal count of bytes in command");
-      New_Line;
-      Put_Line ("Commands: ");
-      New_Line;
-      Put_Line
-        ("NNNparse <action> <source_file_name> <line_count> <parse_verbosity> <mckenzie_verbosity>"  &
-           " <action_verbosity> <mckenzie_disable> <mckenzie_cost_limit> <mckenzie_check_limit>" &
-           " <mckenzie_enqueue_limit> <source_byte_count> <language-specific params> <source bytes>");
-      Put_Line ("  NNN excludes <source bytes>");
-      Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
-      Put_Line ("  <line-count> is integer count of lines in source");
-      Put_Line ("  <*verbosity> is an integer; set parse trace output level");
-      Put_Line ("  <mckenzie_disable> is 0 | 1; 0 = use default, 1 = disable");
-      Put_Line ("  <*_limit> is integer; -1 means use default");
-      Put_Line ("  outputs: elisp vectors for set-text-property from parser actions or elisp forms for errors.");
-      New_Line;
-      Put_Line ("NNNnoop <source_byte_count> <source bytes>");
-      Put_Line ("  Just receive source; otherwise no operation. NN excludes <source bytes>");
-      New_Line;
-      Put_Line ("04quit");
-   end Usage;
-
    Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
    Parser     : WisiToken.LR.Parser.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
-   procedure Read_Input (A : System.Address; N : Integer)
-   is
-      use System.Storage_Elements;
-
-      B         : System.Address := A;
-      Remaining : Integer        := N;
-      Read      : Integer;
-   begin
-      --  We use GNAT.OS_Lib because it does not buffer input, so it runs
-      --  under Emacs nicely; GNAT Text_IO does not return text until
-      --  some fairly large buffer is filled.
-      --
-      --  With GNAT GPL 2016, GNAT.OS_Lib.Read does _not_ wait for all N
-      --  bytes or EOF; it returns as soon as it gets some bytes.
-      loop
-         Read := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, B, Remaining);
-         if Read = 0 then
-            --  Pipe closed; probably parent Emacs crashed. Force exit.
-            raise Programmer_Error with "input pipe closed";
-         end if;
-         Remaining := Remaining - Read;
-         exit when Remaining <= 0;
-         B := B + Storage_Offset (Read);
-      end loop;
-   end Read_Input;
-
-   function Get_Command_Length return Integer
-   is
-      Temp : aliased String (1 .. 3) := (others => ' '); -- initialize for error message
-   begin
-      Read_Input (Temp'Address, Temp'Length);
-      return Integer'Value (Temp);
-   exception
-   when Constraint_Error =>
-      --  From Integer'Value
-      raise Protocol_Error with "invalid command byte count; '" & Temp & "'";
-   end Get_Command_Length;
-
-   function Get_String
-     (Source : in     String;
-      Last   : in out Integer)
-     return String
-   is
-      use Ada.Strings.Fixed;
-      First : constant Integer := Index
-        (Source  => Source,
-         Pattern => """",
-         From    => Last + 1);
-   begin
-      Last := Index
-        (Source  => Source,
-         Pattern => """",
-         From    => First + 1);
-
-      if First = 0 or Last = 0 then
-         raise Protocol_Error with Name & ": no '""' found for string";
-      end if;
-
-      return Source (First + 1 .. Last - 1);
-   end Get_String;
-
-   function Get_Integer
-     (Source : in     String;
-      Last   : in out Integer)
-     return Integer
-   is
-      use Ada.Strings.Fixed;
-      First : constant Integer := Last + 2; -- final char of previous item, space
-   begin
-      Last := Index
-        (Source  => Source,
-         Pattern => " ",
-         From    => First);
-
-      if Last = 0 then
-         Last := Source'Last;
-      else
-         Last := Last - 1;
-      end if;
-
-      return Integer'Value (Source (First .. Last));
-   exception
-   when others =>
-      Put_Line ("bad integer '" & Source (First .. Source'Last) & "'");
-      raise;
-   end Get_Integer;
-
 begin
+
    declare
       use Ada.Command_Line;
    begin
@@ -177,12 +53,12 @@ begin
          null;
 
       when others =>
-         Usage;
-         raise Programmer_Error with "invalid option count: " & Integer'Image (Argument_Count);
+         Usage (Name);
+         raise SAL.Programmer_Error with "invalid option count: " & Integer'Image (Argument_Count);
       end case;
    end;
 
-   Put_Line (Name & "_wisi_parse " & Version & ", protocol version " & Protocol_Version);
+   Put_Line (Name & " " & Version & ", protocol version " & Protocol_Version);
 
    --  Read commands and tokens from standard_input via GNAT.OS_Lib,
    --  send results to standard_output.
@@ -211,22 +87,8 @@ begin
             --  [elisp error form]...
             --  prompt
             declare
-               use Wisi;
-               Post_Parse_Action : constant Post_Parse_Action_Type := Post_Parse_Action_Type'Val
-                 (Get_Integer (Command_Line, Last));
-
-               Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
-
-               Line_Count         : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
-               Parse_Verbosity    : constant Integer          := Get_Integer (Command_Line, Last);
-               McKenzie_Verbosity : constant Integer          := Get_Integer (Command_Line, Last);
-               Action_Verbosity   : constant Integer          := Get_Integer (Command_Line, Last);
-               McKenzie_Disable   : constant Integer          := Get_Integer (Command_Line, Last);
-               Cost_Limit         : constant Integer          := Get_Integer (Command_Line, Last);
-               Check_Limit        : constant Integer          := Get_Integer (Command_Line, Last);
-               Enqueue_Limit      : constant Integer          := Get_Integer (Command_Line, Last);
-               Byte_Count         : constant Integer          := Get_Integer (Command_Line, Last);
-               Buffer             : Ada.Strings.Unbounded.String_Access;
+               Cl_Params : constant Command_Line_Params := Get_CL_Params (Command_Line, Last);
+               Buffer    : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up
                is begin
@@ -242,36 +104,37 @@ begin
                --  Computing Line_Count in elisp allows parsing in parallel with
                --  sending source text.
 
-               Trace_Parse    := Parse_Verbosity;
-               Trace_McKenzie := McKenzie_Verbosity;
-               Trace_Action   := Action_Verbosity;
+               Trace_Parse    := Cl_Params.Parse_Verbosity;
+               Trace_McKenzie := Cl_Params.McKenzie_Verbosity;
+               Trace_Action   := Cl_Params.Action_Verbosity;
+               Debug_Mode     := Cl_Params.Debug_Mode;
 
                --  Default Enable_McKenzie_Recover is False if there is no McKenzie
                --  information; don't override that.
                Parser.Enable_McKenzie_Recover :=
-                 (if McKenzie_Disable = 0
+                 (if Cl_Params.McKenzie_Disable = 0
                   then Parser.Enable_McKenzie_Recover
                   else False);
 
                Parse_Data.Initialize
-                 (Post_Parse_Action => Post_Parse_Action,
+                 (Post_Parse_Action => Cl_Params.Post_Parse_Action,
                   Descriptor        => Descriptor'Unrestricted_Access,
-                  Source_File_Name  => -Source_File_Name,
-                  Line_Count        => Line_Count,
+                  Source_File_Name  => -Cl_Params.Source_File_Name,
+                  Line_Count        => Cl_Params.Line_Count,
                   Params            => Command_Line (Last + 2 .. Command_Line'Last));
 
-               if Cost_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Cost_Limit := Cost_Limit;
+               if Cl_Params.Cost_Limit > 0 then
+                  Parser.Table.McKenzie_Param.Cost_Limit := Cl_Params.Cost_Limit;
                end if;
-               if Check_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Check_Limit);
+               if Cl_Params.Check_Limit > 0 then
+                  Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Cl_Params.Check_Limit);
                end if;
-               if Enqueue_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Enqueue_Limit := Enqueue_Limit;
+               if Cl_Params.Enqueue_Limit > 0 then
+                  Parser.Table.McKenzie_Param.Enqueue_Limit := Cl_Params.Enqueue_Limit;
                end if;
 
-               Buffer := new String (1 .. Byte_Count);
-               Read_Input (Buffer (1)'Address, Byte_Count);
+               Buffer := new String (1 .. Cl_Params.Byte_Count);
+               Read_Input (Buffer (1)'Address, Cl_Params.Byte_Count);
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;

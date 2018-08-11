@@ -50,6 +50,25 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
  current work
+crash
+    test/debug.adb
+
+deadly slow
+               Post_Parse_Action : constant Post_Parse_Action_Type := Post_Parse_Action_Type'Val
+                 (Get_Integer (Command_Line, Last));
+
+               Source_File_Name  : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
+
+               Line_Count         : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
+               Parse_Verbosity    : constant Integer          := Get_Integer (Command_Line, Last);
+               McKenzie_Verbosity : constant Integer          := Get_Integer (Command_Line, Last);
+               Action_Verbosity   : constant Integer          := Get_Integer (Command_Line, Last);
+               McKenzie_Disable   : constant Integer          := Get_Integer (Command_Line, Last);
+               Cost_Limit         : constant Integer          := Get_Integer (Command_Line, Last);
+               Check_Limit        : constant Integer          := Get_Integer (Command_Line, Last);
+               Enqueue_Limit      : constant Integer          := Get_Integer (Command_Line, Last);
+               Byte_Count         : constant Integer          := Get_Integer (Command_Line, Last);
+
 running all tests
     run-indent-test-lalr-process-gpr_query
         test/ada_mode-nominal.adb:532 ada-goto-declarative-region-start fails
