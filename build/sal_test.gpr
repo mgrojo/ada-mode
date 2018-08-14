@@ -33,6 +33,19 @@ project Sal_Test is
       end case;
    end Compiler;
 
+   package Builder is
+      case Standard_Common.Profile is
+      when "On" =>
+         for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada") & ("-pg");
+
+      when "Off" =>
+         for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada");
+      end case;
+
+      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      for Executable_Suffix use ".exe";
+   end Builder;
+
    package Binder is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
    end Binder;
