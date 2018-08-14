@@ -30,7 +30,7 @@ ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 ADA_MODE_DIR ?= -L .. -l autoloads.el
 
 # compile with debug to get assertions for testing new code
-#export Standard_Common_Build := Debug
+# export Standard_Common_Build := Debug
 
 elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test test-clean test
 
@@ -75,7 +75,9 @@ test : ada_unit_tests
 test : test-ada-elisp-gpr_query.stamp
 test : test-ada-lalr-process-gpr_query.stamp
 #test : test-ada-packrat-process-gpr_query.stamp
+ifeq ($(GNAT_VERSION),GPL_2016)
 test : test-ada-gps.stamp
+endif
 test : gpr-skel.gpr.diff
 test : test-gpr-elisp.stamp
 test : test-gpr-lalr-process.stamp
@@ -96,21 +98,22 @@ test-wisi :: force
 summarize :
 	cat test.log
 
-#ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-ONE_TEST_FILES ?= format_paramlist.ads format_paramlist.adb
+ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
+#ONE_TEST_FILES ?= format_paramlist.ads format_paramlist.adb
 one : build_ada_executables
 #one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
+#one : RUNTEST := run-indent-test-elisp-gpr_query.el
 #one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
 #two : RUN_ARGS ?= --verbosity 2 2 > debug.log
 #two : RUN_ARGS ?= --repeat_count 5
 two : build_ada_executables
-	../run_ada_parse.exe $(RUN_ARGS)
+	../run_ada_lalr_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables
