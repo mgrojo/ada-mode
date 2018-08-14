@@ -315,7 +315,9 @@ gnatcoll-db-gpl-2018-20180523-src.tar.gz
 Install the @code{libiconv} library, as follows:
 
 On Linux, use the package manager to install the development version
-of @code{libiconv} (usually named @code{libiconv-dev}).
+of @code{libiconv}. On Debian, @code{iconv} is provided by the
+@code{libc} package. In other Linux distributions, it may be a
+separate package named @code{libiconv-dev}.
 
 On Windows, one way to get the library is to install MingW64 from the
 MSYS2 project (@url{http://www.msys2.org/}), use its package manger
@@ -327,21 +329,24 @@ cp d:/msys64/mingw64/include/iconv.h d:/Apps/GNAT-gpl_2018/include/
 cp d:/msys64/mingw64/lib/libiconv.a  d:/Apps/GNAT-gpl_2018/lib/gcc/x86_64-pc-mingw32/7.3.1/
 @end example
 
-Then unpack, build, and install the required components:
+Then unpack, build, and install the required components. On Debian, we
+need to tell the linker where to find @code{iconv} via
+@code{GNATCOLL_ICONV_OPT}:
 
 @example
-tar zxf ~/Downloads/gnatcoll-core-gpl-2018-20180523-src.tar.gz
+tar xf ~/Downloads/gnatcoll-core-gpl-2018-20180523-src.tar.gz
 cd gnatcoll-core-gpl-2018-src
 make
 make install
 
-tar zxf ~/Downloads/gnatcoll-bindings-gpl-2018-20180523-src.tar.gz
+tar xf ~/Downloads/gnatcoll-bindings-gpl-2018-20180523-src.tar.gz
 cd gnatcoll-bindings-gpl-2018-src
 cd iconv
+export GNATCOLL_ICONV_OPT="-lc"
 ./setup.py build
 ./setup.py install
 
-tar zxf ~/Downloads/gnatcoll-db-gpl-2018-20180523-src.tar.gz
+tar xf ~/Downloads/gnatcoll-db-gpl-2018-20180523-src.tar.gz
 cd gnatcoll-db-gpl-2018-src
 make -C sql
 make -C sql install
