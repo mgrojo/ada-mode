@@ -287,18 +287,8 @@ begin
 
       for Tuple of Generate_Set.all loop
 
-         if Tuple.Lexer = None then
-            case Tuple.Out_Lang is
-            when Ada | Ada_Emacs =>
-               Input_Data.User_Lexer := re2c_Lexer;
-            when Elisp =>
-               Input_Data.User_Lexer := Elisp_Lexer;
-            end case;
-         else
-            Input_Data.User_Lexer := Tuple.Lexer;
-         end if;
-
          Input_Data.User_Parser := Tuple.Gen_Alg;
+         Input_Data.User_Lexer  := Tuple.Lexer;
 
          Parse_Check (Input_Data.User_Lexer, Input_Data.User_Parser);
 
@@ -324,7 +314,7 @@ begin
                end if;
             end if;
 
-            if WisiToken.Trace_Generate = 0 then
+            if WisiToken.Trace_Generate = 0 and Tuple.Gen_Alg /= External then
                Create
                  (Parse_Table_File, Out_File,
                   -Output_File_Name_Root & "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) &
@@ -409,7 +399,7 @@ begin
                null;
             end case;
 
-            if WisiToken.Trace_Generate = 0 then
+            if WisiToken.Trace_Generate = 0 and Tuple.Gen_Alg /= External then
                Set_Output (Standard_Output);
                Close (Parse_Table_File);
             end if;

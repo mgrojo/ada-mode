@@ -19,7 +19,7 @@
 }%
 
 ;; Declare all variants tested by wisi_wy_test.adb
-%generate LALR Ada
+%generate LALR Ada re2c
 ;; FIXME: conflict_name has indirect left recursion; add Packrat_Gen, Packrat_Proc
 
 %keyword LEFT_PAREN "("

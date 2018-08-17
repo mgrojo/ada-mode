@@ -284,9 +284,10 @@ package WisiToken.Syntax_Trees is
    with Pre => Tree.Is_Terminal (Node);
 
    function Min_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
-   --  Returns lowest index of shared terminal in subtree under Node. If
-   --  result is Invalid_Token_Index, all terminals are virtual, or a
-   --  nonterm is empty.
+   function Max_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index;
+   --  Returns lowest/highest index of shared terminal in subtree under
+   --  Node. If result is Invalid_Token_Index, all terminals are virtual,
+   --  or a nonterm is empty.
 
    function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array;
 
@@ -348,6 +349,9 @@ private
 
          Min_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
          --  Cached for push_back of nonterminals during recovery
+
+         Max_Terminal_Index : Base_Token_Index := Invalid_Token_Index;
+         --  Cached for building a WisiToken tree from a libadalang tree.
 
          Augmented : Base_Token_Class_Access := null;
       end case;

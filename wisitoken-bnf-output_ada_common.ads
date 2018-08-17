@@ -59,11 +59,9 @@ package WisiToken.BNF.Output_Ada_Common is
    with Pre => Common_Data.Generate_Algorithm /= External;
 
    procedure Create_External_Main_Spec
-     (Actions_Package_Name : in String;
-      Main_Package_Name    : in String;
+     (Main_Package_Name    : in String;
       Tuple                : in Generate_Tuple;
-      Input_Data           : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Generate_Data        : in Generate_Utils.Generate_Data);
+      Input_Data           : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type);
 
    procedure LR_Create_Create_Parser
      (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
@@ -77,6 +75,9 @@ package WisiToken.BNF.Output_Ada_Common is
      (Common_Data   :         in out Output_Ada_Common.Common_Data;
       Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data;
       Packrat_Data  :         in     WisiToken.Generate.Packrat.Data);
+
+   procedure External_Create_Create_Grammar
+     (Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data);
 
    procedure Create_re2c
      (Input_Data            :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;

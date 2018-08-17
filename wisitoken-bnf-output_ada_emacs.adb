@@ -1063,12 +1063,12 @@ is
    end Create_Ada_Actions_Body;
 
    procedure Create_Ada_Main_Body
-     (File_Name            : in String;
-      Actions_Package_Name : in String;
+     (Actions_Package_Name : in String;
       Main_Package_Name    : in String)
    is
       use WisiToken.Generate;
 
+      File_Name : constant String := To_Lower (Main_Package_Name) & ".adb";
       Body_File : File_Type;
    begin
       Create (Body_File, Out_File, File_Name);
@@ -1079,8 +1079,16 @@ is
       New_Line;
 
       Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
-      Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
+
+      case Common_Data.Lexer is
+      when None | Elisp_Lexer =>
+         null;
+
+      when re2c_Lexer =>
+         Put_Line ("with WisiToken.Lexer.re2c;");
+         Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
+
+      end case;
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
@@ -1099,12 +1107,18 @@ is
       Indent := Indent + 3;
       New_Line;
 
-      Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-      Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
-      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
-      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
-      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
-      New_Line;
+      case Common_Data.Lexer is
+      when None | Elisp_Lexer =>
+         null;
+
+      when re2c_Lexer =>
+         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
+         Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
+         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
+         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
+         Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
+         New_Line;
+      end case;
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
@@ -1118,7 +1132,7 @@ is
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
 
       when External =>
-         null;
+         External_Create_Create_Grammar (Generate_Data);
       end case;
 
       case Common_Data.Interface_Kind is
@@ -1473,13 +1487,11 @@ begin
          Generate_Data    => Generate_Data);
 
       if Tuple.Gen_Alg = External then
-         Create_External_Main_Spec (Actions_Package_Name, Main_Package_Name, Tuple, Input_Data, Generate_Data);
+         Create_External_Main_Spec (Main_Package_Name, Tuple, Input_Data);
+
+         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
       else
-         Create_Ada_Main_Body
-           (Output_File_Name_Root & "_" &
-              To_Lower (Interface_Type'Image (Common_Data.Interface_Kind)) &
-              To_Lower (Gen_Alg_Name) & "_main.adb",
-            Actions_Package_Name, Main_Package_Name);
+         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
 
          Create_Ada_Main_Spec
            (Output_File_Name  => Output_File_Name_Root & "_" &

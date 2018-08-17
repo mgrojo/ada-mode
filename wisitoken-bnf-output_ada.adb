@@ -251,14 +251,22 @@ is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with " & re2c_Package_Name & ";");
       if (case Common_Data.Generate_Algorithm is
           when LR_Generate_Algorithm => Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0,
           when Packrat_Generate_Algorithm | External => Input_Data.Action_Count > 0)
       then
          Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
       end if;
+
+      case Common_Data.Lexer is
+      when None | Elisp_Lexer =>
+         null;
+
+      when re2c_Lexer =>
+         Put_Line ("with WisiToken.Lexer.re2c;");
+         Put_Line ("with " & re2c_Package_Name & ";");
+      end case;
+
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
          if Tuple.Text_Rep or Input_Data.Language_Params.Error_Recover then
@@ -267,23 +275,31 @@ is
 
       when Packrat_Gen =>
          Put_Line ("with WisiToken.Parse.Packrat.Generated;");
+
       when Packrat_Proc =>
          Put_Line ("with WisiToken.Parse.Packrat.Procedural;");
          Put_Line ("with WisiToken.Productions;");
+
       when External =>
-         raise SAL.Programmer_Error;
+         null;
       end case;
 
       Put_Line ("package body " & Main_Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
 
-      Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-      Indent_Line ("  (" & re2c_Package_Name & ".New_Lexer,");
-      Indent_Line ("   " & re2c_Package_Name & ".Free_Lexer,");
-      Indent_Line ("   " & re2c_Package_Name & ".Reset_Lexer,");
-      Indent_Line ("   " & re2c_Package_Name & ".Next_Token);");
-      New_Line;
+      case Common_Data.Lexer is
+      when None | Elisp_Lexer =>
+         null;
+
+      when re2c_Lexer =>
+         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
+         Indent_Line ("  (" & re2c_Package_Name & ".New_Lexer,");
+         Indent_Line ("   " & re2c_Package_Name & ".Free_Lexer,");
+         Indent_Line ("   " & re2c_Package_Name & ".Reset_Lexer,");
+         Indent_Line ("   " & re2c_Package_Name & ".Next_Token);");
+         New_Line;
+      end case;
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
@@ -296,8 +312,9 @@ is
 
       when Packrat_Proc =>
          Packrat_Create_Create_Parser (Common_Data, Generate_Data, Packrat_Data);
+
       when External =>
-         raise SAL.Programmer_Error;
+         External_Create_Create_Grammar (Generate_Data);
       end case;
 
       Put_Line ("end " & Main_Package_Name & ";");
@@ -399,7 +416,8 @@ begin
         (Output_File_Name_Root & "_actions.ads", Actions_Package_Name, Input_Data, Common_Data, Generate_Data);
 
       if Tuple.Gen_Alg = External then
-         Create_External_Main_Spec (Actions_Package_Name, Main_Package_Name, Tuple, Input_Data, Generate_Data);
+         Create_External_Main_Spec (Main_Package_Name, Tuple, Input_Data);
+         Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
       else
          Create_Ada_Main_Body (Actions_Package_Name, Main_Package_Name);
 

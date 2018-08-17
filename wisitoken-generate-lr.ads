@@ -142,13 +142,6 @@ package WisiToken.Generate.LR is
    --  sequence of terminals that will complete it; Invalid_Token_ID if
    --  the minimal sequence is empty.
 
-   function Ancestors
-     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor)
-     return Token_Array_Token_Set;
-   --  For each nonterm, record the nonterms it reduces to via one token
-   --  reductions, recursively.
-
    procedure Set_Minimal_Complete_Actions
      (State                  : in out Parse_State;
       Kernel                 : in     LR1_Items.Item_Set;

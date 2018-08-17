@@ -28,11 +28,11 @@ package WisiToken.Wisi_Grammar_Runtime is
       Grammar_Lexer : WisiToken.Lexer.Handle; -- used to read the .wy file now.
 
       User_Lexer : WisiToken.BNF.Lexer_Type := WisiToken.BNF.None;
-      --  Used to read the user language file, after parser is generated;
+      --  Used to read the user language file, after user parser is generated;
       --  used now in '%if lexer' statements.
 
       User_Parser : WisiToken.BNF.Generate_Algorithm := WisiToken.BNF.None;
-      --  Used to generate the current parser; used in '%if parser'
+      --  Used to generate the user parser; used now in '%if parser'
       --  statements.
 
       Generate_Set : WisiToken.BNF.Generate_Set_Access;

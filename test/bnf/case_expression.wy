@@ -23,11 +23,11 @@
 }%
 
 ;; Declare all variants tested by wisi_wy_test.adb
-%generate LALR Ada
-%generate LR1 Ada
-%generate Packrat_Gen Ada
-%generate Packrat_Proc Ada
-%generate LALR Elisp
+%generate LALR Ada re2c
+%generate LR1 Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
+%generate LALR Elisp elisp
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t\n] ]%
 %non_grammar <non-reporting> COMMENT %[ "--"[^\n]*[\n] ]%

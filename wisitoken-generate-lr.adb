@@ -725,51 +725,6 @@ package body WisiToken.Generate.LR is
       end return;
    end Minimal_Terminal_First;
 
-   function Ancestors
-     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor)
-     return Token_Array_Token_Set
-   is
-      use all type Ada.Containers.Count_Type;
-
-      subtype Nonterminals is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
-
-      Done : Boolean := False;
-   begin
-      return All_Ancestors : Token_Array_Token_Set
-          (Grammar.First_Index .. Grammar.Last_Index,
-           Grammar.First_Index .. Grammar.Last_Index) :=
-             (others => (others => False))
-      do
-         loop
-            exit when Done;
-            Done := True;
-            for Prod of Grammar loop
-               for R of Prod.RHSs loop
-                  if R.Tokens.Length = 1 and then R.Tokens (1) in Nonterminals then
-                     declare
-                        ID : constant Token_ID := R.Tokens (1);
-                     begin
-                        if not All_Ancestors (ID, Prod.LHS) then
-                           Done := False;
-                        end if;
-                        All_Ancestors (ID, Prod.LHS) := True;
-                        for J in All_Ancestors'Range (2) loop
-                           if All_Ancestors (Prod.LHS, J) then
-                              if not All_Ancestors (ID, J) then
-                                 Done := False;
-                                 All_Ancestors (ID, J) := True;
-                              end if;
-                           end if;
-                        end loop;
-                     end;
-                  end if;
-               end loop;
-            end loop;
-         end loop;
-      end return;
-   end Ancestors;
-
    procedure Set_Minimal_Complete_Actions
      (State                  : in out Parse_State;
       Kernel                 : in     LR1_Items.Item_Set;

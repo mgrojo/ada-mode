@@ -28,11 +28,11 @@
    --  State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 }%
 
-%generate LALR Elisp
-%generate LALR Ada
-%generate LR1 Ada
-%generate Packrat_Gen Ada
-%generate Packrat_Proc Ada
+%generate LALR Elisp elisp
+%generate LALR Ada re2c
+%generate LR1 Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
 
 %keyword BEGIN "begin"
 %keyword END "end"

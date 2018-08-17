@@ -82,6 +82,21 @@ package WisiToken.Generate is
    --  tokens that can follow it. Implements algorithm FOLLOW from
    --  [dragon] pg 189.
 
+   function Ancestors
+     (Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor)
+     return Token_Array_Token_Set;
+   --  For each terminal and nonterm, record the nonterms it reduces to
+   --  via one token reductions, recursively. In other words, if there is
+   --  a production J <= I, then Ancestors (I, J) is True.
+
+   function Descendants
+     (Ancestors : in Token_Array_Token_Set)
+     return Token_Sequence_Arrays.Vector;
+   --  Inverse of Ancestors, excluding terminals. If there is a
+   --  production J <= I and I is a nonterminal, then I is present in
+   --  Descendants (J).
+
    ----------
    --  Indented text output. Mostly used for code generation in wisi,
    --  also used in outputing the parse_table and other debug stuff.

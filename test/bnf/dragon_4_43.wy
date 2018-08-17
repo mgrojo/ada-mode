@@ -18,8 +18,8 @@
 }%
 
 %generate Packrat_Gen Ada re2c
-%generate LALR Ada
-%generate Packrat_Proc Ada
+%generate LALR Ada re2c
+%generate Packrat_Proc Ada re2c
 
 %keyword LOWER_C "c"
 %keyword LOWER_D "d"

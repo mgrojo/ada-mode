@@ -506,7 +506,7 @@ package body WisiToken.LR.LALR_Generate is
       Minimal_Terminal_First : constant Token_Array_Token_ID :=
         WisiToken.Generate.LR.Minimal_Terminal_First (Grammar, Descriptor);
 
-      Ancestors : constant Token_Array_Token_Set := WisiToken.Generate.LR.Ancestors (Grammar, Descriptor);
+      Ancestors : constant Token_Array_Token_Set := WisiToken.Generate.Ancestors (Grammar, Descriptor);
 
       First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);

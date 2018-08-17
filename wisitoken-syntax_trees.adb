@@ -730,6 +730,25 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Min_Terminal_Index;
 
+   function Max_Terminal_Index (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   is
+      function Compute (N : in Syntax_Trees.Node) return Base_Token_Index
+      is begin
+         return
+           (case N.Label is
+            when Shared_Terminal  => N.Terminal,
+            when Virtual_Terminal => Invalid_Token_Index,
+            when Nonterm          => N.Max_Terminal_Index);
+      end Compute;
+
+   begin
+      if Node <= Tree.Last_Shared_Node then
+         return Compute (Tree.Shared_Tree.Nodes (Node));
+      else
+         return Compute (Tree.Branched_Nodes (Node));
+      end if;
+   end Max_Terminal_Index;
+
    procedure Move_Branch_Point (Tree : in out Syntax_Trees.Tree; Required_Node : in Valid_Node_Index)
    is begin
       --  Note that this preserves all stored indices in Branched_Nodes.
@@ -932,6 +951,24 @@ package body WisiToken.Syntax_Trees is
                   end if;
                end case;
             end if;
+
+            case K.Label is
+            when Shared_Terminal =>
+               if N.Max_Terminal_Index < K.Terminal then
+                  N.Max_Terminal_Index := K.Terminal;
+               end if;
+
+            when Virtual_Terminal =>
+               null;
+
+            when Nonterm =>
+               if K.Max_Terminal_Index /= Invalid_Token_Index and then
+                 --  not an empty nonterm
+                 N.Max_Terminal_Index < K.Max_Terminal_Index
+               then
+                  N.Max_Terminal_Index := K.Max_Terminal_Index;
+               end if;
+            end case;
          end;
 
          J := J + 1;

@@ -25,7 +25,7 @@
 %generate LR1 Ada re2c
 %generate Packrat_Gen Ada re2c
 %generate Packrat_Proc Ada re2c
-%generate LR1 elisp
+%generate LR1 elisp elisp
 
 ;; wisi-generate requires some keywords; test case insensitive
 %case_insensitive

@@ -89,47 +89,14 @@ package body WisiToken.Wisi_Grammar_Runtime is
       B_Index : in     Syntax_Trees.Valid_Node_Index)
    is
       use all type WisiToken.BNF.Generate_Algorithm;
-      use all type WisiToken.BNF.Generate_Set_Access;
       use all type WisiToken.BNF.Lexer_Type;
    begin
       if "lexer" = Get_Text (Data, Tree, A_Index) then
          Data.If_Lexer_Present := True;
-         if Data.User_Lexer = None then
-            if Data.Generate_Set /= null then
-               for Quad of Data.Generate_Set.all loop
-                  if Quad.Lexer /= None then
-                     Data.User_Lexer := Quad.Lexer;
-                     exit;
-                  end if;
-               end loop;
-            end if;
-         end if;
-
-         if Data.User_Lexer = None then
-            raise Grammar_Error with
-              Error_Message
-                (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (A_Index)).Line,
-                 "%if lexer present, but lexer not specified");
-         end if;
-         Data.Ignore_Lines := Data.User_Lexer /= WisiToken.BNF.To_Lexer (Get_Text (Data, Tree, B_Index));
+         Data.Ignore_Lines     := Data.User_Lexer /= WisiToken.BNF.To_Lexer (Get_Text (Data, Tree, B_Index));
 
       elsif "parser" = Get_Text (Data, Tree, A_Index) then
          Data.If_Parser_Present := True;
-         if Data.User_Parser = None then
-            if Data.Generate_Set /= null then
-               for Quad of Data.Generate_Set.all loop
-                  Data.User_Parser := Quad.Gen_Alg;
-                  exit;
-               end loop;
-            end if;
-         end if;
-
-         if Data.User_Parser = None then
-            raise Grammar_Error with
-              Error_Message
-                (Data.Grammar_Lexer.File_Name, Data.Terminals.all (Tree.Min_Terminal_Index (A_Index)).Line,
-                 "%if parser present, but parser not specified");
-         end if;
          Data.Ignore_Lines := Data.User_Parser /= WisiToken.BNF.Generate_Algorithm'Value
            (Get_Text (Data, Tree, B_Index));
 

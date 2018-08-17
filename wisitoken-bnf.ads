@@ -66,8 +66,9 @@ package WisiToken.BNF is
    --  We append "_Lexer" to these names to avoid colliding with the
    --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
-   Lexer_Image : constant array (Valid_Lexer) of access constant String :=
-     (Elisp_Lexer => new String'("elisp"),
+   Lexer_Image : constant array (Lexer_Type) of access constant String :=
+     (None        => new String'("none"),
+      Elisp_Lexer => new String'("elisp"),
       re2c_Lexer  => new String'("re2c"));
 
    function To_Lexer (Item : in String) return Lexer_Type;
