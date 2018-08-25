@@ -1,8 +1,9 @@
 build/Makefile
 
 branches:
-org.wisitoken          - working, used by o.e.a.s-2
-org.wisitoken.stephe-1 - available
+org.wisitoken          - main, used by o.e.a.s-2
+org.wisitoken.stephe-1 - misc devel for o.w, o.e.a.s-*
+org.wisitoken.stephe-2 - add EBNF syntax to .wy parser
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")

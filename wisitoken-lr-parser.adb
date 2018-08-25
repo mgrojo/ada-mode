@@ -364,10 +364,20 @@ package body WisiToken.LR.Parser is
       Parser.Language_Use_Minimal_Complete_Actions := Language_Use_Minimal_Complete_Actions;
       Parser.Language_String_ID_Set              := Language_String_ID_Set;
       Parser.User_Data                           := User_Data;
-      Parser.Enable_McKenzie_Recover             :=
-        Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
-      Parser.Max_Parallel                        := Max_Parallel;
-      Parser.Terminate_Same_State                := Terminate_Same_State;
+
+      --  We can't use Table.McKenzie_Param /= Default_McKenzie_Param here,
+      --  because the discriminants are different. We also can't use just
+      --  Table.McKenzie_Param.Cost_Limit /=
+      --  Default_McKenzie_Param.Cost_Limit, because some grammars don't set
+      --  a Cost_Limit, just some other limit.
+      Parser.Enable_McKenzie_Recover :=
+        Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit or
+          Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
+          Table.McKenzie_Param.Check_Delta_Limit /= Default_McKenzie_Param.Check_Delta_Limit or
+          Table.McKenzie_Param.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit;
+
+      Parser.Max_Parallel         := Max_Parallel;
+      Parser.Terminate_Same_State := Terminate_Same_State;
 
       if User_Data /= null then
          User_Data.Set_Lexer_Terminals (Lexer, Parser.Terminals'Unchecked_Access);
@@ -678,16 +688,20 @@ package body WisiToken.LR.Parser is
                      Trace.Put_Line ("recover");
                   end if;
                   Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
-               end if;
 
-               if Trace_Parse > Outline then
-                  if Recover_Result = Success  then
-                     Trace.Put_Line
-                       ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
-                  else
-                     Trace.Put_Line
-                       ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
-                          ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+                  if Trace_Parse > Outline then
+                     if Recover_Result = Success  then
+                        Trace.Put_Line
+                          ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+                     else
+                        Trace.Put_Line
+                          ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
+                             ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+                     end if;
+                  end if;
+               else
+                  if Trace_Parse > Outline then
+                     Trace.Put_Line ("recover disabled or not defined");
                   end if;
                end if;
 

@@ -55,7 +55,21 @@ package body WisiToken.LR is
             Put_Line (",");
          end if;
       end loop;
-      Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
+      Put_Line ("(Push_Back =>");
+      for I in Item.Delete'Range loop
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Delete (I)));
+         if I = Item.Delete'Last then
+            Put_Line (")");
+         else
+            Put_Line (",");
+         end if;
+      end loop;
+      Put_Line ("Ignore_Check_Fail =>" & Integer'Image (Item.Ignore_Check_Fail));
+      Put_Line ("Task_Count        =>" & System.Multiprocessors.CPU_Range'Image (Item.Task_Count));
+      Put_Line ("Cost_Limit        =>" & Integer'Image (Item.Cost_Limit));
+      Put_Line ("Check_Limit       =>" & Token_Index'Image (Item.Check_Limit));
+      Put_Line ("Check_Delta_Limit =>" & Integer'Image (Item.Check_Delta_Limit));
+      Put_Line ("Enqueue_Limit     =>" & Integer'Image (Item.Enqueue_Limit));
    end Put;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID
