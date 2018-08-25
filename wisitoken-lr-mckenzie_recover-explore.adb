@@ -315,6 +315,14 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                            Remaining := Remaining - 1;
                         end if;
                         Parsed_Config.Current_Ops := Parsed_Config.Current_Ops - 1;
+                        if Parsed_Config.Current_Ops < Parsed_Config.Ops.First_Index then
+                           if Trace_McKenzie > Outline then
+                              Put_Line
+                                (Super.Trace.all, Super.Label (Parser_Index),
+                                 "Insert_Delete is out of sync with Ops");
+                           end if;
+                           raise Bad_Config;
+                        end if;
                      end loop;
                   end if;
 
@@ -1323,7 +1331,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       Super.Put (Parser_Index, Local_Config_Heap);
    exception
    when others =>
-      --  Just abandon this config.
+      --  Just abandon this config; tell Super we are done.
+      Super.Put (Parser_Index, Local_Config_Heap);
       if Debug_Mode then
          raise;
       end if;

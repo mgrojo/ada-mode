@@ -421,7 +421,14 @@ package body WisiToken.LR.Parser is
                   if Trace_Parse > Outline then
                      Trace.Put_Line (Integer'Image (Check_Parser.Label) & ": error during resume");
                   end if;
+                  Shared_Parser.Parsers.First_State_Ref.Errors.Append
+                    ((Label          => LR.Message,
+                      First_Terminal => Trace.Descriptor.First_Terminal,
+                      Last_Terminal  => Trace.Descriptor.Last_Terminal,
+                      Recover        => <>,
+                      Msg            => +"error during resume"));
                   raise Syntax_Error;
+
                else
                   --  This is ok if a conflict occured during resume - we assume this is
                   --  a branch that failed during recover as well. Otherwise it's a
