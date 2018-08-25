@@ -318,7 +318,6 @@ package body WisiToken.LR.LALR_Generate is
       Source_Set   : in     LR1_Items.Item_Set;
       Closure_Item : in     LR1_Items.Item;
       Propagations : in out Item_Map_Lists.List;
-      Used_Tokens  : in out Token_ID_Set;
       Descriptor   : in     WisiToken.Descriptor;
       Grammar      : in     WisiToken.Productions.Prod_Arrays.Vector;
       Kernels      : in out LR1_Items.Item_Set_List)
@@ -347,13 +346,6 @@ package body WisiToken.LR.LALR_Generate is
            (if Goto_State = Unknown_State then Item_Lists.No_Element
             else LR1_Items.Find (Closure_Item.Prod, Next_Dot, Kernels (Goto_State)));
       begin
-         begin
-            Used_Tokens (ID) := True;
-         exception
-         when Constraint_Error =>
-            raise Grammar_Error with "non-reporting " & Image (ID, Descriptor) & " used in grammar";
-         end;
-
          if Closure_Item.Lookaheads (Descriptor.Last_Lookahead) and Has_Element (To_Item) then
             Add_Propagation
               (From         => Source_Item,
@@ -406,7 +398,6 @@ package body WisiToken.LR.LALR_Generate is
       Has_Empty_Production    : in     Token_ID_Set;
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
       Kernels                 : in out LR1_Items.Item_Set_List;
-      Used_Tokens             : in out Token_ID_Set;
       Descriptor              : in     WisiToken.Descriptor)
    is
       pragma Warnings (Off, """Kernel_Item_Set"" is not modified, could be declared constant");
@@ -443,8 +434,7 @@ package body WisiToken.LR.LALR_Generate is
 
             for Closure_Item of Closure.Set loop
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel, Closure_Item, Propagation_List, Used_Tokens, Descriptor,
-                  Grammar, Kernels);
+                 (Kernel_Item, Kernel, Closure_Item, Propagation_List, Descriptor, Grammar, Kernels);
             end loop;
          end loop;
       end loop;
@@ -498,6 +488,7 @@ package body WisiToken.LR.LALR_Generate is
 
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate > Detail;
       Ignore_Unknown_Conflicts : constant Boolean := WisiToken.Trace_Generate > Detail;
+      Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;
 
@@ -514,30 +505,15 @@ package body WisiToken.LR.LALR_Generate is
       First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
         WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Descriptor);
 
-      Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
-
       Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First_Nonterm_Set, Descriptor);
 
-      Unused_Tokens        : Boolean             := False;
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
    begin
       WisiToken.Generate.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
 
-      Used_Tokens (Grammar (Grammar.First_Index).LHS) := True;
-
-      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First_Terminal_Sequence, Kernels, Used_Tokens, Descriptor);
-
-      for I in Used_Tokens'Range loop
-         if not Used_Tokens (I) then
-            if not Unused_Tokens then
-               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "Unused tokens:");
-               Unused_Tokens := True;
-            end if;
-            Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Image (I, Descriptor));
-         end if;
-      end loop;
+      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First_Terminal_Sequence, Kernels, Descriptor);
 
       if Unused_Tokens then
          WisiToken.Generate.Error := not Ignore_Unused_Tokens;
