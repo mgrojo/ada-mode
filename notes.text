@@ -5,8 +5,9 @@ build/Makefile
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser with actions
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser
-o.e.a.stephe-4 (from o.e.a.s-2): available
-o.e.a.stephe-5 (from o.e.a.s-2): available
+o.e.a.stephe-4 (from o.e.a.s-2): working on stephe-2
+o.e.a.stephe-5 (from o.e.a.s-2): libadalang backend
+o.e.a.stephe-6 (from o.e.a.s-2): available
 
 run test from emacs -Q using source:
 (progn
@@ -1288,6 +1289,31 @@ read/write access requires a public key:
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
+
+ package install notes
+libadalang etc with gnat pro 18.2
+    install gnat 18.2
+    reinstall gnatcoll 18.2 (needed for gpr-query anyway)
+        ./configure --prefix=/usr/gnat/pro_18.2
+
+    git clone libadalang
+        see libadalang/install-lal-and-deps.sh
+        cd libadalang
+        git checkout 18.2
+        virtualenv lal-venv
+        . lal-venv/bin/activate
+        pip install -r REQUIREMENTS.dev
+        cd lal-venv/lal-venv/src/langkit/
+        git checkout 18.2
+
+        ada/manage.py --enable-static --disable-shared make
+            # or --enable-static --enable-shared?
+        ada/manage.py --enable-static --disable-shared install /usr/gnat/pro_18.2
+
+        # for Emacs use of lal gpr files: (setenv "LIBRARY_TYPE" "static")
+
+    git clone https://github.com/AdaCore/libadalang-tools.git
+        git checkout 18.2
 
  release process
 adding lots of Ada code; move to elpa external

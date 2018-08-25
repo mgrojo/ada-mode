@@ -581,6 +581,8 @@ Used to ignore whitespace changes in before/after change hooks.")
   "Choice of wisi parser implementation; a ‘wisi-parser’ object.")
 
 (defun wisi-kill-parser ()
+  "Kill the background process running the parser for the current buffer.
+Usefull if the parser appears to be hung."
   (interactive)
   (wisi-parse-kill wisi--parser)
   ;; also force re-parse
@@ -635,6 +637,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 	 )
 	(error
 	 ;; parser failed for other reason
+	 (setq wisi-parse-failed t)
 	 (signal (car err) (cdr err)))
 	)
 

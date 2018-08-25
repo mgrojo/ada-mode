@@ -36,7 +36,7 @@ is
    Parser     : WisiToken.LR.Parser.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
-   Cl_Params : constant Command_Line_Params := Get_CL_Params (Parser);
+   Cl_Params  : Command_Line_Params;
    Line_Count : WisiToken.Line_Number_Type := 1;
    Start      : Ada.Real_Time.Time;
 begin
@@ -44,6 +44,9 @@ begin
    Create_Parser
      (Parser, Language_Fixes, Language_Use_Minimal_Complete_Actions, Language_String_ID_Set,
       Trace'Unrestricted_Access, Parse_Data'Unchecked_Access);
+
+   --  Some command line params set McKenzie parameters in the parser.
+   Cl_Params := Get_CL_Params (Parser);
 
    --  Do this after setting Trace_Parse so lexer verbosity is set
    begin

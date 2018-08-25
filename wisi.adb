@@ -1474,7 +1474,7 @@ package body Wisi is
          when LR.Message =>
             Put_Line
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
-                 """" & (-Item.Msg) & """]");
+                 " """ & (-Item.Msg) & """]");
          end case;
 
          if Item.Recover.Stack.Depth > 0 then
