@@ -4,6 +4,8 @@
 # variable, that is set in wisi_grammar.prj loaded in the file local
 # variables below.
 
+#export Standard_Common_Build := Debug
+
 export WISI_GRAMMAR_VERSION := 0.1
 
 ELPA_ROOT ?= $(shell cd ../elpa; pwd)
@@ -32,9 +34,7 @@ one : $(ONE_TEST_FILE).diff
 #two : RUN_ARGS ?= --verbosity 2 --cost_limit 5
 #two : RUN_ARGS ?= --repeat_count 5
 #two : RUN_LOG := > debug.log
-two : export Standard_Common_Build := Debug
 two : build_ada_executables
-two : force
 	./run_wisi_grammar_1_parse.exe wisi_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
 %.re2c : %.wy $(WISITOKEN)/wisitoken-bnf-generate.exe
@@ -127,6 +127,10 @@ generate-clean :
 source-clean :
 	-find . -name "*~" -print -delete
 	-find . -name ".#*" -print -delete
+
+# for recompiling with release options
+recursive-clean : force
+	gprclean -r -P wisi_grammar.gpr
 
 ### tar, gzip stuff
 

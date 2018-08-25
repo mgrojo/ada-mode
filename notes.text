@@ -1,3 +1,7 @@
+branches:
+    org.wisitoken.grammar_mode : main
+    org.wisitoken.grammar_mode.stephe-1 : misc devel for o.w.gm
+
 Makefile
 
 (progn

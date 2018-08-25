@@ -137,7 +137,7 @@ Otherwise insert a plain new line."
 (defun wisi-grammar-set-action-mode ()
   (save-excursion
     (goto-char (point-min))
-    (if (search-forward-regexp "%generate +\\([A-Za-z_]+\\) \\([A-Za-z_]+\\)")
+    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) \\([A-Za-z_0-9]+\\)")
 	(cond
 	 ((or
 	   (string-equal (match-string 2) "Ada_Emacs")
