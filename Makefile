@@ -41,10 +41,11 @@ two : build_ada_executables
 	$(WISITOKEN)/wisitoken-bnf-generate.exe $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el $(*F).re2c
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
+	dos2unix $(*F)_re2c_c.ads
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
-
+	dos2unix $<
 
 # wisi-grammar-elisp.el is in monotone, so this is all we need after a
 # monotone update. Doing byte-compile-clean first avoids errors caused
