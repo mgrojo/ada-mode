@@ -1,4 +1,4 @@
-;;; Wisi grammar for GNAT project files
+;;; WisiToken grammar for GNAT project files
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>

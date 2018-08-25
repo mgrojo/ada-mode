@@ -40,12 +40,12 @@ is
    Line_Count : WisiToken.Line_Number_Type := 1;
    Start      : Ada.Real_Time.Time;
 begin
-   --  Create parser first so Put_Usage has defaults from Parser.Table.
+   --  Create parser first so Put_Usage has defaults from Parser.Table,
+   --  and Get_CL_Params can override them.
    Create_Parser
      (Parser, Language_Fixes, Language_Use_Minimal_Complete_Actions, Language_String_ID_Set,
       Trace'Unrestricted_Access, Parse_Data'Unchecked_Access);
 
-   --  Some command line params set McKenzie parameters in the parser.
    Cl_Params := Get_CL_Params (Parser);
 
    --  Do this after setting Trace_Parse so lexer verbosity is set
@@ -112,8 +112,8 @@ begin
          Parse_Data.Reset;
          Parser.Lexer.Reset;
 
-            Parser.Parse;
-            Parser.Execute_Actions;
+         Parser.Parse;
+         Parser.Execute_Actions;
 
          if Cl_Params.Repeat_Count = 1 then
             Parse_Data.Put;

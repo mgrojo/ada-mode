@@ -1,4 +1,4 @@
-;;; Wisi grammar for Ada
+;;; WisiToken grammar for Ada
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
