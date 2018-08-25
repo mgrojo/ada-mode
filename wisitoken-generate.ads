@@ -46,6 +46,17 @@ package WisiToken.Generate is
      (Grammar          : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor       : in WisiToken.Descriptor;
       Source_File_Name : in String);
+   --  Check requirements on Descriptor values.
+
+   function Check_Unused_Tokens
+     (Descriptor : in WisiToken.Descriptor;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
+     return Boolean;
+   --  Return False if there is a terminal or nonterminal that is not
+   --  used in the grammar.
+   --
+   --  Raises Grammar_Error if there is a non-grammar token used in the
+   --  grammar.
 
    function Has_Empty_Production (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_ID_Set;
    --  Result (ID) is True if any production for ID can be an empty

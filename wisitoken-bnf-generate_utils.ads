@@ -34,10 +34,10 @@ package WisiToken.BNF.Generate_Utils is
    WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
    type Generate_Data is limited record
-      --  FIXME: move token iterator to wisi, lr stuff to wisitoken-generate-lr?
-      Tokens          : access constant WisiToken.BNF.Tokens;
-      Descriptor      : access WisiToken.Descriptor;
-      Grammar         : WisiToken.Productions.Prod_Arrays.Vector;
+      --  FIXME: move lr stuff to wisitoken-generate-lr?
+      Tokens     : access constant WisiToken.BNF.Tokens;
+      Descriptor : access WisiToken.Descriptor;
+      Grammar    : WisiToken.Productions.Prod_Arrays.Vector;
 
       Action_Names : access Names_Array_Array;
       Check_Names  : access Names_Array_Array;

@@ -189,38 +189,6 @@ package body WisiToken.LR.LR1_Generate is
       end if;
    end Add_Actions;
 
-   function Check_Unused_Tokens
-     (Descriptor : in WisiToken.Descriptor;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
-     return Boolean
-   is
-      Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
-
-      Unused_Tokens : Boolean := False;
-   begin
-      Used_Tokens (Descriptor.Accept_ID) := True;
-
-      for Prod of Grammar loop
-         for RHS of Prod.RHSs loop
-            for J of RHS.Tokens loop
-               Used_Tokens (J) := True;
-            end loop;
-         end loop;
-      end loop;
-
-      for I in Used_Tokens'Range loop
-         if not Used_Tokens (I) then
-            if not Unused_Tokens then
-               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "Unused tokens:");
-               Unused_Tokens := True;
-            end if;
-            Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Image (I, Descriptor));
-         end if;
-      end loop;
-
-      return Unused_Tokens;
-   end Check_Unused_Tokens;
-
    function Generate
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor;
@@ -233,7 +201,7 @@ package body WisiToken.LR.LR1_Generate is
 
       Ignore_Unused_Tokens     : constant Boolean := WisiToken.Trace_Generate > Detail;
       Ignore_Unknown_Conflicts : constant Boolean := WisiToken.Trace_Generate > Detail;
-      Unused_Tokens            : constant Boolean := Check_Unused_Tokens (Descriptor, Grammar);
+      Unused_Tokens            : constant Boolean := WisiToken.Generate.Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;
 

@@ -76,6 +76,51 @@ package body WisiToken.Generate is
       end loop;
    end Check_Consistent;
 
+   function Check_Unused_Tokens
+     (Descriptor : in WisiToken.Descriptor;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
+     return Boolean
+   is
+      Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
+
+      Abort_Generate : Boolean := False;
+      Unused_Tokens  : Boolean := False;
+   begin
+      Used_Tokens (Descriptor.Accept_ID) := True;
+
+      for Prod of Grammar loop
+         for RHS of Prod.RHSs loop
+            for J of RHS.Tokens loop
+               if J in Used_Tokens'Range then
+                  Used_Tokens (J) := True;
+               else
+                  WisiToken.Generate.Put_Error ("non-grammar token " & Image (J, Descriptor) & " used in grammar");
+
+                  --  This causes lots of problems with token_id not in terminal or
+                  --  nonterminal range, so abort early.
+                  Abort_Generate := True;
+               end if;
+            end loop;
+         end loop;
+      end loop;
+
+      for I in Used_Tokens'Range loop
+         if not Used_Tokens (I) then
+            if not Unused_Tokens then
+               WisiToken.Generate.Put_Error ("Unused tokens:");
+               Unused_Tokens := True;
+            end if;
+            WisiToken.Generate.Put_Error (Image (I, Descriptor));
+         end if;
+      end loop;
+
+      if Abort_Generate then
+         raise Grammar_Error;
+      end if;
+
+      return Unused_Tokens;
+   end Check_Unused_Tokens;
+
    function Has_Empty_Production (Grammar : in WisiToken.Productions.Prod_Arrays.Vector) return Token_ID_Set
    is
       use all type Ada.Containers.Count_Type;
