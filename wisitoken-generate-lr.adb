@@ -707,9 +707,6 @@ package body WisiToken.Generate.LR is
      return Token_Array_Token_ID
    is
       use all type Ada.Containers.Count_Type;
-
-      --  For now, rely on the complete minimal terminal sequence. FIXME:
-      --  may be able to optimize;
       Minimal_Terminal_Sequences : Token_Sequence_Arrays.Vector;
    begin
       Compute_Minimal_Terminal_Sequences (Grammar, Descriptor, Minimal_Terminal_Sequences);

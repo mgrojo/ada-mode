@@ -252,12 +252,14 @@ package WisiToken.BNF is
       --  Tokens.
    end record;
 
-   type Elisp_Names is record
-      --  specified in grammar file declarations; see
-      --  wisi-output_elisp_common.ads Find_Name
-      Faces   : String_Lists.List;
-      Indents : String_Pair_Lists.List;
-      Regexps : String_Pair_Lists.List;
+   type User_Names is record
+      --  Specified in grammar file declarations, used in other declarations
+      --  or actions. Faces, Indents only used if .wy action language is
+      --  elisp and output language is not elisp.
+
+      Faces   : String_Lists.List;      -- %elisp_face
+      Indents : String_Pair_Lists.List; -- %elisp_indent
+      Regexps : String_Pair_Lists.List; -- %regexp_name
    end record;
 
    function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String

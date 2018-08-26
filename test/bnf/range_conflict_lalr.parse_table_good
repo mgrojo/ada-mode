@@ -31,6 +31,8 @@ Productions:
 16.0: relation <= primary IN membership_choice
 
 Ancestors:
+IDENTIFIER => membership_choice, primary
+STRING_LITERAL => membership_choice, primary
 primary => membership_choice
 range_g => membership_choice
 

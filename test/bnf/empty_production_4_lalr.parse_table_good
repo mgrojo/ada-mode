@@ -22,6 +22,8 @@ Productions:
 11.1: other_indicator <=
 
 Ancestors:
+OVERRIDING => overriding_indicator
+OTHER => other_indicator
 
 LALR Parse Table:
 State 0:

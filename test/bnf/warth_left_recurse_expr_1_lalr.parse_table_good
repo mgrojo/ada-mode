@@ -13,6 +13,7 @@ Productions:
 6.1: expr <= NUMERIC_LITERAL
 
 Ancestors:
+NUMERIC_LITERAL => expr
 
 LALR Parse Table:
 State 0:

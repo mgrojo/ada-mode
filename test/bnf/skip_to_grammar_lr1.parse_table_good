@@ -25,6 +25,8 @@ Productions:
 12.1: compilation_unit_list <= compilation_unit
 
 Ancestors:
+PREAMBLE => compilation_unit, compilation_unit_list
+IDENTIFIER => declaration_item_list, declaration_item
 declaration => compilation_unit, compilation_unit_list
 declaration_item => declaration_item_list
 compilation_unit => compilation_unit_list

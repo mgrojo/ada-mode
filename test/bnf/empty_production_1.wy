@@ -20,10 +20,10 @@
 ;;  7 - two consecutive empty productions not first
 ;;  8 - two consecutive empty productions, confused with a similar production
 
-%generate LALR Ada
-%generate Packrat_Gen Ada
-%generate Packrat_Proc Ada 
-                  
+%generate LALR Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
+
 %keyword BEGIN "begin"
 %keyword IS "is"
 

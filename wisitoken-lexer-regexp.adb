@@ -93,7 +93,7 @@ package body WisiToken.Lexer.Regexp is
          exit when (not Still_Matching) or else (Current_Char = Lexer.Source.Buffer'Last);
 
          if Best_Match_Length = Lexer.Source.Buffer'Length then
-            raise Programmer_Error with
+            raise SAL.Programmer_Error with
               "token larger than buffer size of" & Integer'Image (Lexer.Source.Buffer'Length);
          end if;
 

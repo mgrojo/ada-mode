@@ -36,7 +36,8 @@ package body WisiToken.LR.LALR_Generate is
    end record;
 
    package Item_Map_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Item_Map);
-   --  FIXME: should be a 3D array indexed by Prod, rhs_index, dot_index
+   --  IMPROVEME: should be a 3D array indexed by Prod, rhs_index,
+   --  dot_index. But it's not broken or slow, so we're not fixing it.
 
    function Propagate_Lookahead (Descriptor : in WisiToken.Descriptor) return access LR1_Items.Lookahead
    is begin

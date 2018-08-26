@@ -4,9 +4,9 @@
 ;;; also testing pending actions; object_declaration action is not
 ;;; output until after conflict is resolved.
 
-%generate LALR Ada
-%generate Packrat_Gen Ada 
-%generate Packrat_Proc Ada 
+%generate LALR Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
 
 %keyword ALIASED "aliased"
 %keyword CONSTANT "constant"

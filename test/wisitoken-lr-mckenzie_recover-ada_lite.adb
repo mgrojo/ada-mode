@@ -116,20 +116,21 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       End_Name_Token   : Recover_Token renames Config.Check_Status.End_Name;
    begin
       if not Begin_Name_IDs (Begin_Name_Token.ID) then
-         raise Programmer_Error with "unrecognized begin_name_token id " & Image (Begin_Name_Token.ID, Descriptor);
+         raise SAL.Programmer_Error with "unrecognized begin_name_token id " & Image (Begin_Name_Token.ID, Descriptor);
       end if;
 
       if not End_Name_IDs (End_Name_Token.ID) then
-         raise Programmer_Error with "unrecognized begin_name_token id " & Image (End_Name_Token.ID, Descriptor);
+         raise SAL.Programmer_Error with "unrecognized begin_name_token id " & Image (End_Name_Token.ID, Descriptor);
       end if;
 
       if not Nonterm_IDs (Config.Error_Token.ID) then
-         raise Programmer_Error with "unrecognized begin_name_token id " & Image (Config.Error_Token.ID, Descriptor);
+         raise SAL.Programmer_Error with "unrecognized begin_name_token id " &
+           Image (Config.Error_Token.ID, Descriptor);
       end if;
 
       case Config.Check_Status.Label is
       when Ok =>
-         raise Programmer_Error;
+         raise SAL.Programmer_Error;
 
       when Match_Names_Error =>
          --  0. User name error. The input looks like:
@@ -398,7 +399,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             end if;
 
             if Other_Counts (1) = 0 or Other_Counts (2) = 0 then
-               raise Programmer_Error with "unrecognized Extra_Name_Error case " & Image
+               raise SAL.Programmer_Error with "unrecognized Extra_Name_Error case " & Image
                  (Config.Error_Token, Descriptor);
             end if;
 
@@ -707,8 +708,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
             if Matching_Index = Config.Stack.Depth then
                --  missing 'if .. then'
                --
-               --  We don't handle missing 'if' alone; less likely. FIXME: add that
-               --  if add 'then' to end_statement_keywords.
+               --  We don't handle missing 'if' alone; less likely.
 
                New_Config := Config;
                New_Config.Error_Token.ID := Invalid_Token_ID;
@@ -749,11 +749,13 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
+      Parse_Table       : in     WisiToken.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration)
    is
+      pragma Unreferenced (Parse_Table);
       use all type SAL.Base_Peek_Type;
    begin
       if Trace_McKenzie > Extra then

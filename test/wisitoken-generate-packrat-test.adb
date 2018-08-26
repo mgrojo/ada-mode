@@ -42,7 +42,6 @@ package body WisiToken.Generate.Packrat.Test is
    begin
       --  Test that all indirect recursion is identified
 
-      --  FIXME: move this code to wisi-generate_utils.
       Wisi_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,

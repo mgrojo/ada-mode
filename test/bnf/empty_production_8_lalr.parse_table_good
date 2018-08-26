@@ -24,6 +24,8 @@ Productions:
 11.1: constant_opt <=
 
 Ancestors:
+ALIASED => aliased_opt
+CONSTANT => constant_opt
 object_declaration => object_declaration_list
 
 LALR Parse Table:

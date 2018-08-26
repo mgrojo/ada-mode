@@ -23,9 +23,9 @@
 
 %code actions body context %{with Warth_Left_Recurse_Expr_1_Runtime; use Warth_Left_Recurse_Expr_1_Runtime;}%
 
-%generate Packrat_Gen Ada re2c
-%generate LALR Ada
-%generate Packrat_Proc Ada
+%generate Packrat_Gen  Ada re2c
+%generate LALR         Ada re2c
+%generate Packrat_Proc Ada re2c
 
 %token <punctuation> MINUS "-"
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%

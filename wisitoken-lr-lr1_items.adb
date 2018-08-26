@@ -398,8 +398,8 @@ package body WisiToken.LR.LR1_Items is
                   For_Each_RHS :
                   for B in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                      declare
-                        RHS_2 : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (B); --  FIXME: delete _2
-                        P_ID_2 : constant Production_ID := (Prod.LHS, B);
+                        RHS : WisiToken.Productions.Right_Hand_Side renames Prod.RHSs (B);
+                        P_ID : constant Production_ID := (Prod.LHS, B);
                      begin
                         --  Compute FIRST (<tail of right hand side> a); loop
                         --  until find a terminal, a nonterminal that
@@ -415,20 +415,20 @@ package body WisiToken.LR.LR1_Items is
                               --  Lookaheads are all terminals, so
                               --  FIRST (a) = a.
                               Added_Item := Added_Item or
-                                Merge (P_ID_2, RHS_2.Tokens.First, Item.Lookaheads.all, I);
+                                Merge (P_ID, RHS.Tokens.First, Item.Lookaheads.all, I);
                               exit First_Tail;
 
                            elsif Element (Beta) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
                               --  FIRST (Beta) = Beta
                               Added_Item := Added_Item or Merge
-                                (P_ID_2, RHS_2.Tokens.First, To_Lookahead (Element (Beta), Descriptor), I);
+                                (P_ID, RHS.Tokens.First, To_Lookahead (Element (Beta), Descriptor), I);
                               exit First_Tail;
 
                            else
                               --  Beta is a nonterminal; use FIRST (Beta)
                               for Terminal of First_Terminal_Sequence (Element (Beta)) loop
                                  Added_Item := Added_Item or
-                                   Merge (P_ID_2, RHS_2.Tokens.First, To_Lookahead (Terminal, Descriptor), I);
+                                   Merge (P_ID, RHS.Tokens.First, To_Lookahead (Terminal, Descriptor), I);
                               end loop;
 
                               if Has_Empty_Production (Element (Beta)) then

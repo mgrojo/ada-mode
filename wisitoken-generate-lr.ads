@@ -132,7 +132,7 @@ package WisiToken.Generate.LR is
       Result     : in out Token_Sequence_Arrays.Vector);
    --  For each production in Grammar, compute the minimal sequence of
    --  terminals that will complete it. Result is an empty sequence if
-   --  the production may be empty. FIXME: delete?
+   --  the production may be empty.
 
    function Minimal_Terminal_First
      (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;

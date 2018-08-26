@@ -1,8 +1,8 @@
 ;;; finding bug in parse table generator; 2 consecutive nonterms can be empty
 
-%generate LALR Ada 
-%generate Packrat_Gen Ada 
-%generate Packrat_Proc Ada
+%generate LALR Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
 
 %keyword ALIASED "aliased"
 %keyword CONSTANT "constant"

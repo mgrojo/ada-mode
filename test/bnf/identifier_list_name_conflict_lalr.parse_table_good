@@ -37,6 +37,8 @@ Productions:
 17.1: selector_name <= STRING_LITERAL
 
 Ancestors:
+STRING_LITERAL => compilation_unit, name, name_list, selector_name
+IDENTIFIER => compilation_unit, identifier_list, name, name_list, selector_name
 association => association_list
 identifier_list => compilation_unit
 name => compilation_unit, name_list

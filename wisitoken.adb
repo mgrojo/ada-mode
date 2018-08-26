@@ -251,11 +251,6 @@ package body WisiToken is
       end loop;
    end Or_Slice;
 
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID)
-   is begin
-      Trace.Put (Image (Item, Trace.Descriptor.all));
-   end Put;
-
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set)
    is
       use Ada.Text_IO;

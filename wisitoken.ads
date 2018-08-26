@@ -394,8 +394,8 @@ package WisiToken is
    --  Otherwise, be robust to errors, so user does not notice them.
 
    type Trace (Descriptor : not null access constant WisiToken.Descriptor) is abstract tagged limited null record;
-   --  Output for tests/debugging. Not used during grammar generation;
-   --  that just outputs to Text_IO.Standard_Output.
+   --  Output for tests/debugging. Descriptor included here because many
+   --  uses of Trace will use Image (Item, Descriptor);
 
    procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace display.
@@ -405,9 +405,6 @@ package WisiToken is
 
    procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
    --  Put a newline to the Trace display.
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID);
-   --  Put Item to the Trace display.
 
    ----------
    --  Misc

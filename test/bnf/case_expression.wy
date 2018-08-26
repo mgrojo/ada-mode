@@ -37,7 +37,7 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
-%elisp_regexp wisi-number-p %[ ([0-9][0-9.]*) ]%
+%regexp_name wisi-number-p %[ ([0-9][0-9.]*) ]%
 
 %token <number> NUMBER_LITERAL wisi-number-p
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%

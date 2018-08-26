@@ -15,6 +15,7 @@ Productions:
 7.1: upper_c <= LOWER_D
 
 Ancestors:
+LOWER_D => upper_c
 
 LALR Parse Table:
 State 0:

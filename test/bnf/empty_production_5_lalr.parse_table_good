@@ -21,6 +21,7 @@ Productions:
 11.1: parameter_profile <=
 
 Ancestors:
+IDENTIFIER => name
 
 LALR Parse Table:
 State 0:

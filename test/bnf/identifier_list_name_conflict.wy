@@ -6,10 +6,10 @@
 ;; in the the compiled grammar as several reduce/reduce conflicts, and
 ;; in the parser as two parsers reaching an identical state.
 
-%generate LALR Ada 
-%generate Packrat_Gen Ada 
-%generate Packrat_Proc Ada 
-%generate LALR Elisp
+%generate LALR Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
+%generate LALR Elisp elisp
 
 %keyword LEFT_PAREN "("
 %keyword RIGHT_PAREN ")"

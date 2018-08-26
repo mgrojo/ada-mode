@@ -42,7 +42,7 @@ package WisiToken.Wisi_Grammar_Runtime is
       Raw_Code         : WisiToken.BNF.Raw_Code;
       Language_Params  : WisiToken.BNF.Language_Param_Type;
       Tokens           : aliased WisiToken.BNF.Tokens;
-      Elisp_Names      : WisiToken.BNF.Elisp_Names;
+      User_Names       : WisiToken.BNF.User_Names;
       Conflicts        : WisiToken.BNF.Conflict_Lists.List;
       McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
 

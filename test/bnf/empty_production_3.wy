@@ -1,9 +1,9 @@
 ;;; finding bug in parse table generator; two nonterms at end of
 ;;; production, where first can be empty, were handled wrong.
 
-%generate LALR Ada 
-%generate Packrat_Gen Ada 
-%generate Packrat_Proc Ada
+%generate LALR Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
 
 %keyword IN "in"
 

@@ -91,9 +91,33 @@ McKenzie:
  SEMICOLON   => 4,
  SYMBOL      => 4,
  Wisi_EOI    => 4)
-Cost_Limit => 10
+(Push_Back =>
+ BEGIN       => 4,
+ END         => 4,
+ EXCEPTION   => 4,
+ FOR         => 4,
+ FUNCTION    => 4,
+ IN          => 4,
+ LOOP        => 4,
+ PROCEDURE   => 4,
+ WHEN        => 4,
+ USE         => 4,
+ LEFT_PAREN  => 4,
+ RIGHT_PAREN => 4,
+ COMMA       => 4,
+ DOT         => 4,
+ SEMICOLON   => 4,
+ SYMBOL      => 4,
+ Wisi_EOI    => 4)
+Ignore_Check_Fail => 4
+Task_Count        => 0
+Cost_Limit        => 10
+Check_Limit       => 3
+Check_Delta_Limit => 200
+Enqueue_Limit     => 10000
 
 Ancestors:
+SYMBOL => name, name_list, subtype
 declarations => compilation_unit
 declaration => compilation_unit, declarations
 name => name_list, subtype

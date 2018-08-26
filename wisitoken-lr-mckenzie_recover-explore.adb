@@ -56,7 +56,6 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          --  Cost_Delta /= 0 comes from Try_Insert_Terminal when
          --  Minimal_Complete_Actions is useful. That doesn't mean it is better
          --  than any other solution, so don't let cost be 0.
-         --  FIXME: move this up to callers
          Config.Cost := Integer'Max (1, Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta);
       end if;
 
@@ -218,11 +217,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
 
       use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
-      use all type Semantic_Checks.Check_Status_Label;
 
-      Parse_Items   : Parse.Parse_Item_Arrays.Vector;
-      Success_Count : Integer := 0;
-      Success_Index : Integer;
+      Parse_Items : Parse.Parse_Item_Arrays.Vector;
    begin
       if Parse.Parse
         (Super, Shared, Parser_Index, Parse_Items, Config,
@@ -237,40 +233,19 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
             return Continue;
          else
-            for I in Parse_Items.First_Index .. Parse_Items.Last_Index loop
-               declare
-                  Item : Parse.Parse_Item renames Parse_Items (I);
-               begin
-                  if Item.Parsed and
-                    Item.Config.Error_Token.ID = Invalid_Token_ID and
-                    Item.Config.Check_Status.Label = Ok
-                  then
-                     Success_Count := Success_Count + 1;
-                     Success_Index := I;
+            --  Enqueue all passing configs, abandon current.
+            for Item of Parse_Items loop
+               if Item.Parsed and Item.Config.Error_Token.ID = Invalid_Token_ID then
+                  Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+                  Config.Current_Ops := No_Insert_Delete;
+                  Local_Config_Heap.Add (Item.Config);
+
+                  if Trace_McKenzie > Detail then
+                     Base.Put ("fast forward conflict", Super, Shared, Parser_Index, Item.Config);
                   end if;
-               end;
+               end if;
             end loop;
-
-            if Success_Count = 1 then
-               Config := Parse_Items (Success_Index).Config;
-               Config.Ops.Append ((Fast_Forward, Config.Current_Shared_Token));
-               return Continue;
-               --  FIXME: this is an unnecessary optimization; always enqueue good configs, abandon current.
-            else
-               --  Enqueue all passing configs, abandon current.
-               for Item of Parse_Items loop
-                  if Item.Parsed and Item.Config.Error_Token.ID = Invalid_Token_ID then
-                     Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
-                     Config.Current_Ops := No_Insert_Delete;
-                     Local_Config_Heap.Add (Item.Config);
-
-                     if Trace_McKenzie > Detail then
-                        Base.Put ("fast forward conflict", Super, Shared, Parser_Index, Item.Config);
-                     end if;
-                  end if;
-               end loop;
-               return Abandon;
-            end if;
+            return Abandon;
          end if;
 
       else

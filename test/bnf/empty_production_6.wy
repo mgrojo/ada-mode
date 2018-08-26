@@ -1,8 +1,8 @@
 ;;; finding bug in parse table generator; same conflict in two states
 
-%generate LALR Ada 
-%generate Packrat_Gen Ada 
-%generate Packrat_Proc Ada
+%generate LALR Ada re2c
+%generate Packrat_Gen Ada re2c
+%generate Packrat_Proc Ada re2c
 
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
@@ -30,7 +30,7 @@ statement
 
 sequence_of_statements
   : sequence_of_statements statement
-  | statement 
+  | statement
   ;
 
 label_opt

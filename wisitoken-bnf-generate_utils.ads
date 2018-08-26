@@ -34,7 +34,6 @@ package WisiToken.BNF.Generate_Utils is
    WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
    type Generate_Data is limited record
-      --  FIXME: move lr stuff to wisitoken-generate-lr?
       Tokens     : access constant WisiToken.BNF.Tokens;
       Descriptor : access WisiToken.Descriptor;
       Grammar    : WisiToken.Productions.Prod_Arrays.Vector;
@@ -46,11 +45,12 @@ package WisiToken.BNF.Generate_Utils is
 
       Start_ID        : WisiToken.Token_ID;
       Source_Line_Map : WisiToken.Productions.Source_Line_Maps.Vector;
-      Conflicts       : WisiToken.Generate.LR.Conflict_Lists.List;
 
-      LR_Parse_Table : WisiToken.LR.Parse_Table_Ptr;
+      --  The following fields are LR specific; so far, it's not worth
+      --  splitting them out.
 
-      --  LR parse table stats
+      Conflicts                    : WisiToken.Generate.LR.Conflict_Lists.List;
+      LR_Parse_Table               : WisiToken.LR.Parse_Table_Ptr;
       Table_Actions_Count          : Integer                       := -1; -- parse, not user, actions
       Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
       Accept_Reduce_Conflict_Count : Integer                       := 0;

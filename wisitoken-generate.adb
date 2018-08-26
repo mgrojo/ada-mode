@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Directories;
+with Ada.Text_IO;
 with Ada.Strings.Fixed;
 package body WisiToken.Generate is
 
@@ -81,27 +82,56 @@ package body WisiToken.Generate is
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector)
      return Boolean
    is
+      subtype Terminals    is Token_ID range Descriptor.First_Terminal    .. Descriptor.Last_Terminal;
+      subtype Nonterminals is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
+
       Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 
+      Changed        : Boolean := False;
       Abort_Generate : Boolean := False;
       Unused_Tokens  : Boolean := False;
    begin
       Used_Tokens (Descriptor.Accept_ID) := True;
 
-      for Prod of Grammar loop
-         for RHS of Prod.RHSs loop
-            for J of RHS.Tokens loop
-               if J in Used_Tokens'Range then
-                  Used_Tokens (J) := True;
-               else
-                  WisiToken.Generate.Put_Error ("non-grammar token " & Image (J, Descriptor) & " used in grammar");
-
-                  --  This causes lots of problems with token_id not in terminal or
-                  --  nonterminal range, so abort early.
-                  Abort_Generate := True;
-               end if;
-            end loop;
+      --  First mark all nonterminals that occur in used nonterminals as
+      --  used.
+      loop
+         for Prod of Grammar loop
+            if Used_Tokens (Prod.LHS) then
+               for RHS of Prod.RHSs loop
+                  for J of RHS.Tokens loop
+                     if J in Nonterminals then
+                        Changed         := Changed or else not Used_Tokens (J);
+                        Used_Tokens (J) := True;
+                     end if;
+                  end loop;
+               end loop;
+            end if;
          end loop;
+         exit when not Changed;
+         Changed := False;
+      end loop;
+
+      --  Now mark terminals used in used nonterminals
+      for Prod of Grammar loop
+         if Used_Tokens (Prod.LHS) then
+            for RHS of Prod.RHSs loop
+               for J of RHS.Tokens loop
+                  if not (J in Used_Tokens'Range) then
+                     WisiToken.Generate.Put_Error
+                       ("non-grammar token " & Image (J, Descriptor) & " used in grammar");
+
+                     --  This causes lots of problems with token_id not in terminal or
+                     --  nonterminal range, so abort early.
+                     Abort_Generate := True;
+                  end if;
+
+                  if J in Terminals then
+                     Used_Tokens (J) := True;
+                  end if;
+               end loop;
+            end loop;
+         end if;
       end loop;
 
       for I in Used_Tokens'Range loop
@@ -261,14 +291,11 @@ package body WisiToken.Generate is
       Has_Empty_Production : in Token_ID_Set)
      return Token_Array_Token_Set
    is
-      Prev_Result : Token_Array_Token_Set :=
-        --  FIXME: use grammar.first_index .., declare local subtypes
-        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
-           (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
+      subtype Terminal    is Token_ID range Descriptor.First_Terminal    .. Descriptor.Last_Terminal;
+      subtype Nonterminal is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
 
-      Result : Token_Array_Token_Set :=
-        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal =>
-           (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False));
+      Prev_Result : Token_Array_Token_Set := (Nonterminal => (Terminal => False));
+      Result      : Token_Array_Token_Set := (Nonterminal => (Terminal => False));
 
       ID : Token_ID;
    begin
@@ -285,7 +312,7 @@ package body WisiToken.Generate is
       --  We don't assume any order in the productions list, so we
       --  have to keep applying rule 3 until nothing changes.
 
-      for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+      for B in Nonterminal loop
          for Prod of Grammar loop
             for A of Prod.RHSs loop
                for I in A.Tokens.First_Index .. A.Tokens.Last_Index loop
@@ -293,7 +320,7 @@ package body WisiToken.Generate is
                      if I < A.Tokens.Last_Index then
                         --  Rule 1
                         ID := A.Tokens (1 + I);
-                        if ID in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+                        if ID in Terminal then
                            Result (B, ID) := True;
                         else
                            Or_Slice (Result, B, Slice (First, ID));
@@ -307,14 +334,13 @@ package body WisiToken.Generate is
 
       Prev_Result := Result;
       loop
-         for B in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal loop
+         for B in Nonterminal loop
             for Prod of Grammar loop
                for A of Prod.RHSs loop
                   for I in A.Tokens.First_Index .. A.Tokens.Last_Index loop
                      if A.Tokens (I) = B then
                         if I = A.Tokens.Last_Index or else
-                          (A.Tokens (1 + I) in
-                             Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                          (A.Tokens (1 + I) in Nonterminal and then
                              Has_Empty_Production (A.Tokens (1 + I)))
                         then
                            --  rule 3

@@ -89,7 +89,7 @@ package body WisiToken.Parse.Packrat.Procedural is
                         when Failure =>
                            goto Fail_RHS;
                         when No_Result =>
-                           raise Programmer_Error;
+                           raise SAL.Programmer_Error;
                         end case;
                      end if;
                   end loop;

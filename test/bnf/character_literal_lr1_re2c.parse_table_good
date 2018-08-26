@@ -31,6 +31,8 @@ Productions:
 17.1: tick <= TICK_2
 
 Ancestors:
+TICK_1 => tick
+TICK_2 => tick
 statement_list => compilation_unit
 statement => compilation_unit, statement_list
 

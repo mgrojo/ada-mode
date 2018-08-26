@@ -692,7 +692,9 @@ package body WisiToken.BNF.Output_Ada_Common is
      (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Common_Data   :         in out Output_Ada_Common.Common_Data;
       Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data)
-   is begin
+   is
+      Table : WisiToken.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
+   begin
       Indent_Line ("procedure Create_Parser");
       case Common_Data.Interface_Kind is
       when Process =>
@@ -744,14 +746,11 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
          Indent_Line ("  (State_First       => 0,");
          Indent := Indent + 3;
-         Indent_Start ("State_Last        => ");
-         Put_Line
-           (WisiToken.Trimmed_Image (Generate_Data.LR_Parse_Table.State_Last) & ",");
-
-         Indent_Line ("First_Terminal    => Trace.Descriptor.First_Terminal,");
-         Indent_Line ("Last_Terminal     => Trace.Descriptor.Last_Terminal,");
-         Indent_Line ("First_Nonterminal => Trace.Descriptor.First_Nonterminal,");
-         Indent_Line ("Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);");
+         Indent_Line ("State_Last        =>" & State_Index'Image (Table.State_Last) & ",");
+         Indent_Line ("First_Terminal    =>" & Token_ID'Image (Table.First_Terminal) & ",");
+         Indent_Line ("Last_Terminal     =>" & Token_ID'Image (Table.Last_Terminal) & ",");
+         Indent_Line ("First_Nonterminal =>" & Token_ID'Image (Table.First_Nonterminal) & ",");
+         Indent_Line ("Last_Nonterminal  =>" & Token_ID'Image (Table.Last_Nonterminal) & ");");
          Indent := Indent - 3;
 
          Indent := Indent - 3;
@@ -1305,7 +1304,8 @@ package body WisiToken.BNF.Output_Ada_Common is
          if Tuple.Gen_Alg = External or else Input_Data.User_Lexer in Valid_Lexer then
             Data.Lexer := Input_Data.User_Lexer;
          else
-            raise SAL.Programmer_Error;
+            raise SAL.Programmer_Error with "tuple.alg " & Generate_Algorithm'Image (Tuple.Gen_Alg) &
+              " input_data.user_lexer " & Lexer_Image (Input_Data.User_Lexer).all;
          end if;
 
          if Check_Interface then

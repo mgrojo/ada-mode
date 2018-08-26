@@ -18,6 +18,8 @@ Productions:
 8.0: parameter_specification <= IDENTIFIER mode name
 
 Ancestors:
+IN => mode
+IDENTIFIER => name
 
 LALR Parse Table:
 State 0:

@@ -32,6 +32,8 @@ Productions:
 17.1: range_nt <= factor_list DOT_DOT factor_list
 
 Ancestors:
+NUMBER_LITERAL => choice_expression, choice_relation, discrete_choice, factor, factor_list
+IDENTIFIER => choice_expression, choice_relation, discrete_choice, factor, factor_list
 choice_expression => discrete_choice
 choice_relation => choice_expression, discrete_choice
 factor => choice_expression, choice_relation, discrete_choice, factor_list

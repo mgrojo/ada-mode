@@ -23,6 +23,7 @@ Productions:
 11.0: qualified_expression <= name TICK aggregate
 
 Ancestors:
+IDENTIFIER => attribute_designator, name
 attribute_reference => attribute_designator, name
 name => attribute_designator
 qualified_expression => attribute_designator, name

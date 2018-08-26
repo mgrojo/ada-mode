@@ -216,7 +216,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
       Data.Language_Params   := (others => <>);
       WisiToken.BNF.Free (Data.Generate_Set);
       Data.Tokens            := (others => <>);
-      Data.Elisp_Names       := (others => <>);
+      Data.User_Names        := (others => <>);
       Data.Conflicts.Clear;
       Data.McKenzie_Recover  := (others => <>);
       Data.Rule_Count        := 0;
@@ -433,15 +433,15 @@ package body WisiToken.Wisi_Grammar_Runtime is
                   null;
 
                elsif Kind = "elisp_face" then
-                  Data.Elisp_Names.Faces.Append (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
+                  Data.User_Names.Faces.Append (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
 
                elsif Kind = "elisp_indent" then
-                  Data.Elisp_Names.Indents.Append
+                  Data.User_Names.Indents.Append
                     ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1, Strip_Quotes => True),
                       Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
-               elsif Kind = "elisp_regexp" then
-                  Data.Elisp_Names.Regexps.Append
+               elsif Kind = "regexp_name" then
+                  Data.User_Names.Regexps.Append
                     ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1),
                       Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
