@@ -1,4 +1,8 @@
--- Encounters Insert_Delete is out of sync with Ops
+-- Encounters "Insert_Delete is out of sync with Ops"
+
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq wisi-indent-region-fallback nil)
+
 package body Wisi.Libadalang is
 
    procedure To_WisiToken_Tree (Parser : in out Wisi.Libadalang.Parser)

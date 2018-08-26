@@ -1,3 +1,7 @@
+
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq wisi-indent-region-fallback nil)
+
    procedure To_WisiToken_Tree
    is
       procedure Create_Tree_Node

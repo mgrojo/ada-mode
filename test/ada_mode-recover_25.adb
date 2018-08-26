@@ -1,4 +1,8 @@
 --  From a real editing session.
+
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq wisi-indent-region-fallback nil)
+
 procedure SMM.Edit_ID3
 is
    procedure Put_Usage
