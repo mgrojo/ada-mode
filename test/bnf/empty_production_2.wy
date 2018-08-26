@@ -36,7 +36,6 @@
 %conflict SHIFT/REDUCE in state body, body  on token IS
 %conflict ACCEPT_IT/REDUCE in state wisitoken_accept, wisitoken_accept  on token Wisi_EOI
 %conflict SHIFT/REDUCE in state declarations, declarations  on token IS
-%conflict SHIFT/REDUCE in state body, declarations  on token IS
 %conflict SHIFT/REDUCE in state body, declarations  on token BEGIN
 
 declaration

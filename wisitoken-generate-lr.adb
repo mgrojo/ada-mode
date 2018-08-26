@@ -174,8 +174,6 @@ package body WisiToken.Generate.LR is
          if Equal (Matching_Action.Action.Item, Action) then
             --  Matching_Action is identical to Action, so there is no
             --  conflict; just don't add it again.
-            Matching_Action.Action.Item.Productions.Append (Action.Productions);
-
             if Trace_Generate > Outline then
                Ada.Text_IO.Put_Line (" - already present");
             end if;
@@ -208,11 +206,11 @@ package body WisiToken.Generate.LR is
                   Conflicts.Append (New_Conflict);
 
                   if Trace_Generate > Outline then
-                     Ada.Text_IO.Put_Line (" - conflict added");
+                     Ada.Text_IO.Put_Line (" - conflict added: " & Image (New_Conflict, Descriptor));
                   end if;
                else
                   if Trace_Generate > Outline then
-                     Ada.Text_IO.Put_Line (" - conflict duplicate");
+                     Ada.Text_IO.Put_Line (" - conflict duplicate: " & Image (New_Conflict, Descriptor));
                   end if;
                end if;
 
@@ -297,9 +295,7 @@ package body WisiToken.Generate.LR is
                   if Goto_State /= Unknown_State then
                      Add_Action
                        (Dot_ID,
-                        (Verb        => Shift,
-                         Productions => +Item.Prod,
-                         State       => Goto_State),
+                        (Shift, Goto_State),
                         Table.States (State).Action_List,
                         Closure, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
                   end if;
@@ -495,14 +491,6 @@ package body WisiToken.Generate.LR is
       when Shift =>
 
          for Item of Closure.Set loop
-            if LR1_Items.In_Kernel (Grammar, Descriptor, Item) and then
-              Item.Prod = Action.Productions (1)
-            then
-               return Item.Prod.LHS;
-            end if;
-         end loop;
-
-         for Item of Closure.Set loop
             --  Lookahead (the token shifted) is starting a nonterm in a state
             --  production; it is in First of that nonterm.
             if LR1_Items.In_Kernel (Grammar, Descriptor, Item) then
@@ -538,7 +526,7 @@ package body WisiToken.Generate.LR is
       raise SAL.Programmer_Error;
    end Find;
 
-   function Image (Descriptor : in WisiToken.Descriptor; Item : in Conflict) return String
+   function Image (Item : in Conflict; Descriptor : in WisiToken.Descriptor) return String
    is begin
       return
         ("%conflict " &
@@ -584,7 +572,7 @@ package body WisiToken.Generate.LR is
       Descriptor : in WisiToken.Descriptor)
    is begin
       for Conflict of Item loop
-         Ada.Text_IO.Put_Line (File, Image (Descriptor, Conflict));
+         Ada.Text_IO.Put_Line (File, Image (Conflict, Descriptor));
       end loop;
    end Put;
 
@@ -800,7 +788,7 @@ package body WisiToken.Generate.LR is
    begin
       --  First find items to delete.
       --
-      --  This algorithm will return an empty Minimal_Compelete_Actions in
+      --  This algorithm will return an empty Minimal_Complete_Actions in
       --  the top level accept state.
 
       I := Working_Set.First;

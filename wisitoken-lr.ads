@@ -69,19 +69,15 @@ package WisiToken.LR is
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
       when Shift =>
-         Productions : Production_ID_Arrays.Vector;
-         --  Index into Parse_Table.Productions, for McKenzie_Recover. A Shift
-         --  action for the same token may occur in several productions in one
-         --  state (ie push the first token in a statement that has several
-         --  variants). FIXME: still needed?
-
          State : State_Index := State_Index'Last;
 
       when Reduce | Accept_It =>
          Production : Production_ID;
-         --  Index into Parse_Table.Productions, and the result nonterm. FIXME: still needed? put back nonterm here.
+         --  Index into Parse_Table.Productions, and the result nonterm. Most
+         --  uses need only Production.LHS; elisp code generation, and debug
+         --  output, needs Production.RHS
 
-         --  FIXME: use Action, Check in table.productions
+         --  FIXME: use Action, Check in table.productions?
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
          Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
          Token_Count : Ada.Containers.Count_Type                := 0;
@@ -201,7 +197,6 @@ package WisiToken.LR is
 
    procedure Add_Action
      (State       : in out Parse_State;
-      Productions : in     Production_ID_Array;
       Symbol      : in     Token_ID;
       State_Index : in     WisiToken.State_Index);
    --  Add a Shift action to tail of State action list.
@@ -238,7 +233,6 @@ package WisiToken.LR is
 
    procedure Add_Action
      (State             : in out Parse_State;
-      Shift_Productions : in     Production_ID_Array;
       Symbol            : in     Token_ID;
       State_Index       : in     WisiToken.State_Index;
       Reduce_Production : in     Production_ID;
@@ -363,14 +357,6 @@ package WisiToken.LR is
    --  Return the action for State, terminal ID.
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
-
-   type Reduce_Action_Array is array (Positive range <>) of Reduce_Action_Rec;
-   function Reductions
-     (Table       : in     Parse_Table;
-      State       : in     State_Index;
-      Shift_Count :    out Natural)
-     return Reduce_Action_Array;
-   --   FIXME: used?
 
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
@@ -604,9 +590,10 @@ package WisiToken.LR is
       --  Check_Token_Count the number of tokens in the right hand side, and
       --  Check_Status is the error.
       --
-      --  Cleared when Config is parsed successfully, or modified so the
-      --  error is no longer meaningful (ie in explore when adding an op, or
-      --  in languag_fixes when adding a fix).
+      --  Error_Token is set to Invalid_Token_ID when Config is parsed
+      --  successfully, or modified so the error is no longer meaningful (ie
+      --  in explore when adding an op, or in language_fixes when adding a
+      --  fix).
 
       Ops : Config_Op_Arrays.Vector;
       --  Record of operations applied to this Config, in application order.

@@ -1424,8 +1424,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (64, 66),
          Ops                     =>
-           +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) &
-             (Insert, +SEMICOLON_ID, 13),
+           +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) & (Fast_Forward,  14) & (Push_Back, +END_ID, 13) &
+             (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) & (Insert, +SEMICOLON_ID, 13) & (Fast_Forward,  13),
          Enqueue_Low             => 38,
          Enqueue_High            => 188,
          Check_Low               => 15,

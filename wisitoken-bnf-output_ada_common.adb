@@ -554,7 +554,6 @@ package body WisiToken.BNF.Output_Ada_Common is
                      case Action_Node.Item.Verb is
                      when Shift =>
                         Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
-                          Image (Action_Node.Item.Productions, Strict => True) & ", " &
                           Trimmed_Image (Node.Symbol);
                         Append (", ");
                         Append (Trimmed_Image (Action_Node.Item.State));

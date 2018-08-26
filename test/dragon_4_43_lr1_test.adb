@@ -243,7 +243,7 @@ package body Dragon_4_43_LR1_Test is
          Symbol      : in     WisiToken.Token_ID;
          State_Index : in     WisiToken.State_Index)
       is begin
-         Add_Action (State, (1 .. 0 => (1, 0)), Symbol, State_Index);
+         Add_Action (State, Symbol, State_Index);
       end Add_Action;
 
       procedure Add_Action

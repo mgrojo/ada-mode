@@ -31,11 +31,12 @@ package WisiToken.Generate.LR is
       --
       --  SHIFT/REDUCE in state: 11 on token IS
       --
-      --  State numbers change with minor changes in the grammar, so
-      --  we identify the state by the LHS of the two productions
-      --  involved. We also store the state number for generated
-      --  conflicts (not for known conflicts from the grammar
-      --  definition file), for Text_IO output.
+      --  State numbers change with minor changes in the grammar, so we
+      --  attempt to identify the state by the LHS of the two productions
+      --  involved; this is _not_ guarranteed to be unique, but is good
+      --  enough for our purposes. We also store the state number for
+      --  generated conflicts (not for known conflicts from the grammar
+      --  definition file), for debugging.
       Action_A    : Conflict_Parse_Actions;
       LHS_A       : Token_ID;
       Action_B    : Conflict_Parse_Actions;
@@ -106,7 +107,7 @@ package WisiToken.Generate.LR is
    --  Return the LHS of a production in kernel of Closure, for an Action
    --  conflict on Lookahead; for naming a Conflict object.
 
-   function Image (Descriptor : in WisiToken.Descriptor; Item : in Conflict) return String;
+   function Image (Item : in Conflict; Descriptor : in WisiToken.Descriptor) return String;
 
    function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean;
 

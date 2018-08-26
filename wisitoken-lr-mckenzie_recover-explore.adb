@@ -59,6 +59,8 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Config.Cost := Integer'Max (1, Config.Cost + McKenzie_Param.Insert (ID) + Cost_Delta);
       end if;
 
+      Config.Error_Token.ID := Invalid_Token_ID;
+
       Config.Stack.Push ((State, Syntax_Trees.Invalid_Node_Index, (ID, Virtual => True, others => <>)));
       if Trace_McKenzie > Detail then
          Base.Put ("insert " & Image (ID, Super.Trace.Descriptor.all), Super, Shared, Parser_Index, Config);
@@ -96,19 +98,17 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          Config.Error_Token       := Nonterm;
          Config.Check_Token_Count := Action.Token_Count;
 
-         if Shared.Language_Fixes = null then
-            --  No fixes available; abandon Config.
-            return Abandon;
-         else
+         if Shared.Language_Fixes /= null then
             Shared.Language_Fixes
               (Super.Trace.all, Shared.Lexer, Super.Label (Parser_Index), Shared.Table.all, Shared.Terminals.all,
                Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config);
-            --  Finish the reduce.
-            Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
-            Config.Error_Token.ID := Invalid_Token_ID;
-            Config.Check_Status   := (Label => Ok);
          end if;
+
+         --  Finish the reduce; ignore the check fail.
+         Config.Stack.Pop (SAL.Base_Peek_Type (Config.Check_Token_Count));
+         Config.Error_Token.ID := Invalid_Token_ID;
+         Config.Check_Status   := (Label => Ok);
       end case;
 
       if Config.Stack.Depth = 0 or else Config.Stack (1).State = Unknown_State then
@@ -347,57 +347,53 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          return Success;
       end if;
 
-      --  Enqueue failed Parse_Items so Language_Fixes can try to fix them.
+      --  All Parse_Items failed; enqueue them so Language_Fixes can try to fix them.
       declare
          Parse_Error_Found : Boolean := False;
       begin
          for Item of Parse_Items loop
-            if Item.Parsed then
-               --  FIXME: why not enqueue unparsed items?
 
-               if Item.Config.Error_Token.ID /= Invalid_Token_ID and Item.Config.Check_Status.Label = Ok then
-                  Parse_Error_Found := True;
+            if Item.Config.Error_Token.ID /= Invalid_Token_ID and Item.Config.Check_Status.Label = Ok then
+               Parse_Error_Found := True;
 
-                  if Item.Shift_Count = 0 or
-                    ((Item.Config.Ops.Length > 0 and then
-                        Item.Config.Ops (Item.Config.Ops.Last_Index).Op in Undo_Reduce | Push_Back) and
-                       Item.Config.Current_Shared_Token = Config.Current_Shared_Token)
-                  then
-                     --  (Item.config.ops is empty on the very first Check). This is the
-                     --  same error Config originally found; report it in Config, so
-                     --  Language_Constrain_Terminals can see it.
-                     Config.Error_Token  := Item.Config.Error_Token;
-                     Config.Check_Status := (Label => Ok);
-                  end if;
-               end if;
-
-               if Item.Shift_Count > 0 and then
-                 (Item.Config.Check_Status.Label /= Ok or
-                    Item.Config.Error_Token.ID /= Invalid_Token_ID)
+               if Item.Shift_Count = 0 or
+                 ((Item.Config.Ops.Length > 0 and then
+                     Item.Config.Ops (Item.Config.Ops.Last_Index).Op in Undo_Reduce | Push_Back) and
+                    Item.Config.Current_Shared_Token = Config.Current_Shared_Token)
                then
-                  --  Some progress was made; let Language_Fixes try to fix the new
-                  --  error.
-                  --
-                  --  This is abandoning the original location of the error, which may
-                  --  not be entirely fixed. So we increase the cost. See
-                  --  test_mckenzie_recover Loop_Bounds.
-                  Item.Config.Cost := Item.Config.Cost + 1;
-                  begin
-                     if Item.Config.Ops (Item.Config.Ops.Last_Index).Op = Fast_Forward then
-                        Item.Config.Ops (Item.Config.Ops.Last_Index).FF_Token_Index :=
-                          Item.Config.Current_Shared_Token;
-                     else
-                        Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
-                     end if;
-                  exception
-                  when SAL.Container_Full =>
-                     raise Bad_Config;
-                  end;
-                  Local_Config_Heap.Add (Item.Config);
-                  if Trace_McKenzie > Detail then
-                     Base.Put ("for Language_Fixes ", Super, Shared, Parser_Index, Item.Config);
-                  end if;
+                  --  (Item.config.ops is empty on the very first Check). This is the
+                  --  same error Config originally found; report it in Config, so
+                  --  Language_Constrain_Terminals can see it.
+                  Config.Error_Token  := Item.Config.Error_Token;
+                  Config.Check_Status := (Label => Ok);
+               end if;
+            end if;
 
+            if Item.Shift_Count > 0 and then
+              (Item.Config.Check_Status.Label /= Ok or
+                 Item.Config.Error_Token.ID /= Invalid_Token_ID)
+            then
+               --  Some progress was made; let Language_Fixes try to fix the new
+               --  error.
+               --
+               --  This is abandoning the original location of the error, which may
+               --  not be entirely fixed. So we increase the cost. See
+               --  test_mckenzie_recover Loop_Bounds.
+               Item.Config.Cost := Item.Config.Cost + 1;
+               begin
+                  if Item.Config.Ops (Item.Config.Ops.Last_Index).Op = Fast_Forward then
+                     Item.Config.Ops (Item.Config.Ops.Last_Index).FF_Token_Index :=
+                       Item.Config.Current_Shared_Token;
+                  else
+                     Item.Config.Ops.Append ((Fast_Forward, Item.Config.Current_Shared_Token));
+                  end if;
+               exception
+               when SAL.Container_Full =>
+                  raise Bad_Config;
+               end;
+               Local_Config_Heap.Add (Item.Config);
+               if Trace_McKenzie > Detail then
+                  Base.Put ("for Language_Fixes ", Super, Shared, Parser_Index, Item.Config);
                end if;
             end if;
          end loop;
@@ -513,7 +509,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          begin
             if ID /= EOF_ID and then --  can't insert eof
               ID /= Invalid_Token_ID and then -- invalid when Verb = Error
-              (Config.Ops.Length = 0 or else -- don't insert an id we just pushed back. FIXME: why not?
+              (Config.Ops.Length = 0 or else -- don't insert an id we just pushed back; we know that failed.
                  Config.Ops (Config.Ops.Last_Index) /= (Push_Back, ID, Config.Current_Shared_Token))
             then
                case Action.Verb is
@@ -674,8 +670,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                   declare
                      New_Config : Configuration := Item.Config;
                   begin
-                     New_Config.Error_Token.ID := Invalid_Token_ID; -- FIXME: move to Do_Shift?
-                     New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
+                     New_Config.Check_Status := (Label => WisiToken.Semantic_Checks.Ok);
 
                      Do_Shift
                        (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, Action.ID,
@@ -1121,12 +1116,9 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
          end if;
 
          if Config.Error_Token.ID = Invalid_Token_ID then
-            --  Current error is a semantic check fail. FIXME: why does
-            --  Minimal_Complete_Actions help here?
-            if Config.Current_Shared_Token < Shared.Terminals.Last_Index then
-               Use_Minimal_Complete_Actions := Shared.Language_Use_Minimal_Complete_Actions
-                 (Shared.Terminals.all (Config.Current_Shared_Token).ID, Config);
-            end if;
+            --  Current error is a semantic check fail; Minimal_Complete_Actions
+            --  can't help.
+            Use_Minimal_Complete_Actions := False;
          else
             Use_Minimal_Complete_Actions := Shared.Language_Use_Minimal_Complete_Actions
               (Config.Error_Token.ID, Config);

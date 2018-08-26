@@ -165,7 +165,7 @@ package body WisiToken.LR is
    begin
       case Item.Verb is
       when Shift =>
-         return "(Shift," & State_Index'Image (Item.State) & "," & Image (Item.Productions) & ")";
+         return "(Shift," & State_Index'Image (Item.State) & ")";
 
       when Reduce =>
          return "(Reduce," & Count_Type'Image (Item.Token_Count) & ", " &
@@ -306,11 +306,10 @@ package body WisiToken.LR is
 
    procedure Add_Action
      (State       : in out LR.Parse_State;
-      Productions : in     Production_ID_Array;
       Symbol      : in     Token_ID;
       State_Index : in     WisiToken.State_Index)
    is
-      Action   : constant Parse_Action_Rec := (Shift, +Productions, State_Index);
+      Action   : constant Parse_Action_Rec := (Shift, State_Index);
       New_Node : constant Action_Node_Ptr  := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
       Node     : Action_Node_Ptr;
    begin
@@ -449,7 +448,6 @@ package body WisiToken.LR is
 
    procedure Add_Action
      (State             : in out LR.Parse_State;
-      Shift_Productions : in     Production_ID_Array;
       Symbol            : in     Token_ID;
       State_Index       : in     WisiToken.State_Index;
       Reduce_Production : in     Production_ID;
@@ -457,8 +455,7 @@ package body WisiToken.LR is
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     Semantic_Checks.Semantic_Check)
    is
-      use Production_ID_Arrays;
-      Action_1 : constant Parse_Action_Rec := (Shift, +Shift_Productions, State_Index);
+      Action_1 : constant Parse_Action_Rec := (Shift, State_Index);
       Action_2 : constant Parse_Action_Rec :=
         (Reduce, Reduce_Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
    begin
@@ -643,79 +640,6 @@ package body WisiToken.LR is
       return Result;
    end Expecting;
 
-   function Reductions
-     (Table       : in     Parse_Table;
-      State       : in     State_Index;
-      Shift_Count :    out Natural)
-     return Reduce_Action_Array
-   is
-      Iter         : Action_List_Iterator := First (Table.States (State));
-      Reduce_Count : Integer              := 0;
-      Action       : Reduce_Action_Rec;
-      --  In the absence of conflicts and reduce to empty nonterm, there is
-      --  only one reduce action in each state.
-
-      --  FIXME: if this is useful, cache shift, reduce counts in table.
-      --  FIXME: also compress reduce?
-   begin
-      Shift_Count := 0;
-      loop
-         exit when Is_Done (Iter);
-
-         if Iter.Item.Item.Verb = Reduce then
-            if Action.Production.LHS = Invalid_Token_ID then
-               Action       := Iter.Item.Item;
-               Reduce_Count := 1;
-            else
-               if not Equal (Iter.Item.Item, Action) then
-                  Reduce_Count := Reduce_Count + 1;
-               end if;
-            end if;
-         elsif Iter.Item.Item.Verb = Shift then
-            Shift_Count := Shift_Count + 1;
-         end if;
-         Next (Iter);
-      end loop;
-
-      if Reduce_Count = 0 then
-         return (1 .. 0 => <>);
-      elsif Reduce_Count = 1 then
-         return (1 => Action);
-      else
-         declare
-            Result : Reduce_Action_Array (1 .. Reduce_Count);
-            Last   : Integer := 0;
-            Found  : Boolean;
-         begin
-            Iter := First (Table.States (State));
-            loop
-               exit when Is_Done (Iter);
-
-               if Iter.Item.Item.Verb = Reduce then
-                  if Last = 0 then
-                     Last := 1;
-                     Result (Last) := Iter.Item.Item;
-                  else
-                     Found := False;
-                     for I in 1 .. Last loop
-                        if Equal (Result (I), Iter.Item.Item) then
-                           Found := True;
-                           exit;
-                        end if;
-                     end loop;
-                     if not Found then
-                        Last := Last + 1;
-                        Result (Last) := Iter.Item.Item;
-                     end if;
-                  end if;
-               end if;
-               Next (Iter);
-            end loop;
-            return Result (1 .. Last);
-         end;
-      end if;
-   end Reductions;
-
    procedure Free_Table (Table : in out Parse_Table_Ptr)
    is
 
@@ -768,7 +692,6 @@ package body WisiToken.LR is
       case Item.Verb is
       when Shift =>
          Put ("shift and goto state" & State_Index'Image (Item.State));
-         Put (" " & Trimmed_Image (Item.Productions, Strict => False));
       when Reduce =>
          Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
@@ -916,13 +839,6 @@ package body WisiToken.LR is
 
                      case Node_J.Item.Verb is
                      when Shift =>
-                        Put (File, Integer'Image (Node_J.Item.Productions.First_Index));
-                        Put (File, Integer'Image (Node_J.Item.Productions.Last_Index));
-                        for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
-                           Put (File, Token_ID'Image (Node_J.Item.Productions (I).LHS)
-                                  & Integer'Image (Node_J.Item.Productions (I).RHS));
-                        end loop;
-
                         Put (File, State_Index'Image (Node_J.Item.State));
 
                      when Reduce | Accept_It =>
@@ -1119,13 +1035,6 @@ package body WisiToken.LR is
 
                         case Verb is
                         when Shift =>
-                           Node_J.Item.Productions.Set_First (Next_Integer);
-                           Node_J.Item.Productions.Set_Last (Next_Integer);
-                           for I in Node_J.Item.Productions.First_Index .. Node_J.Item.Productions.Last_Index loop
-                              Node_J.Item.Productions (I).LHS := Next_Token_ID;
-                              Node_J.Item.Productions (I).RHS := Next_Integer;
-                           end loop;
-
                            Node_J.Item.State := Next_State_Index;
 
                         when Reduce | Accept_It =>

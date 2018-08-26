@@ -99,10 +99,10 @@ package body Subprograms_Process_LALR_Main is
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
          State_Last        => 44,
-         First_Terminal    => Trace.Descriptor.First_Terminal,
-         Last_Terminal     => Trace.Descriptor.Last_Terminal,
-         First_Nonterminal => Trace.Descriptor.First_Nonterminal,
-         Last_Nonterminal  => Trace.Descriptor.Last_Nonterminal);
+         First_Terminal    => 3,
+         Last_Terminal     => 19,
+         First_Nonterminal => 20,
+         Last_Nonterminal  => 31);
    begin
       Table.McKenzie_Param := McKenzie_Param;
       Table.Productions := Productions;
