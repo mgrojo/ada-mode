@@ -48,7 +48,7 @@
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 
-%elisp_regexp wisi-number-p %[ [0-9][0-9_]* ]%
+%regexp_name wisi-number-p %[ [0-9][0-9_]* ]%
 %token <number> NUMERIC_LITERAL wisi-number-p
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
 

@@ -4,24 +4,6 @@ branches:
 
 Makefile
 
-(progn
-  (setq eval-expression-debug-on-error nil)
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2") ;; wisi
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build") ;; run-indent-test
-  (add-to-list 'load-path "/Projects/org.wisitoken.grammar_mode")
-  (setq debug-on-error t)
-  (setq debug-on-quit t)
-  (setq default-directory "/Projects/org.wisitoken.grammar_mode/")
-  (load "autoloads.el")
-  (load "run-indent-test-grammar")
-  ; (setq wisi-debug 1)
-  (setq wisi-disable-face t)
-  (find-file "wisi_grammar_1.wy")
-  ;(wisi-debug-keys)
-  )
-
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
   (xmtn . "c:/Projects/org.stephe_leake.sal")
