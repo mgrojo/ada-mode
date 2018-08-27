@@ -1331,7 +1331,7 @@ package body Test_McKenzie_Recover is
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 20) & (Insert, +SEMICOLON_ID, 20) &
              (Fast_Forward,  20),
          Enqueue_Low             => 5,
-         Enqueue_High            => 146,
+         Enqueue_High            => 209,
          Check_Low               => 5,
          Check_High              => 41,
          Cost                    => 4,

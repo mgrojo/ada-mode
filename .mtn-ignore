@@ -28,7 +28,5 @@
 ^build/obj_pro$
 ^build/test_one_harness\.log$
 ^build/wisi/obj$
-^wisi/test/.*-wy\.el$
-^wisi/wisi_grammar\.parse_table$
-^wisi/wisi_grammar\.re2c$
-^wisi/wisi_grammar_lalr\.parse_table$
+^wisi_grammar\.re2c$
+^wisi_grammar_lalr\.parse_table$
