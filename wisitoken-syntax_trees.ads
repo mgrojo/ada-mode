@@ -362,10 +362,6 @@ private
    package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
 
    type Base_Tree is new Ada.Finalization.Controlled with record
-      --  FIXME: Store Shared_Parser.Terminals here (or just in Terminal
-      --  tree nodes). There used to be a good reason not to, but since we
-      --  now call Lex_All before Parse, there isn't.
-
       Nodes : Node_Arrays.Vector;
       --  During normal parsing, tokens are added to Nodes by "parallel"
       --  LALR parsers, but they are all run from one Ada task, so there's

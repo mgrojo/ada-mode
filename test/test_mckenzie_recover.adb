@@ -215,7 +215,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11),
          Enqueue_Low             => 11,
-         Enqueue_High            => 87,
+         Enqueue_High            => 106,
          Check_Low               => 5,
          Check_High              => 47,
          Cost                    => 2);
@@ -1089,7 +1089,7 @@ package body Test_McKenzie_Recover is
            (Push_Back, +BEGIN_ID, 12) & (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) &
            (Insert, +SEMICOLON_ID, 12) & (Fast_Forward,  12),
          Enqueue_Low             => 2,
-         Enqueue_High            => 127,
+         Enqueue_High            => 130,
          Check_Low               => 2,
          Check_High              => 16,
          Cost                    => 0);
@@ -1331,7 +1331,7 @@ package body Test_McKenzie_Recover is
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 20) & (Insert, +SEMICOLON_ID, 20) &
              (Fast_Forward,  20),
          Enqueue_Low             => 5,
-         Enqueue_High            => 129,
+         Enqueue_High            => 146,
          Check_Low               => 5,
          Check_High              => 41,
          Cost                    => 4,
@@ -1371,7 +1371,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 4,
          Enqueue_High            => 73,
          Check_Low               => 3,
-         Check_High              => 12,
+         Check_High              => 15,
          Cost                    => 0);
    end Match_Selected_Component_1;
 
@@ -1723,7 +1723,7 @@ package body Test_McKenzie_Recover is
            (Insert, +SEMICOLON_ID, 42) & (Fast_Forward,  44) & (Push_Back, +sequence_of_statements_opt_ID, 10) &
            (Insert, +IF_ID, 10) & (Insert, +THEN_ID, 10) & (Fast_Forward,  42),
          Enqueue_Low             => 25,
-         Enqueue_High            => 99,
+         Enqueue_High            => 173,
          Check_Low               => 17,
          Check_High              => 40,
          Cost                    => 1);

@@ -54,7 +54,7 @@ package WisiToken.LR.Parser_Lists is
    record
       --  Visible components for direct access
 
-      Shared_Token : Base_Token_Index := Base_Token_Arrays.No_Index;
+      Shared_Token : Base_Token_Index := Invalid_Token_Index;
       --  Last token read from Shared_Parser.Terminals.
 
       Recover_Insert_Delete : Config_Op_Queues.Queue;

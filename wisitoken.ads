@@ -97,7 +97,6 @@ package WisiToken is
       EOF_ID            : Token_ID;
       Accept_ID         : Token_ID)
    is record
-      --  FIXME: move to -generate-lr?
       --  Tokens in the range Token_ID'First .. First_Terminal - 1 are
       --  non-reporting (comments, whitespace), and thus are not used in
       --  generating parse tables.

@@ -229,7 +229,7 @@ package body WisiToken.LR.Parser is
       end loop;
    end Do_Deletes;
 
-   --  Return the type of parser cycle to execute.
+   --  Verb: the type of parser cycle to execute;
    --
    --  Accept : all Parsers.Verb return Accept - done parsing.
    --
@@ -239,12 +239,14 @@ package body WisiToken.LR.Parser is
    --  Shift_Recover : some Parsers.Verb return Shift, with current
    --  tokens virtual (inserted by error recovery).
    --
-   --  Pause : Resume is active, but this parser has reached Resume_Goal,
+   --  Pause : Resume is active, and this parser has reached Resume_Goal,
    --  so it is waiting for the others to catch up.
    --
    --  Reduce : some Parsers.Verb return Reduce.
    --
    --  Error : all Parsers.Verb return Error.
+   --
+   --  Zombie_Count: count of parsers in Error state
    procedure Parse_Verb
      (Shared_Parser : in out LR.Parser.Parser;
       Verb          :    out All_Parse_Action_Verbs;
@@ -483,8 +485,6 @@ package body WisiToken.LR.Parser is
             for Parser_State of Shared_Parser.Parsers loop
                if Parser_State.Verb = Error then
                   if Shared_Parser.Enable_McKenzie_Recover then
-                     --  FIXME: the parsers are no longer synced, so this is wrong. Wait
-                     --  until all other parsers are at current_token + check_limit (or error)
                      Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
                      if Trace_Parse > Extra then
                         Trace.Put_Line

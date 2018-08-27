@@ -44,7 +44,7 @@ LR1 Parse Table:
 State 0:
      10.0:wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI
 
-   WHEN              => shift and goto state 1 (11.0)
+   WHEN              => shift and goto state 1
    default           => ERROR
 
    case_expression   goto state 2
@@ -54,8 +54,8 @@ State 0:
 State 1:
      11.0:case_expression <= WHEN ^ discrete_choice EQUAL_GREATER factor, Wisi_EOI
 
-   NUMBER_LITERAL    => shift and goto state 3 (15.1)
-   IDENTIFIER        => shift and goto state 4 (15.0, 17.0)
+   NUMBER_LITERAL    => shift and goto state 3
+   IDENTIFIER        => shift and goto state 4
    default           => ERROR
 
    choice_expression goto state 5
@@ -88,7 +88,7 @@ State 4:
 
    DOT_DOT           => reduce 1 tokens to factor 15.0
    EQUAL_GREATER     => reduce 1 tokens to factor 15.0
-   TICK              => shift and goto state 11 (17.0)
+   TICK              => shift and goto state 11
    default           => ERROR
 
    Minimal_Complete_Actions => (TICK, factor)
@@ -112,7 +112,7 @@ State 6:
 State 7:
      11.0:case_expression <= WHEN discrete_choice ^ EQUAL_GREATER factor, Wisi_EOI
 
-   EQUAL_GREATER     => shift and goto state 12 (11.0)
+   EQUAL_GREATER     => shift and goto state 12
    default           => ERROR
 
    Minimal_Complete_Actions => (EQUAL_GREATER)
@@ -130,7 +130,7 @@ State 9:
      13.0:choice_relation <= factor_list ^, EQUAL_GREATER
      17.1:range_nt <= factor_list ^ DOT_DOT factor_list, EQUAL_GREATER
 
-   DOT_DOT           => shift and goto state 13 (17.1)
+   DOT_DOT           => shift and goto state 13
    EQUAL_GREATER     => reduce 1 tokens to choice_relation 13.0
    default           => ERROR
 
@@ -147,7 +147,7 @@ State 10:
 State 11:
      17.0:range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
 
-   RANGE             => shift and goto state 14 (17.0)
+   RANGE             => shift and goto state 14
    default           => ERROR
 
    Minimal_Complete_Actions => (RANGE)
@@ -155,8 +155,8 @@ State 11:
 State 12:
      11.0:case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor, Wisi_EOI
 
-   NUMBER_LITERAL    => shift and goto state 15 (15.1)
-   IDENTIFIER        => shift and goto state 16 (15.0)
+   NUMBER_LITERAL    => shift and goto state 15
+   IDENTIFIER        => shift and goto state 16
    default           => ERROR
 
    factor            goto state 17
@@ -166,8 +166,8 @@ State 12:
 State 13:
      17.1:range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
 
-   NUMBER_LITERAL    => shift and goto state 18 (15.1)
-   IDENTIFIER        => shift and goto state 19 (15.0)
+   NUMBER_LITERAL    => shift and goto state 18
+   IDENTIFIER        => shift and goto state 19
    default           => ERROR
 
    factor            goto state 20
