@@ -32,16 +32,12 @@ package body WisiToken.LR.AUnit is
       use Standard.AUnit.Checks.Containers;
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
-      use WisiToken.AUnit.Production_ID_Arrays_AUnit;
       use WisiToken.Syntax_Trees.AUnit_Public;
       use WisiToken.Semantic_Checks.AUnit;
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
       when Shift =>
-         if Strict then
-            Check (Label & ".Productions", Computed.Productions, Expected.Productions);
-         end if;
          Check (Label & ".State", Computed.State, Expected.State);
       when Reduce | Accept_It =>
          Check (Label & ".Production", Computed.Production, Expected.Production);

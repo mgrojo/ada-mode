@@ -278,7 +278,7 @@ package WisiToken.Syntax_Trees is
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Index));
    --  Traverse Tree in depth-first order, calling Process_Node on each
-   --  node. Tree root is assumed to be last node added.
+   --  node, starting at Tree.Root.
 
    function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
    with Pre => Tree.Is_Terminal (Node);
@@ -337,8 +337,8 @@ private
          --  set. Used by Semantic_Check actions.
 
          RHS_Index : Natural;
-         --  With ID, index into Parse_Table.Productions.
-         --  FIXME: delete if not used. or delete Action.
+         --  With ID, index into Productions.
+         --  Used for debug output, keep for future use.
 
          Action : Semantic_Action := null;
 

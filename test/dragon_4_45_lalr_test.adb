@@ -197,14 +197,6 @@ package body Dragon_4_45_LALR_Test is
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
 
-      procedure Add_Action
-        (State       : in out Parse_State;
-         Symbol      : in     WisiToken.Token_ID;
-         State_Index : in     WisiToken.State_Index)
-      is begin
-         Add_Action (State, (1 .. 0 => (1, 0)), Symbol, State_Index);
-      end Add_Action;
-
    begin
       --  figure 4.41 pg 239
       WisiToken.LR.AUnit.Strict := False;

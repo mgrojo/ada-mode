@@ -166,6 +166,8 @@ package body WisiToken.LR.Parser is
          when Ok =>
             Current_Parser.Set_Verb (Action.Verb);
 
+            Parser_State.Tree.Set_Root (Nonterm);
+
          when Semantic_Checks.Error =>
             Current_Parser.Set_Verb (Error);
             Parser_State.Zombie_Token_Count := 1;

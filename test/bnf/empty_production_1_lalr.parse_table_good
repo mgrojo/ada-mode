@@ -26,7 +26,7 @@ LALR Parse Table:
 State 0:
       6.0:wisitoken_accept <= ^ declarative_part Wisi_EOI, 
 
-   IS               => shift and goto state 1 (9.0)
+   IS               => shift and goto state 1
    Wisi_EOI         => reduce 0 tokens to declarative_part 8.1
    default          => ERROR
 
@@ -40,7 +40,7 @@ State 1:
       9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
    BEGIN            => reduce 0 tokens to declarative_part 8.1
-   IS               => shift and goto state 1 (9.0)
+   IS               => shift and goto state 1
    default          => ERROR
 
    declarations     goto state 2
@@ -54,7 +54,7 @@ State 2:
       8.0:declarative_part <= declarations ^, BEGIN/Wisi_EOI
 
    BEGIN            => reduce 1 tokens to declarative_part 8.0
-   IS               => shift and goto state 1 (9.0)
+   IS               => shift and goto state 1
    Wisi_EOI         => reduce 1 tokens to declarative_part 8.0
    default          => ERROR
 
@@ -81,7 +81,7 @@ State 4:
 State 5:
       9.0:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   BEGIN            => shift and goto state 7 (9.0)
+   BEGIN            => shift and goto state 7
    default          => ERROR
 
    Minimal_Complete_Actions => (BEGIN)
@@ -99,7 +99,7 @@ State 6:
 State 7:
       9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
 
-   SEMICOLON        => shift and goto state 8 (9.0)
+   SEMICOLON        => shift and goto state 8
    default          => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)

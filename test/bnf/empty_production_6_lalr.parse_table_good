@@ -29,7 +29,7 @@ LALR Parse Table:
 State 0:
       8.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
-   BEGIN                  => shift and goto state 1 (9.0)
+   BEGIN                  => shift and goto state 1
    default                => ERROR
 
    compilation_unit       goto state 2
@@ -39,7 +39,7 @@ State 0:
 State 1:
       9.0:compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, Wisi_EOI
 
-   IDENTIFIER             => shift and goto state 3 (12.0),
+   IDENTIFIER             => shift and goto state 3,
                              reduce 0 tokens to label_opt 12.1
    default                => ERROR
 
@@ -58,7 +58,7 @@ State 2:
 State 3:
      12.0:label_opt <= IDENTIFIER ^ COLON, IDENTIFIER
 
-   COLON                  => shift and goto state 7 (12.0)
+   COLON                  => shift and goto state 7
    default                => ERROR
 
    Minimal_Complete_Actions => (COLON)
@@ -76,8 +76,8 @@ State 5:
       9.0:compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, Wisi_EOI
      11.0:sequence_of_statements <= sequence_of_statements ^ statement, END/IDENTIFIER
 
-   END                    => shift and goto state 8 (9.0)
-   IDENTIFIER             => shift and goto state 3 (12.0),
+   END                    => shift and goto state 8
+   IDENTIFIER             => shift and goto state 3,
                              reduce 0 tokens to label_opt 12.1
    default                => ERROR
 
@@ -89,7 +89,7 @@ State 5:
 State 6:
      10.0:statement <= label_opt ^ IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   IDENTIFIER             => shift and goto state 10 (10.0)
+   IDENTIFIER             => shift and goto state 10
    default                => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
@@ -105,7 +105,7 @@ State 7:
 State 8:
       9.0:compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, Wisi_EOI
 
-   SEMICOLON              => shift and goto state 11 (9.0)
+   SEMICOLON              => shift and goto state 11
    default                => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
@@ -122,7 +122,7 @@ State 9:
 State 10:
      10.0:statement <= label_opt IDENTIFIER ^ COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   COLON_EQUAL            => shift and goto state 12 (10.0)
+   COLON_EQUAL            => shift and goto state 12
    default                => ERROR
 
    Minimal_Complete_Actions => (COLON_EQUAL)
@@ -138,7 +138,7 @@ State 11:
 State 12:
      10.0:statement <= label_opt IDENTIFIER COLON_EQUAL ^ IDENTIFIER SEMICOLON, END/IDENTIFIER
 
-   IDENTIFIER             => shift and goto state 13 (10.0)
+   IDENTIFIER             => shift and goto state 13
    default                => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
@@ -146,7 +146,7 @@ State 12:
 State 13:
      10.0:statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER ^ SEMICOLON, END/IDENTIFIER
 
-   SEMICOLON              => shift and goto state 14 (10.0)
+   SEMICOLON              => shift and goto state 14
    default                => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)

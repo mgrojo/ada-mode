@@ -239,14 +239,6 @@ package body Dragon_4_43_LR1_Test is
          Last_Nonterminal  => +Upper_C_ID);
 
       procedure Add_Action
-        (State       : in out Parse_State;
-         Symbol      : in     WisiToken.Token_ID;
-         State_Index : in     WisiToken.State_Index)
-      is begin
-         Add_Action (State, Symbol, State_Index);
-      end Add_Action;
-
-      procedure Add_Action
         (State           : in out Parse_State;
          Symbol          : in     WisiToken.Token_ID;
          Verb            : in     Parse_Action_Verbs;

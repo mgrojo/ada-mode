@@ -67,7 +67,7 @@ package WisiToken.BNF.Output_Ada_Common is
      (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Common_Data   :         in out Output_Ada_Common.Common_Data;
       Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data);
-   --  If not Tuple.Text_Rep, includes LR parse table in generated
+   --  If not Common_Data.Text_Rep, includes LR parse table in generated
    --  source. Otherwise, includes call to LR.Get_Text_Rep; caller must
    --  call Put_Text_Rep to create file.
 

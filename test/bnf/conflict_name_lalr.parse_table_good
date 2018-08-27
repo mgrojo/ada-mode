@@ -32,7 +32,7 @@ LALR Parse Table:
 State 0:
       6.0:wisitoken_accept <= ^ name Wisi_EOI, 
 
-   IDENTIFIER           => shift and goto state 1 (10.0)
+   IDENTIFIER           => shift and goto state 1
    default              => ERROR
 
    attribute_reference  goto state 2
@@ -66,7 +66,7 @@ State 3:
       8.0:attribute_reference <= name ^ TICK attribute_designator, TICK/Wisi_EOI
      11.0:qualified_expression <= name ^ TICK aggregate, TICK/Wisi_EOI
 
-   TICK                 => shift and goto state 5 (8.0, 11.0)
+   TICK                 => shift and goto state 5
    Wisi_EOI             => accept it 6.0
    default              => ERROR
 
@@ -86,8 +86,8 @@ State 5:
       8.0:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
      11.0:qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/Wisi_EOI
 
-   LEFT_PAREN           => shift and goto state 6 (7.0)
-   IDENTIFIER           => shift and goto state 1 (10.0)
+   LEFT_PAREN           => shift and goto state 6
+   IDENTIFIER           => shift and goto state 1
    default              => ERROR
 
    aggregate            goto state 7
@@ -101,7 +101,7 @@ State 5:
 State 6:
       7.0:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
 
-   IDENTIFIER           => shift and goto state 1 (10.0)
+   IDENTIFIER           => shift and goto state 1
    default              => ERROR
 
    attribute_reference  goto state 2
@@ -136,7 +136,7 @@ State 9:
      11.0:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK/Wisi_EOI
 
    RIGHT_PAREN          => reduce 1 tokens to attribute_designator 9.0
-   TICK                 => shift and goto state 5 (8.0, 11.0),
+   TICK                 => shift and goto state 5,
                            reduce 1 tokens to attribute_designator 9.0
    Wisi_EOI             => reduce 1 tokens to attribute_designator 9.0
    default              => ERROR
@@ -148,8 +148,8 @@ State 10:
       8.0:attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
      11.0:qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN          => shift and goto state 11 (7.0)
-   TICK                 => shift and goto state 5 (8.0, 11.0)
+   RIGHT_PAREN          => shift and goto state 11
+   TICK                 => shift and goto state 5
    default              => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN, TICK)

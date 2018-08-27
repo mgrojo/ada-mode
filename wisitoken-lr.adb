@@ -1002,7 +1002,6 @@ package body WisiToken.LR is
            (State_First, State_Last, First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       begin
          Table.McKenzie_Param := McKenzie_Param;
-         Table.Productions    := Productions;
 
          for State of Table.States loop
             State.Productions.Set_First (Next_Integer);

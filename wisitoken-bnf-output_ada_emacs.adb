@@ -1092,7 +1092,7 @@ is
 
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
-         if Tuple.Text_Rep or Input_Data.Language_Params.Error_Recover then
+         if Tuple.Text_Rep then
             Put_Line ("with WisiToken.Productions;");
          end if;
 

@@ -29,7 +29,7 @@ LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
-   OVERRIDING             => shift and goto state 1 (10.0)
+   OVERRIDING             => shift and goto state 1
    OTHER                  => reduce 0 tokens to overriding_indicator 10.1
    PROCEDURE              => reduce 0 tokens to overriding_indicator 10.1
    default                => ERROR
@@ -66,7 +66,7 @@ State 3:
 State 4:
       8.0:compilation_unit <= subprogram_declaration ^ subprogram_declaration subprogram_declaration, Wisi_EOI
 
-   OVERRIDING             => shift and goto state 1 (10.0)
+   OVERRIDING             => shift and goto state 1
    OTHER                  => reduce 0 tokens to overriding_indicator 10.1
    PROCEDURE              => reduce 0 tokens to overriding_indicator 10.1
    default                => ERROR
@@ -79,7 +79,7 @@ State 4:
 State 5:
       9.0:subprogram_declaration <= overriding_indicator ^ other_indicator PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
-   OTHER                  => shift and goto state 2 (11.0)
+   OTHER                  => shift and goto state 2
    PROCEDURE              => reduce 0 tokens to other_indicator 11.1
    default                => ERROR
 
@@ -90,7 +90,7 @@ State 5:
 State 6:
       8.0:compilation_unit <= subprogram_declaration subprogram_declaration ^ subprogram_declaration, Wisi_EOI
 
-   OVERRIDING             => shift and goto state 1 (10.0)
+   OVERRIDING             => shift and goto state 1
    OTHER                  => reduce 0 tokens to overriding_indicator 10.1
    PROCEDURE              => reduce 0 tokens to overriding_indicator 10.1
    default                => ERROR
@@ -103,7 +103,7 @@ State 6:
 State 7:
       9.0:subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
-   PROCEDURE              => shift and goto state 9 (9.0)
+   PROCEDURE              => shift and goto state 9
    default                => ERROR
 
    Minimal_Complete_Actions => (PROCEDURE)
@@ -119,7 +119,7 @@ State 8:
 State 9:
       9.0:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE ^ IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
-   IDENTIFIER             => shift and goto state 10 (9.0)
+   IDENTIFIER             => shift and goto state 10
    default                => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
@@ -127,7 +127,7 @@ State 9:
 State 10:
       9.0:subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
-   SEMICOLON              => shift and goto state 11 (9.0)
+   SEMICOLON              => shift and goto state 11
    default                => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)

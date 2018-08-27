@@ -73,11 +73,10 @@ package WisiToken.LR is
 
       when Reduce | Accept_It =>
          Production : Production_ID;
-         --  Index into Parse_Table.Productions, and the result nonterm. Most
-         --  uses need only Production.LHS; elisp code generation, and debug
-         --  output, needs Production.RHS
+         --  The result nonterm and production index. Most uses need only
+         --  Production.LHS; elisp code generation, and debug output, needs
+         --  Production.RHS
 
-         --  FIXME: use Action, Check in table.productions?
          Action      : WisiToken.Syntax_Trees.Semantic_Action   := null;
          Check       : WisiToken.Semantic_Checks.Semantic_Check := null;
          Token_Count : Ada.Containers.Count_Type                := 0;
@@ -160,7 +159,7 @@ package WisiToken.LR is
 
    type Parse_State is record
       Productions : Production_ID_Arrays.Vector;
-      --  Used in parse and error recovery. FIXME: still true?
+      --  Used in error recovery.
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
 
@@ -332,7 +331,6 @@ package WisiToken.LR is
    record
       States         : Parse_State_Array (State_First .. State_Last);
       McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Productions    : WisiToken.Productions.Prod_Arrays.Vector;
    end record;
 
    function Goto_For

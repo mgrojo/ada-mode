@@ -3,7 +3,7 @@ unknown conflicts:
 %conflict REDUCE/REDUCE in state QualifiedIdentifier, Primary  on token DOT ( 3)
 %conflict REDUCE/REDUCE in state QualifiedIdentifier, Primary  on token LEFT_SQUARE_BRACKET ( 3)
 %conflict SHIFT/REDUCE in state Primary, QualifiedIdentifier  on token LEFT_SQUARE_BRACKET ( 3)
-%conflict SHIFT/REDUCE in state QualifiedIdentifier, Primary  on token DOT ( 5)
+%conflict SHIFT/REDUCE in state Primary, Primary  on token DOT ( 5)
 %conflict SHIFT/REDUCE in state Primary, Primary  on token LEFT_SQUARE_BRACKET ( 5)
 
 errors: aborting

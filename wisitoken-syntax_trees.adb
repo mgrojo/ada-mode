@@ -825,20 +825,14 @@ package body WisiToken.Syntax_Trees is
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Valid_Node_Index))
    is begin
+      if Tree.Root = Invalid_Node_Index then
+         raise SAL.Programmer_Error with "Tree.Root not set";
+      end if;
       Tree.Shared_Tree.Traversing := True;
       if Tree.Flush then
-         --  FIXME: use tree.root
-         if Tree.Shared_Tree.Nodes (Tree.Shared_Tree.Nodes.Last_Index).Parent = 0 then
-            Process_Tree (Tree, Tree.Shared_Tree.Nodes.Last_Index, Process_Node);
-         else
-            raise SAL.Programmer_Error with "last tree node is not a root";
-         end if;
+         Process_Tree (Tree, Tree.Root, Process_Node);
       else
-         if Tree.Branched_Nodes (Tree.Branched_Nodes.Last_Index).Parent = 0 then
-            Process_Tree (Tree, Tree.Branched_Nodes.Last_Index, Process_Node);
-         else
-            raise SAL.Programmer_Error with "last tree node is not a root";
-         end if;
+         Process_Tree (Tree, Tree.Root, Process_Node);
       end if;
       Tree.Shared_Tree.Traversing := False;
    exception

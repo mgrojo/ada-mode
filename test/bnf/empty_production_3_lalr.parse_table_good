@@ -25,7 +25,7 @@ LALR Parse Table:
 State 0:
       4.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
-   IDENTIFIER              => shift and goto state 1 (8.0)
+   IDENTIFIER              => shift and goto state 1
    default                 => ERROR
 
    compilation_unit        goto state 2
@@ -36,7 +36,7 @@ State 0:
 State 1:
       8.0:parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER/Wisi_EOI
 
-   IN                      => shift and goto state 4 (6.0)
+   IN                      => shift and goto state 4
    IDENTIFIER              => reduce 0 tokens to mode 6.1
    default                 => ERROR
 
@@ -53,7 +53,7 @@ State 2:
 State 3:
       5.0:compilation_unit <= parameter_specification ^ parameter_specification, Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 1 (8.0)
+   IDENTIFIER              => shift and goto state 1
    default                 => ERROR
 
    parameter_specification goto state 6
@@ -71,7 +71,7 @@ State 4:
 State 5:
       8.0:parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER              => shift and goto state 7 (7.0)
+   IDENTIFIER              => shift and goto state 7
    default                 => ERROR
 
    name                    goto state 8

@@ -48,9 +48,9 @@ LALR Parse Table:
 State 0:
       9.0:wisitoken_accept <= ^ compilation Wisi_EOI, 
 
-   LEFT_PAREN       => shift and goto state 1 (13.2)
-   STRING_LITERAL   => shift and goto state 2 (15.1)
-   IDENTIFIER       => shift and goto state 3 (14.1, 15.0)
+   LEFT_PAREN       => shift and goto state 1
+   STRING_LITERAL   => shift and goto state 2
+   IDENTIFIER       => shift and goto state 3
    default          => ERROR
 
    compilation      goto state 4
@@ -64,8 +64,8 @@ State 0:
 State 1:
      13.2:compilation_unit <= LEFT_PAREN ^ association_list RIGHT_PAREN, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
 
-   STRING_LITERAL   => shift and goto state 9 (17.1)
-   IDENTIFIER       => shift and goto state 10 (17.0)
+   STRING_LITERAL   => shift and goto state 9
+   IDENTIFIER       => shift and goto state 10
    default          => ERROR
 
    association      goto state 11
@@ -114,9 +114,9 @@ State 4:
 State 5:
      12.0:compilation <= compilation_unit ^ compilation_unit compilation_unit, Wisi_EOI
 
-   LEFT_PAREN       => shift and goto state 1 (13.2)
-   STRING_LITERAL   => shift and goto state 2 (15.1)
-   IDENTIFIER       => shift and goto state 3 (14.1, 15.0)
+   LEFT_PAREN       => shift and goto state 1
+   STRING_LITERAL   => shift and goto state 2
+   IDENTIFIER       => shift and goto state 3
    default          => ERROR
 
    compilation_unit goto state 14
@@ -131,7 +131,7 @@ State 6:
      14.0:identifier_list <= identifier_list ^ COMMA IDENTIFIER, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
 
    LEFT_PAREN       => reduce 1 tokens to compilation_unit 13.0
-   COMMA            => shift and goto state 15 (14.0)
+   COMMA            => shift and goto state 15
    STRING_LITERAL   => reduce 1 tokens to compilation_unit 13.0
    IDENTIFIER       => reduce 1 tokens to compilation_unit 13.0
    Wisi_EOI         => reduce 1 tokens to compilation_unit 13.0
@@ -156,7 +156,7 @@ State 8:
      16.0:name_list <= name_list ^ COMMA name, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
 
    LEFT_PAREN       => reduce 1 tokens to compilation_unit 13.1
-   COMMA            => shift and goto state 16 (16.0)
+   COMMA            => shift and goto state 16
    STRING_LITERAL   => reduce 1 tokens to compilation_unit 13.1
    IDENTIFIER       => reduce 1 tokens to compilation_unit 13.1
    Wisi_EOI         => reduce 1 tokens to compilation_unit 13.1
@@ -193,8 +193,8 @@ State 12:
      11.0:association_list <= association_list ^ COMMA association, RIGHT_PAREN/COMMA
      13.2:compilation_unit <= LEFT_PAREN association_list ^ RIGHT_PAREN, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
 
-   RIGHT_PAREN      => shift and goto state 17 (13.2)
-   COMMA            => shift and goto state 18 (11.0)
+   RIGHT_PAREN      => shift and goto state 17
+   COMMA            => shift and goto state 18
    default          => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)
@@ -202,7 +202,7 @@ State 12:
 State 13:
      10.0:association <= selector_name ^ EQUAL_GREATER name, RIGHT_PAREN/COMMA
 
-   EQUAL_GREATER    => shift and goto state 19 (10.0)
+   EQUAL_GREATER    => shift and goto state 19
    default          => ERROR
 
    Minimal_Complete_Actions => (EQUAL_GREATER)
@@ -210,9 +210,9 @@ State 13:
 State 14:
      12.0:compilation <= compilation_unit compilation_unit ^ compilation_unit, Wisi_EOI
 
-   LEFT_PAREN       => shift and goto state 1 (13.2)
-   STRING_LITERAL   => shift and goto state 2 (15.1)
-   IDENTIFIER       => shift and goto state 3 (14.1, 15.0)
+   LEFT_PAREN       => shift and goto state 1
+   STRING_LITERAL   => shift and goto state 2
+   IDENTIFIER       => shift and goto state 3
    default          => ERROR
 
    compilation_unit goto state 20
@@ -225,7 +225,7 @@ State 14:
 State 15:
      14.0:identifier_list <= identifier_list COMMA ^ IDENTIFIER, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
 
-   IDENTIFIER       => shift and goto state 21 (14.0)
+   IDENTIFIER       => shift and goto state 21
    default          => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
@@ -233,8 +233,8 @@ State 15:
 State 16:
      16.0:name_list <= name_list COMMA ^ name, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
 
-   STRING_LITERAL   => shift and goto state 2 (15.1)
-   IDENTIFIER       => shift and goto state 22 (15.0)
+   STRING_LITERAL   => shift and goto state 2
+   IDENTIFIER       => shift and goto state 22
    default          => ERROR
 
    name             goto state 23
@@ -255,8 +255,8 @@ State 17:
 State 18:
      11.0:association_list <= association_list COMMA ^ association, RIGHT_PAREN/COMMA
 
-   STRING_LITERAL   => shift and goto state 9 (17.1)
-   IDENTIFIER       => shift and goto state 10 (17.0)
+   STRING_LITERAL   => shift and goto state 9
+   IDENTIFIER       => shift and goto state 10
    default          => ERROR
 
    association      goto state 24
@@ -267,8 +267,8 @@ State 18:
 State 19:
      10.0:association <= selector_name EQUAL_GREATER ^ name, RIGHT_PAREN/COMMA
 
-   STRING_LITERAL   => shift and goto state 2 (15.1)
-   IDENTIFIER       => shift and goto state 22 (15.0)
+   STRING_LITERAL   => shift and goto state 2
+   IDENTIFIER       => shift and goto state 22
    default          => ERROR
 
    name             goto state 25

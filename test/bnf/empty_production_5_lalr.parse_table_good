@@ -27,7 +27,7 @@ LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
-   ACCEPT            => shift and goto state 1 (9.0)
+   ACCEPT            => shift and goto state 1
    default           => ERROR
 
    compilation_unit  goto state 2
@@ -38,7 +38,7 @@ State 0:
 State 1:
       9.0:accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
-   IDENTIFIER        => shift and goto state 4 (10.0)
+   IDENTIFIER        => shift and goto state 4
    default           => ERROR
 
    name              goto state 5
@@ -54,7 +54,7 @@ State 2:
 State 3:
       8.0:compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
 
-   ACCEPT            => shift and goto state 1 (9.0)
+   ACCEPT            => shift and goto state 1
    default           => ERROR
 
    accept_statement  goto state 6
@@ -73,7 +73,7 @@ State 4:
 State 5:
       9.0:accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
-   LEFT_PAREN        => shift and goto state 7 (11.0)
+   LEFT_PAREN        => shift and goto state 7
    SEMICOLON         => reduce 0 tokens to parameter_profile 11.1
    default           => ERROR
 
@@ -92,7 +92,7 @@ State 6:
 State 7:
      11.0:parameter_profile <= LEFT_PAREN ^ IDENTIFIER RIGHT_PAREN, SEMICOLON
 
-   IDENTIFIER        => shift and goto state 9 (11.0)
+   IDENTIFIER        => shift and goto state 9
    default           => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
@@ -100,7 +100,7 @@ State 7:
 State 8:
       9.0:accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/Wisi_EOI
 
-   SEMICOLON         => shift and goto state 10 (9.0)
+   SEMICOLON         => shift and goto state 10
    default           => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
@@ -108,7 +108,7 @@ State 8:
 State 9:
      11.0:parameter_profile <= LEFT_PAREN IDENTIFIER ^ RIGHT_PAREN, SEMICOLON
 
-   RIGHT_PAREN       => shift and goto state 11 (11.0)
+   RIGHT_PAREN       => shift and goto state 11
    default           => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)

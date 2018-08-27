@@ -104,6 +104,8 @@ package body WisiToken.LR.Parser_No_Recover is
             (Reduce, Action.Production, Action.Action, Action.Check, Action.Token_Count),
             Nonterm, Trace);
 
+         Parser_State.Tree.Set_Root (Nonterm);
+
       when Error =>
          Current_Parser.Set_Verb (Action.Verb);
 

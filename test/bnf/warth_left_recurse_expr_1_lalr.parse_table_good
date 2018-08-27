@@ -19,7 +19,7 @@ LALR Parse Table:
 State 0:
       5.0:wisitoken_accept <= ^ expr Wisi_EOI, 
 
-   NUMERIC_LITERAL  => shift and goto state 1 (6.1)
+   NUMERIC_LITERAL  => shift and goto state 1
    default          => ERROR
 
    expr             goto state 2
@@ -39,14 +39,14 @@ State 2:
       5.0:wisitoken_accept <= expr ^ Wisi_EOI, 
       6.0:expr <= expr ^ MINUS NUMERIC_LITERAL, MINUS/Wisi_EOI
 
-   MINUS            => shift and goto state 3 (6.0)
+   MINUS            => shift and goto state 3
    Wisi_EOI         => accept it 5.0
    default          => ERROR
 
 State 3:
       6.0:expr <= expr MINUS ^ NUMERIC_LITERAL, MINUS/Wisi_EOI
 
-   NUMERIC_LITERAL  => shift and goto state 4 (6.0)
+   NUMERIC_LITERAL  => shift and goto state 4
    default          => ERROR
 
    Minimal_Complete_Actions => (NUMERIC_LITERAL)
