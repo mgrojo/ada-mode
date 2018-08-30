@@ -931,8 +931,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             if Matching_Index = Config.Stack.Depth then
                --  missing 'if .. then'
                --
-               --  We don't handle missing 'if' alone; less likely. FIXME: add that
-               --  if add 'then' to end_statement_keywords.
+               --  We don't handle missing 'if' alone; less likely.
 
                New_Config := Config;
                New_Config.Error_Token.ID := Invalid_Token_ID;
@@ -1034,7 +1033,6 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          return False;
       end if;
 
-      --  FIXME: add ')', 'then' for expressions?
       if Statement_Declaration_Start_IDs (Next_Token) then
          case Ada_Process_Actions.Token_Enum_ID'(-Next_Token) is
          when ELSE_ID | ELSIF_ID =>

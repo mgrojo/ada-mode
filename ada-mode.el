@@ -2388,14 +2388,17 @@ LINE, COLUMN are Emacs origin."
   ;; determined by xref_tool, set by *-select-prj-xref
   "Function that refreshes cross reference information cache.")
 
-(defun ada-xref-refresh ()
-  "Refresh cross reference information cache, if any."
-  (interactive)
+(defun ada-xref-refresh (delete-files)
+  "Refresh cross reference information cache, if any.
+With non-nil prefix arg, delete cross reference files, which may
+be needed when a compiler is upgraded, or some configuration is
+changed."
+  (interactive "P")
 
   (when (null ada-xref-refresh-function)
     (error "no cross reference information available"))
 
-  (funcall ada-xref-refresh-function)
+  (funcall ada-xref-refresh-function delete-files)
   )
 
 (defvar ada-xref-other-function nil

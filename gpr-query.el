@@ -327,7 +327,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
       ;; compilation-next-error-function assumes there is not an error
       ;; at point-min; work around that by moving forward 0 errors for
       ;; the first one. Unless the first line contains "warning: ".
-      (set-buffer next-error-last-buffer)
+      (pop-to-buffer next-error-last-buffer)
       (goto-char (point-min))
       (if (looking-at "^warning: ")
 	  (next-error 1 t)
@@ -438,7 +438,7 @@ Enable mode if ARG is positive."
 
 ;;;;; support for Ada mode
 
-(defun gpr-query-refresh ()
+(defun gpr-query-refresh (delete-files)
   "For `ada-xref-refresh-function', using gpr_query."
   (interactive)
   ;; Kill the current session and delete the database, to get changed
@@ -446,7 +446,8 @@ Enable mode if ARG is positive."
   ;;
   ;; We need to delete the database files if the compiler version
   ;; changed, or the database was built with an incorrect environment
-  ;; variable, or something else screwed up.
+  ;; variable, or something else screwed up. However, rebuilding after
+  ;; that is a lot slower, so we only do that on request.
   (let* ((session (gpr-query-cached-session))
 	 (db-filename
 	  (with-current-buffer (gpr-query-session-send "db_name" t)
@@ -454,7 +455,8 @@ Enable mode if ARG is positive."
 	    (buffer-substring-no-properties (line-beginning-position) (line-end-position)))))
 
     (gpr-query-kill-session session)
-    (delete-file db-filename)
+    (when delete-files
+      (delete-file db-filename))
     (gpr-query--start-process session)))
 
 (defun gpr-query-other (identifier file line col)

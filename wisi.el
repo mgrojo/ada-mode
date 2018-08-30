@@ -209,7 +209,11 @@ Useful when debugging parser or parser actions."
 
 (defun wisi-cache-max (&optional parse-action)
   ;; Don't need 'wisi-set-cache-max; (move-marker (wisi-cache-max) foo) works
-  (cdr (assoc (or parse-action wisi--parse-action) wisi--cache-max)))
+  (let ((mark (cdr (assoc (or parse-action wisi--parse-action) wisi--cache-max))))
+    (unless (marker-position mark)
+      ;; Sometimes marker gets set to <marker in no buffer>; not clear how.
+      (move-marker mark (point-min)))
+    mark))
 
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
