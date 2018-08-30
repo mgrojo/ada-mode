@@ -68,9 +68,19 @@ private
       Insert_Delete             : in out Sorted_Insert_Delete_Arrays.Vector;
       Current_Insert_Delete     : in out SAL.Base_Peek_Type)
      return Base_Token;
-   --  Return the current token, from either Terminals or Insert_Delete.
+   --  Return the current token, from either Terminals or Insert_Delete;
+   --  set up for Next_Token.
    --
    --  See Next_Token for more info.
+
+   function Current_Token_ID_Peek
+     (Terminals             : in Base_Token_Arrays.Vector;
+      Terminals_Current     : in Base_Token_Index;
+      Insert_Delete         : in Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete : in SAL.Base_Peek_Type)
+     return Token_ID;
+   --  Return the current token, from either Terminals or Insert_Delete,
+   --  without setting up for Next_Token.
 
    procedure Delete (Config : in out Configuration; ID : in Token_ID);
    --  Append a Delete op to Config.Ops, and insert it in

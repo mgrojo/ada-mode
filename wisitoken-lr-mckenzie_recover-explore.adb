@@ -363,7 +363,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
                then
                   --  (Item.config.ops is empty on the very first Check). This is the
                   --  same error Config originally found; report it in Config, so
-                  --  Language_Constrain_Terminals can see it.
+                  --  Use_Minimal_Complete_Actions can see it.
                   Config.Error_Token  := Item.Config.Error_Token;
                   Config.Check_Status := (Label => Ok);
                end if;
@@ -1115,14 +1115,10 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
             return None_Since_FF (Config.Ops, Delete);
          end if;
 
-         if Config.Error_Token.ID = Invalid_Token_ID then
-            --  Current error is a semantic check fail; Minimal_Complete_Actions
-            --  can't help.
-            Use_Minimal_Complete_Actions := False;
-         else
-            Use_Minimal_Complete_Actions := Shared.Language_Use_Minimal_Complete_Actions
-              (Config.Error_Token.ID, Config);
-         end if;
+         Use_Minimal_Complete_Actions := Shared.Language_Use_Minimal_Complete_Actions
+           (Current_Token_ID_Peek
+              (Shared.Terminals.all, Config.Current_Shared_Token, Config.Insert_Delete, Config.Current_Insert_Delete),
+            Config);
 
          if Use_Minimal_Complete_Actions then
             if Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions.Length = 0 then

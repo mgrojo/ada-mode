@@ -689,6 +689,41 @@ package body WisiToken.LR.McKenzie_Recover is
       end loop;
    end Current_Token;
 
+   function Current_Token_ID_Peek
+     (Terminals             : in Base_Token_Arrays.Vector;
+      Terminals_Current     : in Base_Token_Index;
+      Insert_Delete         : in Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete : in SAL.Base_Peek_Type)
+     return Token_ID
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Terminals_Current = Base_Token_Index'First then
+         --  Happens with really bad syntax; see test_mckenzie_recover.adb Error_4.
+         raise Bad_Config;
+      end if;
+
+      if Current_Insert_Delete = No_Insert_Delete then
+         return Terminals (Terminals_Current).ID;
+
+      elsif Insert_Delete (Current_Insert_Delete).Token_Index = Terminals_Current then
+         declare
+            Op : Insert_Delete_Op renames Insert_Delete (Current_Insert_Delete);
+         begin
+            case Insert_Delete_Op_Label (Op.Op) is
+            when Insert =>
+               return Op.ID;
+
+            when Delete =>
+               --  This should have been handled in Check
+               raise SAL.Programmer_Error;
+            end case;
+         end;
+      else
+         return Terminals (Terminals_Current).ID;
+      end if;
+   end Current_Token_ID_Peek;
+
    procedure Delete (Config : in out Configuration; ID : in Token_ID)
    is
       Op : constant Config_Op := (Delete, ID, Config.Current_Shared_Token);
