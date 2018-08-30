@@ -2,13 +2,14 @@
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
+--EMACSCMD:(setq skip-recase-test t)
 
-procedure SMM.Edit_ID3
+procedure Ada_Mode.Recover_25
 is
    procedure Put_Usage
-     is
-   use Ada.Text_IO;
-begin
+   is
+      use Ada.Text_IO;
+   begin
 
    File_Name : constant String := Ada.Command_Line.Argument (1);
    File : SMM.ID3.File;
@@ -24,4 +25,4 @@ begin
    end loop;
 
    File.Close;
-end SMM.Edit_ID3;
+end Ada_Mode.Recover_25;

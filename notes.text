@@ -51,204 +51,29 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
  current work
-ada_mode-pragma_in_exception_handler.adb
-    bug in grammar; add pragma in exception handler
+allow set task count from Emacs
+    eliminate race condition in ada_mode-recover*
 
-review FIXMEs
+gnat pro 2018
+    - Support for some Ada 202x features: "@" shorthand, delta aggregates
 
-navigate error
-   function Compare_Integer_16 (Left, Right : in Interfaces.Integer_16) return SAL.Compare_Result is
-     (if Left > Right then SAL.Greater
-      elsif Left < Right then SAL.Less
-      else SAL.Equal);
+ada.wy:774: ;; FIXME: | digits_constraint
+ada.wy:775: ;; FIXME: | delta_constraint
+ada.wy:1015:;; FIXME: leaving out [renaming] [aspect_specification]
+ada.wy:1245:      ;; FIXME: indentation of comment after 'is' (and 'with' in
+ada.wy:1929: ;; allocator, FIXME: leaving out subpool_specification.
 
-    point at ">", goto-declarative-region-start (for 'insert use all type')
-
-recover fail
-    function Key_Compare (Left, Right : in Navigate_Cache_Type) return SAL.Compare_Result is
-     (if Left > Right then return Greater
-      elsif Left = Right return Equal
-      else return Less);
-
-   function Ancestor
-     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor    : in     WisiToken.Descriptor;
-      All_Ancestors : in     Token_Array_Token_ID;
-      Recursing     : in out Token_ID_Set;
-      Nonterm       : in     Token_ID)
-     return Token_ID
-   is
-      --  Return the ancestor of Nonterm
-      use all type Ada.Containers.Count_Type;
-   begin
-      for Prod of Grammar loop
-         for R of Prod.RHSs loop
-            if R.Tokens.Length = 1 and then R.Tokens (1) = Nonterm then
-            if All_Ancestors (Prod.LHS) = Invalid_Token_ID then
-            if Recursing (ID) then
-            raise Grammar_Error with "mutual recursion detected: " & Image (Recursing, Descriptor);
-                        end if;
-                        Recursing (ID) := True;
-                        return Result : constant Token_ID :=
-                          Ancestor (Grammar, Descriptor, All_Ancestors, Recursing, ID)
-                        do
-                           Recursing (ID) := False;
-                        end return;
-                     else
-                        return All_Ancestors (ID);
-                     end if;
-                  end if;
-                  end;
-                  end if;
-         end loop;
-      end loop;
-      return Nonterm;
-   end Ancestor;
-    enqueue_limit
-
-   function Ancestor
-     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor    : in     WisiToken.Descriptor;
-      All_Ancestors : in     Token_Array_Token_ID;
-      Recursing     : in out Token_ID_Set;
-      Nonterm       : in     Token_ID)
-     return Token_ID
-   is
-      --  Return the ancestor of Nonterm
-      use all type Ada.Containers.Count_Type;
-   begin
-      for Prod of Grammar loop
-         for R of Prod.RHSs loop
-            if R.Tokens.Length = 1 and then R.Tokens (1) = Nonterm then
-            if All_Ancestors (Prod.LHS) = Invalid_Token_ID then
-            if Recursing (ID) then
-            raise Grammar_Error with "mutual recursion detected: " & Image (Recursing, Descriptor);
-                        end if;
-                        Recursing (ID) := True;
-                        return Result : constant Token_ID :=
-                          Ancestor (Grammar, Descriptor, All_Ancestors, Recursing, ID)
-                        do
-                           Recursing (ID) := False;
-                        end return;
-                     else
-                        return All_Ancestors (ID);
-                     end if;
-                  end if;
-end loop;
-                  end;
-                  end if;
-         end loop;
-      end loop;
-      return Nonterm;
-   end Ancestor;
-CONSTRAINT_ERROR: sal-gen_bounded_definite_vectors.adb:82 range check failed
-[d:\Apps\GNAT-gpl_2018\bin\ada_mode_wisi_lalr_parse.exe]
-Adainit at sal-gen_bounded_definite_vectors.adb:82
-Adainit at wisitoken-lr-mckenzie_recover-explore.adb:42
-Adainit at wisitoken-lr-mckenzie_recover-explore.adb:554
-Adainit at wisitoken-lr-mckenzie_recover-explore.adb:1174
-Adainit at wisitoken-lr-mckenzie_recover.adb:127
-
-recover not respecting spawn limit
-  aggregate_ID => new Int_Array_Action',
-  aliased_opt_ID => null,
-  and_interface_list_opt_ID => null,
-  array_type_definition_ID => new Int_Array_Action',
-  aspect_clause_ID => new Int_Array_Action',
-  aspect_specification_opt_ID => new Int_Array_Action',
-  assignment_statement_ID => new Int_Array_Action',
-  association_opt_ID => new Int_Array_Action',
-  association_list_ID => null,
-  asynchronous_select_ID => new Int_Array_Action',
-  at_clause_ID => new Int_Array_Action',
-  attribute_reference_ID => null,
-  attribute_designator_ID => null,
-  binary_adding_operator_ID => null,
-  block_label_ID => new Int_Array_Action',
-
-improve use_minimum_complete_actions
-    also apply when:
-        token after error token is ':='
-        error token is 'then' (terminate expression)
-            or similar
-        ) for parameter list, aggregate
-        _not_ ';' - not a typical error?
-
-recover fail:
-   function Ancestor
-     (Grammar       : in WisiToken.Productions.Prod_Arrays.Vector;
-      All_Ancestors : in Token_Array_Token_ID;
-      Recursing     : in Token_ID_Set;
-      Nonterm       : in Token_ID)
-     return Token_ID
-   is
-      Prod : WisiToken.Productions.Instance renames Grammar (Nonterm);
-   begin
-      for R of Prod.RHSs loop
-      if R.Tokens.Length = 1 then
-      declare
-      ID : Token_ID := R.Tokens (1);
-      begin
-      Recursing (ID) := True;
-      return Ancestor (Grammar, Recursing, ID);
-      end;
-
-      end loop;
-   end Ancestor;
-    "no configs left"
-
-    function Key_Compare (Left, Right : in Navigate_Cache_Type) return SAL.Compare_Result is
-     (if Left > Right then return Greater
-      elsif Left = Right return Equal
-      else return Less);
-
-    test all phases of "convert if >, elsif =, else <" to "case compare ..."
-
-review FIXMES
 
 revert "allow everything to be empty"
     see if error handling is good enough
 
     or start over from annex P, see how many mods are actually required
 
-add lr1 as wisi indent option
-    edited
-    running recover tests
-        test/ada_mode-recover_1.ads
-            indent not computed; no actions in table
-            fixed for ada_lite, but not for ada? later
-
-speed up lr1 generate
-    see wisitoken
-
-running all tests
-    elisp indent errors:
-        ./ada_mode-interactive_gps_fallback.adb.diff
-        ./ada_mode-parens.adb.diff
-        ./format_paramlist.adb.diff
-
-    lalr-process indent errors:
-        ./ada_mode-recover_constant_as_statement_1.adb.diff
-        ./ada_mode-recover_type_1.ads.diff
-        ./non_ascii.ads.diff
-
 option to stack/append xref results
 
 Test indent when narrowed to subprogram
 
 packrat
-    (progn
-     (set-default 'wisi-size-threshold 1500000)
-     (set-default 'wisi-process-timeout 5.0))
-
-    running tests
-        test/access_in_record.ads
-            parse fails
-                not recognizing selected_component
-                indirect recursion!
-                    but not reported by recursive check because name is known left-recursive
-                test/fix with ada_lite
-
     need to override wisitoken.parse.put_errors for emacs process interface
         derive an Emacs_Parser type?
 
@@ -257,9 +82,10 @@ packrat
         using Parser.Put_Errors for now
 
     langkit packrat is significantly faster than wisitoken lalr
+        because of generated code, not table interpreter?
+            try generated code for lalr
+                lose error correction?
         use non-error-correcting packrat as primary parser, error-correcting lalr as fallback
-
-    factor out common parts of gen_emacs_wisi_parse, _packrat
 
     generate, compile packrat speed?
         ada_packrat_process_main.adb (31347 lines) compiles _way_ faster than ada_process_main.adb (13692 lines)
@@ -269,38 +95,11 @@ time with w32-pipe-read-delay 0
 ada-gps-size-threshold not safe local variable
     use in some tests
 
-allow set task count from Emacs
-
-add test cases for all phases of "convert if to case"
-    see sal red_black_trees
-
-test/ada_mode-recover_type_1.ads
-    desired solution: (insert 'end case ; end record ;') cost (+ 1 1 1 1 2 1) => 7
-        found a cost 13 solution!?
-    constrain_terminal not returning 'end'
-        need to handle mixed shift/reduce better
 Contact ada cubesat lab, see if they will beta test indentation engine.
 
---  FIXME: see if more tasks go faster or slower.
-
-wisitoken-wisi_runtime.ads Find
-   --  FIXME: use tree instead?
-
-teach font lock that line end terminates strings
-    cc-mode does this somehow
+see if more tasks go faster or slower.
 
 emacs track parse-max, don't reparse just for different action; just execute action.
-
-test/slow_recover_4.adb
-    first mckenzie
-    'return (header, to_string_list ( when'
-        should use Constrain_Terminals to insert )); cost 3
-        found (delete 'when') and (insert 'case is') cost 4
-
-    constrain_terminals: CASE, FOR, IF, OTHERS, RAISE, LEFT_PAREN, MINUS, STRING_LITERAL
-        want RIGHT_PAREN!
-            to get that, need to handle  the "conflict" in the two different reductions to empty
-
 
 https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
     export, incremental update of git mirror works
@@ -308,9 +107,9 @@ https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
 
 make-subprogram-body should strip aspects.
 
-add subtypes, protected body to xref-completion
-
 clean up gpr-mode; delete 'we reuse ada' comments
+    refactor ada auto-case into wisi, use in gpr
+
 
 clean up Makefile, common.make
     see wisi_grammar
@@ -337,53 +136,11 @@ gpr-skel.el:114:;; FIXME: code below should be in skeleton.el
 gpr-skel.el:202:	;; FIXME: hook for Ada case adjust
 wisi.el:1145:		 ;; FIXME: ensure at beginning of error message line.
 
-navigate bug:
-       LR1_Descriptor : WisiToken.Descriptor
-     (First_Terminal    => (if Non_Grammar.Length > 0
-                            then Token_ID (Non_Grammar.Length) + Token_ID'First
-                            else Token_ID'First),
-      Last_Terminal     => EOF_ID,
-      EOF_ID            => EOF_ID,
-      Accept_ID         => EOF_ID + 1,
-      First_Nonterminal => EOF_ID + 1,
-      Last_Nonterminal  => EOF_ID + Token_ID (Rules.Length) + 1);
-
-        on > 0, invoke "add-use-clause"; already at outermost containing token
-
-ada-which-function bug:
-   type Generate_Param_Type is record
-      --  Set by grammar file declarations. Error recover parameters
-      --  are elsewhere.
-      Output_Language           : Output_Language_Type  := None;
-      Parser_Algorithm          : Parser_Algorithm_Type := None;
-      Lexer                     : Lexer_Type            := None;
-      Interface_Kind            : Interface_Type        := None;
-      First_State_Index         : Integer               := 0;
-      First_Parser_Label        : Integer               := 0;
-      Keywords_Case_Insensitive : Boolean               := False;
-      Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   end record;
-
-    (ada-which-function t) is fine
-    add-log not setting include-type t?
-
-gnat pro 2018
-    - Support for some Ada 202x features: "@" shorthand, delta aggregates
-    - Integration of libadalang engine
-
-
 newline not in a word should not cause parse retry after parse fail
-
-add missing features to gpr_query; see fixmes.
-
-refactor ada auto-case into wisi, use in gpr
 
 refactor {ada|gpr|java}-skel-expand
     (defun skel-expand
     use buffer-local skel-token-alist
-
-help-do-xref respect other-frame-window
-    find the code that sets the 'help-function attribute, change it to use display-buffer
 
 Ada 2020 features:
     delta aggregates (partial aggregate notation)

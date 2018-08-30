@@ -613,7 +613,6 @@ private
    --  Return index in Parser.Terminals of first token in
    --  Token.Char_Region with ID. If not found, return
    --  No_Index.
-   --  FIXME: use tree instead?
 
    function Get_Aug_Token
      (Data       : in Parse_Data_Type'Class;

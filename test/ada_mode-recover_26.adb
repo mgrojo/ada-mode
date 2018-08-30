@@ -1,31 +1,30 @@
+--  From a real editing session.
+--  Used to encounter 'error during resume'.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 
-   procedure To_WisiToken_Tree
-   is
-      procedure Create_Tree_Node
-      is begin
-if W_Token_ID = No_Direct_Map then
-null;
-else
-declare
-procedure Find_Terminal
-               is begin
+package body Ada_Mode.Recover_26 is
+   procedure Create_Tree_Node
+   is begin
+      if W_Token_Id = No_Direct_Map then
+         null;
+      else
+         declare
+            procedure Find_Terminal
+            is begin
                loop
-               Index := Index - 1;
-               if ID = Terminals (Index) then
-               return Index;
-               else
+                  Index := Index - 1;
+                  if Id = Terminals (Index) then
+                     return Index;
+                  else
 
-               end Find_Terminal;
+                  end Find_Terminal;
 
-            begin
-               Find_Production;
-            end;
-         end if;
-      end Create_Tree_Node;
+                     begin
+                        Find_Production;
+                     end;
+                  end if;
+               end Create_Tree_Node;
 
-begin
-null;
-end To_WisiToken_Tree;
+end Ada_Mode.Recover_26;
