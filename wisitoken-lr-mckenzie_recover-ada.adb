@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Characters.Handling;
 with Ada.Containers;
 with Ada.Exceptions;
 with Ada_Process_Actions;
@@ -505,7 +504,8 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
          --  "block_label_opt loop ... end loop <end_name_token> ;"
          --
          --  where the extra <end_name_token> is created by an attempted fix.
-         --  See test/ada_mode-recover_constant_as_statement.adb.
+         --  See test/ada_mode-recover_constant_as_statement.adb,
+         --  test/ada_mode-recover_26.adb
          --
          --
          --  0. If a matching <begin_name_token> is found, this is not a
@@ -529,18 +529,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
 
          --  This case can handle Config.Error_Token.Virtual = True, and it doesn't use
          --  Tree.
-         declare
-            use Standard.Ada.Characters.Handling;
-
-            End_Name : constant String := To_Lower (Lexer.Buffer_Text (End_Name_Token.Name));
-
-            Token_Count : constant SAL.Peek_Type := SAL.Peek_Type (Config.Check_Token_Count);
-
-            Matching_Name_Index : SAL.Peek_Type := Token_Count;
-            --  'block_label_opt' is empty; start on token before 'begin'.
          begin
-            Find_Matching_Name (Config, Lexer, End_Name, Matching_Name_Index, Case_Insensitive => True);
-
             declare
                New_Config : Configuration := Config;
                Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
@@ -579,16 +568,29 @@ package body WisiToken.LR.McKenzie_Recover.Ada is
             --  Case 2
             declare
                New_Config : Configuration := Config;
+               Matching_Index : SAL.Peek_Type;
             begin
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
 
                case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                when block_statement_ID =>
+                  --  There is almost always an open block of some sort; not worth
+                  --  checking.
                   Push_Back_Check (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +END_ID));
                   Insert (New_Config, (+END_ID, +SEMICOLON_ID));
 
                when loop_statement_ID =>
+                  --  Look for an open 'loop', starting before error loop_statement.
+                  Matching_Index := SAL.Peek_Type (Config.Check_Token_Count) + 1;
+                  Find_ID (Config, +LOOP_ID, Matching_Index);
+                  if Matching_Index = Config.Stack.Depth then
+                     --  No open 'loop'. The failing loop_statement was created by recover,
+                     --  but it was a bad idea. See test/ada_mode-recover_26.adb. Or the
+                     --  user is editing; this error will be ignored.
+                     raise Bad_Config;
+                  end if;
+
                   Push_Back_Check
                     (New_Config, (+SEMICOLON_ID, +identifier_opt_ID, +LOOP_ID, +END_ID));
                   Insert (New_Config, (+END_ID, +LOOP_ID, +SEMICOLON_ID));

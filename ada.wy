@@ -1034,6 +1034,7 @@ exception_handler
 exception_handler_list
   : exception_handler_list exception_handler
   | exception_handler
+  | pragma_g
   ;
 
 exception_handler_list_opt
