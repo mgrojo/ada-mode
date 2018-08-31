@@ -1,9 +1,9 @@
 --  Abstract :
 --
 --  Root package of an implementation of an LR (Left-to-right scanning
---  Rightmost-deriving) parser for grammars defined by a production
---  list. It contains types shared by the parse table generators and
---  the parser.
+--  Rightmost-deriving) parser. Includes operations for building the
+--  parse table at runtime. See the child packages .Parse and
+--  .Parse_No_Recover for running the parser.
 --
 --  References :
 --
@@ -47,19 +47,7 @@ with System.Multiprocessors;
 with WisiToken.Productions;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
-package WisiToken.LR is
-
-   ----------
-   --  Following are the types used in the parse table. The parse
-   --  table is an array indexed by parse state that where each state
-   --  contains a list of parse actions and a list of gotos.
-   --
-   --  Parse actions are indexed by the terminal they match and are either
-   --    o Shift and change to a designated state.
-   --    o Reduce by the given production
-   --
-   --  Gotos are indexed by the nonterminal they match and designate
-   --  the state the parser need to change to.
+package WisiToken.Parse.LR is
 
    type All_Parse_Action_Verbs is (Pause, Shift_Recover, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
@@ -91,11 +79,11 @@ package WisiToken.LR is
    function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor) return String;
    --  Ada aggregate syntax, leaving out Action, Check in reduce; for debug output
 
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
+   --  Put a line for Item in parse trace format.
+
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
    --  Ignore Action, Check.
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
-   --  Put a line for Item in parse table output.
 
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;
@@ -153,8 +141,6 @@ package WisiToken.LR is
 
    function Image is new Minimal_Action_Lists.Gen_Image (Strict_Image);
 
-   function Count_Reduce (List : in Minimal_Action_Lists.List) return Integer;
-
    procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array);
 
    type Parse_State is record
@@ -181,19 +167,6 @@ package WisiToken.LR is
    function Symbol (Iter : in Action_List_Iterator) return Token_ID;
    function Action (Iter : in Action_List_Iterator) return Parse_Action_Rec;
 
-   type Goto_List_Iterator is tagged private;
-   --  Iterates over all gotos for a state.
-
-   function First (State : in Parse_State) return Goto_List_Iterator;
-   function Is_Done (Iter : in Goto_List_Iterator) return Boolean;
-   procedure Next (Iter : in out Goto_List_Iterator);
-
-   function Symbol (Iter : in Goto_List_Iterator) return Token_ID;
-   function State (Iter : in Goto_List_Iterator) return State_Index;
-
-   ----------
-   --  Run-time parse table construction
-
    procedure Add_Action
      (State       : in out Parse_State;
       Symbol      : in     Token_ID;
@@ -209,16 +182,6 @@ package WisiToken.LR is
       Semantic_Action : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check  : in     WisiToken.Semantic_Checks.Semantic_Check);
    --  Add a Reduce or Accept_It action to tail of State action list.
-
-   function Duplicate_Reduce (State : in Parse_State) return Boolean;
-   --  True if all actions are the same reduce; can use Add_Action (symbols).
-
-   function Actions_Length (State : in Parse_State) return Integer;
-   --  Not including Error.
-
-   function Symbols_Image (State : in Parse_State) return String;
-   --  Return image of symbols in State actions (assumed to be a
-   --  Duplicate_Reduce state), in Ada aggregate syntax.
 
    procedure Add_Action
      (State           : in out Parse_State;
@@ -303,11 +266,6 @@ package WisiToken.LR is
       Check_Delta_Limit => Natural'Last,
       Enqueue_Limit     => Natural'Last);
 
-   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor);
-   --  Put Item to Ada.Text_IO.Current_Output
-
-   procedure Set_Token_Sequence (Vector : in out Token_ID_Arrays.Vector; Tokens : in Token_ID_Array);
-
    procedure Set_Production
      (Prod     : in out Productions.Instance;
       LHS      : in     Token_ID;
@@ -359,11 +317,6 @@ package WisiToken.LR is
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free_Table (Table : in out Parse_Table_Ptr);
 
-   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Parse_Action_Rec);
-   procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr);
-   procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State);
-   --  In human-readable parse_table format
-
    function Get_Action
      (Prod        : in Production_ID;
       Productions : in WisiToken.Productions.Prod_Arrays.Vector)
@@ -373,14 +326,6 @@ package WisiToken.LR is
      (Prod        : in Production_ID;
       Productions : in WisiToken.Productions.Prod_Arrays.Vector)
      return WisiToken.Semantic_Checks.Semantic_Check;
-
-   procedure Put_Text_Rep
-     (Table        : in Parse_Table;
-      File_Name    : in String;
-      Action_Names : in Names_Array_Array;
-      Check_Names  : in Names_Array_Array);
-   --  Write machine-readable text format of Table.States to a file
-   --  File_Name, to be read by the parser executable at startup.
 
    function Get_Text_Rep
      (File_Name      : in String;
@@ -664,8 +609,6 @@ package WisiToken.LR is
 
 private
 
-   --  Private to enforce use of Add; doesn't succeed, since only
-   --  children use it.
    type Goto_Node is record
       Symbol     : Token_ID;
       State      : State_Index;
@@ -678,8 +621,4 @@ private
       Item : Parse_Action_Node_Ptr;
    end record;
 
-   type Goto_List_Iterator is tagged record
-      Node : Goto_Node_Ptr;
-   end record;
-
-end WisiToken.LR;
+end WisiToken.Parse.LR;

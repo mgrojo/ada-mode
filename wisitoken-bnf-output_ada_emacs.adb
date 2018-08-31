@@ -48,11 +48,11 @@ procedure WisiToken.BNF.Output_Ada_Emacs
    Multiple_Tuples       :         in Boolean;
    Language_Name         :         in String)
 is
-   use all type Standard.Ada.Containers.Count_Type;
+   use all type Ada.Containers.Count_Type;
 
    Language_Runtime_Package : constant String := "Wisi." & Language_Name;
 
-   Blank_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ");
+   Blank_Set : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ");
 
    Common_Data : Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
      (Input_Data, Tuple, Output_File_Name_Root, Check_Interface => True);
@@ -72,7 +72,7 @@ is
 
       use WisiToken.Generate;
 
-      Progn_Index : constant Integer := Standard.Ada.Strings.Fixed.Index (Item, "(progn");
+      Progn_Index : constant Integer := Ada.Strings.Fixed.Index (Item, "(progn");
 
       Item_I : Integer := Item'First;
 
@@ -155,25 +155,25 @@ is
    procedure Create_Ada_Action
      (Name          : in String;
       RHS           : in RHS_Type;
-      Unsplit_Lines : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Unsplit_Lines : in Ada.Strings.Unbounded.Unbounded_String;
       Check         : in Boolean)
    is
       --  Create Action (if Check = False; Lines must be RHS.Action) or
       --  Check (if Check = True; Lines must be RHS.Check) subprogram named
       --  Name for RHS.
 
-      use Standard.Ada.Strings;
-      use Standard.Ada.Strings.Fixed;
-      use Standard.Ada.Strings.Unbounded;
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+      use Ada.Strings.Unbounded;
       use WisiToken.Generate;
 
       Sexps : constant String_Lists.List := Split_Sexp
         (-Unsplit_Lines, Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line);
 
-      use all type Standard.Ada.Strings.Maps.Character_Set;
+      use all type Ada.Strings.Maps.Character_Set;
 
-      Space_Paren_Set : constant Standard.Ada.Strings.Maps.Character_Set :=
-        Standard.Ada.Strings.Maps.To_Set ("])") or Blank_Set;
+      Space_Paren_Set : constant Ada.Strings.Maps.Character_Set :=
+        Ada.Strings.Maps.To_Set ("])") or Blank_Set;
 
       Navigate_Lines     : String_Lists.List;
       Face_Line          : Unbounded_String;
@@ -226,7 +226,7 @@ is
          --  Input looks like: [1 [2 EXCEPTION WHEN] 3 ...]
          --  Result: (..., Motion_Param_Array'((1, Empty_IDs) & (2, (3 & 8)) & (3, Empty_IDs))
          use Generate_Utils;
-         use Standard.Ada.Strings.Maps;
+         use Ada.Strings.Maps;
 
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
@@ -269,7 +269,7 @@ is
                      Put_Error
                        (Error_Message
                           (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line,
-                           Standard.Ada.Exceptions.Exception_Message (E)));
+                           Ada.Exceptions.Exception_Message (E)));
                   end;
                end loop;
 
@@ -291,7 +291,7 @@ is
       is
          --  Params is a vector of triples: [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face ...]
          --  Result: ((1, 3, 1), (3, 3, 2), ...)
-         use Standard.Ada.Strings.Maps;
+         use Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
          Last       : Integer          := Index_Non_Blank (Params); -- skip [
@@ -346,7 +346,7 @@ is
          Put_Error
            (Error_Message
               (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
-              Standard.Ada.Exceptions.Exception_Message (E)));
+              Ada.Exceptions.Exception_Message (E)));
          return "";
       end Face_Apply_Params;
 
@@ -354,7 +354,7 @@ is
       is
          --  Params is a vector of pairs: [1 prefix 3 suffix ...]
          --  Result: ((1, Prefix), (3, Suffix), ...)
-         use Standard.Ada.Strings.Maps;
+         use Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
          Last       : Integer          := Index_Non_Blank (Params); -- skip [
@@ -396,7 +396,7 @@ is
          Put_Error
            (Error_Message
             (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
-              Standard.Ada.Exceptions.Exception_Message (E)));
+              Ada.Exceptions.Exception_Message (E)));
          return "";
       end Face_Mark_Params;
 
@@ -404,7 +404,7 @@ is
       is
          --  Params is a vector of token numbers: [1 3 ...]
          --  Result: (1, 3, ...)
-         use Standard.Ada.Strings.Maps;
+         use Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
          Last       : Integer          := Index_Non_Blank (Params); -- skip [
@@ -435,7 +435,7 @@ is
          Put_Error
            (Error_Message
             (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid syntax: " &
-              Standard.Ada.Exceptions.Exception_Message (E)));
+              Ada.Exceptions.Exception_Message (E)));
          return "";
       end Face_Remove_Params;
 
@@ -453,8 +453,8 @@ is
          --
          --  - a vector with two elements [code_indent comment_indent]; convert to Indent_Pair.
 
-         use Standard.Ada.Strings.Maps;
-         use Standard.Ada.Containers;
+         use Ada.Strings.Maps;
+         use Ada.Containers;
 
          Delim : constant Character_Set := To_Set ("])") or Blank_Set;
 
@@ -630,7 +630,7 @@ is
          when E : others =>
             Put_Error
               (Error_Message
-                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
+                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Ada.Exceptions.Exception_Message (E)));
             return "";
          end Expression;
 
@@ -867,7 +867,7 @@ is
          when E : Not_Found =>
             Put_Error
               (Error_Message
-                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
+                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Ada.Exceptions.Exception_Message (E)));
          end;
       end loop;
 
@@ -957,7 +957,7 @@ is
          for RHS of Rule.Right_Hand_Sides loop
             for Sexp of Split_Sexp (-RHS.Action, Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line) loop
                declare
-                  Last       : constant Integer := Standard.Ada.Strings.Fixed.Index (Sexp, Blank_Set);
+                  Last       : constant Integer := Ada.Strings.Fixed.Index (Sexp, Blank_Set);
                   Elisp_Name : constant String  := Sexp (Sexp'First + 1 .. Last - 1);
                begin
                   if Elisp_Name = "wisi-motion-action" then
@@ -975,7 +975,7 @@ is
       Check_Names  : not null access WisiToken.Names_Array_Array;
       Package_Name : in              String)
    is
-      use Standard.Ada.Strings.Unbounded;
+      use Ada.Strings.Unbounded;
       use Generate_Utils;
       use WisiToken.Generate;
 
@@ -1248,13 +1248,13 @@ is
 
    procedure Create_Module_Elisp
    is
-      use Standard.Ada.Strings.Unbounded;
+      use Ada.Strings.Unbounded;
       use Generate_Utils;
       use WisiToken.Generate;
 
       Lower_Package_Name_Root : constant String := To_Lower (File_Name_To_Ada (Output_File_Name_Root));
 
-      function To_ID_Image (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
+      function To_ID_Image (Name : in Ada.Strings.Unbounded.Unbounded_String) return String
       is begin
          --  Ada 'Val is 0 origin; Token_ID is 1 origin
          return Token_ID'Image (-1 + Find_Token_ID (Generate_Data, -Name));

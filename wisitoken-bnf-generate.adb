@@ -35,9 +35,9 @@ with WisiToken.BNF.Output_Ada_Emacs;
 with WisiToken.BNF.Output_Elisp;
 with WisiToken.BNF.Output_Elisp_Common;
 with WisiToken.Generate.Packrat;
-with WisiToken.LR.LALR_Generate;
-with WisiToken.LR.LR1_Generate;
-with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
@@ -45,11 +45,11 @@ with Wisi_Grammar_Actions;
 with Wisi_Grammar_Main;
 procedure WisiToken.BNF.Generate
 is
-   use all type Standard.Ada.Containers.Count_Type;
+   use all type Ada.Containers.Count_Type;
 
    procedure Put_Usage
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
@@ -82,25 +82,25 @@ is
 
    end Put_Usage;
 
-   Language_Name         : Standard.Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
-   Output_File_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Suffix                : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Language_Name         : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
+   Output_File_Name_Root : Ada.Strings.Unbounded.Unbounded_String;
+   Suffix                : Ada.Strings.Unbounded.Unbounded_String;
    Test_Main             : Boolean := False;
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
 
    Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
    Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-   Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
+   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
    Do_Time : Boolean := False;
 
    procedure Use_Input_File (File_Name : in String)
    is
-      use Standard.Ada.Strings.Unbounded;
-      use Standard.Ada.Text_IO;
+      use Ada.Strings.Unbounded;
+      use Ada.Text_IO;
    begin
-      Output_File_Name_Root := +Standard.Ada.Directories.Base_Name (File_Name) & Suffix;
+      Output_File_Name_Root := +Ada.Directories.Base_Name (File_Name) & Suffix;
 
       Wisi_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
@@ -110,9 +110,9 @@ is
       Grammar_Parser.Lexer.Reset_With_File (File_Name);
 
       declare
-         Language_Name_Dir   : constant Integer := Standard.Ada.Strings.Fixed.Index
-           (File_Name, Standard.Ada.Strings.Maps.To_Set ("/\"), Going => Standard.Ada.Strings.Backward);
-         Language_Name_Ext   : constant Integer := Standard.Ada.Strings.Fixed.Index (File_Name, ".wy");
+         Language_Name_Dir   : constant Integer := Ada.Strings.Fixed.Index
+           (File_Name, Ada.Strings.Maps.To_Set ("/\"), Going => Ada.Strings.Backward);
+         Language_Name_Ext   : constant Integer := Ada.Strings.Fixed.Index (File_Name, ".wy");
       begin
          Language_Name := +WisiToken.BNF.Output_Elisp_Common.Elisp_Name_To_Ada
            (File_Name
@@ -130,7 +130,7 @@ is
 
 begin
    declare
-      use Standard.Ada.Command_Line;
+      use Ada.Command_Line;
       Arg_Next : Integer := 1;
    begin
       loop
@@ -157,11 +157,8 @@ begin
                   raise User_Error with "invalid value for generator_algorithm: '" & Argument (Arg_Next) & ";";
                end;
                begin
-                  Tuple.Out_Lang := Output_Language'Value (Argument (Arg_Next));
-                  Arg_Next  := Arg_Next + 1;
-               exception
-               when Constraint_Error =>
-                  raise User_Error with "invalid value for output_language: '" & Argument (Arg_Next) & ";";
+                  Tuple.Out_Lang := To_Output_Language (Argument (Arg_Next));
+                  Arg_Next       := Arg_Next + 1;
                end;
 
                loop
@@ -227,8 +224,8 @@ begin
    end;
 
    declare
-      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
-      use Standard.Ada.Text_IO;
+      use all type Ada.Strings.Unbounded.Unbounded_String;
+      use Ada.Text_IO;
 
       --  Create a .parse_table file unless verbosity > 0
       Parse_Table_File : File_Type;
@@ -293,7 +290,7 @@ begin
          Parse_Check (Input_Data.User_Lexer, Input_Data.User_Parser);
 
          declare
-            use Standard.Ada.Real_Time;
+            use Ada.Real_Time;
 
             Time_Start : Time;
             Time_End   : Time;
@@ -329,7 +326,7 @@ begin
 
                Time_Start := Clock;
 
-               Generate_Data.LR_Parse_Table := WisiToken.LR.LALR_Generate.Generate
+               Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LALR_Generate.Generate
                  (Generate_Data.Grammar,
                   Generate_Data.Descriptor.all,
                   Generate_Utils.To_Conflicts
@@ -355,7 +352,7 @@ begin
             when LR1 =>
                Time_Start := Clock;
 
-               Generate_Data.LR_Parse_Table := WisiToken.LR.LR1_Generate.Generate
+               Generate_Data.LR_Parse_Table := WisiToken.Generate.LR.LR1_Generate.Generate
                  (Generate_Data.Grammar,
                   Generate_Data.Descriptor.all,
                   Generate_Utils.To_Conflicts
@@ -410,7 +407,7 @@ begin
             case Tuple.Gen_Alg is
             when LR_Generate_Algorithm =>
                if Tuple.Text_Rep then
-                  WisiToken.LR.Put_Text_Rep
+                  WisiToken.Generate.LR.Put_Text_Rep
                     (Generate_Data.LR_Parse_Table.all,
                      -Output_File_Name_Root & "_" &
                        To_Lower (Generate_Algorithm_Image (Tuple.Gen_Alg).all) &
@@ -423,16 +420,16 @@ begin
             end case;
 
             case Tuple.Out_Lang is
-            when Ada =>
+            when Ada_Lang =>
                WisiToken.BNF.Output_Ada
                  (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple, Test_Main, Multiple_Tuples);
 
-            when Ada_Emacs =>
+            when Ada_Emacs_Lang =>
                WisiToken.BNF.Output_Ada_Emacs
                  (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple, Test_Main, Multiple_Tuples,
                   -Language_Name);
 
-            when Elisp =>
+            when Elisp_Lang =>
                WisiToken.BNF.Output_Elisp (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple);
 
             end case;
@@ -442,13 +439,13 @@ begin
 exception
 when WisiToken.Syntax_Error =>
    --  error message already output
-   Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
+   Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 
 when E : User_Error =>
    declare
-      use Standard.Ada.Command_Line;
-      use Standard.Ada.Exceptions;
-      use Standard.Ada.Text_IO;
+      use Ada.Command_Line;
+      use Ada.Exceptions;
+      use Ada.Text_IO;
    begin
       Put_Line (Standard_Error, Exception_Message (E));
       Put_Command_Line (Ada_Comment);
@@ -459,9 +456,9 @@ when E : User_Error =>
 when E : WisiToken.Grammar_Error =>
    --  error message not already output
    declare
-      use Standard.Ada.Command_Line;
-      use Standard.Ada.Exceptions;
-      use Standard.Ada.Text_IO;
+      use Ada.Command_Line;
+      use Ada.Exceptions;
+      use Ada.Text_IO;
    begin
       Put_Line (Standard_Error, Exception_Message (E));
       Set_Exit_Status (Failure);
@@ -470,9 +467,9 @@ when E : WisiToken.Grammar_Error =>
 when E :  others =>
    --  IMPROVEME: for some exceptions, Error message already output via wisi.utils.Put_Error
    declare
-      use Standard.Ada.Text_IO;
-      use Standard.Ada.Exceptions;
-      use Standard.Ada.Command_Line;
+      use Ada.Text_IO;
+      use Ada.Exceptions;
+      use Ada.Command_Line;
    begin
       Put_Line (Standard_Error, Exception_Name (E) & ": " & Exception_Message (E));
       Put_Line (Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback (E));

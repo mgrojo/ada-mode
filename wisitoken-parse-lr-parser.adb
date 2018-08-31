@@ -29,8 +29,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
-with WisiToken.LR.McKenzie_Recover;
-package body WisiToken.LR.Parser is
+with WisiToken.Parse.LR.McKenzie_Recover;
+package body WisiToken.Parse.LR.Parser is
 
    function Reduce_Stack_1
      (Current_Parser : in     Parser_Lists.Cursor;
@@ -854,7 +854,7 @@ package body WisiToken.LR.Parser is
                      --  If errors were recovered, terminate a parser that used the
                      --  highest cost solution.
                      declare
-                        use all type WisiToken.LR.Parser_Lists.Cursor;
+                        use all type WisiToken.Parse.LR.Parser_Lists.Cursor;
                         Max_Recover_Cost : Integer             := 0;
                         Max_Parser       : Parser_Lists.Cursor;
                         Cur              : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
@@ -1059,4 +1059,4 @@ package body WisiToken.LR.Parser is
       end loop;
    end Put_Errors;
 
-end WisiToken.LR.Parser;
+end WisiToken.Parse.LR.Parser;

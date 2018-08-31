@@ -458,7 +458,7 @@ package body WisiToken.Wisi_Grammar_Runtime is
                      Tuple     : WisiToken.BNF.Generate_Tuple;
                   begin
                      Tuple.Gen_Alg  := WisiToken.BNF.Generate_Algorithm'Value (Get_Text (Data, Tree, Children (1)));
-                     Tuple.Out_Lang := WisiToken.BNF.Output_Language'Value (Get_Text (Data, Tree, Children (2)));
+                     Tuple.Out_Lang := WisiToken.BNF.To_Output_Language (Get_Text (Data, Tree, Children (2)));
                      for I in 3 .. SAL.Base_Peek_Type (Children'Length) loop
                         declare
                            Text : constant String := Get_Text (Data, Tree, Children (I));

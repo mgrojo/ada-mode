@@ -25,7 +25,7 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 procedure Gen_LR_Parser_No_Recover_Run
@@ -48,7 +48,7 @@ is
 
    procedure Parse
    is
-      Parser : WisiToken.LR.Parser_No_Recover.Parser;
+      Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
       Create_Parser (Parser, Trace'Unchecked_Access, User_Data => null);
 

@@ -17,8 +17,8 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.McKenzie_Recover.Parse;
-package body WisiToken.LR.McKenzie_Recover.Explore is
+with WisiToken.Parse.LR.McKenzie_Recover.Parse;
+package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    procedure Do_Shift
      (Super             : not null access Base.Supervisor;
@@ -83,7 +83,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       --  not Ok, call Language_Fixes (which may enqueue configs),
       --  return Abandon. Otherwise return Continue.
       use all type Semantic_Checks.Check_Status_Label;
-      use all type WisiToken.LR.Parser.Language_Fixes_Access;
+      use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
       Table     : Parse_Table renames Shared.Table.all;
       Nonterm   : Recover_Token;
@@ -1109,7 +1109,7 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       function Allow_Insert_Terminal (Config : in Configuration) return Boolean
       is
          use all type Ada.Containers.Count_Type;
-         use all type WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+         use all type WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
       begin
          if Shared.Language_Use_Minimal_Complete_Actions = null then
             return None_Since_FF (Config.Ops, Delete);
@@ -1301,4 +1301,4 @@ package body WisiToken.LR.McKenzie_Recover.Explore is
       end if;
    end Process_One;
 
-end WisiToken.LR.McKenzie_Recover.Explore;
+end WisiToken.Parse.LR.McKenzie_Recover.Explore;

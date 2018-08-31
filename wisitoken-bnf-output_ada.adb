@@ -99,7 +99,7 @@ is
          --  No need for a Token_Cursor here, since we only need the
          --  nonterminals.
          declare
-            use Standard.Ada.Strings.Unbounded;
+            use Ada.Strings.Unbounded;
 
             LHS_ID    : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
             RHS_Index : Integer                     := 0;
@@ -185,7 +185,7 @@ is
 
                if Length (RHS.Check) > 0 and then not Is_Elisp (RHS.Check) then
                   declare
-                     use Standard.Ada.Strings.Fixed;
+                     use Ada.Strings.Fixed;
                      Line          : constant String  := -RHS.Check;
                      Name          : constant String  := Check_Names (LHS_ID)(RHS_Index).all;
                      Unref_Lexer   : constant Boolean := 0 = Index (Line, "Lexer");
@@ -346,7 +346,7 @@ is
       Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         "_" & Generate_Algorithm'Image (Common_Data.Generate_Algorithm) & "_Run";
 
-      Language_Package_Name : constant String := "WisiToken.LR.McKenzie_Recover." & File_Name_To_Ada
+      Language_Package_Name : constant String := "WisiToken.Parse.LR.McKenzie_Recover." & File_Name_To_Ada
         (Output_File_Name_Root);
 
       File_Name : constant String := To_Lower (Unit_Name) & ".ads";

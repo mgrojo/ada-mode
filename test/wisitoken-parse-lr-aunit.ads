@@ -27,7 +27,7 @@ with SAL.AUnit;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 with WisiToken.AUnit;
-package WisiToken.LR.AUnit is
+package WisiToken.Parse.LR.AUnit is
 
    Strict : Boolean := False;
 
@@ -64,4 +64,4 @@ package WisiToken.LR.AUnit is
       Expected : in Parse_Error);
    --  Does not check all fields
 
-end WisiToken.LR.AUnit;
+end WisiToken.Parse.LR.AUnit;

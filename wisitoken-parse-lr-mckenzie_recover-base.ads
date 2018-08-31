@@ -18,8 +18,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
-with WisiToken.LR.Parser_Lists;
-private package WisiToken.LR.McKenzie_Recover.Base is
+with WisiToken.Parse.LR.Parser_Lists;
+private package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    ----------
    --  Protected object specs.
@@ -156,9 +156,9 @@ private package WisiToken.LR.McKenzie_Recover.Base is
      (Trace                                 : not null access WisiToken.Trace'Class;
       Lexer                                 : not null access constant WisiToken.Lexer.Instance'Class;
       Table                                 : not null access constant Parse_Table;
-      Language_Fixes                        : WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
-      Language_String_ID_Set                : WisiToken.LR.Parser.Language_String_ID_Set_Access;
+      Language_Fixes                        : WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set                : WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
       Terminals                             : not null access constant Base_Token_Arrays.Vector;
       Line_Begin_Token                      : not null access constant Line_Begin_Token_Vectors.Vector)
      is null record;
@@ -177,4 +177,4 @@ private package WisiToken.LR.McKenzie_Recover.Base is
       Config       : in              Configuration;
       Task_ID      : in              Boolean := True);
 
-end WisiToken.LR.McKenzie_Recover.Base;
+end WisiToken.Parse.LR.McKenzie_Recover.Base;

@@ -43,7 +43,7 @@ package body WisiToken is
 
    procedure Put_Tokens (Descriptor : in WisiToken.Descriptor)
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
    begin
       for I in Token_ID'First .. Descriptor.Last_Nonterminal loop
          Put_Line (Token_ID'Image (I) & " => " & Descriptor.Image (I).all);

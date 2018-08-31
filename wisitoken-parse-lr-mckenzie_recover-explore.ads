@@ -17,12 +17,12 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.McKenzie_Recover.Base;
-private package WisiToken.LR.McKenzie_Recover.Explore is
+with WisiToken.Parse.LR.McKenzie_Recover.Base;
+private package WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    procedure Process_One
      (Super         : not null access Base.Supervisor;
       Shared        : not null access Base.Shared;
       Config_Status : out             Base.Config_Status);
 
-end WisiToken.LR.McKenzie_Recover.Explore;
+end WisiToken.Parse.LR.McKenzie_Recover.Explore;

@@ -26,8 +26,8 @@ with WisiToken.Wisi_Ada;
 package body WisiToken.BNF.Generate_Utils is
 
    --  For Constant_Reference
-   Aliased_EOI_Name              : aliased constant Standard.Ada.Strings.Unbounded.Unbounded_String := +EOI_Name;
-   Aliased_WisiToken_Accept_Name : aliased constant Standard.Ada.Strings.Unbounded.Unbounded_String :=
+   Aliased_EOI_Name              : aliased constant Ada.Strings.Unbounded.Unbounded_String := +EOI_Name;
+   Aliased_WisiToken_Accept_Name : aliased constant Ada.Strings.Unbounded.Unbounded_String :=
      +WisiToken_Accept_Name;
 
    --  body specs, as needed.
@@ -152,8 +152,8 @@ package body WisiToken.BNF.Generate_Utils is
 
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
-                  use Standard.Ada.Strings.Unbounded;
-                  use all type Standard.Ada.Containers.Count_Type;
+                  use Ada.Strings.Unbounded;
+                  use all type Ada.Containers.Count_Type;
                   Tokens : WisiToken.Token_ID_Arrays.Vector;
                   I      : Integer := 1;
                begin
@@ -183,7 +183,7 @@ package body WisiToken.BNF.Generate_Utils is
                   --  From "&"
                   Put_Error
                     (Error_Message
-                       (Source_File_Name, Right_Hand_Side.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
+                       (Source_File_Name, Right_Hand_Side.Source_Line, Ada.Exceptions.Exception_Message (E)));
                end;
                RHS_Index := RHS_Index + 1;
             end loop;
@@ -201,7 +201,7 @@ package body WisiToken.BNF.Generate_Utils is
             --  From Find_Token_ID (left_hand_side)
             Put_Error
               (Error_Message
-                 (Source_File_Name, Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
+                 (Source_File_Name, Rule.Source_Line, Ada.Exceptions.Exception_Message (E)));
          end;
       end loop;
 
@@ -672,7 +672,7 @@ package body WisiToken.BNF.Generate_Utils is
      return WisiToken.Generate.LR.Conflict_Lists.List
    is
       use WisiToken.Generate.LR;
-      use all type WisiToken.LR.Parse_Action_Verbs;
+      use all type WisiToken.Parse.LR.Parse_Action_Verbs;
       Result   : WisiToken.Generate.LR.Conflict_Lists.List;
       Conflict : WisiToken.Generate.LR.Conflict;
    begin
@@ -704,7 +704,7 @@ package body WisiToken.BNF.Generate_Utils is
          when E : Not_Found =>
             Put_Error
               (Error_Message
-                 (Source_File_Name, Item.Source_Line, Standard.Ada.Exceptions.Exception_Message (E)));
+                 (Source_File_Name, Item.Source_Line, Ada.Exceptions.Exception_Message (E)));
          end;
       end loop;
       return Result;
@@ -727,11 +727,11 @@ package body WisiToken.BNF.Generate_Utils is
      (Data             : aliased in Generate_Data;
       Item             :         in McKenzie_Recover_Param_Type;
       Source_File_Name :         in String)
-     return WisiToken.LR.McKenzie_Param_Type
+     return WisiToken.Parse.LR.McKenzie_Param_Type
    is
-      use Standard.Ada.Strings.Unbounded;
+      use Ada.Strings.Unbounded;
 
-      Result : WisiToken.LR.McKenzie_Param_Type :=
+      Result : WisiToken.Parse.LR.McKenzie_Param_Type :=
         --  We use an aggregate, and overwrite some below, so the compiler
         --  reminds us to change this when we modify McKenzie_Param_Type.
         (Data.Descriptor.First_Terminal,
@@ -776,7 +776,7 @@ package body WisiToken.BNF.Generate_Utils is
       Data.Table_Actions_Count := 0;
       for State_Index in Data.LR_Parse_Table.States'Range loop
          Data.Table_Actions_Count := Data.Table_Actions_Count +
-           WisiToken.LR.Actions_Length (Data.LR_Parse_Table.States (State_Index)) + 1;
+           Actions_Length (Data.LR_Parse_Table.States (State_Index)) + 1;
       end loop;
    end Count_Actions;
 
@@ -784,7 +784,7 @@ package body WisiToken.BNF.Generate_Utils is
      (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Generate_Data : in Generate_Utils.Generate_Data)
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
    begin
       New_Line;
       Put_Line
@@ -798,5 +798,21 @@ package body WisiToken.BNF.Generate_Utils is
            Integer'Image (Generate_Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
            Integer'Image (Generate_Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
    end Put_Stats;
+
+   function Actions_Length (State : in Parse.LR.Parse_State) return Integer
+   is
+      use all type WisiToken.Parse.LR.Action_Node_Ptr;
+      Node : Parse.LR.Action_Node_Ptr := State.Action_List;
+   begin
+      return Result : Integer := 0
+      do
+         loop
+            exit when Node = null;
+            Result := Result + 1;
+            Node := Node.Next;
+            exit when Node.Next = null; -- don't count Error
+         end loop;
+      end return;
+   end Actions_Length;
 
 end WisiToken.BNF.Generate_Utils;

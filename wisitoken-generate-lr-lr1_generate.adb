@@ -23,7 +23,7 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Text_IO;
 with WisiToken.Generate;
-package body WisiToken.LR.LR1_Generate is
+package body WisiToken.Generate.LR.LR1_Generate is
 
    function LR1_Goto_Transitions
      (Set                     : in LR1_Items.Item_Set;
@@ -312,4 +312,4 @@ package body WisiToken.LR.LR1_Generate is
       return Table;
    end Generate;
 
-end WisiToken.LR.LR1_Generate;
+end WisiToken.Generate.LR.LR1_Generate;

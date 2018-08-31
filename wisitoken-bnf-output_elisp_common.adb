@@ -63,9 +63,9 @@ package body WisiToken.BNF.Output_Elisp_Common is
      (Output_File_Root : in     String;
       Label            : in     String;
       Keywords         : in     String_Pair_Lists.List;
-      Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String)
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String)
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
       use WisiToken.Generate;
    begin
       Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-keyword-table-raw");
@@ -82,10 +82,10 @@ package body WisiToken.BNF.Output_Elisp_Common is
      (Output_File_Root : in     String;
       Label            : in     String;
       Tokens           : in     Token_Lists.List;
-      Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String)
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String)
    is
-      use Standard.Ada.Strings.Unbounded;
-      use Standard.Ada.Text_IO;
+      use Ada.Strings.Unbounded;
+      use Ada.Text_IO;
       use WisiToken.Generate;
    begin
       Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-token-table-raw");
@@ -128,7 +128,7 @@ package body WisiToken.BNF.Output_Elisp_Common is
       Label            : in     String;
       Names            : in     String_Lists.List)
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
       use WisiToken.Generate;
    begin
       Indent_Line ("(defconst " & Output_File_Root & "-" & Label);

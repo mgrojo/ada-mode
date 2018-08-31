@@ -1,5 +1,5 @@
 ;;; body_instantiation_conflict-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisitoken-bnf-generate.exe  --generate LALR ELISP elisp ../Test/bnf/body_instantiation_conflict.wy
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR elisp elisp ../Test/bnf/body_instantiation_conflict.wy
 
 ;;  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
 

@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Task_Identification;
 with GNAT.Traceback.Symbolic;
-package body WisiToken.LR.McKenzie_Recover.Base is
+package body WisiToken.Parse.LR.McKenzie_Recover.Base is
 
    function Get_Barrier
      (Parsers                 : not null access Parser_Lists.List;
@@ -430,4 +430,4 @@ package body WisiToken.LR.McKenzie_Recover.Base is
            Shared.Terminals.all, Config, Task_ID);
    end Put;
 
-end WisiToken.LR.McKenzie_Recover.Base;
+end WisiToken.Parse.LR.McKenzie_Recover.Base;

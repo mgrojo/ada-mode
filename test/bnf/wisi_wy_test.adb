@@ -26,7 +26,7 @@ with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 with WisiToken.BNF;
-with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
 with Wisi_Grammar_Actions;
@@ -106,7 +106,7 @@ package body Wisi_WY_Test is
       use all type WisiToken.Line_Number_Type;
       Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
       Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser : WisiToken.LR.Parser_No_Recover.Parser;
+      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
       Wisi_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
@@ -149,13 +149,7 @@ package body Wisi_WY_Test is
          Diff_One
            (Root_Name & Gen_Alg &
               (if If_Lexer_Present
-               then "_" & Lexer_Image
-                 ((if Tuple.Lexer = None
-                   then
-                     (case Tuple.Out_Lang is
-                      when WisiToken.BNF.Ada | Ada_Emacs => re2c_Lexer,
-                      when Elisp => Elisp_Lexer)
-                   else Tuple.Lexer)).all
+               then "_" & Lexer_Image (Tuple.Lexer).all
                else "") &
               ".parse_table");
 
@@ -164,17 +158,17 @@ package body Wisi_WY_Test is
       end case;
 
       case Tuple.Out_Lang is
-      when WisiToken.BNF.Ada =>
+      when WisiToken.BNF.Ada_Lang =>
          --  Not useful to diff the generated Ada source here; the fact that
          --  the parse succeeds is enough.
          null;
 
-      when Ada_Emacs =>
+      when Ada_Emacs_Lang =>
          Diff_One (Root_Name & Int_Kind & "_actions.adb", Skip => (1 => 2));
          Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
          Diff_One (Root_Name & "-process.el");
 
-      when Elisp =>
+      when Elisp_Lang =>
          Diff_One (Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "-elisp.el");
       end case;
 
@@ -258,13 +252,13 @@ package body Wisi_WY_Test is
 
       for Tuple of Gen_Set.all loop
          case Tuple.Out_Lang is
-         when WisiToken.BNF.Ada =>
+         when WisiToken.BNF.Ada_Lang =>
             Execute_Parse
               (Simple_Name,
                (if Test.Input_Name = null then "" else Test.Input_Name.all),
                Tuple.Gen_Alg, McKenzie_Recover);
 
-         when WisiToken.BNF.Ada_Emacs | WisiToken.BNF.Elisp =>
+         when WisiToken.BNF.Ada_Emacs_Lang | WisiToken.BNF.Elisp_Lang =>
             null;
          end case;
 

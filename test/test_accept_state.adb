@@ -23,8 +23,8 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.LR.LALR_Generate;
-with WisiToken.LR.Parser;
+with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -78,7 +78,7 @@ package body Test_Accept_State is
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   Parser : WisiToken.LR.Parser.Parser;
+   Parser : WisiToken.Parse.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
@@ -91,11 +91,11 @@ package body Test_Accept_State is
    begin
       --  The test is that there are no exceptions.
 
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
+         WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
          User_Data                             => null,
          Language_Fixes                        => null,
          Language_Use_Minimal_Complete_Actions => null,

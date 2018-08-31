@@ -22,15 +22,14 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Text_IO;
-with WisiToken.Generate;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.LR.LALR_Generate;
-with WisiToken.LR.LR1_Generate;
-with WisiToken.LR.LR1_Items;
+with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.LR1_Items;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada;
-with WisiToken.LR.LR1_Items.AUnit;
+with WisiToken.Generate.LR1_Items.AUnit;
 package body Compare_Goto_Transitions is
 
    ----------
@@ -93,8 +92,8 @@ package body Compare_Goto_Transitions is
       is
          use Ada.Text_IO;
          use WisiToken;
-         use WisiToken.LR.LR1_Items;
-         use WisiToken.LR.LR1_Items.AUnit;
+         use WisiToken.Generate.LR1_Items;
+         use WisiToken.Generate.LR1_Items.AUnit;
 
          Set : constant Item_Set := Closure
            ((Set       => +Get_Item
@@ -116,11 +115,11 @@ package body Compare_Goto_Transitions is
                  Token_Enum_ID'Image (Symbol) & "." &
                  Token_Enum_ID'Image (ID);
             begin
-               LR1 := WisiToken.LR.LR1_Generate.LR1_Goto_Transitions
+               LR1 := WisiToken.Generate.LR.LR1_Generate.LR1_Goto_Transitions
                     (Set, +ID, Has_Empty_Production, First_Terminal_Sequence, Grammar, LR1_Descriptor);
                LR1_Filtered := Filter (LR1, Grammar, LR1_Descriptor, In_Kernel'Access);
 
-               LALR := WisiToken.LR.LALR_Generate.LALR_Goto_Transitions
+               LALR := WisiToken.Generate.LR.LALR_Generate.LALR_Goto_Transitions
                  (Set, +ID, First_Nonterm_Set, Grammar, Token_Enum.LALR_Descriptor);
 
                Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);

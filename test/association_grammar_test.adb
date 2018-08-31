@@ -25,8 +25,8 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.LR.LALR_Generate;
-with WisiToken.LR.Parser;
+with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
@@ -96,7 +96,7 @@ package body Association_Grammar_Test is
                             Int_ID & Equal_Greater_ID & Identifier_ID + Null_Action or
                             Identifier_ID + Null_Action);
 
-   Parser : WisiToken.LR.Parser.Parser;
+   Parser : WisiToken.Parse.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
@@ -142,11 +142,11 @@ package body Association_Grammar_Test is
       Create (Trace_File, Out_File, Trace_File_Name);
       Trace.Set_File (Trace_File'Access);
 
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor),
+         WisiToken.Generate.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor),
          User_Data                             => null,
          Language_Fixes                        => null,
          Language_Use_Minimal_Complete_Actions => null,

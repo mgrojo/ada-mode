@@ -23,7 +23,7 @@ pragma License (Modified_GPL);
 with Ada.Iterator_Interfaces;
 with SAL.Gen_Indefinite_Doubly_Linked_Lists;
 with WisiToken.Syntax_Trees;
-package WisiToken.LR.Parser_Lists is
+package WisiToken.Parse.LR.Parser_Lists is
 
    type Parser_Stack_Item is record
       State : Unknown_State_Index     := Unknown_State;
@@ -257,4 +257,4 @@ private
       Ptr      : Parser_State_Lists.Cursor;
    end record;
 
-end WisiToken.LR.Parser_Lists;
+end WisiToken.Parse.LR.Parser_Lists;

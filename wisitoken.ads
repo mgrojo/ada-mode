@@ -408,11 +408,11 @@ package WisiToken is
    ----------
    --  Misc
 
-   function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String
-     renames Standard.Ada.Strings.Unbounded.To_Unbounded_String;
+   function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
+     renames Ada.Strings.Unbounded.To_Unbounded_String;
 
-   function "-" (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
-     renames Standard.Ada.Strings.Unbounded.To_String;
+   function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+     renames Ada.Strings.Unbounded.To_String;
 
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Integer);
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Ada.Containers.Count_Type);

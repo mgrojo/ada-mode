@@ -17,12 +17,26 @@
 
 pragma License (GPL);
 
+with Ada.Strings.Fixed;
 with Ada.Text_IO;
+with System.Multiprocessors;
 with WisiToken.Generate;
 package body WisiToken.Generate.LR is
 
    ----------
    --  Body subprograms, alphabetical
+
+   function Count_Reduce (List : in Parse.LR.Minimal_Action_Lists.List) return Integer
+   is
+      Count : Integer := 0;
+   begin
+      for Item of List loop
+         if Item.Verb = Reduce then
+            Count := Count + 1;
+         end if;
+      end loop;
+      return Count;
+   end Count_Reduce;
 
    function Find
      (Symbol      : in Token_ID;
@@ -151,6 +165,16 @@ package body WisiToken.Generate.LR is
    ----------
    --  Public subprograms, declaration order
 
+   procedure Put
+     (Item       : in Conflict_Lists.List;
+      File       : in Ada.Text_IO.File_Type;
+      Descriptor : in WisiToken.Descriptor)
+   is begin
+      for Conflict of Item loop
+         Ada.Text_IO.Put_Line (File, Image (Conflict, Descriptor));
+      end loop;
+   end Put;
+
    procedure Add_Action
      (Symbol               : in     Token_ID;
       Action               : in     Parse_Action_Rec;
@@ -238,7 +262,7 @@ package body WisiToken.Generate.LR is
             end;
          end if;
       else
-         WisiToken.LR.Add (Action_List, Symbol, Action);
+         WisiToken.Parse.LR.Add (Action_List, Symbol, Action);
       end if;
    end Add_Action;
 
@@ -318,7 +342,7 @@ package body WisiToken.Generate.LR is
            --  position as the last on a state's action list that makes
            --  it the default.
            (Symbol => Invalid_Token_ID,
-            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => WisiToken.LR.Error), null),
+            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => WisiToken.Parse.LR.Error), null),
             Next   => null);
 
          Last_Action : Action_Node_Ptr := Table.States (State).Action_List;
@@ -516,7 +540,7 @@ package body WisiToken.Generate.LR is
             end if;
          end loop;
 
-      when WisiToken.LR.Error =>
+      when WisiToken.Parse.LR.Error =>
          raise SAL.Programmer_Error;
       end case;
 
@@ -565,93 +589,6 @@ package body WisiToken.Generate.LR is
            (Known.LHS_B = Item.LHS_A and Known.LHS_A = Item.LHS_B)) and
         Known.On = Item.On;
    end Match;
-
-   procedure Put
-     (Item       : in Conflict_Lists.List;
-      File       : in Ada.Text_IO.File_Type;
-      Descriptor : in WisiToken.Descriptor)
-   is begin
-      for Conflict of Item loop
-         Ada.Text_IO.Put_Line (File, Image (Conflict, Descriptor));
-      end loop;
-   end Put;
-
-   procedure Put_Parse_Table
-     (Table      : in Parse_Table_Ptr;
-      Title      : in String;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Kernels    : in LR1_Items.Item_Set_List;
-      Ancestors  : in Token_Array_Token_Set;
-      Conflicts  : in Conflict_Lists.List;
-      Descriptor : in WisiToken.Descriptor)
-   is
-      use all type Ada.Containers.Count_Type;
-      use Ada.Text_IO;
-      Minimal_Complete_Multiple_Reduce : State_Index_Arrays.Vector;
-   begin
-      Put_Line ("Tokens:");
-      WisiToken.Put_Tokens (Descriptor);
-
-      New_Line;
-      Put_Line ("Productions:");
-      WisiToken.Productions.Put (Grammar, Descriptor);
-
-      if Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit then
-         New_Line;
-         Put_Line ("McKenzie:");
-         WisiToken.LR.Put (Table.McKenzie_Param, Descriptor);
-      end if;
-
-      New_Line;
-      Put_Line ("Ancestors:");
-      for ID in Ancestors'Range (1) loop
-         if Any (Ancestors, ID) then
-            Put_Line (Image (ID, Descriptor) & " => " & Image (Slice (Ancestors, ID), Descriptor));
-         end if;
-      end loop;
-
-      New_Line;
-      Put_Line (Title & " Parse Table:");
-
-      for State_Index in Table.States'Range loop
-         LR1_Items.Put (Grammar, Descriptor, Kernels (State_Index), Kernel_Only => True, Show_Lookaheads => True);
-         New_Line;
-         Put (Descriptor, Table.States (State_Index));
-
-         if Count_Reduce (Table.States (State_Index).Minimal_Complete_Actions) > 1 then
-            Minimal_Complete_Multiple_Reduce.Append (State_Index);
-         end if;
-
-         if State_Index /= Table.States'Last then
-            New_Line;
-         end if;
-      end loop;
-
-      if Minimal_Complete_Multiple_Reduce.Length + Conflicts.Length > 0 then
-         New_Line;
-      end if;
-
-      if Minimal_Complete_Multiple_Reduce.Length > 0 then
-         Indent_Wrap
-           ("States with multiple reduce in Minimal_Complete_Action: " & Image (Minimal_Complete_Multiple_Reduce));
-      end if;
-
-      if Conflicts.Length > 0 then
-         declare
-            use Ada.Strings.Unbounded;
-            Last_State : Unknown_State_Index := Unknown_State;
-            Line : Unbounded_String := +"States with conflicts:";
-         begin
-            for Conflict of Conflicts loop
-               if Conflict.State_Index /= Last_State then
-                  Append (Line, State_Index'Image (Conflict.State_Index));
-                  Last_State := Conflict.State_Index;
-               end if;
-            end loop;
-            Indent_Wrap (-Line);
-         end;
-      end if;
-   end Put_Parse_Table;
 
    procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
@@ -772,7 +709,7 @@ package body WisiToken.Generate.LR is
                   --  Item.Dot is a nonterm that starts with a nullable nonterm; reduce
                   --  to that first.
                   return (Reduce, Node.Action.Item.Production.LHS, 0);
-               when Accept_It | WisiToken.LR.Error =>
+               when Accept_It | WisiToken.Parse.LR.Error =>
                   raise SAL.Programmer_Error;
                end case;
             end if;
@@ -848,5 +785,357 @@ package body WisiToken.Generate.LR is
          end if;
       end loop;
    end Set_Minimal_Complete_Actions;
+
+   ----------
+   --  Parse table output
+
+   procedure Put_Text_Rep
+     (Table        : in Parse_Table;
+      File_Name    : in String;
+      Action_Names : in Names_Array_Array;
+      Check_Names  : in Names_Array_Array)
+   is
+      use Ada.Text_IO;
+      File : File_Type;
+   begin
+      --  Only space, semicolon, newline delimit object values. Bounds of
+      --  arrays output before each array, unless known from discriminants.
+      --  End of lists indicated by semicolon. Action, Check subprograms are
+      --  represented by True if present, False if not; look up the actual
+      --  address Table.Productions.
+
+      Create (File, Out_File, File_Name);
+
+      --  First the discriminants
+      Put (File,
+           Trimmed_Image (Table.State_First) & State_Index'Image (Table.State_Last) &
+             Token_ID'Image (Table.First_Terminal) & Token_ID'Image (Table.Last_Terminal) &
+             Token_ID'Image (Table.First_Nonterminal) & Token_ID'Image (Table.Last_Nonterminal));
+      New_Line (File);
+
+      for State of Table.States loop
+         Put (File, Integer'Image (State.Productions.First_Index));
+         Put (File, Integer'Image (State.Productions.Last_Index));
+         for Prod of State.Productions loop
+            Put (File, Token_ID'Image (Prod.LHS) & Integer'Image (Prod.RHS));
+         end loop;
+         New_Line (File);
+
+         declare
+            Node_I : Action_Node_Ptr := State.Action_List;
+         begin
+            loop
+               exit when Node_I = null;
+               --  Action first, so we know if Symbol is present (not when Error)
+               declare
+                  Node_J     : Parse_Action_Node_Ptr := Node_I.Action;
+                  Put_Symbol : Boolean               := True;
+               begin
+                  loop
+                     Put (File, Parse_Action_Verbs'Image (Node_J.Item.Verb));
+
+                     case Node_J.Item.Verb is
+                     when Shift =>
+                        Put (File, State_Index'Image (Node_J.Item.State));
+
+                     when Reduce | Accept_It =>
+                        Put (File, Token_ID'Image (Node_J.Item.Production.LHS) &
+                               Integer'Image (Node_J.Item.Production.RHS));
+
+                        if Action_Names (Node_J.Item.Production.LHS) /= null and then
+                          Action_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
+                        then
+                           Put (File, " true");
+                        else
+                           Put (File, " false");
+                        end if;
+                        if Check_Names (Node_J.Item.Production.LHS) /= null and then
+                          Check_Names (Node_J.Item.Production.LHS)(Node_J.Item.Production.RHS) /= null
+                        then
+                           Put (File, " true");
+                        else
+                           Put (File, " false");
+                        end if;
+
+                        Put (File, Ada.Containers.Count_Type'Image (Node_J.Item.Token_Count));
+
+                     when Parse.LR.Error =>
+                        --  Error action terminates the action list
+                        Put_Symbol := False;
+                     end case;
+
+                     Node_J := Node_J.Next;
+                     exit when Node_J = null;
+                     Put (File, ' ');
+                  end loop;
+                  Put (File, ';');
+                  if Put_Symbol then
+                     Put (File, Token_ID'Image (Node_I.Symbol));
+                  end if;
+               end;
+               New_Line (File);
+
+               Node_I := Node_I.Next;
+            end loop;
+         end;
+
+         declare
+            Node_I : Goto_Node_Ptr := State.Goto_List;
+         begin
+            loop
+               exit when Node_I = null;
+               Put (File, Token_ID'Image (Symbol (Node_I)) & State_Index'Image (Parse.LR.State (Node_I)));
+               Node_I := Next (Node_I);
+            end loop;
+            Put (File, ';');
+            New_Line (File);
+         end;
+
+         for Action of State.Minimal_Complete_Actions loop
+            Put (File, ' ' & Minimal_Verbs'Image (Action.Verb));
+            case Action.Verb is
+            when Shift =>
+               Put (File, Token_ID'Image (Action.ID) & State_Index'Image (Action.State));
+            when Reduce =>
+               Put (File, Token_ID'Image (Action.Nonterm) & Ada.Containers.Count_Type'Image (Action.Token_Count));
+            end case;
+         end loop;
+         Put (File, ';');
+         New_Line (File);
+      end loop;
+      Close (File);
+   end Put_Text_Rep;
+
+   procedure Put (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor)
+   is
+      use Ada.Containers;
+      use Ada.Text_IO;
+   begin
+      case Item.Verb is
+      when Shift =>
+         Put ("shift and goto state" & State_Index'Image (Item.State));
+
+      when Reduce =>
+         Put
+           ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
+              Image (Item.Production.LHS, Descriptor));
+      when Accept_It =>
+         Put ("accept it");
+      when Parse.LR.Error =>
+         Put ("ERROR");
+      end case;
+   end Put;
+
+   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor)
+   is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("(Insert =>");
+      for I in Item.Insert'Range loop
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Insert (I)));
+         if I = Item.Insert'Last then
+            Put_Line (")");
+         else
+            Put_Line (",");
+         end if;
+      end loop;
+      Put_Line ("(Delete =>");
+      for I in Item.Delete'Range loop
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Delete (I)));
+         if I = Item.Delete'Last then
+            Put_Line (")");
+         else
+            Put_Line (",");
+         end if;
+      end loop;
+      Put_Line ("(Push_Back =>");
+      for I in Item.Delete'Range loop
+         Put (" " & Padded_Image (I, Descriptor) & " =>" & Natural'Image (Item.Delete (I)));
+         if I = Item.Delete'Last then
+            Put_Line (")");
+         else
+            Put_Line (",");
+         end if;
+      end loop;
+      Put_Line ("Ignore_Check_Fail =>" & Integer'Image (Item.Ignore_Check_Fail));
+      Put_Line ("Task_Count        =>" & System.Multiprocessors.CPU_Range'Image (Item.Task_Count));
+      Put_Line ("Cost_Limit        =>" & Integer'Image (Item.Cost_Limit));
+      Put_Line ("Check_Limit       =>" & Token_Index'Image (Item.Check_Limit));
+      Put_Line ("Check_Delta_Limit =>" & Integer'Image (Item.Check_Delta_Limit));
+      Put_Line ("Enqueue_Limit     =>" & Integer'Image (Item.Enqueue_Limit));
+   end Put;
+
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Parse_Action_Rec)
+   is
+      use Ada.Containers;
+      use Ada.Text_IO;
+   begin
+      case Item.Verb is
+      when Shift =>
+         Put ("shift and goto state" & State_Index'Image (Item.State));
+      when Reduce =>
+         Put
+           ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
+              Image (Item.Production.LHS, Descriptor));
+         Put (" " & Trimmed_Image (Item.Production));
+      when Accept_It =>
+         Put ("accept it");
+         Put (" " & Trimmed_Image (Item.Production));
+      when Parse.LR.Error =>
+         Put ("ERROR");
+      end case;
+   end Put;
+
+   procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr)
+   is
+      use Ada.Text_IO;
+      Ptr    : Parse_Action_Node_Ptr   := Action;
+      Column : constant Positive_Count := Col;
+   begin
+      loop
+         Put (Descriptor, Ptr.Item);
+         Ptr := Ptr.Next;
+         exit when Ptr = null;
+         Put_Line (",");
+         Set_Col (Column);
+      end loop;
+   end Put;
+
+   procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State)
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Text_IO;
+      use Ada.Strings.Fixed;
+      Action_Ptr : Action_Node_Ptr := State.Action_List;
+      Goto_Ptr   : Goto_Node_Ptr   := State.Goto_List;
+      Need_Comma : Boolean := False;
+   begin
+      while Action_Ptr /= null loop
+         Put ("   ");
+         if Action_Ptr.Next = null then
+            Put ("default" & (Descriptor.Image_Width - 7) * ' ' & " => ");
+
+         elsif Action_Ptr.Action.Item.Verb /= Parse.LR.Error then
+            Put (Image (Action_Ptr.Symbol, Descriptor) &
+                   (Descriptor.Image_Width - Image (Action_Ptr.Symbol, Descriptor)'Length) * ' '
+                   & " => ");
+         end if;
+         Put (Descriptor, Action_Ptr.Action);
+         New_Line;
+         Action_Ptr := Action_Ptr.Next;
+      end loop;
+
+      if Goto_Ptr /= null then
+         New_Line;
+      end if;
+
+      while Goto_Ptr /= null loop
+         Put_Line
+           ("   " & Image (Symbol (Goto_Ptr), Descriptor) &
+              (Descriptor.Image_Width - Image (Symbol (Goto_Ptr), Descriptor)'Length) * ' ' &
+              " goto state" & State_Index'Image (Parse.LR.State (Goto_Ptr)));
+         Goto_Ptr := Next (Goto_Ptr);
+      end loop;
+
+      if State.Minimal_Complete_Actions.Length > 0 then
+         New_Line;
+         Put ("   Minimal_Complete_Actions => (");
+         for Action of State.Minimal_Complete_Actions loop
+            if Need_Comma then
+               Put (", ");
+            else
+               Need_Comma := True;
+            end if;
+            case Action.Verb is
+            when Shift =>
+               Put (Image (Action.ID, Descriptor));
+            when Reduce =>
+               Put (Image (Action.Nonterm, Descriptor));
+            end case;
+         end loop;
+         Put_Line (")");
+      end if;
+   end Put;
+
+   procedure Put_Parse_Table
+     (Table      : in Parse_Table_Ptr;
+      Title      : in String;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Kernels    : in LR1_Items.Item_Set_List;
+      Ancestors  : in Token_Array_Token_Set;
+      Conflicts  : in Conflict_Lists.List;
+      Descriptor : in WisiToken.Descriptor)
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Text_IO;
+      Minimal_Complete_Multiple_Reduce : State_Index_Arrays.Vector;
+   begin
+      Put_Line ("Tokens:");
+      WisiToken.Put_Tokens (Descriptor);
+
+      New_Line;
+      Put_Line ("Productions:");
+      WisiToken.Productions.Put (Grammar, Descriptor);
+
+      if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit or
+          Table.McKenzie_Param.Check_Limit /= Default_McKenzie_Param.Check_Limit or
+          Table.McKenzie_Param.Check_Delta_Limit /= Default_McKenzie_Param.Check_Delta_Limit or
+          Table.McKenzie_Param.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit
+      then
+         New_Line;
+         Put_Line ("McKenzie:");
+         Put (Table.McKenzie_Param, Descriptor);
+      end if;
+
+      New_Line;
+      Put_Line ("Ancestors:");
+      for ID in Ancestors'Range (1) loop
+         if Any (Ancestors, ID) then
+            Put_Line (Image (ID, Descriptor) & " => " & Image (Slice (Ancestors, ID), Descriptor));
+         end if;
+      end loop;
+
+      New_Line;
+      Put_Line (Title & " Parse Table:");
+
+      for State_Index in Table.States'Range loop
+         LR1_Items.Put (Grammar, Descriptor, Kernels (State_Index), Kernel_Only => True, Show_Lookaheads => True);
+         New_Line;
+         Put (Descriptor, Table.States (State_Index));
+
+         if Count_Reduce (Table.States (State_Index).Minimal_Complete_Actions) > 1 then
+            Minimal_Complete_Multiple_Reduce.Append (State_Index);
+         end if;
+
+         if State_Index /= Table.States'Last then
+            New_Line;
+         end if;
+      end loop;
+
+      if Minimal_Complete_Multiple_Reduce.Length + Conflicts.Length > 0 then
+         New_Line;
+      end if;
+
+      if Minimal_Complete_Multiple_Reduce.Length > 0 then
+         Indent_Wrap
+           ("States with multiple reduce in Minimal_Complete_Action: " & Image (Minimal_Complete_Multiple_Reduce));
+      end if;
+
+      if Conflicts.Length > 0 then
+         declare
+            use Ada.Strings.Unbounded;
+            Last_State : Unknown_State_Index := Unknown_State;
+            Line : Unbounded_String := +"States with conflicts:";
+         begin
+            for Conflict of Conflicts loop
+               if Conflict.State_Index /= Last_State then
+                  Append (Line, State_Index'Image (Conflict.State_Index));
+                  Last_State := Conflict.State_Index;
+               end if;
+            end loop;
+            Indent_Wrap (-Line);
+         end;
+      end if;
+   end Put_Parse_Table;
 
 end WisiToken.Generate.LR;

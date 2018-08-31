@@ -24,10 +24,11 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.Parser_Lists;
+with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Lexer;
 with WisiToken.Parse;
-package WisiToken.LR.Parser is
+with WisiToken.Syntax_Trees;
+package WisiToken.Parse.LR.Parser is
 
    Default_Max_Parallel : constant := 15;
 
@@ -35,7 +36,7 @@ package WisiToken.LR.Parser is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
-      Parse_Table       : in     WisiToken.LR.Parse_Table;
+      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
@@ -140,4 +141,4 @@ package WisiToken.LR.Parser is
    --  Put user-friendly error messages from the parse to
    --  Ada.Text_IO.Current_Error.
 
-end WisiToken.LR.Parser;
+end WisiToken.Parse.LR.Parser;

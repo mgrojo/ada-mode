@@ -33,13 +33,13 @@ package WisiToken.BNF.Output_Elisp_Common is
      (Output_File_Root : in     String;
       Label            : in     String;
       Keywords         : in     String_Pair_Lists.List;
-      Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String);
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
 
    procedure Indent_Token_Table
      (Output_File_Root : in     String;
       Label            : in     String;
       Tokens           : in     Token_Lists.List;
-      Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String);
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
 
    procedure Indent_Name_Table
      (Output_File_Root : in     String;

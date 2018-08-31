@@ -39,6 +39,16 @@ package body WisiToken.BNF is
       Free (Prev);
    end Add;
 
+   function To_Output_Language (Item : in String) return Output_Language
+   is begin
+      for I in Output_Language loop
+         if To_Lower (Output_Language_Image (I).all) = To_Lower (Item) then
+            return I;
+         end if;
+      end loop;
+      raise User_Error with "invalid output language name: '" & Item & "'";
+   end To_Output_Language;
+
    function To_Lexer (Item : in String) return Lexer_Type
    is begin
       for I in Valid_Lexer loop
@@ -78,8 +88,8 @@ package body WisiToken.BNF is
 
    function Trim (Item : in String_Lists.List; Comment_Start : in String) return String_Lists.List
    is
-      use Standard.Ada.Strings;
-      use Standard.Ada.Strings.Fixed;
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
       Result : String_Lists.List;
       Comment : Integer;
 
@@ -107,7 +117,7 @@ package body WisiToken.BNF is
       Code           : in String_Lists.List;
       Comment_Only   : in Boolean := False)
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
       Real_Comment_Only : Boolean := Comment_Only;
    begin
       for Line of Code loop
@@ -135,7 +145,7 @@ package body WisiToken.BNF is
       Use_Tuple      : in Boolean        := False;
       Tuple          : in Generate_Tuple := (others => <>))
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
    begin
       Put_Line (Comment_Syntax & "  generated parser support file." & Emacs_Mode);
       Put_Command_Line  (Comment_Syntax & "  ", Use_Tuple, Tuple);
@@ -144,7 +154,7 @@ package body WisiToken.BNF is
 
    function Is_Present (List : in WisiToken.BNF.String_Pair_Lists.List; Name : in String) return Boolean
    is
-      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
+      use all type Ada.Strings.Unbounded.Unbounded_String;
    begin
       for Pair of List loop
          if Pair.Name = Name then
@@ -156,7 +166,7 @@ package body WisiToken.BNF is
 
    function Value (List : in WisiToken.BNF.String_Pair_Lists.List; Name : in String) return String
    is
-      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
+      use all type Ada.Strings.Unbounded.Unbounded_String;
    begin
       for Pair of List loop
          if Pair.Name = Name then
@@ -182,7 +192,7 @@ package body WisiToken.BNF is
       Name   : in     String;
       Value  : in     String)
    is
-      use type Standard.Ada.Strings.Unbounded.Unbounded_String;
+      use type Ada.Strings.Unbounded.Unbounded_String;
    begin
       for Token_Kind of Tokens loop
          if Token_Kind.Kind = Kind then
@@ -283,8 +293,8 @@ package body WisiToken.BNF is
       Use_Tuple      : in Boolean        := False;
       Tuple          : in Generate_Tuple := (others => <>))
    is
-      use Standard.Ada.Command_Line;
-      use Standard.Ada.Text_IO;
+      use Ada.Command_Line;
+      use Ada.Text_IO;
 
       Max_Line_Length : constant := 120;
       Col : Integer := 0;
@@ -307,9 +317,10 @@ package body WisiToken.BNF is
       end Put;
    begin
       Put (Comment_Prefix & "command line:", False);
-      Put (Standard.Ada.Directories.Simple_Name (Command_Name), True);
+      Put (Ada.Directories.Simple_Name (Command_Name), True);
       if Use_Tuple then
-         Put (" --generate " & Generate_Algorithm'Image (Tuple.Gen_Alg) & " " & Output_Language'Image (Tuple.Out_Lang) &
+         Put (" --generate " & Generate_Algorithm'Image (Tuple.Gen_Alg) & " " &
+                Output_Language_Image (Tuple.Out_Lang).all &
                 (if Tuple.Lexer /= None then " " & Lexer_Image (Tuple.Lexer).all else "") &
                 (if Tuple.Interface_Kind /= None then " " & Interface_Type'Image (Tuple.Interface_Kind) else "") &
                 (if Tuple.Text_Rep then " text_rep" else "") &

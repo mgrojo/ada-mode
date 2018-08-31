@@ -23,10 +23,9 @@ with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.LR.AUnit;
-with WisiToken.Generate.LR;
-with WisiToken.LR.LALR_Generate;
-with WisiToken.LR.Parser;
+with WisiToken.Parse.LR.AUnit;
+with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
@@ -112,7 +111,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
-   Parser : WisiToken.LR.Parser.Parser;
+   Parser : WisiToken.Parse.LR.Parser.Parser;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LR1_Descriptor'Access);
 
@@ -126,7 +125,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
    exception
    when WisiToken.Syntax_Error =>
       declare
-         use WisiToken.LR;
+         use WisiToken.Parse.LR;
          List  : Parse_Error_Lists.List renames Parser.Parsers.First.State_Ref.Errors;
          Error : Parse_Error renames List.Constant_Reference (List.First);
       begin
@@ -143,11 +142,11 @@ package body Test_LR_Expecting_Terminal_Sequence is
       First : WisiToken.Token_ID renames LR1_Descriptor.First_Terminal;
       Last  : WisiToken.Token_ID renames LR1_Descriptor.Last_Terminal;
    begin
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
+         WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
          User_Data                             => null,
          Language_Fixes                        => null,
          Language_Use_Minimal_Complete_Actions => null,
@@ -179,8 +178,8 @@ package body Test_LR_Expecting_Terminal_Sequence is
    procedure Test_Terminal_Sequence (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use WisiToken.LR.AUnit;
-      use WisiToken.LR.AUnit.Token_Sequence_Arrays_AUnit;
+      use WisiToken.Parse.LR.AUnit;
+      use WisiToken.Parse.LR.AUnit.Token_Sequence_Arrays_AUnit;
       Computed : WisiToken.Token_Sequence_Arrays.Vector;
       Expected : WisiToken.Token_Sequence_Arrays.Vector;
       Sequence : WisiToken.Token_ID_Arrays.Vector;

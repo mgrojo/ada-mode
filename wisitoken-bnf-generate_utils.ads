@@ -21,7 +21,7 @@ pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
 with WisiToken.Generate.LR;
-with WisiToken.LR;
+with WisiToken.Parse.LR;
 with WisiToken.Productions;
 with WisiToken.Wisi_Grammar_Runtime;
 package WisiToken.BNF.Generate_Utils is
@@ -50,7 +50,7 @@ package WisiToken.BNF.Generate_Utils is
       --  splitting them out.
 
       Conflicts                    : WisiToken.Generate.LR.Conflict_Lists.List;
-      LR_Parse_Table               : WisiToken.LR.Parse_Table_Ptr;
+      LR_Parse_Table               : WisiToken.Parse.LR.Parse_Table_Ptr;
       Table_Actions_Count          : Integer                       := -1; -- parse, not user, actions
       Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
       Accept_Reduce_Conflict_Count : Integer                       := 0;
@@ -66,14 +66,14 @@ package WisiToken.BNF.Generate_Utils is
    with
      Constant_Indexing => Constant_Reference,
      Default_Iterator  => Iterate,
-     Iterator_Element  => Standard.Ada.Strings.Unbounded.Unbounded_String;
+     Iterator_Element  => Ada.Strings.Unbounded.Unbounded_String;
    --  We need a container type to define an iterator; the actual data is
    --  in Data.Tokens. The Iterator_Element is given by Token_Name below.
 
    function All_Tokens (Data : aliased in Generate_Data) return Token_Container;
 
    type Token_Constant_Reference_Type
-     (Element : not null access constant Standard.Ada.Strings.Unbounded.Unbounded_String)
+     (Element : not null access constant Ada.Strings.Unbounded.Unbounded_String)
      is null record
    with Implicit_Dereference => Element;
 
@@ -97,7 +97,7 @@ package WisiToken.BNF.Generate_Utils is
 
    function Is_Done (Cursor : in Token_Cursor) return Boolean;
    function Has_Element (Cursor : in Token_Cursor) return Boolean is (not Is_Done (Cursor));
-   package Iterator_Interfaces is new Standard.Ada.Iterator_Interfaces (Token_Cursor, Has_Element);
+   package Iterator_Interfaces is new Ada.Iterator_Interfaces (Token_Cursor, Has_Element);
    function Iterate
      (Container    : aliased    Token_Container;
       Non_Grammar  :         in Boolean := True;
@@ -147,13 +147,16 @@ package WisiToken.BNF.Generate_Utils is
      (Data             : aliased in Generate_Data;
       Item             :         in McKenzie_Recover_Param_Type;
       Source_File_Name :         in String)
-     return WisiToken.LR.McKenzie_Param_Type;
+     return WisiToken.Parse.LR.McKenzie_Param_Type;
 
    procedure Count_Actions (Data : in out Generate_Utils.Generate_Data);
 
    procedure Put_Stats
      (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Generate_Data : in Generate_Utils.Generate_Data);
+
+   function Actions_Length (State : in Parse.LR.Parse_State) return Integer;
+   --  Not including Error.
 
 private
 

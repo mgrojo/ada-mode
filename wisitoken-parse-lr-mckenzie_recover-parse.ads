@@ -17,8 +17,8 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.McKenzie_Recover.Base;
-private package WisiToken.LR.McKenzie_Recover.Parse is
+with WisiToken.Parse.LR.McKenzie_Recover.Base;
+private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    function Reduce_Stack
      (Shared          : not null access Base.Shared;
@@ -74,4 +74,4 @@ private package WisiToken.LR.McKenzie_Recover.Parse is
    --
    --  Raises Bad_Config if parse encounters Unknown_State.
 
-end WisiToken.LR.McKenzie_Recover.Parse;
+end WisiToken.Parse.LR.McKenzie_Recover.Parse;

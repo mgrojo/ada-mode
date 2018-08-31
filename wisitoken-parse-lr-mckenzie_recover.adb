@@ -21,10 +21,10 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Task_Identification;
 with System.Multiprocessors;
-with WisiToken.LR.McKenzie_Recover.Base;
-with WisiToken.LR.McKenzie_Recover.Explore;
-with WisiToken.LR.Parser_Lists;
-package body WisiToken.LR.McKenzie_Recover is
+with WisiToken.Parse.LR.McKenzie_Recover.Base;
+with WisiToken.Parse.LR.McKenzie_Recover.Explore;
+with WisiToken.Parse.LR.Parser_Lists;
+package body WisiToken.Parse.LR.McKenzie_Recover is
 
    task type Worker_Task
      (Super  : not null access Base.Supervisor;
@@ -83,7 +83,7 @@ package body WisiToken.LR.McKenzie_Recover is
      (Shared_Parser : in out LR.Parser.Parser;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
-      use all type WisiToken.LR.Parser.Language_Fixes_Access;
+      use all type WisiToken.Parse.LR.Parser.Language_Fixes_Access;
 
       Trace  : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
       Config : constant Configuration_Access := Parser_State.Recover.Config_Heap.Add (Configuration'(others => <>));
@@ -1058,4 +1058,4 @@ package body WisiToken.LR.McKenzie_Recover is
       end loop;
    end Undo_Reduce_Check;
 
-end WisiToken.LR.McKenzie_Recover;
+end WisiToken.Parse.LR.McKenzie_Recover;

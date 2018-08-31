@@ -24,12 +24,12 @@ with Ada.Text_IO;
 with Skip_To_Grammar_Actions;
 with Skip_To_Grammar_LALR_Main;
 with Test_Skip_To_Aux;
-with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 package body Test_Skip_To is
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Skip_To_Grammar_Actions.Descriptor'Access);
-   Parser : WisiToken.LR.Parser_No_Recover.Parser;
+   Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
    ----------
    --  Test procedures

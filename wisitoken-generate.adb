@@ -28,9 +28,9 @@ package body WisiToken.Generate is
       Message   : in String)
      return String
    is
-      use Standard.Ada.Directories;
-      use Standard.Ada.Strings.Fixed;
-      use Standard.Ada.Strings;
+      use Ada.Directories;
+      use Ada.Strings.Fixed;
+      use Ada.Strings;
    begin
       return Simple_Name (File_Name) & ":" &
         Trim (Line_Number_Type'Image (File_Line), Left) & ":0: " & Message;
@@ -424,7 +424,7 @@ package body WisiToken.Generate is
 
    procedure Indent_Line (Text : in String)
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
    begin
       Set_Col (Indent);
       Put_Line (Text);
@@ -433,7 +433,7 @@ package body WisiToken.Generate is
 
    procedure Indent_Start (Text : in String)
    is
-      use Standard.Ada.Text_IO;
+      use Ada.Text_IO;
    begin
       Set_Col (Indent);
       Put (Text);
@@ -441,9 +441,9 @@ package body WisiToken.Generate is
 
    procedure Indent_Wrap (Text : in String)
    is
-      use all type Standard.Ada.Text_IO.Count;
-      use Standard.Ada.Strings;
-      use Standard.Ada.Strings.Fixed;
+      use all type Ada.Text_IO.Count;
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
       I     : Natural;
       First : Integer := Text'First;
    begin
@@ -467,9 +467,9 @@ package body WisiToken.Generate is
 
    procedure Indent_Wrap_Comment (Text : in String; Comment_Syntax : in String)
    is
-      use all type Standard.Ada.Text_IO.Count;
-      use Standard.Ada.Strings;
-      use Standard.Ada.Strings.Fixed;
+      use all type Ada.Text_IO.Count;
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
       Prefix : constant String := Comment_Syntax & "  ";
       I      : Natural;
       First  : Integer         := Text'First;

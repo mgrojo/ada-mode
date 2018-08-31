@@ -25,13 +25,12 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Generate;
-with WisiToken.LR.AUnit;
-with WisiToken.LR.LR1_Generate;
-with WisiToken.LR.LR1_Items.AUnit; use WisiToken.LR.LR1_Items.AUnit;
-with WisiToken.LR.LR1_Items;
-with WisiToken.LR.Parser;
+with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.LR1_Items.AUnit; use WisiToken.Generate.LR1_Items.AUnit;
+with WisiToken.Generate.LR1_Items;
 with WisiToken.Lexer.Regexp;
+with WisiToken.Parse.LR.AUnit;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
@@ -145,9 +144,9 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.LR.LR1_Items;
+      use WisiToken.Generate.LR1_Items;
 
-      Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
+      Computed : constant Item_Set_List := WisiToken.Generate.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First_Terminal_Sequence, Grammar, LR1_Descriptor);
 
       Expected : Item_Set_List :=
@@ -225,10 +224,10 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
 
-      use WisiToken.LR;
-      use WisiToken.LR.AUnit;
+      use WisiToken.Parse.LR;
+      use WisiToken.Parse.LR.AUnit;
 
-      Computed : constant Parse_Table_Ptr := WisiToken.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor);
+      Computed : constant Parse_Table_Ptr := WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -302,7 +301,7 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.LR.Parser.Parser;
+      Parser : WisiToken.Parse.LR.Parser.Parser;
 
       procedure Execute_Command (Command : in String)
       is begin
@@ -314,11 +313,11 @@ package body Dragon_4_43_LR1_Test is
       end Execute_Command;
 
    begin
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
+         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
          User_Data                             => null,
          Language_Fixes                        => null,
          Language_Use_Minimal_Complete_Actions => null,

@@ -57,7 +57,7 @@ is
 
    procedure Generate_Parser_Body (Prod : in Productions.Instance)
    is
-      use all type Standard.Ada.Containers.Count_Type;
+      use all type Ada.Containers.Count_Type;
 
       Result_ID : constant String := Trimmed_Image (Prod.LHS);
    begin

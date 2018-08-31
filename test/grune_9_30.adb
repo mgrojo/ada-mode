@@ -25,14 +25,14 @@ with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Generate;
 with WisiToken.Lexer.Regexp;
-with WisiToken.LR.LR1_Generate;
-with WisiToken.LR.LR1_Items;
-with WisiToken.LR.Parser;
+with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.LR1_Items;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
-with WisiToken.LR.LR1_Items.AUnit;
+with WisiToken.Generate.LR1_Items.AUnit;
 package body Grune_9_30 is
 
    type Token_ID is
@@ -98,10 +98,10 @@ package body Grune_9_30 is
    is
       pragma Unreferenced (T);
       use Ada.Text_IO;
-      use WisiToken.LR.LR1_Items.AUnit;
-      use WisiToken.LR.LR1_Items;
+      use WisiToken.Generate.LR1_Items.AUnit;
+      use WisiToken.Generate.LR1_Items;
 
-      Computed : constant Item_Set_List := WisiToken.LR.LR1_Generate.LR1_Item_Sets
+      Computed : constant Item_Set_List := WisiToken.Generate.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First_Terminal_Sequence, Grammar, LR1_Descriptor);
 
       Expected : Item_Set_List :=
@@ -141,7 +141,7 @@ package body Grune_9_30 is
    is
       pragma Unreferenced (T);
 
-      Parser : WisiToken.LR.Parser.Parser;
+      Parser : WisiToken.Parse.LR.Parser.Parser;
 
       procedure Execute_Command (Command : in String)
       is begin
@@ -153,11 +153,11 @@ package body Grune_9_30 is
       end Execute_Command;
 
    begin
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
+         WisiToken.Generate.LR.LR1_Generate.Generate (Grammar, LR1_Descriptor),
          User_Data                             => null,
          Language_Fixes                        => null,
          Language_Use_Minimal_Complete_Actions => null,

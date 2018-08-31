@@ -30,7 +30,7 @@ pragma License (Modified_GPL);
 
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
-package body WisiToken.LR.LR1_Items is
+package body WisiToken.Generate.LR1_Items is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
    ----------
@@ -577,4 +577,4 @@ package body WisiToken.LR.LR1_Items is
       end loop;
    end Put;
 
-end WisiToken.LR.LR1_Items;
+end WisiToken.Generate.LR1_Items;

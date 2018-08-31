@@ -21,7 +21,7 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-split up wisitoken-lr
+split up wisitoken-lr.ads
     -bnf-generate not depend on mckenzie runtime
 
 actions package needs lexer in name if %if_lexer present

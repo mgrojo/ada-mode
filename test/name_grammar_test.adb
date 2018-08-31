@@ -25,8 +25,8 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.LR.LALR_Generate;
-with WisiToken.LR.Parser;
+with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
@@ -96,7 +96,7 @@ package body Name_Grammar_Test is
 
    procedure Parse_Command
      (Label   : in     String;
-      Parser  : in out WisiToken.LR.Parser.Parser;
+      Parser  : in out WisiToken.Parse.LR.Parser.Parser;
       Command : in     String)
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
@@ -145,13 +145,13 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Full Parser");
       declare
-         Parser : WisiToken.LR.Parser.Parser;
+         Parser : WisiToken.Parse.LR.Parser.Parser;
       begin
-         WisiToken.LR.Parser.New_Parser
+         WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor),
+            WisiToken.Generate.LR.LALR_Generate.Generate (Full_Grammar, LALR_Descriptor),
             User_Data                             => null,
             Language_Fixes                        => null,
             Language_Use_Minimal_Complete_Actions => null,

@@ -21,7 +21,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with WisiToken.AUnit; use WisiToken.AUnit;
-package body WisiToken.LR.LR1_Items.AUnit is
+package body WisiToken.Generate.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
@@ -249,4 +249,4 @@ package body WisiToken.LR.LR1_Items.AUnit is
          State         => WisiToken.Unknown_State);
    end Get_Item_Set;
 
-end WisiToken.LR.LR1_Items.AUnit;
+end WisiToken.Generate.LR1_Items.AUnit;

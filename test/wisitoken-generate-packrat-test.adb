@@ -21,7 +21,7 @@ pragma License (GPL);
 with AUnit.Checks;
 with Ada.Text_IO;
 with WisiToken.BNF.Generate_Utils;
-with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Wisi_Grammar_Runtime;
 with Wisi_Grammar_Actions;
@@ -37,7 +37,7 @@ package body WisiToken.Generate.Packrat.Test is
 
       Grammar_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
       Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser     : WisiToken.LR.Parser_No_Recover.Parser;
+      Grammar_Parser     : WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
    begin
       --  Test that all indirect recursion is identified

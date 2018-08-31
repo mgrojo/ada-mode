@@ -22,7 +22,7 @@ with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
-package body WisiToken.LR.AUnit is
+package body WisiToken.Parse.LR.AUnit is
 
    procedure Check
      (Label    : in String;
@@ -208,4 +208,4 @@ package body WisiToken.LR.AUnit is
       Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);
    end Check;
 
-end WisiToken.LR.AUnit;
+end WisiToken.Parse.LR.AUnit;

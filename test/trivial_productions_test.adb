@@ -25,8 +25,8 @@ with Ada.Characters.Latin_1;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Productions;
-with WisiToken.LR.LALR_Generate;
-with WisiToken.LR.Parser;
+with WisiToken.Generate.LR.LALR_Generate;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Syntax_Trees;
 with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 with WisiToken.Text_IO_Trace;
@@ -79,17 +79,17 @@ package body Trivial_Productions_Test is
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         Parser : WisiToken.LR.Parser.Parser;
+         Parser : WisiToken.Parse.LR.Parser.Parser;
 
          Text : constant String := "symbol";
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-         WisiToken.LR.Parser.New_Parser
+         WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
+            WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
             User_Data                             => null,
             Language_Fixes                        => null,
             Language_Use_Minimal_Complete_Actions => null,
@@ -170,17 +170,17 @@ package body Trivial_Productions_Test is
            (Parameter_List_ID  <= +Null_Action or
                                   Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action);
 
-         Parser : WisiToken.LR.Parser.Parser;
+         Parser : WisiToken.Parse.LR.Parser.Parser;
 
          Text : constant String := "function (symbol) symbol procedure";
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-         WisiToken.LR.Parser.New_Parser
+         WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
+            WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
             User_Data                             => null,
             Language_Fixes                        => null,
             Language_Use_Minimal_Complete_Actions => null,

@@ -1,5 +1,5 @@
 ;;; case_expression-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisitoken-bnf-generate.exe  --generate LALR ELISP elisp ../Test/bnf/case_expression.wy
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR elisp elisp ../Test/bnf/case_expression.wy
 
 ;;  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
 

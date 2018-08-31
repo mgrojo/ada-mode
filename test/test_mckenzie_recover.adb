@@ -25,23 +25,23 @@ with Ada.Text_IO;
 with Ada_Lite_Actions;
 with Ada_Lite_LALR_Main;
 with WisiToken.AUnit;
-with WisiToken.LR.AUnit;
-with WisiToken.LR.McKenzie_Recover.Ada_Lite;
-with WisiToken.LR.Parser;
-with WisiToken.LR.Parser_Lists;
+with WisiToken.Parse.LR.AUnit;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
+with WisiToken.Parse.LR.Parser;
+with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees;
 package body Test_McKenzie_Recover is
    use Ada_Lite_LALR_Main; use Ada_Lite_Actions;
-   use WisiToken.LR.Config_Op_Arrays;
-   use all type WisiToken.LR.Config_Op_Label;
+   use WisiToken.Parse.LR.Config_Op_Arrays;
+   use all type WisiToken.Parse.LR.Config_Op_Label;
    use all type WisiToken.Semantic_Checks.Check_Status_Label;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
 
-   Parser : WisiToken.LR.Parser.Parser;
+   Parser : WisiToken.Parse.LR.Parser.Parser;
 
-   Orig_Params : WisiToken.LR.McKenzie_Param_Type
+   Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
      (First_Terminal    => Descriptor.First_Terminal,
       Last_Terminal     => Descriptor.Last_Terminal,
       First_Nonterminal => Descriptor.First_Nonterminal,
@@ -96,7 +96,8 @@ package body Test_McKenzie_Recover is
       Checking_Error          : in Ada.Containers.Count_Type                    := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
-      Ops                     : in WisiToken.LR.Config_Op_Arrays.Vector := WisiToken.LR.Config_Op_Arrays.Empty_Vector;
+      Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector :=
+        WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
       Enqueue_Low             : in Integer;
       Enqueue_High            : in Integer;
@@ -108,26 +109,26 @@ package body Test_McKenzie_Recover is
    is
       use AUnit.Checks;
       use WisiToken.AUnit;
-      use WisiToken.LR.AUnit;
+      use WisiToken.Parse.LR.AUnit;
       use WisiToken.Semantic_Checks.AUnit;
       use all type WisiToken.Buffer_Region;
       use all type WisiToken.Token_ID;
       use all type WisiToken.Token_ID_Set;
-      use all type WisiToken.LR.Parse_Error_Label;
+      use all type WisiToken.Parse.LR.Parse_Error_Label;
 
       Label_I : constant String := Label & "." & Ada.Containers.Count_Type'Image (Checking_Error);
 
-      Parser_State : WisiToken.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
-      Cursor       : WisiToken.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
+      Parser_State : WisiToken.Parse.LR.Parser_Lists.Parser_State renames Parser.Parsers.First.State_Ref.Element.all;
+      Cursor       : WisiToken.Parse.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
    begin
       Check (Label_I & ".errors.length", Parser_State.Errors.Length, Errors_Length);
 
       for I in 2 .. Checking_Error loop
-         WisiToken.LR.Parse_Error_Lists.Next (Cursor);
+         WisiToken.Parse.LR.Parse_Error_Lists.Next (Cursor);
       end loop;
 
       declare
-         Error : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
+         Error : WisiToken.Parse.LR.Parse_Error renames WisiToken.Parse.LR.Parse_Error_Lists.Element (Cursor);
       begin
          if Expecting /= Empty_Token_ID_Set then
             Check (Label_I & "expecting", Error.Expecting, Expecting);
@@ -1794,10 +1795,10 @@ package body Test_McKenzie_Recover is
       --  FIXME: add run-time choice of LR1 vs LALR
       Create_Parser
         (Parser,
-         Language_Fixes                        => WisiToken.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
+         Language_Fixes                        => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Fixes'Access,
          Language_Use_Minimal_Complete_Actions =>
-           WisiToken.LR.McKenzie_Recover.Ada_Lite.Use_Minimal_Complete_Actions'Access,
-         Language_String_ID_Set                => WisiToken.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
+           WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.Use_Minimal_Complete_Actions'Access,
+         Language_String_ID_Set                => WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite.String_ID_Set'Access,
          Trace                                 => Trace'Access,
          User_Data                             => User_Data'Access);
 
@@ -1823,8 +1824,8 @@ package body Test_McKenzie_Recover is
          Parser.Table.McKenzie_Param.Cost_Limit := T.Cost_Limit;
       end if;
 
-      WisiToken.LR.McKenzie_Recover.Force_High_Cost_Solutions := False;
-      WisiToken.LR.McKenzie_Recover.Force_Full_Explore := False;
+      WisiToken.Parse.LR.McKenzie_Recover.Force_High_Cost_Solutions := False;
+      WisiToken.Parse.LR.McKenzie_Recover.Force_Full_Explore := False;
 
       Parser.Post_Recover := null;
    end Set_Up;

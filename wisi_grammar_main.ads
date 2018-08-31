@@ -22,11 +22,11 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
-with WisiToken.LR.Parser_No_Recover;
+with WisiToken.Parse.LR.Parser_No_Recover;
 package Wisi_Grammar_Main is
 
    procedure Create_Parser
-     (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;
+     (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);
 

@@ -23,11 +23,71 @@ with System.Multiprocessors;
 with WisiToken.BNF.Generate_Grammar;
 with WisiToken.BNF.Utils;
 with WisiToken.Generate; use WisiToken.Generate;
-with WisiToken.LR;
+with WisiToken.Parse.LR;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 package body WisiToken.BNF.Output_Ada_Common is
 
+   --  Body subprograms, alphabetical
+
+   function Duplicate_Reduce (State : in Parse.LR.Parse_State) return Boolean
+   is
+      use Parse.LR;
+      Node        : Action_Node_Ptr       := State.Action_List;
+      Action_Node : Parse_Action_Node_Ptr := Node.Action;
+      First       : Boolean               := True;
+      Action      : Reduce_Action_Rec;
+   begin
+      loop
+         Action_Node := Node.Action;
+         if Action_Node.Next /= null then
+            --  conflict
+            return False;
+         elsif Action_Node.Item.Verb /= Reduce then
+            return False;
+         end if;
+
+         if First then
+            Action := Action_Node.Item;
+            First  := False;
+         else
+            if not Equal (Action, Action_Node.Item) then
+               return False;
+            end if;
+         end if;
+         Node := Node.Next;
+         exit when Node.Next = null; --  Last entry is Error.
+      end loop;
+      return True;
+   end Duplicate_Reduce;
+
+   function Symbols_Image (State : in Parse.LR.Parse_State) return String
+   is
+      use Ada.Strings.Unbounded;
+      use Parse.LR;
+
+      Result     : Unbounded_String;
+      Need_Comma : Boolean          := False;
+      Node       : Action_Node_Ptr  := State.Action_List;
+   begin
+      if Generate_Utils.Actions_Length (State) = 1 then
+         return "(1 => " & Token_ID'Image (Node.Symbol) & ")";
+      else
+         Result := +"(";
+         loop
+            Result := Result &
+              (if Need_Comma then ", " else "") &
+              Trimmed_Image (Node.Symbol);
+            Need_Comma := True;
+            Node := Node.Next;
+            exit when Node.Next = null; -- last is Error
+         end loop;
+         Result := Result & ")";
+         return -Result;
+      end if;
+   end Symbols_Image;
+
+   ----------
    --  Public subprograms in alphabetical order
 
    procedure Create_Ada_Actions_Spec
@@ -202,15 +262,14 @@ package body WisiToken.BNF.Output_Ada_Common is
       is begin
          Indent_Line ("procedure Create_Parser");
          if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;");
+            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;");
+            Indent_Line ("   Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
+            Indent_Line ("   Language_Use_Minimal_Complete_Actions : in");
+            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;");
             Indent_Line
-              ("   Language_Use_Minimal_Complete_Actions : in    " &
-                 "WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;");
-            Indent_Line
-              ("   Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;");
+              ("   Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
          else
-            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
+            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
          end if;
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
          Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");
@@ -250,10 +309,10 @@ package body WisiToken.BNF.Output_Ada_Common is
       New_Line;
 
       case Common_Data.Output_Language is
-      when Ada =>
+      when Ada_Lang =>
          Put_Line ("with WisiToken.Syntax_Trees;");
 
-      when Ada_Emacs =>
+      when Ada_Emacs_Lang =>
          case Common_Data.Interface_Kind is
          when Process =>
             Put_Line ("with WisiToken.Syntax_Trees;");
@@ -269,9 +328,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       case Common_Data.Generate_Algorithm is
       when LR_Generate_Algorithm =>
          if Input_Data.Language_Params.Error_Recover then
-            Put_Line ("with WisiToken.LR.Parser;");
+            Put_Line ("with WisiToken.Parse.LR.Parser;");
          else
-            Put_Line ("with WisiToken.LR.Parser_No_Recover;");
+            Put_Line ("with WisiToken.Parse.LR.Parser_No_Recover;");
          end if;
 
       when Packrat_Generate_Algorithm =>
@@ -286,7 +345,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       New_Line;
 
       case Common_Data.Output_Language is
-      when Ada =>
+      when Ada_Lang =>
          case Common_Data.Generate_Algorithm is
          when LR_Generate_Algorithm =>
             LR_Process;
@@ -296,7 +355,7 @@ package body WisiToken.BNF.Output_Ada_Common is
             null;
          end case;
 
-      when Ada_Emacs =>
+      when Ada_Emacs_Lang =>
          case Common_Data.Interface_Kind is
          when Process =>
             case Common_Data.Generate_Algorithm is
@@ -356,13 +415,13 @@ package body WisiToken.BNF.Output_Ada_Common is
      (Common_Data   : in Output_Ada_Common.Common_Data;
       Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
-      use Standard.Ada.Strings.Unbounded;
-      use all type Standard.Ada.Containers.Count_Type;
+      use Ada.Strings.Unbounded;
+      use all type Ada.Containers.Count_Type;
 
       subtype Nonterminal_ID is Token_ID range
         Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index;
 
-      Table : WisiToken.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
+      Table : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
       Line  : Unbounded_String;
 
       procedure Append (Item : in String)
@@ -475,10 +534,10 @@ package body WisiToken.BNF.Output_Ada_Common is
      (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
       Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
-      use all type Standard.Ada.Containers.Count_Type;
-      use Standard.Ada.Strings.Unbounded;
+      use all type Ada.Containers.Count_Type;
+      use Ada.Strings.Unbounded;
 
-      Table            : WisiToken.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
+      Table            : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
       Lines_Per_Subr   : constant := 1000;
       Subr_Count       : Integer  := 1;
       Last_Subr_Closed : Boolean  := False;
@@ -514,9 +573,9 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          Actions :
          declare
-            use Standard.Ada.Containers;
-            use WisiToken.LR;
-            Base_Indent : constant Standard.Ada.Text_IO.Count := Indent;
+            use Ada.Containers;
+            use WisiToken.Parse.LR;
+            Base_Indent : constant Ada.Text_IO.Count := Indent;
             Node        : Action_Node_Ptr := Table.States (State_Index).Action_List;
          begin
             if Duplicate_Reduce (Table.States (State_Index)) then
@@ -591,7 +650,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                               (Action_Node.Item.Production.LHS)(Action_Node.Item.Production.RHS).all &
                                "'Access"));
 
-                     when LR.Error =>
+                     when Parse.LR.Error =>
                         Line := +"Add_Error (Table.States (" & Trimmed_Image (State_Index) & ")";
                      end case;
 
@@ -624,7 +683,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
                         when others =>
                            raise SAL.Programmer_Error with "conflict second action verb: " &
-                             LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
+                             Parse.LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                         end case;
                      end if;
                   end;
@@ -638,7 +697,7 @@ package body WisiToken.BNF.Output_Ada_Common is
 
          Gotos :
          declare
-            use WisiToken.LR;
+            use WisiToken.Parse.LR;
             Node : Goto_Node_Ptr := Table.States (State_Index).Goto_List;
          begin
             loop
@@ -654,7 +713,7 @@ package body WisiToken.BNF.Output_Ada_Common is
          if Table.States (State_Index).Minimal_Complete_Actions.Length > 0 then
             Indent_Wrap
               ("Set_Minimal_Action (Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions, " &
-                 WisiToken.LR.Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
+                 WisiToken.Parse.LR.Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
          end if;
 
          if Line_Count > Lines_Per_Subr then
@@ -696,27 +755,26 @@ package body WisiToken.BNF.Output_Ada_Common is
       Common_Data   :         in out Output_Ada_Common.Common_Data;
       Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data)
    is
-      Table : WisiToken.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
+      Table : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
    begin
       Indent_Line ("procedure Create_Parser");
       case Common_Data.Interface_Kind is
       when Process =>
          if Input_Data.Language_Params.Error_Recover then
-            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser.Parser;");
-            Indent_Line ("   Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;");
+            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;");
+            Indent_Line ("   Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;");
+            Indent_Line ("   Language_Use_Minimal_Complete_Actions : in");
+            Indent_Line ("  WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;");
             Indent_Line
-              ("   Language_Use_Minimal_Complete_Actions : in    " &
-                 "WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;");
-            Indent_Line
-              ("   Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;");
+              ("   Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;");
          else
-            Indent_Line ("  (Parser                       :    out WisiToken.LR.Parser_No_Recover.Parser;");
+            Indent_Line ("  (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;");
          end if;
          Indent_Line ("   Trace                        : not null access WisiToken.Trace'Class;");
          Indent_Start ("   User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access");
 
       when Module =>
-         Indent_Line ("  (Parser              :    out WisiToken.LR.Parser.Parser;");
+         Indent_Line ("  (Parser              :    out WisiToken.Parse.LR.Parser.Parser;");
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
          Indent_Start ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value");
       end case;
@@ -731,7 +789,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("is");
       Indent := Indent + 3;
 
-      Indent_Line ("use WisiToken.LR;");
+      Indent_Line ("use WisiToken.Parse.LR;");
 
       if Common_Data.Text_Rep then
          Create_LR_Parser_Core_1 (Common_Data, Generate_Data);
@@ -767,9 +825,9 @@ package body WisiToken.BNF.Output_Ada_Common is
       end if;
 
       if Input_Data.Language_Params.Error_Recover then
-         Indent_Line ("WisiToken.LR.Parser.New_Parser");
+         Indent_Line ("WisiToken.Parse.LR.Parser.New_Parser");
       else
-         Indent_Line ("WisiToken.LR.Parser_No_Recover.New_Parser");
+         Indent_Line ("WisiToken.Parse.LR.Parser_No_Recover.New_Parser");
       end if;
       Indent_Line ("  (Parser,");
       case Common_Data.Interface_Kind is
@@ -800,7 +858,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data;
       Packrat_Data  :         in     WisiToken.Generate.Packrat.Data)
    is
-      use Standard.Ada.Strings.Unbounded;
+      use Ada.Strings.Unbounded;
 
       Text     : Unbounded_String;
       Need_Bar : Boolean := True;
@@ -894,7 +952,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Output_File_Name_Root :         in String;
       Elisp_Regexps         :         in WisiToken.BNF.String_Pair_Lists.List)
    is
-      use Standard.Ada.Strings.Fixed;
+      use Ada.Strings.Fixed;
       use Generate_Utils;
       use WisiToken.BNF.Utils;
       File : File_Type;

@@ -25,15 +25,15 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.Parser_Lists;
 with WisiToken.Lexer;
-with WisiToken.Parse;
-package WisiToken.LR.Parser_No_Recover is
+with WisiToken.Parse.LR.Parser_Lists;
+with WisiToken.Syntax_Trees;
+package WisiToken.Parse.LR.Parser_No_Recover is
 
    Default_Max_Parallel : constant := 15;
 
    type Parser is new WisiToken.Parse.Base_Parser with record
-      Table     : Parse_Table_Ptr;
+      Table       : Parse_Table_Ptr;
       Shared_Tree : aliased Syntax_Trees.Base_Tree;
       --  Each parser has its own branched syntax tree, all branched from
       --  this tree.
@@ -56,7 +56,7 @@ package WisiToken.LR.Parser_No_Recover is
       Trace                : not null access WisiToken.Trace'Class;
       Lexer                : in              WisiToken.Lexer.Handle;
       Table                : in              Parse_Table_Ptr;
-      User_Data            : in              WisiToken.Syntax_Trees.User_Data_Access;
+      User_Data            : in              Syntax_Trees.User_Data_Access;
       Max_Parallel         : in              SAL.Base_Peek_Type := Default_Max_Parallel;
       First_Parser_Label   : in              Integer            := 1;
       Terminate_Same_State : in              Boolean            := True);
@@ -81,4 +81,4 @@ package WisiToken.LR.Parser_No_Recover is
    overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser);
    --  Execute the grammar actions in Parser.
 
-end WisiToken.LR.Parser_No_Recover;
+end WisiToken.Parse.LR.Parser_No_Recover;

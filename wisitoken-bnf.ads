@@ -58,8 +58,18 @@ package WisiToken.BNF is
    type Generate_Algorithm_Set is array (Generate_Algorithm) of Boolean;
    type Generate_Algorithm_Set_Access is access Generate_Algorithm_Set;
 
-   type Output_Language is (Ada, Ada_Emacs, Elisp);
-   subtype Ada_Output_Language is Output_Language range Ada .. Ada_Emacs;
+   type Output_Language is (Ada_Lang, Ada_Emacs_Lang, Elisp_Lang);
+   subtype Ada_Output_Language is Output_Language range Ada_Lang .. Ada_Emacs_Lang;
+   --  _Lang to avoid colliding with the standard package Ada and
+   --  WisiToken packages named *.Ada. In the grammar file, they
+   --  are named by (case insensitive):
+   Output_Language_Image : constant array (Output_Language) of access constant String :=
+     (Ada_Lang       => new String'("Ada"),
+      Ada_Emacs_Lang => new String'("Ada_Emacs"),
+      Elisp_Lang     => new String'("elisp"));
+
+   function To_Output_Language (Item : in String) return Output_Language;
+   --  Raises User_Error for invalid Item
 
    type Lexer_Type is (None, Elisp_Lexer, re2c_Lexer);
    subtype Valid_Lexer is Lexer_Type range Elisp_Lexer .. Lexer_Type'Last;
@@ -92,24 +102,24 @@ package WisiToken.BNF is
 
    type Generate_Set is array (Natural range <>) of Generate_Tuple;
    type Generate_Set_Access is access Generate_Set;
-   procedure Free is new Standard.Ada.Unchecked_Deallocation (Generate_Set, Generate_Set_Access);
+   procedure Free is new Ada.Unchecked_Deallocation (Generate_Set, Generate_Set_Access);
 
    procedure Add
      (Set   : in out Generate_Set_Access;
       Tuple : in     Generate_Tuple);
 
-   package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
+   package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
    type Language_Param_Type is record
       --  Set by grammar file declarations or command line options. Error
       --  recover parameters are in McKenzie_Recover_Param_Type below.
       Case_Insensitive              : Boolean := False;
       Embedded_Quote_Escape_Doubled : Boolean := False;
-      End_Names_Optional_Option     : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      End_Names_Optional_Option     : Ada.Strings.Unbounded.Unbounded_String;
       Language_Runtime              : Boolean := True;
       Declare_Enums                 : Boolean := True;
       Error_Recover                 : Boolean := False;
-      Start_Token                   : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Start_Token                   : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    type Raw_Code_Location is
@@ -159,11 +169,11 @@ package WisiToken.BNF is
    --  Output "parser support file <emacs_mode> /n command line: " comment to Ada.Text_IO.Current_Output.
 
    type String_Pair_Type is record
-      Name  : aliased Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Value : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Name  : aliased Ada.Strings.Unbounded.Unbounded_String;
+      Value : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
-   package String_Pair_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
+   package String_Pair_Lists is new Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
 
    function Is_Present (List : in String_Pair_Lists.List; Name : in String) return Boolean;
    function Value (List : in String_Pair_Lists.List; Name : in String) return String;
@@ -187,11 +197,11 @@ package WisiToken.BNF is
    end record;
 
    type Token_Kind_Type is record
-      Kind   : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Kind   : Ada.Strings.Unbounded.Unbounded_String;
       Tokens : String_Pair_Lists.List;
    end record;
 
-   package Token_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Token_Kind_Type);
+   package Token_Lists is new Ada.Containers.Doubly_Linked_Lists (Token_Kind_Type);
 
    function Count (Tokens : in Token_Lists.List) return Integer;
    --  Count of all leaves.
@@ -212,30 +222,30 @@ package WisiToken.BNF is
 
    type Conflict is record
       Source_Line : WisiToken.Line_Number_Type;
-      Action_A    : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      LHS_A       : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Action_B    : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      LHS_B       : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      On          : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Action_A    : Ada.Strings.Unbounded.Unbounded_String;
+      LHS_A       : Ada.Strings.Unbounded.Unbounded_String;
+      Action_B    : Ada.Strings.Unbounded.Unbounded_String;
+      LHS_B       : Ada.Strings.Unbounded.Unbounded_String;
+      On          : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
-   package Conflict_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Conflict);
+   package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
 
    type RHS_Type is record
       Tokens      : String_Lists.List;
-      Action      : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Check       : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Action      : Ada.Strings.Unbounded.Unbounded_String;
+      Check       : Ada.Strings.Unbounded.Unbounded_String;
       Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
    end record;
-   package RHS_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
+   package RHS_Lists is new Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 
    type Rule_Type is record
-      Left_Hand_Side   : aliased Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Left_Hand_Side   : aliased Ada.Strings.Unbounded.Unbounded_String;
       Right_Hand_Sides : RHS_Lists.List;
       Source_Line      : WisiToken.Line_Number_Type;
    end record;
 
-   package Rule_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Rule_Type);
+   package Rule_Lists is new Ada.Containers.Doubly_Linked_Lists (Rule_Type);
 
    function Is_Present (Rules : in Rule_Lists.List; LHS : in String) return Boolean;
 
@@ -262,20 +272,20 @@ package WisiToken.BNF is
       Regexps : String_Pair_Lists.List; -- %regexp_name
    end record;
 
-   function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String
-     renames Standard.Ada.Strings.Unbounded.To_Unbounded_String;
+   function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
+     renames Ada.Strings.Unbounded.To_Unbounded_String;
 
-   function "-" (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
-     renames Standard.Ada.Strings.Unbounded.To_String;
+   function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+     renames Ada.Strings.Unbounded.To_String;
 
    function To_Lower (Item : in String) return String
-     renames Standard.Ada.Characters.Handling.To_Lower;
+     renames Ada.Characters.Handling.To_Lower;
 
    function To_Upper (Item : in String) return String
-     renames Standard.Ada.Characters.Handling.To_Upper;
+     renames Ada.Characters.Handling.To_Upper;
 
    function To_Upper (Item : in Character) return Character
-     renames Standard.Ada.Characters.Handling.To_Upper;
+     renames Ada.Characters.Handling.To_Upper;
 
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List;
 

@@ -33,7 +33,7 @@ with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Comparable;
 with WisiToken.Productions;
-package WisiToken.LR.LR1_Items is
+package WisiToken.Generate.LR1_Items is
 
    use all type Interfaces.Integer_16;
 
@@ -329,4 +329,4 @@ package WisiToken.LR.LR1_Items is
       Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
-end WisiToken.LR.LR1_Items;
+end WisiToken.Generate.LR1_Items;

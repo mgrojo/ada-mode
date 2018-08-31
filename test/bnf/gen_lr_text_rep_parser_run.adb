@@ -54,7 +54,7 @@ is
    procedure Parse
    is
       use all type System.Multiprocessors.CPU_Range;
-      Parser : WisiToken.LR.Parser.Parser;
+      Parser : WisiToken.Parse.LR.Parser.Parser;
    begin
       Create_Parser
         (Parser,

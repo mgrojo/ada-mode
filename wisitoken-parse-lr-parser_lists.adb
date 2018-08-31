@@ -18,7 +18,7 @@
 
 pragma License (Modified_GPL);
 
-package body WisiToken.LR.Parser_Lists is
+package body WisiToken.Parse.LR.Parser_Lists is
 
    function Parser_Stack_Image
      (Stack      : in Parser_Stacks.Stack;
@@ -390,4 +390,4 @@ package body WisiToken.LR.Parser_Lists is
       Iterator.Verb := Verb;
    end Set_Verb;
 
-end WisiToken.LR.Parser_Lists;
+end WisiToken.Parse.LR.Parser_Lists;

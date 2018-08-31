@@ -1,8 +1,6 @@
 --  Abstract :
 --
---  Common utilities for LR parser table generators. These are not in
---  LR, because they are only needed at generator time, not parse
---  time.
+--  Common utilities for LR parser table generators.
 --
 --  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
@@ -20,10 +18,11 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
-with WisiToken.LR.LR1_Items;
+with WisiToken.Generate.LR1_Items;
+with WisiToken.Parse.LR;
 with WisiToken.Productions;
 package WisiToken.Generate.LR is
-   use WisiToken.LR;
+   use WisiToken.Parse.LR;
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict is record
@@ -46,6 +45,11 @@ package WisiToken.Generate.LR is
    end record;
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
+
+   procedure Put
+     (Item       : in Conflict_Lists.List;
+      File       : in Ada.Text_IO.File_Type;
+      Descriptor : in WisiToken.Descriptor);
 
    procedure Add_Action
      (Symbol               : in     Token_ID;
@@ -113,20 +117,6 @@ package WisiToken.Generate.LR is
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
 
-   procedure Put
-     (Item       : in Conflict_Lists.List;
-      File       : in Ada.Text_IO.File_Type;
-      Descriptor : in WisiToken.Descriptor);
-
-   procedure Put_Parse_Table
-     (Table      : in Parse_Table_Ptr;
-      Title      : in String;
-      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
-      Kernels    : in LR1_Items.Item_Set_List;
-      Ancestors  : in Token_Array_Token_Set;
-      Conflicts  : in Conflict_Lists.List;
-      Descriptor : in WisiToken.Descriptor);
-
    procedure Compute_Minimal_Terminal_Sequences
      (Grammar    : in     WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor : in     WisiToken.Descriptor;
@@ -154,5 +144,33 @@ package WisiToken.Generate.LR is
    --  most quickly complete the productions in Kernel (which must be for
    --  State). Useful in error correction when we know the next actual
    --  terminal is a block ending or statement start.
+
+   ----------
+   --  Parse table output
+
+   procedure Put_Text_Rep
+     (Table        : in Parse_Table;
+      File_Name    : in String;
+      Action_Names : in Names_Array_Array;
+      Check_Names  : in Names_Array_Array);
+   --  Write machine-readable text format of Table.States to a file
+   --  File_Name, to be read by the parser executable at startup, using
+   --  WisiToken.Parse.LR.Get_Text_Rep.
+
+   procedure Put (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor);
+   procedure Put (Item : in McKenzie_Param_Type; Descriptor : in WisiToken.Descriptor);
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Parse_Action_Rec);
+   procedure Put (Descriptor : in WisiToken.Descriptor; Action : in Parse_Action_Node_Ptr);
+   procedure Put (Descriptor : in WisiToken.Descriptor; State : in Parse_State);
+   --  Put Item to Ada.Text_IO.Current_Output in parse table format.
+
+   procedure Put_Parse_Table
+     (Table      : in Parse_Table_Ptr;
+      Title      : in String;
+      Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
+      Kernels    : in LR1_Items.Item_Set_List;
+      Ancestors  : in Token_Array_Token_Set;
+      Conflicts  : in Conflict_Lists.List;
+      Descriptor : in WisiToken.Descriptor);
 
 end WisiToken.Generate.LR;

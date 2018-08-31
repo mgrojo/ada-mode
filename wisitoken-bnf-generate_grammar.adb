@@ -24,8 +24,8 @@ procedure WisiToken.BNF.Generate_Grammar
   (Grammar      : in WisiToken.Productions.Prod_Arrays.Vector;
    Action_Names : in WisiToken.Names_Array_Array)
 is
-   use all type Standard.Ada.Containers.Count_Type;
-   use Standard.Ada.Strings.Unbounded;
+   use all type Ada.Containers.Count_Type;
+   use Ada.Strings.Unbounded;
    use WisiToken.Generate;
    use WisiToken.Productions;
    Text : Unbounded_String;

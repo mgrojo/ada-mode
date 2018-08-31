@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package body WisiToken.LR.McKenzie_Recover.Parse is
+package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
 
    procedure Compute_Nonterm
      (ID              : in     Token_ID;
@@ -299,4 +299,4 @@ package body WisiToken.LR.McKenzie_Recover.Parse is
       return Success;
    end Parse;
 
-end WisiToken.LR.McKenzie_Recover.Parse;
+end WisiToken.Parse.LR.McKenzie_Recover.Parse;

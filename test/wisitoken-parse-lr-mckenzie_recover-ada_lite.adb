@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
 with Ada_Lite_Actions;
-package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
+package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
 
    use all type Standard.Ada_Lite_Actions.Token_Enum_ID; -- token names
    use all type Semantic_Checks.Check_Status_Label;
@@ -749,7 +749,7 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
-      Parse_Table       : in     WisiToken.LR.Parse_Table;
+      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
@@ -820,4 +820,4 @@ package body WisiToken.LR.McKenzie_Recover.Ada_Lite is
       end return;
    end String_ID_Set;
 
-end WisiToken.LR.McKenzie_Recover.Ada_Lite;
+end WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;

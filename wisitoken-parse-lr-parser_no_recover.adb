@@ -28,7 +28,7 @@
 
 pragma License (Modified_GPL);
 
-package body WisiToken.LR.Parser_No_Recover is
+package body WisiToken.Parse.LR.Parser_No_Recover is
 
    procedure Reduce_Stack_1
      (Current_Parser : in     Parser_Lists.Cursor;
@@ -492,4 +492,4 @@ package body WisiToken.LR.Parser_No_Recover is
       end loop;
    end Put_Errors;
 
-end WisiToken.LR.Parser_No_Recover;
+end WisiToken.Parse.LR.Parser_No_Recover;

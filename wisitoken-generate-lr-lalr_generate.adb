@@ -24,7 +24,7 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Text_IO;
 with SAL.Gen_Definite_Doubly_Linked_Lists;
-package body WisiToken.LR.LALR_Generate is
+package body WisiToken.Generate.LR.LALR_Generate is
 
    package Item_List_Cursor_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (LR1_Items.Item_Lists.Cursor);
 
@@ -590,4 +590,4 @@ package body WisiToken.LR.LALR_Generate is
       return Table;
    end Generate;
 
-end WisiToken.LR.LALR_Generate;
+end WisiToken.Generate.LR.LALR_Generate;

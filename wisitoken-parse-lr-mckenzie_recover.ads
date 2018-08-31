@@ -26,9 +26,9 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.LR.Parser;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
-package WisiToken.LR.McKenzie_Recover is
+package WisiToken.Parse.LR.McKenzie_Recover is
 
    Bad_Config : exception;
    --  Raised when a config is determined to violate some programming
@@ -38,7 +38,7 @@ package WisiToken.LR.McKenzie_Recover is
      (Fail_Check_Delta, Fail_Enqueue_Limit, Fail_Cost, Fail_No_Configs_Left, Fail_Programmer_Error,
       Success);
 
-   function Recover (Shared_Parser : in out WisiToken.LR.Parser.Parser) return Recover_Status;
+   function Recover (Shared_Parser : in out WisiToken.Parse.LR.Parser.Parser) return Recover_Status;
    --  Attempt to modify Parser.Parsers state and Parser.Lookahead to
    --  allow recovering from an error state.
 
@@ -217,4 +217,4 @@ private
       Expected : in     Token_ID_Array);
    --  Call Undo_Reduce_Check for each item in Expected.
 
-end WisiToken.LR.McKenzie_Recover;
+end WisiToken.Parse.LR.McKenzie_Recover;

@@ -18,9 +18,9 @@
 
 pragma License (GPL);
 
-with WisiToken.LR.LR1_Items;
+with WisiToken.Generate.LR1_Items;
 with WisiToken.Productions;
-package WisiToken.LR.LR1_Items.AUnit is
+package WisiToken.Generate.LR1_Items.AUnit is
 
    procedure Check
      (Label            : in String;
@@ -105,4 +105,4 @@ package WisiToken.LR.LR1_Items.AUnit is
       Lookahead : in LR1_Items.Lookahead)
      return Item_Set;
 
-end WisiToken.LR.LR1_Items.AUnit;
+end WisiToken.Generate.LR1_Items.AUnit;
