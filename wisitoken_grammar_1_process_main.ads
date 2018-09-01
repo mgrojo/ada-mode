@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS wisi_grammar_1.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -22,15 +22,16 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
-with WisiToken.LR.Parser;
-package Wisi_Grammar_1_Process_Main is
+with WisiToken.Parse.LR.Parser;
+package Wisitoken_Grammar_1_Process_Main is
 
    procedure Create_Parser
-     (Parser                       :    out WisiToken.LR.Parser.Parser;
-      Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : in    WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
-      Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;
+     (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;
+      Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : in
+     WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);
 
-end Wisi_Grammar_1_Process_Main;
+end Wisitoken_Grammar_1_Process_Main;

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  build gpr_grammar_mode_parse
+--  build executables
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -19,11 +19,11 @@
 with "wisi_runtime";
 with "wisitoken";
 with "standard_common";
-project Wisi_Grammar is
+project WisiToken_Grammar is
 
    for Main use
-     ("wisi_grammar_mode_parse.ads",
-      "run_wisi_grammar_parse.ads"
+     ("wisitoken_grammar_mode_parse.ads",
+      "run_wisitoken_grammar_parse.ads"
      );
 
    for Source_Dirs use (".");
@@ -49,30 +49,12 @@ project Wisi_Grammar is
            Standard_Common.Compiler.Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
 
-         for Switches ("wisi_grammar_1_process_actions.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Debug_Switches;
-         for Switches ("wisi_grammar_1_process_main.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Debug_Switches;
-
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
 
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Style_Checks &
-           Standard_Common.Compiler.Release_Switches;
-
-         for Switches ("wisi_grammar_1_process_actions.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
-           Standard_Common.Compiler.Release_Switches;
-         for Switches ("wisi_grammar_1_process_main.adb") use
-           Standard_Common.Compiler.Common_Switches &
-           Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Release_Switches;
 
          for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
@@ -89,4 +71,4 @@ project Wisi_Grammar is
       for default_switches ("Ada") use ("-E"); -- symbolic traceback
    end Binder;
 
-end Wisi_Grammar;
+end WisiToken_Grammar;

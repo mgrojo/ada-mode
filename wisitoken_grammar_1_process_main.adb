@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS wisi_grammar_1.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -21,26 +21,27 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with Wisi_Grammar_1_Process_Actions; use Wisi_Grammar_1_Process_Actions;
+with Wisitoken_Grammar_1_Process_Actions; use Wisitoken_Grammar_1_Process_Actions;
 with WisiToken.Lexer.re2c;
-with wisi_grammar_1_re2c_c;
-package body Wisi_Grammar_1_Process_Main is
+with wisitoken_grammar_1_re2c_c;
+package body Wisitoken_Grammar_1_Process_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
-     (wisi_grammar_1_re2c_c.New_Lexer,
-      wisi_grammar_1_re2c_c.Free_Lexer,
-      wisi_grammar_1_re2c_c.Reset_Lexer,
-      wisi_grammar_1_re2c_c.Next_Token);
+     (wisitoken_grammar_1_re2c_c.New_Lexer,
+      wisitoken_grammar_1_re2c_c.Free_Lexer,
+      wisitoken_grammar_1_re2c_c.Reset_Lexer,
+      wisitoken_grammar_1_re2c_c.Next_Token);
 
    procedure Create_Parser
-     (Parser                       :    out WisiToken.LR.Parser.Parser;
-      Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : in    WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
-      Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;
+     (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;
+      Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : in
+     WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
-      use WisiToken.LR;
+      use WisiToken.Parse.LR;
       McKenzie_Param : constant McKenzie_Param_Type :=
         (First_Terminal    => 3,
          Last_Terminal     => 25,
@@ -379,7 +380,7 @@ package body Wisi_Grammar_1_Process_Main is
          Subr_1;
       end;
 
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace,
          Lexer.New_Lexer (Trace),
@@ -391,4 +392,4 @@ package body Wisi_Grammar_1_Process_Main is
          Max_Parallel         => 15,
          Terminate_Same_State => True);
    end Create_Parser;
-end Wisi_Grammar_1_Process_Main;
+end Wisitoken_Grammar_1_Process_Main;

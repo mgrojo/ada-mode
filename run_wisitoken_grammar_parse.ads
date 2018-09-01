@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  External process parser for Ada mode
+--  Run the wisitoken-grammar parser standalone. Useful for debugging grammar issues.
 --
 --  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
@@ -18,15 +18,12 @@
 
 pragma License (GPL);
 
-with Wisi_Grammar_1_Process_Actions;
-with Wisi_Grammar_1_Process_Main;
-with Gen_Emacs_Wisi_LR_Parse;
+with Wisitoken_Grammar_1_Process_Actions;
+with Wisitoken_Grammar_1_Process_Main;
+with Gen_Run_Wisi_LR_Parse;
 with Wisi;
-procedure Wisi_Grammar_Mode_Parse is new Gen_Emacs_Wisi_LR_Parse
-  (Parse_Data_Type                       => Wisi.Parse_Data_Type,
-   Name                                  => "wisi_grammar_mode",
-   Descriptor                            => Wisi_Grammar_1_Process_Actions.Descriptor,
-   Language_Fixes                        => null,
-   Language_Use_Minimal_Complete_Actions => null,
-   Language_String_ID_Set                => null,
-   Create_Parser                         => Wisi_Grammar_1_Process_Main.Create_Parser);
+procedure Run_WisiToken_Grammar_Parse is new Gen_Run_Wisi_LR_Parse
+  (Wisi.Parse_Data_Type,
+   Wisitoken_Grammar_1_Process_Actions.Descriptor,
+   null, null, null,
+   Wisitoken_Grammar_1_Process_Main.Create_Parser);

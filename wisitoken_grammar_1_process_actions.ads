@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS wisi_grammar_1.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -22,7 +22,7 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Syntax_Trees;
-package Wisi_Grammar_1_Process_Actions is
+package Wisitoken_Grammar_1_Process_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal                => 3,
@@ -194,4 +194,4 @@ package Wisi_Grammar_1_Process_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
-end Wisi_Grammar_1_Process_Actions;
+end Wisitoken_Grammar_1_Process_Actions;

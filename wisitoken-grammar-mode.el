@@ -1,4 +1,4 @@
-;; wisi-grammar-mode --- Major mode for editing Wisi grammar files  -*- lexical-binding:t -*-
+;; wisitoken-grammar-mode --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017, 2018  Free Software Foundation, Inc.
 
@@ -7,12 +7,12 @@
 
 ;; This file is part of GNU Emacs.
 
-;; wisi-grammar-mode is free software; you can redistribute it and/or modify
+;; wisitoken-grammar-mode is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
-;; wisi-grammar-mode is distributed in the hope that it will be useful,
+;; wisitoken-grammar-mode is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -27,38 +27,38 @@
 (require 'cl-lib)
 (require 'xref)
 (require 'wisi)
-(require 'wisi_grammar_1-process)
+(require 'wisitoken_grammar_1-process)
 (require 'wisi-process-parse)
 
-(defgroup wisi-grammar nil
+(defgroup wisitoken-grammar nil
   "Major mode for editing Wisi grammar files in Emacs."
   :group 'languages)
 
-(defcustom wisi-grammar-process-parse-exec "wisi_grammar_mode_parse.exe"
-  "Name of executable to use for external process wisi-grammar parser,"
+(defcustom wisitoken-grammar-process-parse-exec "wisi_grammar_mode_parse.exe"
+  "Name of executable to use for external process wisitoken-grammar parser,"
   :type 'string
-  :group 'wisi-grammar)
+  :group 'wisitoken-grammar)
 
-(defvar wisi-grammar-mode-syntax-table
+(defvar wisitoken-grammar-mode-syntax-table
   (let ((table (make-syntax-table)))
-    ;; see wisi-grammar-syntax-propertize for double semicolon as comment
+    ;; see wisitoken-grammar-syntax-propertize for double semicolon as comment
     (modify-syntax-entry ?\n ">   " table)
     table))
 
-(defvar wisi-grammar-mode-map
+(defvar wisitoken-grammar-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
 
     ;; comment-dwim is in global map on M-;
     (define-key map "\C-c\C-f" 'wisi-show-parse-error)
-    (define-key map [S-return] 'wisi-grammar-new-line)
+    (define-key map [S-return] 'wisitoken-grammar-new-line)
     map
-  )  "Local keymap used for WISI-GRAMMAR mode.")
+  )  "Local keymap used for wisitoken-grammar mode.")
 
-(defvar-local wisi-grammar-action-mode nil
+(defvar-local wisitoken-grammar-action-mode nil
   "Emacs major mode used for actions, inferred from ’%generate’ declaration or file local variable.")
 
-(defun wisi-grammar-new-line ()
+(defun wisitoken-grammar-new-line ()
   "If in comment, insert new comment line.
 If in nonterminal, insert new production right hand side.
 Otherwise insert a plain new line."
@@ -82,7 +82,7 @@ Otherwise insert a plain new line."
 	  ))
     ))
 
-(defun wisi-grammar-which-function ()
+(defun wisitoken-grammar-which-function ()
   "For `which-func-functions'."
   (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
@@ -108,7 +108,7 @@ Otherwise insert a plain new line."
 
 	  )))))
 
-(defun wisi-grammar-add-log-current-function ()
+(defun wisitoken-grammar-add-log-current-function ()
   "For `add-log-current-defun-function'; return name of current non-terminal or declaration."
   ;; add-log-current-defun is typically called with point at the start
   ;; of an ediff change section, which is before the start of the
@@ -116,9 +116,9 @@ Otherwise insert a plain new line."
   ;; first
   (save-excursion
     (end-of-line 1)
-    (wisi-grammar-which-function)))
+    (wisitoken-grammar-which-function)))
 
-(defun wisi-grammar-syntax-propertize (start end)
+(defun wisitoken-grammar-syntax-propertize (start end)
   "Assign `syntax-table' properties in accessible part of buffer."
   ;; (info "(elisp)Syntax Properties")
   ;;
@@ -134,7 +134,7 @@ Otherwise insert a plain new line."
 	 (match-beginning 0) (match-end 0) 'syntax-table '(11 . nil)))
   )))
 
-(defun wisi-grammar-set-action-mode ()
+(defun wisitoken-grammar-set-action-mode ()
   (save-excursion
     (goto-char (point-min))
     (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) \\([A-Za-z_0-9]+\\)")
@@ -142,10 +142,10 @@ Otherwise insert a plain new line."
 	 ((or
 	   (string-equal (match-string 2) "Ada_Emacs")
 	   (string-equal (match-string 2) "elisp"))
-	  (setq wisi-grammar-action-mode 'emacs-lisp-mode))
+	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode))
 
 	 ((string-equal (match-string 2) "Ada")
-	  (setq wisi-grammar-action-mode 'ada-mode))
+	  (setq wisitoken-grammar-action-mode 'ada-mode))
 
 	 (t
 	  (error "unrecognized output language %s" (match-string 1)))
@@ -153,16 +153,16 @@ Otherwise insert a plain new line."
       (error "output_language declaration not found"))))
 
 ;;; xref integration
-(defun wisi-grammar--xref-backend ()
+(defun wisitoken-grammar--xref-backend ()
   (cl-case major-mode
-    (wisi-grammar-mode 'wisi-grammar)
+    (wisitoken-grammar-mode 'wisitoken-grammar)
     (emacs-lisp-mode 'elisp)
     (t nil)))
 
-(cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisi-grammar)))
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisitoken-grammar)))
   (thing-at-point 'symbol))
 
-(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisi-grammar)))
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql wisitoken-grammar)))
   ;; Complete on declaration names (ie terminals and other things) and
   ;; nonterminal names.
   (save-excursion
@@ -180,7 +180,7 @@ Otherwise insert a plain new line."
 	  (setq result (cons (format "%s<%d>" (wisi-cache-text cache) (line-number-at-pos)) result))))
       result)))
 
-(cl-defmethod xref-backend-definitions ((_backend (eql wisi-grammar)) identifier)
+(cl-defmethod xref-backend-definitions ((_backend (eql wisitoken-grammar)) identifier)
   ;; The line number is incuded in the identifier wrapped in <>
   (string-match "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?" identifier)
   (let ((ident (match-string 1 identifier))
@@ -208,17 +208,17 @@ Otherwise insert a plain new line."
     ))
 
 ;;; debug
-(defun wisi-grammar-set-exec (exec-file)
-  "Set EXEC-FILE for current and future wisi-grammar parsers."
+(defun wisitoken-grammar-set-exec (exec-file)
+  "Set EXEC-FILE for current and future wisitoken-grammar parsers."
   (interactive "f")
-  (setq wisi-grammar-process-parse-exec exec-file)
-  (wisi-process-parse-set-exec "wisi-grammar" exec-file))
+  (setq wisitoken-grammar-process-parse-exec exec-file)
+  (wisi-process-parse-set-exec "wisitoken-grammar" exec-file))
 
 ;;;;
 ;;;###autoload
-(define-derived-mode wisi-grammar-mode prog-mode "Wisi"
+(define-derived-mode wisitoken-grammar-mode prog-mode "Wisi"
   "A major mode for Wisi grammar files."
-  (set (make-local-variable 'syntax-propertize-function) 'wisi-grammar-syntax-propertize)
+  (set (make-local-variable 'syntax-propertize-function) 'wisitoken-grammar-syntax-propertize)
   (syntax-ppss-flush-cache (point-min));; reparse with new function
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
@@ -229,12 +229,12 @@ Otherwise insert a plain new line."
   (set (make-local-variable 'comment-multi-line) nil)
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'add-log-current-defun-function)
-       'wisi-grammar-add-log-current-function)
+       'wisitoken-grammar-add-log-current-function)
   (setq wisi-size-threshold most-positive-fixnum);; grammar is simple enough for very large files
 
-  (wisi-grammar-set-action-mode)
+  (wisitoken-grammar-set-action-mode)
 
-  (add-hook 'xref-backend-functions #'wisi-grammar--xref-backend nil t)
+  (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend nil t)
   (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
   (add-hook 'before-save-hook 'copyright-update nil t)
 
@@ -243,10 +243,10 @@ Otherwise insert a plain new line."
    :post-indent-fail nil
    :parser (wisi-process-parse-get
 	    (make-wisi-process--parser
-	     :label "wisi-grammar"
-	     :exec-file wisi-grammar-process-parse-exec
-	     :face-table wisi_grammar_1-process-face-table
-	     :token-table wisi_grammar_1-process-token-table
+	     :label "wisitoken-grammar"
+	     :exec-file wisitoken-grammar-process-parse-exec
+	     :face-table wisitoken_grammar_1-process-face-table
+	     :token-table wisitoken_grammar_1-process-token-table
 	     ))
    :lexer nil)
 
@@ -259,13 +259,13 @@ Otherwise insert a plain new line."
   )
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisi-grammar-mode))
+(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisitoken-grammar-mode))
 
-(put 'wisi-grammar-mode 'custom-mode-group 'wisi-grammar)
+(put 'wisitoken-grammar-mode 'custom-mode-group 'wisitoken-grammar)
 
-(provide 'wisi-grammar-mode)
+(provide 'wisitoken-grammar-mode)
 
 (when (locate-library "mmm-mode")
-  (require 'wisi-grammar-mmm))
+  (require 'wisitoken-grammar-mmm))
 
 ;;; end of file

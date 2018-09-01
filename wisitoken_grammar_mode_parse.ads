@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Run the wisi-grammar parser standalone. Useful for debugging grammar issues.
+--  External process parser for wisitoken-grammar mode
 --
 --  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
@@ -18,12 +18,15 @@
 
 pragma License (GPL);
 
-with Wisi_Grammar_1_Process_Actions;
-with Wisi_Grammar_1_Process_Main;
-with Gen_Run_Wisi_LR_Parse;
+with Wisitoken_Grammar_1_Process_Actions;
+with Wisitoken_Grammar_1_Process_Main;
+with Gen_Emacs_Wisi_LR_Parse;
 with Wisi;
-procedure Run_Wisi_Grammar_Parse is new Gen_Run_Wisi_LR_Parse
-  (Wisi.Parse_Data_Type,
-   Wisi_Grammar_1_Process_Actions.Descriptor,
-   null, null, null,
-   Wisi_Grammar_1_Process_Main.Create_Parser);
+procedure WisiToken_Grammar_Mode_Parse is new Gen_Emacs_Wisi_LR_Parse
+  (Parse_Data_Type                       => Wisi.Parse_Data_Type,
+   Name                                  => "wisi_grammar_mode",
+   Descriptor                            => Wisitoken_Grammar_1_Process_Actions.Descriptor,
+   Language_Fixes                        => null,
+   Language_Use_Minimal_Complete_Actions => null,
+   Language_String_ID_Set                => null,
+   Create_Parser                         => Wisitoken_Grammar_1_Process_Main.Create_Parser);

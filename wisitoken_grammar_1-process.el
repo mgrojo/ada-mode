@@ -1,5 +1,5 @@
-;;; wisi_grammar_1-process.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisitoken-bnf-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS wisi_grammar_1.wy
+;;; wisitoken_grammar_1-process.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 
 ;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 ;;
@@ -22,7 +22,7 @@
 
 (require 'wisi-process-parse)
 
-(defconst wisi_grammar_1-process-token-table
+(defconst wisitoken_grammar_1-process-token-table
   [WHITESPACE
    NEW_LINE
    COMMENT
@@ -63,7 +63,7 @@
    compilation_unit_list
    ])
 
-(defconst wisi_grammar_1-process-face-table
+(defconst wisitoken_grammar_1-process-face-table
   [
    font-lock-constant-face
    font-lock-function-name-face
@@ -73,4 +73,4 @@
    nil
    ])
 
-(provide 'wisi_grammar_1-process)
+(provide 'wisitoken_grammar_1-process)
