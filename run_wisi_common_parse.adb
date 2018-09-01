@@ -24,9 +24,9 @@ with SAL;
 with System.Multiprocessors;
 package body Run_Wisi_Common_Parse is
 
-   procedure Usage (Parser : in out WisiToken.LR.Parser.Parser)
+   procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser)
    is
-      use all type WisiToken.LR.Parse_Table_Ptr;
+      use all type WisiToken.Parse.LR.Parse_Table_Ptr;
       use Ada.Text_IO;
    begin
       Put_Line ("usage: <file_name> <parse_action> [options]");
@@ -49,7 +49,7 @@ package body Run_Wisi_Common_Parse is
                   (if Parser.Table = null then ""
                    else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Enqueue_Limit)));
       Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
-                  Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
+                  Integer'Image (WisiToken.Parse.LR.Parser.Default_Max_Parallel) & ")");
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--lang_params <language-specific params>");
@@ -57,7 +57,7 @@ package body Run_Wisi_Common_Parse is
       New_Line;
    end Usage;
 
-   function Get_CL_Params (Parser : in out WisiToken.LR.Parser.Parser) return Command_Line_Params
+   function Get_CL_Params (Parser : in out WisiToken.Parse.LR.Parser.Parser) return Command_Line_Params
    is
       use Ada.Command_Line;
       use WisiToken;

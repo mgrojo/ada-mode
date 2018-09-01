@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS gpr.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS gpr.wy
 --
 
 --  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
@@ -29,14 +29,15 @@ package body Gpr_Process_LR1_Main is
       gpr_re2c_c.Next_Token);
 
    procedure Create_Parser
-     (Parser                       :    out WisiToken.LR.Parser.Parser;
-      Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : in    WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
-      Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;
+     (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;
+      Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : in
+     WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access)
    is
-      use WisiToken.LR;
+      use WisiToken.Parse.LR;
       McKenzie_Param : constant McKenzie_Param_Type :=
         (First_Terminal    => 3,
          Last_Terminal     => 37,
@@ -1893,7 +1894,7 @@ package body Gpr_Process_LR1_Main is
          Subr_3;
       end;
 
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace,
          Lexer.New_Lexer (Trace),

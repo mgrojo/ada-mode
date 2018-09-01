@@ -348,20 +348,20 @@ package body Wisi is
    end Put;
 
    procedure Put
-     (Item       : in LR.Configuration;
+     (Item       : in Parse.LR.Configuration;
       Terminals  : in Augmented_Token_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor)
    is
       use Ada.Containers;
       use Ada.Strings.Unbounded;
-      use WisiToken.LR;
+      use WisiToken.Parse.LR;
 
       Line    : Unbounded_String := To_Unbounded_String ("[");
       Last_Op : Config_Op        := (Fast_Forward, Token_Index'Last);
 
    begin
       if Trace_Action > Detail then
-         Ada.Text_IO.Put_Line (LR.Image (Item.Ops, Descriptor));
+         Ada.Text_IO.Put_Line (Parse.LR.Image (Item.Ops, Descriptor));
       end if;
 
       Append (Line, Recover_Code);
@@ -1383,7 +1383,7 @@ package body Wisi is
    procedure Put
      (Data         : in Parse_Data_Type;
       Lexer_Errors : in Lexer.Error_Lists.List;
-      Parse_Errors : in LR.Parse_Error_Lists.List;
+      Parse_Errors : in Parse.LR.Parse_Error_Lists.List;
       Tree         : in Syntax_Trees.Tree)
    is
       use all type SAL.Base_Peek_Type;
@@ -1454,13 +1454,13 @@ package body Wisi is
       for Item of Parse_Errors loop
          --  We don't include parser id here; not very useful.
          case Item.Label is
-         when LR.Action =>
+         when Parse.LR.Action =>
             Put_Line
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Safe_Pos (Item.Error_Token)) &
                  " ""syntax error: expecting " & Image (Item.Expecting, Data.Descriptor.all) &
                  ", found '" & Image (Tree.ID (Item.Error_Token), Data.Descriptor.all) & "'""]");
 
-         when LR.Check =>
+         when Parse.LR.Check =>
             Put_Line
               ('[' & Check_Error_Code & Integer'Image
                  (Semantic_Checks.Check_Status_Label'Pos (Item.Check_Status.Label)) &
@@ -1471,7 +1471,7 @@ package body Wisi is
                      Buffer_Pos'Image (Safe_Pos (Item.Check_Status.End_Name)) &
                        " ""block name error""]"));
 
-         when LR.Message =>
+         when Parse.LR.Message =>
             Put_Line
               ('[' & Parser_Error_Code & Buffer_Pos'Image (Buffer_Pos'First) &
                  " """ & (-Item.Msg) & """]");

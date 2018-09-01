@@ -26,7 +26,7 @@ with Ada.Real_Time;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Run_Wisi_Common_Parse; use Run_Wisi_Common_Parse;
-with WisiToken.LR.Parser;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Run_Wisi_LR_Text_Rep_Parse
@@ -34,7 +34,7 @@ is
    use WisiToken; -- Token_ID, "+", "-" Unbounded_string
 
    Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   Parser     : WisiToken.LR.Parser.Parser;
+   Parser     : WisiToken.Parse.LR.Parser.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
    Cl_Params  : Command_Line_Params;

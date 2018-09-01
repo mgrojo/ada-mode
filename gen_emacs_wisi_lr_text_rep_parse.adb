@@ -26,7 +26,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with GNAT.Traceback.Symbolic;
 with SAL;
-with WisiToken.LR.Parser;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Text_Rep_Parse
@@ -34,7 +34,7 @@ is
    use WisiToken; -- "+", "-" Unbounded_string
 
    Trace      : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Unrestricted_Access);
-   Parser     : WisiToken.LR.Parser.Parser;
+   Parser     : WisiToken.Parse.LR.Parser.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
 begin

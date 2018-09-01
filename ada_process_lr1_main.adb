@@ -30,15 +30,16 @@ package body Ada_Process_LR1_Main is
       ada_re2c_c.Next_Token);
 
    procedure Create_Parser
-     (Parser                       :    out WisiToken.LR.Parser.Parser;
-      Language_Fixes               : in     WisiToken.LR.Parser.Language_Fixes_Access;
-      Language_Use_Minimal_Complete_Actions : in    WisiToken.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
-      Language_String_ID_Set       : in     WisiToken.LR.Parser.Language_String_ID_Set_Access;
+     (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;
+      Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
+      Language_Use_Minimal_Complete_Actions : in
+        WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+      Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access;
       Text_Rep_File_Name : in String)
    is
-      use WisiToken.LR;
+      use WisiToken.Parse.LR;
       McKenzie_Param : constant McKenzie_Param_Type :=
         (First_Terminal    => 3,
          Last_Terminal     => 107,
@@ -923,7 +924,7 @@ package body Ada_Process_LR1_Main is
       Table : constant Parse_Table_Ptr := Get_Text_Rep
         (Text_Rep_File_Name, McKenzie_Param, Productions);
    begin
-      WisiToken.LR.Parser.New_Parser
+      WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace,
          Lexer.New_Lexer (Trace),

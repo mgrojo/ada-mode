@@ -32,7 +32,7 @@ with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with SAL.Gen_Unbounded_Definite_Vectors;
-with WisiToken.LR;
+with WisiToken.Parse.LR;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package Wisi is
@@ -315,7 +315,7 @@ package Wisi is
    procedure Put
      (Data         : in Parse_Data_Type;
       Lexer_Errors : in WisiToken.Lexer.Error_Lists.List;
-      Parse_Errors : in WisiToken.LR.Parse_Error_Lists.List;
+      Parse_Errors : in WisiToken.Parse.LR.Parse_Error_Lists.List;
       Tree         : in WisiToken.Syntax_Trees.Tree);
    --  Put Lexer_Errors and Parse_Errors to Ada.Text_IO.Current_Output,
    --  as encoded error responses as defined in [3]

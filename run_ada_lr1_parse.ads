@@ -21,13 +21,13 @@ pragma License (GPL);
 with Ada_Process_Actions;
 with Ada_Process_LR1_Main;
 with Gen_Run_Wisi_LR_Text_Rep_Parse;
-with WisiToken.LR.McKenzie_Recover.Ada;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada;
 with Wisi.Ada;
 procedure Run_Ada_LR1_Parse is new Gen_Run_Wisi_LR_Text_Rep_Parse
   (Wisi.Ada.Parse_Data_Type,
    Ada_Process_Actions.Descriptor,
-   WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-   WisiToken.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
-   WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
+   WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
+   WisiToken.Parse.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
+   WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
    "ada_lr1_parse_table.txt",
    Ada_Process_LR1_Main.Create_Parser);

@@ -20,10 +20,10 @@ pragma License (GPL);
 
 with Ada.Strings.Unbounded;
 with Wisi;
-with WisiToken.LR.Parser;
+with WisiToken.Parse.LR.Parser;
 package Run_Wisi_Common_Parse is
 
-   procedure Usage (Parser : in out WisiToken.LR.Parser.Parser);
+   procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser);
 
    type Command_Line_Params is record
       Post_Parse_Action : Wisi.Post_Parse_Action_Type;
@@ -32,6 +32,6 @@ package Run_Wisi_Common_Parse is
       Lang_Params       : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
-   function Get_CL_Params (Parser : in out WisiToken.LR.Parser.Parser) return Command_Line_Params;
+   function Get_CL_Params (Parser : in out WisiToken.Parse.LR.Parser.Parser) return Command_Line_Params;
 
 end Run_Wisi_Common_Parse;

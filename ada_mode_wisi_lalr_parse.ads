@@ -21,13 +21,13 @@ pragma License (GPL);
 with Ada_Process_Actions;
 with Ada_Process_LALR_Main;
 with Gen_Emacs_Wisi_LR_Parse;
-with WisiToken.LR.McKenzie_Recover.Ada;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada;
 with Wisi.Ada;
 procedure Ada_Mode_Wisi_LALR_Parse is new Gen_Emacs_Wisi_LR_Parse
   (Parse_Data_Type              => Wisi.Ada.Parse_Data_Type,
    Name                         => "Ada_mode_wisi_lalr_parse",
    Descriptor                   => Ada_Process_Actions.Descriptor,
-   Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-   Language_Use_Minimal_Complete_Actions => WisiToken.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
-   Language_String_ID_Set       => WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
+   Language_Fixes               => WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
+   Language_Use_Minimal_Complete_Actions => WisiToken.Parse.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
+   Language_String_ID_Set       => WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
    Create_Parser                => Ada_Process_LALR_Main.Create_Parser);

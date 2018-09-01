@@ -17,13 +17,13 @@
 
 pragma License (Modified_GPL);
 
-package WisiToken.LR.McKenzie_Recover.Ada is
+package WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
    procedure Language_Fixes
      (Trace             : in out WisiToken.Trace'Class;
       Lexer             : access constant WisiToken.Lexer.Instance'Class;
       Parser_Label      : in     Natural;
-      Parse_Table       : in     WisiToken.LR.Parse_Table;
+      Parse_Table       : in     WisiToken.Parse.LR.Parse_Table;
       Terminals         : in     Base_Token_Arrays.Vector;
       Tree              : in     Syntax_Trees.Tree;
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
@@ -44,4 +44,4 @@ package WisiToken.LR.McKenzie_Recover.Ada is
    --  See wisitoken-lr-parser.ads Language_String_ID_Set_Access for
    --  description.
 
-end WisiToken.LR.McKenzie_Recover.Ada;
+end WisiToken.Parse.LR.McKenzie_Recover.Ada;
