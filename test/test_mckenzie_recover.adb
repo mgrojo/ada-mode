@@ -855,7 +855,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 34,
          Enqueue_High            => 88,
          Check_Low               => 3,
-         Check_High              => 17,
+         Check_High              => 19,
          Cost                    => 1);
    end String_Quote_0;
 

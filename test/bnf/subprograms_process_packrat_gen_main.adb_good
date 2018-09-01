@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate PACKRAT_GEN ADA_EMACS re2c PROCESS ../Test/bnf/subprograms.wy
+--  command line: wisitoken-bnf-generate.exe  --generate PACKRAT_GEN Ada_Emacs re2c PROCESS ../Test/bnf/subprograms.wy
 --
 
 --  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.

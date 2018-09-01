@@ -125,7 +125,7 @@ is
    is
       use WisiToken.Parse.LR;
 
-      subtype Nonterminals is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
+      subtype Nonterminals is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
 
       function Count_Nonterminals (List : in Goto_Node_Ptr) return Integer
       is
