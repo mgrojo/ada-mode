@@ -1,4 +1,4 @@
-;;; Wisi grammar for Wisi grammar, for wisi-generate.
+;;; WisiToken grammar for WisiToken grammar, for wisitoken-bnf-generate.
 
 %code copyright_license %{
 ;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -22,7 +22,7 @@
 }%
 
 %code actions body context %{
-with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
+with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 }%
 
 %keyword CODE "code"

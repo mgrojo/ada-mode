@@ -27,9 +27,9 @@ with WisiToken.BNF.Generate_Packrat;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.BNF.Output_Ada_Common; use WisiToken.BNF.Output_Ada_Common;
 with WisiToken.Generate.Packrat;
-with WisiToken.Wisi_Grammar_Runtime;
+with WisiToken_Grammar_Runtime;
 procedure WisiToken.BNF.Output_Ada
-  (Input_Data            :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+  (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
    Output_File_Name_Root :         in String;
    Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;

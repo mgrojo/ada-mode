@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LALR ADA re2c wisi_grammar.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -21,9 +21,9 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with WisiToken.Wisi_Grammar_Runtime; use WisiToken.Wisi_Grammar_Runtime;
+with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
-package body Wisi_Grammar_Actions is
+package body Wisitoken_Grammar_Actions is
 
    procedure declaration_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
@@ -102,4 +102,4 @@ package body Wisi_Grammar_Actions is
       Add_Nonterminal (User_Data, Tree, Tokens);
    end nonterminal_0;
 
-end Wisi_Grammar_Actions;
+end Wisitoken_Grammar_Actions;

@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LALR ADA re2c wisi_grammar.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -21,16 +21,16 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with Wisi_Grammar_Actions; use Wisi_Grammar_Actions;
+with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 with WisiToken.Lexer.re2c;
-with wisi_grammar_re2c_c;
-package body Wisi_Grammar_Main is
+with wisitoken_grammar_re2c_c;
+package body Wisitoken_Grammar_Main is
 
    package Lexer is new WisiToken.Lexer.re2c
-     (wisi_grammar_re2c_c.New_Lexer,
-      wisi_grammar_re2c_c.Free_Lexer,
-      wisi_grammar_re2c_c.Reset_Lexer,
-      wisi_grammar_re2c_c.Next_Token);
+     (wisitoken_grammar_re2c_c.New_Lexer,
+      wisitoken_grammar_re2c_c.Free_Lexer,
+      wisitoken_grammar_re2c_c.Reset_Lexer,
+      wisitoken_grammar_re2c_c.Next_Token);
 
    procedure Create_Parser
      (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;
@@ -302,4 +302,4 @@ package body Wisi_Grammar_Main is
          Max_Parallel         => 15,
          Terminate_Same_State => True);
    end Create_Parser;
-end Wisi_Grammar_Main;
+end Wisitoken_Grammar_Main;

@@ -40,9 +40,9 @@ with WisiToken.Generate.LR.LR1_Generate;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Wisi_Grammar_Runtime;
-with Wisi_Grammar_Actions;
-with Wisi_Grammar_Main;
+with WisiToken_Grammar_Runtime;
+with Wisitoken_Grammar_Actions;
+with Wisitoken_Grammar_Main;
 procedure WisiToken.BNF.Generate
 is
    use all type Ada.Containers.Count_Type;
@@ -89,8 +89,8 @@ is
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
 
-   Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
-   Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+   Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+   Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
    Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
    Do_Time : Boolean := False;
@@ -102,7 +102,7 @@ is
    begin
       Output_File_Name_Root := +Ada.Directories.Base_Name (File_Name) & Suffix;
 
-      Wisi_Grammar_Main.Create_Parser
+      Wisitoken_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,
          User_Data => Input_Data'Unchecked_Access);

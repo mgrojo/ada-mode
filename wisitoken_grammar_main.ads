@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LALR ADA re2c PROCESS wisi_grammar.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c PROCESS wisitoken_grammar.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -23,11 +23,11 @@
 
 with WisiToken.Syntax_Trees;
 with WisiToken.Parse.LR.Parser_No_Recover;
-package Wisi_Grammar_Main is
+package Wisitoken_Grammar_Main is
 
    procedure Create_Parser
      (Parser                       :    out WisiToken.Parse.LR.Parser_No_Recover.Parser;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access);
 
-end Wisi_Grammar_Main;
+end Wisitoken_Grammar_Main;

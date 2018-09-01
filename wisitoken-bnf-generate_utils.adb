@@ -211,7 +211,7 @@ package body WisiToken.BNF.Generate_Utils is
    ----------
    --  Public subprograms, declaration order
 
-   function Initialize (Input_Data : aliased in WisiToken.Wisi_Grammar_Runtime.User_Data_Type) return Generate_Data
+   function Initialize (Input_Data : aliased in WisiToken_Grammar_Runtime.User_Data_Type) return Generate_Data
    is
       EOF_ID : constant Token_ID := Token_ID
         (Count (Input_Data.Tokens.Non_Grammar) + Count (Input_Data.Tokens.Tokens)) + Token_ID
@@ -781,7 +781,7 @@ package body WisiToken.BNF.Generate_Utils is
    end Count_Actions;
 
    procedure Put_Stats
-     (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+     (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : in Generate_Utils.Generate_Data)
    is
       use Ada.Text_IO;

@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LALR ADA re2c wisi_grammar.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
 --  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -24,7 +24,7 @@
 with Interfaces.C;
 with WisiToken;
 with System;
-package wisi_grammar_re2c_c is
+package wisitoken_grammar_re2c_c is
 
    function New_Lexer
      (Buffer    : in System.Address;
@@ -33,19 +33,19 @@ package wisi_grammar_re2c_c is
      return System.Address
    with Import        => True,
         Convention    => C,
-        External_Name => "wisi_grammar_new_lexer";
+        External_Name => "wisitoken_grammar_new_lexer";
    --  Create the lexer object, passing it the full text to process.
 
    procedure Free_Lexer (Lexer : in out System.Address)
    with Import        => True,
         Convention    => C,
-        External_Name => "wisi_grammar_free_lexer";
+        External_Name => "wisitoken_grammar_free_lexer";
    --  Free the lexer object
 
    procedure Reset_Lexer (Lexer : in System.Address)
    with Import        => True,
         Convention    => C,
-        External_Name => "wisi_grammar_reset_lexer";
+        External_Name => "wisitoken_grammar_reset_lexer";
 
    function Next_Token
      (Lexer         : in     System.Address;
@@ -58,6 +58,6 @@ package wisi_grammar_re2c_c is
      return Interfaces.C.int
    with Import        => True,
         Convention    => C,
-        External_Name => "wisi_grammar_next_token";
+        External_Name => "wisitoken_grammar_next_token";
 
-end wisi_grammar_re2c_c;
+end wisitoken_grammar_re2c_c;

@@ -76,21 +76,22 @@ source-clean ::
 	-find $(SOURCE_ROOT) -name ".#*" -print | xargs rm -v
 	-find $(SOURCE_ROOT) -name "*,t" -print | xargs rm -v
 
-# We want the files generated for wisi_grammar in ../, for CM, and to avoid deleting them in clean.
-# We don't include wisitoken-bnf-generate.exe in the dependencies here, to allow bootstrapping.
-../wisi_grammar.re2c : ../wisi_grammar.wy
-	cd ../; $(CURDIR)/wisitoken-bnf-generate.exe wisi_grammar.wy
-	dos2unix ../wisi_grammar*
+# We want the files generated for wisitoken_grammar.wy in ../, for CM,
+# and to avoid deleting them in clean. We don't include
+# wisitoken-bnf-generate.exe in the dependencies here, to allow
+# bootstrapping.
+../wisitoken_grammar.re2c : ../wisitoken_grammar.wy
+	cd ../; $(CURDIR)/wisitoken-bnf-generate.exe wisitoken_grammar.wy
+	dos2unix ../wisitoken_grammar*
 
-../wisi_grammar_re2c.c : ../wisi_grammar.re2c
+../wisitoken_grammar_re2c.c : ../wisitoken_grammar.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
-	dos2unix ../wisi_grammar_re2c.c
+	dos2unix ../wisitoken_grammar_re2c.c
 
-wisi_grammar-clean :
-	rm -rf wisi_grammar*
-	cd ../; rm -rf wisi_grammar*.ad? wisi_grammar.parse_table wisi_grammar.re2c wisi_grammar_re2c.c wisi_grammar_re2c_c.ads
+wisitoken_grammar-clean :
+	cd ../; rm -rf wisitoken_grammar_actions.ad? wisitoken_grammar_main.ad? wisitoken_grammar*.parse_table wisitoken_grammar.re2c wisitoken_grammar_re2c.c wisitoken_grammar_re2c_c.ads
 
-update-wisi_grammar : wisi_grammar-clean ../wisi_grammar_re2c.c
+update-wisitoken_grammar : wisitoken_grammar-clean ../wisitoken_grammar_re2c.c
 
 # Executables are normally compiled by the test project file, which requires AUnit
 # Override the project file for wisitoken-bnf-generate.exe, for use with Emacs Ada mode without AUnit

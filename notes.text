@@ -21,12 +21,6 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-split up wisitoken-lr.ads
-    -bnf-generate not depend on mckenzie runtime
-
-actions package needs lexer in name if %if_lexer present
-    ada.wy has TICK_2 for lalr, lr1, not for external
-
 hint in grammar to prefer "null;" over "return;" in minimal-terminal-sequence?
     ada: IDENTIFIER for 'name', not string_literal = operator
     %prefer_minimum_terminal <nonterm> <terminal>

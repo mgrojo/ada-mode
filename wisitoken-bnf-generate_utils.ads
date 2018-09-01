@@ -23,7 +23,7 @@ with Ada.Iterator_Interfaces;
 with WisiToken.Generate.LR;
 with WisiToken.Parse.LR;
 with WisiToken.Productions;
-with WisiToken.Wisi_Grammar_Runtime;
+with WisiToken_Grammar_Runtime;
 package WisiToken.BNF.Generate_Utils is
 
    EOI_Name : constant String := "Wisi_EOI";
@@ -58,7 +58,7 @@ package WisiToken.BNF.Generate_Utils is
       Reduce_Reduce_Conflict_Count : Integer                       := 0;
    end record;
 
-   function Initialize (Input_Data : aliased in WisiToken.Wisi_Grammar_Runtime.User_Data_Type) return Generate_Data;
+   function Initialize (Input_Data : aliased in WisiToken_Grammar_Runtime.User_Data_Type) return Generate_Data;
 
    function Find_Token_ID (Data : aliased in Generate_Data; Token : in String) return Token_ID;
 
@@ -152,7 +152,7 @@ package WisiToken.BNF.Generate_Utils is
    procedure Count_Actions (Data : in out Generate_Utils.Generate_Data);
 
    procedure Put_Stats
-     (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+     (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : in Generate_Utils.Generate_Data);
 
    function Actions_Length (State : in Parse.LR.Parse_State) return Integer;

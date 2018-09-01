@@ -93,7 +93,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    procedure Create_Ada_Actions_Spec
      (Output_File_Name :         in String;
       Package_Name     :         in String;
-      Input_Data       :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Input_Data       :         in WisiToken_Grammar_Runtime.User_Data_Type;
       Common_Data      :         in Output_Ada_Common.Common_Data;
       Generate_Data    : aliased in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
@@ -251,7 +251,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    procedure Create_Ada_Main_Spec
      (Output_File_Name  : in String;
       Main_Package_Name : in String;
-      Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Input_Data        : in WisiToken_Grammar_Runtime.User_Data_Type;
       Common_Data       : in Output_Ada_Common.Common_Data)
    is
       Lower_Package_Name : constant String := To_Lower (Main_Package_Name);
@@ -385,7 +385,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    procedure Create_External_Main_Spec
      (Main_Package_Name    : in String;
       Tuple                : in Generate_Tuple;
-      Input_Data           : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type)
+      Input_Data           : in WisiToken_Grammar_Runtime.User_Data_Type)
    is
       File_Name : constant String := To_Lower (Main_Package_Name) & ".ads";
       Spec_File : File_Type;
@@ -531,7 +531,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    end Create_LR_Parser_Core_1;
 
    procedure Create_LR_Parser_Table
-     (Input_Data    : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+     (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
       use all type Ada.Containers.Count_Type;
@@ -751,7 +751,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    end Create_LR_Parser_Table;
 
    procedure LR_Create_Create_Parser
-     (Input_Data    :         in     WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+     (Input_Data    :         in     WisiToken_Grammar_Runtime.User_Data_Type;
       Common_Data   :         in out Output_Ada_Common.Common_Data;
       Generate_Data : aliased in     WisiToken.BNF.Generate_Utils.Generate_Data)
    is
@@ -946,7 +946,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    end External_Create_Create_Grammar;
 
    procedure Create_re2c
-     (Input_Data            :         in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+     (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
       Tuple                 :         in Generate_Tuple;
       Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
       Output_File_Name_Root :         in String;
@@ -1350,7 +1350,7 @@ package body WisiToken.BNF.Output_Ada_Common is
    end File_Name_To_Ada;
 
    function Initialize
-     (Input_Data        : in WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+     (Input_Data        : in WisiToken_Grammar_Runtime.User_Data_Type;
       Tuple             : in Generate_Tuple;
       Output_File_Root  : in String;
       Check_Interface   : in Boolean)
