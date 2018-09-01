@@ -1,5 +1,5 @@
 --  generated parser support file.
---  command line: wisitoken-bnf-generate.exe  --generate LR1 ADA_EMACS re2c PROCESS text_rep ada.wy
+--  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS text_rep ada.wy
 --
 
 --  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
@@ -33,7 +33,7 @@ package body Ada_Process_LR1_Main is
      (Parser                       :    out WisiToken.Parse.LR.Parser.Parser;
       Language_Fixes               : in     WisiToken.Parse.LR.Parser.Language_Fixes_Access;
       Language_Use_Minimal_Complete_Actions : in
-        WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
+     WisiToken.Parse.LR.Parser.Language_Use_Minimal_Complete_Actions_Access;
       Language_String_ID_Set       : in     WisiToken.Parse.LR.Parser.Language_String_ID_Set_Access;
       Trace                        : not null access WisiToken.Trace'Class;
       User_Data                    : in     WisiToken.Syntax_Trees.User_Data_Access;
@@ -364,9 +364,10 @@ package body Ada_Process_LR1_Main is
             Set_Production (Prods (187), 187, 1);
             Set_RHS (Prods (187), 0, (72, 104, 81, 185, 87, 300), exception_handler_0'Access, null);
             Set_RHS (Prods (187), 1, (72, 185, 87, 300), exception_handler_1'Access, null);
-            Set_Production (Prods (188), 188, 1);
+            Set_Production (Prods (188), 188, 2);
             Set_RHS (Prods (188), 0, (188, 187), null, null);
             Set_RHS (Prods (188), 1, (1 => 187), null, null);
+            Set_RHS (Prods (188), 2, (1 => 257), null, null);
             Set_Production (Prods (189), 189, 1);
             Set_RHS (Prods (189), 0, (1 => 188), null, null);
             Set_RHS (Prods (189), 1, (1 .. 0 => <>), null, null);

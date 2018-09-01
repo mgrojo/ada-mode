@@ -51,11 +51,33 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
  current work
+release
+    propagate to o.e.a.
+
+    include all build sources in elpa.git (as in ada-ref-man)
+
+    consider doc rationale for not using LSP
+        gnu elpa package eglot
+
 allow set task count from Emacs
     eliminate race condition in ada_mode-recover*
 
 gnat pro 2018
-    - Support for some Ada 202x features: "@" shorthand, delta aggregates
+    AI12-0125 "@" shorthand  http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0125-3.txt
+        target_name ::= @
+        Name : target_name | ... ;
+        My_Array(I) := @*2 + @/2;
+
+    AI12-0127 delta_aggregates http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0127-1.txt?rev=1.25&raw=N
+        aggregate ::= record_aggregate | extension_aggregate | array_aggregate | delta_aggregate
+        delta_aggregate ::= record_delta_aggregate | array_delta_aggregate
+        record_delta_aggregate ::=
+          (*base_*expression with delta record_component_association_list)
+        array_delta_aggregate ::=
+          (*base_*expression with delta array_component_association_list)
+
+        procedure Twelfth (D : in out Date) -- see 3.8 for type Date with Post => D = (D'Old with delta Day => 12);
+        A1 : Vector := ((1.0, 2.0, 3.0) with delta Integer (Random * 3.0) => 14.2);
 
 ada.wy:774: ;; FIXME: | digits_constraint
 ada.wy:775: ;; FIXME: | delta_constraint
