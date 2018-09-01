@@ -4,7 +4,7 @@ gpr_project_path=$WISITOKEN
 gpr_project_path=../org.stephe_leake.sal/build
 gpr_project_path=../org.stephe_leake.makerules
 
-gpr_file=wisi_grammar.gpr
+gpr_file=wisitoken_grammar.gpr
 
 casing=$WISITOKEN/emacs_case_exceptions
 casing=../org.stephe_leake.sal/build/sal.casing

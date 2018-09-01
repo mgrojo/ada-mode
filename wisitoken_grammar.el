@@ -1,12 +1,12 @@
-;; Project definitions for compiling wisi_grammar_mode_parse.adb -*- no-byte-compile: t -*-
+;; Project definitions for compiling wisitoken_grammar_mode_parse.adb -*- no-byte-compile: t -*-
 
 (require 'ada-project)
 (require 'xref-ada)
 
 (setq project-find-functions '(project-menu-prj))
 
-(let* ((prj-file "wisi_grammar.prj")
-       (prj-name "wisi_grammar main")
+(let* ((prj-file "wisitoken_grammar.prj")
+       (prj-name "wisitoken_grammar main")
        (prj (make-ada-project
 	     :env-vars
 	     (cl-ecase system-type

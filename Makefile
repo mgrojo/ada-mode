@@ -1,12 +1,12 @@
 # Build elisp code, Ada executables, manuals; publish to web and ELPA
 #
 # The gprbuild commands depend on the GPR_PROJECT_PATH environment
-# variable, that is set in wisi_grammar.prj loaded in the file local
+# variable, that is set in wisitoken_grammar.prj loaded in the file local
 # variables below.
 
 #export Standard_Common_Build := Debug
 
-export WISI_GRAMMAR_VERSION := 0.1
+export WISITOKEN_GRAMMAR_VERSION := 0.1
 
 ELPA_ROOT ?= $(shell cd ../elpa; pwd)
 EMACS_EXE ?= emacs
@@ -21,7 +21,7 @@ update-elisp : byte-compile
 
 update-install : update-elisp install_ada_executables
 
-test : test-wisi_grammar.stamp
+test : test-wisitoken_grammar.stamp
 
 ONE_TEST_FILE := ada.wy
 one-clean : force
@@ -35,13 +35,12 @@ one : $(ONE_TEST_FILE).diff
 #two : RUN_ARGS ?= --repeat_count 5
 #two : RUN_LOG := > debug.log
 two : build_ada_executables
-	./run_wisi_grammar_1_parse.exe wisi_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
+	./run_wisitoken_grammar_1_parse.exe wisitoken_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
 %.re2c : %.wy $(WISITOKEN)/wisitoken-bnf-generate.exe
 	$(WISITOKEN)/wisitoken-bnf-generate.exe $(<F)
-	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el $(*F).re2c
+	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
-	dos2unix $(*F)_re2c_c.ads
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
@@ -82,7 +81,7 @@ $(WISITOKEN)/wisitoken-bnf-generate.exe : force
 
 vpath %.wy ../org.emacs.ada-mode.stephe-2 ../org.wisitoken/wisi/test/ ../org.emacs.java-wisi/source/
 
-TEST_FILES := wisi_grammar_1.wy
+TEST_FILES := wisitoken_grammar_1.wy
 TEST_FILES += ada.wy
 TEST_FILES += java.wy
 TEST_FILES += gpr.wy
@@ -96,22 +95,22 @@ TEST_FILES += identifier_list_name_conflict.wy
 %.tmp : %
 	$(EMACS_EXE) -Q -L . -L $(EMACS_WISI) -L $(EMACS_WISI)/build -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
-test-wisi_grammar : RUNTEST := run-indent-test-grammar.el
-test-wisi_grammar : $(addsuffix .diff, $(TEST_FILES))
+test-wisitoken_grammar : RUNTEST := run-indent-test-grammar.el
+test-wisitoken_grammar : $(addsuffix .diff, $(TEST_FILES))
 
 test-clean : force
 	rm -f *.diff *.tmp *.log
 
-test-wisi_grammar.stamp : test-clean
-	$(MAKE) test-wisi_grammar
+test-wisitoken_grammar.stamp : test-clean
+	$(MAKE) test-wisitoken_grammar
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-build_ada_executables : wisi_grammar_1_re2c.c force
-	gprbuild -p wisi_grammar.gpr
+build_ada_executables : wisitoken_grammar_1_re2c.c force
+	gprbuild -p wisitoken_grammar.gpr
 
 install_ada_executables : build_ada_executables
-	gprinstall -f -p -P wisi_grammar.gpr --install-name=wisi_grammar_wisi_parse
+	gprinstall -f -p -P wisitoken_grammar.gpr --install-name=wisitoken_grammar_wisi_parse
 
 clean : byte-compile-clean exe-clean generate-clean source-clean test-clean
 	rm -f autoloads.el
@@ -131,16 +130,16 @@ source-clean :
 
 # for recompiling with release options
 recursive-clean : force
-	gprclean -r -P wisi_grammar.gpr
+	gprclean -r -P wisitoken_grammar.gpr
 
 ### tar, gzip stuff
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 
 ifeq ($(BRANCH),org.wisitoken.grammar)
-  TAR_FILE := org.wisitoken.grammar-$(WISI_GRAMMAR_VERSION).tar.gz
+  TAR_FILE := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_VERSION).tar.gz
   TAR_DIR := .
-  TAR_PAT := org.wisitoken.grammar-$(WISI_GRAMMAR_VERSION)
+  TAR_PAT := org.wisitoken.grammar-$(WISITOKEN_GRAMMAR_VERSION)
 else
   TAR_FILE := $(BRANCH).tar.gz
   TAR_DIR := .
@@ -154,6 +153,6 @@ zip :
 .PRECIOUS : %-process.el %.ads %.diff %.re2c %.tmp %_re2c.c
 
 # Local Variables:
-# eval: (unless dvc-doing-ediff-p (load-file "wisi_grammar.el"))
+# eval: (unless dvc-doing-ediff-p (load-file "wisitoken_grammar.el"))
 # end:
 # end of file
