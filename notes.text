@@ -31,6 +31,13 @@ Makefile
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
+add psuedo-EBNF to wisi_grammar_1.wy
+   parse c:/Projects/org.emacs.python-wisi/python.wy
+   not the same as https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
+
+    in wisitoken, generate tokens for literals in grammar?
+        build names from ascii names for punctuation chars
+
 indent test failing with elisp action
     posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
 
