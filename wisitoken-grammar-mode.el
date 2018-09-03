@@ -34,7 +34,7 @@
   "Major mode for editing Wisi grammar files in Emacs."
   :group 'languages)
 
-(defcustom wisitoken-grammar-process-parse-exec "wisi_grammar_mode_parse.exe"
+(defcustom wisitoken-grammar-process-parse-exec "wisitoken_grammar_mode_parse.exe"
   "Name of executable to use for external process wisitoken-grammar parser,"
   :type 'string
   :group 'wisitoken-grammar)
@@ -137,7 +137,7 @@ Otherwise insert a plain new line."
 (defun wisitoken-grammar-set-action-mode ()
   (save-excursion
     (goto-char (point-min))
-    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) \\([A-Za-z_0-9]+\\)")
+    (if (search-forward-regexp "%generate +\\([A-Za-z_0-9]+\\) \\([A-Za-z_0-9]+\\)" (point-max) t)
 	(cond
 	 ((or
 	   (string-equal (match-string 2) "Ada_Emacs")
@@ -150,7 +150,10 @@ Otherwise insert a plain new line."
 	 (t
 	  (error "unrecognized output language %s" (match-string 1)))
 	 )
-      (error "output_language declaration not found"))))
+
+      ;; We can still support the grammar statements, just not the actions.
+      (setq wisitoken-grammar-action-mode 'nil))))
+
 
 ;;; xref integration
 (defun wisitoken-grammar--xref-backend ()
