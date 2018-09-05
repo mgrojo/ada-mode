@@ -118,12 +118,9 @@
 (require 'semantic/lex)
 (require 'wisi-parse-common)
 (require 'wisi-elisp-lexer)
+(require 'wisi-fringe)
 
-;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
-;; (when (and (= emacs-major-version 24)
-;; 	   (= emacs-minor-version 2))
-  (require 'wisi-compat-24.2)
-;;)
+(require 'wisi-compat-24.2)
 
 (defcustom wisi-size-threshold 100000
   "Max size (in characters) for using wisi parser results for anything."
@@ -644,6 +641,11 @@ Usefull if the parser appears to be hung."
 	 (setq wisi-parse-failed t)
 	 (signal (car err) (cdr err)))
 	)
+
+      (wisi-fringe-display-errors
+       (append
+	(seq-map (lambda (err) (wisi--lexer-error-pos err)) (wisi-parser-lexer-errors wisi--parser))
+	(seq-map (lambda (err) (wisi--parse-error-pos err)) (wisi-parser-parse-errors wisi--parser))))
 
       (when (> wisi-debug 0)
 	(if (or (wisi-parser-lexer-errors wisi--parser)

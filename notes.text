@@ -51,13 +51,32 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
 
  current work
+Collect recover stats
+    add enqueue/check counts in recover message?
+
 release
     propagate to o.e.a.
 
-    include all build sources in elpa.git (as in ada-ref-man)
+    only build ada-mode exe on user machine
+        still need wisitoken, sal parse sources
+        => in top elpa dir
+
+    include all wisitoken bnf/generate sources in elpa.git (as in ada-ref-man)
+        move to 'external'
+        => not in top elpa dir
+        not including tests, Makefiles?
+        just one final gpr?
+        or tarballs?
 
     consider doc rationale for not using LSP
         gnu elpa package eglot
+
+https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
+    export, incremental update of git mirror works
+    push my stuff to savannah
+        also to github?
+
+do module interface
 
 allow set task count from Emacs
     eliminate race condition in ada_mode-recover*
@@ -121,11 +140,10 @@ Contact ada cubesat lab, see if they will beta test indentation engine.
 
 see if more tasks go faster or slower.
 
-emacs track parse-max, don't reparse just for different action; just execute action.
-
-https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
-    export, incremental update of git mirror works
-    push my stuff to savannah
+emacs track single parse-max, don't reparse for different action; just execute action.
+    requires saving the syntax tree in the process
+    lost if another buffer parse intervenes
+        unless add per-buffer cache
 
 make-subprogram-body should strip aspects.
 
@@ -449,6 +467,17 @@ navigate, face, indent
         face     1.645698 seconds 4 gcs 2145 responses 0.452539 wait
         indent   1.603725 seconds 1 gcs 7251 responses 0.491922 wait
 
+    2 Sep 2018
+    using lalr
+        navigate 0.985181 seconds 4 gcs 6568 responses 0.248143 wait
+        face     1.119776 seconds 4 gcs 2145 responses 0.246759 wait
+        indent   1.033525 seconds 1 gcs 7251 responses 0.251972 wait
+    lr1:
+        navigate 0.968994 seconds 4 gcs 6568 responses 0.231818 wait
+        face     1.085459 seconds 4 gcs 2145 responses 0.219220 wait
+        indent   1.020811 seconds 1 gcs 7251 responses 0.237752 wait
+
+
     wisi-motion-action
         in [] token-numbers, skip statements with wisi-goto-end
 
@@ -539,6 +568,8 @@ parse indent
 
     10 Mar 2018:
         o.e.a.s-4: branched syntax_tree in main parse: 0.523269951, 0.508891395
+
+    more recent; see above
 
     future improvments:
         send more than one indent per output line, to reduce communication overhead
