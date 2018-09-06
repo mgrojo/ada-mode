@@ -558,7 +558,7 @@ package body WisiToken.Generate.LR is
            Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
            Image (Item.LHS_A, Descriptor) & ", " &
            Image (Item.LHS_B, Descriptor) &
-           "  on token " & Image (Item.On, Descriptor) &
+           " on token " & Image (Item.On, Descriptor) &
            " (" & State_Index'Image (Item.State_Index) & ")"); -- state number last for easier delete
    end Image;
 

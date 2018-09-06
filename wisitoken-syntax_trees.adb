@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers;
+with Ada.Text_IO;
 package body WisiToken.Syntax_Trees is
 
    --  Body specs, alphabetical, as needed
@@ -63,6 +64,17 @@ package body WisiToken.Syntax_Trees is
          then Tree.Shared_Tree.Nodes (Node).Action
          else Tree.Branched_Nodes (Node).Action);
    end Action;
+
+   procedure Add_Child
+     (Tree   : in out Syntax_Trees.Tree;
+      Parent : in     Valid_Node_Index;
+      Child  : in     Valid_Node_Index)
+   is
+      Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Parent);
+   begin
+      Node.Children.Append (Child);
+      --  We don't update Min/Max_terminal_index; they are no longer needed.
+   end Add_Child;
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
@@ -765,6 +777,29 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Parent;
 
+   procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
+   is
+      use Ada.Text_IO;
+      procedure Print_Node (Node : in Valid_Node_Index; Level : in Integer)
+      is
+         N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
+      begin
+         for I in 1 .. Level loop
+            Put ("| ");
+         end loop;
+         Put_Line (Image (Tree, N, Descriptor, Include_Children => False));
+
+         if N.Label = Nonterm then
+            for Child of N.Children loop
+               Print_Node (Child, Level + 1);
+            end loop;
+         end if;
+      end Print_Node;
+
+   begin
+      Print_Node (Tree.Root, 0);
+   end Print_Tree;
+
    function Process_Tree
      (Tree         : in Syntax_Trees.Tree;
       Node         : in Valid_Node_Index;
@@ -840,6 +875,16 @@ package body WisiToken.Syntax_Trees is
       Tree.Shared_Tree.Traversing := False;
       raise;
    end Process_Tree;
+
+   procedure Set_Parent
+     (Tree   : in out Syntax_Trees.Tree;
+      Node   : in     Valid_Node_Index;
+      Parent : in     Valid_Node_Index)
+   is
+      Child_Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
+   begin
+      Child_Node.Parent := Parent;
+   end Set_Parent;
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index)
    is begin
@@ -965,6 +1010,24 @@ package body WisiToken.Syntax_Trees is
             end case;
          end;
 
+         J := J + 1;
+      end loop;
+   end Set_Children;
+
+   procedure Set_Children
+     (Tree     : in out Syntax_Trees.Tree;
+      Node     : in     Valid_Node_Index;
+      Children : in     Valid_Node_Index_Array)
+   is
+      use all type SAL.Base_Peek_Type;
+      Parent_Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
+
+      J : Positive_Index_Type := Positive_Index_Type'First;
+   begin
+      Parent_Node.Children.Set_Length (Children'Length);
+      for I in Children'Range loop
+         --  We don't update Min/Max_terminal_index; they are no longer needed.
+         Parent_Node.Children (J) := Children (I);
          J := J + 1;
       end loop;
    end Set_Children;

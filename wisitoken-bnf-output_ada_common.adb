@@ -206,8 +206,9 @@ package body WisiToken.BNF.Output_Ada_Common is
          Indent_Line ("function ""+"" (Item : in Token_Enum_ID) return WisiToken.Token_ID");
          Indent_Line ("  is (WisiToken.Token_ID'First + Token_Enum_ID'Pos (Item));");
 
-         Indent_Line ("function ""-"" (Item : in WisiToken.Token_ID) return Token_Enum_ID");
+         Indent_Line ("function To_Token_Enum (Item : in WisiToken.Token_ID) return Token_Enum_ID");
          Indent_Line ("  is (Token_Enum_ID'Val (Item - WisiToken.Token_ID'First));");
+         Indent_Line ("function ""-"" (Item : in WisiToken.Token_ID) return Token_Enum_ID renames To_Token_Enum;");
          New_Line;
 
       end if;

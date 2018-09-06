@@ -22,6 +22,9 @@ with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken_Grammar_Runtime is
 
+   type Meta_Syntax is (BNF_Syntax, EBNF_Syntax);
+   --  Syntax used in grammar file.
+
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
       Grammar_Lexer : WisiToken.Lexer.Handle; -- used to read the .wy file now.
@@ -37,6 +40,13 @@ package WisiToken_Grammar_Runtime is
       Generate_Set : WisiToken.BNF.Generate_Set_Access;
       --  As specified by %generate directives or command line.
 
+      Phase : Natural := 0;
+      --  Determines which actions Execute_Actions executes:
+      --  0 - meta declarations, like %meta_syntax
+      --  1 - everything.
+
+      Meta_Syntax      : WisiToken_Grammar_Runtime.Meta_Syntax := BNF_Syntax;
+      BNF_Tree         : WisiToken.Syntax_Trees.Tree;
       Terminals        : WisiToken.Base_Token_Array_Access;
       Raw_Code         : WisiToken.BNF.Raw_Code;
       Language_Params  : WisiToken.BNF.Language_Param_Type;
@@ -81,5 +91,14 @@ package WisiToken_Grammar_Runtime is
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+
+   procedure Add_EBNF
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+
+   procedure Rewrite_EBNF_To_BNF (Tree : in out WisiToken.Syntax_Trees.Tree);
+   --  Process EBNF nonterms, adding new nonterms as needed, resulting in
+   --  a BNF tree.
 
 end WisiToken_Grammar_Runtime;
