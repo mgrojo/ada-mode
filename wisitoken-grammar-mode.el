@@ -227,8 +227,9 @@ Otherwise insert a plain new line."
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
 
   (set (make-local-variable 'comment-start) ";;")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
+  (set (make-local-variable 'comment-end) "") ;; setting this to \n causes errors
+  (set (make-local-variable 'comment-use-syntax) t);; the automatic test for this does not use syntax-propertize
+  (set (make-local-variable 'comment-start-skip) ";;*[ \t]*")
   (set (make-local-variable 'comment-multi-line) nil)
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'add-log-current-defun-function)

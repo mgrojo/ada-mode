@@ -14,6 +14,8 @@
 ;;
 ;;  One requirement is to parse the Python grammar file given at
 ;;  https://docs.python.org/3.8/reference/grammar.html
+;;  and the Java grammar file given at
+;;  https://github.com/antlr/grammars-v4/tree/master/java
 
 %code copyright_license %{
 ;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
@@ -58,11 +60,14 @@
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
+%token <punctuation> LEFT_BRACE "{"
 %token <punctuation> LEFT_BRACKET "["
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> LESS "<"
 %token <punctuation> PERCENT "%"
 %token <punctuation> PLUS "+"
+%token <punctuation> QUESTION "?"
+%token <punctuation> RIGHT_BRACE "}"
 %token <punctuation> RIGHT_BRACKET "]"
 %token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
@@ -85,8 +90,8 @@
 %token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
-%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
+%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
 
 %elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
@@ -198,12 +203,18 @@ rhs
   ;
 
 token_item
-  : IDENTIFIER
+  : EQUAL
+  | GREATER
+  | IDENTIFIER
+  | LEFT_BRACE
   | LEFT_BRACKET
-  | RIGHT_BRACKET
   | LEFT_PAREN
-  | RIGHT_PAREN
+  | LESS
   | PLUS
+  | QUESTION
+  | RIGHT_BRACE
+  | RIGHT_BRACKET
+  | RIGHT_PAREN
   | STAR
   | STRING_LITERAL_2
   ;
