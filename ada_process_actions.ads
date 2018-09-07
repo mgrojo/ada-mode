@@ -714,8 +714,9 @@ package Ada_Process_Actions is
    use all type WisiToken.Token_ID;
    function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID
      is (WisiToken.Token_ID'First + Token_Enum_ID'Pos (Item));
-   function "-" (Item : in WisiToken.Token_ID) return Token_Enum_ID
+   function To_Token_Enum (Item : in WisiToken.Token_ID) return Token_Enum_ID
      is (Token_Enum_ID'Val (Item - WisiToken.Token_ID'First));
+   function "-" (Item : in WisiToken.Token_ID) return Token_Enum_ID renames To_Token_Enum;
 
    procedure abstract_subprogram_declaration_0
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

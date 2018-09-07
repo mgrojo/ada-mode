@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Command_Line;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
@@ -29,7 +30,7 @@ package body Emacs_Wisi_Common_Parse is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("usage: " & Name);
+      Put_Line ("usage: " & Name & "[--recover-log <file-name>]");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -142,11 +143,22 @@ package body Emacs_Wisi_Common_Parse is
       raise;
    end Get_Integer;
 
-   function Get_CL_Params (Command_Line : in String; Last : in out Integer) return Command_Line_Params
+   function Get_Process_Start_Params return Process_Start_Params
+   is
+      use Ada.Command_Line;
+   begin
+      return Result : Process_Start_Params do
+         if Argument_Count >= 2 and then Argument (1) = "--recover-log" then
+            Result.Recover_Log_File_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (2));
+         end if;
+      end return;
+   end Get_Process_Start_Params;
+
+   function Get_Parse_Params (Command_Line : in String; Last : in out Integer) return Parse_Params
    is
       use WisiToken;
    begin
-      return Result : Command_Line_Params do
+      return Result : Parse_Params do
 
          Result.Post_Parse_Action  := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
          Result.Source_File_Name   := +Get_String (Command_Line, Last);
@@ -161,6 +173,6 @@ package body Emacs_Wisi_Common_Parse is
          Result.Enqueue_Limit      := Get_Integer (Command_Line, Last);
          Result.Byte_Count         := Get_Integer (Command_Line, Last);
       end return;
-   end Get_CL_Params;
+   end Get_Parse_Params;
 
 end Emacs_Wisi_Common_Parse;

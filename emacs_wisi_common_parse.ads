@@ -47,7 +47,15 @@ package Emacs_Wisi_Common_Parse is
       Last   : in out Integer)
      return Integer;
 
-   type Command_Line_Params is record
+   type Process_Start_Params is record
+      Recover_Log_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      --  log enabled if non-empty.
+   end record;
+
+   function Get_Process_Start_Params return Process_Start_Params;
+   --  Get from Ada.Command_Line.
+
+   type Parse_Params is record
       Post_Parse_Action  : Wisi.Post_Parse_Action_Type;
       Source_File_Name   : Ada.Strings.Unbounded.Unbounded_String;
       Line_Count         : WisiToken.Line_Number_Type;
@@ -62,6 +70,6 @@ package Emacs_Wisi_Common_Parse is
       Byte_Count         : Integer;
    end record;
 
-   function Get_CL_Params (Command_Line : in String; Last : in out Integer) return Command_Line_Params;
+   function Get_Parse_Params (Command_Line : in String; Last : in out Integer) return Parse_Params;
 
 end Emacs_Wisi_Common_Parse;

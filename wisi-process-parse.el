@@ -43,6 +43,7 @@
 (cl-defstruct (wisi-process--parser (:include wisi-parser))
   (label nil)             ;; string uniquely identifying parser
   (exec-file nil) 	  ;; absolute file name of executable
+  (exec-opts nil)         ;; list of process start options for executable
   (token-table nil)       ;; vector of token symbols, indexed by integer
   (face-table nil) 	  ;; vector of face symbols, indexed by integer
   (busy nil)              ;; t while parser is active
@@ -91,9 +92,6 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (wisi-parse-kill parser)
       (setf (wisi-process--parser-exec-file parser) exec-file))))
 
-(defvar wisi-process-parse-exec-opts nil
-  "List of command-line options for external parse executable.")
-
 (defun wisi-process-parse--require-process (parser)
   "Start the process for PARSER if not already started."
   (unless (process-live-p (wisi-process--parser-process parser))
@@ -113,7 +111,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	     :name process-name
 	     :buffer (wisi-process--parser-buffer parser)
 	     :command (append (list (wisi-process--parser-exec-file parser))
-			      wisi-process-parse-exec-opts)))
+			      (wisi-process--parser-exec-opts parser))))
 
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
       (setf (wisi-process--parser-busy parser) nil)

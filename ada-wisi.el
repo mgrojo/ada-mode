@@ -741,6 +741,7 @@ TOKEN-TEXT; move point to just past token."
 	    (make-ada-wisi-parser
 	     :label "Ada"
 	     :exec-file ada-process-parse-exec
+	     :exec-opts ada-process-parse-exec-opts
 	     :face-table ada-process-face-table
 	     :token-table ada-process-token-table)))
 	  ))

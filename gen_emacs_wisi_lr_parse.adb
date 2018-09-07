@@ -19,14 +19,14 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with GNAT.Traceback.Symbolic;
-with SAL;
-with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Parse
 is
@@ -42,16 +42,17 @@ begin
       Parse_Data'Unchecked_Access);
 
    declare
-      use Ada.Command_Line;
+      use Ada.Directories;
+      use Ada.Strings.Unbounded;
+      Params : constant Process_Start_Params := Get_Process_Start_Params;
    begin
-      case Argument_Count is
-      when 0 =>
-         null;
-
-      when others =>
-         Usage (Name);
-         raise SAL.Programmer_Error with "invalid option count: " & Integer'Image (Argument_Count);
-      end case;
+      if Length (Params.Recover_Log_File_Name) > 0 then
+         if Exists (-Params.Recover_Log_File_Name) then
+            Open (Parser.Recover_Log_File, Append_File, -Params.Recover_Log_File_Name);
+         else
+            Create (Parser.Recover_Log_File, Out_File, -Params.Recover_Log_File_Name);
+         end if;
+      end if;
    end;
 
    Put_Line (Name & " " & Version & ", protocol version " & Protocol_Version);
@@ -83,7 +84,7 @@ begin
             --  [elisp error form]...
             --  prompt
             declare
-               Cl_Params : constant Command_Line_Params := Get_CL_Params (Command_Line, Last);
+               Cl_Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
                Buffer    : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up

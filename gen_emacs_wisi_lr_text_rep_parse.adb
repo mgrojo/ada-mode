@@ -25,7 +25,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with GNAT.Traceback.Symbolic;
-with SAL;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
@@ -37,9 +36,19 @@ is
    Parser     : WisiToken.Parse.LR.Parser.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
+   procedure Cleanup
+   is begin
+      if Is_Open (Parser.Recover_Log_File) then
+         Close (Parser.Recover_Log_File);
+      end if;
+   end Cleanup;
+
 begin
 
    declare
+      use Ada.Directories;
+      use Ada.Strings.Unbounded;
+      Params : constant Process_Start_Params := Get_Process_Start_Params;
       use Ada.Command_Line;
    begin
       Create_Parser
@@ -48,14 +57,15 @@ begin
          Parse_Data'Unchecked_Access,
          Ada.Directories.Containing_Directory (Command_Name) & "/" & Text_Rep_File_Name);
 
-      case Argument_Count is
-      when 0 =>
-         null;
-
-      when others =>
-         Usage (Name);
-         raise SAL.Programmer_Error with "invalid option count: " & Integer'Image (Argument_Count);
-      end case;
+      if Length (Params.Recover_Log_File_Name) > 0 then
+         Put_Line (";; logging to '" & (-Params.Recover_Log_File_Name) & "'"); --  to Current_Output, visible from Emacs
+         if Exists (-Params.Recover_Log_File_Name) then
+            Open (Parser.Recover_Log_File, Append_File, -Params.Recover_Log_File_Name);
+         else
+            Create (Parser.Recover_Log_File, Out_File, -Params.Recover_Log_File_Name);
+         end if;
+         Flush (Parser.Recover_Log_File);
+      end if;
    end;
 
    Put_Line (Name & " " & Version & ", protocol version " & Protocol_Version);
@@ -87,7 +97,7 @@ begin
             --  [elisp error form]...
             --  prompt
             declare
-               Cl_Params : constant Command_Line_Params := Get_CL_Params (Command_Line, Last);
+               Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
                Buffer    : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up
@@ -104,37 +114,37 @@ begin
                --  Computing Line_Count in elisp allows parsing in parallel with
                --  sending source text.
 
-               Trace_Parse    := Cl_Params.Parse_Verbosity;
-               Trace_McKenzie := Cl_Params.McKenzie_Verbosity;
-               Trace_Action   := Cl_Params.Action_Verbosity;
-               Debug_Mode     := Cl_Params.Debug_Mode;
+               Trace_Parse    := Params.Parse_Verbosity;
+               Trace_McKenzie := Params.McKenzie_Verbosity;
+               Trace_Action   := Params.Action_Verbosity;
+               Debug_Mode     := Params.Debug_Mode;
 
                --  Default Enable_McKenzie_Recover is False if there is no McKenzie
                --  information; don't override that.
                Parser.Enable_McKenzie_Recover :=
-                 (if Cl_Params.McKenzie_Disable = 0
+                 (if Params.McKenzie_Disable = 0
                   then Parser.Enable_McKenzie_Recover
                   else False);
 
                Parse_Data.Initialize
-                 (Post_Parse_Action => Cl_Params.Post_Parse_Action,
+                 (Post_Parse_Action => Params.Post_Parse_Action,
                   Descriptor        => Descriptor'Unrestricted_Access,
-                  Source_File_Name  => -Cl_Params.Source_File_Name,
-                  Line_Count        => Cl_Params.Line_Count,
+                  Source_File_Name  => -Params.Source_File_Name,
+                  Line_Count        => Params.Line_Count,
                   Params            => Command_Line (Last + 2 .. Command_Line'Last));
 
-               if Cl_Params.Cost_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Cost_Limit := Cl_Params.Cost_Limit;
+               if Params.Cost_Limit > 0 then
+                  Parser.Table.McKenzie_Param.Cost_Limit := Params.Cost_Limit;
                end if;
-               if Cl_Params.Check_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Cl_Params.Check_Limit);
+               if Params.Check_Limit > 0 then
+                  Parser.Table.McKenzie_Param.Check_Limit := Base_Token_Index (Params.Check_Limit);
                end if;
-               if Cl_Params.Enqueue_Limit > 0 then
-                  Parser.Table.McKenzie_Param.Enqueue_Limit := Cl_Params.Enqueue_Limit;
+               if Params.Enqueue_Limit > 0 then
+                  Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
                end if;
 
-               Buffer := new String (1 .. Cl_Params.Byte_Count);
-               Read_Input (Buffer (1)'Address, Cl_Params.Byte_Count);
+               Buffer := new String (1 .. Params.Byte_Count);
+               Read_Input (Buffer (1)'Address, Params.Byte_Count);
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;
@@ -192,8 +202,10 @@ begin
          Put_Line ("(error ""protocol error "": " & Ada.Exceptions.Exception_Message (E) & """)");
       end;
    end loop;
+   Cleanup;
 exception
 when E : others =>
+   Cleanup;
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    New_Line (2);
    Put_Line

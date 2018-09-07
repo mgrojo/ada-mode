@@ -320,7 +320,12 @@ nil, only the file name."
 
 (defcustom ada-process-parse-exec "ada_mode_wisi_lalr_parse.exe"
   ;; We use .exe even on Linux to simplify the Makefile
-  "Name of executable to use for external process Ada parser,"
+  "Name of executable to use for external process Ada parser."
+  :type 'string
+  :group 'ada-indentation)
+
+(defcustom ada-process-parse-exec-opts nil
+  "List of process start options for ’ada-process-parse-exec’."
   :type 'string
   :group 'ada-indentation)
 
