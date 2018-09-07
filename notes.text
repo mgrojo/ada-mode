@@ -128,7 +128,11 @@ packrat
     generate, compile packrat speed?
         ada_packrat_process_main.adb (31347 lines) compiles _way_ faster than ada_process_main.adb (13692 lines)
 
+
 time with w32-pipe-read-delay 0
+
+add missing features to gpr_query; see fixmes.
+    option to run in background, from Makefiles
 
 ada-gps-size-threshold not safe local variable
     use in some tests
