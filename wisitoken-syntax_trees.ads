@@ -306,6 +306,10 @@ package WisiToken.Syntax_Trees is
      return String;
    --  For debug and error messages.
 
+   procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
+   with Pre => Tree.Flushed;
+   --  To Text_IO.Current_Output, for debugging.
+
 private
 
    type Node (Label : Node_Label := Virtual_Terminal) is

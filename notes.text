@@ -21,6 +21,9 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+enqueue_limit should be for total over all parsers; more consistent max time
+    need test case?
+
 hint in grammar to prefer "null;" over "return;" in minimal-terminal-sequence?
     ada: IDENTIFIER for 'name', not string_literal = operator
     %prefer_minimum_terminal <nonterm> <terminal>

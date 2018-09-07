@@ -221,6 +221,9 @@ begin
    when WisiToken.Syntax_Error =>
       Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
       raise;
+   when E : WisiToken.Parse_Error =>
+      WisiToken.Generate.Put_Error (Ada.Exceptions.Exception_Message (E));
+      raise;
    end;
 
    declare
@@ -437,7 +440,7 @@ begin
       end loop;
    end;
 exception
-when WisiToken.Syntax_Error =>
+when WisiToken.Syntax_Error | WisiToken.Parse_Error =>
    --  error message already output
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
 

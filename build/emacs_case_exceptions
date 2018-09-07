@@ -1,6 +1,4 @@
-BNF
-GNATCOLL
-RHSs
+*BNF
 *CPU
 *CR
 *EOF
@@ -26,3 +24,5 @@ RHSs
 *WY
 *WisiToken
 *re2c
+GNATCOLL
+RHSs

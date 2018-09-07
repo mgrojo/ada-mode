@@ -102,6 +102,7 @@ package WisiToken.Parse.LR.Parser is
       Max_Parallel            : SAL.Base_Peek_Type;
       Terminate_Same_State    : Boolean;
       Enable_McKenzie_Recover : Boolean;
+      Recover_Log_File        : Ada.Text_IO.File_Type;
    end record;
 
    overriding procedure Finalize (Object : in out LR.Parser.Parser);

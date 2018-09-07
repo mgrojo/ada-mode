@@ -28,6 +28,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Calendar.Formatting;
 with Ada.Exceptions;
 with WisiToken.Parse.LR.McKenzie_Recover;
 package body WisiToken.Parse.LR.Parser is
@@ -669,7 +670,7 @@ package body WisiToken.Parse.LR.Parser is
                            Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
                         begin
                            raise WisiToken.Parse_Error with Error_Message
-                             ("", Token.Line, Token.Column,
+                             (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
                               "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                         end;
                      end if;
@@ -707,6 +708,28 @@ package body WisiToken.Parse.LR.Parser is
                           ("recover: fail " & McKenzie_Recover.Recover_Status'Image (Recover_Result) &
                              ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
                      end if;
+                  end if;
+
+                  if Ada.Text_IO.Is_Open (Shared_Parser.Recover_Log_File) then
+                     declare
+                        use Ada.Text_IO;
+                     begin
+                        Put
+                          (Shared_Parser.Recover_Log_File,
+                           Ada.Calendar.Formatting.Image (Ada.Calendar.Clock) & " " &
+                             McKenzie_Recover.Recover_Status'Image (Recover_Result) &
+                             ", parser count" & SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count));
+
+                        for Parser of Shared_Parser.Parsers loop
+                           Put
+                             (Shared_Parser.Recover_Log_File,
+                              Integer'Image (Parser.Recover.Enqueue_Count) &
+                                Integer'Image (Parser.Recover.Check_Count) & " " &
+                                Boolean'Image (Parser.Recover.Success));
+                        end loop;
+                        New_Line (Shared_Parser.Recover_Log_File);
+                        Flush (Shared_Parser.Recover_Log_File);
+                     end;
                   end if;
                else
                   if Trace_Parse > Outline then

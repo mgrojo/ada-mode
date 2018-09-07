@@ -765,6 +765,29 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Parent;
 
+   procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
+   is
+      use Ada.Text_IO;
+      procedure Print_Node (Node : in Valid_Node_Index; Level : in Integer)
+      is
+         N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
+      begin
+         for I in 1 .. Level loop
+            Put ("| ");
+         end loop;
+         Put_Line (Image (Tree, N, Descriptor, Include_Children => False));
+
+         if N.Label = Nonterm then
+            for Child of N.Children loop
+               Print_Node (Child, Level + 1);
+            end loop;
+         end if;
+      end Print_Node;
+
+   begin
+      Print_Node (Tree.Root, 0);
+   end Print_Tree;
+
    function Process_Tree
      (Tree         : in Syntax_Trees.Tree;
       Node         : in Valid_Node_Index;

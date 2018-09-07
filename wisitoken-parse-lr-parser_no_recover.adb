@@ -298,7 +298,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      Token : Base_Token renames Shared_Parser.Terminals (Shared_Parser.Terminals.Last_Index);
                   begin
                      raise WisiToken.Parse_Error with Error_Message
-                       ("", Token.Line, Token.Column,
+                       (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
                         "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                   end;
                end if;
@@ -369,7 +369,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                         Token : Base_Token renames Shared_Parser.Terminals (Parser_State.Shared_Token);
                      begin
                         raise WisiToken.Parse_Error with Error_Message
-                          ("", Token.Line, Token.Column,
+                          (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
                            ": too many parallel parsers required in grammar state" &
                              State_Index'Image (Parser_State.Stack.Peek.State) &
                              "; simplify grammar, or increase max-parallel (" &
@@ -412,16 +412,13 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
    is
       use all type Syntax_Trees.User_Data_Access;
 
-      Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
-
       procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Syntax_Trees.Valid_Node_Index)
       is
          use all type Syntax_Trees.Node_Label;
-         ID : Token_ID renames Tree.ID (Node);
       begin
-         if ID < Descriptor.First_Nonterminal or Tree.Label (Node) /= Nonterm then
+         if Tree.Label (Node) /= Nonterm then
             return;
          end if;
 
