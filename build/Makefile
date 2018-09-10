@@ -93,6 +93,7 @@ test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: force
+	echo "test-wisi" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 summarize :
@@ -159,6 +160,7 @@ test-ada-elisp-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-elisp-gpr_query
 	touch $@
+	echo "test-ada-elisp-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 test-ada-lalr-process-gpr_query : RUNTEST := run-indent-test-lalr-process-gpr_query.el
@@ -168,6 +170,7 @@ test-ada-lalr-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-lalr-process-gpr_query
 	touch $@
+	echo "test-ada-lalr-process-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 test-ada-packrat-process-gpr_query : RUNTEST := run-indent-test-packrat-process-gpr_query.el
@@ -177,6 +180,7 @@ test-ada-packrat-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-packrat-process-gpr_query
 	touch $@
+	echo "test-ada-packrat-process-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 # ada-gps specific tests
@@ -187,6 +191,7 @@ test-ada-gps.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gps
 	touch $@
+	echo "test-ada-gps" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 test-gpr-elisp : RUNTEST := run-indent-test-elisp-gpr_query.el
@@ -196,6 +201,7 @@ test-gpr-elisp.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-gpr-elisp
 	touch $@
+	echo "test-gpr-elisp" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 test-gpr-lalr-process : RUNTEST := run-indent-test-lalr-process-gpr_query.el
@@ -205,6 +211,7 @@ test-gpr-lalr-process.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-gpr-lalr-process
 	touch $@
+	echo "test-gpr-lalr-process" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 # compare gps indent to ada-wisi indent
@@ -215,6 +222,7 @@ compare-ada-gps.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gps
 	touch $@
+	echo "compare-ada-gps" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 BRANCH := $(notdir $(shell cd ..; pwd))
@@ -419,8 +427,8 @@ ada_unit_tests : build_ada_executables test_harness.exe
 
 # only needed for editing, not compiling/running.
 # (load-file "ada_mode_unit_tests.el")
-# (project-menu-select-by-name "ada_mode_wisi_parse stephe-1")
-# (project-menu-select-by-name "ada_mode_unit_tests stephe-1")
+# (project-menu-select-by-name "ada_mode_wisi_parse main")
+# (project-menu-select-by-name "ada_mode_unit_tests main")
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:

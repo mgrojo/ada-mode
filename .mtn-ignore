@@ -30,6 +30,7 @@
 ^build/obj$
 ^build/obj$
 ^build/test\.casing$
+^check_xref\.gpr$
 ^dir-ada-mode$
 ^exec_pro$
 ^gpr-mode\.html$

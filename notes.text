@@ -12,18 +12,18 @@ o.e.a.stephe-6 (from o.e.a.s-2): available
 run test from emacs -Q using source:
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
+  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2018/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
-  (setq debug-on-error t)
-  (setq debug-on-quit t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode")
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode/build")
+  ; (setq debug-on-error t)
+  ; (setq debug-on-quit t)
+  (setq default-directory "c:/Projects/org.emacs.ada-mode/build/")
   (load "autoloads.el")
-  (load "run-indent-test-process-gpr_query")
+  (load "run-indent-test-elisp-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/ada_mode-recover_navigate_1.adb")
+  (find-file "../test/format_paramlist.adb")
   (wisi-debug-keys))
 
 (dvc-state-multiple
@@ -31,12 +31,12 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.stephe_leake.sal")
   (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
   (xmtn . "c:/Projects/org.wisitoken")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
+  (xmtn . "c:/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"        . "../org.stephe_leake.sal.stephe-1")
    ("../org.wisitoken"               . "../org.wisitoken.stephe-1")
-   ("../org.emacs.ada-mode.stephe-2" . "../org.emacs.ada-mode.stephe-4")))
+   ("../org.emacs.ada-mode" . "../org.emacs.ada-mode.stephe-4")))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -48,25 +48,25 @@ run test from emacs -Q using source:
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")
-   ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode.stephe-2")))
+   ("../org.emacs.ada-mode.stephe-4"   . "../org.emacs.ada-mode")))
 
  current work
 release
-    propagate to o.e.a.
-
     only build ada-mode exe on user machine
         still need wisitoken, sal parse sources
-        => in top elpa dir
+        non-top dirs get installed on user machines
 
     include all wisitoken bnf/generate sources in elpa.git (as in ada-ref-man)
-        move to 'external'
-        => not in top elpa dir
-        not including tests, Makefiles?
-        just one final gpr?
-        or tarballs?
+        not including tests
+        wisitoken goes in elpa/wisi
+        wisi goes in elpa/wisi
+        *-ada.ad? goes in elpa/ada-mode
+        specify GPR_PROJECT_PATH in build.sh
 
-    consider doc rationale for not using LSP
+    doc rationale for not using LSP
         gnu elpa package eglot
+        https://langserver.org
+        LSP doesn't do indent, face. does some navigate.
 
 https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
     export, incremental update of git mirror works
@@ -1091,6 +1091,8 @@ libadalang etc with gnat pro 18.2
         git checkout 18.2
 
  release process
+list-packages install doesn't work in mingw64!? works in cygwin
+
 adding lots of Ada code; move to elpa external
 
 do wisitoken release, if needed

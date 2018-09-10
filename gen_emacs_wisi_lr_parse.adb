@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with GNAT.Traceback.Symbolic;
+with System.Multiprocessors;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
 with WisiToken.Text_IO_Trace;
@@ -120,6 +121,9 @@ begin
                   Line_Count        => Cl_Params.Line_Count,
                   Params            => Command_Line (Last + 2 .. Command_Line'Last));
 
+               if Cl_Params.Task_Count > 0 then
+                  Parser.Table.McKenzie_Param.Task_Count := System.Multiprocessors.CPU_Range (Cl_Params.Task_Count);
+               end if;
                if Cl_Params.Cost_Limit > 0 then
                   Parser.Table.McKenzie_Param.Cost_Limit := Cl_Params.Cost_Limit;
                end if;

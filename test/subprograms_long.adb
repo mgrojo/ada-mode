@@ -1404,3 +1404,6 @@ procedure Subprograms_Long is
 begin
    null;
 end Subprograms_Long;
+-- Local Variables:
+-- ada-end-name-optional: t
+-- End:

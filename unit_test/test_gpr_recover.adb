@@ -20,19 +20,19 @@ pragma License (GPL);
 
 with Gpr_Process_Actions; use Gpr_Process_Actions;
 with Gpr_Process_LR1_Main;
-with WisiToken.LR.Parser.Gen_AUnit;
+with WisiToken.Parse.LR.Parser.Gen_AUnit;
 with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_Gpr_Recover is
-   use WisiToken.LR.Config_Op_Arrays;
-   use WisiToken.LR;
+   use WisiToken.Parse.LR.Config_Op_Arrays;
+   use WisiToken.Parse.LR;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
    Trace     : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   Parser    : WisiToken.LR.Parser.Parser;
+   Parser    : WisiToken.Parse.LR.Parser.Parser;
 
-   Orig_Params : WisiToken.LR.McKenzie_Param_Type
+   Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
      (First_Terminal    => Descriptor.First_Terminal,
       Last_Terminal     => Descriptor.Last_Terminal,
       First_Nonterminal => Descriptor.First_Nonterminal,
@@ -44,7 +44,7 @@ package body Test_Gpr_Recover is
         Descriptor.Last_Terminal,
         (1 .. 0 => WisiToken.Invalid_Token_ID));
 
-   package Parser_AUnit is new WisiToken.LR.Parser.Gen_AUnit (Descriptor, Empty_Token_ID_Set);
+   package Parser_AUnit is new WisiToken.Parse.LR.Parser.Gen_AUnit (Descriptor, Empty_Token_ID_Set);
    use Parser_AUnit;
 
    ----------
@@ -99,7 +99,7 @@ package body Test_Gpr_Recover is
       --  Run before all tests in register
       Gpr_Process_LR1_Main.Create_Parser
         (Parser,
-         Language_Fixes               => null, -- WisiToken.LR.McKenzie_Recover.Gpr.Language_Fixes'Access,
+         Language_Fixes               => null,
          Language_Use_Minimal_Complete_Actions => null,
          Language_String_ID_Set       => null,
          Trace                        => Trace'Access,

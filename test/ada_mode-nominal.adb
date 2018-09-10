@@ -729,4 +729,5 @@ begin
 end Ada_Mode.Nominal;
 -- Local Variables:
 -- ada-auto-case: t
+-- ada-end-name-optional: t
 -- End:

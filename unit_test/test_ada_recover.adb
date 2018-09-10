@@ -21,20 +21,20 @@ pragma License (GPL);
 with AUnit.Checks;
 with Ada_Process_Actions; use Ada_Process_Actions;
 with Ada_Process_LALR_Main;
-with WisiToken.LR.McKenzie_Recover.Ada;
-with WisiToken.LR.Parser.Gen_AUnit;
-with WisiToken.LR.Parser_Lists;
+with WisiToken.Parse.LR.McKenzie_Recover.Ada;
+with WisiToken.Parse.LR.Parser.Gen_AUnit;
+with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 package body Test_Ada_Recover is
-   use WisiToken.LR.Config_Op_Arrays;
-   use WisiToken.LR;
+   use WisiToken.Parse.LR.Config_Op_Arrays;
+   use WisiToken.Parse.LR;
 
    User_Data : aliased WisiToken.Syntax_Trees.User_Data_Type;
    Trace     : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   Parser    : WisiToken.LR.Parser.Parser;
+   Parser    : WisiToken.Parse.LR.Parser.Parser;
 
-   Orig_Params : WisiToken.LR.McKenzie_Param_Type
+   Orig_Params : WisiToken.Parse.LR.McKenzie_Param_Type
      (First_Terminal    => Descriptor.First_Terminal,
       Last_Terminal     => Descriptor.Last_Terminal,
       First_Nonterminal => Descriptor.First_Nonterminal,
@@ -46,10 +46,10 @@ package body Test_Ada_Recover is
         Descriptor.Last_Terminal,
         (1 .. 0 => WisiToken.Invalid_Token_ID));
 
-   package Parser_AUnit is new WisiToken.LR.Parser.Gen_AUnit (Descriptor, Empty_Token_ID_Set);
+   package Parser_AUnit is new WisiToken.Parse.LR.Parser.Gen_AUnit (Descriptor, Empty_Token_ID_Set);
    use Parser_AUnit;
 
-   type Parser_State_Array is array (Integer range 1 .. 15) of WisiToken.LR.Parser_Lists.Parser_State;
+   type Parser_State_Array is array (Integer range 1 .. 15) of WisiToken.Parse.LR.Parser_Lists.Parser_State;
    Saved_Data      : Parser_State_Array;
    Saved_Data_Last : Integer := Saved_Data'First - 1;
 
@@ -130,9 +130,10 @@ package body Test_Ada_Recover is
       --  Run before all tests in register
       Ada_Process_LALR_Main.Create_Parser
         (Parser,
-         Language_Fixes               => WisiToken.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
-         Language_Use_Minimal_Complete_Actions => WisiToken.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
-         Language_String_ID_Set       => WisiToken.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
+         Language_Fixes               => WisiToken.Parse.LR.McKenzie_Recover.Ada.Language_Fixes'Access,
+         Language_Use_Minimal_Complete_Actions =>
+           WisiToken.Parse.LR.McKenzie_Recover.Ada.Use_Minimal_Complete_Actions'Access,
+         Language_String_ID_Set       => WisiToken.Parse.LR.McKenzie_Recover.Ada.String_ID_Set'Access,
          Trace                        => Trace'Access,
          User_Data                    => User_Data'Access);
 

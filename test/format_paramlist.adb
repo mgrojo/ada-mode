@@ -118,18 +118,6 @@ package body Format_Paramlist is
       return 1;
    end Create_Parser;
 
-   -- Error correction leaves empty parameter declaration. The error
-   -- correction leaves 'is begin' on the same line as the closing paren.
-   --
-   --EMACSCMD:(progn (end-of-line 5)(delete-char -1)(insert ";")(ada-align)(newline-and-indent))
-   procedure Check_One
-     (Label    : in String;
-      Param    : in Integer;
-      Expected : in Integer)
-   is begin
-      null;
-   end Check_One;
-
    --  Aggregate in default value
    --EMACSCMD:(progn (forward-line 2)(forward-word 2)(insert "   ") (ada-align))
    procedure Put_File_Header
@@ -138,3 +126,6 @@ package body Format_Paramlist is
    is begin null; end Put_File_Header;
 
 end Format_Paramlist;
+-- Local Variables:
+-- ada-end-name-optional: t
+-- End:

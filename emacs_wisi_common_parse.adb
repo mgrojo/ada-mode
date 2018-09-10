@@ -168,6 +168,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.McKenzie_Verbosity := Get_Integer (Command_Line, Last);
          Result.Action_Verbosity   := Get_Integer (Command_Line, Last);
          Result.McKenzie_Disable   := Get_Integer (Command_Line, Last);
+         Result.Task_Count         := Get_Integer (Command_Line, Last);
          Result.Cost_Limit         := Get_Integer (Command_Line, Last);
          Result.Check_Limit        := Get_Integer (Command_Line, Last);
          Result.Enqueue_Limit      := Get_Integer (Command_Line, Last);

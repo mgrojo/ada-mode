@@ -1,12 +1,3 @@
--- WORKAROUND: For some reason, this test causes the process parser to
--- crash. Adding a delay before running ada-align or font-lock-ensure
--- again does _not_ fix it. The tests pass when run by hand, and the
--- main purpose is to test the code in ada-scan-paramlist and
--- ada-insert-paramlist-*; that code does not rely on the parser
--- except for the initial indent.
---
---EMACS_SKIP_UNLESS:(eq ada-parser 'elisp)
-
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
@@ -83,11 +74,11 @@ package body Ada_Mode.Parens is
          "123" &
            "456" &
            "789"
-        -- There are conflicting requirements on indenting a hanging
-        -- right paren; when entering new code, we want it aligned
-        -- where the new code would be. When left hanging, we want it
-        -- aligned with the matching left paren. We choose the
-        -- latter, partly for backward compatibility.
+           -- There are conflicting requirements on indenting a hanging
+           -- right paren; when entering new code, we want it aligned
+           -- where the new code would be. When left hanging, we want it
+           -- aligned with the matching left paren. We choose the
+           -- latter, partly for backward compatibility.
         );
 
       --  function call (actually type conversion, but it's the same indentation) in aggregate
@@ -542,4 +533,5 @@ package body Ada_Mode.Parens is
 end Ada_Mode.Parens;
 --  Local Variables:
 --  ada-indent-comment-gnat: t
+--  ada-end-name-optional: t
 --  End:

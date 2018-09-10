@@ -13,7 +13,7 @@ procedure Ada_Mode.Pragma_In_Exception_Handler is
          pragma Warnings (Off);
          when Constraint_Error =>
             raise;
-         pragma Warnings (On);
+            pragma Warnings (On);
       end Write_File_Name_File;
 
    begin

@@ -103,6 +103,17 @@ Allows timing parse separate from actions.")
 (defvar-local wisi-mckenzie-disable nil
   "If non-nil, disable McKenzie error recovery. Otherwise, use parser default.")
 
+(defcustom wisi-mckenzie-task-count nil
+  "If integer, sets McKenzie task count.
+Higher value (up to system processor limit) has runs recover
+faster, but may encounter race conditions.  Using only one task
+makes recover repeatable; useful for tests.  If nil, uses value
+from grammar file."
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
+(make-variable-buffer-local 'wisi-mckenzie-task-count)
+
 (defcustom wisi-mckenzie-cost-limit nil
   "If integer, sets McKenzie recover algorithm limit.
 Higher value has more recover power, but takes longer.
