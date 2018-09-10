@@ -19,20 +19,20 @@
 pragma License (GPL);
 
 with Ada.Containers;
-with WisiToken.LR.Parser_Lists;
+with WisiToken.Parse.LR.Parser_Lists;
 with WisiToken.Semantic_Checks;
 generic
    Descriptor         : in WisiToken.Descriptor;
    Empty_Token_ID_Set : in WisiToken.Token_ID_Set;
-package WisiToken.LR.Parser.Gen_AUnit is
+package WisiToken.Parse.LR.Parser.Gen_AUnit is
 
    procedure Parse_Text
-     (Parser           : in out WisiToken.LR.Parser.Parser;
+     (Parser           : in out WisiToken.Parse.LR.Parser.Parser;
       Text             : in     String;
       Expect_Exception : in     Boolean := False);
 
    procedure Check_Recover
-     (Parser_State            : in WisiToken.LR.Parser_Lists.Parser_State;
+     (Parser_State            : in WisiToken.Parse.LR.Parser_Lists.Parser_State;
       Label                   : in String                                       := "";
       Parser_Label            : in Integer                                      := -1;
       Errors_Length           : in Ada.Containers.Count_Type                    := 1;
@@ -40,7 +40,8 @@ package WisiToken.LR.Parser.Gen_AUnit is
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
       Success                 : in Boolean                                      := True;
-      Ops                     : in WisiToken.LR.Config_Op_Arrays.Vector := WisiToken.LR.Config_Op_Arrays.Empty_Vector;
+      Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector :=
+        WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
       Enqueue_Low             : in Integer := 0;
       Enqueue_High            : in Integer := 0;
@@ -50,4 +51,4 @@ package WisiToken.LR.Parser.Gen_AUnit is
       Expecting               : in WisiToken.Token_ID_Set                       := Empty_Token_ID_Set;
       Code                    : in WisiToken.Semantic_Checks.Check_Status_Label := WisiToken.Semantic_Checks.Ok);
 
-end WisiToken.LR.Parser.Gen_AUnit;
+end WisiToken.Parse.LR.Parser.Gen_AUnit;

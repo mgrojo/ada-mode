@@ -21,12 +21,12 @@ pragma License (GPL);
 with AUnit.Checks;
 with AUnit.Checks.Containers;
 with WisiToken.AUnit;
-with WisiToken.LR.AUnit;
+with WisiToken.Parse.LR.AUnit;
 with WisiToken.Semantic_Checks.AUnit;
-package body WisiToken.LR.Parser.Gen_AUnit is
+package body WisiToken.Parse.LR.Parser.Gen_AUnit is
 
    procedure Parse_Text
-     (Parser           : in out WisiToken.LR.Parser.Parser;
+     (Parser           : in out WisiToken.Parse.LR.Parser.Parser;
       Text             : in     String;
       Expect_Exception : in     Boolean := False)
    is
@@ -59,7 +59,7 @@ package body WisiToken.LR.Parser.Gen_AUnit is
    end Parse_Text;
 
    procedure Check_Recover
-     (Parser_State            : in WisiToken.LR.Parser_Lists.Parser_State;
+     (Parser_State            : in WisiToken.Parse.LR.Parser_Lists.Parser_State;
       Label                   : in String                                       := "";
       Parser_Label            : in Integer                                      := -1;
       Errors_Length           : in Ada.Containers.Count_Type                    := 1;
@@ -67,7 +67,8 @@ package body WisiToken.LR.Parser.Gen_AUnit is
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
       Success                 : in Boolean                                      := True;
-      Ops                     : in WisiToken.LR.Config_Op_Arrays.Vector := WisiToken.LR.Config_Op_Arrays.Empty_Vector;
+      Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector :=
+        WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
       Enqueue_Low             : in Integer := 0;
       Enqueue_High            : in Integer := 0;
@@ -80,12 +81,12 @@ package body WisiToken.LR.Parser.Gen_AUnit is
       use Standard.AUnit.Checks;
       use Standard.AUnit.Checks.Containers;
       use WisiToken.AUnit;
-      use WisiToken.LR.AUnit;
+      use WisiToken.Parse.LR.AUnit;
       use WisiToken.Semantic_Checks.AUnit;
 
       Label_I : constant String := Label & "." & Ada.Containers.Count_Type'Image (Checking_Error);
 
-      Cursor : WisiToken.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
+      Cursor : WisiToken.Parse.LR.Parse_Error_Lists.Cursor := Parser_State.Errors.First;
    begin
       if Parser_Label /= -1 then
          Check (Label & ".parser_label", Parser_State.Label, Parser_Label);
@@ -94,12 +95,12 @@ package body WisiToken.LR.Parser.Gen_AUnit is
       Check (Label_I & ".errors.length", Parser_State.Errors.Length, Errors_Length);
 
       for I in 2 .. Checking_Error loop
-         WisiToken.LR.Parse_Error_Lists.Next (Cursor);
+         WisiToken.Parse.LR.Parse_Error_Lists.Next (Cursor);
       end loop;
 
       declare
          use all type WisiToken.Semantic_Checks.Check_Status_Label;
-         Error : WisiToken.LR.Parse_Error renames WisiToken.LR.Parse_Error_Lists.Element (Cursor);
+         Error : WisiToken.Parse.LR.Parse_Error renames WisiToken.Parse.LR.Parse_Error_Lists.Element (Cursor);
       begin
          if Expecting /= Empty_Token_ID_Set then
             Check (Label_I & "expecting", Error.Expecting, Expecting);
@@ -160,4 +161,4 @@ package body WisiToken.LR.Parser.Gen_AUnit is
       end;
    end Check_Recover;
 
-end WisiToken.LR.Parser.Gen_AUnit;
+end WisiToken.Parse.LR.Parser.Gen_AUnit;
