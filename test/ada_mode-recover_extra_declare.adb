@@ -8,7 +8,7 @@ procedure Ada_Mode.Recover_Extra_Declare is
 begin
 
    loop
-   declare
+      declare
 
       Next_Token (Lexer, Token);
       case Name (Token) is

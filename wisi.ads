@@ -73,6 +73,11 @@ package Wisi is
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
+   procedure Delete_Token
+     (Data        : in out Parse_Data_Type;
+      Token_Index : in     WisiToken.Token_Index);
+
+   overriding
    procedure Reduce
      (Data    : in out Parse_Data_Type;
       Tree    : in out WisiToken.Syntax_Trees.Tree'Class;
@@ -240,6 +245,8 @@ package Wisi is
       end case;
    end record;
 
+   function Image (Item : in Simple_Indent_Param) return String;
+
    type Indent_Param_Label is
      (Simple,
       Hanging_0, -- wisi-hanging
@@ -261,6 +268,8 @@ package Wisi is
       end case;
    end record;
 
+   function Image (Item : in Indent_Param) return String;
+
    type Indent_Pair (Comment_Present : Boolean := False) is
    record
       Code_Delta : Indent_Param;
@@ -271,6 +280,8 @@ package Wisi is
          null;
       end case;
    end record;
+
+   function Image (Item : in Indent_Pair) return String;
 
    type Indent_Param_Array is array (WisiToken.Positive_Index_Type range <>) of Indent_Pair;
 
@@ -340,6 +351,10 @@ private
    type Augmented_Token is new WisiToken.Base_Token with record
       --  Most fields are set by Lexer_To_Augmented at parse time; others
       --  are set by Reduce for nonterminals.
+
+      Deleted : Boolean := False;
+      --  Set True by Parse_Data_Type.Delete_Token; Non_Grammar tokens are
+      --  moved to the previous non-deleted token.
 
       --  The following fields are only needed for indent.
 

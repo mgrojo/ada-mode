@@ -879,7 +879,8 @@
       (wisi-containing-action 1 5)
       (wisi-containing-action 1 7)
       (wisi-motion-action [1 3 [5 ELSIF THEN] 6 10])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0 [ada-indent ada-indent] 0 0
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
+                             [ada-indent ada-indent] 0 [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0])))
        ((IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON )
         (progn
@@ -888,7 +889,8 @@
       (wisi-containing-action 1 4)
       (wisi-containing-action 1 6)
       (wisi-motion-action [1 3 5 9])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0 [ada-indent ada-indent] 0
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
+                             [ada-indent ada-indent] [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0])))
        ((IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON )
         (progn
@@ -897,7 +899,7 @@
       (wisi-containing-action 1 4)
       (wisi-containing-action 1 5)
       (wisi-motion-action [1 3 [5 ELSIF THEN] 8])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0 0])))
        ((IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON )
         (progn
@@ -905,7 +907,7 @@
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 4)
       (wisi-motion-action [1 3 7])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0]))))
       (incomplete_type_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS TAGGED SEMICOLON )

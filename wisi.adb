@@ -661,6 +661,7 @@ package body Wisi is
                Line                        => Token.Line,
                Column                      => Token.Column,
                Char_Region                 => Token.Char_Region,
+               Deleted                     => False,
                First                       => Lexer.First,
                Paren_State                 => Data.Current_Paren_State,
                First_Terminals_Index       => Data.Terminals.Last_Index + 1,
@@ -682,6 +683,45 @@ package body Wisi is
          end;
       end if;
    end Lexer_To_Augmented;
+
+   overriding
+   procedure Delete_Token
+     (Data        : in out Parse_Data_Type;
+      Token_Index : in     WisiToken.Token_Index)
+   is
+      use all type Ada.Containers.Count_Type;
+      Deleted_Token    : Augmented_Token renames Data.Terminals (Token_Index);
+      Prev_Token_Index : WisiToken.Base_Token_Index := Token_Index - 1;
+   begin
+      pragma Assert (Deleted_Token.Deleted = False);
+      Deleted_Token.Deleted := True;
+      if Deleted_Token.Non_Grammar.Length = 0 then
+         return;
+      end if;
+
+      loop
+         if Prev_Token_Index = Base_Token_Index'First then
+            return;
+         end if;
+         exit when Data.Terminals (Prev_Token_Index).Deleted = False;
+         Prev_Token_Index := Prev_Token_Index - 1;
+      end loop;
+      declare
+         Prev_Token : Augmented_Token renames Data.Terminals (Prev_Token_Index);
+      begin
+         Prev_Token.Non_Grammar.Append (Deleted_Token.Non_Grammar);
+         if Deleted_Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
+            if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
+               if Deleted_Token.First then
+                  Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Indent_Line;
+               else
+                  Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Trailing_Comment_Line;
+               end if;
+            end if;
+            Prev_Token.Last_Trailing_Comment_Line  := Deleted_Token.Last_Trailing_Comment_Line;
+         end if;
+      end;
+   end Delete_Token;
 
    overriding
    procedure Reduce
@@ -1239,6 +1279,33 @@ package body Wisi is
       end return;
    end "&";
 
+   function Image (Item : in Simple_Indent_Param) return String
+   is begin
+      return "(" & Simple_Indent_Param_Label'Image (Item.Label) &
+        (case Item.Label is
+         when Int => Integer'Image (Item.Int_Delta),
+         when Anchored_Label => WisiToken.Positive_Index_Type'Image (Item.Anchored_Index) & "," &
+              Integer'Image (Item.Anchored_Delta),
+         when Language => "<language_function>") & ")";
+   end Image;
+
+   function Image (Item : in Indent_Param) return String
+   is begin
+      return "(" & Indent_Param_Label'Image (Item.Label) & ", " &
+        (case Item.Label is
+         when Simple => Image (Item.Param),
+         when Hanging_Label =>
+            Image (Item.Hanging_Delta_1) & ", "  & Image (Item.Hanging_Delta_2) & ")");
+   end Image;
+
+   function Image (Item : in Indent_Pair) return String
+   is begin
+      return "(" & Image (Item.Code_Delta) &
+        (if Item.Comment_Present
+         then ", " & Image (Item.Comment_Delta)
+         else "") & ")";
+   end Image;
+
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
       Tree    : in     Syntax_Trees.Tree;
@@ -1264,6 +1331,11 @@ package body Wisi is
                Comment_Param_Set : Boolean                := False;
                Comment_Delta     : Delta_Type;
             begin
+               if Trace_Action > Detail then
+                  Ada.Text_IO.Put_Line
+                    ("indent_action_0 a: " & Tree.Image (Tree_Token, Data.Descriptor.all) & ": " & Image (Pair));
+               end if;
+
                if Token.First_Indent_Line /= Invalid_Line_Number then
                   Code_Delta := Indent_Compute_Delta
                     (Data, Tree, Tokens, Pair.Code_Delta, Tree_Token, Indenting_Comment => False);
@@ -1278,7 +1350,7 @@ package body Wisi is
                      Comment_Param     := Pair.Comment_Delta;
                      Comment_Param_Set := True;
 
-                  elsif I < Tokens'Last  then
+                  elsif I < Tokens'Last then
                      Comment_Param     := Params (I + 1).Code_Delta;
                      Comment_Param_Set := True;
                   end if;

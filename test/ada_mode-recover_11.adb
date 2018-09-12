@@ -20,7 +20,7 @@ begin
          for Rhs of Prod.Rhss loop
          Id_Loop :
             for I in reverse Rhs.Tokens.First_Index + 1 .. Rhs.Tokens.Last_Index loop
-            declare
+               declare
 
                if Id = Prod.Lhs then
                   Result (Id) := True;
