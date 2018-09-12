@@ -977,6 +977,7 @@ package body WisiToken.Parse.LR.Parser is
    overriding
    procedure Execute_Actions (Parser : in out LR.Parser.Parser)
    is
+      use all type SAL.Base_Peek_Type;
       use all type Syntax_Trees.User_Data_Access;
 
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
@@ -1005,6 +1006,24 @@ package body WisiToken.Parse.LR.Parser is
 
    begin
       if Parser.User_Data /= null then
+         if (for some Par of Parser.Parsers =>
+               (for some Err of Par.Errors => Any (Err.Recover.Ops, Delete)))
+         then
+            if Parser.Parsers.Count > 1 then
+               raise Syntax_Error with "ambiguous parse with deleted tokens; can't execute actions";
+            end if;
+            for Err of Parser.Parsers.First_State_Ref.Errors loop
+               for Op of Err.Recover.Ops loop
+                  case Op.Op is
+                  when Delete =>
+                     Parser.User_Data.Delete_Token (Op.Token_Index);
+                  when others =>
+                     null;
+                  end case;
+               end loop;
+            end loop;
+         end if;
+
          for Parser_State of Parser.Parsers loop
             if Trace_Action > Outline then
                Parser.Trace.Put_Line

@@ -84,7 +84,16 @@ package WisiToken.Syntax_Trees is
       Lexer      : not null access WisiToken.Lexer.Instance'Class)
      is null;
    --  Read auxiliary data from Lexer, create an Augmented_Token, store
-   --  it in User_Data.
+   --  it in User_Data. Called before parsing, once for each token in the
+   --  input stream.
+
+   procedure Delete_Token
+     (Data        : in out User_Data_Type;
+      Token_Index : in     WisiToken.Token_Index)
+   is null;
+   --  Token at Token_Index was deleted in error recovery; update
+   --  remaining tokens as needed. Called from Execute_Actions for each
+   --  deleted token, before processing the syntax tree.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
