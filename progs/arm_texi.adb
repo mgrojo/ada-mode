@@ -824,7 +824,12 @@ package body ARM_Texinfo is
      (Output_Object : in out Texinfo_Output_Type;
       Format        : in     ARM_Output.Format_Type)
    is begin
-      null;
+      --  We only handle italic, for annotated syntax item names
+      if Format.Italic /= Output_Object.Format.Italic then
+         --  Info format does not support fonts, so we use <>
+         Put (Output_Object.File, (if Format.Italic then '<' else '>'));
+      end if;
+      Output_Object.Format := Format;
    end Text_Format;
 
    procedure End_Paragraph (Output_Object : in out Texinfo_Output_Type)
