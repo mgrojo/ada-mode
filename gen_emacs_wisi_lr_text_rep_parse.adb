@@ -26,8 +26,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with GNAT.Traceback.Symbolic;
 with System.Multiprocessors;
-with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Text_Rep_Parse
 is
@@ -50,13 +50,12 @@ begin
       use Ada.Directories;
       use Ada.Strings.Unbounded;
       Params : constant Process_Start_Params := Get_Process_Start_Params;
-      use Ada.Command_Line;
    begin
       Create_Parser
         (Parser, Language_Fixes, Language_Use_Minimal_Complete_Actions, Language_String_ID_Set,
          Trace'Unrestricted_Access,
          Parse_Data'Unchecked_Access,
-         Ada.Directories.Containing_Directory (Command_Name) & "/" & Text_Rep_File_Name);
+         Ada.Directories.Containing_Directory (Ada.Command_Line.Command_Name) & "/" & Text_Rep_File_Name);
 
       if Length (Params.Recover_Log_File_Name) > 0 then
          Put_Line (";; logging to '" & (-Params.Recover_Log_File_Name) & "'"); --  to Current_Output, visible from Emacs
@@ -65,7 +64,6 @@ begin
          else
             Create (Parser.Recover_Log_File, Out_File, -Params.Recover_Log_File_Name);
          end if;
-         Flush (Parser.Recover_Log_File);
       end if;
    end;
 
@@ -99,7 +97,7 @@ begin
             --  prompt
             declare
                Params : constant Parse_Params := Get_Parse_Params (Command_Line, Last);
-               Buffer    : Ada.Strings.Unbounded.String_Access;
+               Buffer : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up
                is begin
@@ -150,7 +148,7 @@ begin
                Buffer := new String (1 .. Params.Byte_Count);
                Read_Input (Buffer (1)'Address, Params.Byte_Count);
 
-               Parser.Lexer.Reset_With_String_Access (Buffer);
+               Parser.Lexer.Reset_With_String_Access (Buffer, Params.Source_File_Name);
                Parser.Parse;
                Parser.Execute_Actions;
                Put (Parse_Data);
@@ -184,7 +182,7 @@ begin
                Token.ID := Invalid_Token_ID;
                Read_Input (Buffer (1)'Address, Byte_Count);
 
-               Parser.Lexer.Reset_With_String_Access (Buffer);
+               Parser.Lexer.Reset_With_String_Access (Buffer, +"");
                loop
                   exit when Token.ID = Parser.Trace.Descriptor.EOF_ID;
                   Lexer_Error := Parser.Lexer.Find_Next (Token);

@@ -62,7 +62,7 @@ package body Ada_Process_LALR_Main is
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             2, 2, 2, 2, 2, 2),
-         Ignore_Check_Fail  => 2,
+         Ignore_Check_Fail  => 0,
          Task_Count  => 0,
          Cost_Limit  => 20,
          Check_Limit => 4,

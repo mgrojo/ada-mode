@@ -52,6 +52,15 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+interactive indent requires [0 ada-indent] on block start keywords
+    normally get indent from next token, but that's virtual, and is not in token.first/last_indent_lines
+        or something like that
+        find a place to document this
+            in wisi.texi user guide
+                explain emacs wisi package
+                parser actions
+                section that explains indent-action syntax
+
 redundant solutions
     ada_mode-recover_redundant_solutions_1.adb
 
