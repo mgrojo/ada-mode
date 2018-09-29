@@ -147,6 +147,21 @@ package body AUnit.Checks is
       end loop;
    end Gen_Check_Unconstrained_Array;
 
+   procedure Gen_Check_2D_Array
+     (Label    : in String;
+      Computed : in Array_Type;
+      Expected : in Array_Type)
+   is begin
+      for I in Computed'Range (1) loop
+         for J in Computed'Range (2) loop
+            Check_Item
+              (Label & "(" & Index_1_Type'Image (I) & Index_2_Type'Image (J) & ")",
+               Computed (I, J),
+               Expected (I, J));
+         end loop;
+      end loop;
+   end Gen_Check_2D_Array;
+
    procedure Gen_Check_Unconstrained_2D_Array
      (Label          : in String;
       Computed       : in Array_Type;
