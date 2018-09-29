@@ -89,6 +89,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Config : constant Configuration_Access := Parser_State.Recover.Config_Heap.Add (Configuration'(others => <>));
       Error  : Parse_Error renames Parser_State.Errors (Parser_State.Errors.Last);
    begin
+      Parser_State.Recover.Enqueue_Count := Parser_State.Recover.Enqueue_Count + 1;
+
       Config.Resume_Token_Goal := Parser_State.Shared_Token + Shared_Parser.Table.McKenzie_Param.Check_Limit;
 
       if Trace_McKenzie > Outline then
@@ -135,8 +137,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
          else
             --  Undo the reduction that encountered the error, let Process_One
-            --  enqueue possible solutions. We leave the cost at 0, because this
-            --  is the root config.
+            --  enqueue possible solutions. We leave the cost at 0, since this is
+            --  the root config. Later logic will enqueue the 'ignore error'
+            --  solution; see McKenzie_Recover.Explore Process_One.
 
             Config.Check_Status      := Error.Check_Status;
             Config.Error_Token       := Config.Stack (1).Token;
@@ -156,8 +159,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          --  recovery.
          raise SAL.Programmer_Error;
       end case;
-
-      Parser_State.Recover.Enqueue_Count := Parser_State.Recover.Enqueue_Count + 1;
    end Recover_Init;
 
    function Recover (Shared_Parser : in out LR.Parser.Parser) return Recover_Status

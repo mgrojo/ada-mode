@@ -21,6 +21,12 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+test_mckenzie_recover failing due to recent changes
+    do next fix before updating
+
+delete "assume ignore semantic check is a solution"; only language_fixes knows that
+    provide subprog to enqueue that in language_fixes
+
 enqueue_limit should be for total over all parsers; more consistent max time
     need test case?
 

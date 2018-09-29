@@ -1174,9 +1174,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                Shared.Terminals.all, Super.Parser_State (Parser_Index).Tree, Local_Config_Heap,
                Config);
 
-            --  It is always possible that Language_Fixes provides an incorrect
-            --  solution, so continue with the current config.
-            --
             --  The solutions provided by Language_Fixes should be lower cost than
             --  others (typically 0), so they will be checked first.
 

@@ -80,8 +80,9 @@ package WisiToken.Lexer.re2c is
    --  Copies Input to internal buffer.
 
    overriding procedure Reset_With_String_Access
-     (Lexer : in out Instance;
-      Input : in     Ada.Strings.Unbounded.String_Access);
+     (Lexer     : in out Instance;
+      Input     : in     Ada.Strings.Unbounded.String_Access;
+      File_Name : in     Ada.Strings.Unbounded.Unbounded_String);
 
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
    --  Uses memory mapped file; no copies.

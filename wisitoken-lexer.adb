@@ -50,13 +50,7 @@ package body WisiToken.Lexer is
 
    function File_Name (Source : in Lexer.Source) return String
    is begin
-      case Source.Label is
-      when String_Label =>
-         return "";
-
-      when File_Label =>
-         return -Source.File_Name;
-      end case;
+      return -Source.File_Name;
    end File_Name;
 
 end WisiToken.Lexer;

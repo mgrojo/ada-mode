@@ -64,10 +64,12 @@ package WisiToken.Lexer is
    --  Reset Lexer to start a new parse, reading from Input.
 
    procedure Reset_With_String_Access
-     (Lexer : in out Instance;
-      Input : in     Ada.Strings.Unbounded.String_Access)
+     (Lexer     : in out Instance;
+      Input     : in     Ada.Strings.Unbounded.String_Access;
+      File_Name : in     Ada.Strings.Unbounded.Unbounded_String)
      is abstract;
    --  Reset Lexer to start a new parse, reading from Input.
+   --  File_Name is used for error messages.
 
    procedure Reset_With_File (Lexer : in out Instance; File_Name : in String) is abstract;
    --  Reset Lexer to start a new parse, reading from File_Name.
@@ -127,6 +129,9 @@ private
    type Source_Labels is (String_Label, File_Label);
 
    type Source (Label : Source_Labels := Source_Labels'First) is record
+      File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      --  Not saved in Mapped_File, may be empty for String_Label
+
       case Label is
       when String_Label =>
          Buffer      : Ada.Strings.Unbounded.String_Access;
@@ -135,7 +140,6 @@ private
          --  it. Otherwise we must deallocate it.
 
       when File_Label =>
-         File_Name : Ada.Strings.Unbounded.Unbounded_String; -- not saved in Mapped_File
 
          --  The input is memory mapped from the following, which must be closed:
          File        : GNATCOLL.Mmap.Mapped_File;

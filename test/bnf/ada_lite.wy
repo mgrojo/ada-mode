@@ -109,6 +109,11 @@
 %mckenzie_check_limit 3
 
 ;; Default cost for insert terminal, delete terminal, push back, ignore check fail.
+;;
+;; 'ignore check fail' cost is not zero here, so we can more easily
+;; test other strategies. Real languages may want 'ignore check fail'
+;; cost to be zero, to allow parse to succeed while changing a
+;; subprogram name
 %mckenzie_cost_default 4 4 4 4
 
 ;; Prefer inserting keywords over identifiers and operators to take
