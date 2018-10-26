@@ -452,7 +452,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       return Parser.Parsers.Count > 1 or Parser_State.Errors.Length > 0 or Parser.Lexer.Errors.Length > 0;
    end Any_Errors;
 
-   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser; File_Name : in String)
+   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser)
    is
       use Ada.Text_IO;
 
@@ -462,7 +462,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       for Item of Parser.Lexer.Errors loop
          Put_Line
            (Current_Error,
-            File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
+            Parser.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
       end loop;
 
       for Item of Parser_State.Errors loop
@@ -474,7 +474,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                Put_Line
                  (Current_Error,
                   Error_Message
-                    (File_Name, Token.Line, Token.Column,
+                    (Parser.Lexer.File_Name, Token.Line, Token.Column,
                      "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                        ", found '" & Parser.Lexer.Buffer_Text (Token.Byte_Region) & "'"));
             end;

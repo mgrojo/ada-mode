@@ -62,8 +62,9 @@ package WisiToken.Lexer.Regexp is
    overriding procedure Finalize (Object : in out Instance);
    overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String);
    overriding procedure Reset_With_String_Access
-     (Lexer : in out Instance;
-      Input : in     Ada.Strings.Unbounded.String_Access);
+     (Lexer     : in out Instance;
+      Input     : in     Ada.Strings.Unbounded.String_Access;
+      File_Name : in     Ada.Strings.Unbounded.Unbounded_String);
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
    overriding procedure Reset (Lexer : in out Instance);
 

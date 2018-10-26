@@ -74,12 +74,12 @@ is
 
       --  No user data, so no point in calling Execute_Actions
 
-      Parser.Put_Errors (-File_Name);
+      Parser.Put_Errors;
 
    exception
    when WisiToken.Syntax_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      Parser.Put_Errors (-File_Name);
+      Parser.Put_Errors;
 
    when E : WisiToken.Parse_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

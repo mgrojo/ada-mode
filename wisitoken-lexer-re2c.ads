@@ -2,6 +2,10 @@
 --
 --  WisiToken wrapper around the re2c lexer
 --
+--  References:
+--
+--  [1] http://re2c.org/
+--
 --  Copyright (C) 2017, 2018 Stephe Leake
 --
 --  This file is part of the WisiToken package.

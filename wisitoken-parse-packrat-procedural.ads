@@ -74,7 +74,7 @@ package WisiToken.Parse.Packrat.Procedural is
      is (False);
    --  All errors are reported by Parse raising Syntax_Error.
 
-   overriding procedure Put_Errors (Parser : in Procedural.Parser; Input_File_Name : in String)
+   overriding procedure Put_Errors (Parser : in Procedural.Parser)
    is null;
 
 end WisiToken.Parse.Packrat.Procedural;

@@ -70,14 +70,14 @@ package body WisiToken.Parse.Packrat.Generated is
       return Parser.Lexer.Errors.Length > 0;
    end Any_Errors;
 
-   overriding procedure Put_Errors (Parser : in Generated.Parser; Input_File_Name : in String)
+   overriding procedure Put_Errors (Parser : in Generated.Parser)
    is
       use Ada.Text_IO;
    begin
       for Item of Parser.Lexer.Errors loop
          Put_Line
            (Current_Error,
-            Input_File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
+            Parser.Lexer.File_Name & ":0:0: lexer unrecognized character at" & Buffer_Pos'Image (Item.Char_Pos));
       end loop;
 
       --  FIXME: Packrat parser does not report errors yet.

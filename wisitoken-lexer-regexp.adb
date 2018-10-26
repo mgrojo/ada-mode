@@ -163,6 +163,7 @@ package body WisiToken.Lexer.Regexp is
 
       Lexer.Source :=
         (Label       => String_Label,
+         File_Name   => +"",
          Buffer      => new String'(Input),
          User_Buffer => False);
 
@@ -170,13 +171,15 @@ package body WisiToken.Lexer.Regexp is
    end Reset_With_String;
 
    overriding procedure Reset_With_String_Access
-     (Lexer : in out Instance;
-      Input : in     Ada.Strings.Unbounded.String_Access)
+     (Lexer     : in out Instance;
+      Input     : in     Ada.Strings.Unbounded.String_Access;
+      File_Name : in     Ada.Strings.Unbounded.Unbounded_String)
    is begin
       Finalize (Lexer);
 
       Lexer.Source :=
         (Label       => String_Label,
+         File_Name   => File_Name,
          Buffer      => Input,
          User_Buffer => True);
 

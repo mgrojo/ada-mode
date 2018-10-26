@@ -85,11 +85,11 @@ begin
 
    --  No user data, so no point in Execute_Actions
 
-   Parser.Put_Errors (-File_Name);
+   Parser.Put_Errors;
 
 exception
 when WisiToken.Syntax_Error =>
-   Parser.Put_Errors (-File_Name);
+   Parser.Put_Errors;
 
 when E : WisiToken.Parse_Error =>
    Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));

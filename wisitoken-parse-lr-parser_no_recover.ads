@@ -74,7 +74,7 @@ package WisiToken.Parse.LR.Parser_No_Recover is
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean;
 
-   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser; File_Name : in String);
+   overriding procedure Put_Errors (Parser : in LR.Parser_No_Recover.Parser);
    --  Put user-friendly error messages from the parse to
    --  Ada.Text_IO.Current_Error.
 

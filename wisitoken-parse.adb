@@ -29,6 +29,8 @@ package body WisiToken.Parse is
       loop
          Error := Parser.Lexer.Find_Next (Token);
 
+         --  We don't handle Error until later; we assume it was recovered.
+
          if Parser.User_Data /= null then
             Parser.User_Data.Lexer_To_Augmented (Token, Parser.Lexer);
          end if;
@@ -44,6 +46,10 @@ package body WisiToken.Parse is
                Parser.Line_Begin_Token.Set_Length (Ada.Containers.Count_Type (Token.Line + 1));
                Parser.Line_Begin_Token (Token.Line + 1) := Parser.Terminals.Last_Index + 1;
             end if;
+         end if;
+
+         if Trace_Parse > Lexer_Debug then
+            Parser.Trace.Put_Line (Image (Token, Parser.Trace.Descriptor.all));
          end if;
 
          exit when Token.ID >= Parser.Trace.Descriptor.First_Terminal;

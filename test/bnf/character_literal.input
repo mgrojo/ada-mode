@@ -10,6 +10,9 @@ Character '('c');
 Character ' ( 'd' );
 Character ' ( 'π' );
 
+--  This is a character array
+Char_Array'('e', 'f');
+
 -- a character literal '
 Character'(''');
 

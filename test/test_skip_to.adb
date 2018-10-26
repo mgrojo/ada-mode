@@ -50,7 +50,7 @@ package body Test_Skip_To is
          use Ada.Exceptions;
       begin
          Ada.Text_IO.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-         Parser.Put_Errors (File_Name);
+         Parser.Put_Errors;
       end;
       AUnit.Assertions.Assert (False, "exception");
    end Nominal;

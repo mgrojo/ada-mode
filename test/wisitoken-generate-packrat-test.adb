@@ -23,9 +23,9 @@ with Ada.Text_IO;
 with WisiToken.BNF.Generate_Utils;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Wisi_Grammar_Runtime;
-with Wisi_Grammar_Actions;
-with Wisi_Grammar_Main;
+with WisiToken_Grammar_Runtime;
+with Wisitoken_Grammar_Actions;
+with Wisitoken_Grammar_Main;
 package body WisiToken.Generate.Packrat.Test is
 
    ----------
@@ -36,13 +36,13 @@ package body WisiToken.Generate.Packrat.Test is
       pragma Unreferenced (T);
 
       Grammar_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
-      Grammar_Parse_Data : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Grammar_Parse_Data : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser     : WisiToken.Parse.LR.Parser_No_Recover.Parser;
-      Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
+      Trace              : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
    begin
       --  Test that all indirect recursion is identified
 
-      Wisi_Grammar_Main.Create_Parser
+      Wisitoken_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,
          User_Data => Grammar_Parse_Data'Unchecked_Access);

@@ -28,6 +28,7 @@
 (defconst character_literal-lr1-elisp-token-table-raw
   '(
    ("punctuation"
+    (COMMA . ",")
     (SEMICOLON . ";")
     (TICK_1 . "'")
     (LEFT_PAREN . "(")
@@ -52,6 +53,7 @@
        ((statement_list statement ))
        ((statement )))
       (statement
+       ((IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL COMMA CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ))
        ((IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ))
        ((IDENTIFIER tick IDENTIFIER SEMICOLON ))
        ((STRING_LITERAL SEMICOLON ))
@@ -65,16 +67,20 @@
       ((default . error) (Wisi_EOI . accept))
       ((default . error) (FOO .  1) (IDENTIFIER .  2) (STRING_LITERAL .  3) (Wisi_EOI . (compilation_unit . 0)))
       ((default . error) (FOO . (statement_list . 1)) (IDENTIFIER . (statement_list . 1)) (STRING_LITERAL . (statement_list . 1)) (Wisi_EOI . (statement_list . 1)))
-      ((default . error) (FOO . (statement . 3)) (IDENTIFIER . (statement . 3)) (STRING_LITERAL . (statement . 3)) (Wisi_EOI . (statement . 3)))
+      ((default . error) (FOO . (statement . 4)) (IDENTIFIER . (statement . 4)) (STRING_LITERAL . (statement . 4)) (Wisi_EOI . (statement . 4)))
       ((default . error) (LEFT_PAREN . (tick . 0)) (IDENTIFIER . (tick . 0)))
       ((default . error) (LEFT_PAREN .  12) (IDENTIFIER .  13))
-      ((default . error) (FOO . (statement . 2)) (IDENTIFIER . (statement . 2)) (STRING_LITERAL . (statement . 2)) (Wisi_EOI . (statement . 2)))
+      ((default . error) (FOO . (statement . 3)) (IDENTIFIER . (statement . 3)) (STRING_LITERAL . (statement . 3)) (Wisi_EOI . (statement . 3)))
       ((default . error) (FOO . (statement_list . 0)) (IDENTIFIER . (statement_list . 0)) (STRING_LITERAL . (statement_list . 0)) (Wisi_EOI . (statement_list . 0)))
       ((default . error) (CHARACTER_LITERAL .  14))
       ((default . error) (SEMICOLON .  15))
-      ((default . error) (RIGHT_PAREN .  16))
+      ((default . error) (COMMA .  16) (RIGHT_PAREN .  17))
+      ((default . error) (FOO . (statement . 2)) (IDENTIFIER . (statement . 2)) (STRING_LITERAL . (statement . 2)) (Wisi_EOI . (statement . 2)))
+      ((default . error) (CHARACTER_LITERAL .  18))
+      ((default . error) (SEMICOLON .  19))
+      ((default . error) (RIGHT_PAREN .  20))
       ((default . error) (FOO . (statement . 1)) (IDENTIFIER . (statement . 1)) (STRING_LITERAL . (statement . 1)) (Wisi_EOI . (statement . 1)))
-      ((default . error) (SEMICOLON .  17))
+      ((default . error) (SEMICOLON .  21))
       ((default . error) (FOO . (statement . 0)) (IDENTIFIER . (statement . 0)) (STRING_LITERAL . (statement . 0)) (Wisi_EOI . (statement . 0)))]
      [((compilation_unit . 4)(statement_list . 5)(statement . 6))
       nil
@@ -82,6 +88,10 @@
       nil
       nil
       ((statement . 11))
+      nil
+      nil
+      nil
+      nil
       nil
       nil
       nil

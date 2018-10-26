@@ -20,7 +20,6 @@
 
 pragma License (GPL);
 with Ada.Command_Line;
-with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -57,16 +56,16 @@ is
 
       --  No user data, so no point in calling Execute_Actions
 
-      Parser.Put_Errors (-File_Name);
+      Parser.Put_Errors;
 
    exception
    when WisiToken.Syntax_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      Parser.Put_Errors (-File_Name);
+      Parser.Put_Errors;
 
    when E : WisiToken.Parse_Error =>
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
+      Put_Line (Ada.Exceptions.Exception_Message (E));
 
    when Name_Error =>
       Put_Line (-File_Name & " cannot be opened");

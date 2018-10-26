@@ -65,6 +65,6 @@ package WisiToken.Parse.Packrat.Generated is
 
    overriding procedure Parse (Parser : aliased in out Generated.Parser);
    overriding function Any_Errors (Parser : in Generated.Parser) return Boolean;
-   overriding procedure Put_Errors (Parser : in Generated.Parser; Input_File_Name : in String);
+   overriding procedure Put_Errors (Parser : in Generated.Parser);
 
 end WisiToken.Parse.Packrat.Generated;

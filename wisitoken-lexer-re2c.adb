@@ -27,6 +27,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Directories;
 with Ada.Strings.Unbounded;
 with GNATCOLL.Mmap;
 package body WisiToken.Lexer.re2c is
@@ -81,7 +82,7 @@ package body WisiToken.Lexer.re2c is
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
         (Label       => String_Label,
-         File_Name   => File_Name,
+         File_Name   => +Ada.Directories.Simple_Name (-File_Name),
          Buffer      => Input,
          User_Buffer => True);
 
@@ -100,7 +101,8 @@ package body WisiToken.Lexer.re2c is
       Finalize (Lexer);
 
       --  We assume the file is in UTF-8 encoding
-      Lexer.Source := (File_Label, +File_Name, Open_Read (File_Name), Invalid_Mapped_Region, 1);
+      Lexer.Source :=
+        (File_Label, +Ada.Directories.Simple_Name (File_Name), Open_Read (File_Name), Invalid_Mapped_Region, 1);
 
       Lexer.Source.Region      := Read (Lexer.Source.File);
       Lexer.Source.Buffer_Last := Last (Lexer.Source.Region);

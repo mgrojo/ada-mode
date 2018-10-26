@@ -26,9 +26,9 @@ with WisiToken.Generate.LR;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Wisi_Grammar_Runtime;
-with Wisi_Grammar_Actions;
-with Wisi_Grammar_Main;
+with WisiToken_Grammar_Runtime;
+with Wisitoken_Grammar_Actions;
+with Wisitoken_Grammar_Main;
 package body Test_Ada_Lite_Terminal_Sequence is
 
    ----------
@@ -43,11 +43,11 @@ package body Test_Ada_Lite_Terminal_Sequence is
 
       Input_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
 
-      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
-      Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
-      Wisi_Grammar_Main.Create_Parser (Grammar_Parser, Trace'Unchecked_Access, Input_Data'Unchecked_Access);
+      Wisitoken_Grammar_Main.Create_Parser (Grammar_Parser, Trace'Unchecked_Access, Input_Data'Unchecked_Access);
 
       Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
       Grammar_Parser.Parse;

@@ -44,8 +44,6 @@ package body P is procedure Remove is begin A := B; exception end; end P; proced
 
 package body P is procedure Remove is begin A := B; exception end; A := B; end Remove; end P; procedure Q;
 
-package body P is procedure Remove is begin A := B; end; A := B; end Remove; end P; procedure Q;
-
 package body P is procedure Remove is begin A := B; end; end P; procedure Q;
 
 package body P is package body Remove is A : Integer; end; end P; procedure Q;

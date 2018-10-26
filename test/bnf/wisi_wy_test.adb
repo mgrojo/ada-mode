@@ -28,9 +28,9 @@ with GNAT.OS_Lib;
 with WisiToken.BNF;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Text_IO_Trace;
-with WisiToken.Wisi_Grammar_Runtime;
-with Wisi_Grammar_Actions;
-with Wisi_Grammar_Main;
+with WisiToken_Grammar_Runtime;
+with Wisitoken_Grammar_Actions;
+with Wisitoken_Grammar_Main;
 package body Wisi_WY_Test is
 
    procedure Spawn
@@ -104,11 +104,11 @@ package body Wisi_WY_Test is
       McKenzie_Recover :    out Boolean)
    is
       use all type WisiToken.Line_Number_Type;
-      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisi_Grammar_Actions.Descriptor'Access);
-      Input_Data     : aliased WisiToken.Wisi_Grammar_Runtime.User_Data_Type;
+      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+      Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
    begin
-      Wisi_Grammar_Main.Create_Parser
+      Wisitoken_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,
          User_Data => Input_Data'Unchecked_Access);
@@ -122,7 +122,7 @@ package body Wisi_WY_Test is
       McKenzie_Recover := Input_Data.McKenzie_Recover.Source_Line /= WisiToken.Invalid_Line_Number;
    exception
    when WisiToken.Syntax_Error =>
-      Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
+      Grammar_Parser.Put_Errors;
       raise;
    end Get_Gen_Set;
 

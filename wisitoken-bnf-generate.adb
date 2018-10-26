@@ -219,7 +219,7 @@ begin
       Grammar_Parser.Parse;
    exception
    when WisiToken.Syntax_Error =>
-      Grammar_Parser.Put_Errors (Input_Data.Grammar_Lexer.File_Name);
+      Grammar_Parser.Put_Errors;
       raise;
    when E : WisiToken.Parse_Error =>
       WisiToken.Generate.Put_Error (Ada.Exceptions.Exception_Message (E));

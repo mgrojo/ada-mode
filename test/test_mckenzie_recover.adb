@@ -72,14 +72,14 @@ package body Test_McKenzie_Recover is
       Parser.Execute_Actions;
 
       if WisiToken.Trace_Action > WisiToken.Outline then
-         Parser.Put_Errors (File_Name => "<string>");
+         Parser.Put_Errors;
       end if;
 
       Check ("exception", False, Expect_Exception);
    exception
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Parse > WisiToken.Outline then
-         Parser.Put_Errors (File_Name => "<string>");
+         Parser.Put_Errors;
       end if;
 
       Check ("exception", True, Expect_Exception);
@@ -573,7 +573,7 @@ package body Test_McKenzie_Recover is
            (Insert, +SEMICOLON_ID, 13) & (Fast_Forward, 13),
          Enqueue_Low             => 11,
          Enqueue_High            => 76,
-         Check_Low               => 5,
+         Check_Low               => 2,
          Check_High              => 27,
          Cost                    => 0);
 
@@ -1372,7 +1372,7 @@ package body Test_McKenzie_Recover is
          Enqueue_Low             => 4,
          Enqueue_High            => 73,
          Check_Low               => 3,
-         Check_High              => 15,
+         Check_High              => 17,
          Cost                    => 0);
    end Match_Selected_Component_1;
 
@@ -1397,7 +1397,7 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
              (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
          Enqueue_Low             => 2,
-         Enqueue_High            => 82,
+         Enqueue_High            => 168,
          Check_Low               => 2,
          Check_High              => 13,
          Cost                    => 0);

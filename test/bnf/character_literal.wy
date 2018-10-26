@@ -31,6 +31,7 @@
 %case_insensitive
 %keyword FOO "foo"
 
+%token <punctuation> COMMA ","
 %token <punctuation> SEMICOLON ";"
 
 ;; GNAT-specific syntax for non-ASCII characters
@@ -51,7 +52,7 @@
 %token <punctuation> TICK_1 "'"
 
 %if lexer = re2c
-%token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"')" ]%
+%token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 %end if
 
 %token <punctuation> LEFT_PAREN "("
@@ -80,21 +81,17 @@ statement_list
   | statement
   ;
 
-;; For CHARACTER_LITERAL and TICK, the input consists of variations of:
-;;
-;; Character'('C');
-;;
-;; with whitespace in different places. That should match this rule, a
-;; qualified expression.
-;;
-;; Action spans two lines to test wisi-rules.adb
 statement
-  : IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
+  ;; Aggregate for Character array
+  : IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL COMMA CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
 
- ;; A different use of TICK; attribute reference. Action tests character counting.
+  ;; Qualified Character literal
+  | IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
+
+ ;; Ada attribute reference.
   | IDENTIFIER tick IDENTIFIER SEMICOLON
 
- ;; Here the input is Ada strings, with and without embedded quotes.
+ ;; An Ada string, with and without embedded quotes.
   | STRING_LITERAL SEMICOLON
 
  ;; a use of FOO

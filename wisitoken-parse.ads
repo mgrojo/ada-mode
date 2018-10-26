@@ -57,7 +57,7 @@ package WisiToken.Parse is
 
    function Any_Errors (Parser : in Base_Parser) return Boolean is abstract;
 
-   procedure Put_Errors (Parser : in Base_Parser; Input_File_Name : in String) is abstract;
+   procedure Put_Errors (Parser : in Base_Parser) is abstract;
    --  Output error messages to Ada.Text_IO.Current_Error.
 
    procedure Execute_Actions (Parser : in out Base_Parser) is abstract;
