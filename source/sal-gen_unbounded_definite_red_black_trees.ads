@@ -1,6 +1,7 @@
 --  Abstract :
 --
---  Generic unbounded red-black tree with definite elements.
+--  Generic unbounded red-black tree with definite elements, definite
+--  or indefinite key.
 --
 --  References :
 --
@@ -27,7 +28,7 @@ with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
 generic
    type Element_Type is private;
-   type Key_Type is private;
+   type Key_Type (<>) is private;
    with function Key (Element : in Element_Type) return Key_Type is <>;
    with function Key_Compare (Left, Right : in Key_Type) return Compare_Result is <>;
 package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
@@ -82,6 +83,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
      (Container : aliased in Tree;
       Key       :         in Key_Type)
      return Variable_Ref_Type;
+   --  Raises Not_Found if Key not found in Container.
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 

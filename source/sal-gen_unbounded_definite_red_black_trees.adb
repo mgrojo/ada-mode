@@ -336,9 +336,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
      (Container : aliased in Tree;
       Key       :         in Key_Type)
      return Variable_Ref_Type
-   is begin
-      raise Not_Implemented; -- FIXME: need test
-      return (Element => Container.Root.Element'Access);
+   is
+      Node : constant Node_Access := Find (Container.Root, Key, Container.Nil);
+   begin
+      if Node = null then
+         raise Not_Found;
+      else
+         return (Element => Node.all.Element'Access);
+      end if;
    end Variable_Ref;
 
    function Iterate (Tree : in Pkg.Tree'Class) return Iterator
