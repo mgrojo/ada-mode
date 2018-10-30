@@ -333,7 +333,7 @@
       (wisi-statement-action [1 statement-start 3 motion 7 statement-end])
       (wisi-containing-action 1 4)
       (wisi-motion-action [1 [4 WHEN] 7])
-      (wisi-indent-action [0 ada-indent-broken [0 ada-indent] ada-indent-when 0 0 0]))))
+      (wisi-indent-action [0 ada-indent-broken [0 ada-indent-when] ada-indent-when 0 0 0]))))
       (case_statement_alternative
        ((WHEN discrete_choice_list EQUAL_GREATER sequence_of_statements_opt )
         (progn

@@ -1,6 +1,6 @@
 ;;; ada-wisi-elisp-parse.el --- Ada functions for grammar actions called from the elisp parser  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -98,7 +98,8 @@
   "For `wisi-elisp-parse-indent-hanging-function'. Determine indent style from context."
   ;; ada-mode 5.2 used a special case for aspect specification
   ;; expressions; we implement that here. Otherwise, implement
-  ;; ada-indent-hanging-rel-exp.
+  ;; ada-indent-hanging-rel-exp. Match logic in wisi-ada.adb
+  ;; Indent_Hanging_1
   (cond
    ((and (eq (wisi-tok-token tok) 'expression_opt)
 	 (let ((prev-1 (wisi-parse-stack-peek wisi--parser 1))
@@ -127,18 +128,49 @@
 
    (ada-indent-hanging-rel-exp
     (if (or (not option)
-	    (= (wisi-tok-line tok) (wisi-tok-first tok)))
+	    (and (wisi-tok-first tok)
+		 (= (wisi-tok-line tok) (wisi-tok-first tok))))
 	(list
 	 delta1
 	 (wisi-elisp-parse--anchored-1 tok ada-indent-broken))
       (list (wisi-elisp-parse--anchored-1 tok ada-indent-broken))))
 
    ((or (not option)
-	(= (wisi-tok-line tok) (wisi-tok-first tok)))
+	(and (wisi-tok-first tok)
+	     (= (wisi-tok-line tok) (wisi-tok-first tok))))
     (list delta1 delta2))
 
    (t
-    (list delta1))
+    (if wisi-indent-comment
+	(let* ((tok (aref wisi-tokens wisi-token-index))
+	       (first-tok-first-on-line
+		(and (numberp (wisi-tok-first tok))
+		     (= (wisi-tok-line tok) (wisi-tok-first tok))))
+	       ;; first token in tok is first on line
+	       (last-indent-line (line-number-at-pos (cdr (wisi-tok-region tok))))
+	       )
+	  (if option
+	      (if first-tok-first-on-line
+		(if (and (wisi-tok-first tok)
+			 (= (wisi-tok-first tok) last-indent-line))
+		    delta1
+		  delta2)
+	      (if (not (wisi-tok-first tok))
+		  ;; test/ada_mode-parens.adb
+		  ;;    Ada.Text_IO.Put_Line
+		  ;;      (Item => Hello & There
+		  ;;       --  Comment before trailing paren, token.First = False
+		  (list 0)
+		(list delta1)))
+	    (if first-tok-first-on-line
+		(if (and (numberp (wisi-tok-first tok))
+			 (= (wisi-tok-first tok) last-indent-line))
+		    (list delta1)
+		  (list delta2))
+	      (if (not (wisi-tok-first tok))
+		  (list delta1)
+		(list delta2)))))
+      (list delta1)))
    ))
 
 (defun ada-wisi-elisp-parse--indent-record-1 (anchor-tok record-tok offset)

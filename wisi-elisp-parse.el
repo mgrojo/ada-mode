@@ -594,16 +594,13 @@ For use in grammar actions."
 	      (when (wisi-tok-first tok)
 		(setq first (wisi-tok-first tok)))
 	    (setq first (or (and (wisi-tok-first tok) (wisi-tok-line tok))
-			    (wisi-tok-comment-line tok)
-			    first))
-	    ))))
-
-    (when (and (eq wisi--parse-action 'indent)
-	       first-last)
-      (let ((tok (aref stack (cdr first-last))))
-	(when (wisi-tok-comment-line tok)
-	  (setq comment-line (wisi-tok-comment-line tok))
-	  (setq comment-end (wisi-tok-comment-end tok)))))
+			    (and (not (= i (1- token-count))) (wisi-tok-comment-line tok))
+			    first)))
+	  (when (and (= i 0)
+		     (wisi-tok-comment-line tok))
+	    (setq comment-line (wisi-tok-comment-line tok))
+	    (setq comment-end (wisi-tok-comment-end tok)))
+	)))
 
     (setq sp (+ 2 (- sp (* 2 token-count))))
     (aset stack (1- sp)
@@ -1456,54 +1453,36 @@ For use in grammar indent actions."
   (let* ((tok (aref wisi-tokens wisi-token-index))
 	 (tok-syntax (syntax-ppss (car (wisi-tok-region tok))))
 	 (first-tok-first-on-line
-	  (= (wisi-tok-line tok) (wisi-tok-first tok)))
+	  (and (numberp (wisi-tok-first tok))
+	       (= (wisi-tok-line tok) (wisi-tok-first tok))))
 	 ;; first token in tok is first on line
-	 (last-indent-line (line-number-at-pos (cdr (wisi-tok-region tok))))
 	 )
     ;; tok is a nonterminal; this function makes no sense for terminals
     ;; syntax-ppss moves point to start of tok
 
-    (if wisi-indent-comment
-	(if option
-	    (if first-tok-first-on-line
-		(if (= (wisi-tok-first tok) last-indent-line)
-		    delta1
-		  delta2)
-	      (if (= (wisi-tok-first tok) (wisi-tok-comment-line tok))
-		  0
-		delta1))
+    (cond
+     ((functionp wisi-elisp-parse-indent-hanging-function)
+      (let ((indent-hanging (funcall wisi-elisp-parse-indent-hanging-function tok delta1 delta2 option)))
+	(list 'hanging
+	      (wisi-tok-line tok) ;; first line of token
+	      (nth 0 tok-syntax) ;; paren nest level at tok
+	      (nth 0 indent-hanging)
+	      (if (or (not option)
+		      (= 2 (length indent-hanging)))
+		  (nth 1 indent-hanging)
+		(nth 0 indent-hanging)) ;; simplest way to implement no-accumulate
+	      no-accumulate)))
 
-	  (if first-tok-first-on-line
-	      (if (= (wisi-tok-first tok) last-indent-line)
-		  delta1
-		delta2)
-	    (if (not (wisi-tok-first tok))
-		delta1
-	      delta2)))
-
-      (cond
-       ((functionp wisi-elisp-parse-indent-hanging-function)
-	(let ((indent-hanging (funcall wisi-elisp-parse-indent-hanging-function tok delta1 delta2 option)))
-	  (list 'hanging
-		(wisi-tok-line tok) ;; first line of token
-		(nth 0 tok-syntax) ;; paren nest level at tok
-		(nth 0 indent-hanging)
-		(if (or (not option)
-			(= 2 (length indent-hanging)))
-		    (nth 1 indent-hanging)
-		  (nth 0 indent-hanging)) ;; simplest way to implement no-accumulate
-		no-accumulate)))
-
-      (t
-       (list 'hanging
-	     (wisi-tok-line tok) ;; first line of token
-	     (nth 0 tok-syntax) ;; paren nest level at tok
-	     delta1
-	     (if (or (not option) first-tok-first-on-line)
-		 delta2
-	       delta1)
-	     no-accumulate))
-       ))
+     (t
+      (list 'hanging
+	    (wisi-tok-line tok) ;; first line of token
+	    (nth 0 tok-syntax) ;; paren nest level at tok
+	    delta1
+	    (if (or (not option) first-tok-first-on-line)
+		delta2
+	      delta1)
+	    no-accumulate))
+     )
     ))
 
 (defun wisi-hanging (delta1 delta2)
@@ -1543,9 +1522,15 @@ For use in grammar indent actions."
     (wisi-elisp-parse--indent-compute-delta (aref delta 0) tok))
 
    (t ;; form
-    (save-excursion
-      (goto-char (car (wisi-tok-region tok)))
-      (eval delta)))
+    (cond
+     ((eq 'anchored (car delta))
+      ;; just the offset
+      (nth 2 delta))
+
+     (t
+      (save-excursion
+	(goto-char (car (wisi-tok-region tok)))
+	(eval delta)))))
    ))
 
 (defun wisi-indent-action (deltas)

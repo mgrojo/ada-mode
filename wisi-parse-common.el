@@ -189,8 +189,9 @@ the grammar is excessively redundant.")
   first
   ;; For terminals, t if token is the first token on a line.
   ;;
-  ;; For nonterminals, line number of first contained line that needs
-  ;; indenting; it is a comment, or begins with a contained token.
+  ;; For nonterminals, line number of first contained line (not
+  ;; including trailing comments) that needs indenting; it is a
+  ;; comment, or begins with a contained token.
   ;;
   ;; Otherwise nil.
 

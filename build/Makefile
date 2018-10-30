@@ -92,24 +92,21 @@ test-wisi :: empty_production_8.wisi-test
 test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
-test-wisi :: force
-	echo "test-wisi" >> test.log
-	find . -name "*.diff" -not -size 0 >> test.log
 
 summarize :
 	cat test.log
 
-ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-#ONE_TEST_FILES ?= format_paramlist.ads format_paramlist.adb
+#ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
+ONE_TEST_FILES ?= ada_mode-parens.adb
 one : build_ada_executables
-#one : byte-compile
+one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
-#one : RUNTEST := run-indent-test-elisp-gpr_query.el
-#one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
-one : $(addsuffix .diff, $(ONE_TEST_FILES))
+#one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
+one : RUNTEST := run-indent-test-elisp-gpr_query.el
+one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
+#one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
 #two : RUN_ARGS ?= --verbosity 2 2 > debug.log
 #two : RUN_ARGS ?= --repeat_count 5

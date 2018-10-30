@@ -629,7 +629,9 @@ is -- target 0
          Local_2 : Integer   := 2;       -- are aligned.
          Local_3 : Character := ''';     -- quoted quote handled ok
          Local_4 : String    :=
-           "abc:" & ':' & "def";         -- ignores these ':'
+           "abc:" & ':' & "def";
+         Local_5 : Character := Character'('a');
+         Local_6 : String    := String'('a', 'b');
       begin
          --EMACSCMD:(progn (forward-line 2)(forward-word 3)(forward-char 1)(insert "   ")(ada-align))
          Local_1 := 2.0; -- comments after code
