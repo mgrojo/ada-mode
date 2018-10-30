@@ -42,14 +42,14 @@ package body WisiToken.Parse.LR.Parser.Gen_AUnit is
       Parser.Parse;
 
       if WisiToken.Trace_Action > WisiToken.Outline then
-         Parser.Put_Errors (File_Name => "<string>");
+         Parser.Put_Errors;
       end if;
 
       Check ("exception", False, Expect_Exception);
    exception
    when WisiToken.Syntax_Error =>
       if WisiToken.Trace_Parse > WisiToken.Outline then
-         Parser.Put_Errors (File_Name => "<string>");
+         Parser.Put_Errors;
       end if;
 
       Check ("exception", True, Expect_Exception);
