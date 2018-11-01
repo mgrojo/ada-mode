@@ -619,6 +619,8 @@ private
       Anchor_Token : in Augmented_Token'Class;
       Offset       : in Integer)
      return Integer;
+   --  Return offset from beginning of first token on line containing
+   --  Anchor_Token, to beginning of Anchor_Token, plus Offset.
 
    function Find
      (Data  : in Parse_Data_Type;

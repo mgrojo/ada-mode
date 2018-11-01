@@ -94,14 +94,32 @@
        0))
     ))
 
-(defun ada-wisi-elisp-parse--indent-hanging (tok delta1 delta2 option)
+(defun ada-wisi-elisp-parse--indent-hanging (tok delta1 delta2 option no-accumulate)
   "For `wisi-elisp-parse-indent-hanging-function'. Determine indent style from context."
   ;; ada-mode 5.2 used a special case for aspect specification
   ;; expressions; we implement that here. Otherwise, implement
   ;; ada-indent-hanging-rel-exp. Match logic in wisi-ada.adb
   ;; Indent_Hanging_1
+  (let ((paren-nest (nth 0 (syntax-ppss (car (wisi-tok-region tok)))))
+	(result2
+	 (lambda (delta1 delta2 paren-nest)
+	   (list 'hanging
+		 (wisi-tok-line tok) ;; first line of token
+		 paren-nest
+		 (wisi-elisp-parse--indent-compute-delta delta1 tok)
+		 delta2
+		 no-accumulate)))
+	(result1
+	 (lambda (delta1 paren-nest)
+	   (list 'hanging
+		 (wisi-tok-line tok) ;; first line of token
+		 paren-nest
+		 delta1
+		 delta1
+		 no-accumulate)))
+	)
   (cond
-   ((and (eq (wisi-tok-token tok) 'expression_opt)
+   ((and (memq (wisi-tok-token tok) '(EQUAL_GREATER expression_opt))
 	 (let ((prev-1 (wisi-parse-stack-peek wisi--parser 1))
 	       (prev-3 (wisi-parse-stack-peek wisi--parser 3)))
 	   (or
@@ -121,57 +139,75 @@
 	    ;;     Some_Very_Verbose_Predicate (X, Y);
 	    (and prev-3
 		 (eq 'WITH (wisi-tok-token prev-3))))))
-    ;; in aspect_specification_opt
-    (list
-     delta1
-     (wisi-elisp-parse--anchored-1 tok 0)))
+    ;; in aspect_specification_opt, indenting expression or comment after =>
+    (if (not wisi-indent-comment)
+	(funcall result2
+		 delta1
+		 (wisi-elisp-parse--anchored-2
+		  (wisi-tok-line tok) ;; anchor-line
+		  (cdr (wisi-tok-region tok))
+		  (wisi-elisp-parse--indent-offset tok 0)
+		  no-accumulate)
+		 paren-nest)
+      ;; else
+      (funcall result1 (wisi-elisp-parse--indent-compute-delta delta1 tok) paren-nest)
+      ))
 
    (ada-indent-hanging-rel-exp
-    (if (or (not option)
-	    (and (wisi-tok-first tok)
-		 (= (wisi-tok-line tok) (wisi-tok-first tok))))
-	(list
-	 delta1
-	 (wisi-elisp-parse--anchored-1 tok ada-indent-broken))
-      (list (wisi-elisp-parse--anchored-1 tok ada-indent-broken))))
+    (let ((new-delta2
+	   (wisi-elisp-parse--anchored-2
+	    (wisi-tok-line tok) ;; anchor-line
+	    (wisi-tok-comment-end tok)
+	    (wisi-elisp-parse--indent-offset tok ada-indent-broken)
+	    nil)))
+      (if (or (not option)
+	      (and (wisi-tok-first tok)
+		   (= (wisi-tok-line tok) (wisi-tok-first tok))))
+	  (funcall result2 delta1 new-delta2 paren-nest)
+	(funcall result1 new-delta2)
+
+	)))
+
+   (wisi-indent-comment
+    (let ((first-tok-first-on-line
+	   (and (numberp (wisi-tok-first tok))
+		(= (wisi-tok-line tok) (wisi-tok-first tok))))
+	  ;; first token in tok is first on line
+	  (last-indent-line (line-number-at-pos (cdr (wisi-tok-region tok))))
+	  )
+      (if option
+	  (if first-tok-first-on-line
+	      (if (and (wisi-tok-first tok)
+		       (= (wisi-tok-first tok) last-indent-line))
+		  (funcall result1 delta1 paren-nest)
+		(funcall result1 delta2 paren-nest))
+	    (if (not (wisi-tok-first tok))
+		;; test/ada_mode-parens.adb
+		;;    Ada.Text_IO.Put_Line
+		;;      (Item => Hello & There
+		;;       --  Comment before trailing paren, token.First = False
+		(funcall result1 0 paren-nest)
+	      (funcall result1 delta1 paren-nest)))
+
+	;; not option
+	(if first-tok-first-on-line
+	    (if (and (numberp (wisi-tok-first tok))
+		     (= (wisi-tok-first tok) last-indent-line))
+		(funcall result1 delta1 paren-nest)
+	      (funcall result1 delta2 paren-nest))
+	  (if (not (wisi-tok-first tok))
+	      (funcall result1 delta1 paren-nest)
+	    (funcall result1 delta2 paren-nest)))
+	)))
 
    ((or (not option)
 	(and (wisi-tok-first tok)
 	     (= (wisi-tok-line tok) (wisi-tok-first tok))))
-    (list delta1 delta2))
+    (funcall result2 delta1 delta2 paren-nest))
 
    (t
-    (if wisi-indent-comment
-	(let* ((tok (aref wisi-tokens wisi-token-index))
-	       (first-tok-first-on-line
-		(and (numberp (wisi-tok-first tok))
-		     (= (wisi-tok-line tok) (wisi-tok-first tok))))
-	       ;; first token in tok is first on line
-	       (last-indent-line (line-number-at-pos (cdr (wisi-tok-region tok))))
-	       )
-	  (if option
-	      (if first-tok-first-on-line
-		(if (and (wisi-tok-first tok)
-			 (= (wisi-tok-first tok) last-indent-line))
-		    delta1
-		  delta2)
-	      (if (not (wisi-tok-first tok))
-		  ;; test/ada_mode-parens.adb
-		  ;;    Ada.Text_IO.Put_Line
-		  ;;      (Item => Hello & There
-		  ;;       --  Comment before trailing paren, token.First = False
-		  (list 0)
-		(list delta1)))
-	    (if first-tok-first-on-line
-		(if (and (numberp (wisi-tok-first tok))
-			 (= (wisi-tok-first tok) last-indent-line))
-		    (list delta1)
-		  (list delta2))
-	      (if (not (wisi-tok-first tok))
-		  (list delta1)
-		(list delta2)))))
-      (list delta1)))
-   ))
+    (funcall result1 delta1 paren-nest))
+   )))
 
 (defun ada-wisi-elisp-parse--indent-record-1 (anchor-tok record-tok offset)
   "Return delta to implement `ada-indent-record-rel-type'.

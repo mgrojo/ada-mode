@@ -88,6 +88,9 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 %.tmp : %
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
+%.debug : %
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(run-test "$<")'
+
 benchmark :
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l benchmark.el
 

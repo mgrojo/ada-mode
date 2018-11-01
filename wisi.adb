@@ -1590,7 +1590,6 @@ package body Wisi is
       Offset       : in Integer)
      return Integer
    is begin
-      --  [2] compute delta in wisi-elisp-parse--anchored-1.
       return Offset + Integer (Anchor_Token.Char_Region.First - Data.Line_Begin_Pos (Anchor_Token.Line));
    end Current_Indent_Offset;
 

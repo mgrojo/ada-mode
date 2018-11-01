@@ -1105,8 +1105,8 @@ region, and does not apply a face if there are no such caches."
 
 (defvar wisi-elisp-parse-indent-hanging-function nil
   "Language-specific implementation of `wisi-hanging', `wisi-hanging%'.
-A function taking four args TOK DELTA1 DELTA2 OPTION,
-and returning a list either (DELTA1 DELTA2) or (DELTA).
+A function taking args TOK DELTA1 DELTA2 OPTION NO-ACCUMULATE,
+and returning an indent.
 TOK is a `wisi-tok' struct for the token being indented.
 DELTA1, DELTA2 are the indents of the first and following lines
 within the nonterminal.  OPTION is non-nil if action is `wisi-hanging%'.
@@ -1450,39 +1450,29 @@ For use in grammar indent actions."
 
 (defun wisi-elisp-parse--hanging-1 (delta1 delta2 option no-accumulate)
   "If OPTION is nil, implement `wisi-hanging'; otherwise `wisi-hanging%'."
-  (let* ((tok (aref wisi-tokens wisi-token-index))
-	 (tok-syntax (syntax-ppss (car (wisi-tok-region tok))))
-	 (first-tok-first-on-line
-	  (and (numberp (wisi-tok-first tok))
-	       (= (wisi-tok-line tok) (wisi-tok-first tok))))
-	 ;; first token in tok is first on line
-	 )
+  (let ((tok (aref wisi-tokens wisi-token-index)))
     ;; tok is a nonterminal; this function makes no sense for terminals
     ;; syntax-ppss moves point to start of tok
 
     (cond
      ((functionp wisi-elisp-parse-indent-hanging-function)
-      (let ((indent-hanging (funcall wisi-elisp-parse-indent-hanging-function tok delta1 delta2 option)))
+      (funcall wisi-elisp-parse-indent-hanging-function tok delta1 delta2 option no-accumulate))
+
+     (t
+      (let ((tok-syntax (syntax-ppss (car (wisi-tok-region tok))))
+	    (first-tok-first-on-line
+	     ;; first token in tok is first on line
+	     (and (numberp (wisi-tok-first tok))
+		  (= (wisi-tok-line tok) (wisi-tok-first tok)))))
 	(list 'hanging
 	      (wisi-tok-line tok) ;; first line of token
 	      (nth 0 tok-syntax) ;; paren nest level at tok
-	      (nth 0 indent-hanging)
-	      (if (or (not option)
-		      (= 2 (length indent-hanging)))
-		  (nth 1 indent-hanging)
-		(nth 0 indent-hanging)) ;; simplest way to implement no-accumulate
-	      no-accumulate)))
-
-     (t
-      (list 'hanging
-	    (wisi-tok-line tok) ;; first line of token
-	    (nth 0 tok-syntax) ;; paren nest level at tok
-	    delta1
-	    (if (or (not option) first-tok-first-on-line)
-		delta2
-	      delta1)
-	    no-accumulate))
-     )
+	      delta1
+	      (if (or (not option) first-tok-first-on-line)
+		  delta2
+		delta1)
+	      no-accumulate))
+      ))
     ))
 
 (defun wisi-hanging (delta1 delta2)
@@ -1506,6 +1496,15 @@ DELTA2 for following lines.  Otherwise use DELTA1 for all lines.
 For use in grammar indent actions."
   (wisi-elisp-parse--hanging-1 delta1 delta2 t t))
 
+(defun wisi-elisp-parse--indent-offset (token offset)
+  "Return offset from beginning of first token on line containing TOKEN,
+   to beginning of TOKEN, plus OFFSET."
+  (save-excursion
+    (goto-char (aref (wisi-elisp-lexer-line-begin wisi--lexer) (1- (wisi-tok-line token))))
+    (back-to-indentation)
+    (+ offset (- (car (wisi-tok-region token)) (point)))
+    ))
+
 (defun wisi-elisp-parse--indent-compute-delta (delta tok)
   "Return evaluation of DELTA."
   (cond
@@ -1524,8 +1523,7 @@ For use in grammar indent actions."
    (t ;; form
     (cond
      ((eq 'anchored (car delta))
-      ;; just the offset
-      (nth 2 delta))
+      delta)
 
      (t
       (save-excursion
