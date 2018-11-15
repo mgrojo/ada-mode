@@ -8,18 +8,18 @@ package body Ada_Mode.Recover_Renaming_1 is
      (DB              : in Database;
       Play_After      : in Integer     := Null_ID)
    is
-      begin
+   begin
 
-         Checked_Execute (DB, -Statement, Params (1 .. Last));
-      end Insert_Update;
+      Checked_Execute (DB, -Statement, Params (1 .. Last));
+   end Insert_Update;
 
 
-      Play_After_Field      : constant GNATCOLL.SQL.Exec.Field_Index := Play_Before_Field + 1;
+   Play_After_Field      : constant GNATCOLL.SQL.Exec.Field_Index := Play_Before_Field + 1;
 
-      Field_Fields : constant array (Fields) of GNATCOLL.SQL.Exec.Field_Index :=
-        (Artist => Artist_Field,
-         Album  => Album_Field,
-         Title  => Title_Field);
+   Field_Fields : constant array (Fields) of GNATCOLL.SQL.Exec.Field_Index :=
+     (Artist => Artist_Field,
+      Album  => Album_Field,
+      Title  => Title_Field);
 
 end Ada_Mode.Recover_Renaming_1;
 --  Local Variables:

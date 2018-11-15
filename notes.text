@@ -52,25 +52,19 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+release
+    add wisitoken-devel.gpr
+        build wisitoken-generate.exe
+
+    doc rationale for not using LSP
+        gnu elpa package eglot
+        https://langserver.org
+        LSP doesn't do indent, face. does some navigate.
+
+
+    wisitoken.grammar_mode?
+
 add error recovery strategy counts to recover.log
-
-run all tests
-    test-ada-elisp-gpr_query
-        (setq ada-parser 'elisp)
-     build/test.log
-     test/debug.adb
-    test/ada_mode-parens.adb
-    test/aspects.ads
-        ada logic is different from elisp
-            rewrite elisp ada-wisi-elisp-parse--indent-hanging to be the same as Ada dispatching Indent_Hanging_1
-
-    test-ada-lalr-process-gpr_query
-    ./ada_mode-recover_10.adb.diff
-    ./ada_mode-recover_27.adb.diff
-    ./ada_mode-recover_9.adb.diff
-    ./ada_mode-recover_deleted_procedure_1.adb.diff
-    ./ada_mode-recover_renaming_1.adb.diff
-    ./ada_mode-recover_virtual.adb.diff
 
 test/ada_mode-recover_redundant_solutions_1.adb
     recover finds two identical solutions
@@ -91,23 +85,6 @@ interactive indent requires [0 ada-indent] on block start keywords when followin
 
 redundant solutions
     ada_mode-recover_redundant_solutions_1.adb
-
-release
-    only build ada-mode exe on user machine
-        still need wisitoken, sal parse sources
-        non-top dirs get installed on user machines
-
-    include all wisitoken bnf/generate sources in elpa.git (as in ada-ref-man)
-        not including tests
-        wisitoken goes in elpa/wisi
-        wisi goes in elpa/wisi
-        *-ada.ad? goes in elpa/ada-mode
-        specify GPR_PROJECT_PATH in build.sh
-
-    doc rationale for not using LSP
-        gnu elpa package eglot
-        https://langserver.org
-        LSP doesn't do indent, face. does some navigate.
 
 https://github.com/lapo-luchini/asn1js/blob/master/mirror_to_github.sh
     export, incremental update of git mirror works
@@ -1129,14 +1106,10 @@ libadalang etc with gnat pro 18.2
         git checkout 18.2
 
  release process
-list-packages install doesn't work in mingw64!? works in cygwin
-
-adding lots of Ada code; move to elpa external
-
 do wisitoken release, if needed
 
 (dvc-status ".")
-(dvc-status "/Projects/org.opentoken")
+(dvc-status "/Projects/org.wisitoken")
 
 # uninstall elpa packages before change version
 build/Makefile uninstall-elpa
@@ -1202,14 +1175,14 @@ bump versions
 
     ada-mode.texi
         @title
-        top node
+        @node top
     README-ada-mode
         first line
     README-ada-ref-man
         first line
     README-wisi
         first line
-    ada_mode_wisi_parse.adb
+    emacs_wisi_common_parse.adb
         Version
     build/Makefile
         run uninstall-elpa with old values before changing!
@@ -1230,7 +1203,7 @@ bump versions
         wisi-generate version
         opentoken version
 
-    (d:/Web/stephe-leake/ada/opentoken.html copied by web makefile)
+    (d:/Web/stephe-leake/ada/wisitoken.html copied by web makefile)
 
     ~/Web/Makefile
         ADA_MODE_VERSION

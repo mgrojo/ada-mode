@@ -24,6 +24,7 @@ with WisiToken.Parse.LR.Parser;
 package Run_Wisi_Common_Parse is
 
    procedure Usage (Parser : in out WisiToken.Parse.LR.Parser.Parser);
+   --  Puts parameter description to Current_Output.
 
    type Command_Line_Params is record
       Post_Parse_Action : Wisi.Post_Parse_Action_Type;
@@ -33,5 +34,6 @@ package Run_Wisi_Common_Parse is
    end record;
 
    function Get_CL_Params (Parser : in out WisiToken.Parse.LR.Parser.Parser) return Command_Line_Params;
+   --  For any errors, calls Usage, raises SAL.Parameter_Error.
 
 end Run_Wisi_Common_Parse;

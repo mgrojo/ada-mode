@@ -791,7 +791,7 @@ TOKEN-TEXT; move point to just past token."
 (setq ada-indent-statement 'wisi-indent-statement)
 (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
 (setq ada-on-context-clause 'ada-wisi-on-context-clause)
-(setq ada-reset-parser 'wisi-invalidate-cache)
+(setq ada-reset-parser 'wisi-reset-parser)
 (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)
 (setq ada-show-parse-error 'wisi-show-parse-error)
 (setq ada-which-function 'ada-wisi-which-function)

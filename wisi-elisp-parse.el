@@ -582,7 +582,7 @@ For use in grammar actions."
     (when (not new-state)
       (error "no goto for %s %d" nonterm post-reduce-state))
 
-    (dotimes (i token-count)
+    (dotimes (i token-count) ;;  i = 0 .. (1- token-count); last token = 0, first token = (1- token-count)
       (let ((tok (aref stack (- sp (* 2 i) 1))))
 	(when (nth 1 action)
 	  ;; don't need wisi-tokens for a null user action
@@ -590,12 +590,20 @@ For use in grammar actions."
 
 	(when (eq wisi--parse-action 'indent)
 	  (setq line (or (wisi-tok-line tok) line))
-	  (if (wisi-tok-nonterminal tok)
-	      (when (wisi-tok-first tok)
-		(setq first (wisi-tok-first tok)))
-	    (setq first (or (and (wisi-tok-first tok) (wisi-tok-line tok))
-			    (and (not (= i (1- token-count))) (wisi-tok-comment-line tok))
-			    first)))
+	  (cond
+	   ((numberp (wisi-tok-first tok))
+	    (setq first (wisi-tok-first tok)))
+
+	   ((wisi-tok-first tok)
+	    (setq first (wisi-tok-line tok)))
+
+	   ((and (not (= i 0))
+		       (wisi-tok-comment-line tok))
+	    ;; comment lines following last token are not included in nonterm
+	    ;; test/ada_mode-nominal.ads Object_Access_Type_5a
+	    ;; test/ada_mode-parens.adb
+	    (setq first (wisi-tok-comment-line tok)))
+	   )
 	  (when (and (= i 0)
 		     (wisi-tok-comment-line tok))
 	    (setq comment-line (wisi-tok-comment-line tok))

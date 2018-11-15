@@ -6,7 +6,6 @@
 #
 # test ELPA packages from process-archive:
 #    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
-# test ELPA packages from all-in-place: (setq package-archives (list (cons "test" "/Projects/elpa/packages")))
 #
 # Ideally we'd have 5 elpa packages with dependencies:
 #
@@ -19,9 +18,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 5.3.1
+export ADA_MODE_VERSION    := 6.0.0
 export ADA_REF_MAN_VERSION := 2012.3
-export WISI_VERSION        := 1.1.6
+export WISI_VERSION        := 2.0.0
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -123,23 +122,23 @@ two_pro : build_ada_executables
 	../exec_pro/run_ada_parse.exe ../test/ada_mode-recover_bad_char.adb Indent --repeat_count 5
 	gprof ../exec_pro/run_ada_parse.exe > ada_mode-recover_bad_char.profile
 
-# WISI_WISITOKEN is correct for Stephe's development machines;
+# WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
 # external environment variable.
 #
 # ADA_PROJECT_PATH is used by the ../test/*.ad? files to test Ada mode
 # interaction with gpr project files.
 ifeq ($(shell uname),Linux)
-export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
+export WISITOKEN ?= /Projects/org.wisitoken
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else ifeq ($(shell uname),Darwin)
-export WISI_WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken/build
+export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else
 # windows
-export WISI_WISITOKEN ?= c:/Projects/org.wisitoken/build
+export WISITOKEN ?= c:/Projects/org.wisitoken
 export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
@@ -147,8 +146,8 @@ endif
 
 include rules.make
 
-$(WISI_WISITOKEN)/wisitoken-bnf-generate.exe : force
-	$(MAKE) -C $(WISI_WISITOKEN) wisitoken-bnf-generate.exe
+$(WISITOKEN)/buildwisitoken-bnf-generate.exe : force
+	$(MAKE) -C $(WISITOKEN) wisitoken-bnf-generate.exe
 
 test-ada-elisp-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
 test-ada-elisp-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
@@ -255,8 +254,10 @@ html : $(addsuffix .html, $(MANUALS))
 	for file in $(INFO_FILES); do install-info ../$$file ../dir-ada-mode; done
 
 VPATH := ..
-# copy files to ELPA ada-mode package
-# First delete all files in ELPA, so we catch files deleted here.
+# Publish Gnu ELPA packages
+# First delete all files in Gnu ELPA, so we catch files deleted here.
+#
+# Copy files to Gnu ELPA ada-mode package
 pub-ada : force
 	rm -rf $(ELPA_ROOT)/archive
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
@@ -270,10 +271,13 @@ pub-ada : force
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
-	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
-	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
+	cp ../ada*.ad? ../gpr*.ad? ../wisi-ada.ad? ../wisi-gpr.ad? ../*parse.ad? $(ELPA_ROOT)/packages/ada-mode
+	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
+	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
-	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query.gpr
+	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
+	cp ../check_xref.gpr $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 
@@ -299,7 +303,28 @@ pub-wisi : force
 	cp ../README-wisi $(ELPA_ROOT)/packages/wisi/README
 	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
 	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
-	cp ../parse_table-mode.el $(ELPA_ROOT)/packages/wisi
+	cp ../wisi.ad? $(ELPA_ROOT)/packages/wisi
+	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
+	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
+	cp $(WISITOKEN)/build/wisitoken-elpa.gpr  $(ELPA_ROOT)/packages/wisi/wisitoken.gpr
+	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/long_float_elementary_functions.ads $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_sorted.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists_sorted-gen_image.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_indefinite_doubly_linked_lists.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_trimmed_image.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_min_heaps_fibonacci.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_queues-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_queues.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_red_black_trees.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_stacks-gen_image_aux.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal.ad? $(ELPA_ROOT)/packages/wisi
 
 # 'make -C elpa all-in-place' does not build archive-contents, just *.elc
 #
@@ -312,9 +337,6 @@ build-elpa : force
 	cp -a $(ELPA_ROOT)/packages/ada-ref-man $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/wisi     $(ELPA_ROOT)/archive-tmp/packages
 	make -C $(ELPA_ROOT)/ process-archive
-
-# (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
-# (list-packages)
 
 # (dvc-state-one "/Projects/elpa/")
 # shell git push

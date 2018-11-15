@@ -20,7 +20,7 @@ package body Wisi.Libadalang is
                use WisiToken.Syntax_Trees;
 
                procedure Find_Production
-               is begin
+               is begin --  extra 'begin'
                Prod : WisiToken.Productions.Instance renames Grammar
                  (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
             begin
@@ -38,7 +38,7 @@ package body Wisi.Libadalang is
                end loop;
                exit when not K > Descendants.Last_Index;
                K := K + 1;
-            end loop;
+            end loop; --  missing 'loop'
             raise SAL.Programmer_Error with "production not found; " &
               WisiToken.Image (W_Token_ID, Data.Descriptor.all) & ", " &
               Tree.Image (Tree_Children.Nodes, Data.Descriptor.all);
@@ -48,7 +48,7 @@ package body Wisi.Libadalang is
             Find_Production;
          end;
       end if;
-      end Create_Tree_Node;
+   end Create_Tree_Node;
 
    begin
    end To_WisiToken_Tree;

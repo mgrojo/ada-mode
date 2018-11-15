@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 5.3.1
-;; package-requires: ((wisi "1.1.6") (cl-lib "0.4") (emacs "24.3"))
+;; Version: 6.0.0
+;; package-requires: ((wisi "2.0") (cl-lib "0.4") (emacs "24.3"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -168,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.3.1"))
+  (let ((version-string "6.0.0"))
     ;; must match:
     ;; ada-mode.texi
     ;; README-ada-mode
@@ -978,6 +978,7 @@ Each parameter declaration is represented by a list
   )
 
 (defun ada-reset-parser ()
+  "See variable ’ada-reset-parser’."
   (interactive)
   (when ada-reset-parser
     (funcall ada-reset-parser)))

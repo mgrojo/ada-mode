@@ -20,10 +20,10 @@
 	     :env-vars
 	     (cl-ecase system-type
 	       (gnu/linux
-		'(("WISI_WISITOKEN" . "/Projects/org.wisitoken/build")
+		'(("WISITOKEN" . "/Projects/org.wisitoken")
 		  ("LIBADALANG" . "/Projects/libadalang/build/lib/gnat")))
 	       (windows-nt
-		'(("WISI_WISITOKEN" . "c:/Projects/org.wisitoken/build")))
+		'(("WISITOKEN" . "c:/Projects/org.wisitoken")))
 	       )
 	     :ada-prj-file prj-file)))
 

@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 1.1.6
+;; Version: 2.0.0
 ;; package-requires: ((cl-lib "0.4") (emacs "24.3") (seq "2.3"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
@@ -288,6 +288,12 @@ Useful when debugging parser or parser actions."
      )
     (move-marker (wisi-cache-max action) after)
     ))
+
+(defun wisi-reset-parser ()
+  "For ’ada-reset-parser’."
+  (wisi-invalidate-cache 'indent 0)
+  (wisi-invalidate-cache 'face 0)
+  (wisi-invalidate-cache 'navigate 0))
 
 ;; wisi--change-* keep track of buffer modifications.
 ;; If wisi--change-end comes before wisi--change-beg, it means there were

@@ -157,14 +157,14 @@
     (let ((new-delta2
 	   (wisi-elisp-parse--anchored-2
 	    (wisi-tok-line tok) ;; anchor-line
-	    (wisi-tok-comment-end tok)
+	    (cdr (wisi-tok-region tok))
 	    (wisi-elisp-parse--indent-offset tok ada-indent-broken)
 	    nil)))
       (if (or (not option)
 	      (and (wisi-tok-first tok)
 		   (= (wisi-tok-line tok) (wisi-tok-first tok))))
 	  (funcall result2 delta1 new-delta2 paren-nest)
-	(funcall result1 new-delta2)
+	(funcall result1 new-delta2 paren-nest)
 
 	)))
 

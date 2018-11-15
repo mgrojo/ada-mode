@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with SAL;
 with System.Multiprocessors;
@@ -122,10 +123,17 @@ package body Run_Wisi_Common_Parse is
             else
                Ada.Text_IO.Put_Line ("unrecognized option: '" & Argument (Arg) & "'");
                Usage (Parser);
-               return;
+               Set_Exit_Status (Failure);
+               raise SAL.Parameter_Error;
             end if;
          end loop;
       end return;
+   exception
+   when E : others =>
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
+      Usage (Parser);
+      Set_Exit_Status (Failure);
+      raise SAL.Parameter_Error;
    end Get_CL_Params;
 
 end Run_Wisi_Common_Parse;

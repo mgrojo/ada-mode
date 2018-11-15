@@ -1,4 +1,4 @@
-;; uninstall install ada-mode, wisi from local elpa archive, for
+;; uninstall ada-mode, wisi from ~/.emacs.d/elpa, for
 ;; reinstall with different emacs version
 
 (require 'package)
@@ -16,11 +16,10 @@
 
  ((or (string-equal emacs-version "24.4.1")
       (string-equal emacs-version "24.5.1")
-      (= emacs-major-version 25))
+      (member emacs-major-version '(25 26)))
   (load-file "uninstall-elpa-24.4.el"))
 
-
  (t
-  (error "install-elpa.el: unsupported emacs-version"))
+  (error "uninstall-elpa.el: unsupported emacs-version"))
  )
 ;; end of file

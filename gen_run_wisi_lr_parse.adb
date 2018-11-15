@@ -25,8 +25,9 @@ with Ada.Real_Time;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with Run_Wisi_Common_Parse; use Run_Wisi_Common_Parse;
-with WisiToken.Parse.LR.Parser;
+with SAL;
 with WisiToken.Lexer;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Text_IO_Trace;
 procedure Gen_Run_Wisi_LR_Parse
 is
@@ -148,6 +149,10 @@ begin
    end if;
 
 exception
+when SAL.Parameter_Error =>
+   --  From Get_CL_Params; already handled.
+   null;
+
 when E : others =>
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    New_Line (2);

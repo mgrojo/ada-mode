@@ -159,7 +159,7 @@ profile-clean ::
 
 # delete all files created by wisi-generate for main programs
 build-ada-exec-clean :
-	cd ..; rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-elisp.el *-process.el *_process*.ad?
+	cd ..; rm -f *.parse_table *.re2c *_process*.ad? *_re2c_c.ads *_re2c.c *-elisp.el *-process.el *_parse_table.txt
 
 test-clean ::
 	rm -f *.diff *.tmp

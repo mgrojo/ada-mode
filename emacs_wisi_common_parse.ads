@@ -25,7 +25,7 @@ with WisiToken;
 package Emacs_Wisi_Common_Parse is
 
    Protocol_Version : constant String := "1";
-   Version          : constant String := "0.0";
+   Version          : constant String := "1.0";
 
    Prompt : constant String := ";;> ";
 
