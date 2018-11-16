@@ -1,1 +1,2 @@
+^build/.*\.bz2$
 ^build/objects$

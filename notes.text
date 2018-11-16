@@ -1,0 +1,7 @@
+Release process
+
+(dvc-state-one ".")
+
+no local test; only tested by use in other projects
+
+Makefile zip
