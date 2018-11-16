@@ -1,0 +1,21 @@
+Release process:
+
+do aunit_ext release
+
+(dvc-state-one ".")
+
+build/Makefile clean
+    check for missing clean actions
+
+build/Makefile all
+
+build/Makefile
+    # bump version
+    zip
+
+d:/Web/stephe-leake/ada/sal.html
+    doc version
+
+(dvc-status-one ".")
+
+build/Makefile tag

@@ -1,5 +1,7 @@
 # gnu make file for SAL
 
+ZIP_VERSION := 3.0
+
 all : test_all_harness.diff
 
 # export Standard_Common_Build := Debug
@@ -21,6 +23,13 @@ include rules.make
 one_mem : exec_pro/exercise_min_heap.exe
 	$< $(RUN_ARGS)
 	gnatmem $<
+
+BRANCH := $(notdir $(shell cd ..; pwd))
+
+zip :
+	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
+	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
+	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > org.stephe_leake.sal-$(ZIP_VERSION).tar.bz2
 
 #
 # Local Variables:

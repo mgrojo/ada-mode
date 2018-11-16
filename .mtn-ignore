@@ -1,3 +1,4 @@
+^build/.*\.bz2$
 ^build/.*\.config$
 ^build/.*\.csv$
 ^build/.*\.diff$

@@ -13,8 +13,12 @@ vpath %.adb      ../source
 vpath %.adb      ../test
 vpath %.good_out ../test
 
+clean :: test-clean
+clean :: profile-clean
+
 test-clean ::
 	rm -f *.config
+	rm -f *.csv
 
 profile-clean ::
 	rm -rf exec_pro
