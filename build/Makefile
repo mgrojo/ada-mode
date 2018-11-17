@@ -52,11 +52,6 @@ two : wisitoken-bnf-generate.exe
 doc : ../Docs/wisi-user_guide.info
 doc : ../Docs/wisi-user_guide.html
 
-zip : source-clean bz2file zipfile
-
-tag :
-	mtn tag h:org.fasttoken fasttoken-$(ZIP_VERSION)
-
 trace :
 	addr2line -e test_all_harness.exe 0x6eb427 0x7728ff3f 0x7728ff11 0x7729068d
 

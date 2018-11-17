@@ -130,13 +130,12 @@ recursive-clean ::
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 
-bz2file : force
+zip : force
 	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
 	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
-	tar -c -O  -C ../.. --exclude=_MTN --exclude "build/x86*" --exclude=.mtn-ignore --exclude=.dvc-exclude --exclude debug_parser.adb --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > wisitoken-$(ZIP_VERSION).tar.bz2
+	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore --exclude=.dvc-exclude $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > wisitoken-$(ZIP_VERSION).tar.bz2
 
-zipfile : ROOT := $(shell cd ..; basename `pwd`)
-zipfile : force
-	cd ../..; zip -q -r $(CURDIR)/wisitoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
+tag :
+	mtn tag h:$(BRANCH) $(BRANCH)-$(ZIP_VERSION)
 
 # end of file
