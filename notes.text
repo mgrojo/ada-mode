@@ -4,4 +4,4 @@ Release process
 
 no local test; only tested by use in other projects
 
-Makefile zip
+no local zip; included in SAL
