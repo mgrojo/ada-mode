@@ -38,6 +38,11 @@ zip :
 	mtn checkout --branch $(MAKERULES_BRANCH) ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
 	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore $(SAL_BRANCH)-$(ZIP_VERSION) $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION) $(MAKERULES_BRANCH)-$(ZIP_VERSION) | bzip2 -9 > org.stephe_leake.sal-$(ZIP_VERSION).tar.bz2
 
+tag :
+	mtn tag h:$(SAL_BRANCH) $(SAL_BRANCH)-$(ZIP_VERSION)
+	mtn tag h:$(AUNIT_EXT_BRANCH) $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
+	mtn tag h:$(MAKERULES_BRANCH) $(MAKERULES_BRANCH)-$(ZIP_VERSION)
+
 #
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))

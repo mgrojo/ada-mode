@@ -19,7 +19,7 @@ build/Makefile
 source/sal.html
     doc version
 
-(dvc-status-one ".")
+# dvc-state-multiple above
 
 build/Makefile zip tag
 
