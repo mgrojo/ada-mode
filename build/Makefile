@@ -24,12 +24,19 @@ one_mem : exec_pro/exercise_min_heap.exe
 	$< $(RUN_ARGS)
 	gnatmem $<
 
-BRANCH := $(notdir $(shell cd ..; pwd))
+SAL_BRANCH := $(notdir $(shell cd ..; pwd))
+AUNIT_EXT_BRANCH := org.stephe_leake.aunit_ext
+MAKERULES_BRANCH := org.stephe_leake.makerules
 
+# zip includes aunit_ext, makerules; they are not big enough to deserve their own tarball.
 zip :
-	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
-	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
-	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > org.stephe_leake.sal-$(ZIP_VERSION).tar.bz2
+	rm -rf ../../$(SAL_BRANCH)-$(ZIP_VERSION)
+	rm -rf ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
+	rm -rf ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
+	mtn checkout --branch $(SAL_BRANCH) ../../$(SAL_BRANCH)-$(ZIP_VERSION)
+	mtn checkout --branch $(AUNIT_EXT_BRANCH) ../../$(AUNIT_EXT_BRANCH)-$(ZIP_VERSION)
+	mtn checkout --branch $(MAKERULES_BRANCH) ../../$(MAKERULES_BRANCH)-$(ZIP_VERSION)
+	tar -c -C ../.. --exclude=_MTN --exclude=.mtn-ignore $(SAL_BRANCH)-$(ZIP_VERSION) $(AUNIT_EXT_BRANCH)-$(ZIP_VERSION) $(MAKERULES_BRANCH)-$(ZIP_VERSION) | bzip2 -9 > org.stephe_leake.sal-$(ZIP_VERSION).tar.bz2
 
 #
 # Local Variables:
