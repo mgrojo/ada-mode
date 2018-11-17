@@ -223,14 +223,26 @@ package body WisiToken.Parse.LR.Parser_Lists is
       if not Other.Is_Done then
          --  Both have the same number of errors, otherwise one would have been
          --  terminated earlier.
-         if Other.Total_Recover_Cost > Current.Total_Recover_Cost then
-            Parsers.Terminate_Parser (Other, "duplicate state: cost", Trace);
-         elsif Other.Max_Recover_Ops_Length > Current.Max_Recover_Ops_Length then
-            Parsers.Terminate_Parser (Other, "duplicate state: ops length", Trace);
+         if Other.Total_Recover_Cost = Current.Total_Recover_Cost then
+            if Other.Max_Recover_Ops_Length = Current.Max_Recover_Ops_Length then
+               Parsers.Terminate_Parser (Other, "duplicate state: random", Trace);
+            else
+               if Other.Max_Recover_Ops_Length > Current.Max_Recover_Ops_Length then
+                  null;
+               else
+                  Other := Cursor (Current);
+                  Current.Next;
+               end if;
+               Parsers.Terminate_Parser (Other, "duplicate state: ops length", Trace);
+            end if;
          else
-            Other := Cursor (Current);
-            Current.Next;
-            Parsers.Terminate_Parser (Other, "duplicate state", Trace);
+            if Other.Total_Recover_Cost > Current.Total_Recover_Cost then
+               null;
+            else
+               Other := Cursor (Current);
+               Current.Next;
+            end if;
+            Parsers.Terminate_Parser (Other, "duplicate state: cost", Trace);
          end if;
       end if;
    end Duplicate_State;

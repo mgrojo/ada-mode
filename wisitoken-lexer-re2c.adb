@@ -82,7 +82,9 @@ package body WisiToken.Lexer.re2c is
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
         (Label       => String_Label,
-         File_Name   => +Ada.Directories.Simple_Name (-File_Name),
+         File_Name   =>
+           +(if Ada.Strings.Unbounded.Length (File_Name) = 0 then ""
+             else Ada.Directories.Simple_Name (-File_Name)),
          Buffer      => Input,
          User_Buffer => True);
 

@@ -1,11 +1,14 @@
+do sal release ../../org.stephe_leake.sal/notes.text
+
 (dvc-state-one ".")
 
 review Debian bugs
-    http://packages.qa.debian.org/o/opentoken.html
+    (no Debian package yet)
+    http://packages.qa.debian.org/o/wisitoken.html
 
     tests implemented, fixed?
 
-    doc in ../Docs/opentoken.html
+    doc in ../Docs/wisitoken.html
 
     Debian package maintainer will mark them closed
 
@@ -13,34 +16,31 @@ review todo list
     ../notes.text
 
 doc changes since last release
-    ../Docs/opentoken.html
-    $ cd org.opentoken
+    ../Docs/wisitoken.html
+    $ cd org.wisitoken
     $ mtn log --to d:yyyy-mmm-dd > release.log
     ../release.log
 
 bump version
-    ../Docs/opentoken.html
+    ../Docs/wisitoken.html
         current version
-        opentoken-*.tar.gz
+        wisitoken-*.tar.gz
 
     Makefile
         ZIP_VERSION
 
-    debug/opentoken_lib.gpr
-        Version
-
-    release/opentoken_lib.gpr
+    wisitoken_lib.gpr
         Version
 
     ~/Web/Makefile
-        OPENTOKEN_ZIP_VERSION
+        WISITOKEN_ZIP_VERSION
 
-    /Projects/Web/stephe-leake/ada/
-        delete old *.zip, *.gz
+    d:/Web/stephe-leake/ada/
+        delete old *.zip, *.bz2
 
-    ../wisi/wisi-generate.adb
-        version
-            independent of opentoken, ada-mode versions
+    ../wisitoken-bnf-generate.adb
+        version in Put_Usage
+            independent of ada-mode parser version (?)
             bump if changes affect ada-mode or other clients
 
 loop until no changes:
@@ -51,15 +51,6 @@ loop until no changes:
             (gpr-query-kill-all-sessions)
             distclean
             all
-            install
-
-        ../../webcheck.main/build/windows_release/Makefile
-            # uses installed opentoken html lexer
-            maintainer-clean
-            all
-
-        release/Makefile
-            uninstall
 
         (dvc-state-one ".")
 
@@ -76,10 +67,6 @@ loop until no changes:
             make -r distclean
             make -r all
 
-        ../../webcheck.main/build/windows_release/Makefile
-            maintainer-clean
-            make -r all BUILD=User
-
         (dvc-state-one ".")
 
         (dvc-sync-run)
@@ -87,17 +74,19 @@ loop until no changes:
 end loop
 
 Makefile
-    zip
+    zip tag
+
+upload to savannah for Emacs Ada mode:
+    in Cygwin Console (for gpg2 prompts):
+    cd /cygdrive/c/Projects/org.wisitoken/build/
+    rm org.wisitoken-<old>.*
+    gpg2 -b *.tar.bz2
+
+    scp *.tar.bz2     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    scp *.tar.bz2.sig stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
 ~/Web/Makefile
-    opentoken sync check
-
-(dvc-status ".")
-
-Makefile
-    tag
-
-(dvc-sync-run)
+    wisitoken sync
 
 announce:
     comp.lang.ada
