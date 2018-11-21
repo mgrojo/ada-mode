@@ -23,9 +23,12 @@ source/sal.html
 
 build/Makefile zip tag
 
+d:/Web/stephe-leake/ada/
+    delete old *.zip, *.bz2
+
 upload to savannah for Emacs Ada mode:
-    in Mingw Console (for gpg prompts):
-    cd /c/Projects/org.stephe_leake.sal/build/
+    in Cygwin Console (for gpg2 prompts):
+    cd /cygdrive/c/Projects/org.stephe_leake.sal/build/
     rm org.stephe_leake.sal-<old>.*
     gpg2 -b *.tar.bz2
 
