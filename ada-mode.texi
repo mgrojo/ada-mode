@@ -158,6 +158,13 @@ tools.
 @xref{Debuggers,,Debuggers,emacs,Emacs User Guide}, for general
 information on debugging.
 
+@node Why not LSP?
+@section Why not LSP?
+The Language Server Protocol (LSP, @url{https://langserver.org})
+supports an external language parser, as Ada mode does, and it is
+supported by the GNU ELPA package eglot. We do not use LSP, because it
+does not support indentation and fontification.
+
 @node Installation, Customization, Overview, Top
 @chapter Installation
 

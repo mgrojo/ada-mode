@@ -318,9 +318,12 @@ nil, only the file name."
   :type 'string
   :group 'ada-indentation)
 
-(defcustom ada-process-parse-exec "ada_mode_wisi_lalr_parse.exe"
+(defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse.exe"
   ;; We use .exe even on Linux to simplify the Makefile
-  "Name of executable to use for external process Ada parser."
+  "Name of executable to use for external process Ada parser.
+There are two standard choices; ada_mode_wisi_lalr_parse.exe and
+ada_mode_wisi_lr1_parse.exe. The LR1 version (the default) is
+slower to load on first use, but gives better error recovery."
   :type 'string
   :group 'ada-indentation)
 
@@ -2973,7 +2976,7 @@ The paragraph is indented on the first line."
   (if (<= emacs-major-version 25)
       ;; run-mode-hooks does _not_ call hack-local-variables
       (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
-    ;; >= 26; run-mode-hooks _does_ call hack-local-variables
+    ;; >= 26; run-mode-hooks _does_ call hack-local-variables, after the hook functions
     (ada-mode-post-local-vars))
   )
 

@@ -149,7 +149,7 @@ begin
    end if;
 
 exception
-when SAL.Parameter_Error =>
+when SAL.Parameter_Error | Finish =>
    --  From Get_CL_Params; already handled.
    null;
 

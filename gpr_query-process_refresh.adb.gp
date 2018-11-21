@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  body compatible with either GNAT GPL 2016 or later via gnatprep
+--  body compatible with GNAT GPL 2016 or later via gnatprep
 --
 --  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --

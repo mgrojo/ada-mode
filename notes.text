@@ -52,17 +52,8 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-release
-    add wisitoken-devel.gpr
-        build wisitoken-generate.exe
-
-    doc rationale for not using LSP
-        gnu elpa package eglot
-        https://langserver.org
-        LSP doesn't do indent, face. does some navigate.
-
-
-    wisitoken.grammar_mode?
+release; see below
+    done compare prev elpa install to elpa new
 
 add error recovery strategy counts to recover.log
 
@@ -1106,10 +1097,9 @@ libadalang etc with gnat pro 18.2
         git checkout 18.2
 
  release process
-do wisitoken release, if needed
+do wisitoken release ../org.wisitoken/notes.text
 
 (dvc-status ".")
-(dvc-status "/Projects/org.wisitoken")
 
 # uninstall elpa packages before change version
 build/Makefile uninstall-elpa
@@ -1132,6 +1122,30 @@ check for ELPA patches by others
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
+compare:
+    build stuff to compare with previous release in elpa:
+        build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
+
+    (list-packages) install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
+        change versions in compares below to match installed versions.
+
+    (ediff-directories "~/.emacs.d/elpa/wisi-1.1.6" "/Projects/elpa/packages/wisi" nil)
+        NEWS-wisi.text
+            copyright date
+            add release date
+            add new features
+
+        wisi.el
+            Version:
+
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-5.3.2" "/Projects/elpa/packages/ada-mode" nil)
+        NEWS-ada-mode.text
+            add release date
+            add new features
+
+
+    (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.3" "/Projects/elpa/packages/ada-ref-man" nil)
+
 bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features
@@ -1141,49 +1155,30 @@ bump versions
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
 
-    build stuff to compare with previous release in elpa:
-        build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
-
-        (list-packages) install ada-mode, wisi, ada-ref-man from public ELPA
-
-    change versions in compares below to match installed versions.
-
-    compare:
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.5" "/Projects/elpa/packages/wisi" nil)
-            NEWS-wisi.text
-                add release date
-                add new features
-
-            wisi.el
-                Version:
-
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.2.2" "/Projects/elpa/packages/ada-mode" nil)
-            NEWS-ada-mode.text
-                add release date
-                add new features
-
-            ada-mode.el
-                Version:
-                package-requires wisi version
-                ada-mode-version
-
-            more below
-
-        (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.3" "/Projects/elpa/packages/ada-ref-man" nil)
-            ada-ref-man.el
-                Version:
+    ada-mode.el
+        Version:
+        package-requires wisi version
+        ada-mode-version
 
     ada-mode.texi
         @title
         @node top
     README-ada-mode
         first line
+
+    ada-ref-man.el
+        Version:
     README-ada-ref-man
         first line
+
+    wisi.el
+        Version:
     README-wisi
         first line
-    emacs_wisi_common_parse.adb
+
+    emacs_wisi_common_parse.ads
         Version
+
     build/Makefile
         run uninstall-elpa with old values before changing!
         ADA_MODE_VERSION
@@ -1195,15 +1190,7 @@ bump versions
         wisi-version
 
     (find-file "d:/Web/savannah/ada-mode/index.html")
-        ada-mode find-replace i.j.k
-        opentoken find-replace i.jk
-
-    (find-file "d:/Web/savannah/ada-mode/wisi/wisi.html")
-        i.j.k find-replace
-        wisi-generate version
-        opentoken version
-
-    (d:/Web/stephe-leake/ada/wisitoken.html copied by web makefile)
+        find-replace i.j.k
 
     ~/Web/Makefile
         ADA_MODE_VERSION
@@ -1216,7 +1203,7 @@ verify other metadata
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
 
-Emacs 25.3, gnat 2017:
+current Emacs, current gnat:
 run all tests:
     build/Makefile elisp
 
@@ -1224,39 +1211,47 @@ prep for other version tests:
     build/Makefile byte-compile-clean pub
     # pushes to elpa workspace, builds archive
 
-Emacs 24.5, gnat 2016, installed elpa (Eurocontrol)
-    (gnat-2016)
+Emacs 25.3, current gnat
+    ~/bin/emacs-25.sh
+    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
     (setenv "ADA_MODE_DIR" "-f package-initialize")
-    ../org.opentoken/build/release/Makefile clean
+
+Emacs 24.5, gnat 2016, installed elpa (Eurocontrol)
+    ../org.wisitoken/build/Makefile clean
+    (gnat-2016)
+    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
+    (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile exe-clean
     build/Makefile install-elpa
-    cd ~/.emacs.d/elpa/ada-mode-5.3.1; ./build.sh
+    cd ~/.emacs.d/elpa/ada-mode-6.0.0; ./build.sh
     build/Makefile byte-compile-clean compile-ada-test-clean update-elisp
     # ignore byte-compile errors in parse_table-mode.el, xref-ada.el due to lack of xref
     build/Makefile compile-ada-test autoloads test-clean test
     build/Makefile uninstall-elpa
 
 Emacs 24.4, gnat 2016, installed ada-mode:
+    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
     build/wisi/Makefile all
     build/Makefile uninstall-elpa
 
 Emacs 24.3, gnat 2016 (sal-standard), installed ada-mode:
+    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
     build/wisi/Makefile all
     build/Makefile uninstall-elpa
 
 sync for Debian:
-    Emacs 25 for dvc
-    (dvc-status ".")
-    (dvc-status "/Projects/org.opentoken")
+    current Emacs for dvc
+    # dvc-state-multiple above
     (dvc-sync-run ".")
     (dvc-sync-review ".")
 
-Debian stable is 8.2 jessie as of 5 Sept 2015
-    emacs  24.5
+Debian stable is 9 stretch as of 7 Feb 2017
+    https://www.debian.org/doc/manuals/project-history/ch-releases.en.html
+    emacs  24.5 (still!)
     gnat   4.9.2
 
     emacs-stable.sh ;; for dvc and testing
@@ -1298,7 +1293,7 @@ mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 
-mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.3.1 ../org.emacs.ada-mode-5.3.1
+mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-6.0.0 ../org.emacs.ada-mode-6.0.0
 
 build/Makefile zip
 

@@ -62,13 +62,22 @@ package body Run_Wisi_Common_Parse is
    is
       use Ada.Command_Line;
       use WisiToken;
-      Arg : Integer;
+      Arg : Integer := 1;
    begin
       return Result : Command_Line_Params do
          if Argument_Count < 1 then
             Usage (Parser);
             Set_Exit_Status (Failure);
-            return;
+            raise Finish;
+
+         elsif Argument (Arg) = "--help" then
+            Usage (Parser);
+            raise Finish;
+
+         elsif Argument_Count < 2 then
+            Usage (Parser);
+            Set_Exit_Status (Failure);
+            raise Finish;
          end if;
 
          Result.Source_File_Name  := +Ada.Command_Line.Argument (1);
@@ -129,6 +138,9 @@ package body Run_Wisi_Common_Parse is
          end loop;
       end return;
    exception
+   when Finish =>
+      raise;
+
    when E : others =>
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
       Usage (Parser);

@@ -30,6 +30,7 @@ package Emacs_Wisi_Common_Parse is
    Prompt : constant String := ";;> ";
 
    Protocol_Error : exception;
+   Finish         : exception;
 
    procedure Usage (Name : in String);
 
@@ -53,7 +54,8 @@ package Emacs_Wisi_Common_Parse is
    end record;
 
    function Get_Process_Start_Params return Process_Start_Params;
-   --  Get from Ada.Command_Line.
+   --  Get from Ada.Command_Line. Handles --help by outputing help,
+   --  raising Finish.
 
    type Parse_Params is record
       Post_Parse_Action  : Wisi.Post_Parse_Action_Type;

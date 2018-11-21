@@ -146,11 +146,30 @@ package body Emacs_Wisi_Common_Parse is
    function Get_Process_Start_Params return Process_Start_Params
    is
       use Ada.Command_Line;
+      procedure Put_Usage
+      is
+         use Ada.Text_IO;
+      begin
+         Put_Line (Standard_Error, "process start args:");
+         Put_Line (Standard_Error, "--help : put this help");
+         Put_Line (Standard_Error, "--recover-log <file_name> : log recover actions to file");
+      end Put_Usage;
+
+      Next_Arg : Integer := 1;
    begin
       return Result : Process_Start_Params do
-         if Argument_Count >= 2 and then Argument (1) = "--recover-log" then
-            Result.Recover_Log_File_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (2));
-         end if;
+         loop
+            exit when Next_Arg > Argument_Count;
+
+            if Next_Arg <= Argument_Count and then Argument (Next_Arg) = "--help" then
+               Put_Usage;
+               raise Finish;
+
+            elsif Next_Arg + 1 <= Argument_Count and then Argument (Next_Arg) = "--recover-log" then
+               Result.Recover_Log_File_Name := Ada.Strings.Unbounded.To_Unbounded_String (Argument (Next_Arg + 1));
+               Next_Arg := Next_Arg + 2;
+            end if;
+         end loop;
       end return;
    end Get_Process_Start_Params;
 

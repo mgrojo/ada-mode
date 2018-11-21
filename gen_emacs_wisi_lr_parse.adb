@@ -204,6 +204,9 @@ begin
    end loop;
    Cleanup;
 exception
+when Finish =>
+   null;
+
 when E : others =>
    Cleanup;
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
