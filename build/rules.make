@@ -52,8 +52,8 @@ run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
 
 # for ../test/wisi/*.wy
-%-lalr-elisp.el : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
-	cd ./$(<D); $(WISITOKEN)/build/wisitoken-bnf-generate.exe --generate LALR Elisp Elisp $(<F)
+%-lalr-elisp.el : %.wy $(WISITOKEN_GENERATE)
+	cd ./$(<D); $(WISITOKEN_GENERATE) --generate LALR Elisp Elisp $(<F)
 	cd ./$(<D); dos2unix -q $(*F)-lalr-elisp.el
 
 elisp-clean :

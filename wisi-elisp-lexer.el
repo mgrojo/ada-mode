@@ -25,6 +25,8 @@
 ;;;; History: see NEWS-wisi.text
 
 (require 'cl-lib)
+(require 'semantic/lex)
+(require 'wisi-parse-common)
 
 (cl-defstruct wisi-elisp-lexer
   id-alist ;; alist mapping strings to token ids; used by repair error

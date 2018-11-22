@@ -63,10 +63,15 @@ Ada Mode Version 6.0.0
 @detailmenu
  --- The Detailed Node Listing ---
 
+Overview
+
+* Why not LSP?::
+
 Installation
 
 * Ada Reference Manual::
 * gpr_query::
+* process parser::
 * ada_mode_gps_indent::
 
 gpr_query
@@ -157,6 +162,10 @@ tools.
 
 @xref{Debuggers,,Debuggers,emacs,Emacs User Guide}, for general
 information on debugging.
+
+@menu
+* Why not LSP?::
+@end menu
 
 @node Why not LSP?
 @section Why not LSP?
@@ -346,19 +355,21 @@ in the gpr file. On Suse, @var{Iconv_Opt} must be empty, which can
 only be achieved by editing the gpr file.
 
 @example
-tar xf ~/Downloads/gnatcoll-core-gpl-2018-20180523-src.tar.gz
+tar xf ~/Downloads/gnatcoll-core-gpl-2018-20180524-src.tar.gz
 cd gnatcoll-core-gpl-2018-src
 make
 make install
+cd ..
 
-tar xf ~/Downloads/gnatcoll-bindings-gpl-2018-20180523-src.tar.gz
+tar xf ~/Downloads/gnatcoll-bindings-gpl-2018-20180524-src.tar.gz
 cd gnatcoll-bindings-gpl-2018-src
 cd iconv
 export GNATCOLL_ICONV_OPT="-lc"
 ./setup.py build
 ./setup.py install
+cd ../..
 
-tar xf ~/Downloads/gnatcoll-db-gpl-2018-20180523-src.tar.gz
+tar xf ~/Downloads/gnatcoll-db-gpl-2018-20180524-src.tar.gz
 cd gnatcoll-db-gpl-2018-src
 make -C sql
 make -C sql install

@@ -28,11 +28,11 @@ run test from emacs -Q using source:
   (wisi-debug-keys))
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal")
-  (xmtn . "c:/Projects/org.stephe_leake.aunit_ext")
-  (xmtn . "c:/Projects/org.wisitoken")
-  (xmtn . "c:/Projects/org.emacs.ada-mode/")))
+'((xmtn . "/Projects/org.stephe_leake.makerules")
+  (xmtn . "/Projects/org.stephe_leake.sal")
+  (xmtn . "/Projects/org.stephe_leake.aunit_ext")
+  (xmtn . "/Projects/org.wisitoken")
+  (xmtn . "/Projects/org.emacs.ada-mode/")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal"  . "../org.stephe_leake.sal.stephe-1")
@@ -1057,6 +1057,12 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  git config for elpa checkout
+in ~/.gitconfig:
+    # 15 Feb 2016: ELPA has an object that fails this check; only need
+    # to disable (set to false) when pull a full repository (that includes that
+    # object)
+        fsckObjects = false
+
 [core]
 	repositoryformatversion = 0
 	filemode = false # don't set exec bits
@@ -1249,19 +1255,32 @@ sync for Debian:
     (dvc-sync-run ".")
     (dvc-sync-review ".")
 
-Debian stable is 9 stretch as of 7 Feb 2017
-    https://www.debian.org/doc/manuals/project-history/ch-releases.en.html
-    emacs  24.5 (still!)
-    gnat   4.9.2
+Debian stable is 9.6 jessie as of 18 Nov 2018
+    emacs  24.5
+    gnat   6.3.0 - fails on wisitoken
 
     emacs-stable.sh ;; for dvc and testing
-    (sal-debian)
 
-    (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
-    (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
+    ~/bin/mtn_sync_ada_france.sh
+    (dvc-sync-review "/Projects/org.emacs.ada-mode")
 
-    /home/Projects/org.emacs.ada-mode/build/wisi/Makefile
-        all
+    if new machine, install gnat CE 2018, gnatcoll
+        http://libre.adacore.com
+        ada-mode.texi
+
+    /Projects/org.emacs.ada-mode/build/Makefile
+        pub
+        install-elpa
+
+    cd ~/.emacs.d/elpa/ada-mode-6.0.0
+    ./build.sh
+    cd ../wisi-2.0.0/
+    ./build-wisitoken-bnf-generate.sh
+
+
+    build/Makefile
+        compile-ada-test
+        test ADA_MODE_DIR="-f package-initialize" WISITOKEN_GENERATE="~/.emacs.d/elpa/wisi-2.0.0/wisitoken-bnf-generate.exe"
 
     emacs.sh ;; current for dvc
     (dvc-status)

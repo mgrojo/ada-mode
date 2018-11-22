@@ -144,6 +144,9 @@ export ADA_PROJECT_PATH=../test/;../test/subdir
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
 endif
 
+# this can be overridden by the installed elpa package
+WISITOKEN_GENERATE ?= $(WISITOKEN)/build/wisitoken-bnf-generate.exe
+
 include rules.make
 
 $(WISITOKEN)/buildwisitoken-bnf-generate.exe : force
@@ -276,7 +279,6 @@ pub-ada : force
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
-	cp ../check_xref.gpr $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
@@ -347,9 +349,9 @@ build-elpa : force
 uninstall-elpa :
 	emacs -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'
 
-# package install from public doesn't work in batch
+# We don't kill emacs here, so we can check for compilation errors/warnings
 install-elpa :
-	emacs -Q --eval '(progn (load-file "install-elpa.el")(kill-emacs))'
+	emacs -Q --eval '(progn (load-file "install-elpa.el"))'
 
 install-elpa-review :
 	emacs -Q --eval '(load-file "install-elpa.el")'

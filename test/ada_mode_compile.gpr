@@ -8,8 +8,7 @@ project Ada_Mode_Compile is
 
    for Excluded_Source_Files use
      (
-      "debug.adb", -- debug only
-      "debug.ads", -- debug only
+      --  "debug.adb", including this gives an error when it is not present
       "access_in_record.ads", -- incomplete code
       "ada_mode-ada83.ads", -- font-lock only
       "ada_mode-ada95.ads", -- font-lock only
@@ -87,6 +86,9 @@ project Ada_Mode_Compile is
       "ada_mode-recover_virtual.adb",
       "ada_mode-recover_virtual_renames.adb",
 
+      --  WORKAROUND: this gives bogus warnings about too-long lines with CE 2018 on Debian
+      "ada_mode-separate_protected_body.adb",
+      
       -- This has illegal code; used for testing skeleton expansion
       "ada_skel.adb",
 
@@ -98,6 +100,7 @@ project Ada_Mode_Compile is
       "bug_2016_11_21_01.adb", -- missing declarations
       "g-comlin.adb", -- copied from gnat runtime; gnat won't compile it!
       "gnatprep.adb" -- could run thru gnatprep, but it's not worth it.
+      
      );
 
    -- .ali files are in source dir, so they are shared between backend
@@ -122,7 +125,8 @@ project Ada_Mode_Compile is
       for Switches ("ada_mode-options-indent_return_1.ads") use ("-gnats");
       for Switches ("ada_mode-options-indent_return_2.ads") use ("-gnats");
       for Switches ("ada_mode-options-indent_return_3.ads") use ("-gnats");
-      for Switches ("ada_mode-separate_protected_body.adb") use ("-gnats");
+      -- WORKAROUND: see above
+      -- for Switches ("ada_mode-separate_protected_body.adb") use ("-gnats");
       for Switches ("ada_mode-spec.ads") use ("-gnats");
 
       -- These files set Ada mode indentation options that violate gnat's check
