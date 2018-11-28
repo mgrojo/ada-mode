@@ -1,5 +1,18 @@
 ;; Project definitions for compiling ada_mode_wisi_parse.adb
 
+(cond
+ ((< emacs-major-version 25)
+  ;; not worth fixing; just define WISITOKEN, GPR_PROJECT_PATH so Makefile works
+  (setenv "WISITOKEN" "/Projects/org.wisitoken")
+  (setenv "GPR_PROJECT_PATH"
+	  (concat
+	   (getenv "WISITOKEN") "/build"
+	  ":" "/Projects/org.stephe_leake.aunit_ext/build"
+	  ":" "/Projects/org.stephe_leake.sal/build"
+	  ":" "/Projects/org.stephe_leake.makerules"))
+  )
+
+ (t
 (require 'ada-project)
 (require 'xref-ada)
 (require 'wisi)
@@ -31,5 +44,5 @@
 
   (project-menu-select-by-name prj-name)
   )
-
+))
 ;; end of file

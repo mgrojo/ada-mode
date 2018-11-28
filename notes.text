@@ -13,19 +13,21 @@ o.e.a.stephe-6 (from o.e.a.s-2): available
 run test from emacs -Q using source:
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2018/bin")
+  (package-initialize)
+  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode")
   (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode/build")
-  ; (setq debug-on-error t)
+  (setq debug-on-error t)
   ; (setq debug-on-quit t)
   (setq default-directory "c:/Projects/org.emacs.ada-mode/build/")
-  (load "autoloads.el")
-  (load "run-indent-test-elisp-gpr_query")
+;  (load "autoloads.el")
+  (load "run-wisi-test")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/format_paramlist.adb")
-  (wisi-debug-keys))
+;  (find-file "../test/ada_mode-nominal.adb")
+  (run-test "ada-number-literal")
+;  (wisi-debug-keys)
+  )
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -53,7 +55,25 @@ run test from emacs -Q using source:
 
  current work
 release; see below
-    done compare prev elpa install to elpa new
+    need ELPA package for ada-project, so others can use Makefile?
+        or just (if (file-exists-p "ada-project.el"))?
+
+    testing in Debian
+        no cl-defgeneric in emacs 24.5 (debian stable)
+            ELPA package cl-generic does not work either!? test again, more carefully
+
+    windows emacs 25.3:
+        all tests pass
+
+    windows emacs 24.5:
+        ada-build.el:37:1:Error: Unknown class type wisi-elisp-parser in method parameters
+            added (require 'cl-generic) in all files that use cl-defgeneric, cl-defmethod
+            cl-defstruct needs to call eieio defclass
+
+    first use of lr1 can time out because of load table time
+        does not recover nicely
+        longer timeout on first use?
+        or just increase timeout
 
 add error recovery strategy counts to recover.log
 
@@ -1219,32 +1239,50 @@ prep for other version tests:
 
 Emacs 25.3, current gnat
     ~/bin/emacs-25.sh
-    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
+    (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
     (setenv "ADA_MODE_DIR" "-f package-initialize")
-
-Emacs 24.5, gnat 2016, installed elpa (Eurocontrol)
-    ../org.wisitoken/build/Makefile clean
-    (gnat-2016)
-    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
-    (setenv "ADA_MODE_DIR" "-f package-initialize")
-    build/Makefile exe-clean
     build/Makefile install-elpa
     cd ~/.emacs.d/elpa/ada-mode-6.0.0; ./build.sh
-    build/Makefile byte-compile-clean compile-ada-test-clean update-elisp
-    # ignore byte-compile errors in parse_table-mode.el, xref-ada.el due to lack of xref
-    build/Makefile compile-ada-test autoloads test-clean test
+    cd ~/.emacs.d/elpa/wisi-2.0.0; ./build-wisitoken-bnf-generate.sh
+    build/Makefile compile-ada-test autoloads test-clean
+    build/Makefile test WISITOKEN_GENERATE="~/.emacs.d/elpa/wisi-2.0.0/wisitoken-bnf-generate.exe"
     build/Makefile uninstall-elpa
+    (gpr-query-kill-all-sessions)
+    build/Makefile recursive-clean clean # changing compilers
 
-Emacs 24.4, gnat 2016, installed ada-mode:
-    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
-    (setenv "ADA_MODE_DIR" "-f package-initialize")
+Emacs 24.5, gnat 2017
+    wisitoken encounters gnat bug in GPL 2016
+    (progn
+     (gnat-2017)
+     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
+     (setenv "ADA_MODE_DIR" "-f package-initialize"))
+    build/Makefile install-elpa
+    # ignore byte-compile errors in wisi.el wisi--run-parse "unused lexical var 'err'"
+    # ignore byte-compile errors in wisi.el wisi-time "...-proces--parser-tags"
+    # ignore byte-compile errors in *.el "unknown class type"
+    # ignore byte-compile errors in xref-ada.el due to lack of xref
+
+    cd ~/.emacs.d/elpa/ada-mode-6.0.0; ./build.sh
+    cd ~/.emacs.d/elpa/wisi-2.0.0; ./build-wisitoken-bnf-generate.sh
+    build/Makefile compile-ada-test autoloads test-clean
+    build/Makefile test WISITOKEN_GENERATE="~/.emacs.d/elpa/wisi-2.0.0/wisitoken-bnf-generate.exe"
+    build/Makefile uninstall-elpa
+    build/Makefile clean
+
+Emacs 24.4, gnat 2017
+    (progn
+     (gnat-2017)
+     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
+     (setenv "ADA_MODE_DIR" "-f package-initialize"))
     build/Makefile install-elpa
     build/wisi/Makefile all
     build/Makefile uninstall-elpa
 
-Emacs 24.3, gnat 2016 (sal-standard), installed ada-mode:
-    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
-    (setenv "ADA_MODE_DIR" "-f package-initialize")
+Emacs 24.3, gnat 2017
+    (progn
+     (gnat-2017)
+     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
+     (setenv "ADA_MODE_DIR" "-f package-initialize"))
     build/Makefile install-elpa
     build/wisi/Makefile all
     build/Makefile uninstall-elpa

@@ -21,12 +21,6 @@
 
 ;;; Code:
 
-;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
-;; (when (and (= emacs-major-version 24)
-;; 	   (= emacs-minor-version 2))
-  (require 'wisi-compat-24.2)
-;;)
-
 (cl-defstruct (wisi--lexer-error)
   pos ;; position (integer) in buffer where error was detected.
   message  ;; string error message
@@ -63,7 +57,7 @@
   "Return a string to be sent to the parser, containing settings
 for the language-specific parser options."
   ;; not needed for the elisp parser, which can see the options directly.
-  "")
+  )
 
 (cl-defgeneric wisi-parse-current ((parser wisi-parser))
   "Parse current buffer.")
@@ -79,6 +73,90 @@ For use in grammar actions.")
   "Return the Nth token on the parse stack.
 For use in grammar actions.")
 
+(cl-defstruct
+  (wisi-cache
+   (:constructor wisi-cache-create)
+   (:copier nil))
+  nonterm;; nonterminal from parse
+
+  token
+  ;; terminal symbol from wisi-keyword-table or
+  ;; wisi-punctuation-table, or lower-level nonterminal from parse
+
+  last ;; pos of last char in token, relative to first (0 indexed)
+
+  class ;; one of wisi-class-list
+
+  containing
+  ;; Marker at the start of the containing statement for this token.
+  ;; nil only for first token in buffer
+
+  prev ;; marker at previous motion token in statement; nil if none
+  next ;; marker at next motion token in statement; nil if none
+  end  ;; marker at token at end of current statement
+  )
+
+(defun wisi-get-cache (pos)
+  "Return `wisi-cache' struct from the `wisi-cache' text property at POS."
+  (get-text-property pos 'wisi-cache))
+
+(defun wisi-backward-cache ()
+  "Move point backward to the beginning of the first token preceding point that has a cache.
+Returns cache, or nil if at beginning of buffer."
+  ;; If point is not near cache, p-s-p-c will return pos just after
+  ;; cache, so 1- is the beginning of cache.
+  ;;
+  ;; If point is just after end of cache, p-s-p-c will return pos at
+  ;; start of cache.
+  ;;
+  ;; So we test for the property before subtracting 1.
+  (let ((pos (previous-single-property-change (point) 'wisi-cache))
+	cache)
+    (cond
+     ((null pos)
+      (goto-char (point-min))
+      nil)
+
+     ((setq cache (get-text-property pos 'wisi-cache))
+      (goto-char pos)
+      cache)
+
+     (t
+      (setq pos (1- pos))
+      (setq cache (get-text-property pos 'wisi-cache))
+      (goto-char pos)
+      cache)
+     )))
+
+(defun wisi-forward-cache ()
+  "Move point forward to the beginning of the first token after point that has a cache.
+Returns cache, or nil if at end of buffer."
+  (let (cache pos)
+    (when (get-text-property (point) 'wisi-cache)
+      ;; on a cache; get past it
+      (goto-char (1+ (point))))
+
+    (setq cache (get-text-property (point) 'wisi-cache))
+    (if cache
+	nil
+
+      (setq pos (next-single-property-change (point) 'wisi-cache))
+      (if pos
+	  (progn
+	    (goto-char pos)
+	    (setq cache (get-text-property pos 'wisi-cache)))
+	;; at eob
+	(goto-char (point-max))
+	(setq cache nil))
+      )
+    cache
+    ))
+
+(defun wisi-cache-region (cache &optional start)
+  "Return region designated by START (default point) to cache last."
+  (unless start (setq start (point)))
+  (cons start (+ start (wisi-cache-last cache))))
+
 (defvar wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code
@@ -91,9 +169,6 @@ For use in grammar actions.")
   "If non-nil, disable all elisp actions during parsing.
 Allows timing parse separate from actions.")
 
-(defvar-local wisi-panic-enable nil
-  "If non-nil, enable panic mode error recovery.")
-
 (defvar-local wisi-trace-mckenzie 0
   "McKenzie trace level; 0 for none")
 
@@ -104,28 +179,30 @@ Allows timing parse separate from actions.")
   "If non-nil, disable McKenzie error recovery. Otherwise, use parser default.")
 
 (defcustom wisi-mckenzie-task-count nil
-  "If integer, sets McKenzie task count.
-Higher value (up to system processor limit) has runs recover
+  "If integer, sets McKenzie error recovery task count.
+Higher value (up to system processor limit) runs error recovery
 faster, but may encounter race conditions.  Using only one task
-makes recover repeatable; useful for tests.  If nil, uses value
-from grammar file."
+makes error recovery repeatable; useful for tests.  If nil, uses
+value from grammar file."
   :type 'integer
   :group 'wisi
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-task-count)
 
 (defcustom wisi-mckenzie-cost-limit nil
-  "If integer, sets McKenzie recover algorithm limit.
-Higher value has more recover power, but takes longer.
-If nil, uses value from grammar file."
+  "If integer, sets McKenzie error recovery algorithm cost limit.
+Higher value has more recover power, but takes longer.  If nil,
+uses value from grammar file."
   :type 'integer
   :group 'wisi
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-cost-limit)
 
 (defcustom wisi-mckenzie-check-limit nil
-  "If integer, sets McKenzie recover algorithm limit.
-Higher value has more recover power, but may fail if there are
+  "If integer, sets McKenzie error recovery algorithm token check limit.
+This sets the number of tokens past the error point that must be
+parsed successfully for a solution to be deemed successful.
+Higher value gives better solutions, but may fail if there are
 two errors close together.  If nil, uses value from grammar
 file."
   :type 'integer
@@ -134,7 +211,8 @@ file."
 (make-variable-buffer-local 'wisi-mckenzie-check-limit)
 
 (defcustom wisi-mckenzie-enqueue-limit nil
-  "If integer, sets McKenzie recover algorithm limit.
+  "If integer, sets McKenzie error recovery algorithm enqueue limit.
+This sets the maximum number of solutions that will be considered.
 Higher value has more recover power, but will be slower to fail.
 If nil, uses value from grammar file."
   :type 'integer
@@ -143,12 +221,14 @@ If nil, uses value from grammar file."
 (make-variable-buffer-local 'wisi-mckenzie-enqueue-limit)
 
 (defvar wisi-parse-max-parallel 15
-  "Maximum number of parallel parsers for acceptable performance.
+  "Maximum number of parallel parsers during regular parsing.
+Parallel parsers are used to resolve redundancy in the grammar.
 If a file needs more than this, it's probably an indication that
 the grammar is excessively redundant.")
 
 (defvar wisi-parse-max-stack-size 500
-  "Maximum parse stack size")
+  "Maximum parse stack size.
+Larger stack size allows more deeply nested constructs.")
 ;; end of easily changeable parameters
 
 (defvar wisi--parse-action nil
@@ -156,10 +236,28 @@ the grammar is excessively redundant.")
   "Reason current parse is begin run; one of
 {indent, face, navigate}.")
 
+(defvar-local wisi-indent-comment-col-0 nil
+  "If non-nil, comments currently starting in column 0 are left in column 0.
+Otherwise, they are indented with previous comments or code.
+Normally set from a language-specific option.")
+
+(defvar-local wisi-end-caches nil
+  "List of buffer positions of caches in current statement that need wisi-cache-end set.")
+
 (defconst wisi-eoi-term 'Wisi_EOI
   ;; must match FastToken wisi-output_elisp.adb EOI_Name, which must
   ;; be part of a valid Ada identifer.
   "End Of Input token.")
+
+(defconst wisi-class-list
+  [motion ;; motion-action
+   name ;; for which-function
+   statement-end
+   statement-override
+   statement-start
+   misc ;; other stuff
+   ]
+  "array of valid token classes; checked in wisi-statement-action, used in wisi-process-parse.")
 
 (defun wisi-error-msg (message &rest args)
   (let ((line (line-number-at-pos))
@@ -215,6 +313,17 @@ the grammar is excessively redundant.")
 		(max (cdr left) (cdr right)))
 	left)
     right))
+
+(defun wisi--set-line-begin (line-count)
+  "Return a vector of line-beginning positions, with length LINE-COUNT."
+  (let ((result (make-vector line-count 0)))
+    (save-excursion
+      (goto-char (point-min))
+
+      (dotimes (i line-count)
+	(aset result i (point))
+	(forward-line 1)))
+    result))
 
 ;;;; debugging
 (defun wisi-tok-debug-image (tok)

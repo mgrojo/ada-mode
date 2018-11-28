@@ -23,6 +23,7 @@
 ;;
 ;;;;
 
+(require 'cl-lib)
 (require 'gpr-lalr-elisp)
 (require 'gpr-indent-user-options)
 (require 'gpr-mode)

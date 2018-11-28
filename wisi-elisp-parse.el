@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'wisi-elisp-lexer)
 (require 'wisi-parse-common)
 
 (defvar wisi-elisp-parse-max-parallel-current (cons 0 0)
@@ -83,6 +84,24 @@ point at which that max was spawned.")
 
 (cl-defmethod wisi-parse-kill ((_parser wisi-elisp-parser))
   nil)
+
+(defvar wisi-elisp-parse--indent
+  ;; not buffer-local; only let-bound in wisi-parse-current (elisp)
+  "A vector of indentation for all lines in buffer.
+Each element can be one of:
+- integer : indent
+
+- list ('anchor (start-id ...) indent)  :
+  indent for current line, base indent for following 'anchored
+  lines. Start-id is list of ids anchored at this line. For parens
+  and other uses.
+
+- list ('anchored id delta) :
+  indent = delta + 'anchor id line indent; for lines indented
+  relative to anchor.
+
+- list ('anchor (start-id ...) ('anchored id delta))
+  for nested anchors.")
 
 (cl-defmethod wisi-parse-current ((parser wisi-elisp-parser))
   "Parse current buffer from beginning."
@@ -1120,24 +1139,6 @@ DELTA1, DELTA2 are the indents of the first and following lines
 within the nonterminal.  OPTION is non-nil if action is `wisi-hanging%'.
 point is at start of TOK, and may be moved.")
 (make-variable-buffer-local 'wisi-elisp-parse-indent-hanging-function)
-
-(defvar wisi-elisp-parse--indent
-  ;; not buffer-local; only let-bound in wisi-parse-current (elisp)
-  "A vector of indentation for all lines in buffer.
-Each element can be one of:
-- integer : indent
-
-- list ('anchor (start-id ...) indent)  :
-  indent for current line, base indent for following 'anchored
-  lines. Start-id is list of ids anchored at this line. For parens
-  and other uses.
-
-- list ('anchored id delta) :
-  indent = delta + 'anchor id line indent; for lines indented
-  relative to anchor.
-
-- list ('anchor (start-id ...) ('anchored id delta))
-  for nested anchors.")
 
 (defvar wisi-token-index nil
   ;; Not wisi-elisp-parse--token-index for backward compatibility

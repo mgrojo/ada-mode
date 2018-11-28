@@ -22,3 +22,7 @@ is begin
          end if;
    end loop;
 end Ada_Mode.Recover_23;
+-- Error recovery has a race condition; force it to return repeatable results
+-- Local_Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

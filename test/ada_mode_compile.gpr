@@ -86,8 +86,9 @@ project Ada_Mode_Compile is
       "ada_mode-recover_virtual.adb",
       "ada_mode-recover_virtual_renames.adb",
 
-      --  WORKAROUND: this gives bogus warnings about too-long lines with CE 2018 on Debian
-      "ada_mode-separate_protected_body.adb",
+      -- WORKAROUND: this gives bogus warnings about too-long lines
+      -- with CE 2018 on Debian, but is required with GNAT GPL 2017
+      -- "ada_mode-separate_protected_body.adb",
       
       -- This has illegal code; used for testing skeleton expansion
       "ada_skel.adb",

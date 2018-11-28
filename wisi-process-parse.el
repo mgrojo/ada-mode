@@ -107,11 +107,20 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	(erase-buffer)); delete any previous messages, prompt
 
       (setf (wisi-process--parser-process parser)
-	    (make-process
-	     :name process-name
-	     :buffer (wisi-process--parser-buffer parser)
-	     :command (append (list (wisi-process--parser-exec-file parser))
-			      (wisi-process--parser-exec-opts parser))))
+	    (if (fboundp 'make-process)
+		;; emacs >= 25
+		(make-process
+		 :name process-name
+		 :buffer (wisi-process--parser-buffer parser)
+		 :command (append (list (wisi-process--parser-exec-file parser))
+				  (wisi-process--parser-exec-opts parser)))
+	      ;; emacs < 25
+	      (start-process
+	       process-name
+	       (wisi-process--parser-buffer parser)
+	       (wisi-process--parser-exec-file parser)
+	       (wisi-process--parser-exec-opts parser)
+	       )))
 
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
       (setf (wisi-process--parser-busy parser) nil)
@@ -415,6 +424,9 @@ complete."
     )
   (setf (wisi-process--parser-busy parser) nil))
 
+(defvar wisi--lexer nil) ;; wisi-elisp-lexer.el
+(declare-function wisi-elisp-lexer-reset "wisi-elisp-lexer")
+
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser))
   "Run the external parser on the current buffer."
   (wisi-process-parse--require-process parser)
@@ -617,6 +629,8 @@ complete."
        (setf (wisi-process--parser-busy parser) nil)
        (signal (car err) (cdr err))
        ))))
+
+(defvar wisi--parser nil) ;; wisi.el
 
 (defun wisi-process-send-tokens-noop ()
   "Run lexer, send tokens to subprocess; otherwise no operation.

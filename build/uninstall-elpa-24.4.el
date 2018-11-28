@@ -8,6 +8,8 @@
     (when (file-exists-p dir)
       (delete-directory dir t))))
 
+(when (< emacs-major-version 25)
+  (pkg-dir-clean "seq" "2.20"))
 (pkg-dir-clean "ada-mode" ada-mode-version)
 (pkg-dir-clean "ada-ref-man" ada-ref-man-version)
 (pkg-dir-clean "wisi" wisi-version)

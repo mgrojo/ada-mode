@@ -22,8 +22,6 @@
 ^build/.*\.tmp$
 ^build/.*\.wisi-test$
 ^build/Makefile\.conf$
-^build/check\.gpr$
-^build/check_xref\.gpr$
 ^build/gmem\.out$
 ^build/gmon\.out$
 ^build/gpr_query$
