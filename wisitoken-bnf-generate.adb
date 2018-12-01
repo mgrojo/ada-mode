@@ -50,34 +50,70 @@ is
    procedure Put_Usage
    is
       use Ada.Text_IO;
+      First : Boolean := True;
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line (Standard_Error, "wisi-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "version 1.0");
+      Put_Line (Standard_Error, "wisi-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
       Put_Line (Standard_Error, "The following grammar file directives control parser generation:");
       Put_Line (Standard_Error,
-                "%generate <algorithm> <output language> [<lexer>] [<interface>]");
+                "%generate <algorithm> <output language> [<lexer>] [<interface>] [text_rep]");
       Put_Line (Standard_Error, "   specify one of each generate parameter. May be repeated.");
-      Put_Line (Standard_Error, "   algorithm: LALR | LR1 | Packrat_Gen | Packrat_Proc");
-      Put_Line (Standard_Error, "   output language: Ada | Ada_Emacs | Elisp");
+      Put (Standard_Error, "   algorithm: ");
+      for I of Generate_Algorithm_Image loop
+         if First then
+            First := False;
+         else
+            Put (Standard_Error, " | ");
+         end if;
+         Put (Standard_Error, I.all);
+      end loop;
+      New_Line (Standard_Error);
+
+      Put (Standard_Error, "   output language: ");
+      First := True;
+      for I of Output_Language_Image loop
+         if First then
+            First := False;
+         else
+            Put (Standard_Error, " | ");
+         end if;
+         Put (Standard_Error, I.all);
+      end loop;
+      New_Line (Standard_Error);
+
       Put_Line (Standard_Error, "   interface: interface Process | Module");
       Put_Line (Standard_Error, "      only valid with Ada_Emacs:");
       Put_Line (Standard_Error, "      Process is for an external subprocess communicating with Emacs.");
       Put_Line (Standard_Error, "      Module  is for a dynamically loaded Emacs module.");
-      Put_Line (Standard_Error, "   lexer: re2c | Elisp");
+      Put (Standard_Error, "   lexer: ");
+      First := True;
+      for I of Output_Language_Image loop
+         if First then
+            First := False;
+         else
+            Put (Standard_Error, " | ");
+         end if;
+         Put (Standard_Error, I.all);
+      end loop;
       New_Line (Standard_Error);
-      Put_Line (Standard_Error, "options are:");
+      Put_Line
+        (Standard_Error, "   text_rep: output LR parse table in a text file, not as source code; for large tables");
+
+      New_Line (Standard_Error);
+      Put_Line (Standard_Error, "options:");
+      Put_Line (Standard_Error, "  --help: show this help");
       Put_Line (Standard_Error, "  -v level: sets verbosity (default 0):");
       Put_Line (Standard_Error, "     0 - only error messages to standard error");
       Put_Line (Standard_Error, "     1 - add diagnostics to standard out");
       Put_Line (Standard_Error, "     2 - more diagnostics to standard out, ignore unused tokens, unknown conflicts");
+      Put_Line (Standard_Error, "  --generate ...: override grammar file %generate directive");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
-      Put_Line (Standard_Error, "  --text; output LR parse table in a text file, not as source code; for large tables");
       Put_Line (Standard_Error, "  --time; output execution time of various stages");
 
    end Put_Usage;
@@ -136,9 +172,13 @@ begin
       loop
          exit when Argument (Arg_Next)(1) /= '-';
 
-         --   -v first, then alphabetical
+         --   --help, -v first, then alphabetical
 
-         if Argument (Arg_Next) = "-v" then
+         if Argument (Arg_Next) = "--help" then
+            Put_Usage;
+            return;
+
+         elsif Argument (Arg_Next) = "-v" then
             Arg_Next  := Arg_Next + 1;
             WisiToken.Trace_Generate := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;

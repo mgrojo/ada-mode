@@ -44,63 +44,63 @@ compilation_unit_1: (compilation_unit, (39 . 63)) <= ((name_list, (39 . 63)))
  ... goto state 5
  0: 5:  6:(STRING_LITERAL, (99 . 101)) : shift and goto state 2
  1: 5:  6:(STRING_LITERAL, (99 . 101)) : shift and goto state 2
- 1: terminate (1 active): duplicate state
- 0: 2:  7:(COMMA, (102 . 102)) : reduce 1 tokens to name
+ 0: terminate (1 active): duplicate state: random
+ 1: 2:  7:(COMMA, (102 . 102)) : reduce 1 tokens to name
 name_1: (name, (99 . 101)) <= ( 6:(STRING_LITERAL, (99 . 101)))
  ... goto state 7
- 0: 7:  7:(COMMA, (102 . 102)) : reduce 1 tokens to name_list
+ 1: 7:  7:(COMMA, (102 . 102)) : reduce 1 tokens to name_list
 name_list_1: (name_list, (99 . 101)) <= ((name, (99 . 101)))
  ... goto state 8
- 0: 8:  7:(COMMA, (102 . 102)) : shift and goto state 16
- 0: 16:  8:(IDENTIFIER, (104 . 109)) : shift and goto state 22
- 0: 22:  9:(LEFT_PAREN, (125 . 125)) : reduce 1 tokens to name
+ 1: 8:  7:(COMMA, (102 . 102)) : shift and goto state 16
+ 1: 16:  8:(IDENTIFIER, (104 . 109)) : shift and goto state 22
+ 1: 22:  9:(LEFT_PAREN, (125 . 125)) : reduce 1 tokens to name
 name_0: (name, (104 . 109)) <= ( 8:(IDENTIFIER, (104 . 109)))
  ... goto state 23
- 0: 23:  9:(LEFT_PAREN, (125 . 125)) : reduce 3 tokens to name_list
+ 1: 23:  9:(LEFT_PAREN, (125 . 125)) : reduce 3 tokens to name_list
 name_list_0: (name_list, (99 . 109)) <= ((name_list, (99 . 101)),  7:(COMMA, (102 . 102)), (name, (104 . 109)))
  ... goto state 8
- 0: 8:  9:(LEFT_PAREN, (125 . 125)) : reduce 1 tokens to compilation_unit
+ 1: 8:  9:(LEFT_PAREN, (125 . 125)) : reduce 1 tokens to compilation_unit
 compilation_unit_1: (compilation_unit, (99 . 109)) <= ((name_list, (99 . 109)))
  ... goto state 14
- 0: 14:  9:(LEFT_PAREN, (125 . 125)) : shift and goto state 1
- 0: 1:  10:(IDENTIFIER, (126 . 135)) : shift and goto state 10
- 0: 10:  11:(EQUAL_GREATER, (137 . 138)) : reduce 1 tokens to selector_name
+ 1: 14:  9:(LEFT_PAREN, (125 . 125)) : shift and goto state 1
+ 1: 1:  10:(IDENTIFIER, (126 . 135)) : shift and goto state 10
+ 1: 10:  11:(EQUAL_GREATER, (137 . 138)) : reduce 1 tokens to selector_name
 selector_name_0: (selector_name, (126 . 135)) <= ( 10:(IDENTIFIER, (126 . 135)))
  ... goto state 13
- 0: 13:  11:(EQUAL_GREATER, (137 . 138)) : shift and goto state 19
- 0: 19:  12:(IDENTIFIER, (140 . 145)) : shift and goto state 22
- 0: 22:  13:(COMMA, (146 . 146)) : reduce 1 tokens to name
+ 1: 13:  11:(EQUAL_GREATER, (137 . 138)) : shift and goto state 19
+ 1: 19:  12:(IDENTIFIER, (140 . 145)) : shift and goto state 22
+ 1: 22:  13:(COMMA, (146 . 146)) : reduce 1 tokens to name
 name_0: (name, (140 . 145)) <= ( 12:(IDENTIFIER, (140 . 145)))
  ... goto state 25
- 0: 25:  13:(COMMA, (146 . 146)) : reduce 3 tokens to association
+ 1: 25:  13:(COMMA, (146 . 146)) : reduce 3 tokens to association
 association_0: (association, (126 . 145)) <= ((selector_name, (126 . 135)),  11:(EQUAL_GREATER, (137 . 138)), (name, (140 . 145)))
  ... goto state 11
- 0: 11:  13:(COMMA, (146 . 146)) : reduce 1 tokens to association_list
+ 1: 11:  13:(COMMA, (146 . 146)) : reduce 1 tokens to association_list
 association_list_1: (association_list, (126 . 145)) <= ((association, (126 . 145)))
  ... goto state 12
- 0: 12:  13:(COMMA, (146 . 146)) : shift and goto state 18
- 0: 18:  14:(STRING_LITERAL, (148 . 150)) : shift and goto state 9
- 0: 9:  15:(EQUAL_GREATER, (152 . 153)) : reduce 1 tokens to selector_name
+ 1: 12:  13:(COMMA, (146 . 146)) : shift and goto state 18
+ 1: 18:  14:(STRING_LITERAL, (148 . 150)) : shift and goto state 9
+ 1: 9:  15:(EQUAL_GREATER, (152 . 153)) : reduce 1 tokens to selector_name
 selector_name_1: (selector_name, (148 . 150)) <= ( 14:(STRING_LITERAL, (148 . 150)))
  ... goto state 13
- 0: 13:  15:(EQUAL_GREATER, (152 . 153)) : shift and goto state 19
- 0: 19:  16:(STRING_LITERAL, (155 . 157)) : shift and goto state 2
- 0: 2:  17:(RIGHT_PAREN, (158 . 158)) : reduce 1 tokens to name
+ 1: 13:  15:(EQUAL_GREATER, (152 . 153)) : shift and goto state 19
+ 1: 19:  16:(STRING_LITERAL, (155 . 157)) : shift and goto state 2
+ 1: 2:  17:(RIGHT_PAREN, (158 . 158)) : reduce 1 tokens to name
 name_1: (name, (155 . 157)) <= ( 16:(STRING_LITERAL, (155 . 157)))
  ... goto state 25
- 0: 25:  17:(RIGHT_PAREN, (158 . 158)) : reduce 3 tokens to association
+ 1: 25:  17:(RIGHT_PAREN, (158 . 158)) : reduce 3 tokens to association
 association_0: (association, (148 . 157)) <= ((selector_name, (148 . 150)),  15:(EQUAL_GREATER, (152 . 153)), (name, (155 . 157)))
  ... goto state 24
- 0: 24:  17:(RIGHT_PAREN, (158 . 158)) : reduce 3 tokens to association_list
+ 1: 24:  17:(RIGHT_PAREN, (158 . 158)) : reduce 3 tokens to association_list
 association_list_0: (association_list, (126 . 157)) <= ((association_list, (126 . 145)),  13:(COMMA, (146 . 146)), (association, (148 . 157)))
  ... goto state 12
- 0: 12:  17:(RIGHT_PAREN, (158 . 158)) : shift and goto state 17
- 0: 17:  18:(Wisi_EOI, (180 . 179)) : reduce 3 tokens to compilation_unit
+ 1: 12:  17:(RIGHT_PAREN, (158 . 158)) : shift and goto state 17
+ 1: 17:  18:(Wisi_EOI, (180 . 179)) : reduce 3 tokens to compilation_unit
 compilation_unit_2: (compilation_unit, (125 . 158)) <= ( 9:(LEFT_PAREN, (125 . 125)), (association_list, (126 . 157)),  17:(RIGHT_PAREN, (158 . 158)))
  ... goto state 20
- 0: 20:  18:(Wisi_EOI, (180 . 179)) : reduce 3 tokens to compilation
+ 1: 20:  18:(Wisi_EOI, (180 . 179)) : reduce 3 tokens to compilation
 compilation_0: (compilation, (39 . 158)) <= ((compilation_unit, (39 . 63)), (compilation_unit, (99 . 109)), (compilation_unit, (125 . 158)))
  ... goto state 4
- 0: 4:  18:(Wisi_EOI, (180 . 179)) : accept it
+ 1: 4:  18:(Wisi_EOI, (180 . 179)) : accept it
 wisitoken_accept_0: (wisitoken_accept, (39 . 158)) <= ((compilation, (39 . 158)))
- 0: succeed
+ 1: succeed

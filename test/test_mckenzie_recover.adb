@@ -55,6 +55,7 @@ package body Test_McKenzie_Recover is
 
    procedure Parse_Text
      (Text             : in String;
+      Multiple_Tasks   : in Boolean := False;
       Expect_Exception : in Boolean := False)
    is
       use AUnit.Checks;
@@ -67,6 +68,10 @@ package body Test_McKenzie_Recover is
       end if;
 
       Parser.Lexer.Reset_With_String (Text);
+
+      if not Multiple_Tasks then
+         Parser.Table.McKenzie_Param.Task_Count := 1;
+      end if;
 
       Parser.Parse;
       Parser.Execute_Actions;
@@ -96,13 +101,13 @@ package body Test_McKenzie_Recover is
       Checking_Error          : in Ada.Containers.Count_Type                    := 1;
       Error_Token_ID          : in WisiToken.Token_ID;
       Error_Token_Byte_Region : in WisiToken.Buffer_Region                      := WisiToken.Null_Buffer_Region;
-      Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector :=
+      Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector   :=
         WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
       Enqueue_Low             : in Integer;
-      Enqueue_High            : in Integer;
+      Enqueue_High            : in Integer                                      := 0;
       Check_Low               : in Integer;
-      Check_High              : in Integer;
+      Check_High              : in Integer                                      := 0;
       Cost                    : in Integer;
       Expecting               : in WisiToken.Token_ID_Set                       := Empty_Token_ID_Set;
       Code                    : in WisiToken.Semantic_Checks.Check_Status_Label := WisiToken.Semantic_Checks.Ok)
@@ -169,15 +174,21 @@ package body Test_McKenzie_Recover is
          --  than one worker task; configs with costs higher than the final
          --  solution may or may not be enqueued. So we test a range; we want
          --  to know if it gets a lot higher when we change something.
-         --  Similarly for Check_Low, _High. The minimum values are found when
-         --  the number of worker tasks is one (as is true in a virtual
-         --  machine).
+         --  Similarly for Check_Low, _High.
+         --
+         --  In most tests, we use one worker task for repeatability, indicated
+         --  by leaving Enqueue_High, Check_High at 0.
          --
          --  Recover does not come from the same parser as Error if the
          --  succeeding parser was spawned after error recovery, but we copy
          --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
-         Check_Range (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
-         Check_Range (Label_I & ".check", Parser_State.Recover.Check_Count, Check_Low, Check_High);
+         if Enqueue_High = 0 then
+            Check (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low);
+            Check (Label_I & ".check", Parser_State.Recover.Check_Count, Check_Low);
+         else
+            Check_Range (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
+            Check_Range (Label_I & ".check", Parser_State.Recover.Check_Count, Check_Low, Check_High);
+         end if;
          Check (Label_I & ".cost", Error.Recover.Cost, Cost);
       end;
    end Check_Recover;
@@ -215,10 +226,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11),
-         Enqueue_Low             => 11,
-         Enqueue_High            => 106,
-         Check_Low               => 5,
-         Check_High              => 47,
+         Enqueue_Low             => 81,
+         Check_Low               => 42,
          Cost                    => 2);
    end Error_1;
 
@@ -242,9 +251,6 @@ package body Test_McKenzie_Recover is
       --
       --  The desired solution (push_back 'end' 59, push_back
       --  sequence_of_statements_opt, insert 'begin') is cost 5
-      --
-      --  IMPROVEME: try to recognize 'end Block_2;' as a possible named
-      --  block; insert begin before end.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       Check_Recover
@@ -253,10 +259,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (63, 69),
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
-         Enqueue_Low             => 21,
-         Enqueue_High            => 123,
-         Check_Low               => 6,
-         Check_High              => 35,
+         Enqueue_Low             => 26,
+         Check_Low               => 11,
          Cost                    => 1);
    end Error_2;
 
@@ -286,10 +290,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (84, 84),
          Ops                     => +(Push_Back, +END_ID, 22) & (Insert, +END_ID, 22) & (Insert, +IF_ID, 22) &
            (Insert, +SEMICOLON_ID, 22) & (Fast_Forward,  22),
-         Enqueue_Low             => 15,
-         Enqueue_High            => 149,
-         Check_Low               => 5,
-         Check_High              => 36,
+         Enqueue_Low             => 5,
+         Check_Low               => 2,
          Cost                    => 0,
          Expecting               => WisiToken.To_Token_ID_Set
            (Descriptor.First_Terminal,
@@ -330,9 +332,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (27, 27),
          Ops                     => +(Insert, +END_ID, 7) & (Insert, +SEMICOLON_ID, 7),
          Enqueue_Low             => 33,
-         Enqueue_High            => 178,
          Check_Low               => 5,
-         Check_High              => 29,
          Cost                    => 2);
    end Check_Accept;
 
@@ -368,7 +368,7 @@ package body Test_McKenzie_Recover is
       --  sequence of declarations. That fails eventually (after spawning
       --  yet more parsers).
 
-      --  Confirm that both subprogram_bodys were parsed:
+      --  Confirm that both subprogram_bodies were parsed:
       Check ("action_count", Action_Count (+subprogram_body_ID), 2);
 
       Check_Recover
@@ -379,10 +379,8 @@ package body Test_McKenzie_Recover is
            +(Push_Back, +BEGIN_ID, 4) &
              (Push_Back, +declarative_part_opt_ID, 4) &
              (Delete, +BEGIN_ID, 4),
-         Enqueue_Low             => 28,
-         Enqueue_High            => 126,
+         Enqueue_Low             => 30,
          Check_Low               => 6,
-         Check_High              => 19,
          Cost                    => 1);
    end Extra_Begin;
 
@@ -419,9 +417,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
          Enqueue_Low             => 4,
-         Enqueue_High            => 42,
          Check_Low               => 2,
-         Check_High              => 20,
          Cost                    => 1);
 
       --  Symmetric case where generic_instantiation is desired
@@ -450,9 +446,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (22, 24),
          Ops                     => +(Delete, +END_ID, 4),
          Enqueue_Low             => 4,
-         Enqueue_High            => 30,
          Check_Low               => 2,
-         Check_High              => 7,
          Cost                    => 1);
    end Conflict_1;
 
@@ -473,10 +467,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (83, 85),
          Ops                     => +(Insert, +SEMICOLON_ID, 16),
-         Enqueue_Low             => 4,
-         Enqueue_High            => 46,
-         Check_Low               => 2,
-         Check_High              => 11,
+         Enqueue_Low             => 5,
+         Check_Low               => 3,
          Cost                    => 1);
    end Conflict_2;
 
@@ -498,10 +490,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IS_ID,
          Error_Token_Byte_Region => (69, 70),
          Ops                     => +(Insert, +RETURN_ID, 11) & (Insert, +IDENTIFIER_ID, 11),
-         Enqueue_Low             => 15,
-         Enqueue_High            => 165,
-         Check_Low               => 7,
-         Check_High              => 22,
+         Enqueue_Low             => 19,
+         Check_Low               => 8,
          Cost                    => 6);
    end Missing_Return;
 
@@ -541,10 +531,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +IDENTIFIER_ID,
          Error_Token_Byte_Region => (35, 36),
          Ops                     => +(Insert, +DOT_DOT_ID, 9) & (Delete, +IDENTIFIER_ID, 9),
-         Enqueue_Low             => 350,
-         Enqueue_High            => 609,
-         Check_Low               => 62,
-         Check_High              => 97,
+         Enqueue_Low             => 509,
+         Check_Low               => 79,
          Cost                    => 8);
    end Loop_Bounds;
 
@@ -552,8 +540,8 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  We used to need a pattern to find a solution to these quickly, now
-      --  it just works.
+      --  We used to use a generic "pattern" to find a solution to these quickly, now
+      --  the pattern is in Language_Fixes.
       Parser.Table.McKenzie_Param.Cost_Limit := 5;
 
       Parse_Text
@@ -571,10 +559,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (58, 58),
          Ops                     => +(Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +CASE_ID, 13) &
            (Insert, +SEMICOLON_ID, 13) & (Fast_Forward, 13),
-         Enqueue_Low             => 11,
-         Enqueue_High            => 76,
+         Enqueue_Low             => 5,
          Check_Low               => 2,
-         Check_High              => 27,
          Cost                    => 0);
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
@@ -595,10 +581,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (59, 69),
          Ops                     => +(Push_Back, +END_ID, 13) & (Insert, +END_ID, 13) & (Insert, +CASE_ID, 13) &
            (Insert, +SEMICOLON_ID, 13) & (Fast_Forward, 13),
-         Enqueue_Low             => 11,
-         Enqueue_High            => 66,
-         Check_Low               => 5,
-         Check_High              => 24,
+         Enqueue_Low             => 5,
+         Check_Low               => 2,
          Cost                    => 0);
 
       Parse_Text
@@ -615,10 +599,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Push_Back, +END_ID, 10)  & (Insert, +END_ID, 10) & (Insert, +IF_ID, 10) &
            (Insert, +SEMICOLON_ID, 10) & (Fast_Forward, 10),
-         Enqueue_Low             => 13,
-         Enqueue_High            => 115,
-         Check_Low               => 5,
-         Check_High              => 28,
+         Enqueue_Low             => 5,
+         Check_Low               => 2,
          Cost                    => 0);
 
       Parse_Text
@@ -637,9 +619,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 12) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) &
            (Insert, +SEMICOLON_ID, 12) & (Fast_Forward, 12),
          Enqueue_Low             => 5,
-         Enqueue_High            => 111,
-         Check_Low               => 5,
-         Check_High              => 28,
+         Check_Low               => 2,
          Cost                    => 0);
    end Pattern_1;
 
@@ -684,9 +664,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (23, 25),
          Ops                     => +(Insert, +NEW_ID, 4),
          Enqueue_Low             => 4,
-         Enqueue_High            => 61,
          Check_Low               => 2,
-         Check_High              => 9,
          Cost                    => 3);
    end Revive_Zombie_Parser;
 
@@ -713,10 +691,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +AND_ID,
          Error_Token_Byte_Region => (28, 30),
          Ops                     => +(Insert, +IDENTIFIER_ID, 6),
-         Enqueue_Low             => 23,
-         Enqueue_High            => 88,
+         Enqueue_Low             => 24,
          Check_Low               => 3,
-         Check_High              => 15,
          Cost                    => 3);
    end Error_Token_When_Parallel;
 
@@ -724,9 +700,6 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  Test that the correct error token is reported when the error occurs
-      --  during parallel parsing (a previous version got this wrong).
-
       Parse_Text
         ("procedure Journal_To_TSV is procedure Process_Text_File is begin " &
          --        |10       |20       |30       |40       |50       |60
@@ -752,10 +725,8 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +EXCEPTION_ID, 8) & (Push_Back, +sequence_of_statements_opt_ID, 8) &
              (Delete, +EXCEPTION_ID, 8),
-         Enqueue_Low             => 39,
-         Enqueue_High            => 150,
+         Enqueue_Low             => 41,
          Check_Low               => 10,
-         Check_High              => 35,
          Cost                    => 4);
    end If_In_Handler;
 
@@ -763,9 +734,6 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  Test that the correct error token is reported when the error occurs
-      --  during parallel parsing (a previous version got this wrong).
-
       Parse_Text
         ("package body Ada_Mode.Loop_face  ");
       --           |10       |20       |30
@@ -782,14 +750,12 @@ package body Test_McKenzie_Recover is
       --  immediately. The first parser continues thru EOF.
 
       Check_Recover
-        (Errors_Length           => 1,
-         Error_Token_ID          => +Wisi_EOI_ID,
-         Ops                     => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
-         Enqueue_Low             => 36,
-         Enqueue_High            => 270,
-         Check_Low               => 9,
-         Check_High              => 36,
-         Cost                    => 5);
+        (Errors_Length  => 1,
+         Error_Token_ID => +Wisi_EOI_ID,
+         Ops            => +(Insert, +IS_ID, 6) & (Insert, +END_ID, 6) & (Insert, +SEMICOLON_ID, 6),
+         Enqueue_Low    => 42,
+         Check_Low      => 10,
+         Cost           => 5);
    end Zombie_In_Resume;
 
    procedure Push_Back_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -816,10 +782,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +END_ID, 11) & (Insert, +LOOP_ID, 11) & (Fast_Forward, 13) &
            (Push_Back, +END_ID, 12) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
            (Fast_Forward, 12),
-         Enqueue_Low             => 103,
-         Enqueue_High            => 416,
-         Check_Low               => 13,
-         Check_High              => 86,
+         Enqueue_Low             => 232,
+         Check_Low               => 39,
          Cost                    => 4);
    end Push_Back_1;
 
@@ -853,9 +817,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 13) & (Delete, +IDENTIFIER_ID, 13) &
            (Fast_Forward,  14),
          Enqueue_Low             => 34,
-         Enqueue_High            => 88,
          Check_Low               => 3,
-         Check_High              => 19,
          Cost                    => 1);
    end String_Quote_0;
 
@@ -903,10 +865,8 @@ package body Test_McKenzie_Recover is
            (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) &
            (Fast_Forward,  19) & (Push_Back, +SEMICOLON_ID, 18) & (Push_Back, +name_opt_ID, 17) &
            (Push_Back, +END_ID, 16) & (Insert, +END_ID, 16) & (Insert, +SEMICOLON_ID, 16) & (Fast_Forward,  16),
-         Enqueue_Low             => 3,
-         Enqueue_High            => 5,
+         Enqueue_Low             => 4,
          Check_Low               => 4,
-         Check_High              => 5,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
    end Missing_Name_0;
@@ -943,10 +903,8 @@ package body Test_McKenzie_Recover is
            +(Undo_Reduce, +subprogram_body_ID, 9) & (Push_Back, +SEMICOLON_ID, 15) & (Push_Back, +name_opt_ID, 15) &
              (Push_Back, +END_ID, 14) & (Push_Back, +handled_sequence_of_statements_ID, 9) & (Insert, +BEGIN_ID, 9) &
              (Fast_Forward, 9),
-         Enqueue_Low             => 11,
-         Enqueue_High            => 66,
+         Enqueue_Low             => 12,
          Check_Low               => 2,
-         Check_High              => 16,
          Cost                    => 0,
          Code                    => Missing_Name_Error);
    end Missing_Name_1;
@@ -982,10 +940,8 @@ package body Test_McKenzie_Recover is
              (Push_Back, +name_opt_ID, 14) & (Push_Back, +END_ID, 13) &
              (Undo_Reduce, +handled_sequence_of_statements_ID, 1) & (Undo_Reduce, +sequence_of_statements_opt_ID, 1) &
              (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14),
-         Enqueue_Low             => 11,
-         Enqueue_High            => 62,
+         Enqueue_Low             => 12,
          Check_Low               => 2,
-         Check_High              => 15,
          Cost                    => 0,
          Code                    => Missing_Name_Error);
    end Missing_Name_2;
@@ -1023,10 +979,8 @@ package body Test_McKenzie_Recover is
            (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14) & (Fast_Forward,  18) & (Push_Back, +SEMICOLON_ID, 17) &
            (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
            (Insert, +SEMICOLON_ID, 15) & (Fast_Forward,  15),
-         Enqueue_Low             => 3,
-         Enqueue_High            => 5,
+         Enqueue_Low             => 4,
          Check_Low               => 4,
-         Check_High              => 5,
          Cost                    => 1,
          Code                    => Missing_Name_Error);
    end Missing_Name_3;
@@ -1053,9 +1007,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (32, 37),
          Ops                     => +(Undo_Reduce, +package_body_ID, 9),
          Enqueue_Low             => 1,
-         Enqueue_High            => 1,
          Check_Low               => 1,
-         Check_High              => 1,
          Cost                    => 4,
          Code                    => Missing_Name_Error);
    end Missing_Name_4;
@@ -1089,10 +1041,8 @@ package body Test_McKenzie_Recover is
            (Push_Back, +END_ID, 15) & (Push_Back, +handled_sequence_of_statements_ID, 13) &
            (Push_Back, +BEGIN_ID, 12) & (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) &
            (Insert, +SEMICOLON_ID, 12) & (Fast_Forward,  12),
-         Enqueue_Low             => 2,
-         Enqueue_High            => 130,
+         Enqueue_Low             => 14,
          Check_Low               => 2,
-         Check_High              => 16,
          Cost                    => 0);
    end Missing_Name_5;
 
@@ -1123,10 +1073,8 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +SEMICOLON_ID, 17) & (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
              (Insert, +END_ID, 15) & (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
-         Enqueue_Low             => 4,
-         Enqueue_High            => 81,
+         Enqueue_Low             => 15,
          Check_Low               => 2,
-         Check_High              => 13,
          Cost                    => 0);
    end Block_Match_Names_1;
 
@@ -1134,9 +1082,6 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  Show that the Match_Names_Error pattern is not applied when an
-      --  insert has already been done.
-
       Parse_Text ("package body Debug is procedure A is end Debug;");
       --           |1       |10       |20       |30       |40
 
@@ -1165,9 +1110,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (38, 40),
          Ops_Race_Condition      => True,
          Enqueue_Low             => 7,
-         Enqueue_High            => 56,
          Check_Low               => 4,
-         Check_High              => 19,
          Cost                    => 3);
    end Two_Parsers_1;
 
@@ -1202,9 +1145,7 @@ package body Test_McKenzie_Recover is
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 11) & (Insert, +SEMICOLON_ID, 11) &
              (Fast_Forward, 11),
          Enqueue_Low             => 2,
-         Enqueue_High            => 2,
          Check_Low               => 2,
-         Check_High              => 2,
          Cost                    => 0,
          Code                    => Extra_Name_Error);
    end Extra_Name_1;
@@ -1251,10 +1192,8 @@ package body Test_McKenzie_Recover is
              (Fast_Forward,  18) & (Push_Back, +SEMICOLON_ID, 17) &
              (Push_Back, +name_opt_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
              (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15) & (Insert, +BEGIN_ID, 15),
-         Enqueue_Low             => 10,
-         Enqueue_High            => 50,
-         Check_Low               => 6,
-         Check_High              => 20,
+         Enqueue_Low             => 11,
+         Check_Low               => 7,
          Cost                    => 3,
          Code                    => Extra_Name_Error);
    end Extra_Name_2;
@@ -1288,9 +1227,7 @@ package body Test_McKenzie_Recover is
              (Push_Back, +identifier_opt_ID, 10) & (Push_Back, +END_ID, 9) & (Insert, +END_ID, 9) &
              (Insert, +SEMICOLON_ID, 9) & (Fast_Forward, 9),
          Enqueue_Low             => 2,
-         Enqueue_High            => 2,
          Check_Low               => 2,
-         Check_High              => 2,
          Cost                    => 0,
          Code                    => Extra_Name_Error);
    end Extra_Name_3;
@@ -1331,10 +1268,8 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, 0) & (Push_Back, +BEGIN_ID, 20) &
              (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 20) & (Insert, +SEMICOLON_ID, 20) &
              (Fast_Forward,  20),
-         Enqueue_Low             => 5,
-         Enqueue_High            => 209,
-         Check_Low               => 5,
-         Check_High              => 41,
+         Enqueue_Low             => 13,
+         Check_Low               => 7,
          Cost                    => 4,
          Code                    => Extra_Name_Error);
    end Two_Missing_Ends;
@@ -1369,10 +1304,8 @@ package body Test_McKenzie_Recover is
              (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
              (Push_Back, +block_label_opt_ID, 12) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
              (Fast_Forward, 12),
-         Enqueue_Low             => 4,
-         Enqueue_High            => 73,
+         Enqueue_Low             => 7,
          Check_Low               => 3,
-         Check_High              => 17,
          Cost                    => 0);
    end Match_Selected_Component_1;
 
@@ -1396,10 +1329,8 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +IDENTIFIER_ID, 16) & (Push_Back, +END_ID, 15) & (Insert, +END_ID, 15) &
              (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
-         Enqueue_Low             => 2,
-         Enqueue_High            => 168,
+         Enqueue_Low             => 5,
          Check_Low               => 2,
-         Check_High              => 13,
          Cost                    => 0);
    end Match_Selected_Component_2;
 
@@ -1427,10 +1358,8 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) &
              (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) & (Insert, +SEMICOLON_ID, 13),
-         Enqueue_Low             => 38,
-         Enqueue_High            => 188,
-         Check_Low               => 15,
-         Check_High              => 44,
+         Enqueue_Low             => 43,
+         Check_Low               => 17,
          Cost                    => 5);
    end Actual_Parameter_Part_1;
 
@@ -1474,9 +1403,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (124, 124),
          Ops                     => +(Insert, +IDENTIFIER_ID, 22),
          Enqueue_Low             => 4,
-         Enqueue_High            => 15,
          Check_Low               => 2,
-         Check_High              => 7,
          Cost                    => 3);
    end Unfinished_Subprogram_Type_1;
 
@@ -1514,10 +1441,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Delete, +SLASH_ID, 16) & (Delete, +BODY_ID, 17) & (Delete, +GREATER_ID, 18) &
            (Delete, +LESS_ID, 19) & (Delete, +SLASH_ID, 20) & (Delete, +IDENTIFIER_ID, 21) &
            (Delete, +GREATER_ID, 22) & (Fast_Forward, 23),
-         Enqueue_Low             => 24,
-         Enqueue_High            => 93,
+         Enqueue_Low             => 25,
          Check_Low               => 4,
-         Check_High              => 11,
          Cost                    => 1);
    end String_Quote_1;
 
@@ -1552,9 +1477,7 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 22) & (Delete, +LESS_ID, 23) & (Delete, +SLASH_ID, 24) & (Delete, +IDENTIFIER_ID, 25) &
            (Delete, +GREATER_ID, 26) & (Delete, +SEMICOLON_ID, 27) & (Fast_Forward, 28) & (Insert, +SEMICOLON_ID, 28),
          Enqueue_Low             => 14,
-         Enqueue_High            => 191,
          Check_Low               => 3,
-         Check_High              => 20,
          Cost                    => 1);
    end String_Quote_2;
 
@@ -1585,9 +1508,7 @@ package body Test_McKenzie_Recover is
            (Delete, +GREATER_ID, 19) & (Delete, +LESS_ID, 20) & (Delete, +SLASH_ID, 21) &
            (Delete, +IDENTIFIER_ID, 22) & (Delete, +GREATER_ID, 23) & (Fast_Forward,  24),
          Enqueue_Low             => 26,
-         Enqueue_High            => 145,
          Check_Low               => 4,
-         Check_High              => 11,
          Cost                    => 1);
 
    end String_Quote_3;
@@ -1622,9 +1543,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +IDENTIFIER_ID, 18) & (Delete, +IDENTIFIER_ID, 18) &
            (Delete, +STRING_LITERAL_ID, 19) & (Delete, +IDENTIFIER_ID, 20) & (Fast_Forward, 21),
          Enqueue_Low             => 47,
-         Enqueue_High            => 127,
          Check_Low               => 3,
-         Check_High              => 15,
          Cost                    => 1);
    end String_Quote_4;
 
@@ -1643,6 +1562,7 @@ package body Test_McKenzie_Recover is
       begin
          Parse_Text
            ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end Foo;",
+            Multiple_Tasks   => True,
             Expect_Exception => True);
          AUnit.Assertions.Assert (False, "did not get Syntax_Error");
       exception
@@ -1668,7 +1588,7 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  Test McKenzie_Recover.Explore.Insert_Minimal_Recover_Actions
+      --  Test McKenzie_Recover.Explore.Insert_Minimal_Complete_Actions
       --  encounter multiple Reduce actions.
 
       Parse_Text ("package body Debug is A : Integer; B : Integer_Array (1 .. Last end Debug;");
@@ -1679,9 +1599,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (65, 67),
          Ops                     => +(Insert, +RIGHT_PAREN_ID, 16) & (Insert, +SEMICOLON_ID, 16),
          Enqueue_Low             => 12,
-         Enqueue_High            => 110,
          Check_Low               => 6,
-         Check_High              => 20,
          Cost                    => 2);
    end Multiple_Complete_Reduce;
 
@@ -1723,10 +1641,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 42) & (Insert, +END_ID, 42) & (Insert, +IF_ID, 42) &
            (Insert, +SEMICOLON_ID, 42) & (Fast_Forward,  44) & (Push_Back, +sequence_of_statements_opt_ID, 10) &
            (Insert, +IF_ID, 10) & (Insert, +THEN_ID, 10) & (Fast_Forward,  42),
-         Enqueue_Low             => 25,
-         Enqueue_High            => 173,
-         Check_Low               => 17,
-         Check_High              => 40,
+         Enqueue_Low             => 29,
+         Check_Low               => 12,
          Cost                    => 1);
    end Out_Of_Order_Ops;
 
