@@ -54,7 +54,6 @@ run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
 # for ../test/wisi/*.wy
 %-lalr-elisp.el : %.wy $(WISITOKEN_GENERATE)
 	cd ./$(<D); $(WISITOKEN_GENERATE) --generate LALR Elisp Elisp $(<F)
-	cd ./$(<D); dos2unix -q $(*F)-lalr-elisp.el
 
 elisp-clean :
 	rm -f ../*.output ../autoloads.el
@@ -62,9 +61,9 @@ elisp-clean :
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
-%.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
-	cd ./$(<D); $(WISITOKEN)/build/wisitoken-bnf-generate.exe --time $(<F)
-	cd ./$(<D); dos2unix -q $(*F)-lalr-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads
+%.re2c : %.wy $(WISITOKEN_GENERATE)
+	cd ./$(<D); $(WISITOKEN_GENERATE) --time $(<F)
+	cd ./$(<D); dos2unix -q $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads $(*F)_*_parse_table.txt
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
@@ -144,7 +143,6 @@ compile-ada-test-clean :
 	rm -f ../test/gpr_query.db*
 
 exe-clean ::
-	rm -rf obj
 	rm -rf ../obj
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
 	rm -rf ../gpr_query-process_refresh.adb
@@ -158,7 +156,7 @@ exe-clean ::
 profile-clean ::
 	rm -rf ../exec_pro ../obj_pro
 
-# delete all files created by wisi-generate for main programs
+# delete all files created by wisitoken-bnf-generate for main programs
 build-ada-exec-clean :
 	cd ..; rm -f *.parse_table *.re2c *_process*.ad? *_re2c_c.ads *_re2c.c *-elisp.el *-process.el *_parse_table.txt
 

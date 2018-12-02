@@ -39,7 +39,7 @@ with GNATCOLL.Arg_Lists;
 with GNATCOLL.Paragraph_Filling;
 with GNATCOLL.Projects;
 with GNATCOLL.SQL.Sqlite;
-with GNATCOLL.Traces; use GNATCOLL.Traces;
+with GNATCOLL.Traces;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 with GNATCOLL.VFS_Utils;
@@ -566,7 +566,7 @@ begin
       GNATCOLL.Traces.Parse_Config_File
         (Filename         => Traces_Config_File.all,
          Force_Activation => False);
-      Trace (Me, "trace enabled");
+      GNATCOLL.Traces.Trace (Me, "trace enabled");
    end if;
 
    GNATCOLL.Projects.Initialize (Env); -- for register_default_language
@@ -616,7 +616,7 @@ begin
          return;
       end if;
 
-      Trace (Me, "using project file " & (+Path.Full_Name));
+      GNATCOLL.Traces.Trace (Me, "using project file " & (+Path.Full_Name));
 
       if Show_Progress then
          Progress_Reporter := Display_Progress'Unrestricted_Access;
@@ -669,7 +669,7 @@ begin
       use type GNAT.Strings.String_Access;
       Error : GNAT.Strings.String_Access;
    begin
-      Trace (Me, "using database " & DB_Name.all);
+      GNATCOLL.Traces.Trace (Me, "using database " & DB_Name.all);
 
       Setup_DB
         (Self  => Xref,

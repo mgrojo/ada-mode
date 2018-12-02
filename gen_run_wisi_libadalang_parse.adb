@@ -133,7 +133,7 @@ begin
 
             --  FIXME: put errors via parse_data.put
             if Parser.Any_Errors then
-               Parser.Put_Errors (-Source_File_Name);
+               Parser.Put_Errors;
             end if;
             --  Parse_Data.Put
             --       (Parser.Lexer.Errors,

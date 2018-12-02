@@ -149,8 +149,8 @@ WISITOKEN_GENERATE ?= $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 include rules.make
 
-$(WISITOKEN)/buildwisitoken-bnf-generate.exe : force
-	$(MAKE) -C $(WISITOKEN) wisitoken-bnf-generate.exe
+$(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
+	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
 
 test-ada-elisp-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
 test-ada-elisp-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))

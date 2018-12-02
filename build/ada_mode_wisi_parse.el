@@ -1,8 +1,13 @@
 ;; Project definitions for compiling ada_mode_wisi_parse.adb
 
 (cond
- ((< emacs-major-version 25)
-  ;; not worth fixing; just define WISITOKEN, GPR_PROJECT_PATH so Makefile works
+ ((or
+   (< emacs-major-version 25) ;; not worth fixing
+   (not (and (locate-library "ada-project")
+	     (condition-case nil (require 'ada-mode nil t) (error nil))
+	     (fboundp 'ada-deselect-prj) ;; in 6.0.0
+	     )))
+  ;; just define WISITOKEN, GPR_PROJECT_PATH so Makefile works
   (setenv "WISITOKEN" "/Projects/org.wisitoken")
   (setenv "GPR_PROJECT_PATH"
 	  (concat

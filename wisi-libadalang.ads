@@ -32,8 +32,9 @@ package Wisi.Libadalang is
    overriding procedure Reset_With_String (Lexer : in out Wisi.Libadalang.Lexer; Input : in String);
    overriding
    procedure Reset_With_String_Access
-     (Lexer : in out Wisi.Libadalang.Lexer;
-      Input : in     Ada.Strings.Unbounded.String_Access);
+     (Lexer     : in out Wisi.Libadalang.Lexer;
+      Input     : in     Ada.Strings.Unbounded.String_Access;
+      File_Name : in     Ada.Strings.Unbounded.Unbounded_String);
    overriding procedure Reset_With_File (Lexer : in out Wisi.Libadalang.Lexer; File_Name : in String);
    overriding procedure Reset (Lexer : in out Wisi.Libadalang.Lexer);
    overriding procedure Discard_Rest_Of_Input (Lexer : in out Wisi.Libadalang.Lexer);
@@ -64,7 +65,7 @@ package Wisi.Libadalang is
 
    overriding procedure Parse (Parser : aliased in out Wisi.Libadalang.Parser);
    overriding function Any_Errors (Parser : in Wisi.Libadalang.Parser) return Boolean;
-   overriding procedure Put_Errors (Parser : in Wisi.Libadalang.Parser; Input_File_Name : in String);
+   overriding procedure Put_Errors (Parser : in Wisi.Libadalang.Parser);
    overriding procedure Execute_Actions (Parser : in out Wisi.Libadalang.Parser);
 
 end Wisi.Libadalang;
