@@ -55,13 +55,6 @@ run test from emacs -Q using source:
 
  current work
 release; see below
-    need ELPA package for ada-project, so others can use Makefile?
-        or just (if (file-exists-p "ada-project.el"))?
-
-    testing in Debian
-        no cl-defgeneric in emacs 24.5 (debian stable)
-            ELPA package cl-generic does not work either!? test again, more carefully
-
     windows emacs 25.3:
         all tests pass
 
@@ -69,10 +62,14 @@ release; see below
         ada-build.el:37:1:Error: Unknown class type wisi-elisp-parser in method parameters
             added (require 'cl-generic) in all files that use cl-defgeneric, cl-defmethod
             cl-defstruct needs to call eieio defclass
+            Stefan Monnier says it won't work
+            posted on ada-mode mailing list re dropping 24.x
+            no replies => drop 24.x
+                just in requires; keep code in case someone needs it
 
-    first use of lr1 can time out because of load table time
-        does not recover nicely
-        longer timeout on first use?
+first use of lr1 can time out because of load table time
+    does not recover nicely
+    longer timeout on first use?
         or just increase timeout
 
 add error recovery strategy counts to recover.log
@@ -1250,43 +1247,6 @@ Emacs 25.3, current gnat
     (gpr-query-kill-all-sessions)
     build/Makefile recursive-clean clean # changing compilers
 
-Emacs 24.5, gnat 2017
-    wisitoken encounters gnat bug in GPL 2016
-    (progn
-     (gnat-2017)
-     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
-     (setenv "ADA_MODE_DIR" "-f package-initialize"))
-    build/Makefile install-elpa
-    # ignore byte-compile errors in wisi.el wisi--run-parse "unused lexical var 'err'"
-    # ignore byte-compile errors in wisi.el wisi-time "...-proces--parser-tags"
-    # ignore byte-compile errors in *.el "unknown class type"
-    # ignore byte-compile errors in xref-ada.el due to lack of xref
-
-    cd ~/.emacs.d/elpa/ada-mode-6.0.0; ./build.sh
-    cd ~/.emacs.d/elpa/wisi-2.0.0; ./build-wisitoken-bnf-generate.sh
-    build/Makefile compile-ada-test autoloads test-clean
-    build/Makefile test WISITOKEN_GENERATE="~/.emacs.d/elpa/wisi-2.0.0/wisitoken-bnf-generate.exe"
-    build/Makefile uninstall-elpa
-    build/Makefile clean
-
-Emacs 24.4, gnat 2017
-    (progn
-     (gnat-2017)
-     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
-     (setenv "ADA_MODE_DIR" "-f package-initialize"))
-    build/Makefile install-elpa
-    build/wisi/Makefile all
-    build/Makefile uninstall-elpa
-
-Emacs 24.3, gnat 2017
-    (progn
-     (gnat-2017)
-     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
-     (setenv "ADA_MODE_DIR" "-f package-initialize"))
-    build/Makefile install-elpa
-    build/wisi/Makefile all
-    build/Makefile uninstall-elpa
-
 sync for Debian:
     current Emacs for dvc
     # dvc-state-multiple above
@@ -1294,7 +1254,7 @@ sync for Debian:
     (dvc-sync-review ".")
 
 Debian stable is 9.6 jessie as of 18 Nov 2018
-    emacs  24.5
+    emacs  24.5  - no longer supported by ada-mode
     gnat   6.3.0 - fails on wisitoken
 
     emacs-stable.sh ;; for dvc and testing
@@ -1341,7 +1301,7 @@ commit elpa:
     (dvc-sync-review "/Projects/elpa")
     # 24 hrs for web repository to update
 
-after Gnu ELPA updated, test install from elpa
+after Gnu ELPA updated, test install from GNU ELPA
     5.1.8 crashed emacs for me
 
 (dvc-state-one ".")

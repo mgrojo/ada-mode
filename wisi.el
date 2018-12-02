@@ -8,7 +8,7 @@
 ;;  indentation
 ;;  navigation
 ;; Version: 2.0.0
-;; package-requires: ((cl-lib "0.4") (emacs "24.3") (seq "2.20"))
+;; package-requires: ((cl-lib "1.0") (emacs "25.0") (seq "2.20"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.

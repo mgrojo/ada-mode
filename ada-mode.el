@@ -7,7 +7,7 @@
 ;; Keywords: languages
 ;;  ada
 ;; Version: 6.0.0
-;; package-requires: ((wisi "2.0") (cl-lib "0.4") (emacs "24.3"))
+;; package-requires: ((wisi "2.0") (cl-lib "1.0") (emacs "25.0"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
