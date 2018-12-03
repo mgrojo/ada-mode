@@ -1,6 +1,8 @@
 
 ^Docs/wisi-user_guide\.html$
 ^Docs/wisi-user_guide\.info$
+^Docs/wisitoken-user_guide\.html$
+^Docs/wisitoken-user_guide\.info$
 ^build/.*\-elisp.el$
 ^build/.*\-process.el$
 ^build/.*\.ada$
@@ -17,6 +19,7 @@
 ^build/.*\.parse_table$
 ^build/.*\.profile$
 ^build/.*\.re2c$
+^build/.*\.sig$
 ^build/.*\.txt$
 ^build/.*\.wy$
 ^build/.*\.zip$

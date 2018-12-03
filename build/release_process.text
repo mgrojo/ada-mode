@@ -79,7 +79,7 @@ Makefile
 upload to savannah for Emacs Ada mode:
     in Cygwin Console (for gpg2 prompts):
     cd /cygdrive/c/Projects/org.wisitoken/build/
-    rm org.wisitoken-<old>.*
+    rm org.wisitoken-<old>.tar*
     gpg2 -b *.tar.bz2
 
     scp *.tar.bz2     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/

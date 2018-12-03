@@ -21,6 +21,19 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+resolve regexp_names vs re2c_regexp
+    both used in create_re2c, but differently
+        don't need Elisp_regexps arg
+
+    ada.wy has both:
+    %re2c_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
+        name declared, used in .re2c
+
+    %regexp_name ada-wisi-number-p %[ ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+        value used in .re2c
+
+    keep %regexp_name, use re2c_regexp implementation
+
 delete "assume ignore semantic check is a solution"; only language_fixes knows that
     provide subprog to enqueue that in language_fixes
 
