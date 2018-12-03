@@ -79,6 +79,9 @@ org.adaic.arm_form
 
 To do a release:
 
+NEWS
+    document changes
+
 build/Makefile
     if necessary, update AVAILABLE_YEARS for latest version
     if no new version, bump trailing digit in ZIP_VERSION
