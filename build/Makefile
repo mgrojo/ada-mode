@@ -227,14 +227,16 @@ compare-ada-gps.stamp : force
 BRANCH := $(notdir $(shell cd ..; pwd))
 
 ifeq ($(BRANCH),org.emacs.ada-mode)
-  TAR_FILE := org.emacs.ada-mode-$(ADA_MODE_VERSION).tar.gz
-  TAR_DIR := ../
-  TAR_PAT := org.emacs.ada-mode-$(ADA_MODE_VERSION)
+  TAR_FILE := org.emacs.ada-mode-$(ADA_MODE_VERSION)
 else
-  TAR_FILE := $(BRANCH).tar.gz
-  TAR_DIR := ../
-  TAR_PAT := $(BRANCH)
+  TAR_FILE := $(BRANCH)
 endif
+
+zip :
+	rm -rf ../../$(TAR_FILE)
+	mtn checkout --branch $(BRANCH) ../../$(TAR_FILE)
+	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C ../.. $(TAR_FILE)
+
 
 DATE := $(shell date +%Y-%m-%d)
 # tarball of installed ELPA packages, for sending to customers without good monotone access
@@ -242,10 +244,6 @@ elpa-zip : docs pub-ada pub-wisi build-elpa install-elpa ada-mode-elpa-$(DATE).t
 
 ada-mode-elpa-$(DATE).tar.gz :
 	tar zcf ada-mode-elpa-$(DATE).tar.gz -C ~/.emacs.d/elpa ada-ref-man-$(ADA_REF_MAN_VERSION) ada-mode-$(ADA_MODE_VERSION) wisi-$(WISI_VERSION)
-
-zip :
-	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C $(TAR_DIR) $(TAR_PAT)
-
 
 MANUALS := ada-mode gpr-mode
 

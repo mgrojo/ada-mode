@@ -10,6 +10,7 @@
 ^build/.*\.adb$
 ^build/.*\.ads$
 ^build/.*\.ali$
+^build/.*\.bz2$
 ^build/.*\.c$
 ^build/.*\.diff$
 ^build/.*\.log$

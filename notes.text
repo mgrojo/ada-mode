@@ -54,19 +54,6 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-release; see below
-    windows emacs 25.3:
-        all tests pass
-
-    windows emacs 24.5:
-        ada-build.el:37:1:Error: Unknown class type wisi-elisp-parser in method parameters
-            added (require 'cl-generic) in all files that use cl-defgeneric, cl-defmethod
-            cl-defstruct needs to call eieio defclass
-            Stefan Monnier says it won't work
-            posted on ada-mode mailing list re dropping 24.x
-            no replies => drop 24.x
-                just in requires; keep code in case someone needs it
-
 first use of lr1 can time out because of load table time
     does not recover nicely
     longer timeout on first use?
@@ -1305,38 +1292,36 @@ after Gnu ELPA updated, test install from GNU ELPA
     5.1.8 crashed emacs for me
 
 (dvc-state-one ".")
-mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
-
-(dvc-sync-run ".")
-(dvc-sync-review ".")
-
-mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-6.0.0 ../org.emacs.ada-mode-6.0.0
+mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-<version>
 
 build/Makefile zip
 
-not under emacs:
+in cygwin console for gpg2 prompts:
     cd /Projects/org.emacs.ada-mode/build/
-    rm <old>.*
-    gpg2 -b *.tar.gz
+    rm <old>.tar*
+    gpg2 -b *.tar.bz2
 
-    scp *.tar.gz     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
-    scp *.tar.gz.sig stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    scp *.tar.bz2     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    scp *.tar.bz2.sig stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
 
 ~/Web/Makefile
-    ada-mode wisi
+    ada-mode wisitoken
 
 (cvs-examine "d:/Web/savannah/ada-mode/" nil)
     mark all, commit
 
+    takes ~ 10 min for http://www.nongnu.org/ada-mode/ to reflect cvs commit
+
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
-Ada mode 5.3.1 is now available in GNU ELPA. See the homepage
-(http://www.nongnu.org/ada-mode/) for NEWS, or the project page
-(https://savannah.nongnu.org/projects/ada-mode) for tarball download.
+Ada mode 6.0.0 is now available in GNU ELPA. See the homepage
+(http://www.nongnu.org/ada-mode/) for news.
 
-This is a bug fix release; the version number should have incremented
-from 5.2 to 5.3 in the previous release, for the the GPS indentation
-engine.
+This is a major release; an error correcting parser written in Ada is
+provided, and the grammar actions have been rewritten to implement
+indentation more efficiently. The Ada parser is useable on very large
+files. The elisp parser is still available, but does not provide error
+correction.
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
