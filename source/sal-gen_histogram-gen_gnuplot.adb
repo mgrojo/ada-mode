@@ -6,7 +6,7 @@
 --
 --  gnu plot manual:    /usr/share/doc/gnuplot/manual/gnuplot.pdf
 --
---  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -62,7 +62,7 @@ package body SAL.Gen_Histogram.Gen_Gnuplot is
       Create_File (Plot_File, Plot_File_Name);
 
       for I in Histogram.Bins'Range loop
-         Put (Data_File, Float (I) * Units_Per_Bin, Aft => 1, Exp => 0);
+         Put (Data_File, Float (I) * Units_Per_Bin, Aft => 2, Exp => 0);
          Put_Line (Data_File, Integer'Image (Histogram.Bins (I)));
       end loop;
 
