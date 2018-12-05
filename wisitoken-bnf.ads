@@ -13,7 +13,7 @@
 --  [1] https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 --  [2] http://www.nongnu.org/ada-mode/wisi/wisi-user_guide.html, (info "(wisi-user_guide)Top")
 --
---  Copyright (C) 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017, 2018 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
