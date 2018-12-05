@@ -19,6 +19,9 @@ build/Makefile
 source/sal.html
     doc version
 
+source/sal.adb
+    edit Version to match html
+
 # dvc-state-multiple above
 
 build/Makefile zip tag
