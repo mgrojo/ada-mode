@@ -54,6 +54,26 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+change copyright in all files copied to elpa - done
+
+compress lalr.txt
+    41 MB raw
+    gzip 2.7 MB
+    reduce ELPA repository size, download time
+    use shell commands, assume gzip
+    in module, use Emacs gzip? reduce parser startup time
+
+'wisi-compile-grammar' should be renamed 'wisi-compile-parse-table'
+
+do module interface
+
+remove all code supporting emacs < 25
+
+use #'remove-hook
+
+review eglot
+    completion; maybe more not obvious from the LSP main page
+
 first use of lr1 can time out because of load table time
     does not recover nicely
     longer timeout on first use?
@@ -1217,6 +1237,9 @@ current Emacs, current gnat:
 run all tests:
     build/Makefile elisp
 
+Check copyright on files in published in elpa
+    change to FSF
+
 prep for other version tests:
     build/Makefile byte-compile-clean pub
     # pushes to elpa workspace, builds archive
@@ -1314,8 +1337,8 @@ in cygwin console for gpg2 prompts:
 
 post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
-Ada mode 6.0.0 is now available in GNU ELPA. See the homepage
-(http://www.nongnu.org/ada-mode/) for news.
+Gnu Emacs Ada mode 6.0.0 is now available in GNU ELPA. See the
+homepage (http://www.nongnu.org/ada-mode/) for news.
 
 This is a major release; an error correcting parser written in Ada is
 provided, and the grammar actions have been rewritten to implement
