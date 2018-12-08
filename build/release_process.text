@@ -17,8 +17,10 @@ review todo list
 
 doc changes since last release
     ../Docs/wisitoken.html
+        add to history
     $ cd org.wisitoken
-    $ mtn log --to d:yyyy-mmm-dd > release.log
+    # review mtn log since last release date
+    $ mtn log --to d:yyyy-mm-dd > release.log
     ../release.log
 
 bump version
@@ -35,8 +37,7 @@ bump version
     ~/Web/Makefile
         WISITOKEN_ZIP_VERSION
 
-    d:/Web/stephe-leake/ada/
-        delete old *.zip, *.bz2
+    # *.bz2 on savannah; never deleted
 
     ../wisitoken-bnf-generate.adb
         version in Put_Usage
@@ -47,29 +48,30 @@ loop until no changes:
     Windows:
         (sal-standard)
 
-        release/Makefile
+        Makefile
             (gpr-query-kill-all-sessions)
-            distclean
+            clean
             all
 
         (dvc-state-one ".")
 
-        (dvc-sync-run)
+        $ mtn_sync_ada_france.sh
 
     Debian:
 
-        (dvc-sync-run)
+        $ mtn_sync_ada_france.sh
         (dvc-sync-review)
 
-        # debian gnat does not (yet) support Ada 2012 containers, so the libre package must be used
+        # debian gnat does not support wisitoken, so the libre or pro package must be used
         (sal-standard)
-        release/Makefile
-            make -r distclean
+        Makefile
+            (gpr-query-kill-all-sessions)
+            make -r clean
             make -r all
 
         (dvc-state-one ".")
 
-        (dvc-sync-run)
+        $ mtn_sync_ada_france.sh
 
 end loop
 
