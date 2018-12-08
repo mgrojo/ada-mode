@@ -205,8 +205,6 @@ packrat space use
         derive condition
         use free list in syntax tree
 
-Wisi syntax is not bison-like; it is BNF augmented with declarations, regexp, actions
-
 add packrat error recover
 
 compile ada_process_main still very slow on Debian

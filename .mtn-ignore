@@ -1,4 +1,5 @@
 
+^Docs/dir$
 ^Docs/wisi-user_guide\.html$
 ^Docs/wisi-user_guide\.info$
 ^Docs/wisitoken-user_guide\.html$
