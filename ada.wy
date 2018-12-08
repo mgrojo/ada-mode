@@ -153,9 +153,12 @@
 %token <punctuation> TICK_2 %[ "'" / "('"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 %end if
 
-%regexp_name ada-wisi-number-p %[ ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
-
+%if lexer = elisp
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
+%end if
+%if lexer = re2c
+%token <number> NUMERIC_LITERAL %[ ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+%end if
 
 ;; non_grammar are not seen by the elisp lexer, but are needed by the re2c lexer
 %non_grammar <non-reporting> WHITESPACE %[ [ \t]+ ]%

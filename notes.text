@@ -54,16 +54,24 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-change copyright in all files copied to elpa - done
+release
 
-compress lalr.txt
-    41 MB raw
-    gzip 2.7 MB
-    reduce ELPA repository size, download time
-    use shell commands, assume gzip
-    in module, use Emacs gzip? reduce parser startup time
+add error recovery strategy counts to recover.log
+
+use #'ignore, not nil, for function vars
+    or convert to cl-generic
+
+debug-on-error t should only throw error when there is a bug in the
+    elisp code, not for a syntax error in user code (since that's expected).
+    put errors on wisi--parser-errors lower down.
 
 'wisi-compile-grammar' should be renamed 'wisi-compile-parse-table'
+
+Decrease elisp parser startup time
+    wisi-compile-grammar slow
+        obarray is not written into elc; must be computed at load time
+    wisi-bnf-generate write lambda from wisi-semantic-action into parse table for each action
+    also other changes? eliminate wisi-compile-grammar/parse-table
 
 do module interface
 
@@ -78,8 +86,6 @@ first use of lr1 can time out because of load table time
     does not recover nicely
     longer timeout on first use?
         or just increase timeout
-
-add error recovery strategy counts to recover.log
 
 test/ada_mode-recover_redundant_solutions_1.adb
     recover finds two identical solutions
@@ -1152,27 +1158,36 @@ check for ELPA patches by others
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
+check for latest Emacs release
+    http://ftp.gnu.org/gnu/emacs/windows/
+
+run all tests without elpa:
+    # must bump version before testing elpa, so package installer can tell the difference.
+
+    build/Makefile elisp
+
+    Windows current Emacs, current gnat
+    Windows Emacs 25.3, current gnat
+    Debian current Emacs, current gnat
+    Debian Emacs 25.3, current gnat
+
 compare:
     build stuff to compare with previous release in elpa:
-        build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
+        build/Makefile pub
 
     (list-packages) install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
         change versions in compares below to match installed versions.
 
-    (ediff-directories "~/.emacs.d/elpa/wisi-1.1.6" "/Projects/elpa/packages/wisi" nil)
+    (ediff-directories "~/.emacs.d/elpa/wisi-2.0.0" "/Projects/elpa/packages/wisi" nil)
         NEWS-wisi.text
             copyright date
             add release date
             add new features
 
-        wisi.el
-            Version:
-
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-5.3.2" "/Projects/elpa/packages/ada-mode" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-6.0.0" "/Projects/elpa/packages/ada-mode" nil)
         NEWS-ada-mode.text
             add release date
             add new features
-
 
     (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.3" "/Projects/elpa/packages/ada-ref-man" nil)
 
@@ -1185,6 +1200,15 @@ bump versions
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction
 
+    wisi.el
+        Version:
+
+    README-wisi
+        first line
+
+    build.sh
+        GPR_PROJECT_PATH wisi version
+
     ada-mode.el
         Version:
         package-requires wisi version
@@ -1193,17 +1217,14 @@ bump versions
     ada-mode.texi
         @title
         @node top
+
     README-ada-mode
         first line
 
     ada-ref-man.el
         Version:
-    README-ada-ref-man
-        first line
 
-    wisi.el
-        Version:
-    README-wisi
+    README-ada-ref-man
         first line
 
     emacs_wisi_common_parse.ads
@@ -1214,10 +1235,6 @@ bump versions
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION
         WISI_VERSION
-    build/install-elpa.el
-        ada-mode-version
-        ada-ref-man-version
-        wisi-version
 
     (find-file "d:/Web/savannah/ada-mode/index.html")
         find-replace i.j.k
@@ -1230,27 +1247,19 @@ verify other metadata
     ada-ref-man.el
     wisi.el
 
-check for latest Emacs release
-    http://ftp.gnu.org/gnu/emacs/windows/
-
-current Emacs, current gnat:
-run all tests:
-    build/Makefile elisp
+prep for elpa tests:
+    build/Makefile byte-compile-clean pub
+    # pushes to elpa workspace, builds archive
 
 Check copyright on files in published in elpa
     change to FSF
 
-prep for other version tests:
-    build/Makefile byte-compile-clean pub
-    # pushes to elpa workspace, builds archive
-
 Emacs 25.3, current gnat
     ~/bin/emacs-25.sh
     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
-    (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
-    cd ~/.emacs.d/elpa/ada-mode-6.0.0; ./build.sh
-    cd ~/.emacs.d/elpa/wisi-2.0.0; ./build-wisitoken-bnf-generate.sh
+    cd ~/.emacs.d/elpa/ada-mode-6.0.1; ./build.sh
+    cd ~/.emacs.d/elpa/wisi-2.0.1; ./build-wisitoken-bnf-generate.sh
     build/Makefile compile-ada-test autoloads test-clean
     build/Makefile test WISITOKEN_GENERATE="~/.emacs.d/elpa/wisi-2.0.0/wisitoken-bnf-generate.exe"
     build/Makefile uninstall-elpa
@@ -1316,6 +1325,8 @@ after Gnu ELPA updated, test install from GNU ELPA
 
 (dvc-state-one ".")
 mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-<version>
+
+~/bin/mtn_sync_ada_france.sh
 
 build/Makefile zip
 

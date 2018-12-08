@@ -18,9 +18,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 6.0.0
+export ADA_MODE_VERSION    := 6.0.1
 export ADA_REF_MAN_VERSION := 2012.3
-export WISI_VERSION        := 2.0.0
+export WISI_VERSION        := 2.0.1
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -274,6 +274,7 @@ pub-ada : force
 	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada*.ad? ../gpr*.ad? ../wisi-ada.ad? ../wisi-gpr.ad? ../*parse.ad? $(ELPA_ROOT)/packages/ada-mode
 	cp ../ada_lr1_parse_table.txt $(ELPA_ROOT)/packages/ada-mode
+	gzip $(ELPA_ROOT)/packages/ada-mode/ada_lr1_parse_table.txt
 	cp ../wisitoken-*-ada.ad? $(ELPA_ROOT)/packages/ada-mode
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
@@ -286,7 +287,7 @@ pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
 	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
 	cp ../README-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/README
-	cp ../dir-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/dir
+	cp $(ARM_INFO)/build/dir $(ELPA_ROOT)/packages/ada-ref-man/dir
 	cp $(ARM_INFO)/build/arm2012.info $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/aarm2012.info $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/source_2012/* $(ELPA_ROOT)/packages/ada-ref-man/source_2012
@@ -304,7 +305,10 @@ pub-wisi : force
 	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
 	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
 	cp ../wisi.ad? $(ELPA_ROOT)/packages/wisi
+	cp $(WISITOKEN)/Docs/dir $(ELPA_ROOT)/packages/wisi/
+	cp $(WISITOKEN)/Docs/*.info $(ELPA_ROOT)/packages/wisi/
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
+	rm $(ELPA_ROOT)/packages/wisi/wisitoken-regexp.ad?
 	cp $(WISITOKEN)/wisitoken_grammar_re2c.c  $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/build/wisitoken-elpa.gpr  $(ELPA_ROOT)/packages/wisi/wisitoken.gpr
 	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
@@ -329,6 +333,7 @@ pub-wisi : force
 	cp ../build-wisitoken-bnf-generate.sh $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_unbounded_definite_vectors-gen_comparable.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_definite_doubly_linked_lists.ad?  $(ELPA_ROOT)/packages/wisi
+
 # 'make -C elpa all-in-place' does not build archive-contents, just *.elc
 #
 # Other packages are often broken, so just build ours, by only copying

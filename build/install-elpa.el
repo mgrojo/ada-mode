@@ -5,9 +5,9 @@
 
 (package-initialize)
 
-(setq ada-mode-version "6.0.0")
-(setq ada-ref-man-version "2012.3")
-(setq wisi-version "2.0.0")
+(setq ada-mode-version (getenv "ADA_MODE_VERSION"))
+(setq ada-ref-man-version (getenv "ADA_REF_MAN_VERSION"))
+(setq wisi-version (getenv "WISI_VERSION"))
 
 (cond
  ;; package handler details change between emacs versions

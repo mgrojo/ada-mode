@@ -63,11 +63,11 @@ elisp-clean :
 # they can be saved in CM together.
 %.re2c : %.wy $(WISITOKEN_GENERATE)
 	cd ./$(<D); $(WISITOKEN_GENERATE) --time $(<F)
-	cd ./$(<D); dos2unix -q $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads $(*F)_*_parse_table.txt
+	cd ./$(<D); dos2unix $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads $(*F)_*_parse_table.txt
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
-	cd ./$(<D); dos2unix -q $(*F)_re2c.c
+	cd ./$(<D); dos2unix $(*F)_re2c.c
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
