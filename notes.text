@@ -31,6 +31,8 @@ Makefile
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
+create ELPA package, release
+
 indent test failing with elisp action
     posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
 

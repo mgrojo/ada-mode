@@ -35,7 +35,7 @@ one : $(ONE_TEST_FILE).diff
 #two : RUN_ARGS ?= --repeat_count 5
 #two : RUN_LOG := > debug.log
 two : build_ada_executables
-	./run_wisitoken_grammar_1_parse.exe wisitoken_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
+	./run_wisitoken_grammar_parse.exe wisitoken_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
 %.re2c : %.wy $(WISITOKEN)/wisitoken-bnf-generate.exe
 	$(WISITOKEN)/wisitoken-bnf-generate.exe $(<F)
@@ -44,7 +44,7 @@ two : build_ada_executables
 
 %_re2c.c : %.re2c
 	$(RE2C_HOME)/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
-	dos2unix $<
+	dos2unix $@
 
 # wisi-grammar-elisp.el is in monotone, so this is all we need after a
 # monotone update. Doing byte-compile-clean first avoids errors caused

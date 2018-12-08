@@ -58,6 +58,13 @@
 (defvar-local wisitoken-grammar-action-mode nil
   "Emacs major mode used for actions, inferred from ’%generate’ declaration or file local variable.")
 
+(cl-defstruct (wisitoken-wisi-parser (:include wisi-process--parser))
+  ;; no new slots
+  )
+
+(cl-defmethod wisi-parse-format-language-options ((_parser wisitoken-wisi-parser))
+  "")
+
 (defun wisitoken-grammar-new-line ()
   "If in comment, insert new comment line.
 If in nonterminal, insert new production right hand side.
@@ -227,8 +234,9 @@ Otherwise insert a plain new line."
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
 
   (set (make-local-variable 'comment-start) ";;")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-start-skip) "---*[ \t]*")
+  (set (make-local-variable 'comment-end) "") ;; setting this to \n causes errors
+  (set (make-local-variable 'comment-use-syntax) t);; the automatic test for this does not use syntax-propertize
+  (set (make-local-variable 'comment-start-skip) ";;*[ \t]*")
   (set (make-local-variable 'comment-multi-line) nil)
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'add-log-current-defun-function)
@@ -245,7 +253,7 @@ Otherwise insert a plain new line."
    :indent-calculate nil
    :post-indent-fail nil
    :parser (wisi-process-parse-get
-	    (make-wisi-process--parser
+	    (make-wisitoken-wisi-parser
 	     :label "wisitoken-grammar"
 	     :exec-file wisitoken-grammar-process-parse-exec
 	     :face-table wisitoken_grammar_1-process-face-table

@@ -12,10 +12,10 @@
 	     (cl-ecase system-type
 	       (gnu/linux
 		'(("WISITOKEN" . "/Projects/org.wisitoken/build")
-		  ("EMACS_WISI" . "/Projects/org.emacs.ada-mode.stephe-2")))
+		  ("EMACS_WISI" . "/Projects/org.emacs.ada-mode")))
 	       (windows-nt
 		'(("WISITOKEN" . "c:/Projects/org.wisitoken/build")
-		  ("EMACS_WISI" . "c:/Projects/org.emacs.ada-mode.stephe-2")))
+		  ("EMACS_WISI" . "c:/Projects/org.emacs.ada-mode")))
 	       )
 	     :ada-prj-file prj-file)))
 

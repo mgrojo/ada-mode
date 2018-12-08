@@ -6,15 +6,15 @@
 
 ;; Override default auto-mode-alist entry for .wy
 (setq auto-mode-alist (delete '("\\.wy\\'" . wisent-grammar-mode) auto-mode-alist))
-(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisi-grammar-mode))
+(add-to-list 'auto-mode-alist '("\\.wy\\'" . wisitoken-grammar-mode))
 
-;; WORKAROUND: mmm-mode is not in GELPA yet
-(add-to-list 'load-path "c:/Projects/mmm-mode")
-(require 'mmm-auto)
+;; mmm-mode is not in GNU ELPA
+(package-initialize)
+(require 'mmm-mode)
 
 ;; WORKAROUND: if we rely on mmm-global-mode, mmm is enabled by
 ;; post-command-hook, which is run after ’run-test’ (the command).
-(add-hook 'wisi-grammar-mode-hook 'mmm-mode-on)
+(add-hook 'wisitoken-grammar-mode-hook #'mmm-mode-on)
 
 (require 'run-indent-test)
 
