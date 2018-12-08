@@ -250,16 +250,16 @@ package WisiToken.BNF is
    function Is_Present (Rules : in Rule_Lists.List; LHS : in String) return Boolean;
 
    type Tokens is record
-      Non_Grammar      : Token_Lists.List;
-      Keywords         : String_Pair_Lists.List;
-      Tokens           : Token_Lists.List;
-      Rules            : Rule_Lists.List;
+      Non_Grammar : Token_Lists.List;
+      Keywords    : String_Pair_Lists.List;
+      Tokens      : Token_Lists.List;
+      Rules       : Rule_Lists.List;
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
 
-      Regexps : String_Pair_Lists.List;
-      --  Regexps included here because they are used in defining the
-      --  Tokens.
+      re2c_Regexps : String_Pair_Lists.List;
+      --  From %re2c_regexp; included here because they are used in defining
+      --  the Tokens.
    end record;
 
    type User_Names is record
@@ -269,7 +269,6 @@ package WisiToken.BNF is
 
       Faces   : String_Lists.List;      -- %elisp_face
       Indents : String_Pair_Lists.List; -- %elisp_indent
-      Regexps : String_Pair_Lists.List; -- %regexp_name
    end record;
 
    function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String

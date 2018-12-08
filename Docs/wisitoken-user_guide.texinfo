@@ -501,12 +501,9 @@ enumeration type.
 @item %start
 The start token for the grammar.
 
-@item regexp_name <name>
-Declare a named regular expression. The name may then occur in another
-regular expression.
-
-The re2c lexer supports this usage; other lexers may not.
-
+@item re2c_regexp <name> <value>
+Declare a named regular expression with re2c name and syntax. The name
+may then occur in another re2c regular expression.
 @end table
 
 @node Nonterminals

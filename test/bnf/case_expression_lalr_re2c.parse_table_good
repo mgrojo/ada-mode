@@ -1,0 +1,213 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => COMMENT
+ 2 => RANGE
+ 3 => WHEN
+ 4 => DOT_DOT
+ 5 => EQUAL_GREATER
+ 6 => TICK
+ 7 => NUMBER_LITERAL
+ 8 => IDENTIFIER
+ 9 => Wisi_EOI
+ 10 => wisitoken_accept
+ 11 => case_expression
+ 12 => choice_expression
+ 13 => choice_relation
+ 14 => discrete_choice
+ 15 => factor
+ 16 => factor_list
+ 17 => range_nt
+
+Productions:
+10.0: wisitoken_accept <= case_expression Wisi_EOI
+11.0: case_expression <= WHEN discrete_choice EQUAL_GREATER factor
+12.0: choice_expression <= choice_relation
+13.0: choice_relation <= factor_list
+14.0: discrete_choice <= choice_expression
+14.1: discrete_choice <= range_nt
+15.0: factor <= IDENTIFIER
+15.1: factor <= NUMBER_LITERAL
+16.0: factor_list <= factor
+17.0: range_nt <= IDENTIFIER TICK RANGE
+17.1: range_nt <= factor_list DOT_DOT factor_list
+
+Ancestors:
+NUMBER_LITERAL => choice_expression, choice_relation, discrete_choice, factor, factor_list
+IDENTIFIER => choice_expression, choice_relation, discrete_choice, factor, factor_list
+choice_expression => discrete_choice
+choice_relation => choice_expression, discrete_choice
+factor => choice_expression, choice_relation, discrete_choice, factor_list
+factor_list => choice_expression, choice_relation, discrete_choice
+range_nt => discrete_choice
+
+LALR Parse Table:
+State 0:
+     10.0:wisitoken_accept <= ^ case_expression Wisi_EOI, 
+
+   WHEN              => shift and goto state 1
+   default           => ERROR
+
+   case_expression   goto state 2
+
+   Minimal_Complete_Actions => (WHEN)
+
+State 1:
+     11.0:case_expression <= WHEN ^ discrete_choice EQUAL_GREATER factor, Wisi_EOI
+
+   NUMBER_LITERAL    => shift and goto state 3
+   IDENTIFIER        => shift and goto state 4
+   default           => ERROR
+
+   choice_expression goto state 5
+   choice_relation   goto state 6
+   discrete_choice   goto state 7
+   factor            goto state 8
+   factor_list       goto state 9
+   range_nt          goto state 10
+
+   Minimal_Complete_Actions => (NUMBER_LITERAL)
+
+State 2:
+     10.0:wisitoken_accept <= case_expression ^ Wisi_EOI, 
+
+   Wisi_EOI          => accept it 10.0
+   default           => ERROR
+
+State 3:
+     15.1:factor <= NUMBER_LITERAL ^, DOT_DOT/EQUAL_GREATER/Wisi_EOI
+
+   DOT_DOT           => reduce 1 tokens to factor 15.1
+   EQUAL_GREATER     => reduce 1 tokens to factor 15.1
+   Wisi_EOI          => reduce 1 tokens to factor 15.1
+   default           => ERROR
+
+   Minimal_Complete_Actions => (factor)
+
+State 4:
+     15.0:factor <= IDENTIFIER ^, DOT_DOT/EQUAL_GREATER
+     17.0:range_nt <= IDENTIFIER ^ TICK RANGE, EQUAL_GREATER
+
+   DOT_DOT           => reduce 1 tokens to factor 15.0
+   EQUAL_GREATER     => reduce 1 tokens to factor 15.0
+   TICK              => shift and goto state 11
+   default           => ERROR
+
+   Minimal_Complete_Actions => (TICK, factor)
+
+State 5:
+     14.0:discrete_choice <= choice_expression ^, EQUAL_GREATER
+
+   EQUAL_GREATER     => reduce 1 tokens to discrete_choice 14.0
+   default           => ERROR
+
+   Minimal_Complete_Actions => (discrete_choice)
+
+State 6:
+     12.0:choice_expression <= choice_relation ^, EQUAL_GREATER
+
+   EQUAL_GREATER     => reduce 1 tokens to choice_expression 12.0
+   default           => ERROR
+
+   Minimal_Complete_Actions => (choice_expression)
+
+State 7:
+     11.0:case_expression <= WHEN discrete_choice ^ EQUAL_GREATER factor, Wisi_EOI
+
+   EQUAL_GREATER     => shift and goto state 12
+   default           => ERROR
+
+   Minimal_Complete_Actions => (EQUAL_GREATER)
+
+State 8:
+     16.0:factor_list <= factor ^, DOT_DOT/EQUAL_GREATER
+
+   DOT_DOT           => reduce 1 tokens to factor_list 16.0
+   EQUAL_GREATER     => reduce 1 tokens to factor_list 16.0
+   default           => ERROR
+
+   Minimal_Complete_Actions => (factor_list)
+
+State 9:
+     13.0:choice_relation <= factor_list ^, EQUAL_GREATER
+     17.1:range_nt <= factor_list ^ DOT_DOT factor_list, EQUAL_GREATER
+
+   DOT_DOT           => shift and goto state 13
+   EQUAL_GREATER     => reduce 1 tokens to choice_relation 13.0
+   default           => ERROR
+
+   Minimal_Complete_Actions => (DOT_DOT, choice_relation)
+
+State 10:
+     14.1:discrete_choice <= range_nt ^, EQUAL_GREATER
+
+   EQUAL_GREATER     => reduce 1 tokens to discrete_choice 14.1
+   default           => ERROR
+
+   Minimal_Complete_Actions => (discrete_choice)
+
+State 11:
+     17.0:range_nt <= IDENTIFIER TICK ^ RANGE, EQUAL_GREATER
+
+   RANGE             => shift and goto state 14
+   default           => ERROR
+
+   Minimal_Complete_Actions => (RANGE)
+
+State 12:
+     11.0:case_expression <= WHEN discrete_choice EQUAL_GREATER ^ factor, Wisi_EOI
+
+   NUMBER_LITERAL    => shift and goto state 3
+   IDENTIFIER        => shift and goto state 15
+   default           => ERROR
+
+   factor            goto state 16
+
+   Minimal_Complete_Actions => (NUMBER_LITERAL)
+
+State 13:
+     17.1:range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
+
+   NUMBER_LITERAL    => shift and goto state 3
+   IDENTIFIER        => shift and goto state 15
+   default           => ERROR
+
+   factor            goto state 8
+   factor_list       goto state 17
+
+   Minimal_Complete_Actions => (NUMBER_LITERAL)
+
+State 14:
+     17.0:range_nt <= IDENTIFIER TICK RANGE ^, EQUAL_GREATER
+
+   EQUAL_GREATER     => reduce 3 tokens to range_nt 17.0
+   default           => ERROR
+
+   Minimal_Complete_Actions => (range_nt)
+
+State 15:
+     15.0:factor <= IDENTIFIER ^, EQUAL_GREATER/Wisi_EOI
+
+   EQUAL_GREATER     => reduce 1 tokens to factor 15.0
+   Wisi_EOI          => reduce 1 tokens to factor 15.0
+   default           => ERROR
+
+   Minimal_Complete_Actions => (factor)
+
+State 16:
+     11.0:case_expression <= WHEN discrete_choice EQUAL_GREATER factor ^, Wisi_EOI
+
+   Wisi_EOI          => reduce 4 tokens to case_expression 11.0
+   default           => ERROR
+
+   Minimal_Complete_Actions => (case_expression)
+
+State 17:
+     17.1:range_nt <= factor_list DOT_DOT factor_list ^, EQUAL_GREATER
+
+   EQUAL_GREATER     => reduce 3 tokens to range_nt 17.1
+   default           => ERROR
+
+   Minimal_Complete_Actions => (range_nt)
+
+ 7 rules, 0 user actions, 0 checks, 18 states, 46 parse actions
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

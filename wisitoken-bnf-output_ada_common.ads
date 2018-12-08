@@ -83,9 +83,8 @@ package WisiToken.BNF.Output_Ada_Common is
      (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
       Tuple                 :         in Generate_Tuple;
       Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
-      Output_File_Name_Root :         in String;
-      Elisp_Regexps         :         in WisiToken.BNF.String_Pair_Lists.List);
-   --  Create_re2c is called from wisi-generate, which does not declare
+      Output_File_Name_Root :         in String);
+   --  Create_re2c is called from wisitoken-bnf-generate, which does not declare
    --  Common_Data.
 
 end WisiToken.BNF.Output_Ada_Common;

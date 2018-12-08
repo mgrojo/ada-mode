@@ -551,14 +551,9 @@ package body WisiToken_Grammar_Runtime is
                   Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));
 
                elsif Kind = "re2c_regexp" then
-                  Data.Tokens.Regexps.Append
+                  Data.Tokens.re2c_Regexps.Append
                     ((+Get_Child_Text (Data, Tree, Tokens (3), 1),
                       +Get_Child_Text (Data, Tree, Tokens (3), 2)));
-
-               elsif Kind = "regexp_name" then
-                  Data.User_Names.Regexps.Append
-                    ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1),
-                      Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 
                else
                   raise Grammar_Error with Error_Message

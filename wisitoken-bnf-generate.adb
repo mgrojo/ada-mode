@@ -349,7 +349,7 @@ begin
                Lexer_Done (Input_Data.User_Lexer) := True;
                if Input_Data.User_Lexer = re2c_Lexer then
                   WisiToken.BNF.Output_Ada_Common.Create_re2c
-                    (Input_Data, Tuple, Generate_Data, -Output_File_Name_Root, Input_Data.User_Names.Regexps);
+                    (Input_Data, Tuple, Generate_Data, -Output_File_Name_Root);
                end if;
             end if;
 
