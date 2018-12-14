@@ -260,7 +260,6 @@ VPATH := ..
 #
 # Copy files to Gnu ELPA ada-mode package
 pub-ada : force
-	rm -rf $(ELPA_ROOT)/archive
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
@@ -305,6 +304,7 @@ pub-wisi : force
 	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
 	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
 	cp ../wisi.ad? $(ELPA_ROOT)/packages/wisi
+	cp ../wisitoken-parse_table-mode.el $(ELPA_ROOT)/packages/wisi
 	cp $(WISITOKEN)/Docs/dir $(ELPA_ROOT)/packages/wisi/
 	cp $(WISITOKEN)/Docs/*.info $(ELPA_ROOT)/packages/wisi/
 	cp $(WISITOKEN)/*.ad? $(ELPA_ROOT)/packages/wisi
@@ -339,6 +339,7 @@ pub-wisi : force
 # Other packages are often broken, so just build ours, by only copying
 # ours into archive-tmp
 build-elpa : force
+	rm -rf $(ELPA_ROOT)/archive
 	rm -rf $(ELPA_ROOT)/archive-tmp
 	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/ada-mode $(ELPA_ROOT)/archive-tmp/packages
@@ -436,15 +437,6 @@ build_ada_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c f
 
 install_ada_executables : build_ada_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
-
-$(INSTALL_BIN)run_ada_mode_parser$(EXE_EXT) install_run_ada_mode_parser : run_ada_mode_parser$(EXE_EXT)
-	gprinstall -f -p -P ../run_ada_mode_parser.gpr --install-name=run_ada_mode_parser
-
-$(INSTALL_BIN)gpr_mode_wisi_parse$(EXE_EXT) install_gpr_mode_wisi_parse : gpr_mode_wisi_parse$(EXE_EXT)
-	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=gpr_mode_wisi_parse
-
-$(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gpr_mode_parser$(EXE_EXT)
-	gprinstall -f -p -P ../run_ada_mode_parser.gpr --install-name=run_gpr_mode_parser
 
 test_harness.exe : force
 	gprbuild -p ../ada_mode_unit_tests.gpr $(GPRBUILD_ARGS)

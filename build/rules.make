@@ -61,9 +61,11 @@ elisp-clean :
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
+# FIXME: deleted -q from dos2unix to debug files not being converted. but required for files that may not be present.
 %.re2c : %.wy $(WISITOKEN_GENERATE)
 	cd ./$(<D); $(WISITOKEN_GENERATE) --time $(<F)
-	cd ./$(<D); dos2unix $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads $(*F)_*_parse_table.txt
+	cd ./$(<D); dos2unix $(*F)*-elisp.el $(*F)-process.el $(*F)_process* $(*F)_re2c_c.ads
+	cd ./$(<D); dos2unix -q $(*F)_*_parse_table.txt
 
 %_re2c.c : %.re2c
 	re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<

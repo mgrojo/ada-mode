@@ -1,3 +1,4 @@
+#!/bin/sh
 # Build and install executables for Ada mode.
 
 # In December 2016, GNATCOLL changed its Xref interface. First, the

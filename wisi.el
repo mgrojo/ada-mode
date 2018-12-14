@@ -9,7 +9,7 @@
 ;;  navigation
 ;; Version: 2.0.1
 ;; package-requires: ((cl-lib "1.0") (emacs "25.0") (seq "2.20"))
-;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
+;; URL: http://stephe-leake.org/ada/wisitoken.html
 ;;
 ;; This file is part of GNU Emacs.
 ;;
