@@ -1,0 +1,11 @@
+WisiToken grammar mode version 1.0.0
+
+WisiToken grammar mode provides fontification, navigation, and
+indentation for WisiToken grammar source code files, using a parser.
+
+The parser is provided as Ada source code that must be compiled; it
+requires the Ada code in the wisi ELPA package, which in turn requires
+the AdaCore gnat compiler and gnatcoll packages that you may not have
+installed. See the ada-mode installation instructions
+(http://www.nongnu.org/ada-mode/ada-mode.html#Installation) for
+details on installing them.

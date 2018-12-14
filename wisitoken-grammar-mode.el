@@ -4,6 +4,12 @@
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
+;; Keywords: languages
+;; Version: 1.0.0
+;; package-requires: ((wisi "2.0.1") (emacs "25.0") (mmm-mode "0.5.7"))
+
+;; (Gnu ELPA requires single digits between dots in versions)
+;; no ’url’; just ELPA
 
 ;; This file is part of GNU Emacs.
 

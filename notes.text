@@ -32,6 +32,7 @@ Makefile
 
 
 create ELPA package, release
+    ask on emacs-devel about :external vs :subtree
 
 indent test failing with elisp action
     posted mmm-mode issue https://github.com/purcell/mmm-mode/issues/86
