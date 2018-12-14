@@ -11,6 +11,7 @@
 ^build/.*\.txt$
 ^build/\.gdbinit$
 ^build/__pycache__$
+^build/dir$
 ^build/html$
 ^build/objects$
 ^build/txt$
