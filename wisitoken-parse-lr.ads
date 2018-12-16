@@ -144,7 +144,7 @@ package WisiToken.Parse.LR is
 
    type Parse_State is record
       Productions : Production_ID_Arrays.Vector;
-      --  Used in error recovery.
+      --  Used in some language-specfic error recovery.
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
 
