@@ -51,7 +51,7 @@ package WisiToken.Lexer is
 
    package Error_Lists is new Ada.Containers.Doubly_Linked_Lists (Error);
 
-   type Instance (Trace  : not null access WisiToken.Trace'Class)
+   type Instance (Descriptor  : not null access constant WisiToken.Descriptor)
    is abstract new Ada.Finalization.Limited_Controlled with record
       Errors : Error_Lists.List;
    end record;
@@ -117,7 +117,7 @@ package WisiToken.Lexer is
    --  If the underlying text feeder does not support the notion of
    --  'line', returns Invalid_Line_Number.
    --
-   --  Token.Col is the column number of the start of the token, 1
+   --  Token.Column is the column number of the start of the token, 1
    --  indexed. If the underlying text feeder does not support the notion
    --  of 'line', returns byte position in internal buffer.
 

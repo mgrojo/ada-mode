@@ -50,7 +50,7 @@ package body WisiToken.Lexer.Regexp is
       --  We only support Reset_With_String.
 
       if Current_Char > Lexer.Source.Buffer'Last then
-         Lexer.ID := Lexer.Trace.Descriptor.EOF_ID;
+         Lexer.ID := Lexer.Descriptor.EOF_ID;
          Lexer.Lexeme_Head := Lexer.Buffer_Head;
          Lexer.Lexeme_Tail := Lexer.Buffer_Head - 1;
          return True;
@@ -116,7 +116,7 @@ package body WisiToken.Lexer.Regexp is
          return True;
 
       elsif Current_Char = Lexer.Source.Buffer'Last then
-         Lexer.ID := Lexer.Trace.Descriptor.EOF_ID;
+         Lexer.ID := Lexer.Descriptor.EOF_ID;
          Lexer.Buffer_Head := Lexer.Buffer_Head + 1;
          return True;
 
@@ -141,11 +141,11 @@ package body WisiToken.Lexer.Regexp is
    type Instance_Access is access Instance; --  silence compiler warning
 
    function New_Lexer
-     (Trace  : not null access WisiToken.Trace'Class;
-      Syntax : in              WisiToken.Lexer.Regexp.Syntax)
+     (Descriptor : not null access constant WisiToken.Descriptor;
+      Syntax     : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle
    is
-      New_Lexer : constant Instance_Access := new Instance (Trace, Syntax'Last);
+      New_Lexer : constant Instance_Access := new Instance (Descriptor, Syntax'Last);
    begin
       New_Lexer.Syntax := Syntax;
 

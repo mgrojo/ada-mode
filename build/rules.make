@@ -7,7 +7,7 @@
 
 .PHONY : zip force
 
-VPATH := ../..
+VPATH := ..
 VPATH += ../Test
 VPATH += ../Test/bnf
 

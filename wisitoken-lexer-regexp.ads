@@ -50,13 +50,13 @@ package WisiToken.Lexer.Regexp is
    type Syntax is array (Token_ID range <>) of Syntax_Item;
 
    type Instance
-     (Trace         : not null access WisiToken.Trace'Class;
+     (Descriptor    : not null access constant WisiToken.Descriptor;
       Last_Terminal : Token_ID)
      is new WisiToken.Lexer.Instance with private;
 
    function New_Lexer
-     (Trace  : not null access WisiToken.Trace'Class;
-      Syntax : in              WisiToken.Lexer.Regexp.Syntax)
+     (Descriptor : not null access constant WisiToken.Descriptor;
+      Syntax     : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle;
 
    overriding procedure Finalize (Object : in out Instance);
@@ -87,9 +87,9 @@ private
    procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
 
    type Instance
-     (Trace         : not null access WisiToken.Trace'Class;
+     (Descriptor    : not null access constant WisiToken.Descriptor;
       Last_Terminal : Token_ID)
-     is new WisiToken.Lexer.Instance (Trace => Trace) with
+     is new WisiToken.Lexer.Instance (Descriptor => Descriptor) with
    record
       ID          : Token_ID; --  last token read by find_next
       Syntax      : WisiToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);

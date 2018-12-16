@@ -47,10 +47,10 @@ package body WisiToken.Lexer.re2c is
    type Instance_Access is access Instance; --  silence compiler warning
 
    function New_Lexer
-     (Trace  : not null access WisiToken.Trace'Class)
+     (Descriptor  : not null access constant WisiToken.Descriptor)
      return Handle
    is begin
-      return Handle (Instance_Access'(new Instance (Trace)));
+      return Handle (Instance_Access'(new Instance (Descriptor)));
    end New_Lexer;
 
    overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
@@ -129,9 +129,10 @@ package body WisiToken.Lexer.re2c is
       Lexer.Char_Line_Start := 1;
       Lexer.ID :=
         --  First token is assumed to be first on a line.
-        (if Lexer.Trace.Descriptor.New_Line_ID = Invalid_Token_ID
+        (if Lexer.Descriptor.New_Line_ID = Invalid_Token_ID
          then Invalid_Token_ID
-         else Lexer.Trace.Descriptor.New_Line_ID);
+         else Lexer.Descriptor.New_Line_ID);
+      Lexer.Prev_ID := Invalid_Token_ID;
    end Reset;
 
    overriding function Find_Next
@@ -153,8 +154,8 @@ package body WisiToken.Lexer.re2c is
             Line => Lexer.Line,
 
             Column =>
-              (if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID or
-                 Lexer.ID = Lexer.Trace.Descriptor.EOF_ID
+              (if Lexer.ID = Lexer.Descriptor.New_Line_ID or
+                 Lexer.ID = Lexer.Descriptor.EOF_ID
                then 0
                else Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start)),
 
@@ -177,7 +178,7 @@ package body WisiToken.Lexer.re2c is
          begin
             case Status is
             when 0 =>
-               if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID then
+               if Lexer.ID = Lexer.Descriptor.New_Line_ID then
                   Lexer.Char_Line_Start := Lexer.Char_Position + 1;
                end if;
 
@@ -197,7 +198,7 @@ package body WisiToken.Lexer.re2c is
                      Lexer.Errors.Append
                        ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => ''', others => ASCII.NUL)));
 
-                     Lexer.ID := Lexer.Trace.Descriptor.String_1_ID;
+                     Lexer.ID := Lexer.Descriptor.String_1_ID;
                      Build_Token;
                      return True;
 
@@ -207,7 +208,7 @@ package body WisiToken.Lexer.re2c is
                      Lexer.Errors.Append
                        ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => '"', others => ASCII.NUL)));
 
-                     Lexer.ID := Lexer.Trace.Descriptor.String_2_ID;
+                     Lexer.ID := Lexer.Descriptor.String_2_ID;
                      Build_Token;
                      return True;
 
@@ -227,8 +228,8 @@ package body WisiToken.Lexer.re2c is
 
    overriding function First (Lexer : in Instance) return Boolean
    is begin
-      return Lexer.Trace.Descriptor.New_Line_ID /= Invalid_Token_ID and then
-           Lexer.Prev_ID = Lexer.Trace.Descriptor.New_Line_ID;
+      return Lexer.Descriptor.New_Line_ID /= Invalid_Token_ID and then
+           Lexer.Prev_ID = Lexer.Descriptor.New_Line_ID;
    end First;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String

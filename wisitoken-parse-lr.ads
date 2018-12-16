@@ -331,8 +331,9 @@ package WisiToken.Parse.LR is
       McKenzie_Param : in McKenzie_Param_Type;
       Productions    : in WisiToken.Productions.Prod_Arrays.Vector)
      return Parse_Table_Ptr;
-   --  Read machine-readable text format of states from a file File_Name.
-   --  Result has actions, checks from Productions.
+   --  Read machine-readable text format of states (as output by
+   --  WisiToken.Generate.LR.Put_Text_Rep) from file File_Name. Result
+   --  has actions, checks from Productions.
 
    ----------
    --  For McKenzie_Recover. Declared here because Parser_Lists needs

@@ -88,7 +88,7 @@ package body Trivial_Productions_Test is
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
-            Lexer.New_Lexer (Trace'Access, Syntax),
+            Lexer.New_Lexer (Trace.Descriptor, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
             User_Data                             => null,
             Language_Fixes                        => null,
@@ -179,7 +179,7 @@ package body Trivial_Productions_Test is
          WisiToken.Parse.LR.Parser.New_Parser
            (Parser,
             Trace'Access,
-            Lexer.New_Lexer (Trace'Access, Syntax),
+            Lexer.New_Lexer (Trace.Descriptor, Syntax),
             WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
             User_Data                             => null,
             Language_Fixes                        => null,

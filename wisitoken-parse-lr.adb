@@ -29,7 +29,9 @@ pragma License (GPL);
 
 with Ada.Exceptions;
 with Ada.Strings.Maps;
+with Ada.Strings.Fixed;
 with Ada.Text_IO;
+with GNATCOLL.Mmap;
 package body WisiToken.Parse.LR is
 
    ----------
@@ -552,49 +554,60 @@ package body WisiToken.Parse.LR is
      return Parse_Table_Ptr
    is
       use Ada.Text_IO;
-      use Ada.Strings.Unbounded;
 
-      File  : File_Type;
-      Line  : Unbounded_String;
-      First : Integer;
-      Last  : Integer := 0;
+      File            : GNATCOLL.Mmap.Mapped_File;
+      Region          : GNATCOLL.Mmap.Mapped_Region;
+      Buffer          : GNATCOLL.Mmap.Str_Access;
+      Buffer_Abs_Last : Integer; --  Buffer'Last, except Buffer has no bounds
+      Buffer_Last     : Integer; -- Last char read from Buffer
 
-      Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ;");
+      Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ;" & ASCII.LF);
 
-      function Last_Char return Character
+      function Check_Semicolon return Boolean
       is begin
-         if Last = 0 then
-            return Element (Line, Last + 1);
+         if Buffer (Buffer_Last) = ';' then
+            --  There is a space, newline, or newline and space after ';'. Leave
+            --  Buffer_Last on newline for Check_New_Line.
+            Buffer_Last := Buffer_Last + 1;
+            return True;
          else
-            return Element (Line, Last);
+            return False;
          end if;
-      end Last_Char;
+      end Check_Semicolon;
 
-      procedure Skip_Char
+      function Check_EOI return Boolean
       is begin
-         if Last > 0 then
-            Last := Last + 1;
-            if Last > Length (Line) then
-               Last := 0;
-            end if;
-         end if;
-         if Last = 0 then
-            Line := +Get_Line (File);
-            Last := -1 + Index_Non_Blank (Line);
-         end if;
-      end Skip_Char;
+         return Buffer_Last = Buffer_Abs_Last;
+      end Check_EOI;
 
-      function Next_Value return String
-      is begin
-         First := Last + 1;
-         Last  := Index (Line, Delimiters, First);
-         return Result : constant String := Slice (Line, First, (if Last = 0 then Length (Line) else Last - 1))
-         do
-            if Last = 0 then
-               Line := +Get_Line (File);
-               Last := -1 + Index_Non_Blank (Line);
+      procedure Check_New_Line
+      is
+         use Ada.Strings.Maps;
+      begin
+         if Buffer (Buffer_Last) = ASCII.LF then
+            --  There is a space or semicolon after some newlines.
+            if Is_In (Buffer (Buffer_Last + 1), Delimiters) then
+               Buffer_Last := Buffer_Last + 1;
             end if;
-         end return;
+         else
+            raise SAL.Programmer_Error with Error_Message
+              (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
+               "expecting new_line, found '" & Buffer (Buffer_Last) & "'");
+         end if;
+      end Check_New_Line;
+
+      type Buffer_Region is record
+         First : Integer;
+         Last  : Integer;
+      end record;
+
+      function Next_Value return Buffer_Region
+      is
+         use Ada.Strings.Fixed;
+         First : constant Integer := Buffer_Last + 1;
+      begin
+         Buffer_Last := Index (Buffer.all, Delimiters, First);
+         return (First, Buffer_Last - 1);
       end Next_Value;
 
       generic
@@ -604,14 +617,14 @@ package body WisiToken.Parse.LR is
 
       function Gen_Next_Value return Value_Type
       is
-         Val : constant String := Next_Value;
+         Region : constant Buffer_Region := Next_Value;
       begin
-         return Value_Type'Value (Val);
+         return Value_Type'Value (Buffer (Region.First .. Region.Last));
       exception
       when Constraint_Error =>
          raise SAL.Programmer_Error with Error_Message
-           (File_Name, Line_Number_Type (Ada.Text_IO.Line (File) - 1), Ada.Text_IO.Count (First),
-            "expecting " & Name & ", found '" & Val & "'");
+           (File_Name, 1, Ada.Text_IO.Count (Region.First),
+            "expecting " & Name & ", found '" & Buffer (Region.First .. Region.Last) & "'");
       end Gen_Next_Value;
 
       function Next_State_Index is new Gen_Next_Value (State_Index, "State_Index");
@@ -621,8 +634,10 @@ package body WisiToken.Parse.LR is
       function Next_Boolean is new Gen_Next_Value (Boolean, "Boolean");
       function Next_Count_Type is new Gen_Next_Value (Ada.Containers.Count_Type, "Count_Type");
    begin
-      Open (File, In_File, File_Name);
-      Line := +Get_Line (File);
+      File            := GNATCOLL.Mmap.Open_Read (File_Name);
+      Region          := GNATCOLL.Mmap.Read (File);
+      Buffer          := GNATCOLL.Mmap.Data (Region);
+      Buffer_Abs_Last := GNATCOLL.Mmap.Last (Region);
 
       declare
          --  We don't read the discriminants in the aggregate, because
@@ -637,6 +652,8 @@ package body WisiToken.Parse.LR is
          Table : constant Parse_Table_Ptr := new Parse_Table
            (State_First, State_Last, First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       begin
+         Check_New_Line;
+
          Table.McKenzie_Param := McKenzie_Param;
 
          for State of Table.States loop
@@ -646,6 +663,7 @@ package body WisiToken.Parse.LR is
                State.Productions (I).LHS := Next_Token_ID;
                State.Productions (I).RHS := Next_Integer;
             end loop;
+            Check_New_Line;
 
             declare
                Node_I       : Action_Node_Ptr := new Action_Node;
@@ -691,8 +709,7 @@ package body WisiToken.Parse.LR is
                            Actions_Done := True;
                         end case;
 
-                        if Element (Line, Last) = ';' then
-                           Skip_Char;
+                        if Check_Semicolon then
                            Action_Done := True;
 
                            if not Actions_Done then
@@ -705,6 +722,8 @@ package body WisiToken.Parse.LR is
                         Node_J.Next := new Parse_Action_Node;
                         Node_J      := Node_J.Next;
                      end loop;
+
+                     Check_New_Line;
                   end;
 
                   exit when Actions_Done;
@@ -713,9 +732,9 @@ package body WisiToken.Parse.LR is
                end loop;
             end;
 
-            if Element (Line, 1) = ';' then
+            if Check_Semicolon then
                --  No Gotos
-               Skip_Char;
+               null;
             else
                declare
                   Node_I : Goto_Node_Ptr := new Goto_Node;
@@ -724,13 +743,13 @@ package body WisiToken.Parse.LR is
                   loop
                      Node_I.Symbol := Next_Token_ID;
                      Node_I.State  := Next_State_Index;
-                     exit when Element (Line, Last) = ';';
+                     exit when Check_Semicolon;
                      Node_I.Next   := new Goto_Node;
                      Node_I        := Node_I.Next;
                   end loop;
-                  Skip_Char;
                end;
             end if;
+            Check_New_Line;
 
             declare
                Verb         : Minimal_Verbs;
@@ -739,10 +758,7 @@ package body WisiToken.Parse.LR is
                Count        : Ada.Containers.Count_Type;
             begin
                loop
-                  if Last_Char = ';' then
-                     Skip_Char;
-                     exit;
-                  end if;
+                  exit when Check_Semicolon;
 
                   Verb := Next_Parse_Action_Verbs;
                   case Verb is
@@ -757,13 +773,10 @@ package body WisiToken.Parse.LR is
                   end case;
                end loop;
             end;
-            --  loop exits on End_Error
+            Check_New_Line;
+
+            exit when Check_EOI;
          end loop;
-         --  real return value in End_Error handler; this satisfies the compiler
-         return null;
-      exception
-      when End_Error =>
-         Close (File);
          return Table;
       end;
    exception
@@ -771,16 +784,11 @@ package body WisiToken.Parse.LR is
       raise User_Error with "parser table text file '" & File_Name & "' not found.";
 
    when SAL.Programmer_Error =>
-      if Is_Open (File) then
-         Close (File);
-      end if;
       raise;
+
    when E : others =>
-      if Is_Open (File) then
-         Close (File);
-      end if;
       raise SAL.Programmer_Error with Error_Message
-        (File_Name, Line_Number_Type (Ada.Text_IO.Line (File) - 1), Ada.Text_IO.Count (First),
+        (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
          Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    end Get_Text_Rep;
 
