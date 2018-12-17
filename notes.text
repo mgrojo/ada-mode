@@ -1,7 +1,7 @@
 build/Makefile
 
 branches:
-org.wisitoken          - main, used by o.e.a.s-2
+org.wisitoken          - main, used by o.e.a
 org.wisitoken.stephe-1 - misc devel for o.w, o.e.a.s-*
 org.wisitoken.stephe-2 - add EBNF syntax to .wy parser
 

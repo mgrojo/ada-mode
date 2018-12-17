@@ -983,7 +983,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("int            line_token_start; // line at start of current token");
       Indent_Line ("unsigned char* marker;           // saved cursor");
       Indent_Line ("size_t         marker_pos;       // saved character position");
-      Indent_Line ("size_t         marker_line;      // saved line ");
+      Indent_Line ("size_t         marker_line;      // saved line");
       Indent_Line ("unsigned char* context;          // saved cursor");
       Indent_Line ("size_t         context_pos;      // saved character position");
       Indent_Line ("int            context_line;     // saved line");
