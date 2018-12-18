@@ -559,7 +559,7 @@ package body WisiToken.Parse.LR is
       Region          : GNATCOLL.Mmap.Mapped_Region;
       Buffer          : GNATCOLL.Mmap.Str_Access;
       Buffer_Abs_Last : Integer; --  Buffer'Last, except Buffer has no bounds
-      Buffer_Last     : Integer; -- Last char read from Buffer
+      Buffer_Last     : Integer := 0; -- Last char read from Buffer
 
       Delimiters : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ;" & ASCII.LF);
 
@@ -577,7 +577,7 @@ package body WisiToken.Parse.LR is
 
       function Check_EOI return Boolean
       is begin
-         return Buffer_Last = Buffer_Abs_Last;
+         return Buffer_Last >= Buffer_Abs_Last;
       end Check_EOI;
 
       procedure Check_New_Line

@@ -1248,7 +1248,7 @@ package body Subprograms_Process_Packrat_Gen_Main is
    is begin
       return Parser : WisiToken.Parse.Packrat.Generated.Parser do
          Parser.Trace := Trace;
-         Parser.Lexer := Lexer.New_Lexer (Trace);
+         Parser.Lexer := Lexer.New_Lexer (Trace.Descriptor);
          Parser.User_Data := User_Data;
          Parser.Parse_WisiToken_Accept := Parse_wisitoken_accept_1'Access;
       end return;

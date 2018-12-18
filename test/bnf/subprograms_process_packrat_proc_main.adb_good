@@ -307,7 +307,7 @@ package body Subprograms_Process_Packrat_Proc_Main is
          Grammar (31) := Prod;
       end;
       return WisiToken.Parse.Packrat.Procedural.Create
-        (Grammar, Direct_Left_Recursive, 20, Trace, Lexer.New_Lexer (Trace), User_Data);
+        (Grammar, Direct_Left_Recursive, 20, Trace, Lexer.New_Lexer (Trace.Descriptor), User_Data);
    end Create_Parser;
 
 end Subprograms_Process_Packrat_Proc_Main;

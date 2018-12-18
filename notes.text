@@ -21,19 +21,6 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-speed up text_rep read
-    decompress file in ram
-
-    time time_text_rep_read for 10 reads
-        o.e.a: 0.55
-        re2c lexer: 0.37
-        mmap, indices direct: 0m0.193s
-
-    time Ada ../time_text_rep_read.exe (2 reads)
-        o.e.a:                          0m3.962s
-        o.e.a.s-5 re2c lexer:           0m4.020s
-        o.e.a.s-5 mmap, indices direct: 0m1.907s
-
 delete "assume ignore semantic check is a solution"; only language_fixes knows that
     provide subprog to enqueue that in language_fixes
 
