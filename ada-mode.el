@@ -1753,6 +1753,9 @@ Useful when project has been edited."
       (setq ada-prj-alist (delq parsed ada-prj-alist)))
     (ada-select-prj-file prj-file nil)))
 
+;; This is autoloaded because it is often used in Makefiles, and thus
+;; will be the first ada-mode function executed.
+;;;###autoload
 (defun ada-select-prj-file (prj-file &optional no-force)
   "Select PRJ-FILE as the current project file, parsing it if necessary.
 Deselects the current project first."

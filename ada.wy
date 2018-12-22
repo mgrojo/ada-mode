@@ -140,8 +140,8 @@
 %token <punctuation> STAR "*"
 %token <punctuation> STAR_STAR "**"
 
-;; Support GNAT character coding in names and character literals (see
-;; test/non_ascii.ads)
+;; Support GNAT character coding in names and character and string
+;; literals (see test/non_ascii.ads)
 %re2c_regexp GNAT_Char_Coding %[ ("[\""[0-9A-Fa-f]+"\"]") ]%
 
 ;; re2c lookahead regular expression; this is not a character literal.
@@ -161,7 +161,7 @@
 ;; literals, but it's faster than a strictly conforming regexp. For
 ;; non-based literals, force a trailing integer so (1..Length) is
 ;; parsed correctly.
-%token <number> NUMERIC_LITERAL %[ ([0-9])|([0-9][0-9E._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
+%token <number> NUMERIC_LITERAL %[ ([0-9])|([0-9][0-9eE._-]*[0-9])|([0-9]+"#"[0-9a-fA-F._-]+"#") ]%
 %end if
 
 ;; non_grammar are not seen by the elisp lexer, but are needed by the re2c lexer
@@ -176,7 +176,7 @@
 
 %token <symbol> IDENTIFIER %[ ([a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
 
-%token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
+%token <string-double> STRING_LITERAL %[ (["]([\x20-\x21\x23-\U0010FFFF]|GNAT_Char_Coding)*["])+ ]%
 
 %token <string-single> CHARACTER_LITERAL %[ "'"([\x20-\U0010FFFF]|GNAT_Char_Coding)"'" ]%
 
@@ -655,7 +655,7 @@ case_statement
       (wisi-statement-action [1 statement-start 3 motion 7 statement-end])
       (wisi-containing-action 1 4)
       (wisi-motion-action [1 [4 WHEN] 7])
-      (wisi-indent-action [0 ada-indent-broken [0 ada-indent-when] ada-indent-when 0 0 0])))%
+      (wisi-indent-action [0 ada-indent-broken [0 ada-indent-when] [ada-indent-when ada-indent-when] 0 0 0])))%
   ;
 
 case_statement_alternative
@@ -918,7 +918,7 @@ elsif_expression_item
   : ELSIF expression_opt THEN expression_opt
     %((progn
       (wisi-statement-action [1 motion 3 motion])
-      (wisi-indent-action [0 ada-indent-broken 0 ada-indent])))%
+      (wisi-indent-action [0 [ada-indent-broken ada-indent-broken] 0 ada-indent])))%
  ;; motion set in if_expression
   ;
 
@@ -931,7 +931,7 @@ elsif_statement_item
   : ELSIF expression_opt THEN sequence_of_statements_opt
     %((progn
       (wisi-statement-action [1 motion 3 motion])
-      (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent]])))%
+      (wisi-indent-action [0 [ada-indent-broken ada-indent-broken] 0 [ada-indent ada-indent]])))%
  ;; motion set in if_statement
   ;
 
@@ -1403,25 +1403,25 @@ if_expression
       (wisi-statement-action [1 statement-start 3 motion 6 motion])
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 3 [5 ELSIF THEN] 6])
-      (wisi-indent-action [0 ada-indent-broken 0 ada-indent 0 0 ada-indent])))%
+      (wisi-indent-action [0 [ada-indent-broken ada-indent-broken] 0 ada-indent 0 0 ada-indent])))%
   | IF expression_opt THEN expression_opt ELSE expression_opt
     %((progn
       (wisi-statement-action [1 statement-start 3 motion 5 motion])
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 3 5])
-      (wisi-indent-action [0 ada-indent-broken 0 ada-indent 0 ada-indent])))%
+      (wisi-indent-action [0 [ada-indent-broken ada-indent-broken] 0 ada-indent 0 ada-indent])))%
   | IF expression_opt THEN expression_opt elsif_expression_list
     %((progn
       (wisi-statement-action [1 statement-start 3 motion])
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 3 [5 ELSIF THEN]])
-      (wisi-indent-action [0 ada-indent-broken 0 ada-indent 0])))%
+      (wisi-indent-action [0 [ada-indent-broken ada-indent-broken] 0 ada-indent 0])))%
   | IF expression_opt THEN expression_opt
     %((progn
       (wisi-statement-action [1 statement-start 3 motion])
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 3])
-      (wisi-indent-action [0 ada-indent-broken 0 ada-indent])))%
+      (wisi-indent-action [0 [ada-indent-broken ada-indent-broken] 0 ada-indent])))%
   ;
 
 if_statement
@@ -1434,7 +1434,9 @@ if_statement
       (wisi-containing-action 1 5)
       (wisi-containing-action 1 7)
       (wisi-motion-action [1 3 [5 ELSIF THEN] 6 10])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
+      (wisi-indent-action [0 [(wisi-hanging% ada-indent-broken (* 2 ada-indent-broken))
+                              ada-indent-broken]
+                             [0 ada-indent]
                              [ada-indent ada-indent] 0 [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0])))%
   | IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
@@ -1444,7 +1446,9 @@ if_statement
       (wisi-containing-action 1 4)
       (wisi-containing-action 1 6)
       (wisi-motion-action [1 3 5 9])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
+      (wisi-indent-action [0 [(wisi-hanging% ada-indent-broken (* 2 ada-indent-broken))
+                              ada-indent-broken]
+                             [0 ada-indent]
                              [ada-indent ada-indent] [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0])))%
   | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
@@ -1454,7 +1458,9 @@ if_statement
       (wisi-containing-action 1 4)
       (wisi-containing-action 1 5)
       (wisi-motion-action [1 3 [5 ELSIF THEN] 8])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
+      (wisi-indent-action [0 [(wisi-hanging% ada-indent-broken (* 2 ada-indent-broken))
+                              ada-indent-broken]
+                             [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0 0])))%
   | IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON
     %((progn
@@ -1462,7 +1468,9 @@ if_statement
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 4)
       (wisi-motion-action [1 3 7])
-      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) [0 ada-indent]
+      (wisi-indent-action [0 [(wisi-hanging% ada-indent-broken (* 2 ada-indent-broken))
+                              ada-indent-broken]
+                             [0 ada-indent]
                              [ada-indent ada-indent] 0 0 0])))%
   ;
 

@@ -14257,7 +14257,7 @@ package body Ada_Process_LALR_Main is
       WisiToken.Parse.LR.Parser.New_Parser
         (Parser,
          Trace,
-         Lexer.New_Lexer (Trace),
+         Lexer.New_Lexer (Trace.Descriptor),
          Table,
          Language_Fixes,
          Language_Use_Minimal_Complete_Actions,

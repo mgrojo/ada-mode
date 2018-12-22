@@ -10,6 +10,14 @@
 
 procedure Ada_Mode.Interactive_1
 is
+   -- For 'indent-line', do insert spaces on an empty line
+   --EMACSCMD:(progn (forward-line 2)(indent-for-tab-command)(current-column))
+   --EMACSRESULT:3
+
+   -- For 'indent-region', don't insert spaces on an empty line
+   --EMACSCMD:(progn (forward-line 2)(ada-indent-statement)(current-column))
+   --EMACSRESULT:0
+
    -- newline at start of comment; indent-according-to-mode is called with the comment text exposed!
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-char 2) (comment-indent-new-line)(indent-for-tab-command))
    --

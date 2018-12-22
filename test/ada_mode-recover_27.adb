@@ -55,6 +55,6 @@ package body Wisi.Libadalang is
 
 end Wisi.Libadalang;
 -- Error recovery has a race condition; force it to return repeatable results
--- Local_Variables:
+-- Local Variables:
 -- wisi-mckenzie-task-count: 1
 -- End:

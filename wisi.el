@@ -965,8 +965,10 @@ Called with BEGIN END.")
 	;; single line in buffer; terminate loop
 	(goto-char (point-max))))))
 
-(defun wisi-indent-region (begin end)
-  "For `indent-region-function', using the wisi indentation engine."
+(defun wisi-indent-region (begin end &optional indent-blank-lines)
+  "For `indent-region-function', using the wisi indentation engine.
+If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
+’indent-line-function’)."
   (let ((wisi--parse-action 'indent)
 	(parse-required nil)
 	(end-mark (copy-marker end))
@@ -1016,7 +1018,9 @@ Called with BEGIN END.")
 	(let ((wisi-indenting-p t))
 	  (while (and (not (eobp))
 		      (<= (point) end-mark)) ;; end-mark can be at the start of an empty line
-	    (indent-line-to (if (bobp) 0 (get-text-property (1- (point)) 'wisi-indent)))
+	    (when (or indent-blank-lines (not (eolp)))
+	      ;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
+	      (indent-line-to (if (bobp) 0 (get-text-property (1- (point)) 'wisi-indent))))
 	    (forward-line 1)))
 
 	;; Run wisi-indent-calculate-functions
@@ -1050,7 +1054,7 @@ Called with BEGIN END.")
     (when (>= (point) savep)
       (setq to-indent t))
 
-    (wisi-indent-region (line-beginning-position) (line-end-position))
+    (wisi-indent-region (line-beginning-position) (line-end-position) t)
 
     (goto-char savep)
     (when to-indent (back-to-indentation))

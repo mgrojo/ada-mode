@@ -10,7 +10,7 @@ package body Ada_Mode.Recover_End_1 is
    is begin
       case  is
          when =>
-         --  end case;
+            --  end case;
       end;
 
    procedure If_Example
@@ -35,3 +35,7 @@ package body Ada_Mode.Recover_End_1 is
       end;
 
 end Ada_Mode.Recover_End_1;
+-- Error recovery has a race condition; force it to return repeatable results
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

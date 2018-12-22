@@ -123,11 +123,13 @@ is -- target 0
             --EMACSRESULT: t
             --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(forward-sexp)(looking-at "then"))
             --EMACSRESULT: t
-            if True then -- 1
-                         --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "if"))
-                         --EMACSRESULT: t
-                         --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(forward-sexp)(looking-at "elsif False -- 2"))
-                         --EMACSRESULT: t
+            if True
+              --  Comment before 'then'
+            then -- 1
+                 --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "if"))
+                 --EMACSRESULT: t
+                 --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(forward-sexp)(looking-at "elsif False -- 2"))
+                 --EMACSRESULT: t
 
                --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
                --EMACSRESULT:t
@@ -179,6 +181,8 @@ is -- target 0
                --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(forward-sexp)(looking-at "then -- 2"))
                --EMACSRESULT: t
             elsif False -- 2
+
+              --  Comment before 'then'.
             then -- 2
                  --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "elsif False -- 2"))
                  --EMACSRESULT: t
@@ -260,6 +264,8 @@ is -- target 0
                <<Label_1>>
                   --  a comment after a label
                   D := D - Float (F1);
+
+                  --  Comment before 'end case'
             end case; -- 7
          <<Label_2>> --  a sequence_of_statements can have a trailing label
          end return; -- 8

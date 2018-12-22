@@ -10,7 +10,7 @@ package body Ada_Mode.Recover_End_2 is
    is begin
       case  is
          when =>
-         --  end case;
+            --  end case;
    end Case_Example;
 
    procedure If_Example
@@ -35,3 +35,4 @@ package body Ada_Mode.Recover_End_2 is
    end Return_Example;
 
 end Ada_Mode.Recover_End_2;
+--  No race condition in recover
