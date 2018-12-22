@@ -201,7 +201,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       is begin
          for I in Worker_Tasks'Range loop
             if Worker_Tasks (I)'Callable then
-               abort Worker_Tasks (I);
+               --  We only get here when one worker throws an unhandled exception
+               --  (due to a bug), and we are trying to force the other workers to
+               --  stop.
+               --
+               --  We don't use 'abort' here, so we can use 'pragma Restrictions
+               --  (No_Abort_Statements)', which gives a 10% speed up in the parsers.
+               --  Waiting for them instead will most likely work, at the risk an
+               --  indefinite wait.
+
+               --  Output a warning, so we have some chance of diagnosing the problem
+               --  when we do get here.
+               Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "recovery aborting with running worker tasks");
             end if;
          end loop;
       end Cleanup;

@@ -44,6 +44,9 @@ bump version
             independent of ada-mode parser version (?)
             bump if changes affect ada-mode or other clients
 
+    d:/Web/savannah/ada-mode/index.html
+        WisiToken <version>
+
 loop until no changes:
     Windows:
         (sal-standard)
@@ -76,7 +79,7 @@ loop until no changes:
 end loop
 
 Makefile
-    zip tag
+    doc zip tag
 
 upload to savannah for Emacs Ada mode:
     in Cygwin Console (for gpg2 prompts):
