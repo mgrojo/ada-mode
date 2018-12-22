@@ -41,10 +41,11 @@ project Standard_Common is
          "-fstack-check",
          "-g",
          "-gnat2012",
-         "-gnatfoqQ",
-         "-gnatw.d",
-         "-gnatwaBCeJL",
-         "-gnatyO"
+         "-gnatfqQ", -- f = all error messages, qQ = process semantics, generate .ali if syntax errors
+         "-gnatw.d", -- warnings about tags
+         "-gnatwaBCeJL", -- wa = most warnings, wB = no warn on bad fixed values, wC = no warn on conditionals
+                         -- we = error on warning, wJ = no warn on obsolescent, wL = no warn on elaboration
+         "-gnatyO" -- warn on overriding
         );
 
       --  -gnatVa causes some inline procedures to be non-inlineable;
@@ -55,7 +56,7 @@ project Standard_Common is
          "-gnata",  -- assertions, pre/post-conditions
          "-gnatVa", -- validity checks
          "-gnateE", -- extra info in exceptions
-         "-gnatwaP"
+         "-gnatwaP" -- no warn on Inline
         );
 
       --  -O3 is measurably faster than -O2 for wisitoken generate
@@ -92,6 +93,13 @@ project Standard_Common is
    package Builder is
       --  Switches for gnatmake
       for Default_Switches ("Ada") use ("-C");
+
+      case Profile is
+      when "On" =>
+         for Global_Compilation_Switches ("Ada") use ("-pg");
+      when "Off" =>
+         null;
+      end case;
    end Builder;
 
    --  In project files, normally use this:
