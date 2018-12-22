@@ -54,21 +54,7 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-Builder.Global_Configuration_Pragmas attribute in
-ada_mode_wisi_parse.gpr:
-> pragma No_Heap_Finalization;
-> pragma Restrictions (No_Initialize_Scalars);
-> -- pragma Restrictions (No_Abort_Statements); -- violated at
-> wisitoken-parse-lr-mckenzie_recover.adb:204:16
-> pragma Restrictions (Max_Asynchronous_Select_Nesting => 0);
-> pragma Restrictions (No_Asynchronous_Control);
-> pragma Restrictions (No_Dynamic_Priorities);
-> pragma Restrictions (No_Dependence => Ada.Real_Time);
-
 https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
-    to close: nnn-control@debbugs.gnu.org
-        close nnn 6.0.2
-
     33742 fixed
     33743 fixed
     33746 fixed
@@ -1218,6 +1204,8 @@ check for ELPA patches by others
 
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
+    to close: control@debbugs.gnu.org
+        close nnn 6.0.2
 
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/

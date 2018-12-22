@@ -278,6 +278,7 @@ pub-ada : force
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
+	cp config.pragmas $(ELPA_ROOT)/packages/ada-mode
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 
