@@ -13,7 +13,7 @@ org.wisitoken.stephe-2 - add EBNF syntax to .wy parser
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
 
 update-wisi_grammar
 (dvc-propagate-multiple
@@ -21,11 +21,14 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-delete "assume ignore semantic check is a solution"; only language_fixes knows that
-    provide subprog to enqueue that in language_fixes
+add EBNF
+    ada-lite-ebnf.wy
+        pure EBNF for nonterms first
+        replace %keywords with literals
 
-enqueue_limit should be for total over all parsers; more consistent max time
-    need test case?
+    add ANTLR syntax for java
+
+    add ? syntax for Python
 
 hint in grammar to prefer "null;" over "return;" in minimal-terminal-sequence?
     ada: IDENTIFIER for 'name', not string_literal = operator
@@ -202,6 +205,8 @@ packrat space use
     can free low level derivs; they will never be evaled
         derive condition
         use free list in syntax tree
+
+Wisi syntax is not bison-like; it is BNF augmented with declarations, regexp, actions
 
 add packrat error recover
 

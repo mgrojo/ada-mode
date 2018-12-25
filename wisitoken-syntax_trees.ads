@@ -161,6 +161,33 @@ package WisiToken.Syntax_Trees is
    --  Add a new virtual terminal node with no parent. Result points to
    --  the added node.
 
+   procedure Set_Parent
+     (Tree   : in out Syntax_Trees.Tree;
+      Node   : in     Valid_Node_Index;
+      Parent : in     Valid_Node_Index)
+   with Pre => Tree.Flushed and (not Tree.Traversing);
+   --  Set Node.Parent to Parent. Caller must update Parent.Children.
+
+   procedure Add_Child
+     (Tree   : in out Syntax_Trees.Tree;
+      Parent : in     Valid_Node_Index;
+      Child  : in     Valid_Node_Index)
+   with
+     Pre => Tree.Flushed and
+            (not Tree.Traversing) and
+            Tree.Is_Nonterm (Parent);
+   --  Child.Parent must already be set.
+
+   procedure Set_Children
+     (Tree     : in out Syntax_Trees.Tree;
+      Node     : in     Valid_Node_Index;
+      Children : in     Valid_Node_Index_Array)
+   with
+     Pre => Tree.Flushed and
+            (not Tree.Traversing) and
+            Tree.Is_Nonterm (Node);
+   --  Caller must update Children.Parent
+
    procedure Set_State
      (Tree  : in out Syntax_Trees.Tree;
       Node  : in     Valid_Node_Index;
