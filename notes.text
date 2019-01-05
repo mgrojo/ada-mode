@@ -60,8 +60,6 @@ https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject:ada-mode
     33746 fixed
 
     33744 indentation of subexpressions
-        should be affected by ada-indent-hanging-rel-exp
-            it is; must force reparse of all lines; use wisi-parse-buffer
 
 procedure Operator_Indentation is
 begin
@@ -1238,7 +1236,9 @@ compare:
             add release date
             add new features
 
-    (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.3" "/Projects/elpa/packages/ada-ref-man" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.4" "/Projects/elpa/packages/ada-ref-man" nil)
+        /Projects/org.adaic.arm_form/NEWS
+            add release date, new features
 
 bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update

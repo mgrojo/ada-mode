@@ -6,7 +6,7 @@
 ;; Keywords: syntax
 ;;
 %code copyright_license %{
-;;  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
 
 ;;  This program is free software; you can redistribute it and/or
 ;;  modify it under the terms of the GNU General Public License as
@@ -357,7 +357,7 @@
 ;; just "name".
 ;;
 ;; The EBNF in LRM Annex P is not LALR(1), so we use a generalized
-;; LALR(1) parser (see wisi-elisp-parse, wisi-compile).
+;; LALR(1) parser.
 ;;
 ;; Annex P overloads several keywords as grammar elements; 'body',
 ;; 'pragma', some others. That matters in the generated Ada code. We
