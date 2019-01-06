@@ -287,15 +287,48 @@ begin
       --  which are small.
 
       procedure Parse_Check (Lexer : in Lexer_Type; Parser : in Generate_Algorithm)
-      is begin
+      is
+         use all type WisiToken_Grammar_Runtime.Meta_Syntax;
+      begin
          Input_Data.User_Parser := Parser;
          Input_Data.User_Lexer  := Lexer;
          --  Specifying the parser and lexer can change the parsed grammar, due
          --  to %if {parser | lexer}.
 
          Input_Data.Reset;
-         Grammar_Parser.Execute_Actions;
-         --  Ensures Input_Data.User_{Parser|Lexer} are set if needed.
+
+         Input_Data.Phase := 0;
+         Grammar_Parser.Execute_Actions; --  Does phase 0; meta declarations (ie meta_syntax)
+
+         case Input_Data.Meta_Syntax is
+         when BNF_Syntax =>
+            null;
+
+         when EBNF_Syntax =>
+            case Parser is
+            when LR_Generate_Algorithm =>
+               if Trace_Generate > Detail then
+                  Ada.Text_IO.Put_Line ("EBNF tree:");
+                  Grammar_Parser.Parsers.First_State_Ref.Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+               end if;
+               WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF (Grammar_Parser.Parsers.First_State_Ref.Tree);
+               if Trace_Generate > Detail then
+                  Ada.Text_IO.Put_Line ("BNF tree:");
+                  Grammar_Parser.Parsers.First_State_Ref.Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+               end if;
+
+            when Packrat_Generate_Algorithm =>
+               --  FIXME: need to save EBNF tree for packrat
+               raise SAL.Not_Implemented;
+
+            when None | External =>
+               null;
+
+            end case;
+         end case;
+
+         Input_Data.Phase := 1;
+         Grammar_Parser.Execute_Actions; -- Does all actions
 
          if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
             raise WisiToken.Grammar_Error with "no rules";

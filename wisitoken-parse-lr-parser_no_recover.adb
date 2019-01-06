@@ -369,7 +369,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      begin
                         raise WisiToken.Parse_Error with Error_Message
                           (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
-                           ": too many parallel parsers required in grammar state" &
+                           "too many parallel parsers required in grammar state" &
                              State_Index'Image (Parser_State.Stack.Peek.State) &
                              "; simplify grammar, or increase max-parallel (" &
                              SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");

@@ -21,6 +21,15 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+add EBNF
+    ada-lite-ebnf.wy
+        pure EBNF for nonterms first
+        replace %keywords with literals
+
+    add ANTLR syntax for java
+
+    add ? syntax for Python
+
 delete "assume ignore semantic check is a solution"; only language_fixes knows that
     provide subprog to enqueue that in language_fixes
 
