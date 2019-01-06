@@ -39,7 +39,7 @@ typedef struct wisi_lexer
    int            line_token_start; // line at start of current token
    unsigned char* marker;           // saved cursor
    size_t         marker_pos;       // saved character position
-   size_t         marker_line;      // saved line 
+   size_t         marker_line;      // saved line
    unsigned char* context;          // saved cursor
    size_t         context_pos;      // saved character position
    int            context_line;     // saved line
