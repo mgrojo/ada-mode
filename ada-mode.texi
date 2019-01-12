@@ -3,7 +3,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2018  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2019  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1654,6 +1654,11 @@ can also configure the indentation, via the following variables:
 @item @code{ada-indent}                  (default value: 3)
 Number of columns for default indentation.
 
+@item @code{ada-indent-after-trailing-comment} (default value t)
+If t, align comment lines imediately following a comment on the
+same line as code with the preceding comment. Otherwise, ignore
+the preceding comment.
+
 @item @code{ada-indent-broken}           (default value: 2)
 Number of columns to indent the continuation of a broken line.
 
@@ -1674,6 +1679,8 @@ of:
    @end itemize
 
 Otherwise, they are indented with previous comments or code.
+
+@c @item @code{ada-indent-hanging-rel-exp} still experimental
 
 @item @code{ada-indent-label}            (default value: -3)
 Number of columns to indent a label.

@@ -1,6 +1,6 @@
 ;; user options shared by Ada mode indentation engines  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012, 2013, 2015, 2017, 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2015, 2017 - 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Contributors: Simon Wright <simon.j.wright@mac.com>
@@ -230,6 +230,14 @@ An example is:
 (defcustom ada-indent-hanging-rel-exp nil
   "If nil, indent hanging lines in an expression relative to the first line.
 Otherwise, indent by `ada-indent-broken' relative to the start of the expression."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'ada-indent-hanging-rel-exp)
+
+(defcustom ada-indent-after-trailing-comment t
+ "If t, align comment lines imediately following a comment on the
+ same line as code with the preceding comment. Otherwise, ignore
+ the preceding comment."
   :type 'boolean
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-hanging-rel-exp)

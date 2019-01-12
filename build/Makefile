@@ -19,7 +19,7 @@
 # require ada-mode. And it's not worth making gnat-core a package.
 
 export ADA_MODE_VERSION    := 6.0.1
-export ADA_REF_MAN_VERSION := 2012.3
+export ADA_REF_MAN_VERSION := 2012.4
 export WISI_VERSION        := 2.0.1
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
@@ -238,12 +238,13 @@ zip :
 	tar jcf $(TAR_FILE).tar.bz2 --exclude _MTN -C ../.. $(TAR_FILE)
 
 
+# tarball of installed ELPA packages, for sending to customers without
+# good monotone access
 DATE := $(shell date +%Y-%m-%d)
-# tarball of installed ELPA packages, for sending to customers without good monotone access
-elpa-zip : docs pub-ada pub-wisi build-elpa install-elpa ada-mode-elpa-$(DATE).tar.gz
+elpa-zip : docs pub-ada pub-wisi ada-mode-elpa-$(DATE).tar.gz
 
 ada-mode-elpa-$(DATE).tar.gz :
-	tar zcf ada-mode-elpa-$(DATE).tar.gz -C ~/.emacs.d/elpa ada-ref-man-$(ADA_REF_MAN_VERSION) ada-mode-$(ADA_MODE_VERSION) wisi-$(WISI_VERSION)
+	tar zcf ada-mode-elpa-$(DATE).tar.gz -C $(ELPA_ROOT)/packages ada-ref-man ada-mode wisi
 
 MANUALS := ada-mode gpr-mode
 
@@ -278,7 +279,7 @@ pub-ada : force
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
-	cp config.pragmas $(ELPA_ROOT)/packages/ada-mode
+	cp ../config.pragmas $(ELPA_ROOT)/packages/ada-mode
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 
@@ -287,7 +288,8 @@ pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
 	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
 	cp ../README-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/README
-	cp $(ARM_INFO)/build/dir $(ELPA_ROOT)/packages/ada-ref-man/dir
+	cp $(ARM_INFO)/NEWS $(ELPA_ROOT)/packages/ada-ref-man
+	cp $(ARM_INFO)/build/dir $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/arm2012.info $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/build/aarm2012.info $(ELPA_ROOT)/packages/ada-ref-man
 	cp $(ARM_INFO)/source_2012/* $(ELPA_ROOT)/packages/ada-ref-man/source_2012

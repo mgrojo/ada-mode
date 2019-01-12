@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -553,7 +553,8 @@ Usefull if the parser appears to be hung."
 
 (defun wisi--run-parse ()
   "Run the parser."
-  (unless (buffer-narrowed-p)
+  (unless (or (buffer-narrowed-p)
+	      (= (point-min) (point-max))) ;; some parsers can’t handle an empty buffer.
     (let ((msg (when (> wisi-debug 0)
 		 (format "wisi: parsing %s %s:%d ..."
 			 wisi--parse-action
