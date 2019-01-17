@@ -25,11 +25,13 @@
 ^build/.*\.wy$
 ^build/.*\.zip$
 ^build/debug\.log$
+^build/exec_mem$
 ^build/exec_pro$
 ^build/gpr_query\.db$
 ^build/gpr_query\.db-shm$
 ^build/gpr_query\.db-wal$
 ^build/obj$
+^build/obj_mem$
 ^build/obj_pro$
 ^build/test_one_harness\.log$
 ^build/wisi/obj$

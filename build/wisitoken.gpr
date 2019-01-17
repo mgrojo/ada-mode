@@ -8,14 +8,22 @@ project WisiToken is
 
    for Languages use ("Ada", "C");
 
+   --  We assume only one of Profile or Mem_Check is On
    case Standard_Common.Profile is
    when "On" =>
       for Object_Dir use "obj_pro";
       for Exec_Dir use "exec_pro";
 
    when "Off" =>
-      for Object_Dir use "obj";
-      for Exec_Dir use ".";
+      case Standard_Common.Mem_Check is
+      when "On" =>
+         for Object_Dir use "obj_mem";
+         for Exec_Dir use "exec_mem";
+
+      when "Off" =>
+         for Object_Dir use "obj";
+         for Exec_Dir use ".";
+      end case;
    end case;
 
    package Compiler is
