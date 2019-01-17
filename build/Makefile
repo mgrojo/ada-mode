@@ -112,10 +112,11 @@ one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 two : build_ada_executables
 	../run_ada_lalr_parse.exe $(RUN_ARGS)
 
+two_mem : export Standard_Common_Build := Debug
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables
-	../exec_mem/run_ada_parse.exe ../test/slow_recover_1.adb Face
-	gnatmem ../exec_pro/run_ada_parse.exe > slow_recover_1.memory
+	../exec_mem/run_ada_lalr_parse.exe c:/tmp/regulation-iflight.adb Face
+	gnatmem ../exec_mem/run_ada_lalr_parse.exe > regulation_iflight.memory
 
 two_pro : export Standard_Common_Profile := On
 two_pro : build_ada_executables

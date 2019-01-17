@@ -54,6 +54,13 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+memory leak in execute_actions
+    make two_mem shows it
+    recompile gnat runtime with -g
+        gprconfig: can't find a native toolchain for language 'ada', runtime 'adalib_debug'
+
+        run with supported gnat in debian, submit ticken on how to do this
+
 add error recovery strategy counts to recover.log
     also enough source text to reconstruct fail; +- 10 lines/200 chars?
 

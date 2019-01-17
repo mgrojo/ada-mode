@@ -34,7 +34,9 @@
 ^check_xref\.gpr$
 ^debug\.log$
 ^dir-ada-mode$
+^exec_mem$
 ^exec_pro$
+^gmem\.out$
 ^gpr-mode\.html$
 ^gpr-mode\.info$
 ^gpr_query$
@@ -42,6 +44,7 @@
 ^gpr_query\.db$
 ^gpr_query\.gpr$
 ^obj$
+^obj_mem$
 ^obj_pro$
 ^recover\.log$
 ^run_sjw\.text$

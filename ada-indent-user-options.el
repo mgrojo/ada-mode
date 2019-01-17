@@ -240,7 +240,7 @@ Otherwise, indent by `ada-indent-broken' relative to the start of the expression
  the preceding comment."
   :type 'boolean
   :safe #'booleanp)
-(make-variable-buffer-local 'ada-indent-hanging-rel-exp)
+(make-variable-buffer-local 'ada-indent-after-trailing-comment)
 
 (defcustom ada-end-name-optional nil
   "If t, names at ends of blocks/subprograms are optional (as in

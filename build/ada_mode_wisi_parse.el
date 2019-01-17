@@ -19,6 +19,7 @@
 
  (t
 (require 'ada-project)
+(require 'project-menu)
 (require 'xref-ada)
 (require 'wisi)
 
