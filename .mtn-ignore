@@ -9,6 +9,7 @@
 ^build/gpr_query\.db$
 ^build/gpr_query\.db-shm$
 ^build/gpr_query\.db-wal$
+^build/obj_mem$
 ^build/obj_pro$
 ^build/objects$
 ^test/debug\.adb$

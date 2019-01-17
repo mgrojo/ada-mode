@@ -2,7 +2,7 @@
 --
 --  An unbounded queue of indefinite non-limited elements.
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -56,6 +56,7 @@ package SAL.Gen_Unbounded_Indefinite_Queues is
    with Implicit_Dereference => Element;
 
    function Peek (Queue : in Queue_Type; N : Peek_Type := 1) return Constant_Reference_Type;
+   pragma Inline (Peek);
    --  Return a constant reference to a queue item. N = 1 is the queue
    --  head.
    --

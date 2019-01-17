@@ -2,7 +2,7 @@
 --
 --  A generic sorted doubly linked list with definite elements.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -113,15 +113,19 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    with Implicit_Dereference => Element;
 
    function Constant_Reference (Container : in List; Position : in Cursor) return Constant_Reference_Type;
+   pragma Inline (Constant_Reference);
    function Constant_Ref (Position : in Cursor) return Constant_Reference_Type;
+   pragma Inline (Constant_Ref);
 
    type Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
    function Reference (Container : in List; Position : in Cursor) return Reference_Type
    with Pre => Position /= No_Element;
+   pragma Inline (Reference);
    function Ref (Position : in Cursor) return Reference_Type
    with Pre => Position /= No_Element;
+   pragma Inline (Ref);
    --  User must not change the element in a way that affects the sort order.
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Cursor, Has_Element);

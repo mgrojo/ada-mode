@@ -8,7 +8,7 @@
 --  It provides no checking of cursor tampering; higher level code
 --  must ensure that.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -142,12 +142,14 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    function Constant_Ref (Container : aliased in Vector; Index : in Index_Type) return Constant_Reference_Type
    with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
+   pragma Inline (Constant_Ref);
 
    type Variable_Reference_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
    function Variable_Ref (Container : aliased in Vector; Index : in Index_Type) return Variable_Reference_Type
    with Pre => Index >= Container.First_Index and Index <= Container.Last_Index;
+   pragma Inline (Variable_Ref);
 
    type Cursor is private;
 
@@ -173,9 +175,11 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    function Constant_Ref (Container : aliased in Vector; Position : in Cursor) return Constant_Reference_Type
    with Pre => Has_Element (Position);
+   pragma Inline (Constant_Ref);
 
    function Variable_Ref (Container : aliased in Vector; Position  : in Cursor) return Variable_Reference_Type
    with Pre => Has_Element (Position);
+   pragma Inline (Variable_Ref);
 
 private
 
