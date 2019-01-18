@@ -1,6 +1,10 @@
 GNU Emacs Ada mode NEWS -- history of user-visible changes.
 
 
+* Ada mode 6.?.?
+
+** Add ada-project.el; project backend.
+
 * Ada mode 6.0.1
 8 Dec 2018
 

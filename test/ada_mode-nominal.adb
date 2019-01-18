@@ -117,18 +117,19 @@ is -- target 0
             Bad_Thing : exception;
             --EMACSCMD:(test-face "Boolean" font-lock-type-face)
             Dummy : Boolean;
-            pragma Unreferenced (Dummy);
+            Dummy_2 : Boolean;
          begin
             --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(backward-sexp)(looking-at "begin"))
             --EMACSRESULT: t
             --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(forward-sexp)(looking-at "then"))
             --EMACSRESULT: t
-            if True
+            if
+              True
               --  Comment before 'then'
             then -- 1
                  --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "if"))
                  --EMACSRESULT: t
-                 --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(forward-sexp)(looking-at "elsif False -- 2"))
+                 --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(forward-sexp)(looking-at "elsif Dummy or -- 2"))
                  --EMACSRESULT: t
 
                --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
@@ -180,11 +181,11 @@ is -- target 0
                --EMACSRESULT: t
                --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(forward-sexp)(looking-at "then -- 2"))
                --EMACSRESULT: t
-            elsif False -- 2
-
+            elsif Dummy or -- 2
+              Dummy_2
               --  Comment before 'then'.
             then -- 2
-                 --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "elsif False -- 2"))
+                 --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "elsif Dummy or -- 2"))
                  --EMACSRESULT: t
                  --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(forward-sexp)(looking-at "elsif True -- 3"))
                  --EMACSRESULT: t

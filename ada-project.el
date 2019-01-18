@@ -1,4 +1,4 @@
-;; ada-project.el - project.el backend for ada-mode projects -*- lexical-binding: t =*-
+;; ada-project.el - project.el backend for ada-mode projects -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
 ;;
@@ -20,7 +20,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'ada-mode)
-(require 'project-patches)
 (require 'env-project)
 (require 'uniquify-files)
 
@@ -42,17 +41,17 @@
   ;; project-id is experimental
   (ada-project-ada-prj prj))
 
-(cl-defmethod project-library-roots ((prj ada-project))
+(cl-defmethod project-library-roots ((_prj ada-project))
   ;; Called from project-find-file; result is passed to
   ;; project--file-completion-table, where it is ignored.
   nil)
 
-(cl-defmethod project-roots ((prj ada-project))
+(cl-defmethod project-roots ((_prj ada-project))
   ;; Called from project-find-file; result is passed to
   ;; project--file-completion-table, where it is ignored.
   nil)
 
-(cl-defmethod project-file-completion-table ((prj ada-project) _dirs)
+(cl-defmethod project-file-completion-table ((_prj ada-project) _dirs)
   ;; (ada-prj-get 'src_dir) is more accurate than project-*roots
   (let ((iter (make-path-iterator
 	       :user-path-non-recursive (ada-prj-get 'src_dir)

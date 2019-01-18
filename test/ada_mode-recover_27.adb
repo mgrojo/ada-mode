@@ -50,8 +50,8 @@ package body Wisi.Libadalang is
       end if;
    end Create_Tree_Node;
 
-   begin
-   end To_WisiToken_Tree;
+begin
+end To_WisiToken_Tree;
 
 end Wisi.Libadalang;
 -- Error recovery has a race condition; force it to return repeatable results

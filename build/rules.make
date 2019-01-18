@@ -102,6 +102,7 @@ COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
 COMPILE_FILES := $(sort $(COMPILE_FILES))
 
 compile-ada-test : force
+	rm -f ../test/debug.ad?
 	gprbuild -p ../test/ada_mode_compile.gpr
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's

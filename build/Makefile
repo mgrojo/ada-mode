@@ -62,7 +62,7 @@ endif
 #
 # 'package-initialize' is required for 'queue'.
 byte-compile : byte-compile-clean
-	cd ../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . -L $(ELPA_ROOT)/packages/uniquify-files -L $(ELPA_ROOT)/packages/path-iterator --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -96,14 +96,14 @@ summarize :
 	cat test.log
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-ONE_TEST_FILES ?= ada_mode-parens.adb
-one : build_ada_executables
-one : byte-compile
+ONE_TEST_FILES ?= ada_mode-recover_27.adb
+#one : build_ada_executables
+#one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-#one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
-one : RUNTEST := run-indent-test-elisp-gpr_query.el
+one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
+#one : RUNTEST := run-indent-test-elisp-gpr_query.el
 one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 #one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
