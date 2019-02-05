@@ -2,7 +2,7 @@
 --
 --  Standard settings for all of Stephe's Ada projects.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2019 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -27,6 +27,15 @@ project Standard_Common is
 
    type Mem_Check_Type is ("On", "Off");
    Mem_Check : Profile_Type := External ("Standard_Common_Mem_Check", "Off");
+   --  Note that Mem_Check requires Build_Type = Debug to be useful
+
+   -- In main project file, add:
+   -- case Standard_Common.Mem_Check is
+   -- when "On" =>
+   --    for Runtime ("Ada") use "adalib_debug";
+   -- when "Off" =>
+   --    null;
+   -- end case;
 
    package Compiler is
       -- Switches for gcc
