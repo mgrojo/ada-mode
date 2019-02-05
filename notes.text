@@ -54,9 +54,13 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-optimize Grow of wisitoken.syntax_tree.s.node_arrays
-    run-time parameter giving initial size
+package for Ludovic: elpa/archive/packages *.tar, archive-contents
+optimize Grow of SAL.Gen_Unbounded_Definite_Vectors
+    run-time parameter and/or generic parameter giving initial size
     output max size, accumulate in Emacs session
+
+    go thru all uses
+        wisitoken.syntax_tree.s.node_arrays
 
     similar for parse_stack?
 
@@ -1477,5 +1481,13 @@ mark fixed bugs
 
 check https://www.emacswiki.org/emacs/AdaMode
     https://www.emacswiki.org/emacs/StephenLeake
+
+ mini-release to Ludovic
+run all tests
+
+bump version (elpa releases don't have to be consecutive)
+
+Makefile build-elpa install-elpa elpa-zip
+    # install-elpa verifies all required files are included and byte-compile successfully.
 
 -- end of file

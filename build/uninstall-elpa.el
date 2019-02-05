@@ -9,17 +9,16 @@
 (setq ada-ref-man-version (getenv "ADA_REF_MAN_VERSION"))
 (setq wisi-version (getenv "WISI_VERSION"))
 
-(cond
- ;; package handler details change between emacs versions
- ((string-equal emacs-version "24.3.1")
-  (load-file "uninstall-elpa-24.3.el"))
+(defun pkg-dir (name version)
+  (concat (locate-user-emacs-file "elpa") "/" name "-" version))
 
- ((or (string-equal emacs-version "24.4.1")
-      (string-equal emacs-version "24.5.1")
-      (member emacs-major-version '(25 26)))
-  (load-file "uninstall-elpa-24.4.el"))
+(defun pkg-dir-clean (name version)
+  (let ((dir (pkg-dir name version)))
+    (when (file-exists-p dir)
+      (delete-directory dir t))))
 
- (t
-  (error "uninstall-elpa.el: unsupported emacs-version"))
- )
+(pkg-dir-clean "ada-mode" ada-mode-version)
+(pkg-dir-clean "ada-ref-man" ada-ref-man-version)
+(pkg-dir-clean "wisi" wisi-version)
+
 ;; end of file

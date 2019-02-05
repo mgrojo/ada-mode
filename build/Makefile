@@ -261,10 +261,13 @@ VPATH := ..
 # First delete all files in Gnu ELPA, so we catch files deleted here.
 #
 # Copy files to Gnu ELPA ada-mode package
+# ada-project.el depends on not-yet-published elpa packages.
 pub-ada : force
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
+#	cp ../env-project.el $(ELPA_ROOT)/packages/ada-mode
+	rm $(ELPA_ROOT)/packages/ada-mode/ada-project.el
 	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
 	cp ../build.sh $(ELPA_ROOT)/packages/ada-mode/
 	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
@@ -341,13 +344,16 @@ pub-wisi : force
 # 'make -C elpa all-in-place' does not build archive-contents, just *.elc
 #
 # Other packages are often broken, so just build ours, by only copying
-# ours into archive-tmp
+# ours into archive-tmp. Packages at version 0 are deleted by
+# process-archive.
 build-elpa : force
 	rm -rf $(ELPA_ROOT)/archive
 	rm -rf $(ELPA_ROOT)/archive-tmp
 	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/ada-mode $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/ada-ref-man $(ELPA_ROOT)/archive-tmp/packages
+#	cp -a $(ELPA_ROOT)/packages/path-iterator $(ELPA_ROOT)/archive-tmp/packages
+#	cp -a $(ELPA_ROOT)/packages/uniqufy-files $(ELPA_ROOT)/archive-tmp/packages
 	cp -a $(ELPA_ROOT)/packages/wisi     $(ELPA_ROOT)/archive-tmp/packages
 	make -C $(ELPA_ROOT)/ process-archive
 

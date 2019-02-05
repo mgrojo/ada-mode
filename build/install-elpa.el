@@ -9,17 +9,23 @@
 (setq ada-ref-man-version (getenv "ADA_REF_MAN_VERSION"))
 (setq wisi-version (getenv "WISI_VERSION"))
 
-(cond
- ;; package handler details change between emacs versions
- ((string-equal emacs-version "24.3.1")
-  (load-file "install-elpa-24.3.el"))
+(defun pkg-dir (name version)
+  (concat (locate-user-emacs-file "elpa") "/" name "-" version))
 
- ((or (string-equal emacs-version "24.4.1")
-      (string-equal emacs-version "24.5.1")
-      (member emacs-major-version '(25 26)))
-  (load-file "install-elpa-24.4.el"))
+(defun pkg-download (name version &optional archive kind)
+  (let ((default-directory (pkg-dir name version))
+	(pkg-desc
+	 (package-desc-create
+	  :name (intern name)
+	  :version (version-to-list version)
+	  :kind (or kind 'tar)
+	  :archive (or archive "test"))))
+    (package-install-from-archive pkg-desc)))
 
- (t
-  (error "install-elpa.el: unsupported emacs-version"))
- )
+;; download in dependency order
+;; path-iterator, uniquify-files not released yet
+(pkg-download "wisi" wisi-version)
+(pkg-download "ada-mode" ada-mode-version)
+(pkg-download "ada-ref-man" ada-ref-man-version)
+
 ;; end of file
