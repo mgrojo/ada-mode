@@ -5,8 +5,7 @@
 ZIP_VERSION := 1.0.1
 #w-$(shell date +%Y-%m-%d)
 
-all : test-clean tests
-#all : library doc zip tag
+all : test-clean tests doc
 
 #export Standard_Common_Build := Debug
 

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2013-2015, 2017, 2018, 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -601,6 +601,9 @@ package body WisiToken.Parse.LR is
          Last  : Integer;
       end record;
 
+      function Next_Value return Buffer_Region;
+      pragma Inline (Next_Value);
+
       function Next_Value return Buffer_Region
       is
          use Ada.Strings.Fixed;
@@ -610,10 +613,22 @@ package body WisiToken.Parse.LR is
          return (First, Buffer_Last - 1);
       end Next_Value;
 
+      procedure Raise_Gen_Next_Value_Constraint_Error (Name : String; Region : Buffer_Region);
+      pragma No_Return (Raise_Gen_Next_Value_Constraint_Error);
+
+      procedure Raise_Gen_Next_Value_Constraint_Error (Name : String; Region : Buffer_Region)
+      is begin
+         --  Factored out from Gen_Next_Value to make Inline efficient.
+         raise SAL.Programmer_Error with Error_Message
+           (File_Name, 1, Ada.Text_IO.Count (Region.First),
+            "expecting " & Name & ", found '" & Buffer (Region.First .. Region.Last) & "'");
+      end Raise_Gen_Next_Value_Constraint_Error;
+
       generic
          type Value_Type is (<>);
          Name : in String;
       function Gen_Next_Value return Value_Type;
+      pragma Inline (Gen_Next_Value);
 
       function Gen_Next_Value return Value_Type
       is
@@ -622,9 +637,7 @@ package body WisiToken.Parse.LR is
          return Value_Type'Value (Buffer (Region.First .. Region.Last));
       exception
       when Constraint_Error =>
-         raise SAL.Programmer_Error with Error_Message
-           (File_Name, 1, Ada.Text_IO.Count (Region.First),
-            "expecting " & Name & ", found '" & Buffer (Region.First .. Region.Last) & "'");
+         Raise_Gen_Next_Value_Constraint_Error (Name, Region);
       end Gen_Next_Value;
 
       function Next_State_Index is new Gen_Next_Value (State_Index, "State_Index");

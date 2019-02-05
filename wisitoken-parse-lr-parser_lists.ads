@@ -2,7 +2,7 @@
 --
 --  Generalized LR parser state.
 --
---  Copyright (C) 2014-2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2014-2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -212,11 +212,13 @@ package WisiToken.Parse.LR.Parser_Lists is
      (Container : aliased in List'Class;
       Position  :         in Parser_Node_Access)
      return Constant_Reference_Type;
+   pragma Inline (Constant_Reference);
 
    function Reference
      (Container : aliased in out List'Class;
       Position  :         in     Parser_Node_Access)
      return State_Reference;
+   pragma Inline (Reference);
 
    function Persistent_State_Ref (Position : in Parser_Node_Access) return State_Access;
 
