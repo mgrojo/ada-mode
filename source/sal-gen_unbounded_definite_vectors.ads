@@ -8,7 +8,7 @@
 --  It provides no checking of cursor tampering; higher level code
 --  must ensure that.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -29,6 +29,7 @@ with Ada.Unchecked_Deallocation;
 generic
    type Index_Type is range <>;
    type Element_Type is private;
+   Default_Element : in Element_Type;
 package SAL.Gen_Unbounded_Definite_Vectors is
 
    subtype Extended_Index is Index_Type'Base
@@ -114,21 +115,17 @@ package SAL.Gen_Unbounded_Definite_Vectors is
 
    procedure Set_First (Container : in out Vector; First : in Index_Type);
    procedure Set_Last (Container : in out Vector; Last : in Extended_Index);
-   procedure Set_First_Last (Container : in out Vector; First : in Index_Type; Last : in Extended_Index);
+   procedure Set_First_Last
+     (Container : in out Vector;
+      First     : in     Index_Type;
+      Last      : in     Extended_Index);
    --  Default First is Index_Type'First.
    --  Elements with First <= index <= Last that have not been set have
-   --  Element_Type default value.
+   --  Default_Element value.
 
    procedure Set_Length (Container : in out Vector; Length : in Ada.Containers.Count_Type);
    --  Set Last so Container.Length returns Length. New elements have
-   --  Element_Type default value.
-
-   procedure Set_Length
-     (Container : in out Vector;
-      Length    : in     Ada.Containers.Count_Type;
-      Default   : in     Element_Type);
-   --  Set Last so Container.Length returns Length. New elements have
-   --  Default value.
+   --  Default_Element value.
 
    procedure Delete (Container : in out Vector; Index : in Index_Type);
    --  Replace Index element contents with default. If Index =
