@@ -1,6 +1,6 @@
 ;; xref-ada.el --- ada-mode backend for xref.el -*-lexical-binding:t-*-
 ;;
-;; Copyright (C) 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2018 - 2019  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -95,7 +95,7 @@
 	 nil))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql xref-ada)))
-  (wisi-validate-cache (point-max) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (save-excursion
     (let ((table nil)
 	  cache)

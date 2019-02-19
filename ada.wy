@@ -22,6 +22,10 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
+%code actions spec post %{
+   Partial_Parse_Active : Boolean := False;
+}%
+
 ;;; Commentary:
 ;;
 ;; This is a wisi grammar file for the Ada language. It is derived
@@ -171,8 +175,8 @@
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
 
 ;; Treat Ada comments, gnatprep preprocessor lines, and skeleton
-;; placeholders as comments.
-%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n]*)|("{"[^}]*"}") ]%
+;; placeholders as comments. x04 is EOF.
+%non_grammar <comment> COMMENT %[ (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n\x04]*)|("{"[^}]*"}") ]%
 
 %token <symbol> IDENTIFIER %[ ([a-zA-Z\x80-\U0010FFFF]|GNAT_Char_Coding)([0-9a-zA-Z_\x80-\U0010FFFF]|GNAT_Char_Coding)* ]%
 
@@ -697,6 +701,8 @@ compilation_unit
 compilation_unit_list
   : compilation_unit_list compilation_unit
   | compilation_unit
+    %( )%
+    %((wisi-terminate-partial-parse))%
   ;
 
 component_clause

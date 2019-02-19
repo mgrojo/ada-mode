@@ -96,18 +96,20 @@ summarize :
 	cat test.log
 
 #ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-ONE_TEST_FILES ?= ada_mode-parens.adb
+ONE_TEST_FILES ?= ada_mode-partial_parse.adb
 one : build_ada_executables
 one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-#one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
-one : RUNTEST := run-indent-test-elisp-gpr_query.el
+one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
+#one : RUNTEST := run-indent-test-elisp-gpr_query.el
 one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 #one : $(addsuffix .diff, $(ONE_TEST_FILES))
 
-#two : RUN_ARGS ?= --verbosity 2 2 > debug.log
+# With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
+# to get begin, end pos.
+two : RUN_ARGS ?= ../test/ada_mode-partial_parse.adb Face 1 873 1 1
 #two : RUN_ARGS ?= --repeat_count 5
 two : build_ada_executables
 	../run_ada_lalr_parse.exe $(RUN_ARGS)

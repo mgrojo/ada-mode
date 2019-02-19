@@ -54,12 +54,47 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+doc wisi-disable-face
+    alternative to jit-defer-time
+
+enforce unix line endings
+    run dos2unix in a mtn pre-commit hook?
+
+partial parse
+    c:/eurocontrol/regulation-iflight.adb
+
+    test/ada_mode-partial_parse.adb
+;; parse 1 "ada_mode-partial_parse.adb" 1 873 21 1 1 0 1 0 -1 0 0 0 -1 -1 -1 -1 872 3 2 0 0 -3 3 2 0 2 3 2 0 0
+[5 451 "syntax error: expecting ACCEPT, ABORT, BEGIN, CASE, DECLARE, DELAY, ENTRY, EXIT, FOR, FUNCTION, GENERIC, GOTO, IF, LIMITED, LOOP, NOT, NULL, OVERRIDING, PACKAGE, PRAGMA, PRIVATE, PROCEDURE, PROTECTED, RAISE, REQUEUE, RETURN, SEPARATE, SELECT, SUBTYPE, TASK, TYPE, USE, WHILE, WITH, LESS_LESS, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 'Wisi_EOI'"]
+[5 1 "recover: fail FAIL_ENQUEUE_LIMIT"]
+(parse_error)
+    1 = face
+    begin_byte_pos .. end_byte_pos => 1 .. 873
+    triggered by font-lock during redisplay
+
+test emulate font-lock; 500 byte chunks thru the whole file.
+
+expand-region move end to next terminal semicolon; let error recover finish the compilation unit.
+
+optimize begin in wisi-goto-*
+
+rename parser actions to "parse", "post-parse"
+
+ada.wy
+    result_profile should not use name_opt, because it should not call wisi-propagate-name
+        on the other hand, it doesn't really hurt
+
 add error recovery strategy counts to recover.log
     also enough source text to reconstruct fail; +- 10 lines/200 chars?
 
 stefan complains he gets byte-compiler errors when compiling elpa after an ada-mode update.
-    checkout last ada-mode version in elpa, byte-compile, update, byte-compile
-    old: 170394cefd5bf4512337b1114c1d5f8a80a549e3
+    root cause is he doesn't do 'rm *.elc', and the byte-compiler doesn't set load-prefer-newer
+    he'll try load-prefer-newer
+
+elisp code has circular dependency
+    see if load-prefer-newer finds it
+    write dependency checker.
+        in elisp so it can be added to batch-byte-compile
 
 other misc fixes from stefan
 
@@ -160,6 +195,7 @@ Decrease elisp parser startup time
 do module interface
 
 remove all code supporting emacs < 25
+    syntax-propertize calls
 
 use #'remove-hook
 

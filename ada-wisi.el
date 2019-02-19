@@ -158,8 +158,9 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-post-parse-fail ()
   "For `wisi-post-parse-fail-hook'."
+  ;; FIXME: pass parsed region
   (save-excursion
-    (wisi-validate-cache (point) nil 'navigate)
+    (wisi-validate-cache (point-min) (point) nil 'navigate)
     (let ((start-cache (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))))
       (when start-cache
 	;; nil when in a comment at point-min
@@ -177,7 +178,7 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-context-clause ()
   "For `ada-fix-context-clause'."
-  (wisi-validate-cache (point-max) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (save-excursion
     (goto-char (point-min))
     (let ((begin nil)
@@ -229,7 +230,7 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
-  (wisi-validate-cache (point-max) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let (cache
 	(name-pos nil))
@@ -252,7 +253,7 @@ For `wisi-indent-calculate-functions'.
 (defun ada-wisi-goto-declaration-start (&optional include-type)
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
-  (wisi-validate-cache (point) t 'navigate)
+  (wisi-validate-cache (point-min) (point) t 'navigate)
 
   (let ((cache (wisi-get-cache (point)))
 	(done nil))
@@ -305,7 +306,7 @@ Also return cache at start."
 
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
-  (wisi-validate-cache (point-max) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let ((done nil)
 	(first t)
@@ -384,7 +385,7 @@ Also return cache at start."
 
 (defun ada-wisi-in-paramlist-p (&optional parse-result)
   "For `ada-in-paramlist-p'."
-  (wisi-validate-cache (point) nil 'navigate)
+  (wisi-validate-cache (point-min) (point) nil 'navigate)
   ;; (info "(elisp)Parser State" "*syntax-ppss*")
   (let ((parse-result (or parse-result (syntax-ppss)))
 	 cache)
@@ -398,7 +399,7 @@ Also return cache at start."
   "For `ada-make-subprogram-body'."
   ;; point is at start of subprogram specification; we need to find
   ;; the end, so ensure parse to end of buffer.
-  (wisi-validate-cache (point-max) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let* ((begin (point))
 	 (end (wisi-cache-end (wisi-get-cache (point))))
@@ -422,7 +423,7 @@ Also return cache at start."
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
   ;; IMPROVEME: define mini grammar that does this
-  (wisi-validate-cache end t 'navigate)
+  (wisi-validate-cache begin end t 'navigate)
 
   (goto-char begin)
   (let (tok
@@ -542,9 +543,9 @@ Also return cache at start."
 
 (defun ada-wisi-which-function (include-type)
   "For `ada-which-function'."
-  (wisi-validate-cache (point) nil 'navigate)
-  ;; no message on parse fail, since this could be called from which-func-mode
-  (when (> (wisi-cache-max 'navigate) (point))
+  (wisi-validate-cache (point-min) (point) nil 'navigate)
+  ;; No message on parse fail, since this could be called from which-function-mode
+  (when (wisi-cache-covers-pos 'navigate (point))
     (save-excursion
       (let ((result nil)
 	    (cache (condition-case nil (ada-wisi-goto-declaration-start include-type) (error nil))))
@@ -709,6 +710,100 @@ TOKEN-TEXT; move point to just past token."
 	  (if ada-indent-hanging-rel-exp 1 0)
 	  (if ada-end-name-optional 1 0)
 	  ))
+
+(defconst ada-wisi-partial-begin-regexp
+  "function\\|package\\|procedure\\|task"
+  ;; We don't include other named blocks here (block, loop, protected)
+  ;; here because those names are always optional, and this set
+  ;; provides small enough regions.
+  )
+
+(cl-defmethod wisi-parse-expand-region ((_parser ada-wisi-parser) begin end)
+  (if (= begin (point-min))
+      (save-excursion
+	(goto-char begin)
+	(forward-comment end)
+	(if (>= (point) end)
+	    ;; Region is all comment or empty. Use point to ensure end
+	    ;; is not in a comment delimiter.
+	    (cons begin (point))
+
+	  ;; Region has some code. We don't want to parse one
+	  ;; compilation unit from here, because that's the entire
+	  ;; file. So find the first terminal semicolon, and let error
+	  ;; recovery finish the compilation unit.
+	  (goto-char end)
+	  (if (search-forward ";" nil t)
+	      (progn
+		(while (or (ada-in-string-or-comment-p)
+			 (ada-in-paren-p))
+		  (search-forward ";"  nil t))
+		(cons begin (point)))
+
+	    ;; First search-forward returned nil; there is no code from
+	    ;; end to eob; just use eob.
+	    (cons begin (point-max)))
+	  ))
+
+    ;; begin > (point-min)
+    ;;
+    ;; FIXME: that doesn't mean it's after the start of the top-level
+    ;; compilation unit.
+
+    ;; To find the end and thus avoid error recovery, we assume the
+    ;; matching end names are present; that means we don't have to
+    ;; handle nested begin/end.
+    ;;
+    ;; FIXME: if end-names-optional, return (point-max), or scan
+    ;; to next terminal semicolon, let recover finish compilation unit
+
+    (let (begin-cand end-cand end-regexp)
+      (goto-char begin)
+      (search-backward-regexp ada-wisi-partial-begin-regexp)
+      (while (ada-in-string-or-comment-p)
+	(search-backward-regexp ada-wisi-partial-begin-regexp))
+      ;; FIXME: ignore begin candidates matching '<keywords> name is separate;'
+
+      (setq begin-cand (point))
+
+      (skip-syntax-forward "ws")
+      (skip-syntax-forward " ")
+      (when (looking-at "body\\|type")
+	(goto-char (match-end 0))
+	(skip-syntax-forward " "))
+
+      (setq end-regexp
+	    (concat "end +"
+		    (buffer-substring-no-properties
+		     (point)
+		     (progn
+		       (skip-syntax-forward "ws._")
+		       (point)))
+		    ";"))
+      (search-forward-regexp end-regexp)
+      (while (ada-in-string-or-comment-p)
+	(search-forward-regexp end-regexp))
+      (setq end-cand (point))
+
+      (if (<= end end-cand)
+	  ;; candidate contains END
+	  (cons begin-cand end-cand)
+
+	(if (<= end-cand begin)
+	    ;; candidate precedes BEGIN END. Use end-cand as begin, (point-max) as
+	    ;; end; parser will stop after one compilation_unit.
+	    (cons end-cand (point-max))
+
+	  (error "unexpected case in ada wisi-parse-expand-region")))
+      )))
+
+(defun ada-wisi-show-expanded-region ()
+  "For debugging. Expand currently selected region."
+  (interactive)
+  (let ((region (wisi-parse-expand-region wisi--parser (region-beginning) (region-end))))
+    (set-mark (car region))
+    (goto-char (cdr region))
+    ))
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
 (defvar ada-process-token-table nil) ;; ada-process.el

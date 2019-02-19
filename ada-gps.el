@@ -2,7 +2,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2014, 2017  Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2017, 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -292,7 +292,7 @@ are indented correctly.")
   ;; test/ada-gps/ada_gps_bug_007.adb
   (let (cache)
     (end-of-line)
-    (wisi-validate-cache (point) nil 'navigate)
+    (wisi-validate-cache (point-min) (point) nil 'navigate)
     (setq cache (wisi-backward-cache))
     (when (and cache ;; parse might have failed
 	       (eq 'statement-end (wisi-cache-class cache)))

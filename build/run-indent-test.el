@@ -15,7 +15,7 @@
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (save-excursion
-    (wisi-validate-cache (line-end-position 3) nil 'face)
+    (wisi-validate-cache (line-beginning-position 0) (line-end-position 3) nil 'face)
     (when (test-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
@@ -62,7 +62,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 (defun test-cache-class (token class)
   "Test if TOKEN in next code line has wisi-cache with class CLASS."
   (save-excursion
-    (wisi-validate-cache (line-end-position 3) nil 'navigate)
+    (wisi-validate-cache (line-beginning-position 0) (line-end-position 3) nil 'navigate)
     (beginning-of-line); forward-comment doesn't move if inside a comment!
     (forward-comment (point-max))
     (condition-case err
@@ -80,7 +80,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 (defun test-cache-containing (containing contained)
   "Test if CONTAINING in next code line has wisi-cache with that contains CONTAINED."
   (save-excursion
-    (wisi-validate-cache (line-end-position 3) nil 'navigate)
+    (wisi-validate-cache (line-beginning-position 0) (line-end-position 3) nil 'navigate)
     (beginning-of-line)
     (forward-comment (point-max))
     (let (containing-pos contained-cache)
