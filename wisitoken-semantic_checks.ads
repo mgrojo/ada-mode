@@ -2,7 +2,7 @@
 --
 --  Grammar semantic check routines.
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -85,5 +85,9 @@ package WisiToken.Semantic_Checks is
    --
    --  If Tokens (Last_Index).Name is Null_Buffer_Region, use Tokens
    --  (Last_Index).Byte_Region instead.
+
+   function Terminate_Partial_Parse (Active : in Boolean) return Check_Status;
+   pragma Inline (Terminate_Partial_Parse);
+   --  If Active, raise Wisitoken.Partial_Parse; otherwise return Ok.
 
 end WisiToken.Semantic_Checks;

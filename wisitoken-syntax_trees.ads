@@ -7,7 +7,7 @@
 --  We provide Base_Tree and Tree in one package, because only Tree
 --  needs an API; the only way Base_Tree is accessed is via Tree.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 
 --  There is one syntax tree for each parser. There is one shared
 --  Terminals array, matching the actual input text.
@@ -58,7 +58,8 @@ package WisiToken.Syntax_Trees is
    type Valid_Node_Index_Array is array (Positive_Index_Type range <>) of Valid_Node_Index;
    --  Index matches Base_Token_Array, Augmented_Token_Array
 
-   package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive_Index_Type, Valid_Node_Index);
+   package Valid_Node_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'First);
    --  Index matches Valid_Node_Index_Array.
 
    type Node_Label is (Shared_Terminal, Virtual_Terminal, Nonterm);
@@ -372,7 +373,8 @@ private
 
    subtype Nonterm_Node is Node (Nonterm);
 
-   package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Node);
+   package Node_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Valid_Node_Index, Node, Default_Element => (others => <>));
 
    type Base_Tree is new Ada.Finalization.Controlled with record
       Nodes : Node_Arrays.Vector;

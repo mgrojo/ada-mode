@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -440,6 +440,17 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          end loop;
       end if;
    end Execute_Actions;
+
+   overriding function Tree (Parser : in LR.Parser_No_Recover.Parser) return Syntax_Trees.Tree
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Parser.Parsers.Count > 1 then
+         raise WisiToken.Parse_Error with "ambigous parse";
+      else
+         return Parser.Parsers.First_State_Ref.Tree;
+      end if;
+   end Tree;
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean
    is

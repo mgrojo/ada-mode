@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -69,11 +69,12 @@ package body WisiToken.Parse.LR.Parser is
 
       else
          declare
-            Nonterm_Token  : Recover_Token := Parser_State.Tree.Recover_Token (Nonterm);
+            Nonterm_Token  : Recover_Token                := Parser_State.Tree.Recover_Token (Nonterm);
             Children_Token : constant Recover_Token_Array := Parser_State.Tree.Recover_Token_Array (Children_Tree);
-            Status : constant Semantic_Checks.Check_Status := Action.Check
-              (Lexer, Nonterm_Token, Children_Token);
+            Status         : Semantic_Checks.Check_Status;
          begin
+            Status := Action.Check (Lexer, Nonterm_Token, Children_Token);
+
             Parser_State.Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
 
             if Trace_Parse > Detail then
@@ -99,6 +100,11 @@ package body WisiToken.Parse.LR.Parser is
                   return Status.Label;
                end if;
             end case;
+         exception
+         when Partial_Parse =>
+            --  From Action.Check
+            Parser_State.Tree.Set_Root (Nonterm);
+            raise;
          end;
       end if;
    end Reduce_Stack_1;
@@ -655,10 +661,6 @@ package body WisiToken.Parse.LR.Parser is
                            exit when Current_Parser.Is_Done;
                         end loop;
 
-                        if Trace_Parse > Outline then
-                           Trace.Put_Line ("ambiguous with error");
-                        end if;
-
                         exit Main_Loop;
 
                      else
@@ -953,25 +955,38 @@ package body WisiToken.Parse.LR.Parser is
       --  recovered, either by inserting a quote, or by ignoring the
       --  character.
    exception
-   when Syntax_Error | WisiToken.Parse_Error =>
+   when Syntax_Error | WisiToken.Parse_Error | Partial_Parse =>
       raise;
 
    when E : others =>
       declare
          Msg : constant String := Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E);
       begin
-         --  Emacs displays errors in the *syntax-errors* buffer
-         Shared_Parser.Parsers.First_State_Ref.Errors.Append
-           ((Label          => LR.Message,
-             First_Terminal => Trace.Descriptor.First_Terminal,
-             Last_Terminal  => Trace.Descriptor.Last_Terminal,
-             Recover        => <>,
-             Msg            => +Msg));
+         if Shared_Parser.Parsers.Count > 0 then
+            --  Emacs displays errors in the *syntax-errors* buffer
+            Shared_Parser.Parsers.First_State_Ref.Errors.Append
+              ((Label          => LR.Message,
+                First_Terminal => Trace.Descriptor.First_Terminal,
+                Last_Terminal  => Trace.Descriptor.Last_Terminal,
+                Recover        => <>,
+                Msg            => +Msg));
+         end if;
 
          --  Emacs displays the exception message in the echo area; easy to miss
          raise WisiToken.Parse_Error with Msg;
       end;
    end Parse;
+
+   overriding function Tree (Shared_Parser : in Parser) return Syntax_Trees.Tree
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Shared_Parser.Parsers.Count > 1 then
+         raise WisiToken.Parse_Error with "ambigous parse";
+      else
+         return Shared_Parser.Parsers.First_State_Ref.Tree;
+      end if;
+   end Tree;
 
    overriding
    procedure Execute_Actions (Parser : in out LR.Parser.Parser)
@@ -1005,12 +1020,11 @@ package body WisiToken.Parse.LR.Parser is
 
    begin
       if Parser.User_Data /= null then
-         if (for some Par of Parser.Parsers =>
-               (for some Err of Par.Errors => Any (Err.Recover.Ops, Delete)))
-         then
-            if Parser.Parsers.Count > 1 then
-               raise Syntax_Error with "ambiguous parse with deleted tokens; can't execute actions";
-            end if;
+         if Parser.Parsers.Count > 1 then
+            raise Syntax_Error with "ambiguous parse; can't execute actions";
+         end if;
+
+         if (for some Err of Parser.Parsers.First_State_Ref.Errors => Any (Err.Recover.Ops, Delete)) then
             for Err of Parser.Parsers.First_State_Ref.Errors loop
                for Op of Err.Recover.Ops loop
                   case Op.Op is
@@ -1023,7 +1037,9 @@ package body WisiToken.Parse.LR.Parser is
             end loop;
          end if;
 
-         for Parser_State of Parser.Parsers loop
+         declare
+            Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref.Element.all;
+         begin
             if Trace_Action > Outline then
                Parser.Trace.Put_Line
                  (Integer'Image (Parser_State.Label) & ": root node: " & Parser_State.Tree.Image
@@ -1031,7 +1047,7 @@ package body WisiToken.Parse.LR.Parser is
             end if;
 
             Parser_State.Tree.Process_Tree (Process_Node'Access);
-         end loop;
+         end;
       end if;
    end Execute_Actions;
 

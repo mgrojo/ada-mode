@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -53,16 +53,23 @@ package body WisiToken.Lexer.re2c is
       return Handle (Instance_Access'(new Instance (Descriptor)));
    end New_Lexer;
 
-   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
+   overriding procedure Reset_With_String
+     (Lexer      : in out Instance;
+      Input      : in     String;
+      Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
+      Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
    is begin
       Finalize (Lexer);
 
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
-        (Label       => String_Label,
-         File_Name   => +"",
-         Buffer      => new String'(Input),
-         User_Buffer => False);
+        (Label                     => String_Label,
+         File_Name                 => +"",
+         Buffer_Nominal_First_Byte => Base_Buffer_Pos (Input'First),
+         Buffer_Nominal_First_Char => Begin_Char,
+         Line_Nominal_First        => Begin_Line,
+         Buffer                    => new String'(Input),
+         User_Buffer               => False);
 
       Lexer.Lexer := New_Lexer
         (Buffer    => Lexer.Source.Buffer.all'Address,
@@ -73,9 +80,11 @@ package body WisiToken.Lexer.re2c is
    end Reset_With_String;
 
    overriding procedure Reset_With_String_Access
-     (Lexer     : in out Instance;
-      Input     : in     Ada.Strings.Unbounded.String_Access;
-      File_Name : in     Ada.Strings.Unbounded.Unbounded_String)
+     (Lexer      : in out Instance;
+      Input      : access String;
+      File_Name  : in     Ada.Strings.Unbounded.Unbounded_String;
+      Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
+      Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
    is begin
       Finalize (Lexer);
 
@@ -85,8 +94,11 @@ package body WisiToken.Lexer.re2c is
          File_Name   =>
            +(if Ada.Strings.Unbounded.Length (File_Name) = 0 then ""
              else Ada.Directories.Simple_Name (-File_Name)),
-         Buffer      => Input,
-         User_Buffer => True);
+         Buffer_Nominal_First_Byte => Base_Buffer_Pos (Input'First),
+         Buffer_Nominal_First_Char => Begin_Char,
+         Line_Nominal_First        => Begin_Line,
+         Buffer                    => Input,
+         User_Buffer               => True);
 
       Lexer.Lexer := New_Lexer
         (Buffer    => Lexer.Source.Buffer.all'Address,
@@ -96,27 +108,49 @@ package body WisiToken.Lexer.re2c is
       Reset (Lexer);
    end Reset_With_String_Access;
 
-   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
+   overriding procedure Reset_With_File
+     (Lexer          : in out Instance;
+      File_Name      : in     String;
+      Begin_Byte_Pos : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      End_Byte_Pos   : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      Begin_Char     : in     Buffer_Pos       := Buffer_Pos'First;
+      Begin_Line     : in     Line_Number_Type := Line_Number_Type'First)
    is
       use GNATCOLL.Mmap;
+      Length : Buffer_Pos;
    begin
       Finalize (Lexer);
 
       --  We assume the file is in UTF-8 encoding
       Lexer.Source :=
-        (File_Label, +Ada.Directories.Simple_Name (File_Name), Open_Read (File_Name), Invalid_Mapped_Region, 1);
+        (File_Label, +Ada.Directories.Simple_Name (File_Name),
+         Buffer_Nominal_First_Byte => Buffer_Pos'First, -- overwritten below,
+         Buffer_Nominal_First_Char => Begin_Char,
+         Line_Nominal_First        => Line_Number_Type'First, -- overwritten below
+         File                      => Open_Read (File_Name),
+         Region                    => Invalid_Mapped_Region,
+         Buffer_Last               => 1);
 
-      Lexer.Source.Region      := Read (Lexer.Source.File);
-      Lexer.Source.Buffer_Last := Last (Lexer.Source.Region);
+      if Begin_Byte_Pos = Invalid_Buffer_Pos then
+         Lexer.Source.Region := Read (Lexer.Source.File);
+         Length              := Buffer_Pos (Last (Lexer.Source.Region));
+      else
+         Length := End_Byte_Pos - Begin_Byte_Pos + 1;
 
-      if Integer (Length (Lexer.Source.File)) /= Lexer.Source.Buffer_Last then
-         raise SAL.Programmer_Error with "not all of file is mapped; file length" &
-           File_Size'Image (Length (Lexer.Source.File)) & " mapped:" & Integer'Image (Lexer.Source.Buffer_Last);
+         Lexer.Source.Buffer_Nominal_First_Byte := Begin_Byte_Pos;
+         Lexer.Source.Line_Nominal_First        := Begin_Line;
+
+         Lexer.Source.Region := Read
+           (Lexer.Source.File,
+            Offset => File_Size (Begin_Byte_Pos - 1), -- Offset is 0 indexed, Begin_Byte_Pos is 1 indexed
+            Length => File_Size (Length));
       end if;
+
+      Lexer.Source.Buffer_Last := Last (Lexer.Source.Region);
 
       Lexer.Lexer := New_Lexer
         (Buffer    => Data (Lexer.Source.Region).all'Address,
-         Length    => Interfaces.C.size_t (Last (Lexer.Source.Region)),
+         Length    => Interfaces.C.size_t (Length),
          Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
 
       Reset (Lexer);
@@ -148,10 +182,17 @@ package body WisiToken.Lexer.re2c is
            (ID => Lexer.ID,
 
             Byte_Region =>
-              (Buffer_Pos (Lexer.Byte_Position),
-               Base_Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1)),
+              (if Lexer.ID = Lexer.Descriptor.EOF_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
+               then
+                  --  EOF in empty buffer
+                 (Lexer.Source.Buffer_Nominal_First_Byte,
+                  Lexer.Source.Buffer_Nominal_First_Byte - 1)
+               else
+                 (Base_Buffer_Pos (Lexer.Byte_Position) + Lexer.Source.Buffer_Nominal_First_Byte - Buffer_Pos'First,
+                  Base_Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1) +
+                    Lexer.Source.Buffer_Nominal_First_Byte - Buffer_Pos'First)),
 
-            Line => Lexer.Line,
+            Line => Lexer.Line + Lexer.Source.Line_Nominal_First - Line_Number_Type'First,
 
             Column =>
               (if Lexer.ID = Lexer.Descriptor.New_Line_ID or
@@ -160,8 +201,14 @@ package body WisiToken.Lexer.re2c is
                else Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start)),
 
             Char_Region =>
-              (Buffer_Pos (Lexer.Char_Position),
-               Base_Buffer_Pos (Lexer.Char_Position + Lexer.Char_Length - 1)));
+              (if Lexer.ID = Lexer.Descriptor.EOF_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
+               then
+                  --  EOF in empty buffer
+                 (Lexer.Source.Buffer_Nominal_First_Byte,
+                  Lexer.Source.Buffer_Nominal_First_Byte - 1)
+               else
+                 (To_Char_Pos (Lexer.Source, Lexer.Char_Position),
+                  To_Char_Pos (Lexer.Source, Lexer.Char_Position + Lexer.Char_Length - 1))));
       end Build_Token;
 
    begin
@@ -196,7 +243,9 @@ package body WisiToken.Lexer.re2c is
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after '.
                      Lexer.Errors.Append
-                       ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => ''', others => ASCII.NUL)));
+                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position),
+                         Invalid_Token_Index,
+                         (1 => ''', others => ASCII.NUL)));
 
                      Lexer.ID := Lexer.Descriptor.String_1_ID;
                      Build_Token;
@@ -206,7 +255,9 @@ package body WisiToken.Lexer.re2c is
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after ".
                      Lexer.Errors.Append
-                       ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (1 => '"', others => ASCII.NUL)));
+                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position),
+                         Invalid_Token_Index,
+                         (1 => '"', others => ASCII.NUL)));
 
                      Lexer.ID := Lexer.Descriptor.String_2_ID;
                      Build_Token;
@@ -215,7 +266,7 @@ package body WisiToken.Lexer.re2c is
                   else
                      --  Just skip the character; call Next_Token again.
                      Lexer.Errors.Append
-                       ((Buffer_Pos (Lexer.Char_Position), Invalid_Token_Index, (others => ASCII.NUL)));
+                       ((To_Char_Pos (Lexer.Source, Lexer.Char_Position), Invalid_Token_Index, (others => ASCII.NUL)));
                   end if;
                end;
 
@@ -233,8 +284,13 @@ package body WisiToken.Lexer.re2c is
    end First;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String
-   is begin
-      return String (Buffer (Lexer.Source) (Integer (Byte_Bounds.First) .. Integer (Byte_Bounds.Last)));
+   is
+      First : constant Integer := Integer
+        (Byte_Bounds.First - Lexer.Source.Buffer_Nominal_First_Byte + Buffer_Pos'First);
+      Last  : constant Integer := Integer
+        (Byte_Bounds.Last - Lexer.Source.Buffer_Nominal_First_Byte + Buffer_Pos'First);
+   begin
+      return String (Buffer (Lexer.Source) (First .. Last));
    end Buffer_Text;
 
    overriding function File_Name (Lexer : in Instance) return String

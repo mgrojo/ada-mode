@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -140,10 +140,11 @@ package body Test_McKenzie_Recover is
          end if;
 
          if Code = Ok then
+            --  Expecting an Action error
+            Check (Label_I & ".label", Error.Label, Action);
             declare
                Token : WisiToken.Recover_Token renames Parser_State.Tree.Recover_Token (Error.Error_Token);
             begin
-               Check (Label_I & ".label", Error.Label, Action);
                Check (Label_I & ".error_token.id", Token.ID, Error_Token_ID);
                if Error_Token_ID /= +Wisi_EOI_ID then
                   --  EOF byte_region is unreliable
@@ -151,6 +152,7 @@ package body Test_McKenzie_Recover is
                end if;
             end;
          else
+            --  Expecting a Check error
             Check (Label_I & ".label", Error.Label, Check);
             Check (Label_I & ".code", Error.Check_Status.Label, Code);
             if Error.Check_Status.End_Name.Byte_Region = WisiToken.Null_Buffer_Region then
@@ -183,11 +185,11 @@ package body Test_McKenzie_Recover is
          --  succeeding parser was spawned after error recovery, but we copy
          --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
          if Enqueue_High = 0 then
-            Check (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low);
-            Check (Label_I & ".check", Parser_State.Recover.Check_Count, Check_Low);
+            Check (Label_I & ".enqueue_low", Parser_State.Recover.Enqueue_Count, Enqueue_Low);
+            Check (Label_I & ".check_low", Parser_State.Recover.Check_Count, Check_Low);
          else
-            Check_Range (Label_I & ".enqueue", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
-            Check_Range (Label_I & ".check", Parser_State.Recover.Check_Count, Check_Low, Check_High);
+            Check_Range (Label_I & ".enqueue_high", Parser_State.Recover.Enqueue_Count, Enqueue_Low, Enqueue_High);
+            Check_Range (Label_I & ".check_high", Parser_State.Recover.Check_Count, Check_Low, Check_High);
          end if;
          Check (Label_I & ".cost", Error.Recover.Cost, Cost);
       end;
@@ -208,6 +210,47 @@ package body Test_McKenzie_Recover is
       Parser.Parse;
       Check ("errors length", Parser.Parsers.First.State_Ref.Errors.Length, 0);
    end No_Error;
+
+   procedure Empty_Comments (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  The test is that there are no exceptions and only recovered errors.
+
+      Parse_Text ("");
+      Check_Recover
+        ("1",
+         Errors_Length           => 1,
+         Error_Token_ID          => Descriptor.EOF_ID,
+         Error_Token_Byte_Region => (1, 0),
+         Ops                     => +(Insert, +RETURN_ID, 1) & (Insert, +SEMICOLON_ID, 1),
+         Enqueue_Low             => 99,
+         Check_Low               => 21,
+         Cost                    => 4);
+
+      Parse_Text ("   ");
+      Check_Recover
+        ("2",
+         Errors_Length           => 1,
+         Error_Token_ID          => Descriptor.EOF_ID,
+         Error_Token_Byte_Region => (1, 0),
+         Ops                     => +(Insert, +RETURN_ID, 1) & (Insert, +SEMICOLON_ID, 1),
+         Enqueue_Low             => 99,
+         Check_Low               => 21,
+         Cost                    => 4);
+
+      Parse_Text ("--  a comment");
+      Check_Recover
+        ("3",
+         Errors_Length           => 1,
+         Error_Token_ID          => Descriptor.EOF_ID,
+         Error_Token_Byte_Region => (1, 0),
+         Ops                     => +(Insert, +RETURN_ID, 1) & (Insert, +SEMICOLON_ID, 1),
+         Enqueue_Low             => 99,
+         Check_Low               => 21,
+         Cost                    => 4);
+   end Empty_Comments;
+
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -304,7 +347,7 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
       use AUnit.Assertions;
    begin
-      Parse_Text ("else then ", Expect_Exception => True);
+      Parse_Text ("when in the course of human events", Expect_Exception => True);
       --  Bogus syntax; test no exceptions due to empty stack etc.
 
       Assert (False, "1.exception: did not get Syntax_Error");
@@ -1026,24 +1069,25 @@ package body Test_McKenzie_Recover is
       --  Missing 'Proc_2' 68. Enters error recovery on 'begin' 58 with
       --  Missing_Name_Error.
       --
-      --  Language_Fixes enqueues both 'ignore error' and (push_back, delete
-      --  'end ; '). 'ignore error' is more expensive, so the push_back
-      --  solution is returned.
+      --  Language_Fixes enqueues (push_back, delete 'end ; ').
       --
-      --  That fails at EOF, where a corresponding (insert 'end ;') is found.
+      --  That fails at EOF with an Extra_Name_Error, and (push_back, insert
+      --  'end ;') is found.
 
       Check_Recover
         (Errors_Length           => 2,
          Checking_Error          => 2,
-         Error_Token_ID          => +Wisi_EOI_ID,
-         Error_Token_Byte_Region => (82, 81),
-         Ops                     => +(Push_Back, +SEMICOLON_ID, 17) & (Push_Back, +identifier_opt_ID, 16) &
-           (Push_Back, +END_ID, 15) & (Push_Back, +handled_sequence_of_statements_ID, 13) &
-           (Push_Back, +BEGIN_ID, 12) & (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) &
-           (Insert, +SEMICOLON_ID, 12) & (Fast_Forward,  12),
+         Error_Token_ID          => +identifier_opt_ID,
+         Error_Token_Byte_Region => (74, 79),
+         Ops                     => +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 17) &
+           (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
+           (Push_Back, +handled_sequence_of_statements_ID, 13) & (Push_Back, +BEGIN_ID, 12) &
+           (Push_Back, +block_label_opt_ID, 0) & (Insert, +END_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
+           (Fast_Forward, 12),
          Enqueue_Low             => 14,
          Check_Low               => 2,
-         Cost                    => 0);
+         Cost                    => 0,
+         Code                    => Extra_Name_Error);
    end Missing_Name_5;
 
    procedure Block_Match_Names_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1058,24 +1102,21 @@ package body Test_McKenzie_Recover is
 
       --  Missing 'end' 87.
       --
-      --  Error recovery entered at 'procedure' 102, expecting statement.
-      --  The semantic check that would fail at Find_First 90 (begin 53 "",
-      --  "Find_First" 91) is not done by the main parser, because the
-      --  block_statement is not reduced.
-      --
-      --  That check does fail with Extra_Name_Error in recover. The desired
-      --  fix is (Push_Back 'Find_First ;', Insert '; end ;'). The
-      --  found solution is close to that.
+      --  Error recovery entered at 'procedure' 102 with Extra_Name_Error.
+      --  The desired fix is (Push_Back 'Find_First ;', Insert '; end ;').
+      --  The found solution is close to that.
       Check_Recover
         (Errors_Length           => 1,
-         Error_Token_ID          => +PROCEDURE_ID,
-         Error_Token_Byte_Region => (102, 110),
+         Error_Token_ID          => +identifier_opt_ID,
+         Error_Token_Byte_Region => (91, 100),
          Ops                     =>
-           +(Push_Back, +SEMICOLON_ID, 17) & (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
+           +(Undo_Reduce, +block_statement_ID, 6) & (Push_Back, +SEMICOLON_ID, 17) &
+             (Push_Back, +identifier_opt_ID, 16) & (Push_Back, +END_ID, 15) &
              (Insert, +END_ID, 15) & (Insert, +SEMICOLON_ID, 15) & (Fast_Forward, 15),
          Enqueue_Low             => 15,
          Check_Low               => 2,
-         Cost                    => 0);
+         Cost                    => 0,
+         Code                    => Extra_Name_Error);
    end Block_Match_Names_1;
 
    procedure Two_Parsers_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -1654,6 +1695,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, No_Error'Access, "No_Error");
+      Register_Routine (T, Empty_Comments'Access, "Empty_Comments");
       Register_Routine (T, Error_1'Access, "Error_1");
       Register_Routine (T, Error_2'Access, "Error_2");
       Register_Routine (T, Error_3'Access, "Error_3");

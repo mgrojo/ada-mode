@@ -12,7 +12,7 @@
 --  If run in an Emacs dynamically loaded module, the parser actions
 --  call the elisp actions directly.
 --
---  Copyright (C) 2012 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -178,7 +178,7 @@ is
       Navigate_Lines     : String_Lists.List;
       Face_Line          : Unbounded_String;
       Indent_Action_Line : Unbounded_String;
-      Check_Lines        : String_Lists.List;
+      Check_Line         : Unbounded_String;
 
       function Statement_Params (Params : in String) return String
       is
@@ -735,7 +735,35 @@ is
       procedure Translate_Line (Line : in String)
       is
          Last       : constant Integer := Index (Line, Blank_Set);
-         Elisp_Name : constant String  := Line (Line'First + 1 .. Last - 1);
+         Elisp_Name : constant String  := Line (Line'First + 1 .. (if Last = 0 then Line'Last else Last) - 1);
+
+         procedure Assert_Face_Empty
+         is begin
+            if Length (Face_Line) > 0 then
+               Put_Error
+                 (Error_Message
+                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple face actions"));
+            end if;
+         end Assert_Face_Empty;
+
+         procedure Assert_Indent_Empty
+         is begin
+            if Length (Indent_Action_Line) > 0 then
+               Put_Error
+                 (Error_Message
+                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple indent actions"));
+            end if;
+         end Assert_Indent_Empty;
+
+         procedure Assert_Check_Empty
+         is begin
+            if Length (Check_Line) > 0 then
+               Put_Error
+                 (Error_Message
+                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple check actions"));
+            end if;
+         end Assert_Check_Empty;
+
       begin
          --  wisi action/check functions, in same order as typically used in
          --  .wy files; Navigate, Face, Indent, Check.
@@ -755,101 +783,57 @@ is
                  Motion_Params (Line (Last + 1 .. Line'Last)) & ";");
 
          elsif Elisp_Name = "wisi-face-apply-action" then
-            if Length (Face_Line) = 0 then
+            Assert_Face_Empty;
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
-            else
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple face actions"));
-            end if;
 
          elsif Elisp_Name = "wisi-face-apply-list-action" then
-            if Length (Face_Line) = 0 then
+            Assert_Face_Empty;
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
-            else
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple face actions"));
-            end if;
 
          elsif Elisp_Name = "wisi-face-mark-action" then
-            if Length (Face_Line) = 0 then
+            Assert_Face_Empty;
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Mark_Params (Line (Last + 1 .. Line'Last)) & ";";
-            else
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple face actions"));
-            end if;
 
          elsif Elisp_Name = "wisi-face-remove-action" then
-            if Length (Face_Line) = 0 then
+            Assert_Face_Empty;
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Remove_Params (Line (Last + 1 .. Line'Last)) & ";";
-            else
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple face actions"));
-            end if;
 
          elsif Elisp_Name = "wisi-indent-action" then
-            if Length (Indent_Action_Line) = 0 then
+            Assert_Indent_Empty;
                Indent_Action_Line := +"Indent_Action_0" &
                  Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
-            else
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple indent actions"));
-            end if;
 
          elsif Elisp_Name = "wisi-indent-action*" then
-            if Length (Indent_Action_Line) = 0 then
+            Assert_Indent_Empty;
                declare
                   Temp : constant Integer := Index (Line, Blank_Set, Last + 1);
                begin
                   Indent_Action_Line := +"Indent_Action_1" &
                     Indent_Params (Line (Temp + 1 .. Line'Last), Line (Last + 1 .. Temp - 1) & ", ") & ";";
                end;
-            else
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "multiple indent actions"));
-            end if;
 
          elsif Elisp_Name = "wisi-propagate-name" then
-            if not Check then
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Elisp_Name & " used in action"));
-               return;
-            end if;
-            Check_Lines.Append
-              ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 " (Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";");
+            Assert_Check_Empty;
+            Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+              " (Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";";
 
          elsif Elisp_Name = "wisi-merge-names" then
-            if not Check then
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Elisp_Name & " used in action"));
-               return;
-            end if;
-            Check_Lines.Append
-              ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Merge_Names_Params (Line (Last + 1 .. Line'Last)) & ";");
+            Assert_Check_Empty;
+            Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+              Merge_Names_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-match-names" then
-            if not Check then
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Elisp_Name & " used in action"));
-               return;
-            end if;
-            Check_Lines.Append
-              ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Match_Names_Params (Line (Last + 1 .. Line'Last)) & ";");
+            Assert_Check_Empty;
+            Check_Line := +"return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+              Match_Names_Params (Line (Last + 1 .. Line'Last)) & ";";
+
+         elsif Elisp_Name = "wisi-terminate-partial-parse" then
+            Assert_Check_Empty;
+            Check_Line := +"return Terminate_Partial_Parse (Partial_Parse_Active);";
 
          else
             Put_Error
@@ -879,11 +863,11 @@ is
          Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
          Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
          declare
-            --  Tokens is always referenced.
-            Unref_Lexer   : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Lexer"));
-            Unref_Nonterm : constant Boolean := (for all Line of Check_Lines => 0 = Index (Line, "Nonterm"));
+            Unref_Lexer   : constant Boolean := 0 = Index (Check_Line, "Lexer");
+            Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
+            Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
          begin
-            if Unref_Lexer or Unref_Nonterm then
+            if Unref_Lexer or Unref_Nonterm or Unref_Tokens then
                Indent_Line ("is");
                if Unref_Lexer then
                   Indent_Line ("   pragma Unreferenced (Lexer);");
@@ -891,15 +875,16 @@ is
                if Unref_Nonterm then
                   Indent_Line ("   pragma Unreferenced (Nonterm);");
                end if;
+               if Unref_Tokens then
+                  Indent_Line ("   pragma Unreferenced (Tokens);");
+               end if;
                Indent_Line ("begin");
             else
                Indent_Line ("is begin");
             end if;
          end;
          Indent := Indent + 3;
-         for Line of Check_Lines loop
-            Indent_Line (Line);
-         end loop;
+         Indent_Line (-Check_Line);
       else
          --  In an action
          Indent_Line ("procedure " & Name);

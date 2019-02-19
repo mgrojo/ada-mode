@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 - 2019 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -31,7 +31,7 @@ with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
-package body Wisi_WY_Test is
+package body BNF_WY_Test is
 
    procedure Spawn
      (Program     : in String;
@@ -280,7 +280,7 @@ package body Wisi_WY_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("wisi_wy_test.adb-" & T.Root_Name.all);
+      return new String'("bnf_wy_test.adb " & T.Root_Name.all);
    end Name;
 
-end Wisi_WY_Test;
+end BNF_WY_Test;

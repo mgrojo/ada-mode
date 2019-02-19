@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -1012,13 +1012,16 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("   (unsigned char* input, size_t length, int verbosity)");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("wisi_lexer* result  = malloc (sizeof (wisi_lexer));");
-      Indent_Line ("result->buffer      = input;");
-      Indent_Line ("result->buffer_last = input + length - 1;");
-      Indent_Line ("result->cursor      = input;");
-      Indent_Line ("result->char_pos    = 1;");
-      Indent_Line ("result->line        = (*result->cursor == 0x0A) ? 2 : 1;");
-      Indent_Line ("result->verbosity   = verbosity;");
+      Indent_Line ("wisi_lexer* result        = malloc (sizeof (wisi_lexer));");
+      Indent_Line ("result->buffer            = input;");
+      Indent_Line ("result->buffer_last       = input + length - 1;");
+      Indent_Line ("result->cursor            = input;");
+      Indent_Line ("result->byte_token_start  = input;");
+      Indent_Line ("result->char_pos          = 1;");
+      Indent_Line ("result->char_token_start  = 1;");
+      Indent_Line ("result->line              = (*result->cursor == 0x0A) ? 2 : 1;");
+      Indent_Line ("result->line_token_start  = result->line;");
+      Indent_Line ("result->verbosity         = verbosity;");
       Indent_Line ("return result;");
       Indent := Indent - 3;
       Indent_Line ("}");
@@ -1156,10 +1159,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       New_Line;
 
       Indent_Line ("lexer->byte_token_start = lexer->cursor;");
-      Indent_Line ("if (DO_COUNT)");
-      Indent_Line ("   lexer->char_token_start = lexer->char_pos;");
-      Indent_Line ("else");
-      Indent_Line ("   lexer->char_token_start = lexer->char_pos + 1;");
+      Indent_Line ("lexer->char_token_start = lexer->char_pos;");
       Indent_Line ("if (*lexer->cursor == 0x0A)");
       Indent_Line ("   lexer->line_token_start = lexer->line-1;");
       Indent_Line ("else");

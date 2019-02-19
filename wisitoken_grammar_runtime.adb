@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with SAL;
 with WisiToken.Generate;   use WisiToken.Generate;
@@ -36,11 +37,13 @@ package body WisiToken_Grammar_Runtime is
 
       function Strip_Delimiters (Tree_Index : in Syntax_Trees.Valid_Node_Index) return String
       is
+         use Ada.Strings;
+         use Ada.Strings.Fixed;
          Region : Buffer_Region renames Data.Terminals.all (Tree.Terminal (Tree_Index)).Byte_Region;
       begin
          if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
-            --  strip delimiters.
-            return Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
+            --  strip delimiters, leading/trailing spaces.
+            return Trim (Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2)), Both);
 
          elsif -Tree.ID (Tree_Index) in STRING_LITERAL_ID | STRING_LITERAL_CASE_INS_ID and Strip_Quotes then
             return Data.Grammar_Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));

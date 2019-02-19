@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Build AUnit test suite containing tests that run wisi-generate
+--  Build AUnit test suite containing tests that run wisitoken-bnf-generate
 --
---  Copyright (C) 2013-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017, 2018, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,9 +21,9 @@ pragma License (GPL);
 with Ada.Strings.Unbounded;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_Generate_Errors;
-with Wisi_WY_Test;
+with BNF_WY_Test;
 with WisiToken.BNF;
-function Test_Wisi_Suite return Access_Test_Suite
+function Test_BNF_Suite return Access_Test_Suite
 is
    use all type WisiToken.BNF.Generate_Algorithm;
 
@@ -73,4 +73,4 @@ begin
 
    return Suite;
 
-end Test_Wisi_Suite;
+end Test_BNF_Suite;

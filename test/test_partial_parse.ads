@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Test one .wy file; compare to known good output files.
+--  Test partial parse
 --
---  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,14 +19,9 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Wisi_WY_Test is
+package Test_Partial_Parse is
 
-   type Test_Case
-     (Root_Name  : not null access String;
-      Input_Name : access String)
-     is new AUnit.Test_Cases.Test_Case with null record;
-   --  Always parse ../wisi/test/<Root_Name>.input. If Input_Name is non-null, also
-   --  parse ../wisi/test/<Input_Name>.input.
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 
@@ -34,4 +29,8 @@ package Wisi_WY_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Wisi_WY_Test;
+   overriding procedure Set_Up_Case (T : in out Test_Case);
+
+   overriding procedure Tear_Down_Case (T : in out Test_Case);
+
+end Test_Partial_Parse;

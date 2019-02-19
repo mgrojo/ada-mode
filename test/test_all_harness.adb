@@ -2,7 +2,7 @@
 --
 --  Run all WisiToken AUnit tests; see Makefile for other tests.
 --
---  Copyright (C) 2009, 2010, 2012 - 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -39,8 +39,9 @@ with Test_Ada_Lite_Terminal_Sequence;
 with Test_Follow;
 with Test_LR_Expecting_Terminal_Sequence;
 with Test_McKenzie_Recover;
+with Test_Partial_Parse;
 with Test_Skip_To;
-with Test_Wisi_Suite;
+with Test_BNF_Suite;
 with Trivial_Productions_Test;
 with Warth_Left_Recurse_Expr_1;
 with WisiToken.Generate.Packrat.Test;
@@ -65,7 +66,7 @@ is
       Report_Successes => True,
       Filter           => Filter'Unchecked_Access);
 
-   Suite    : constant Access_Test_Suite := Test_Wisi_Suite;
+   Suite    : constant Access_Test_Suite := Test_BNF_Suite;
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
@@ -121,6 +122,7 @@ begin
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting_Terminal_Sequence.Test_Case);
    Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Task_Count, Cost_Limit));
+   Add_Test (Suite, new Test_Partial_Parse.Test_Case);
    Add_Test (Suite, new Test_Skip_To.Test_Case);
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case);
    Add_Test (Suite, new Warth_Left_Recurse_Expr_1.Test_Case);

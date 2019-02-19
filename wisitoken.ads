@@ -16,7 +16,7 @@
 --  Sethi, and Ullman (aka: "The [Red] Dragon Book" due to the dragon
 --  on the cover).
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -51,6 +51,8 @@ with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Vectors.Gen_Image_Aux;
 package WisiToken is
 
+   Partial_Parse : exception; -- a partial parse terminated.
+
    Syntax_Error : exception; -- no recovery for a syntax error was found
 
    Parse_Error : exception; -- a non-recoverable non-fatal error was encountered; editing the input can fix the error.
@@ -75,7 +77,8 @@ package WisiToken is
    function Trimmed_Image is new SAL.Gen_Trimmed_Image (Unknown_State_Index);
 
    package State_Index_Queues is new SAL.Gen_Unbounded_Definite_Queues (State_Index);
-   package State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, State_Index);
+   package State_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive, State_Index, Default_Element => State_Index'Last);
    function Image is new State_Index_Arrays.Gen_Image (Trimmed_Image);
 
    ----------
@@ -158,7 +161,8 @@ package WisiToken is
 
    type Token_ID_Array is array (Positive range <>) of Token_ID;
 
-   package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Token_ID);
+   package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive, Token_ID, Default_Element => Invalid_Token_ID);
 
    function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
    function Trimmed_Image is new Token_ID_Arrays.Gen_Image (Trimmed_Image);
@@ -208,7 +212,8 @@ package WisiToken is
 
    type Token_Array_Token_ID is array (Token_ID range <>) of Token_ID;
 
-   package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_ID, Token_ID_Arrays.Vector);
+   package Token_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_ID, Token_ID_Arrays.Vector, Default_Element => Token_ID_Arrays.Empty_Vector);
 
    ----------
    --  Production IDs; see wisitoken-productions.ads for more
@@ -234,7 +239,8 @@ package WisiToken is
    function Padded_Image (Item : in Production_ID; Width : in Integer) return String;
    --  Trimmed_Image padded with leading spaces to Width
 
-   package Production_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Positive, Production_ID);
+   package Production_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Positive, Production_ID, Default_Element => Invalid_Production_ID);
    function Image is new Production_ID_Arrays.Gen_Image (Image);
    function Trimmed_Image is new Production_ID_Arrays.Gen_Image (Trimmed_Image);
 
@@ -309,12 +315,14 @@ package WisiToken is
 
    type Base_Token_Array is array (Positive_Index_Type range <>) of Base_Token;
 
-   package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Base_Token);
+   package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_Index, Base_Token, Default_Element => (others => <>));
    type Base_Token_Array_Access is access all Base_Token_Arrays.Vector;
 
    Invalid_Token_Index : constant Base_Token_Index := Base_Token_Arrays.No_Index;
 
-   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors (Line_Number_Type, Base_Token_Index);
+   package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
+     (Line_Number_Type, Base_Token_Index, Default_Element => Invalid_Token_Index);
 
    function Image is new Base_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
@@ -356,7 +364,8 @@ package WisiToken is
 
    type Recover_Token_Array is array (Positive_Index_Type range <>) of Recover_Token;
 
-   package Recover_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors (Token_Index, Recover_Token);
+   package Recover_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Token_Index, Recover_Token, Default_Element => (others => <>));
 
    function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 

@@ -2,7 +2,7 @@
 --
 --  Run one WisiToken AUnit test
 --
---  Copyright (C) 2009, 2010, 2012 - 2014, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2014, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -80,6 +80,7 @@ begin
    WisiToken.Trace_Generate := (if Argument_Count >= 4 then Integer'Value (Argument (4)) else 0);
    WisiToken.Trace_Parse    := (if Argument_Count >= 5 then Integer'Value (Argument (5)) else 0);
    WisiToken.Trace_McKenzie := (if Argument_Count >= 6 then Integer'Value (Argument (6)) else 0);
+   WisiToken.Trace_Action   := (if Argument_Count >= 7 then Integer'Value (Argument (7)) else 0);
 
    Add_Test (Suite, new Dragon_4_43_Packrat_Gen.Test_Case);
    Add_Test (Suite, new Dragon_4_43_Packrat_Hand.Test_Case);
