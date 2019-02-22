@@ -135,7 +135,8 @@ begin
                   Descriptor        => Descriptor'Unrestricted_Access,
                   Source_File_Name  => -Params.Source_File_Name,
                   Begin_Line        => Params.Begin_Line,
-                  Line_Count        => Params.Line_Count,
+                  End_Line          => Params.End_Line,
+                  Begin_Indent      => Params.Begin_Indent,
                   Params            => Command_Line (Last + 2 .. Command_Line'Last));
 
                if Params.Task_Count > 0 then
@@ -152,6 +153,7 @@ begin
                end if;
 
                Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
+
                Read_Input (Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
 
                Parser.Lexer.Reset_With_String_Access

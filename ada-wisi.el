@@ -718,84 +718,90 @@ TOKEN-TEXT; move point to just past token."
   ;; provides small enough regions.
   )
 
+(defconst ada-wisi-partial-end-regexp
+  ;; terminal semicolon, or end of current declare/statement block.
+  ";\\|end\\|begin\\|declare"
+  )
+
+(defun ada-wisi-find-begin ()
+  "Starting at current point, search backward for a parse start point."
+    ;; FIXME: ignore begin candidates matching '<keywords> name is separate;'
+  (if (search-backward-regexp ada-wisi-partial-begin-regexp nil t)
+	(progn
+	  (while (and (ada-in-string-or-comment-p)
+		      (search-backward-regexp ada-wisi-partial-begin-regexp nil t)))
+	  (point))
+    (point-min)))
+
+(defun ada-wisi-find-end ()
+  "Starting at current point, search forward for a reasonable parse end point."
+  (unless (bolp) (forward-line 1)) ;; get out of any current comment
+
+  (let ((start (point))
+	(end-cand nil)
+	(regexp (concat ada-wisi-partial-end-regexp "\\|" ada-wisi-partial-begin-regexp)))
+
+    (while (not end-cand)
+      (if (search-forward-regexp regexp nil 1) ;; moves to eob if not found
+	  (setq end-cand (point))
+
+       (unless (or (ada-in-string-or-comment-p)
+		   (ada-in-paren-p))
+	 ;; no reasonable end point found; return start for minimal parse
+	 (setq end-cand start))
+       ))
+
+    (unless (string-equal ";" (match-string 0))
+      (setq end-cand (match-beginning 0)))
+
+    end-cand))
+
+(defun ada-wisi-find-matching-end ()
+  "Starting at current point, search forward for a matching end.
+Point and match data must have been set by `ada-wisi-find-begin'."
+  (let (end-regexp)
+    (skip-syntax-forward "ws")
+    (skip-syntax-forward " ")
+    (when (looking-at "body\\|type")
+      (goto-char (match-end 0))
+      (skip-syntax-forward " "))
+    (setq end-regexp
+	  (concat "end +"
+		  (buffer-substring-no-properties
+		   (point)
+		   (progn
+		     (skip-syntax-forward "ws._")
+		     (point)))
+		  ";"))
+    (if (search-forward-regexp end-regexp)
+	(progn
+	  (while (and (ada-in-string-or-comment-p)
+		      (search-forward-regexp end-regexp)))
+	  (point))
+
+      ;; matching end not found
+      nil)))
+
 (cl-defmethod wisi-parse-expand-region ((_parser ada-wisi-parser) begin end)
-  (if (= begin (point-min))
-      (save-excursion
-	(goto-char begin)
-	(forward-comment end)
-	(if (>= (point) end)
-	    ;; Region is all comment or empty. Use point to ensure end
-	    ;; is not in a comment delimiter.
-	    (cons begin (point))
+  (let (begin-cand end-cand result)
+    (goto-char begin)
 
-	  ;; Region has some code. We don't want to parse one
-	  ;; compilation unit from here, because that's the entire
-	  ;; file. So find the first terminal semicolon, and let error
-	  ;; recovery finish the compilation unit.
+    (setq begin-cand (ada-wisi-find-begin))
+    (if (or ada-end-name-optional
+	    (= begin-cand (point-min))) ;; No code between BEGIN and bob
+	(progn
 	  (goto-char end)
-	  (if (search-forward ";" nil t)
-	      (progn
-		(while (or (ada-in-string-or-comment-p)
-			 (ada-in-paren-p))
-		  (search-forward ";"  nil t))
-		(cons begin (point)))
+	  (setq result (cons begin-cand (ada-wisi-find-end))))
 
-	    ;; First search-forward returned nil; there is no code from
-	    ;; end to eob; just use eob.
-	    (cons begin (point-max)))
-	  ))
+      ;; Else search for a matching name; avoids error recovery.
+      (setq end-cand (ada-wisi-find-matching-end))
+      (if (and end-cand
+	       (>= end-cand end))
+	  (setq result (cons begin-cand end-cand))
+	(goto-char end)
+	(setq result (cons begin-cand (ada-wisi-find-end))))
 
-    ;; begin > (point-min)
-    ;;
-    ;; FIXME: that doesn't mean it's after the start of the top-level
-    ;; compilation unit.
-
-    ;; To find the end and thus avoid error recovery, we assume the
-    ;; matching end names are present; that means we don't have to
-    ;; handle nested begin/end.
-    ;;
-    ;; FIXME: if end-names-optional, return (point-max), or scan
-    ;; to next terminal semicolon, let recover finish compilation unit
-
-    (let (begin-cand end-cand end-regexp)
-      (goto-char begin)
-      (search-backward-regexp ada-wisi-partial-begin-regexp)
-      (while (ada-in-string-or-comment-p)
-	(search-backward-regexp ada-wisi-partial-begin-regexp))
-      ;; FIXME: ignore begin candidates matching '<keywords> name is separate;'
-
-      (setq begin-cand (point))
-
-      (skip-syntax-forward "ws")
-      (skip-syntax-forward " ")
-      (when (looking-at "body\\|type")
-	(goto-char (match-end 0))
-	(skip-syntax-forward " "))
-
-      (setq end-regexp
-	    (concat "end +"
-		    (buffer-substring-no-properties
-		     (point)
-		     (progn
-		       (skip-syntax-forward "ws._")
-		       (point)))
-		    ";"))
-      (search-forward-regexp end-regexp)
-      (while (ada-in-string-or-comment-p)
-	(search-forward-regexp end-regexp))
-      (setq end-cand (point))
-
-      (if (<= end end-cand)
-	  ;; candidate contains END
-	  (cons begin-cand end-cand)
-
-	(if (<= end-cand begin)
-	    ;; candidate precedes BEGIN END. Use end-cand as begin, (point-max) as
-	    ;; end; parser will stop after one compilation_unit.
-	    (cons end-cand (point-max))
-
-	  (error "unexpected case in ada wisi-parse-expand-region")))
-      )))
+      result)))
 
 (defun ada-wisi-show-expanded-region ()
   "For debugging. Expand currently selected region."

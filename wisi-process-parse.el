@@ -165,26 +165,29 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (pop-to-buffer (wisi-process--parser-buffer parser))
     (error "wisi-process-parse process not active")))
 
-(defun wisi-process-parse--send-parse (parser begin end line-count)
+(defun wisi-process-parse--send-parse (parser begin send-end parse-end)
   "Send a parse command to PARSER external process, followed by
-the content of the current buffer from BEGIN thru END.  Does not
-wait for command to complete. LINE-COUNT is the number of lines
-in the region."
+the content of the current buffer from BEGIN thru SEND-END.  Does
+not wait for command to complete. PARSE-END is end of desired
+parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse,adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
 			(indent 2))
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      (position-bytes begin)
-		      (position-bytes end)
-		      line-count
-		      begin
+		      (position-bytes send-end)
+		      (position-bytes parse-end)
+		      begin ;; char_pos
 		      (line-number-at-pos begin)
+		      (line-number-at-pos send-end)
 		      (save-excursion (goto-char begin) (back-to-indentation) (current-column));; indent-begin
-		      (if (< (point-max) wisi-partial-parse-threshold) 0 1) ;; partial parse active
+		      (if (or (and (= begin (point-min)) (= parse-end (point-max)))
+			      (< (point-max) wisi-partial-parse-threshold))
+			  0 1) ;; partial parse active
 		      (if (> wisi-debug 0) 1 0) ;; debug-mode
 		      (1- wisi-debug) ;; trace_parse
 		      wisi-trace-mckenzie
@@ -194,7 +197,7 @@ in the region."
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
 		      (if wisi-mckenzie-check-limit wisi-mckenzie-check-limit -1)
 		      (if wisi-mckenzie-enqueue-limit wisi-mckenzie-enqueue-limit -1)
-		      (- (position-bytes end) (position-bytes begin))
+		      (- (position-bytes send-end) (position-bytes begin)) ;; send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))
 	 (msg (format "%03d%s" (length cmd) cmd))
@@ -205,7 +208,7 @@ in the region."
       (erase-buffer))
 
     (process-send-string process msg)
-    (process-send-string process (buffer-substring-no-properties begin end))
+    (process-send-string process (buffer-substring-no-properties begin send-end))
 
     ;; We don’t wait for the send to complete; the external process
     ;; may start parsing and send an error message.
@@ -442,8 +445,9 @@ complete."
 (defvar wisi--lexer nil) ;; wisi-elisp-lexer.el
 (declare-function wisi-elisp-lexer-reset "wisi-elisp-lexer")
 
-(cl-defmethod wisi-parse-current ((parser wisi-process--parser) begin end)
-  "Run the external parser on the current buffer, from BEGIN to at least END."
+(cl-defmethod wisi-parse-current ((parser wisi-process--parser) begin send-end parse-end)
+  "Run the external parser on the current buffer, from BEGIN to at least PARSE-END.
+Send BEGIN thru SEND-END to external parser."
   (wisi-process-parse--require-process parser)
 
   ;; font-lock can trigger a face parse while navigate or indent parse
@@ -491,10 +495,9 @@ complete."
 	  (setf (wisi-parser-lexer-errors parser) nil)
 	  (setf (wisi-parser-parse-errors parser) nil)
 
-	  (let ((total-line-count (1+ (count-lines (point-max) (point-min))))
-		(region-line-count (1+ (count-lines begin end))))
+	  (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
 	    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
-	    (wisi-process-parse--send-parse parser begin end region-line-count)
+	    (wisi-process-parse--send-parse parser begin send-end parse-end)
 
 	    ;; We reset the elisp lexer, because post-parse actions may use it.
 	    (when wisi--lexer

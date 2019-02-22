@@ -332,9 +332,9 @@ Regions in a list are in random order.")
 
 (defun wisi-reset-parser ()
   "For ’ada-reset-parser’."
-  (wisi-invalidate-cache 'indent 0)
-  (wisi-invalidate-cache 'face 0)
-  (wisi-invalidate-cache 'navigate 0))
+  (wisi-invalidate-cache 'indent (point-min))
+  (wisi-invalidate-cache 'face (point-min))
+  (wisi-invalidate-cache 'navigate (point-min)))
 
 ;; wisi--change-* keep track of buffer modifications.
 ;; If wisi--change-end comes before wisi--change-beg, it means there were
@@ -628,8 +628,8 @@ Usefull if the parser appears to be hung."
     (wisi-invalidate-cache parse-action (point-min)))
   )
 
-(defun wisi--run-parse (begin end)
-  "Run the parser, on at least region BEGIN END."
+(defun wisi--run-parse (begin parse-end)
+  "Run the parser, on at least region BEGIN PARSE-END."
   (unless (or (buffer-narrowed-p)
 	      (= (point-min) (point-max))) ;; some parsers can’t handle an empty buffer.
     (let ((msg (when (> wisi-debug 0)
@@ -637,7 +637,7 @@ Usefull if the parser appears to be hung."
 			 wisi--parse-action
 			 (buffer-name)
 			 begin
-			 end
+			 parse-end
 			 (line-number-at-pos begin))))
 	  (parsed-region nil))
 
@@ -655,15 +655,17 @@ Usefull if the parser appears to be hung."
 
       (condition-case-unless-debug err
 	  (save-excursion
-	    (if (< (point-max) wisi-partial-parse-threshold)
+	    (if (or (and (= begin (point-min)) (= parse-end (point-max)))
+		    (< (point-max) wisi-partial-parse-threshold))
 		(progn
 		  (setq parsed-region (cons (point-min) (point-max)))
-		  (wisi-cache-set-region (wisi-parse-current wisi--parser (point-min) (point-max))))
+		  (wisi-cache-set-region (wisi-parse-current wisi--parser (point-min) (point-max) (point-max))))
 
 	      ;; Use partial parse.
-	      (setq parsed-region (wisi-parse-expand-region wisi--parser begin end))
-	      (wisi-cache-add-region (wisi-parse-current wisi--parser (car parsed-region) (cdr parsed-region)))
-	      )
+	      (let ((send-region (wisi-parse-expand-region wisi--parser begin parse-end)))
+		(setq parsed-region (wisi-parse-current wisi--parser (car send-region) (cdr send-region) parse-end))
+		(wisi-cache-add-region parsed-region)
+		))
 	    (setq wisi-parse-failed nil))
 	(wisi-parse-error
 	 (cl-ecase wisi--parse-action
@@ -721,20 +723,25 @@ Usefull if the parser appears to be hung."
 
 (defun wisi-validate-cache (begin end error-on-fail parse-action)
   "Ensure cached data for PARSE-ACTION is valid in region BEGIN END in current buffer."
-  (if (< (point-max) wisi-size-threshold)
+  (if (and (not wisi-inhibit-parse)
+	   (< (point-max) wisi-size-threshold))
       (let ((wisi--parse-action parse-action))
 	(wisi--check-change)
 
 	;; Now we can rely on wisi-cache-covers-region
 
-	(when (and (not wisi-inhibit-parse)
-		   (wisi-parse-try)
-		   (not (wisi-cache-covers-region begin end)))
+	(if (and (or (not wisi-parse-failed)
+		     (wisi-parse-try))
+		(not (wisi-cache-covers-region begin end)))
+	    (progn
+	      ;; Don't keep retrying failed parse until text changes again.
+	      (wisi-set-parse-try nil)
+	      (wisi--run-parse begin end))
 
-	  ;; Don't keep retrying failed parse until text changes again.
-	  (wisi-set-parse-try nil)
-
-	  (wisi--run-parse begin end))
+	  (when (> wisi-debug 0)
+	    (message "parse skipped: parse-try %s cache-covers-region %s"
+		     (wisi-parse-try)
+		     (wisi-cache-covers-region begin end))))
 
 	;; We want this error even if we did not try to parse; it means
 	;; the parse results are not valid.
@@ -742,7 +749,9 @@ Usefull if the parser appears to be hung."
 	  (error "parse %s failed" parse-action))
 	)
     (when (> wisi-debug 0)
-      (message "parse skipped due to ‘wisi-size-threshold’"))))
+      (message "parse skipped inihibit-parse %s wisi-size-threshold %d"
+	       wisi-inhibit-parse
+	       wisi-size-threshold))))
 
 (defun wisi-fontify-region (begin end)
   "For `jit-lock-functions'."

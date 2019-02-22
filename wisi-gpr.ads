@@ -39,7 +39,8 @@ package Wisi.Gpr is
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
-      Line_Count        : in     WisiToken.Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type;
+      Begin_Indent      : in     Integer;
       Params            : in     String);
    --  Call Wisi_Runtime.Initialize, then:
    --

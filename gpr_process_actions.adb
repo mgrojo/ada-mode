@@ -145,12 +145,14 @@ package body Gpr_Process_Actions is
    end case_item_0;
 
    function identifier_opt_1_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Lexer);
+      pragma Unreferenced (Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end identifier_opt_1_check;
@@ -177,12 +179,14 @@ package body Gpr_Process_Actions is
    end package_spec_0;
 
    function package_spec_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 6, End_Names_Optional);
    end package_spec_0_check;
@@ -210,12 +214,14 @@ package body Gpr_Process_Actions is
    end package_extension_0;
 
    function package_extension_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end package_extension_0_check;
@@ -261,12 +267,14 @@ package body Gpr_Process_Actions is
    end project_extension_0;
 
    function project_extension_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end project_extension_0_check;
@@ -350,12 +358,14 @@ package body Gpr_Process_Actions is
    end simple_project_declaration_0;
 
    function simple_project_declaration_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
       pragma Unreferenced (Nonterm);
+      pragma Unreferenced (Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 6, End_Names_Optional);
    end simple_project_declaration_0_check;

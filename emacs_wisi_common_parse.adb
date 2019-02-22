@@ -164,11 +164,15 @@ package body Emacs_Wisi_Common_Parse is
          Result.Post_Parse_Action    := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
          Result.Source_File_Name     := +Get_String (Command_Line, Last);
          Result.Begin_Byte_Pos       := Get_Integer (Command_Line, Last);
-         Result.End_Byte_Pos         := Get_Integer (Command_Line, Last);
-         Result.Line_Count           := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
+
+         --  Emacs end is after last char.
+         Result.End_Byte_Pos         := Get_Integer (Command_Line, Last) - 1;
+
+         Result.Goal_Byte_Pos        := Get_Integer (Command_Line, Last);
          Result.Begin_Char_Pos       := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last));
          Result.Begin_Line           := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
-         Result.Indent_Begin         := Get_Integer (Command_Line, Last);
+         Result.End_Line             := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
+         Result.Begin_Indent         := Get_Integer (Command_Line, Last);
          Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
          Result.Debug_Mode           := 1 = Get_Integer (Command_Line, Last);
          Result.Parse_Verbosity      := Get_Integer (Command_Line, Last);

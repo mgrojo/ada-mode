@@ -30,8 +30,12 @@ package body Run_Wisi_Common_Parse is
       use all type WisiToken.Parse.LR.Parse_Table_Ptr;
       use Ada.Text_IO;
    begin
-      Put_Line ("usage: <file_name> <parse_action> [begin_byte_pos end_byte_pos begin_char_pos begin_line] [options]");
+      Put_Line
+        ("usage: <file_name> <parse_action> [partial parse params]" &
+           "[options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
+      Put_Line ("partial parse params: begin_byte_pos end_byte_pos goal_byte_pos begin_char_pos begin_line" &
+                  "end_line begin_indent");
       Put_Line ("options:");
       Put_Line ("--verbosity n m l:");
       Put_Line ("   n: parser; m: mckenzie; l: action");
@@ -86,9 +90,12 @@ package body Run_Wisi_Common_Parse is
          if Argument (3)(1) /= '-' then
             Result.Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (3));
             Result.End_Byte_Pos   := WisiToken.Buffer_Pos'Value (Argument (4));
-            Result.Begin_Char_Pos := WisiToken.Buffer_Pos'Value (Argument (5));
-            Result.Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (6));
-            Arg                   := 7;
+            Result.Goal_Byte_Pos  := WisiToken.Buffer_Pos'Value (Argument (5));
+            Result.Begin_Char_Pos := WisiToken.Buffer_Pos'Value (Argument (6));
+            Result.Begin_Line     := WisiToken.Line_Number_Type'Value (Argument (7));
+            Result.End_Line       := WisiToken.Line_Number_Type'Value (Argument (8));
+            Result.Begin_Indent   := Integer'Value (Argument (9));
+            Arg                   := 9;
          else
             Result.Begin_Byte_Pos := WisiToken.Invalid_Buffer_Pos;
             Result.End_Byte_Pos   := WisiToken.Invalid_Buffer_Pos;

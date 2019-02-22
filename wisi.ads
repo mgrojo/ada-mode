@@ -49,16 +49,11 @@ package Wisi is
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
-      Line_Count        : in     WisiToken.Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type;
+      Begin_Indent      : in     Integer;
       Params            : in     String);
-   --  Begin_Line, Line_Count only used for Indent. Params contains
-   --  language-specific indent parameter values.
-   --
-   --  It is possible to do without the Line_Count parameter, and grow
-   --  the various vectors dynamically. However, doing that caused
-   --  intermittent problems with too many lines; the Ada code saw more
-   --  lines than the elisp code did. Using the elisp line count is more
-   --  reliable.
+   --  Begin_Line, Begin_Indent, Line_Count only used for Indent. Params
+   --  contains language-specific indent parameter values.
 
    overriding procedure Reset (Data : in out Parse_Data_Type);
    --  Reset for a new parse, with data from previous Initialize.
@@ -558,6 +553,7 @@ private
       End_Positions     : Navigate_Cursor_Lists.List; -- Dynamic data for Navigate.
       Face_Caches       : Face_Cache_Trees.Tree;      -- Set by Face.
       Indents           : Indent_Vectors.Vector;      -- Set by Indent.
+      Begin_Indent      : Integer;                    -- Indentation of line at start of parse.
 
       --  Copied from language-specific parameters
       Indent_Comment_Col_0 : Boolean := False;

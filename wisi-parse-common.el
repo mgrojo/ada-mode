@@ -60,8 +60,10 @@ for the language-specific parser options."
   )
 
 (cl-defgeneric wisi-parse-expand-region ((parser wisi-parser) begin end)
-  "Return a cons that is an expansion of region BEGIN END that
-starts at a valid parse start point, and contains END.")
+  "Return a cons SEND-BEGIN . SEND-END that is an expansion of
+region BEGIN END that starts at a valid parse start point,
+contains END, and ends at a point the parser can handle
+gracefully.")
 
 (cl-defgeneric wisi-parse-current ((parser wisi-parser) begin end)
   "Parse current buffer starting at BEGIN, continuing at least thru END.

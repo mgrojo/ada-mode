@@ -67,15 +67,18 @@ package Emacs_Wisi_Common_Parse is
       End_Byte_Pos : Integer;
       --  Byte position of last char sent.
 
-      Line_Count : WisiToken.Line_Number_Type;
+      Goal_Byte_Pos : Integer;
+      --  Byte position of end of desired parse region; terminate parse at
+      --  or after here.
 
       Begin_Char_Pos : WisiToken.Buffer_Pos;
       --  Char position of first char sent.
 
       Begin_Line : WisiToken.Line_Number_Type;
-      --  Line number of line containing Begin_Pos
+      End_Line   : WisiToken.Line_Number_Type;
+      --  Line number of line containing Begin_Byte_Pos, End_Byte_Pos
 
-      Indent_Begin : Integer;
+      Begin_Indent : Integer;
       --  Indentation of Line_Begin
 
       Partial_Parse_Active : Boolean;

@@ -63,18 +63,7 @@ enforce unix line endings
 partial parse
     c:/eurocontrol/regulation-iflight.adb
 
-    test/ada_mode-partial_parse.adb
-;; parse 1 "ada_mode-partial_parse.adb" 1 873 21 1 1 0 1 0 -1 0 0 0 -1 -1 -1 -1 872 3 2 0 0 -3 3 2 0 2 3 2 0 0
-[5 451 "syntax error: expecting ACCEPT, ABORT, BEGIN, CASE, DECLARE, DELAY, ENTRY, EXIT, FOR, FUNCTION, GENERIC, GOTO, IF, LIMITED, LOOP, NOT, NULL, OVERRIDING, PACKAGE, PRAGMA, PRIVATE, PROCEDURE, PROTECTED, RAISE, REQUEUE, RETURN, SEPARATE, SELECT, SUBTYPE, TASK, TYPE, USE, WHILE, WITH, LESS_LESS, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 'Wisi_EOI'"]
-[5 1 "recover: fail FAIL_ENQUEUE_LIMIT"]
-(parse_error)
-    1 = face
-    begin_byte_pos .. end_byte_pos => 1 .. 873
-    triggered by font-lock during redisplay
-
-test emulate font-lock; 500 byte chunks thru the whole file.
-
-expand-region move end to next terminal semicolon; let error recover finish the compilation unit.
+    don't set margin error marks for errors from partial parse
 
 optimize begin in wisi-goto-*
 

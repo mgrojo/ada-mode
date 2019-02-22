@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 All Rights Reserved.
+--  Copyright (C) 2017, 2018, 2019 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -42,6 +42,8 @@ is
    Line_Count : WisiToken.Line_Number_Type := 1;
    Start      : Ada.Real_Time.Time;
 begin
+   --  Create parser first so Put_Usage has defaults from Parser.Table,
+   --  and Get_CL_Params can override them.
    declare
       use Ada.Command_Line;
    begin
@@ -52,19 +54,21 @@ begin
          Ada.Directories.Containing_Directory (Command_Name) & "/" & Text_Rep_File_Name);
    end;
 
-   --  Some command line params set params in the parser.
    Cl_Params := Get_CL_Params (Parser);
 
    --  Do this after setting Trace_Parse so lexer verbosity is set
    begin
-      Parser.Lexer.Reset_With_File (-Cl_Params.Source_File_Name);
+      Parser.Lexer.Reset_With_File
+        (-Cl_Params.Source_File_Name, Cl_Params.Begin_Byte_Pos, Cl_Params.End_Byte_Pos, Cl_Params.Begin_Char_Pos,
+         Cl_Params.Begin_Line);
    exception
    when Ada.IO_Exceptions.Name_Error =>
       Put_Line (Standard_Error, "'" & (-Cl_Params.Source_File_Name) & "' cannot be opened");
       return;
    end;
 
-   --  See comment in wisi.ads for why we still need this.
+   --  See comment in wisi.ads Initialize on Line_Count for why we still
+   --  need this.
    declare
       Token : Base_Token;
       Lexer_Error : Boolean;
@@ -77,10 +81,7 @@ begin
          exception
          when WisiToken.Syntax_Error =>
             Parser.Lexer.Discard_Rest_Of_Input;
-            Parse_Data.Put
-              (Parser.Lexer.Errors,
-               Parser.Parsers.First.State_Ref.Errors,
-               Parser.Parsers.First.State_Ref.Tree);
+            Wisi.Put (Parser.Lexer.Errors);
             Put_Line ("(lexer_error)");
          end;
       end loop;
@@ -95,7 +96,9 @@ begin
      (Post_Parse_Action => Cl_Params.Post_Parse_Action,
       Descriptor        => Descriptor'Unrestricted_Access,
       Source_File_Name  => -Cl_Params.Source_File_Name,
-      Line_Count        => Line_Count,
+      Begin_Line        => Cl_Params.Begin_Line,
+      End_Line          => Cl_Params.Begin_Line,
+      Begin_Indent      => Cl_Params.Begin_Indent,
       Params            => -Cl_Params.Lang_Params);
 
    if Cl_Params.Repeat_Count > 1 then
@@ -105,9 +108,11 @@ begin
    for I in 1 .. Cl_Params.Repeat_Count loop
       declare
          procedure Clean_Up
-         is begin
+         is
+            use all type SAL.Base_Peek_Type;
+         begin
             Parser.Lexer.Discard_Rest_Of_Input;
-            if Cl_Params.Repeat_Count = 1 then
+            if Cl_Params.Repeat_Count = 1 and Parser.Parsers.Count > 0 then
                Parse_Data.Put
                  (Parser.Lexer.Errors,
                   Parser.Parsers.First.State_Ref.Errors,
@@ -119,11 +124,11 @@ begin
          Parse_Data.Reset;
          Parser.Lexer.Reset;
 
-            Parser.Parse;
-            Parser.Execute_Actions;
+         Parser.Parse;
+         Parser.Execute_Actions;
 
          if Cl_Params.Repeat_Count = 1 then
-            Parse_Data.Put;
+            Parse_Data.Put (Parser);
             Parse_Data.Put
               (Parser.Lexer.Errors,
                Parser.Parsers.First.State_Ref.Errors,

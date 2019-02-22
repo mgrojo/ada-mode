@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2014, 2017, 2018 All Rights Reserved.
+--  Copyright (C) 2014, 2017 - 2019 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -45,7 +45,6 @@ is
    end Cleanup;
 
 begin
-
    declare
       use Ada.Directories;
       use Ada.Strings.Unbounded;
@@ -89,7 +88,7 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: see Usage
+            --  Args: see wisi-process-parse.el wisi-process-parse--send-parse, --send-noop
             --  Input: <source text>
             --  Response:
             --  [response elisp vector]...
@@ -118,6 +117,8 @@ begin
                Trace_Action   := Params.Action_Verbosity;
                Debug_Mode     := Params.Debug_Mode;
 
+               Partial_Parse_Active := Params.Partial_Parse_Active;
+
                --  Default Enable_McKenzie_Recover is False if there is no McKenzie
                --  information; don't override that.
                Parser.Enable_McKenzie_Recover :=
@@ -129,7 +130,9 @@ begin
                  (Post_Parse_Action => Params.Post_Parse_Action,
                   Descriptor        => Descriptor'Unrestricted_Access,
                   Source_File_Name  => -Params.Source_File_Name,
-                  Line_Count        => Params.Line_Count,
+                  Begin_Line        => Params.Begin_Line,
+                  End_Line          => Params.End_Line,
+                  Begin_Indent      => Params.Begin_Indent,
                   Params            => Command_Line (Last + 2 .. Command_Line'Last));
 
                if Params.Task_Count > 0 then
@@ -145,13 +148,14 @@ begin
                   Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
                end if;
 
-               Buffer := new String (1 .. Params.Byte_Count);
-               Read_Input (Buffer (1)'Address, Params.Byte_Count);
+               Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
+               Read_Input (Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
 
-               Parser.Lexer.Reset_With_String_Access (Buffer, Params.Source_File_Name);
+               Parser.Lexer.Reset_With_String_Access
+                 (Buffer, Params.Source_File_Name, Params.Begin_Char_Pos, Params.Begin_Line);
                Parser.Parse;
                Parser.Execute_Actions;
-               Put (Parse_Data);
+               Parse_Data.Put (Parser);
                Clean_Up;
 
             exception

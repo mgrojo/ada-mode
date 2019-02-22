@@ -33,8 +33,11 @@ package Run_Wisi_Common_Parse is
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
       Begin_Byte_Pos    : WisiToken.Buffer_Pos;
       End_Byte_Pos      : WisiToken.Buffer_Pos;
+      Goal_Byte_Pos     : WisiToken.Buffer_Pos;
       Begin_Char_Pos    : WisiToken.Buffer_Pos;
       Begin_Line        : WisiToken.Line_Number_Type;
+      End_Line          : WisiToken.Line_Number_Type;
+      Begin_Indent      : Integer;
       Repeat_Count      : Integer := 1;
       Lang_Params       : Ada.Strings.Unbounded.Unbounded_String;
    end record;

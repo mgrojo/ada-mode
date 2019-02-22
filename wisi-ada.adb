@@ -94,7 +94,8 @@ package body Wisi.Ada is
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     WisiToken.Line_Number_Type;
-      Line_Count        : in     Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type;
+      Begin_Indent      : in     Integer;
       Params            : in     String)
    is
       use Standard.Ada.Strings.Fixed;
@@ -102,7 +103,8 @@ package body Wisi.Ada is
       Last  : Integer := Index (Params, " ");
    begin
       Wisi.Initialize
-        (Wisi.Parse_Data_Type (Data), Descriptor, Source_File_Name, Post_Parse_Action, Begin_Line, Line_Count, "");
+        (Wisi.Parse_Data_Type (Data), Descriptor, Source_File_Name, Post_Parse_Action, Begin_Line, End_Line,
+         Begin_Indent, "");
 
       if Params /= "" then
          Ada_Indent := Integer'Value (Params (First .. Last - 1));
