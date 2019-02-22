@@ -73,7 +73,7 @@ package body WisiToken.Parse.LR.Parser is
             Children_Token : constant Recover_Token_Array := Parser_State.Tree.Recover_Token_Array (Children_Tree);
             Status         : Semantic_Checks.Check_Status;
          begin
-            Status := Action.Check (Lexer, Nonterm_Token, Children_Token);
+            Status := Action.Check (Lexer, Nonterm_Token, Children_Token, Recover_Active => False);
 
             Parser_State.Tree.Set_Name_Region (Nonterm, Nonterm_Token.Name);
 

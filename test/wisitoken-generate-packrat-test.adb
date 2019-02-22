@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 - 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -63,8 +63,8 @@ package body WisiToken.Generate.Packrat.Test is
             Generate_Data.Source_Line_Map, Generate_Data.Descriptor.First_Terminal);
 
          --  From ada_lite.parse_table
-         Name_ID               : constant Token_ID := 104;
-         Selected_Component_ID : constant Token_ID := 124;
+         Name_ID               : constant Token_ID := 103;
+         Selected_Component_ID : constant Token_ID := 123;
 
          Expected : Token_Array_Token_Set :=
            (Generate_Data.Grammar.First_Index .. Generate_Data.Grammar.Last_Index =>

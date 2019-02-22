@@ -833,7 +833,8 @@ is
 
          elsif Elisp_Name = "wisi-terminate-partial-parse" then
             Assert_Check_Empty;
-            Check_Line := +"return Terminate_Partial_Parse (Partial_Parse_Active);";
+            Check_Line := +"return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, " &
+              "Recover_Active, Nonterm);";
 
          else
             Put_Error
@@ -858,16 +859,18 @@ is
       if Check then
          --  in a check
          Indent_Line ("function " & Name);
-         Indent_Line (" (Lexer   : access constant WisiToken.Lexer.Instance'Class;");
-         Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
-         Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
+         Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+         Indent_Line ("  Nonterm        : in out WisiToken.Recover_Token;");
+         Indent_Line ("  Tokens         : in     WisiToken.Recover_Token_Array;");
+         Indent_Line ("  Recover_Active : in     Boolean)");
          Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
          declare
             Unref_Lexer   : constant Boolean := 0 = Index (Check_Line, "Lexer");
             Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
             Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
+            Unref_Recover : constant Boolean := 0 = Index (Check_Line, "Recover_Active");
          begin
-            if Unref_Lexer or Unref_Nonterm or Unref_Tokens then
+            if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
                Indent_Line ("is");
                if Unref_Lexer then
                   Indent_Line ("   pragma Unreferenced (Lexer);");
@@ -878,6 +881,10 @@ is
                if Unref_Tokens then
                   Indent_Line ("   pragma Unreferenced (Tokens);");
                end if;
+               if Unref_Recover then
+                  Indent_Line ("   pragma Unreferenced (Recover_Active);");
+               end if;
+
                Indent_Line ("begin");
             else
                Indent_Line ("is begin");

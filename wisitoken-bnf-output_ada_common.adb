@@ -232,9 +232,10 @@ package body WisiToken.BNF.Output_Ada_Common is
             for Name of Name_List.all loop
                if Name /= null then
                   Indent_Line ("function " & Name.all);
-                  Indent_Line (" (Lexer   : access constant WisiToken.Lexer.Instance'Class;");
-                  Indent_Line ("  Nonterm : in out WisiToken.Recover_Token;");
-                  Indent_Line ("  Tokens  : in     WisiToken.Recover_Token_Array)");
+                  Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
+                  Indent_Line ("  Nonterm        : in out WisiToken.Recover_Token;");
+                  Indent_Line ("  Tokens         : in     WisiToken.Recover_Token_Array;");
+                  Indent_Line ("  Recover_Active : in     Boolean)");
                   Indent_Line (" return WisiToken.Semantic_Checks.Check_Status;");
                end if;
             end loop;
@@ -1239,7 +1240,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       end loop;
       New_Line;
 
-      --  Default action
+      --  Default action.
       Indent_Line ("* {status = ERROR_unrecognized_character; continue;}");
 
       Put_Line ("*/");

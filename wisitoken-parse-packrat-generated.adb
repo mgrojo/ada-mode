@@ -63,6 +63,11 @@ package body WisiToken.Parse.Packrat.Generated is
 
    end Parse;
 
+   overriding function Tree (Parser : in Generated.Parser) return Syntax_Trees.Tree
+   is begin
+      return Parser.Tree;
+   end Tree;
+
    overriding function Any_Errors (Parser : in Generated.Parser) return Boolean
    is
       use all type Ada.Containers.Count_Type;

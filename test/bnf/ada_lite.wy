@@ -33,7 +33,8 @@
 
    End_Name_Optional : Boolean := True;
 
-   Partial_Parse_Active : Boolean := False;
+   Partial_Parse_Active    : Boolean := False;
+   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 }%
@@ -265,7 +266,7 @@ compilation_unit_list
   : compilation_unit_list compilation_unit
   | compilation_unit
     %( )%
-    %(return Terminate_Partial_Parse (Partial_Parse_Active);)%
+    %(return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
   ;
 
 compound_statement

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -157,38 +157,56 @@ package body WisiToken.Lexer.Regexp is
       Finalize (Object.Source);
    end Finalize;
 
-   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
+   overriding procedure Reset_With_String
+     (Lexer      : in out Instance;
+      Input      : in     String;
+      Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
+      Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
    is begin
       Finalize (Lexer);
 
       Lexer.Source :=
-        (Label       => String_Label,
-         File_Name   => +"",
-         Buffer      => new String'(Input),
-         User_Buffer => False);
+        (Label                     => String_Label,
+         File_Name                 => +"",
+         Buffer_Nominal_First_Byte => Base_Buffer_Pos (Input'First),
+         Buffer_Nominal_First_Char => Begin_Char,
+         Line_Nominal_First        => Begin_Line,
+         Buffer                    => new String'(Input),
+         User_Buffer               => False);
 
       Reset (Lexer);
    end Reset_With_String;
 
    overriding procedure Reset_With_String_Access
      (Lexer     : in out Instance;
-      Input     : in     Ada.Strings.Unbounded.String_Access;
-      File_Name : in     Ada.Strings.Unbounded.Unbounded_String)
+      Input     : access String;
+      File_Name : in     Ada.Strings.Unbounded.Unbounded_String;
+      Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
+      Begin_Line : in     Line_Number_Type := Line_Number_Type'First)
    is begin
       Finalize (Lexer);
 
       Lexer.Source :=
         (Label       => String_Label,
          File_Name   => File_Name,
+         Buffer_Nominal_First_Byte => Base_Buffer_Pos (Input'First),
+         Buffer_Nominal_First_Char => Begin_Char,
+         Line_Nominal_First        => Begin_Line,
          Buffer      => Input,
          User_Buffer => True);
 
       Reset (Lexer);
    end Reset_With_String_Access;
 
-   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
+   overriding procedure Reset_With_File
+     (Lexer          : in out Instance;
+      File_Name      : in     String;
+      Begin_Byte_Pos : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      End_Byte_Pos   : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      Begin_Char     : in     Buffer_Pos       := Buffer_Pos'First;
+      Begin_Line     : in     Line_Number_Type := Line_Number_Type'First)
    is
-      pragma Unreferenced (File_Name);
+      pragma Unreferenced (File_Name, Begin_Byte_Pos, End_Byte_Pos, Begin_Char, Begin_Line);
    begin
       Finalize (Lexer);
 

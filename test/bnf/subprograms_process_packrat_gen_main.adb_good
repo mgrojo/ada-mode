@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate PACKRAT_GEN Ada_Emacs re2c PROCESS ../Test/bnf/subprograms.wy
 --
 
---  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as

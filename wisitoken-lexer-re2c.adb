@@ -239,6 +239,11 @@ package body WisiToken.Lexer.re2c is
                declare
                   Buffer : constant GNATCOLL.Mmap.Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
                begin
+                  if Trace_Parse > Lexer_Debug then
+                     --  We don't have a visible Trace object here.
+                     Ada.Text_IO.Put_Line ("lexer error char " & Buffer (Lexer.Byte_Position));
+                  end if;
+
                   if Buffer (Lexer.Byte_Position) = ''' then
                      --  Lexer has read to next new-line (or eof), then backtracked to next
                      --  char after '.

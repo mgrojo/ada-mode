@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../Test/bnf/subprograms.wy
 --
 
---  Copyright (C) 2013, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -102,7 +102,7 @@ package body Subprograms_Process_LALR_Main is
             Add_Action (Table.States (5), 7, 1);
             Add_Action (Table.States (5), 10, 2);
             Add_Action (Table.States (5), 12, 3);
-            Add_Action (Table.States (5), 19, Reduce, (22, 0), 1, null, null);
+            Add_Action (Table.States (5), 19, Reduce, (22, 0), 1, null, compilation_unit_0_check'Access);
             Add_Error (Table.States (5));
             Add_Goto (Table.States (5), 24, 14);
             Add_Goto (Table.States (5), 29, 7);

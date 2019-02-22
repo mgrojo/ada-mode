@@ -132,9 +132,17 @@ package body WisiToken.Semantic_Checks is
       return (Label => Ok);
    end Merge_Names;
 
-   function Terminate_Partial_Parse (Active : in Boolean) return Check_Status
+   function Terminate_Partial_Parse
+     (Partial_Parse_Active    : in Boolean;
+      Partial_Parse_Byte_Goal : in Buffer_Pos;
+      Recover_Active          : in Boolean;
+      Nonterm                 : in Recover_Token)
+     return Check_Status
    is begin
-      if Active then
+      if Partial_Parse_Active and then
+        (not Recover_Active) and then
+        Nonterm.Byte_Region.Last >= Partial_Parse_Byte_Goal
+      then
          raise WisiToken.Partial_Parse;
       else
          return (Label => Ok);

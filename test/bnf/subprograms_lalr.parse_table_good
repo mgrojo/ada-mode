@@ -582,5 +582,5 @@ State 44:
 
    Minimal_Complete_Actions => (loop_statement)
 
- 11 rules, 10 user actions, 2 checks, 45 states, 144 parse actions
+ 11 rules, 10 user actions, 3 checks, 45 states, 144 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

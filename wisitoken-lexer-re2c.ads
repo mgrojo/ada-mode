@@ -98,12 +98,12 @@ package WisiToken.Lexer.re2c is
       Begin_Line : in     Line_Number_Type := Line_Number_Type'First);
 
    overriding procedure Reset_With_File
-     (Lexer      : in out Instance;
-      File_Name  : in     String;
-      Begin_Pos  : in     Buffer_Pos       := Invalid_Buffer_Pos;
-      End_Pos    : in     Buffer_Pos       := Invalid_Buffer_Pos;
-      Begin_Char : in     Buffer_Pos       := Buffer_Pos'First;
-      Begin_Line : in     Line_Number_Type := Line_Number_Type'First);
+     (Lexer          : in out Instance;
+      File_Name      : in     String;
+      Begin_Byte_Pos : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      End_Byte_Pos   : in     Buffer_Pos       := Invalid_Buffer_Pos;
+      Begin_Char     : in     Buffer_Pos       := Buffer_Pos'First;
+      Begin_Line     : in     Line_Number_Type := Line_Number_Type'First);
    --  Uses memory mapped file; no copies.
 
    overriding procedure Discard_Rest_Of_Input (Lexer : in out Instance) is null;
