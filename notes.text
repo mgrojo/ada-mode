@@ -54,7 +54,11 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+recover bug:
+       procedure Tree (Parser : in Base_Parser) return Syntax_Trees.Tree;
+
 package for Ludovic: elpa/archive/packages *.tar, archive-contents
+
 optimize Grow of SAL.Gen_Unbounded_Definite_Vectors
     run-time parameter and/or generic parameter giving initial size
     output max size, accumulate in Emacs session
@@ -66,6 +70,112 @@ optimize Grow of SAL.Gen_Unbounded_Definite_Vectors
 
 add error recovery strategy counts to recover.log
     also enough source text to reconstruct fail; +- 10 lines/200 chars?
+
+sort error messages in line order
+
+c:/eurocontrol/query_display-flight_operations.adb
+    errors cause huge slowdown in parse speed
+
+    partial parse is more important
+
+    lalr reports error in resume
+    lr1 does not
+
+    only errors are missing end labels
+        lr1 parse face time:
+        with all fixed,      0.175579163
+        with errors present, 8.395040656
+
+        1  8.282763405
+        2  8.146287525
+        3  8.083595595
+        4  2.576497063
+        5  1.448250382
+        6  1.461459692
+        7  1.437491198
+        8  1.420267629
+        9  0.160563880
+
+        second ediff-buffers reliably hangs!
+            external process communications bug
+            update master, try -Q
+            emacs 26 ok
+
+    run with profile => recover takes 0% of time (sigh)
+
+    add put (clock) at various places
+    after recover at 15304:(PROCEDURE, (122273 . 122281)) Display_Profile line 2784
+    takes 6.5 seconds to get to 20650:(END, (170186 . 170188)) Query_Display.Flight_Operations; line 3625
+
+1. 2091:(BEGIN, (18446 . 18450))
+   (subprogram_body, (18252 . 18440))
+   1 parser, succeed 2, enqueue 2, check  2, cost:  0
+   non-ignore solution is wrong, terminated immediately
+
+2. 4143:(BEGIN, (33687 . 33691))
+   (subprogram_specification, (33286 . 33350))
+   1 parser, succeed 2, enqueue 2, check  2, cost:  0
+   extra terminated 4245:(USE, (34365 . 34367))
+
+3. 5177:(FUNCTION, (40478 . 40485))
+   (subprogram_specification, (39991 . 40026))
+   1 parser, succeed 1, enqueue 4, check  2, cost:  0
+   nested inside 4
+
+4. 5255:(BEGIN, (40951 . 40955)) Resume_Token_Goal 5259
+   (subprogram_specification, (40699 . 40726))
+   209: succeed 2, enqueue 2, check  2, cost:  0
+   extra terminated 5275:(BEGIN, (41044 . 41048))
+
+5. 5364:(BEGIN, (41705 . 41709)) Resume_Token_Goal 5368
+   (subprogram_specification, (41435 . 41488))
+   215: succeed 2, enqueue 2, check  2, cost:  0
+   extra terminated 5802:(IDENTIFIER, (45635 . 45643))
+
+6. 7439:(IDENTIFIER, (59232 . 59243)) Resume_Token_Goal 7443
+   (subprogram_specification, (59021 . 59051))
+   281: succeed 1, enqueue 4, check  2, cost:  0
+   7442:(IDENTIFIER, (59256 . 59259))
+
+7. 10700:(BEGIN, (82600 . 82604)) Resume_Token_Goal 10704
+   (subprogram_specification, (82299 . 82324))
+   340: succeed 2, enqueue 2, check  2, cost:  0
+   encounters next error before terminate extra
+
+8a. 627: 15304:(PROCEDURE, (122273 . 122281)) Resume_Token_Goal 15308
+    (subprogram_specification, (40699 . 40726))
+    627: succeed 1, enqueue 4, check  2, cost:  0
+    no terminate needed
+
+8b. 626: 15304:(PROCEDURE, (122273 . 122281)) Resume_Token_Goal 15308
+    (subprogram_specification, (82299 . 82324))
+    626: succeed 1, enqueue 4, check  2, cost:  0
+    no terminate needed
+
+9a. 957: 20650:(END, (170186 . 170188))
+Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20650:(END, (170186 . 170188))
+    957: succeed 1, enqueue 40, check  17, cost:  1
+    error due to some previous bad recovery
+
+9b. 956: 20650:(END, (170186 . 170188)) Resume_Token_Goal 20654
+Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20650:(END, (170186 . 170188))
+    956: succeed 1, enqueue 18, check  7, cost:  1
+    error due to some previous bad recovery
+
+10a. 957: 20655:(Wisi_EOI, (170222 . 170221)) Resume_Token_Goal 20659
+Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20655:(Wisi_EOI, (170222 . 170221))
+     error due to some previous bad recovery
+     957: succeed 1, enqueue 215, check  49, cost:  2
+
+10b. 956: 20655:(Wisi_EOI, (170222 . 170221)) Resume_Token_Goal 20659
+Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20655:(Wisi_EOI, (170222 . 170221))
+     error due to some previous bad recovery
+     956: succeed 1, enqueue 126, check  23, cost:  1
+
+
+wisi-process-time-out is local to *-parse* buffer; setting from .adb has no effect
+
+disable navigate commands if parse navigate fails
 
 stefan complains he gets byte-compiler errors when compiling elpa after an ada-mode update.
     checkout last ada-mode version in elpa, byte-compile, update, byte-compile

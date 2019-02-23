@@ -6,7 +6,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2018  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -195,11 +195,22 @@ Prompt user if more than one."
 	  ;;
 	  ;; This list will get long, so let's impose some order.
 	  ;;
-	  ;; First expressions that start with a named regexp, alphabetical by variable name.
+	  ;; First expressions that start with a named regexp,
+	  ;; alphabetical by variable name and following string.
 	  ;;
 	  ;; Then expressions that start with a string, alphabetical by string.
 	  ;;
 	  ;; Then style errors.
+
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is not a component of the aggregate subtype"))
+	 	   (save-excursion
+	     (let ((child-name (match-string 1))
+		   (correct-spelling (ada-gnat-misspelling)))
+	       (setq correct-spelling (match-string 1))
+	       (pop-to-buffer source-buffer)
+	       (search-forward child-name)
+	       (replace-match correct-spelling))
+	     t))
 
 	  ((looking-at (concat ada-gnat-quoted-name-regexp " is not visible"))
 	   (let ((done nil)
