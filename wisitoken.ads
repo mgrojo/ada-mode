@@ -16,7 +16,7 @@
 --  Sethi, and Ullman (aka: "The [Red] Dragon Book" due to the dragon
 --  on the cover).
 --
---  Copyright (C) 2009, 2010, 2013 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -403,6 +403,9 @@ package WisiToken is
 
    procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
    --  Put a newline to the Trace display.
+
+   procedure Put_Clock (Label : in String);
+   --  Put Ada.Calendar.Clock to Ada.Text_IO.Current_Error.
 
    ----------
    --  Misc
