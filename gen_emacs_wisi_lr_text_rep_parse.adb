@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
 with GNAT.Traceback.Symbolic;
+with SAL;
 with System.Multiprocessors;
 with WisiToken.Lexer;
 with WisiToken.Parse.LR.Parser;
@@ -99,12 +100,16 @@ begin
                Buffer : Ada.Strings.Unbounded.String_Access;
 
                procedure Clean_Up
-               is begin
+               is
+                  use all type SAL.Base_Peek_Type;
+               begin
                   Parser.Lexer.Discard_Rest_Of_Input;
-                  Parse_Data.Put
-                    (Parser.Lexer.Errors,
-                     Parser.Parsers.First.State_Ref.Errors,
-                     Parser.Parsers.First.State_Ref.Tree);
+                  if Parser.Parsers.Count > 0 then
+                     Parse_Data.Put
+                       (Parser.Lexer.Errors,
+                        Parser.Parsers.First.State_Ref.Errors,
+                        Parser.Parsers.First.State_Ref.Tree);
+                  end if;
                   Ada.Strings.Unbounded.Free (Buffer);
                end Clean_Up;
 
@@ -149,11 +154,17 @@ begin
                end if;
 
                Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);
+
                Read_Input (Buffer (Params.Begin_Byte_Pos)'Address, Params.Byte_Count);
 
                Parser.Lexer.Reset_With_String_Access
                  (Buffer, Params.Source_File_Name, Params.Begin_Char_Pos, Params.Begin_Line);
-               Parser.Parse;
+               begin
+                  Parser.Parse;
+               exception
+               when WisiToken.Partial_Parse =>
+                  null;
+               end;
                Parser.Execute_Actions;
                Parse_Data.Put (Parser);
                Clean_Up;

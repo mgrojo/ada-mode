@@ -118,6 +118,12 @@ package Ada_Mode.Nominal.Child is
       Child_Element_3 => True);
 
 end Ada_Mode.Nominal.Child;
+-- WORKAROUND: There is some race condition or uninit var that causes
+-- indent to fail weirdly if wisi-disable-face is nil. Doesn't happen
+-- in any other test, only happens when running full test (can't
+-- reproduce otherwise).
+--
 --  Local Variables:
 --  ada-indent-comment-gnat: t
+--  wisi-disable-face: t
 --  End:

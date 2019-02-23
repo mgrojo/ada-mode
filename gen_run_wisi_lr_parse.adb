@@ -59,6 +59,21 @@ begin
       return;
    end;
 
+   if Cl_Params.End_Line = Invalid_Line_Number then
+      --  User did not provide; run lexer to get end line.
+      declare
+         Token : Base_Token;
+         Lexer_Error : Boolean;
+         pragma Unreferenced (Lexer_Error);
+      begin
+         loop
+            Lexer_Error := Parser.Lexer.Find_Next (Token);
+            exit when Token.ID = Descriptor.EOF_ID;
+         end loop;
+         Cl_Params.End_Line := Token.Line;
+      end;
+   end if;
+
    Parse_Data.Initialize
      (Post_Parse_Action => Cl_Params.Post_Parse_Action,
       Descriptor        => Descriptor'Unrestricted_Access,

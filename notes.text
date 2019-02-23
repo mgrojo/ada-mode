@@ -14,20 +14,26 @@ run test from emacs -Q using source:
 (progn
   (setq eval-expression-debug-on-error nil)
   (package-initialize)
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
+  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2018/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode/build")
-  (setq debug-on-error t)
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode.stephe-2/build")
+  ; (setq debug-on-error t)
   ; (setq debug-on-quit t)
-  (setq default-directory "c:/Projects/org.emacs.ada-mode/build/")
-;  (load "autoloads.el")
-  (load "run-wisi-test")
+  (setq default-directory "c:/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_lalr_parse.exe"))
+  (load "run-indent-test")
   ; (setq wisi-debug 1)
+  (setq wisi-trace-action 2)
   (setq wisi-disable-face t)
-;  (find-file "../test/ada_mode-nominal.adb")
-  (run-test "ada-number-literal")
+  (find-file "../test/ada_mode-nominal-child.ads")
+  ; (run-test "ada-number-literal")
 ;  (wisi-debug-keys)
-  )
+  (ada-parse-prj-file "subdir/ada_mode.adp")
+  (ada-select-prj-file "subdir/ada_mode.adp")
+  (indent-rigidly (point-min) (point-max) -1)
+  (indent-region (point-min) (point-max))
+)
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -62,6 +68,17 @@ enforce unix line endings
 
 partial parse
     c:/eurocontrol/regulation-iflight.adb
+
+    running all tests
+build/ada_mode-recover_2.adb.diff
+./ada_mode-recover_23.adb.diff
+./ada_mode-recover_27.adb.diff
+./ada_mode-recover_ambiguous_parse.adb.diff
+
+    refactor _lr _lr_text_rep to avoid ediff
+
+    review fixmes
+        use markers in wisi--cache-regions
 
     don't set margin error marks for errors from partial parse
 

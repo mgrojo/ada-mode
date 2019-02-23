@@ -31,14 +31,14 @@ package Run_Wisi_Common_Parse is
    type Command_Line_Params is record
       Post_Parse_Action : Wisi.Post_Parse_Action_Type;
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
-      Begin_Byte_Pos    : WisiToken.Buffer_Pos;
-      End_Byte_Pos      : WisiToken.Buffer_Pos;
-      Goal_Byte_Pos     : WisiToken.Buffer_Pos;
-      Begin_Char_Pos    : WisiToken.Buffer_Pos;
-      Begin_Line        : WisiToken.Line_Number_Type;
-      End_Line          : WisiToken.Line_Number_Type;
-      Begin_Indent      : Integer;
-      Repeat_Count      : Integer := 1;
+      Begin_Byte_Pos    : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+      End_Byte_Pos      : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+      Goal_Byte_Pos     : WisiToken.Buffer_Pos       := WisiToken.Invalid_Buffer_Pos;
+      Begin_Char_Pos    : WisiToken.Buffer_Pos       := WisiToken.Buffer_Pos'First;
+      Begin_Line        : WisiToken.Line_Number_Type := WisiToken.Line_Number_Type'First;
+      End_Line          : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;
+      Begin_Indent      : Integer                    := 0;
+      Repeat_Count      : Integer                    := 1;
       Lang_Params       : Ada.Strings.Unbounded.Unbounded_String;
    end record;
 

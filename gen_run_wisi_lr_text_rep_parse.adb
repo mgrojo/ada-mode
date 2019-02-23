@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018, 2019 All Rights Reserved.
+--  Copyright (C) 2017 - 2019 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -38,9 +38,8 @@ is
    Parser     : WisiToken.Parse.LR.Parser.Parser;
    Parse_Data : aliased Parse_Data_Type (Parser.Line_Begin_Token'Access);
 
-   Cl_Params  : Command_Line_Params;
-   Line_Count : WisiToken.Line_Number_Type := 1;
-   Start      : Ada.Real_Time.Time;
+   Cl_Params : Command_Line_Params;
+   Start     : Ada.Real_Time.Time;
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table,
    --  and Get_CL_Params can override them.
@@ -67,29 +66,19 @@ begin
       return;
    end;
 
-   --  See comment in wisi.ads Initialize on Line_Count for why we still
-   --  need this.
-   declare
-      Token : Base_Token;
-      Lexer_Error : Boolean;
-      pragma Unreferenced (Lexer_Error);
-   begin
-      loop
-         begin
+   if Cl_Params.End_Line = Invalid_Line_Number then
+      --  User did not provide; run lexer to get end line.
+      declare
+         Token : Base_Token;
+         Lexer_Error : Boolean;
+         pragma Unreferenced (Lexer_Error);
+      begin
+         loop
             Lexer_Error := Parser.Lexer.Find_Next (Token);
             exit when Token.ID = Descriptor.EOF_ID;
-         exception
-         when WisiToken.Syntax_Error =>
-            Parser.Lexer.Discard_Rest_Of_Input;
-            Wisi.Put (Parser.Lexer.Errors);
-            Put_Line ("(lexer_error)");
-         end;
-      end loop;
-      Line_Count := Token.Line;
-   end;
-
-   if WisiToken.Trace_Action > WisiToken.Outline then
-      Put_Line ("line_count:" & Line_Number_Type'Image (Line_Count));
+         end loop;
+         Cl_Params.End_Line := Token.Line;
+      end;
    end if;
 
    Parse_Data.Initialize
@@ -97,7 +86,7 @@ begin
       Descriptor        => Descriptor'Unrestricted_Access,
       Source_File_Name  => -Cl_Params.Source_File_Name,
       Begin_Line        => Cl_Params.Begin_Line,
-      End_Line          => Cl_Params.Begin_Line,
+      End_Line          => Cl_Params.End_Line,
       Begin_Indent      => Cl_Params.Begin_Indent,
       Params            => -Cl_Params.Lang_Params);
 
@@ -124,7 +113,12 @@ begin
          Parse_Data.Reset;
          Parser.Lexer.Reset;
 
-         Parser.Parse;
+         begin
+            Parser.Parse;
+         exception
+         when WisiToken.Partial_Parse =>
+            null;
+         end;
          Parser.Execute_Actions;
 
          if Cl_Params.Repeat_Count = 1 then

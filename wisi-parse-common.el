@@ -65,9 +65,9 @@ region BEGIN END that starts at a valid parse start point,
 contains END, and ends at a point the parser can handle
 gracefully.")
 
-(cl-defgeneric wisi-parse-current ((parser wisi-parser) begin end)
-  "Parse current buffer starting at BEGIN, continuing at least thru END.
-Return region parsed as a cons.")
+(cl-defgeneric wisi-parse-current ((parser wisi-parser) begin send-end parse-end)
+  "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.
+If using an external parser, send it BEGIN thru SEND-END.")
 
 (cl-defgeneric wisi-parse-kill ((parser wisi-parser))
   "Kill any external process associated with parser.")

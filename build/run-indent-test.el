@@ -28,19 +28,32 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
     ;; font-lock-face set by the parser! And we want to check for
     ;; conflicts between font-lock-keywords and the parser.
 
-    ;; If we use (get-text-property (point) 'face), we also get
-    ;; 'font-lock-face, but not vice-versa. So we have to use
+    ;; font-lock-keywords sets 'face property, parser sets 'font-lock-face.
+
+    ;; In emacs < 27, if we use (get-text-property (point) 'face), we
+    ;; also get 'font-lock-face, but not vice-versa. So we have to use
     ;; text-properties-at to check for both.
-    (let ((token (match-string 0))
-	  (props (text-properties-at (match-beginning 0)))
-	  (token-face (get-text-property (match-beginning 0) 'face)))
+    (let* ((token (match-string 0))
+	   (props (text-properties-at (match-beginning 0)))
+	   key
+	   token-face)
+
+      (cond
+       ((plist-get props 'font-lock-face)
+	(setq key 'font-lock-face)
+	(setq token-face (plist-get props 'font-lock-face)))
+
+       ((plist-get props 'face)
+	(setq key 'face)
+	(setq token-face (plist-get props 'face)))
+       )
 
       (when (and (memq 'font-lock-face props)
 		 (memq 'face props))
 	(describe-text-properties (match-beginning 0))
 	(error "mixed font-lock-keyword and parser faces for '%s'" token))
 
-      (unless (not (text-property-not-all 0 (length token) 'face token-face token))
+      (unless (not (text-property-not-all 0 (length token) key token-face token))
 	(error "mixed faces, expecting %s for '%s'" face token))
 
       (unless (or (and (listp face)

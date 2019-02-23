@@ -248,7 +248,7 @@ Regions in a list are in random order.")
   (let ((region-list (cdr (assoc parse-action wisi--cached-regions)))
 	result)
     (while (and (not result) region-list)
-      (when (<= pos (car (car region-list)))
+      (when (< pos (car (car region-list)))
 	(push (car region-list) result))
       (pop region-list))
     (setcdr (assoc parse-action wisi--cached-regions) result)))
@@ -633,7 +633,7 @@ Usefull if the parser appears to be hung."
   (unless (or (buffer-narrowed-p)
 	      (= (point-min) (point-max))) ;; some parsers can’t handle an empty buffer.
     (let ((msg (when (> wisi-debug 0)
-		 (format "wisi: parsing %s %s:%d %d %d ..."
+		 (format "wisi: parsing %s %s:%d %s %d ..."
 			 wisi--parse-action
 			 (buffer-name)
 			 begin
@@ -739,9 +739,10 @@ Usefull if the parser appears to be hung."
 	      (wisi--run-parse begin end))
 
 	  (when (> wisi-debug 0)
-	    (message "parse skipped: parse-try %s cache-covers-region %s"
+	    (message "parse skipped: parse-failed %s parse-try %s cache-covers-region %s %s.%s"
+		     wisi-parse-failed
 		     (wisi-parse-try)
-		     (wisi-cache-covers-region begin end))))
+		     (wisi-cache-covers-region begin end) begin end)))
 
 	;; We want this error even if we did not try to parse; it means
 	;; the parse results are not valid.

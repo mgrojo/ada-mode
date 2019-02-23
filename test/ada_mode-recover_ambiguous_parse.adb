@@ -7,7 +7,7 @@
 -- arbitrarily to allow indent.
 
 --EMACS_SKIP_UNLESS: (eq ada-parser 'process)
---EMACSCMD:(wisi-parse-buffer)
+--EMACSCMD:(wisi-parse-buffer 'indent)
 procedure Ada_Mode.Ambiguous_Parse is
 begin
    --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))

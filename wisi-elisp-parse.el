@@ -103,7 +103,7 @@ Each element can be one of:
 - list ('anchor (start-id ...) ('anchored id delta))
   for nested anchors.")
 
-(cl-defmethod wisi-parse-current ((parser wisi-elisp-parser) _begin _end)
+(cl-defmethod wisi-parse-current ((parser wisi-elisp-parser) _begin _send-end _parse-end)
   "Parse entire current buffer.
 BEGIN, END are ignored"
 
