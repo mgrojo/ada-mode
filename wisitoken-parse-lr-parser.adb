@@ -29,6 +29,7 @@ pragma License (Modified_GPL);
 
 with Ada.Calendar.Formatting;
 with Ada.Exceptions;
+with GNAT.Traceback.Symbolic;
 with WisiToken.Parse.LR.McKenzie_Recover;
 package body WisiToken.Parse.LR.Parser is
 
@@ -970,6 +971,10 @@ package body WisiToken.Parse.LR.Parser is
                 Last_Terminal  => Trace.Descriptor.Last_Terminal,
                 Recover        => <>,
                 Msg            => +Msg));
+         end if;
+
+         if Debug_Mode then
+            Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
          end if;
 
          --  Emacs displays the exception message in the echo area; easy to miss
