@@ -242,7 +242,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             if Shared_Parser.Parsers.Count = 1 then
                raise Syntax_Error;
             else
-               Shared_Parser.Parsers.Terminate_Parser (Check_Parser, "", Shared_Parser.Trace.all);
+               Shared_Parser.Parsers.Terminate_Parser
+                 (Check_Parser, "", Shared_Parser.Trace.all, Shared_Parser.Terminals);
             end if;
          else
             Check_Parser.Next;
@@ -327,7 +328,8 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             if Shared_Parser.Terminate_Same_State and
               Current_Verb = Shift
             then
-               Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Trace.all);
+               Shared_Parser.Parsers.Duplicate_State
+                 (Current_Parser, Shared_Parser.Trace.all, Shared_Parser.Terminals);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now
                --  points to the next parser. Otherwise it is unchanged.
             end if;

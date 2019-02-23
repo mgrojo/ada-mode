@@ -413,6 +413,9 @@ package WisiToken is
    procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
    --  Put a newline to the Trace display.
 
+   procedure Put_Clock (Label : in String);
+   --  Put Ada.Calendar.Clock to Ada.Text_IO.Current_Error.
+
    ----------
    --  Misc
 
