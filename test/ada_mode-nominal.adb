@@ -125,7 +125,7 @@ is -- target 0
             --EMACSRESULT: t
             if
               True
-              --  Comment before 'then'
+              --  Comment before 'then' (does not pass gnat style check)
             then -- 1
                  --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "if"))
                  --EMACSRESULT: t
@@ -183,7 +183,7 @@ is -- target 0
                --EMACSRESULT: t
             elsif Dummy or -- 2
               Dummy_2
-              --  Comment before 'then'.
+              --  Comment before 'then' (does not pass gnat style check).
             then -- 2
                  --EMACSCMD:(progn (end-of-line 0)(backward-word 2)(backward-sexp)(looking-at "elsif Dummy or -- 2"))
                  --EMACSRESULT: t

@@ -3,7 +3,7 @@
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 
---EMACSCMD:(progn (wisi-validate-cache (point-max) nil 'navigate)(wisi-cache-nonterm (wisi-get-cache (line-beginning-position 3))))
+--EMACSCMD:(progn (wisi-validate-cache (point-min) (point-max) nil 'navigate)(wisi-cache-nonterm (wisi-get-cache (line-beginning-position 3))))
 --EMACSCMD:'subprogram_body
 procedure Ada_Mode.Recover_1
 is begin

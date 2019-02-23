@@ -14,20 +14,26 @@ run test from emacs -Q using source:
 (progn
   (setq eval-expression-debug-on-error nil)
   (package-initialize)
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
+  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2018/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode/build")
-  (setq debug-on-error t)
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode.stephe-2/build")
+  ; (setq debug-on-error t)
   ; (setq debug-on-quit t)
-  (setq default-directory "c:/Projects/org.emacs.ada-mode/build/")
-;  (load "autoloads.el")
-  (load "run-wisi-test")
+  (setq default-directory "c:/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_lalr_parse.exe"))
+  (load "run-indent-test")
   ; (setq wisi-debug 1)
+  (setq wisi-trace-action 2)
   (setq wisi-disable-face t)
-;  (find-file "../test/ada_mode-nominal.adb")
-  (run-test "ada-number-literal")
+  (find-file "../test/ada_mode-nominal-child.ads")
+  ; (run-test "ada-number-literal")
 ;  (wisi-debug-keys)
-  )
+  (ada-parse-prj-file "subdir/ada_mode.adp")
+  (ada-select-prj-file "subdir/ada_mode.adp")
+  (indent-rigidly (point-min) (point-max) -1)
+  (indent-region (point-min) (point-max))
+)
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -67,6 +73,36 @@ optimize Grow of SAL.Gen_Unbounded_Definite_Vectors
         wisitoken.syntax_tree.s.node_arrays
 
     similar for parse_stack?
+
+doc wisi-disable-face
+    alternative to jit-defer-time
+
+enforce unix line endings
+    run dos2unix in a mtn pre-commit hook?
+
+partial parse
+    c:/eurocontrol/regulation-iflight.adb
+
+    running all tests
+build/ada_mode-recover_2.adb.diff
+./ada_mode-recover_23.adb.diff
+./ada_mode-recover_27.adb.diff
+./ada_mode-recover_ambiguous_parse.adb.diff
+
+    refactor _lr _lr_text_rep to avoid ediff
+
+    review fixmes
+        use markers in wisi--cache-regions
+
+    don't set margin error marks for errors from partial parse
+
+optimize begin in wisi-goto-*
+
+rename parser actions to "parse", "post-parse"
+
+ada.wy
+    result_profile should not use name_opt, because it should not call wisi-propagate-name
+        on the other hand, it doesn't really hurt
 
 add error recovery strategy counts to recover.log
     also enough source text to reconstruct fail; +- 10 lines/200 chars?
@@ -178,8 +214,13 @@ wisi-process-time-out is local to *-parse* buffer; setting from .adb has no effe
 disable navigate commands if parse navigate fails
 
 stefan complains he gets byte-compiler errors when compiling elpa after an ada-mode update.
-    checkout last ada-mode version in elpa, byte-compile, update, byte-compile
-    old: 170394cefd5bf4512337b1114c1d5f8a80a549e3
+    root cause is he doesn't do 'rm *.elc', and the byte-compiler doesn't set load-prefer-newer
+    he'll try load-prefer-newer
+
+elisp code has circular dependency
+    see if load-prefer-newer finds it
+    write dependency checker.
+        in elisp so it can be added to batch-byte-compile
 
 other misc fixes from stefan
 
@@ -280,6 +321,7 @@ Decrease elisp parser startup time
 do module interface
 
 remove all code supporting emacs < 25
+    syntax-propertize calls
 
 use #'remove-hook
 

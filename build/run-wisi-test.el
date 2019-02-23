@@ -29,7 +29,7 @@
 
     (goto-char (point-min))
     (condition-case-unless-debug err
-      (wisi-parse-current wisi--parser)
+      (wisi-parse-current wisi--parser (point-min) (point-max))
       (wisi-parse-error
        (setq wisi-test-success
 	     (equal (cdr err) expected-result))

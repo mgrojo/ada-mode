@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS gpr.wy
 --
 
---  Copyright (C) 2013 - 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2013 - 2019 Free Software Foundation, Inc.
 
 --  This program is free software; you can redistribute it and/or
 --  modify it under the terms of the GNU General Public License as
@@ -272,28 +272,35 @@ package Gpr_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
    function identifier_opt_1_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status;
    function package_spec_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status;
    function package_extension_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status;
    function project_extension_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status;
    function simple_project_declaration_0_check
-    (Lexer   : access constant WisiToken.Lexer.Instance'Class;
-     Nonterm : in out WisiToken.Recover_Token;
-     Tokens  : in     WisiToken.Recover_Token_Array)
+    (Lexer          : access constant WisiToken.Lexer.Instance'Class;
+     Nonterm        : in out WisiToken.Recover_Token;
+     Tokens         : in     WisiToken.Recover_Token_Array;
+     Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status;
+
+   Partial_Parse_Active : Boolean := False;
 end Gpr_Process_Actions;

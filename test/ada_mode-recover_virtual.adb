@@ -14,11 +14,11 @@
 -- The test is that parsing signals no errors, and the syntax errors
 -- are reported properly.
 
---EMACSCMD:(wisi-validate-cache (point-max) nil 'navigate)
+--EMACSCMD:(wisi-validate-cache (point-min) (point-max) nil 'navigate)
 --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
 --EMACSRESULT:3
 
---EMACSCMD:(wisi-validate-cache (point-max) nil 'face)
+--EMACSCMD:(wisi-validate-cache (point-min) (point-max) nil 'face)
 
 --EMACSCMD:(wisi-indent-region (point-min) (point-max))
 procedure Journal_To_TSV

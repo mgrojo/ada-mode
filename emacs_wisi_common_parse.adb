@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -34,26 +34,7 @@ package body Emacs_Wisi_Common_Parse is
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
-      Put_Line ("each command starts with a two-character decimal count of bytes in command");
-      New_Line;
-      Put_Line ("Commands: ");
-      New_Line;
-      Put_Line
-        ("NNNparse <action> <source_file_name> <line_count> <parse_verbosity> <mckenzie_verbosity>"  &
-           " <action_verbosity> <mckenzie_disable> <mckenzie_cost_limit> <mckenzie_check_limit>" &
-           " <mckenzie_enqueue_limit> <source_byte_count> <language-specific params> <source bytes>");
-      Put_Line ("  NNN excludes <source bytes>");
-      Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
-      Put_Line ("  <line-count> is integer count of lines in source");
-      Put_Line ("  <*verbosity> is an integer; set parse trace output level");
-      Put_Line ("  <mckenzie_disable> is 0 | 1; 0 = use default, 1 = disable");
-      Put_Line ("  <*_limit> is integer; -1 means use default");
-      Put_Line ("  outputs: elisp vectors for set-text-property from parser actions or elisp forms for errors.");
-      New_Line;
-      Put_Line ("NNNnoop <source_byte_count> <source bytes>");
-      Put_Line ("  Just receive source; otherwise no operation. NN excludes <source bytes>");
-      New_Line;
-      Put_Line ("04quit");
+      Put_Line ("See wisi-process-parse.el *--send-parse, *--send-noop for arguments.");
    end Usage;
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -178,20 +159,31 @@ package body Emacs_Wisi_Common_Parse is
       use WisiToken;
    begin
       return Result : Parse_Params do
+         --  We don't use an aggregate, to enforce execution order.
 
-         Result.Post_Parse_Action  := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
-         Result.Source_File_Name   := +Get_String (Command_Line, Last);
-         Result.Line_Count         := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
-         Result.Debug_Mode         := 1 = Get_Integer (Command_Line, Last);
-         Result.Parse_Verbosity    := Get_Integer (Command_Line, Last);
-         Result.McKenzie_Verbosity := Get_Integer (Command_Line, Last);
-         Result.Action_Verbosity   := Get_Integer (Command_Line, Last);
-         Result.McKenzie_Disable   := Get_Integer (Command_Line, Last);
-         Result.Task_Count         := Get_Integer (Command_Line, Last);
-         Result.Cost_Limit         := Get_Integer (Command_Line, Last);
-         Result.Check_Limit        := Get_Integer (Command_Line, Last);
-         Result.Enqueue_Limit      := Get_Integer (Command_Line, Last);
-         Result.Byte_Count         := Get_Integer (Command_Line, Last);
+         Result.Post_Parse_Action    := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
+         Result.Source_File_Name     := +Get_String (Command_Line, Last);
+         Result.Begin_Byte_Pos       := Get_Integer (Command_Line, Last);
+
+         --  Emacs end is after last char.
+         Result.End_Byte_Pos         := Get_Integer (Command_Line, Last) - 1;
+
+         Result.Goal_Byte_Pos        := Get_Integer (Command_Line, Last);
+         Result.Begin_Char_Pos       := WisiToken.Buffer_Pos (Get_Integer (Command_Line, Last));
+         Result.Begin_Line           := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
+         Result.End_Line             := WisiToken.Line_Number_Type (Get_Integer (Command_Line, Last));
+         Result.Begin_Indent         := Get_Integer (Command_Line, Last);
+         Result.Partial_Parse_Active := 1 = Get_Integer (Command_Line, Last);
+         Result.Debug_Mode           := 1 = Get_Integer (Command_Line, Last);
+         Result.Parse_Verbosity      := Get_Integer (Command_Line, Last);
+         Result.McKenzie_Verbosity   := Get_Integer (Command_Line, Last);
+         Result.Action_Verbosity     := Get_Integer (Command_Line, Last);
+         Result.McKenzie_Disable     := Get_Integer (Command_Line, Last);
+         Result.Task_Count           := Get_Integer (Command_Line, Last);
+         Result.Cost_Limit           := Get_Integer (Command_Line, Last);
+         Result.Check_Limit          := Get_Integer (Command_Line, Last);
+         Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
+         Result.Byte_Count           := Get_Integer (Command_Line, Last);
       end return;
    end Get_Parse_Params;
 

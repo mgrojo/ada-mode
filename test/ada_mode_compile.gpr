@@ -30,6 +30,7 @@ project Ada_Mode_Compile is
       "ada_mode-opentoken.ads",
 
       -- These have syntax errors on purpose
+      "ada_mode-partial_parse.adb",
       "ada_mode-recover_1.adb",
       "ada_mode-recover_2.adb",
       "ada_mode-recover_3.adb",
@@ -89,7 +90,7 @@ project Ada_Mode_Compile is
       -- WORKAROUND: this gives bogus warnings about too-long lines
       -- with CE 2018 on Debian, but is required with GNAT GPL 2017
       -- "ada_mode-separate_protected_body.adb",
-      
+
       -- This has illegal code; used for testing skeleton expansion
       "ada_skel.adb",
 
@@ -101,7 +102,7 @@ project Ada_Mode_Compile is
       "bug_2016_11_21_01.adb", -- missing declarations
       "g-comlin.adb", -- copied from gnat runtime; gnat won't compile it!
       "gnatprep.adb" -- could run thru gnatprep, but it's not worth it.
-      
+
      );
 
    -- .ali files are in source dir, so they are shared between backend

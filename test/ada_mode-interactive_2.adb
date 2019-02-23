@@ -12,8 +12,8 @@
 --EMACSCMD:(setq wisi-debug 0)
 
 -- Test the buffer does parse
---EMACSCMD:(progn (wisi-parse-buffer 'face) (marker-position (wisi-cache-max 'face)))
---EMACSRESULT:(point-max)
+--EMACSCMD:(progn (wisi-parse-buffer 'face) (length (wisi-parser-parse-errors wisi--parser)))
+--EMACSRESULT:0
 
 procedure Ada_Mode.Interactive_2
 is

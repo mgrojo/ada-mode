@@ -1,6 +1,6 @@
 ;;; wisi-process-parse.el --- interface to external parse program
 ;;
-;; Copyright (C) 2014, 2017, 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2017 - 2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -52,6 +52,7 @@
   line-begin              ;; vector of beginning-of-line positions in buffer
   (total-wait-time 0.0)   ;; total time during last parse spent waiting for subprocess output.
   (response-count 0)      ;; responses received from subprocess during last parse; for profiling.
+  end-pos                 ;; last character position parsed
   )
 
 (defvar wisi-process--alist nil
@@ -164,18 +165,29 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (pop-to-buffer (wisi-process--parser-buffer parser))
     (error "wisi-process-parse process not active")))
 
-(defun wisi-process-parse--send-parse (parser line-count)
+(defun wisi-process-parse--send-parse (parser begin send-end parse-end)
   "Send a parse command to PARSER external process, followed by
-the content of the current buffer.  Does not wait for command to
-complete."
-  ;; Must match "parse" command arguments in gen_emacs_wisi_parse.adb
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %s"
+the content of the current buffer from BEGIN thru SEND-END.  Does
+not wait for command to complete. PARSE-END is end of desired
+parse region."
+  ;; Must match "parse" command arguments read by
+  ;; emacs_wisi_common_parse,adb Get_Parse_Params.
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
 			(indent 2))
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
-		      line-count
+		      (position-bytes begin)
+		      (position-bytes send-end)
+		      (position-bytes parse-end)
+		      begin ;; char_pos
+		      (line-number-at-pos begin)
+		      (line-number-at-pos send-end)
+		      (save-excursion (goto-char begin) (back-to-indentation) (current-column));; indent-begin
+		      (if (or (and (= begin (point-min)) (= parse-end (point-max)))
+			      (< (point-max) wisi-partial-parse-threshold))
+			  0 1) ;; partial parse active
 		      (if (> wisi-debug 0) 1 0) ;; debug-mode
 		      (1- wisi-debug) ;; trace_parse
 		      wisi-trace-mckenzie
@@ -185,7 +197,7 @@ complete."
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
 		      (if wisi-mckenzie-check-limit wisi-mckenzie-check-limit -1)
 		      (if wisi-mckenzie-enqueue-limit wisi-mckenzie-enqueue-limit -1)
-		      (1- (position-bytes (point-max)))
+		      (- (position-bytes send-end) (position-bytes begin)) ;; send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))
 	 (msg (format "%03d%s" (length cmd) cmd))
@@ -196,7 +208,7 @@ complete."
       (erase-buffer))
 
     (process-send-string process msg)
-    (process-send-string process (buffer-substring-no-properties (point-min) (point-max)))
+    (process-send-string process (buffer-substring-no-properties begin send-end))
 
     ;; We don’t wait for the send to complete; the external process
     ;; may start parsing and send an error message.
@@ -348,6 +360,11 @@ complete."
 	 (wisi--parse-error-repair last-error)))
       )))
 
+(defun wisi-process-parse--End (parser sexp)
+  ;; sexp is [End pos]
+  ;; see ‘wisi-process-parse--execute’
+  (setf (wisi-process--parser-end-pos parser) (aref sexp 1)))
+
 (defun wisi-process-parse--execute (parser sexp)
   "Execute encoded SEXP sent from external process."
   ;; sexp is [action arg ...]; an encoded instruction that we need to execute
@@ -411,6 +428,7 @@ complete."
     (5  (wisi-process-parse--Parser_Error parser sexp))
     (6  (wisi-process-parse--Check_Error parser sexp))
     (7  (wisi-process-parse--Recover parser sexp))
+    (8  (wisi-process-parse--End parser sexp))
     ))
 
 ;;;;; main
@@ -427,8 +445,9 @@ complete."
 (defvar wisi--lexer nil) ;; wisi-elisp-lexer.el
 (declare-function wisi-elisp-lexer-reset "wisi-elisp-lexer")
 
-(cl-defmethod wisi-parse-current ((parser wisi-process--parser))
-  "Run the external parser on the current buffer."
+(cl-defmethod wisi-parse-current ((parser wisi-process--parser) begin send-end parse-end)
+  "Run the external parser on the current buffer, from BEGIN to at least PARSE-END.
+Send BEGIN thru SEND-END to external parser."
   (wisi-process-parse--require-process parser)
 
   ;; font-lock can trigger a face parse while navigate or indent parse
@@ -476,13 +495,13 @@ complete."
 	  (setf (wisi-parser-lexer-errors parser) nil)
 	  (setf (wisi-parser-parse-errors parser) nil)
 
-	  (let ((line-count (1+ (count-lines (point-min) (point-max)))))
-	    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin line-count))
-	    (wisi-process-parse--send-parse parser line-count)
+	  (let ((total-line-count (1+ (count-lines (point-max) (point-min)))))
+	    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin total-line-count))
+	    (wisi-process-parse--send-parse parser begin send-end parse-end)
 
 	    ;; We reset the elisp lexer, because post-parse actions may use it.
 	    (when wisi--lexer
-	      (wisi-elisp-lexer-reset line-count wisi--lexer))
+	      (wisi-elisp-lexer-reset total-line-count wisi--lexer))
 	    )
 
 	  (set-buffer response-buffer)
@@ -616,9 +635,9 @@ complete."
 	  (setf (wisi-process--parser-busy parser) nil)
 	  (set-buffer source-buffer)
 	  ;; If we get here, the parse succeeded (possibly with error
-	  ;; recovery); move point to end of buffer as the elisp
-	  ;; parser does.
-	  (goto-char (point-max))
+	  ;; recovery); move point to end of parsed region.
+	  (goto-char (wisi-process--parser-end-pos parser))
+	  (cons begin (point))
 	  )
 
       (wisi-parse-error

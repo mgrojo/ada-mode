@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017  2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Bounded;
+with Ada.Text_IO;
 with WisiToken.Semantic_Checks;
 package body Wisi is
    use WisiToken;
@@ -29,6 +30,7 @@ package body Wisi is
    Parser_Error_Code   : constant String := "5";
    Check_Error_Code    : constant String := "6";
    Recover_Code        : constant String := "7 ";
+   End_Code            : constant String := "8";
 
    Chars_Per_Int : constant Integer := Integer'Width;
 
@@ -465,47 +467,51 @@ package body Wisi is
 
    procedure Resolve_Anchors (Data : in out Parse_Data_Type)
    is
+      Begin_Indent : Integer renames Data.Begin_Indent;
       Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
    begin
       if Trace_Action > Outline then
          Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line (Integer'Image (Data.Begin_Indent));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Ada.Text_IO.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
       end if;
 
-      if Data.Max_Anchor_ID >= First_Anchor_ID then
-         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-            declare
-               Indent : constant Indent_Type := Data.Indents (I);
-            begin
-               case Indent.Label is
-               when Not_Set | Int =>
-                  null;
+      for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
+         declare
+            Indent : constant Indent_Type := Data.Indents (I);
+         begin
+            case Indent.Label is
+            when Not_Set =>
+               Data.Indents.Replace_Element (I, (Int, Begin_Indent));
 
-               when Anchor =>
-                  for I of Indent.Anchor_IDs loop
-                     Anchor_Indent (I) := Indent.Anchor_Indent;
+            when Int =>
+               Data.Indents.Replace_Element (I, (Int, Indent.Int_Indent + Begin_Indent));
+
+            when Anchor =>
+               for I of Indent.Anchor_IDs loop
+                  Anchor_Indent (I) := Indent.Anchor_Indent + Begin_Indent;
+               end loop;
+               Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Indent + Begin_Indent));
+
+            when Anchored =>
+               Data.Indents.Replace_Element
+                 (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta + Begin_Indent));
+
+            when Anchor_Anchored =>
+               declare
+                  Temp : constant Integer :=
+                    Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta + Begin_Indent;
+               begin
+                  for I of Indent.Anchor_Anchored_IDs loop
+                     Anchor_Indent (I) := Temp;
                   end loop;
-                  Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Indent));
-
-               when Anchored =>
-                  Data.Indents.Replace_Element (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta));
-
-               when Anchor_Anchored =>
-                  declare
-                     Temp : constant Integer :=
-                       Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta;
-                  begin
-                     for I of Indent.Anchor_Anchored_IDs loop
-                        Anchor_Indent (I) := Temp;
-                     end loop;
-                     Data.Indents.Replace_Element (I, (Int, Temp));
-                  end;
-               end case;
-            end;
-         end loop;
-      end if;
+                  Data.Indents.Replace_Element (I, (Int, Temp));
+               end;
+            end case;
+         end;
+      end loop;
    end Resolve_Anchors;
 
    procedure Set_End
@@ -550,14 +556,21 @@ package body Wisi is
       Descriptor        : access constant WisiToken.Descriptor;
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
-      Line_Count        : in     Line_Number_Type;
+      Begin_Line        : in     Line_Number_Type;
+      End_Line          : in     WisiToken.Line_Number_Type;
+      Begin_Indent      : in     Integer;
       Params            : in     String)
    is
       pragma Unreferenced (Params);
    begin
+      Data.Line_Begin_Pos.Set_First_Last
+        (First   => Begin_Line,
+         Last    => End_Line);
+
       --  + 1 for data on line following last line; see Lexer_To_Augmented.
-      Data.Line_Begin_Pos.Set_Length (Ada.Containers.Count_Type (Line_Count + 1), Default => Invalid_Buffer_Pos);
-      Data.Line_Paren_State.Set_Length (Ada.Containers.Count_Type (Line_Count + 1));
+      Data.Line_Paren_State.Set_First_Last
+        (First   => Begin_Line,
+         Last    => End_Line);
 
       Data.Descriptor        := Descriptor;
       Data.Source_File_Name  := +Source_File_Name;
@@ -567,7 +580,11 @@ package body Wisi is
       when Navigate | Face =>
          null;
       when Indent =>
-         Data.Indents.Set_Length (Ada.Containers.Count_Type (Line_Count));
+         Data.Indents.Set_First_Last
+           (First   => Begin_Line,
+            Last    => End_Line);
+
+         Data.Begin_Indent := Begin_Indent;
       end case;
 
       Data.Reset;
@@ -648,7 +665,7 @@ package body Wisi is
                   Containing_Token.Last_Trailing_Comment_Line  := Token.Line;
                end if;
 
-               Containing_Token.Non_Grammar.Append ((Token.ID, Token.Line, Token.Column, Lexer.First));
+               Containing_Token.Non_Grammar.Append ((Token with Lexer.First));
             end;
          end if;
 
@@ -1426,8 +1443,57 @@ package body Wisi is
       end if;
    end Indent_Hanging_1;
 
-   procedure Put (Data : in out Parse_Data_Type)
-   is begin
+   procedure Put (Data : in out Parse_Data_Type; Parser : in WisiToken.Parse.Base_Parser'Class)
+   is
+      function Get_Last_Char_Pos return Buffer_Pos
+      is
+         use all type Ada.Containers.Count_Type;
+      begin
+         if Parser.Terminals.Length = 0 then
+            --  All comments, or empty
+            if Data.Leading_Non_Grammar.Length > 0 then
+               return Data.Leading_Non_Grammar (Data.Leading_Non_Grammar.Last_Index).Char_Region.Last;
+            else
+               return Buffer_Pos'First;
+            end if;
+         else
+            declare
+               Term : constant Base_Token_Index := Parser.Tree.Max_Terminal_Index (Parser.Tree.Root);
+            begin
+               if Term = Invalid_Token_Index then
+                  --  All grammar tokens inserted by recover
+                  if Data.Leading_Non_Grammar.Length > 0 then
+                     return Data.Leading_Non_Grammar (Data.Leading_Non_Grammar.Last_Index).Char_Region.Last;
+                  else
+                     return Buffer_Pos'First;
+                  end if;
+               else
+                  if Data.Terminals (Term).Non_Grammar.Length > 0 then
+                     return Data.Terminals (Term).Non_Grammar
+                       (Data.Terminals (Term).Non_Grammar.Last_Index).Char_Region.Last;
+                  else
+                     return Parser.Terminals (Term).Char_Region.Last;
+                  end if;
+               end if;
+            end;
+         end if;
+      end Get_Last_Char_Pos;
+
+      Last_Char_Pos : constant Buffer_Pos := Get_Last_Char_Pos;
+
+      function Get_Last_Line return Line_Number_Type
+      is begin
+         for I in Data.Line_Begin_Pos.First_Index .. Data.Line_Begin_Pos.Last_Index loop
+            if Data.Line_Begin_Pos (I) > Last_Char_Pos then
+               return I - 1;
+            end if;
+         end loop;
+         return Data.Line_Begin_Pos.Last_Index;
+      end Get_Last_Line;
+
+   begin
+      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos) & ']');
+
       case Data.Post_Parse_Action is
       when Navigate =>
          for Cache of Data.Navigate_Caches loop
@@ -1445,11 +1511,30 @@ package body Wisi is
 
          Resolve_Anchors (Data);
 
-         --  Can't set indent for first line
-         for I in Data.Indents.First_Index + 1 .. Data.Indents.Last_Index loop
+         --  No need to reindent first line. It may be that not all lines in
+         --  Data.Indents were parsed.
+         for I in Data.Indents.First_Index + 1 .. Get_Last_Line loop
             Put (I, Data.Indents (I));
          end loop;
       end case;
+   end Put;
+
+   procedure Put (Lexer_Errors : in Lexer.Error_Lists.List)
+   is begin
+      for Item of Lexer_Errors loop
+         Ada.Text_IO.Put_Line
+           ('[' & Lexer_Error_Code & Buffer_Pos'Image (Item.Char_Pos) &
+              " ""lexer error" &
+              (if Item.Recover_Char (1) = ASCII.NUL
+               then """"
+               elsif Item.Recover_Char (1) = '"'
+               then """ ?\"""
+               else """ ?" & Item.Recover_Char (1)) &
+              "]");
+         if Item.Recover_Char (2) /= ASCII.NUL then
+            raise SAL.Programmer_Error with "lexer error with non-ascii or multiple repair char";
+         end if;
+      end loop;
    end Put;
 
    procedure Put
@@ -1508,20 +1593,7 @@ package body Wisi is
       end Safe_Pos;
 
    begin
-      for Item of Lexer_Errors loop
-         Put_Line
-           ('[' & Lexer_Error_Code & Buffer_Pos'Image (Item.Char_Pos) &
-              " ""lexer error" &
-              (if Item.Recover_Char (1) = ASCII.NUL
-               then """"
-               elsif Item.Recover_Char (1) = '"'
-               then """ ?\"""
-               else """ ?" & Item.Recover_Char (1)) &
-              "]");
-         if Item.Recover_Char (2) /= ASCII.NUL then
-            raise SAL.Programmer_Error with "lexer error with non-ascii or multiple repair char";
-         end if;
-      end loop;
+      Put (Lexer_Errors);
 
       for Item of Parse_Errors loop
          --  We don't include parser id here; not very useful.
@@ -1854,7 +1926,7 @@ package body Wisi is
                   for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line - 1)).Non_Grammar loop
                      if Tok.Line = Line and then
                        Tok.ID = Data.Descriptor.Comment_ID and then
-                       Tok.Col = 0
+                       Tok.Column = 0
                      then
                         Indent := False;
                         exit;
