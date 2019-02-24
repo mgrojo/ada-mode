@@ -235,13 +235,14 @@ Regions in a list are in random order.")
 (defun wisi-cache-set-region (region)
   "Set the cached region list for `wisi--parse-action' to REGION."
   (setcdr (assoc wisi--parse-action wisi--cached-regions)
-	  ;; FIXME: use markers!
-	  (list region)))
+	  (list (cons (copy-marker (car region))
+		      (copy-marker (cdr region))))))
 
 (defun wisi-cache-add-region (region)
   "Add REGION to the cached region list for `wisi--parse-action'."
-  ;; FIXME: use markers!
-  (push region (cdr (assoc wisi--parse-action wisi--cached-regions))))
+  (push (cons (copy-marker (car region))
+	      (copy-marker (cdr region)))
+	(cdr (assoc wisi--parse-action wisi--cached-regions))))
 
 (defun wisi-cache-delete-regions-after (parse-action pos)
   "Delete any PARSE-ACTION parsed region where POS is at or after region begin."
@@ -1193,7 +1194,6 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
       (if (buffer-live-p wisi-error-buffer)
 	  (let ((err
 		 (with-current-buffer wisi-error-buffer
-		   ;; FIXME: ensure at beginning of error message line.
 		   (get-text-property (point) 'wisi-error-data))))
 	    (wisi-repair-error-1 err))
 	(error "no current error found")

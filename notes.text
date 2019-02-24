@@ -83,18 +83,19 @@ enforce unix line endings
 partial parse
     c:/eurocontrol/regulation-iflight.adb
 
-    running all tests
-build/ada_mode-recover_2.adb.diff
-./ada_mode-recover_23.adb.diff
-./ada_mode-recover_27.adb.diff
-./ada_mode-recover_ambiguous_parse.adb.diff
-
     refactor _lr _lr_text_rep to avoid ediff
 
+    test buffer_text in test_partial_parse
+
     review fixmes
-        use markers in wisi--cache-regions
 
     don't set margin error marks for errors from partial parse
+
+    expand-region check nav cache
+
+    Recover treat eof same as "end"
+
+time lex with no lex debug
 
 optimize begin in wisi-goto-*
 

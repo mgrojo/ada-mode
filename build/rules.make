@@ -143,6 +143,7 @@ compile-ada-test-clean :
 	rm -f ../test/*.o ../test/subdir/*.o
 	rm -f ../test/*.std* ../test/subdir/*.std*
 	rm -f ../test/gpr_query.db*
+	rm -f ../test/debug*
 
 exe-clean ::
 	rm -rf ../obj
