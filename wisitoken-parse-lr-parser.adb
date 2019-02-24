@@ -946,8 +946,8 @@ package body WisiToken.Parse.LR.Parser is
                         begin
                            Trace.Put_Line
                              (Integer'Image (Current_Parser.Label) & ": spawn" &
-                                Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", " &
-                                Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active, " &
+                                Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
+                                Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active), " &
                                 Image (Parser_State.Tree.Min_Terminal_Index (Parser_State.Current_Token),
                                        Shared_Parser.Terminals, Trace.Descriptor.all));
                         end;

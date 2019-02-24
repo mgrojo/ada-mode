@@ -44,7 +44,7 @@ compilation_unit_1: (compilation_unit, (39 . 63)) <= ((name_list, (39 . 63)))
  ... goto state 5
  0: 5:  6:(STRING_LITERAL, (99 . 101)) : shift and goto state 2
  1: 5:  6:(STRING_LITERAL, (99 . 101)) : shift and goto state 2
- 0: terminate (1 active): duplicate state: random
+ 0: terminate (1 active): duplicate state: random 7:(COMMA, (102 . 102))
  1: 2:  7:(COMMA, (102 . 102)) : reduce 1 tokens to name
 name_1: (name, (99 . 101)) <= ( 6:(STRING_LITERAL, (99 . 101)))
  ... goto state 7

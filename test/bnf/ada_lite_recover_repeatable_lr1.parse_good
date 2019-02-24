@@ -5,7 +5,7 @@
 name_2: (name, (180 . 185)) <= ( 2:(IDENTIFIER, (180 . 185)))
 semantic check OK
  ... goto state 111
- 0: spawn 1, (2 active)
+ 0: spawn 1, (2 active),  3:(IS, (187 . 188))
  1: 111:  3:(IS, (187 . 188)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -38,7 +38,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (199 . 199)) <= ( 6:(IDENTIFIER, (199 . 199)))
 semantic check OK
  ... goto state 72
- 0: terminate (1 active): zombie
+ 0: terminate (1 active): zombie 4:(BEGIN, (190 . 194))
  1: 72:  7:(EQUAL, (201 . 201)) : reduce 1 tokens to primary
 primary_2: (primary, (199 . 199)) <= ((name, (199 . 199)))
  ... goto state 74
@@ -112,7 +112,7 @@ sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
  1: 1500: (END) : shift and goto state 1866
  3: 1866: (IF) : shift and goto state 2214
  1: 1866: (IF) : shift and goto state 2214
- 1: terminate (2 active): duplicate state: ops length
+ 1: terminate (2 active): duplicate state: ops length 11:(SEMICOLON, (213 . 213))
  3: 2214:  11:(SEMICOLON, (213 . 213)) : shift and goto state 2405
  2: 2214:  11:(SEMICOLON, (213 . 213)) : shift and goto state 2405
  3: 2405:  12:(END, (215 . 217)) : reduce 7 tokens to if_statement
@@ -153,7 +153,7 @@ handled_sequence_of_statements_1: (handled_sequence_of_statements, (196 . 213)) 
  ... goto state 1618
  3: 1618:  12:(END, (215 . 217)) : shift and goto state 2034
  2: 1618:  12:(END, (215 . 217)) : shift and goto state 2034
- 3: terminate (1 active): duplicate state: ops length
+ 3: terminate (1 active): duplicate state: ops length 13:(SEMICOLON, (218 . 218))
  2: 2034:  13:(SEMICOLON, (218 . 218)) : reduce 0 tokens to name_opt
 name_opt_1: (name_opt) <= ()
  ... goto state 2303
@@ -176,7 +176,7 @@ semantic check OK
 name_2: (name, (231 . 234)) <= ( 15:(IDENTIFIER, (231 . 234)))
 semantic check OK
  ... goto state 111
- 2: spawn 4, (2 active)
+ 2: spawn 4, (2 active),  16:(IS, (236 . 237))
  4: 111:  16:(IS, (236 . 237)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -209,7 +209,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 block_label_opt_0: (block_label_opt, (245 . 252)) <= ( 18:(IDENTIFIER, (245 . 251)),  19:(COLON, (252 . 252)))
 semantic check OK
  ... goto state 271
- 2: terminate (1 active): zombie
+ 2: terminate (1 active): zombie 17:(BEGIN, (239 . 243))
  4: 271:  20:(BEGIN, (254 . 258)) : shift and goto state 660
  4: 660:  21:(END, (260 . 262)) : reduce 0 tokens to sequence_of_statements_opt
 sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
@@ -368,7 +368,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 308)) <= ((compilation_u
 name_2: (name, (321 . 325)) <= ( 38:(IDENTIFIER, (321 . 325)))
 semantic check OK
  ... goto state 111
- 4: spawn 5, (2 active)
+ 4: spawn 5, (2 active),  39:(IS, (327 . 328))
  5: 111:  39:(IS, (327 . 328)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -402,7 +402,7 @@ block_label_opt_1: (block_label_opt) <= ()
  5: 90:  42:(BEGIN, (341 . 345)) : shift and goto state 226
  4: zombie
  5: 226:  43:(IDENTIFIER, (347 . 347)) : shift and goto state 10
- 4: terminate (1 active): zombie
+ 4: terminate (1 active): zombie 40:(BEGIN, (330 . 334))
  5: 10:  44:(SEMICOLON, (348 . 348)) : reduce 1 tokens to name
 name_2: (name, (347 . 347)) <= ( 43:(IDENTIFIER, (347 . 347)))
 semantic check OK
@@ -653,7 +653,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 415)) <= ((compilation_u
 name_2: (name, (428 . 432)) <= ( 67:(IDENTIFIER, (428 . 432)))
 semantic check OK
  ... goto state 111
- 5: spawn 6, (2 active)
+ 5: spawn 6, (2 active),  68:(IS, (434 . 435))
  6: 111:  68:(IS, (434 . 435)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -690,7 +690,7 @@ semantic check OK
  6: 665:  72:(PROCEDURE, (447 . 455)) : ERROR
  6: expecting: BEGIN, CASE, DECLARE, END, EXIT, EXCEPTION, FOR, IF, LOOP, RETURN, IDENTIFIER
  6: zombie
- 5: terminate (1 active): zombie
+ 5: terminate (1 active): zombie 69:(BEGIN, (437 . 441))
 recover
  6:  2, (2466 : (SEMICOLON))| 72:(PROCEDURE, (447 . 455))|((INSERT, END, 72), (INSERT, SEMICOLON, 72))
 recover: succeed, parser count 1
@@ -735,7 +735,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 444)) <= ((compilation_u
 name_2: (name, (457 . 461)) <= ( 73:(IDENTIFIER, (457 . 461)))
 semantic check OK
  ... goto state 111
- 6: spawn 7, (2 active)
+ 6: spawn 7, (2 active),  74:(IS, (463 . 464))
  7: 111:  74:(IS, (463 . 464)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -757,7 +757,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  ... goto state 719
  6: 240:  75:(BEGIN, (466 . 470)) : ERROR
  6: expecting: NEW
- 6: terminate (1 active): error in conflict during resume
+ 6: terminate (1 active): error in conflict during resume 75:(BEGIN, (466 . 470))
  7: 719:  75:(BEGIN, (466 . 470)) : shift and goto state 1170
  7: resume_active: False
  7: 1170:  76:(PROCEDURE, (472 . 480)) : ERROR
@@ -785,7 +785,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (472 . 491)) <= ((procedure_specification, (472 . 491)))
 semantic check OK
  ... goto state 304
- 7: spawn 8, (2 active)
+ 7: spawn 8, (2 active),  78:(IS, (493 . 494))
  8: 304:  78:(IS, (493 . 494)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -796,7 +796,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  ... goto state 1526
  7: 674:  79:(BEGIN, (496 . 500)) : ERROR
  7: expecting: SEPARATE
- 7: terminate (1 active): error in conflict during resume
+ 7: terminate (1 active): error in conflict during resume 79:(BEGIN, (496 . 500))
  8: 1526:  79:(BEGIN, (496 . 500)) : shift and goto state 1888
  8: resume_active: False
  8: 1888:  80:(END, (502 . 504)) : reduce 0 tokens to sequence_of_statements_opt
@@ -869,7 +869,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 533)) <= ((compilation_u
 name_2: (name, (546 . 552)) <= ( 88:(IDENTIFIER, (546 . 552)))
 semantic check OK
  ... goto state 111
- 8: spawn 9, (2 active)
+ 8: spawn 9, (2 active),  89:(IS, (554 . 555))
  9: 111:  89:(IS, (554 . 555)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -924,7 +924,7 @@ semantic check OK
  11: 1425:  91:(BEGIN, (561 . 565)) : reduce 6 tokens to generic_instantiation
 generic_instantiation_1: (generic_instantiation, (536 . 555)) <= ( 87:(PROCEDURE, (536 . 544)), (name, (546 . 552)),  89:(IS, (554 . 555)), (NEW), (name), (SEMICOLON))
  ... goto state 21
- 8: terminate (3 active): duplicate state: random
+ 8: terminate (3 active): duplicate state: random 93:(IDENTIFIER, (571 . 577))
  10: 576:  93:(IDENTIFIER, (571 . 577)) : shift and goto state 919
  9: 1170:  92:(END, (567 . 569)) : reduce 0 tokens to sequence_of_statements_opt
 sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
@@ -1036,7 +1036,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 147
  11: zombie
  10: 147:  99:(IS, (612 . 613)) : shift and goto state 353
- 11: terminate (2 active): zombie
+ 11: terminate (2 active): zombie 95:(FUNCTION, (581 . 588))
  10: 353:  100:(BEGIN, (615 . 619)) : reduce 0 tokens to declarative_part_opt
 declarative_part_opt_1: (declarative_part_opt) <= ()
  ... goto state 719
@@ -1136,7 +1136,7 @@ simple_expression_1: (simple_expression, (648 . 660)) <= ((term_list, (648 . 660
  10: 1079:  109:(RIGHT_PAREN, (661 . 661)) : reduce 3 tokens to range_g
 range_g_0: (range_g, (643 . 660)) <= ((simple_expression, (643 . 643)),  107:(DOT_DOT, (645 . 646)), (simple_expression, (648 . 660)))
  ... goto state 1284
- 10: spawn 12, (3 active)
+ 10: spawn 12, (3 active),  109:(RIGHT_PAREN, (661 . 661))
  12: 1284:  109:(RIGHT_PAREN, (661 . 661)) : reduce 1 tokens to range_list
 range_list_1: (range_list, (643 . 660)) <= ((range_g, (643 . 660)))
  ... goto state 1428
@@ -1190,7 +1190,7 @@ range_g_0: (range_g, (643 . 660)) <= ((simple_expression, (643 . 643)),  107:(DO
  ... goto state 1284
  12: zombie
  10: zombie
- 9: spawn 13, (4 active)
+ 9: spawn 13, (4 active),  109:(RIGHT_PAREN, (661 . 661))
  13: 1284:  109:(RIGHT_PAREN, (661 . 661)) : reduce 1 tokens to range_list
 range_list_1: (range_list, (643 . 660)) <= ((range_g, (643 . 660)))
  ... goto state 1428
@@ -1205,7 +1205,7 @@ discrete_subtype_definition_1: (discrete_subtype_definition, (643 . 660)) <= ((r
  13: expecting: LEFT_PAREN, RANGE, DOT, SEMICOLON
  13: zombie
  12: zombie
- 9: terminate (3 active): duplicate state: cost
+ 9: terminate (3 active): duplicate state: cost 110:(END, (663 . 665))
  10: zombie
 recover
  13:  1, (977 : (SEMICOLON))| 110:(END, (663 . 665))|((INSERT, SEMICOLON, 110))
@@ -1218,7 +1218,7 @@ recover: succeed, parser count 3
  12: resume_active: True, token goal 113
  10: Current_Token (SEMICOLON) Shared_Token  110:(END, (663 . 665))
  10: resume_active: True, token goal 113
- 12: terminate (2 active): duplicate state: random
+ 12: terminate (2 active): duplicate state: random<invalid_token_index>
  13: 1829: (SEMICOLON) : reduce 4 tokens to name
 name_0: (name, (637 . 661)) <= ((name, (637 . 640)),  105:(LEFT_PAREN, (642 . 642)), (range_list, (643 . 660)),  109:(RIGHT_PAREN, (661 . 661)))
  ... goto state 583
@@ -1242,7 +1242,7 @@ subtype_indication_0: (subtype_indication, (637 . 661)) <= ((name, (637 . 640)),
 extended_return_object_declaration_0: (extended_return_object_declaration, (628 . 661)) <= ( 102:(IDENTIFIER, (628 . 633)),  103:(COLON, (635 . 635)), (subtype_indication, (637 . 661)))
  ... goto state 659
  10: 659: (SEMICOLON) : shift and goto state 977
- 10: terminate (1 active): duplicate state: random
+ 10: terminate (1 active): duplicate state: random 110:(END, (663 . 665))
  13: 977:  110:(END, (663 . 665)) : reduce 3 tokens to extended_return_statement
 extended_return_statement_0: (extended_return_statement, (621 . 661)) <= ( 101:(RETURN, (621 . 626)), (extended_return_object_declaration, (628 . 661)), (SEMICOLON))
  ... goto state 276
@@ -1289,7 +1289,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 676)) <= ((compilation_u
 name_2: (name, (689 . 704)) <= ( 114:(IDENTIFIER, (689 . 704)))
 semantic check OK
  ... goto state 111
- 13: spawn 14, (2 active)
+ 13: spawn 14, (2 active),  115:(IS, (706 . 707))
  14: 111:  115:(IS, (706 . 707)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -1320,7 +1320,7 @@ semantic check OK
  14: 62:  118:(LEFT_PAREN, (724 . 724)) : shift and goto state 197
  13: zombie
  14: 197:  119:(IDENTIFIER, (725 . 728)) : shift and goto state 458
- 13: terminate (1 active): zombie
+ 13: terminate (1 active): zombie 116:(FUNCTION, (709 . 716))
  14: 458:  120:(COLON, (730 . 730)) : shift and goto state 844
  14: 844:  121:(IDENTIFIER, (732 . 744)) : shift and goto state 1306
  14: 1306:  122:(RIGHT_PAREN, (745 . 745)) : reduce 3 tokens to parameter_specification
@@ -1354,7 +1354,7 @@ semantic check OK
 subprogram_specification_1: (subprogram_specification, (709 . 745)) <= ((function_specification, (709 . 745)))
 semantic check OK
  ... goto state 304
- 14: spawn 15, (2 active)
+ 14: spawn 15, (2 active),  123:(IS, (747 . 748))
  15: 304:  123:(IS, (747 . 748)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -1365,7 +1365,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  ... goto state 1526
  14: 674:  124:(BEGIN, (750 . 754)) : ERROR
  14: expecting: SEPARATE
- 14: terminate (1 active): error in conflict during resume
+ 14: terminate (1 active): error in conflict during resume 124:(BEGIN, (750 . 754))
  15: 1526:  124:(BEGIN, (750 . 754)) : shift and goto state 1888
  15: 1888:  125:(END, (756 . 758)) : reduce 0 tokens to sequence_of_statements_opt
 sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
@@ -1432,7 +1432,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 776)) <= ((compilation_u
 name_2: (name, (789 . 791)) <= ( 132:(IDENTIFIER, (789 . 791)))
 semantic check OK
  ... goto state 111
- 15: spawn 16, (2 active)
+ 15: spawn 16, (2 active),  133:(IS, (793 . 794))
  16: 111:  133:(IS, (793 . 794)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -1462,7 +1462,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  16: 3:  136:(IDENTIFIER, (806 . 806)) : shift and goto state 60
  15: zombie
  16: 60:  137:(IN, (808 . 809)) : shift and goto state 196
- 15: terminate (1 active): zombie
+ 15: terminate (1 active): zombie 134:(BEGIN, (796 . 800))
  16: 196:  138:(NUMERIC_LITERAL, (811 . 811)) : shift and goto state 444
  16: 444:  139:(IDENTIFIER, (813 . 814)) : ERROR
  16: expecting: AMPERSAND, DOT_DOT, MINUS, PLUS, SLASH, STAR
@@ -1548,7 +1548,7 @@ sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
  17: 981:  142:(END, (835 . 837)) : shift and goto state 1505
  16: resume_active: False
  17: 1505:  143:(LOOP, (839 . 842)) : shift and goto state 1871
- 17: terminate (1 active): duplicate state: random
+ 17: terminate (1 active): duplicate state: random 143:(LOOP, (839 . 842))
  16: 1871:  144:(SEMICOLON, (843 . 843)) : reduce 0 tokens to identifier_opt
 identifier_opt_1: (identifier_opt) <= ()
  ... goto state 2220
@@ -1598,7 +1598,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 852)) <= ((compilation_u
 name_2: (name, (865 . 875)) <= ( 149:(IDENTIFIER, (865 . 875)))
 semantic check OK
  ... goto state 111
- 16: spawn 18, (2 active)
+ 16: spawn 18, (2 active),  150:(IS, (877 . 878))
  18: 111:  150:(IS, (877 . 878)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -1631,7 +1631,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (891 . 891)) <= ( 153:(IDENTIFIER, (891 . 891)))
 semantic check OK
  ... goto state 46
- 16: terminate (1 active): zombie
+ 16: terminate (1 active): zombie 151:(BEGIN, (880 . 884))
  18: 46:  154:(IS, (893 . 894)) : reduce 1 tokens to primary
 primary_2: (primary, (891 . 891)) <= ((name, (891 . 891)))
  ... goto state 48
@@ -1738,7 +1738,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 912)) <= ((compilation_u
 name_2: (name, (925 . 935)) <= ( 163:(IDENTIFIER, (925 . 935)))
 semantic check OK
  ... goto state 111
- 18: spawn 19, (2 active)
+ 18: spawn 19, (2 active),  164:(IS, (937 . 938))
  19: 111:  164:(IS, (937 . 938)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -1773,7 +1773,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (951 . 951)) <= ( 167:(IDENTIFIER, (951 . 951)))
 semantic check OK
  ... goto state 46
- 18: terminate (1 active): zombie
+ 18: terminate (1 active): zombie 165:(BEGIN, (940 . 944))
  19: 46:  168:(IS, (953 . 954)) : reduce 1 tokens to primary
 primary_2: (primary, (951 . 951)) <= ((name, (951 . 951)))
  ... goto state 48
@@ -1887,7 +1887,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 984)) <= ((compilation_u
 name_2: (name, (997 . 1003)) <= ( 178:(IDENTIFIER, (997 . 1003)))
 semantic check OK
  ... goto state 111
- 19: spawn 20, (2 active)
+ 19: spawn 20, (2 active),  179:(IS, (1005 . 1006))
  20: 111:  179:(IS, (1005 . 1006)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -1920,7 +1920,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (1017 . 1017)) <= ( 182:(IDENTIFIER, (1017 . 1017)))
 semantic check OK
  ... goto state 72
- 19: terminate (1 active): zombie
+ 19: terminate (1 active): zombie 180:(BEGIN, (1008 . 1012))
  20: 72:  183:(THEN, (1019 . 1022)) : reduce 1 tokens to primary
 primary_2: (primary, (1017 . 1017)) <= ((name, (1017 . 1017)))
  ... goto state 74
@@ -2018,7 +2018,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1030)) <= ((compilation_
 name_2: (name, (1043 . 1051)) <= ( 189:(IDENTIFIER, (1043 . 1051)))
 semantic check OK
  ... goto state 111
- 20: spawn 21, (2 active)
+ 20: spawn 21, (2 active),  190:(IS, (1053 . 1054))
  21: 111:  190:(IS, (1053 . 1054)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -2050,7 +2050,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  21: 3:  193:(IDENTIFIER, (1066 . 1066)) : shift and goto state 60
  20: zombie
  21: 60:  194:(IN, (1068 . 1069)) : shift and goto state 196
- 20: terminate (1 active): zombie
+ 20: terminate (1 active): zombie 191:(BEGIN, (1056 . 1060))
  21: 196:  195:(IDENTIFIER, (1071 . 1071)) : shift and goto state 445
  21: 445:  196:(LOOP, (1073 . 1076)) : reduce 1 tokens to name
 name_2: (name, (1071 . 1071)) <= ( 195:(IDENTIFIER, (1071 . 1071)))
@@ -2141,7 +2141,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1084)) <= ((compilation_
 name_2: (name, (1097 . 1104)) <= ( 202:(IDENTIFIER, (1097 . 1104)))
 semantic check OK
  ... goto state 111
- 21: spawn 22, (2 active)
+ 21: spawn 22, (2 active),  203:(IS, (1106 . 1107))
  22: 111:  203:(IS, (1106 . 1107)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -2358,7 +2358,7 @@ primary_2: (primary, (1156 . 1162)) <= ((name, (1156 . 1162)))
  24: 316:  211:(RIGHT_PAREN, (1163 . 1163)) : reduce 1 tokens to primary
 primary_2: (primary, (1156 . 1162)) <= ((name, (1156 . 1162)))
  ... goto state 318
- 23: spawn 26, (6 active)
+ 23: spawn 26, (6 active),  211:(RIGHT_PAREN, (1163 . 1163))
  26: 1283:  211:(RIGHT_PAREN, (1163 . 1163)) : reduce 1 tokens to subtype_indication
 subtype_indication_1: (subtype_indication, (1156 . 1162)) <= ((name, (1156 . 1162)))
  ... goto state 1287
@@ -2562,7 +2562,7 @@ association_list_1: (association_list, (1156 . 1162)) <= ((association_opt, (115
  ... goto state 1824
  24: zombie
  21: 1824:  211:(RIGHT_PAREN, (1163 . 1163)) : shift and goto state 2178
- 23: terminate (5 active): duplicate state: random
+ 23: terminate (5 active): duplicate state: random 213:(PROCEDURE, (1167 . 1175))
  26: 1523:  213:(PROCEDURE, (1167 . 1175)) : reduce 4 tokens to object_declaration
 object_declaration_1: (object_declaration, (1109 . 1164)) <= ( 204:(IDENTIFIER, (1109 . 1111)), (COLON), (subtype_indication, (1112 . 1163)),  212:(SEMICOLON, (1164 . 1164)))
  ... goto state 298
@@ -2600,7 +2600,7 @@ declarations_1: (declarations, (1109 . 1164)) <= ((declaration, (1109 . 1164)))
  25: zombie
  24: zombie
  22: 295:  213:(PROCEDURE, (1167 . 1175)) : shift and goto state 289
- 22: terminate (4 active): duplicate state: random
+ 22: terminate (4 active): duplicate state: random 214:(IDENTIFIER, (1177 . 1179))
  26: 289:  214:(IDENTIFIER, (1177 . 1179)) : shift and goto state 110
  25: zombie
  24: zombie
@@ -2625,7 +2625,7 @@ name_2: (name, (1177 . 1179)) <= ( 214:(IDENTIFIER, (1177 . 1179)))
 semantic check OK
  ... goto state 669
  25: zombie
- 24: terminate (3 active): zombie
+ 24: terminate (3 active): zombie 212:(SEMICOLON, (1164 . 1164))
  21: 8:  214:(IDENTIFIER, (1177 . 1179)) : shift and goto state 110
  26: 669:  215:(IS, (1181 . 1182)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
@@ -2641,7 +2641,7 @@ subprogram_specification_0: (subprogram_specification, (1167 . 1179)) <= ((proce
 semantic check OK
  ... goto state 304
  25: zombie
- 26: spawn 27, (4 active)
+ 26: spawn 27, (4 active),  215:(IS, (1181 . 1182))
  27: 304:  215:(IS, (1181 . 1182)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -2655,14 +2655,14 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  26: 674:  216:(BEGIN, (1184 . 1188)) : ERROR
  26: expecting: SEPARATE
  26: zombie
- 25: terminate (3 active): zombie
+ 25: terminate (3 active): zombie 213:(PROCEDURE, (1167 . 1175))
  21: 110:  215:(IS, (1181 . 1182)) : reduce 1 tokens to name
 name_2: (name, (1177 . 1179)) <= ( 214:(IDENTIFIER, (1177 . 1179)))
 semantic check OK
  ... goto state 111
  27: 1526:  216:(BEGIN, (1184 . 1188)) : shift and goto state 1888
  26: zombie
- 21: spawn 28, (4 active)
+ 21: spawn 28, (4 active),  215:(IS, (1181 . 1182))
  28: 111:  215:(IS, (1181 . 1182)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -2704,7 +2704,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  28: expecting: LEFT_PAREN, NOT, THEN, MINUS, PLUS, STRING_LITERAL, NUMERIC_LITERAL, IDENTIFIER
  28: zombie
  27: zombie
- 26: terminate (3 active): zombie
+ 26: terminate (3 active): zombie 216:(BEGIN, (1184 . 1188))
  21: zombie
 recover
  28:  3, (68 : (IDENTIFIER))| 218:(AND, (1194 . 1196))|((INSERT, IDENTIFIER, 218))
@@ -2719,7 +2719,7 @@ recover: succeed, parser count 3
  21: resume_active: True, token goal 219
  28: 267: (IDENTIFIER) : shift and goto state 68
  27: 267: (IDENTIFIER) : shift and goto state 68
- 21: spawn 29, (4 active)
+ 21: spawn 29, (4 active),  215:(IS, (1181 . 1182))
  29: 111:  215:(IS, (1181 . 1182)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -2749,7 +2749,7 @@ semantic check OK
  ... goto state 72
  21: 240:  216:(BEGIN, (1184 . 1188)) : ERROR
  21: expecting: NEW
- 21: terminate (3 active): error in conflict during resume
+ 21: terminate (3 active): error in conflict during resume 216:(BEGIN, (1184 . 1188))
  29: 719:  216:(BEGIN, (1184 . 1188)) : shift and goto state 1170
  28: 72:  218:(AND, (1194 . 1196)) : reduce 1 tokens to primary
 primary_2: (primary) <= ((name))
@@ -3102,7 +3102,7 @@ semantic check OK
  29: 33:  228:(PROCEDURE, (1222 . 1230)) : reduce 1 tokens to compilation_unit
 compilation_unit_2: (compilation_unit, (1167 . 1219)) <= ((subprogram_body, (1167 . 1219)))
  ... goto state 138
- 28: spawn 30, (4 active)
+ 28: spawn 30, (4 active),  230:(IS, (1247 . 1248))
  30: 111:  230:(IS, (1247 . 1248)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -3133,7 +3133,7 @@ semantic check OK
  30: 35:  230:(IS, (1247 . 1248)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 147
- 27: spawn 31, (5 active)
+ 27: spawn 31, (5 active),  230:(IS, (1247 . 1248))
  31: 304:  230:(IS, (1247 . 1248)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -3157,7 +3157,7 @@ semantic check OK
  ... goto state 111
  28: zombie
  27: zombie
- 29: spawn 32, (6 active)
+ 29: spawn 32, (6 active),  230:(IS, (1247 . 1248))
  32: 111:  230:(IS, (1247 . 1248)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -3229,12 +3229,12 @@ semantic check OK
  29: zombie
  28: zombie
  27: zombie
- 31: spawn 33, (7 active)
+ 31: spawn 33, (7 active),  233:(IS, (1278 . 1279))
  33: 304:  233:(IS, (1278 . 1279)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
  31: 304:  233:(IS, (1278 . 1279)) : shift and goto state 674
- 30: spawn 34, (8 active)
+ 30: spawn 34, (8 active),  233:(IS, (1278 . 1279))
  34: 304:  233:(IS, (1278 . 1279)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -3261,8 +3261,8 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  30: expecting: SEPARATE
  30: zombie
  29: zombie
- 28: terminate (7 active): zombie
- 27: terminate (6 active): zombie
+ 28: terminate (7 active): zombie 231:(PROCEDURE, (1250 . 1258))
+ 27: terminate (6 active): zombie 231:(PROCEDURE, (1250 . 1258))
  34: 1526:  234:(BEGIN, (1281 . 1285)) : shift and goto state 1888
  33: 1526:  234:(BEGIN, (1281 . 1285)) : shift and goto state 1888
  31: zombie
@@ -3303,7 +3303,7 @@ semantic check OK
  31: zombie
  30: zombie
  29: zombie
- 32: spawn 35, (7 active)
+ 32: spawn 35, (7 active),  233:(IS, (1278 . 1279))
  35: 304:  233:(IS, (1278 . 1279)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -3329,7 +3329,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  32: zombie
  31: zombie
  30: zombie
- 29: terminate (6 active): zombie
+ 29: terminate (6 active): zombie 231:(PROCEDURE, (1250 . 1258))
  35: 1526:  234:(BEGIN, (1281 . 1285)) : shift and goto state 1888
  34: zombie
  33: zombie
@@ -3342,8 +3342,8 @@ sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
  34: zombie
  33: zombie
  32: zombie
- 31: terminate (5 active): zombie
- 30: terminate (4 active): zombie
+ 31: terminate (5 active): zombie 234:(BEGIN, (1281 . 1285))
+ 30: terminate (4 active): zombie 234:(BEGIN, (1281 . 1285))
  35: 284:  235:(EXCEPTION, (1287 . 1295)) : shift and goto state 667
  34: zombie
  33: zombie
@@ -3459,7 +3459,7 @@ handled_sequence_of_statements_0: (handled_sequence_of_statements, (1287 . 1295)
  36: 2034: (SEMICOLON) : reduce 0 tokens to name_opt
 name_opt_1: (name_opt) <= ()
  ... goto state 2303
- 34: terminate (4 active): duplicate state: random
+ 34: terminate (4 active): duplicate state: random 238:(END, (1305 . 1307))
  32: 2034: (SEMICOLON) : reduce 0 tokens to name_opt
 name_opt_1: (name_opt) <= ()
  ... goto state 2303
@@ -3491,7 +3491,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1295)) <= ((compilation_
  32: 16:  236:(IF, (1297 . 1298)) : shift and goto state 5
  35: resume_active: False
  33: resume_active: False
- 36: terminate (3 active): duplicate state: ops length
+ 36: terminate (3 active): duplicate state: ops length 237:(THEN, (1300 . 1303))
  32: 5:  237:(THEN, (1300 . 1303)) : reduce 0 tokens to expression_opt
 expression_opt_1: (expression_opt) <= ()
  ... goto state 70
@@ -3631,7 +3631,7 @@ sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
  33: 660:  246:(END, (1348 . 1350)) : reduce 0 tokens to sequence_of_statements_opt
 sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
  ... goto state 284
- 32: terminate (2 active): zombie
+ 32: terminate (2 active): zombie 241:(END, (1313 . 1315))
  35: 284:  246:(END, (1348 . 1350)) : reduce 1 tokens to handled_sequence_of_statements
 handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence_of_statements_opt))
  ... goto state 978
@@ -3746,7 +3746,7 @@ semantic check OK
 name_2: (name, (1384 . 1389)) <= ( 252:(IDENTIFIER, (1384 . 1389)))
 semantic check OK
  ... goto state 669
- 35: spawn 37, (3 active)
+ 35: spawn 37, (3 active),  253:(IS, (1391 . 1392))
  37: 111:  253:(IS, (1391 . 1392)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -3773,7 +3773,7 @@ semantic check OK
  37: 35:  253:(IS, (1391 . 1392)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 147
- 33: spawn 38, (4 active)
+ 33: spawn 38, (4 active),  253:(IS, (1391 . 1392))
  38: 304:  253:(IS, (1391 . 1392)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -3812,8 +3812,8 @@ semantic check OK
 name_2: (name, (1405 . 1405)) <= ( 256:(IDENTIFIER, (1405 . 1405)))
 semantic check OK
  ... goto state 99
- 35: terminate (3 active): zombie
- 33: terminate (2 active): zombie
+ 35: terminate (3 active): zombie 254:(BEGIN, (1394 . 1398))
+ 33: terminate (2 active): zombie 254:(BEGIN, (1394 . 1398))
  38: 99:  257:(COLON_EQUAL, (1407 . 1408)) : shift and goto state 229
  37: 99:  257:(COLON_EQUAL, (1407 . 1408)) : shift and goto state 229
  38: 229:  258:(IDENTIFIER, (1410 . 1410)) : shift and goto state 247
@@ -4077,7 +4077,7 @@ semantic check OK
  38: 669:  267:(IS, (1449 . 1450)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
- 37: spawn 39, (3 active)
+ 37: spawn 39, (3 active),  267:(IS, (1449 . 1450))
  39: 111:  267:(IS, (1449 . 1450)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -4101,7 +4101,7 @@ semantic check OK
  39: 35:  267:(IS, (1449 . 1450)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 147
- 38: spawn 40, (4 active)
+ 38: spawn 40, (4 active),  267:(IS, (1449 . 1450))
  40: 304:  267:(IS, (1449 . 1450)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -4144,8 +4144,8 @@ semantic check OK
  37: zombie
  40: 664:  271:(STRING_LITERAL, (1463 . 1465)) : shift and goto state 116
  39: 664:  271:(STRING_LITERAL, (1463 . 1465)) : shift and goto state 116
- 38: terminate (3 active): zombie
- 37: terminate (2 active): zombie
+ 38: terminate (3 active): zombie 268:(BEGIN, (1452 . 1456))
+ 37: terminate (2 active): zombie 268:(BEGIN, (1452 . 1456))
  40: 116:  272:(SEMICOLON, (1466 . 1466)) : reduce 1 tokens to primary
 primary_1: (primary, (1463 . 1465)) <= ( 271:(STRING_LITERAL, (1463 . 1465)))
  ... goto state 125
@@ -4476,12 +4476,12 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1515 . 1530)) <= ((procedure_specification, (1515 . 1530)))
 semantic check OK
  ... goto state 1419
- 40: spawn 41, (3 active)
+ 40: spawn 41, (3 active),  289:(IS, (1532 . 1533))
  41: 1419:  289:(IS, (1532 . 1533)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
  40: 1419:  289:(IS, (1532 . 1533)) : shift and goto state 1821
- 39: spawn 42, (4 active)
+ 39: spawn 42, (4 active),  289:(IS, (1532 . 1533))
  42: 1419:  289:(IS, (1532 . 1533)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -4524,8 +4524,8 @@ semantic check OK
  39: zombie
  42: 664:  293:(IDENTIFIER, (1546 . 1546)) : shift and goto state 247
  41: 664:  293:(IDENTIFIER, (1546 . 1546)) : shift and goto state 247
- 40: terminate (3 active): zombie
- 39: terminate (2 active): zombie
+ 40: terminate (3 active): zombie 290:(BEGIN, (1535 . 1539))
+ 39: terminate (2 active): zombie 290:(BEGIN, (1535 . 1539))
  42: 247:  294:(SEMICOLON, (1547 . 1547)) : reduce 1 tokens to name
 name_2: (name, (1546 . 1546)) <= ( 293:(IDENTIFIER, (1546 . 1546)))
 semantic check OK
@@ -4834,12 +4834,12 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1603 . 1618)) <= ((procedure_specification, (1603 . 1618)))
 semantic check OK
  ... goto state 1419
- 42: spawn 43, (3 active)
+ 42: spawn 43, (3 active),  310:(IS, (1620 . 1621))
  43: 1419:  310:(IS, (1620 . 1621)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
  42: 1419:  310:(IS, (1620 . 1621)) : shift and goto state 1821
- 41: spawn 44, (4 active)
+ 41: spawn 44, (4 active),  310:(IS, (1620 . 1621))
  44: 1419:  310:(IS, (1620 . 1621)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -4882,8 +4882,8 @@ semantic check OK
  41: zombie
  44: 664:  314:(IDENTIFIER, (1634 . 1634)) : shift and goto state 247
  43: 664:  314:(IDENTIFIER, (1634 . 1634)) : shift and goto state 247
- 42: terminate (3 active): zombie
- 41: terminate (2 active): zombie
+ 42: terminate (3 active): zombie 311:(BEGIN, (1623 . 1627))
+ 41: terminate (2 active): zombie 311:(BEGIN, (1623 . 1627))
  44: 247:  315:(SEMICOLON, (1635 . 1635)) : reduce 1 tokens to name
 name_2: (name, (1634 . 1634)) <= ( 314:(IDENTIFIER, (1634 . 1634)))
 semantic check OK
@@ -5506,15 +5506,15 @@ semantic check OK
  49: 665:  326:(END, (1672 . 1674)) : reduce 2 tokens to procedure_call_statement
 procedure_call_statement_0: (procedure_call_statement, (1664 . 1670)) <= ((name, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
  ... goto state 282
- 47: terminate (6 active): duplicate state: random
+ 47: terminate (6 active): duplicate state: random 327:(IDENTIFIER, (1676 . 1676))
  48: 143:  327:(IDENTIFIER, (1676 . 1676)) : reduce 2 tokens to procedure_call_statement
 procedure_call_statement_0: (procedure_call_statement, (1664 . 1670)) <= ((name, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
  ... goto state 27
- 43: terminate (5 active): duplicate state: random
+ 43: terminate (5 active): duplicate state: random 327:(IDENTIFIER, (1676 . 1676))
  46: 143:  327:(IDENTIFIER, (1676 . 1676)) : reduce 2 tokens to procedure_call_statement
 procedure_call_statement_0: (procedure_call_statement, (1664 . 1670)) <= ((name, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
  ... goto state 27
- 44: terminate (4 active): duplicate state: random
+ 44: terminate (4 active): duplicate state: random 328:(SEMICOLON, (1677 . 1677))
  45: 919:  328:(SEMICOLON, (1677 . 1677)) : reduce 1 tokens to name
 name_2: (name, (1676 . 1676)) <= ( 327:(IDENTIFIER, (1676 . 1676)))
 semantic check OK
@@ -5567,7 +5567,7 @@ handled_sequence_of_statements_1: (handled_sequence_of_statements, (1664 . 1670)
  46: 16:  327:(IDENTIFIER, (1676 . 1676)) : shift and goto state 10
  49: 2173:  326:(END, (1672 . 1674)) : shift and goto state 2385
  49: 2385:  327:(IDENTIFIER, (1676 . 1676)) : shift and goto state 919
- 46: terminate (3 active): duplicate state: random
+ 46: terminate (3 active): duplicate state: random 328:(SEMICOLON, (1677 . 1677))
  48: 10:  328:(SEMICOLON, (1677 . 1677)) : reduce 1 tokens to name
 name_2: (name, (1676 . 1676)) <= ( 327:(IDENTIFIER, (1676 . 1676)))
 semantic check OK
@@ -5614,7 +5614,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1677)) <= ((compilation_
 package_body_0: (package_body, (1585 . 1677)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1658)), (BEGIN), (handled_sequence_of_statements, (1664 . 1670)),  326:(END, (1672 . 1674)), (name_opt, (1676 . 1676)),  328:(SEMICOLON, (1677 . 1677)))
 semantic check OK
  ... goto state 26
- 48: terminate (2 active): duplicate state: cost
+ 48: terminate (2 active): duplicate state: cost 330:(IDENTIFIER, (1689 . 1689))
  49: 26:  329:(PROCEDURE, (1679 . 1687)) : reduce 1 tokens to compilation_unit
 compilation_unit_0: (compilation_unit, (1585 . 1677)) <= ((package_body, (1585 . 1677)))
  ... goto state 138
@@ -5623,7 +5623,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1677)) <= ((compilation_
  ... goto state 16
  49: 16:  329:(PROCEDURE, (1679 . 1687)) : shift and goto state 8
  49: resume_active: False
- 49: terminate (1 active): duplicate state: cost
+ 49: terminate (1 active): duplicate state: cost 330:(IDENTIFIER, (1689 . 1689))
  45: 8:  330:(IDENTIFIER, (1689 . 1689)) : shift and goto state 110
  45: 110:  331:(SEMICOLON, (1690 . 1690)) : reduce 1 tokens to name
 name_2: (name, (1689 . 1689)) <= ( 330:(IDENTIFIER, (1689 . 1689)))
@@ -5678,7 +5678,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1711 . 1726)) <= ((procedure_specification, (1711 . 1726)))
 semantic check OK
  ... goto state 1419
- 45: spawn 50, (2 active)
+ 45: spawn 50, (2 active),  338:(IS, (1728 . 1729))
  50: 1419:  338:(IS, (1728 . 1729)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -5702,7 +5702,7 @@ semantic check OK
  50: 281:  341:(COLON_EQUAL, (1739 . 1740)) : shift and goto state 664
  45: zombie
  50: 664:  342:(IDENTIFIER, (1742 . 1742)) : shift and goto state 247
- 45: terminate (1 active): zombie
+ 45: terminate (1 active): zombie 339:(BEGIN, (1731 . 1735))
  50: 247:  343:(SEMICOLON, (1743 . 1743)) : reduce 1 tokens to name
 name_2: (name, (1742 . 1742)) <= ( 342:(IDENTIFIER, (1742 . 1742)))
 semantic check OK
@@ -5945,7 +5945,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1848)) <= ((compilation_
 name_2: (name, (1861 . 1866)) <= ( 373:(IDENTIFIER, (1861 . 1866)))
 semantic check OK
  ... goto state 111
- 50: spawn 51, (2 active)
+ 50: spawn 51, (2 active),  374:(IS, (1868 . 1869))
  51: 111:  374:(IS, (1868 . 1869)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -5987,7 +5987,7 @@ subprogram_specification_0: (subprogram_specification, (1871 . 1886)) <= ((proce
 semantic check OK
  ... goto state 304
  50: zombie
- 51: spawn 52, (3 active)
+ 51: spawn 52, (3 active),  377:(IS, (1888 . 1889))
  52: 304:  377:(IS, (1888 . 1889)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -6001,7 +6001,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  51: 674:  378:(BEGIN, (1891 . 1895)) : ERROR
  51: expecting: SEPARATE
  51: zombie
- 50: terminate (2 active): zombie
+ 50: terminate (2 active): zombie 375:(PROCEDURE, (1871 . 1879))
  52: 1526:  378:(BEGIN, (1891 . 1895)) : shift and goto state 1888
  51: zombie
  52: 1888:  379:(IDENTIFIER, (1897 . 1900)) : shift and goto state 10
@@ -6016,7 +6016,7 @@ semantic check OK
  52: 665:  381:(END, (1903 . 1905)) : reduce 2 tokens to procedure_call_statement
 procedure_call_statement_0: (procedure_call_statement, (1897 . 1901)) <= ((name, (1897 . 1900)),  380:(SEMICOLON, (1901 . 1901)))
  ... goto state 282
- 51: terminate (1 active): zombie
+ 51: terminate (1 active): zombie 378:(BEGIN, (1891 . 1895))
  52: 282:  381:(END, (1903 . 1905)) : reduce 1 tokens to simple_statement
 simple_statement_2: (simple_statement, (1897 . 1901)) <= ((procedure_call_statement, (1897 . 1901)))
  ... goto state 286
@@ -6130,7 +6130,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1955 . 1974)) <= ((procedure_specification, (1955 . 1974)))
 semantic check OK
  ... goto state 1419
- 52: spawn 53, (2 active)
+ 52: spawn 53, (2 active),  395:(IS, (1976 . 1977))
  53: 1419:  395:(IS, (1976 . 1977)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -6156,7 +6156,7 @@ block_label_opt_1: (block_label_opt) <= ()
 name_2: (name, (1991 . 1995)) <= ( 398:(IDENTIFIER, (1991 . 1995)))
 semantic check OK
  ... goto state 281
- 52: terminate (1 active): zombie
+ 52: terminate (1 active): zombie 396:(BEGIN, (1979 . 1983))
  53: 281:  399:(LEFT_PAREN, (1997 . 1997)) : shift and goto state 140
  53: 140:  400:(IDENTIFIER, (1998 . 2015)) : shift and goto state 311
  53: 311:  401:(RIGHT_PAREN, (2016 . 2016)) : reduce 1 tokens to name
@@ -6299,7 +6299,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (2036 . 2055)) <= ((procedure_specification, (2036 . 2055)))
 semantic check OK
  ... goto state 1419
- 53: spawn 54, (2 active)
+ 53: spawn 54, (2 active),  408:(IS, (2057 . 2058))
  54: 1419:  408:(IS, (2057 . 2058)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -6310,7 +6310,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  ... goto state 2388
  53: 1821:  409:(BEGIN, (2060 . 2064)) : ERROR
  53: expecting: SEPARATE
- 53: terminate (1 active): error in conflict during resume
+ 53: terminate (1 active): error in conflict during resume 409:(BEGIN, (2060 . 2064))
  54: 2388:  409:(BEGIN, (2060 . 2064)) : shift and goto state 2577
  54: resume_active: False
  54: 2577:  410:(END, (2066 . 2068)) : reduce 0 tokens to sequence_of_statements_opt
@@ -6405,7 +6405,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (2122 . 2132)) <= ((procedure_specification, (2122 . 2132)))
 semantic check OK
  ... goto state 1419
- 54: spawn 55, (2 active)
+ 54: spawn 55, (2 active),  423:(IS, (2134 . 2135))
  55: 1419:  423:(IS, (2134 . 2135)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -6481,7 +6481,7 @@ declarative_part_opt_0: (declarative_part_opt, (2122 . 2135)) <= ((declarations,
  ... goto state 1411
  55: 1411:  424:(END, (2137 . 2139)) : shift and goto state 1820
  54: 1411:  424:(END, (2137 . 2139)) : shift and goto state 1820
- 54: terminate (1 active): duplicate state: random
+ 54: terminate (1 active): duplicate state: random 425:(IDENTIFIER, (2141 . 2145))
  55: 1820:  425:(IDENTIFIER, (2141 . 2145)) : shift and goto state 919
  55: 919:  426:(SEMICOLON, (2146 . 2146)) : reduce 1 tokens to name
 name_2: (name, (2141 . 2145)) <= ( 425:(IDENTIFIER, (2141 . 2145)))
@@ -6509,7 +6509,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 2146)) <= ((compilation_
 name_2: (name, (2159 . 2172)) <= ( 428:(IDENTIFIER, (2159 . 2172)))
 semantic check OK
  ... goto state 111
- 55: spawn 56, (2 active)
+ 55: spawn 56, (2 active),  429:(IS, (2174 . 2175))
  56: 111:  429:(IS, (2174 . 2175)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -6551,7 +6551,7 @@ subprogram_specification_0: (subprogram_specification, (2177 . 2202)) <= ((proce
 semantic check OK
  ... goto state 304
  55: zombie
- 56: spawn 57, (3 active)
+ 56: spawn 57, (3 active),  432:(IS, (2204 . 2205))
  57: 304:  432:(IS, (2204 . 2205)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -6563,7 +6563,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  56: 674:  433:(PROCEDURE, (2207 . 2215)) : ERROR
  56: expecting: SEPARATE
  56: zombie
- 55: terminate (2 active): zombie
+ 55: terminate (2 active): zombie 430:(PROCEDURE, (2177 . 2185))
  57: 289:  434:(IDENTIFIER, (2217 . 2224)) : shift and goto state 110
  56: zombie
  57: 110:  435:(IS, (2226 . 2227)) : reduce 1 tokens to name
@@ -6585,7 +6585,7 @@ subprogram_specification_0: (subprogram_specification, (2207 . 2224)) <= ((proce
 semantic check OK
  ... goto state 304
  56: zombie
- 57: spawn 58, (3 active)
+ 57: spawn 58, (3 active),  435:(IS, (2226 . 2227))
  58: 304:  435:(IS, (2226 . 2227)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -6599,7 +6599,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  57: 674:  436:(BEGIN, (2229 . 2233)) : ERROR
  57: expecting: SEPARATE
  57: zombie
- 56: terminate (2 active): zombie
+ 56: terminate (2 active): zombie 433:(PROCEDURE, (2207 . 2215))
  58: 1526:  436:(BEGIN, (2229 . 2233)) : shift and goto state 1888
  57: zombie
  58: 1888:  437:(BEGIN, (2235 . 2239)) : reduce 0 tokens to block_label_opt
@@ -6619,7 +6619,7 @@ handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence
  58: 978:  438:(END, (2241 . 2243)) : shift and goto state 1502
  57: zombie
  58: 1502:  439:(IDENTIFIER, (2245 . 2260)) : shift and goto state 913
- 57: terminate (1 active): zombie
+ 57: terminate (1 active): zombie 436:(BEGIN, (2229 . 2233))
  58: 913:  440:(SEMICOLON, (2261 . 2261)) : reduce 1 tokens to identifier_opt
 identifier_opt_0: (identifier_opt, (2245 . 2260)) <= ( 439:(IDENTIFIER, (2245 . 2260)))
 semantic check OK
@@ -6736,7 +6736,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 2287)) <= ((compilation_
 name_2: (name, (2300 . 2313)) <= ( 446:(IDENTIFIER, (2300 . 2313)))
 semantic check OK
  ... goto state 111
- 58: spawn 59, (2 active)
+ 58: spawn 59, (2 active),  447:(IS, (2315 . 2316))
  59: 111:  447:(IS, (2315 . 2316)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -6778,7 +6778,7 @@ subprogram_specification_0: (subprogram_specification, (2318 . 2343)) <= ((proce
 semantic check OK
  ... goto state 304
  58: zombie
- 59: spawn 60, (3 active)
+ 59: spawn 60, (3 active),  450:(IS, (2345 . 2346))
  60: 304:  450:(IS, (2345 . 2346)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -6790,7 +6790,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  59: 674:  451:(PROCEDURE, (2348 . 2356)) : ERROR
  59: expecting: SEPARATE
  59: zombie
- 58: terminate (2 active): zombie
+ 58: terminate (2 active): zombie 448:(PROCEDURE, (2318 . 2326))
  60: 289:  452:(IDENTIFIER, (2358 . 2365)) : shift and goto state 110
  59: zombie
  60: 110:  453:(IS, (2367 . 2368)) : reduce 1 tokens to name
@@ -6812,7 +6812,7 @@ subprogram_specification_0: (subprogram_specification, (2348 . 2365)) <= ((proce
 semantic check OK
  ... goto state 304
  59: zombie
- 60: spawn 61, (3 active)
+ 60: spawn 61, (3 active),  453:(IS, (2367 . 2368))
  61: 304:  453:(IS, (2367 . 2368)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -6824,7 +6824,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  60: 674:  454:(PROCEDURE, (2370 . 2378)) : ERROR
  60: expecting: SEPARATE
  60: zombie
- 59: terminate (2 active): zombie
+ 59: terminate (2 active): zombie 451:(PROCEDURE, (2348 . 2356))
  61: 289:  455:(IDENTIFIER, (2380 . 2380)) : shift and goto state 110
  60: zombie
  61: 110:  456:(IS, (2382 . 2383)) : reduce 1 tokens to name
@@ -6846,7 +6846,7 @@ subprogram_specification_0: (subprogram_specification, (2370 . 2380)) <= ((proce
 semantic check OK
  ... goto state 304
  60: zombie
- 61: spawn 62, (3 active)
+ 61: spawn 62, (3 active),  456:(IS, (2382 . 2383))
  62: 304:  456:(IS, (2382 . 2383)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -6860,7 +6860,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  61: 674:  457:(BEGIN, (2385 . 2389)) : ERROR
  61: expecting: SEPARATE
  61: zombie
- 60: terminate (2 active): zombie
+ 60: terminate (2 active): zombie 454:(PROCEDURE, (2370 . 2378))
  62: 1526:  457:(BEGIN, (2385 . 2389)) : shift and goto state 1888
  61: zombie
  62: 1888:  458:(BEGIN, (2391 . 2395)) : reduce 0 tokens to block_label_opt
@@ -6880,7 +6880,7 @@ handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence
  62: 978:  459:(END, (2397 . 2399)) : shift and goto state 1502
  61: zombie
  62: 1502:  460:(IDENTIFIER, (2401 . 2416)) : shift and goto state 913
- 61: terminate (1 active): zombie
+ 61: terminate (1 active): zombie 457:(BEGIN, (2385 . 2389))
  62: 913:  461:(SEMICOLON, (2417 . 2417)) : reduce 1 tokens to identifier_opt
 identifier_opt_0: (identifier_opt, (2401 . 2416)) <= ( 460:(IDENTIFIER, (2401 . 2416)))
 semantic check OK
@@ -7028,7 +7028,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 2443)) <= ((compilation_
 name_2: (name, (2456 . 2469)) <= ( 467:(IDENTIFIER, (2456 . 2469)))
 semantic check OK
  ... goto state 111
- 62: spawn 63, (2 active)
+ 62: spawn 63, (2 active),  468:(IS, (2471 . 2472))
  63: 111:  468:(IS, (2471 . 2472)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -7070,7 +7070,7 @@ subprogram_specification_0: (subprogram_specification, (2474 . 2499)) <= ((proce
 semantic check OK
  ... goto state 304
  62: zombie
- 63: spawn 64, (3 active)
+ 63: spawn 64, (3 active),  471:(IS, (2501 . 2502))
  64: 304:  471:(IS, (2501 . 2502)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -7084,7 +7084,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  63: 674:  472:(BEGIN, (2504 . 2508)) : ERROR
  63: expecting: SEPARATE
  63: zombie
- 62: terminate (2 active): zombie
+ 62: terminate (2 active): zombie 469:(PROCEDURE, (2474 . 2482))
  64: 1526:  472:(BEGIN, (2504 . 2508)) : shift and goto state 1888
  63: zombie
  64: 1888:  473:(BEGIN, (2510 . 2514)) : reduce 0 tokens to block_label_opt
@@ -7104,7 +7104,7 @@ handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence
  64: 978:  474:(END, (2516 . 2518)) : shift and goto state 1502
  63: zombie
  64: 1502:  475:(IDENTIFIER, (2520 . 2535)) : shift and goto state 913
- 63: terminate (1 active): zombie
+ 63: terminate (1 active): zombie 472:(BEGIN, (2504 . 2508))
  64: 913:  476:(SEMICOLON, (2536 . 2536)) : reduce 1 tokens to identifier_opt
 identifier_opt_0: (identifier_opt, (2520 . 2535)) <= ( 475:(IDENTIFIER, (2520 . 2535)))
 semantic check OK
@@ -7230,7 +7230,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (2588 . 2603)) <= ((procedure_specification, (2588 . 2603)))
 semantic check OK
  ... goto state 1419
- 64: spawn 65, (2 active)
+ 64: spawn 65, (2 active),  487:(IS, (2605 . 2606))
  65: 1419:  487:(IS, (2605 . 2606)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -7261,7 +7261,7 @@ subprogram_specification_0: (subprogram_specification, (2608 . 2623)) <= ((proce
 semantic check OK
  ... goto state 304
  64: zombie
- 65: spawn 66, (3 active)
+ 65: spawn 66, (3 active),  490:(IS, (2625 . 2626))
  66: 304:  490:(IS, (2625 . 2626)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -7275,7 +7275,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  65: 674:  491:(BEGIN, (2628 . 2632)) : ERROR
  65: expecting: SEPARATE
  65: zombie
- 64: terminate (2 active): zombie
+ 64: terminate (2 active): zombie 488:(PROCEDURE, (2608 . 2616))
  66: 1526:  491:(BEGIN, (2628 . 2632)) : shift and goto state 1888
  65: zombie
  66: 1888:  492:(CASE, (2634 . 2637)) : shift and goto state 265
@@ -7286,7 +7286,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (2639 . 2639)) <= ( 493:(IDENTIFIER, (2639 . 2639)))
 semantic check OK
  ... goto state 46
- 65: terminate (1 active): zombie
+ 65: terminate (1 active): zombie 491:(BEGIN, (2628 . 2632))
  66: 46:  494:(IS, (2641 . 2642)) : reduce 1 tokens to primary
 primary_2: (primary, (2639 . 2639)) <= ((name, (2639 . 2639)))
  ... goto state 48
@@ -7488,7 +7488,7 @@ semantic check OK
 name_3: (name, (2698 . 2719)) <= ((selected_component, (2698 . 2719)))
 semantic check OK
  ... goto state 111
- 66: spawn 67, (2 active)
+ 66: spawn 67, (2 active),  511:(IS, (2721 . 2722))
  67: 111:  511:(IS, (2721 . 2722)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -7530,7 +7530,7 @@ subprogram_specification_0: (subprogram_specification, (2724 . 2739)) <= ((proce
 semantic check OK
  ... goto state 304
  66: zombie
- 67: spawn 68, (3 active)
+ 67: spawn 68, (3 active),  514:(IS, (2741 . 2742))
  68: 304:  514:(IS, (2741 . 2742)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 676
@@ -7544,7 +7544,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  67: 674:  515:(BEGIN, (2744 . 2748)) : ERROR
  67: expecting: SEPARATE
  67: zombie
- 66: terminate (2 active): zombie
+ 66: terminate (2 active): zombie 512:(PROCEDURE, (2724 . 2732))
  68: 1526:  515:(BEGIN, (2744 . 2748)) : shift and goto state 1888
  67: zombie
  68: 1888:  516:(IDENTIFIER, (2750 . 2753)) : shift and goto state 10
@@ -7559,7 +7559,7 @@ semantic check OK
  68: 665:  518:(BEGIN, (2756 . 2760)) : reduce 2 tokens to procedure_call_statement
 procedure_call_statement_0: (procedure_call_statement, (2750 . 2754)) <= ((name, (2750 . 2753)),  517:(SEMICOLON, (2754 . 2754)))
  ... goto state 282
- 67: terminate (1 active): zombie
+ 67: terminate (1 active): zombie 515:(BEGIN, (2744 . 2748))
  68: 282:  518:(BEGIN, (2756 . 2760)) : reduce 1 tokens to simple_statement
 simple_statement_2: (simple_statement, (2750 . 2754)) <= ((procedure_call_statement, (2750 . 2754)))
  ... goto state 286
@@ -7710,7 +7710,7 @@ semantic check OK
 name_3: (name, (2807 . 2824)) <= ((selected_component, (2807 . 2824)))
 semantic check OK
  ... goto state 111
- 68: spawn 69, (2 active)
+ 68: spawn 69, (2 active),  530:(IS, (2826 . 2827))
  69: 111:  530:(IS, (2826 . 2827)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -7744,7 +7744,7 @@ block_label_opt_1: (block_label_opt) <= ()
  69: 661:  533:(IDENTIFIER, (2843 . 2846)) : shift and goto state 291
  68: zombie
  69: 291:  534:(COLON, (2848 . 2848)) : shift and goto state 671
- 68: terminate (1 active): zombie
+ 68: terminate (1 active): zombie 531:(BEGIN, (2829 . 2833))
  69: 671:  535:(IDENTIFIER, (2850 . 2852)) : shift and goto state 989
  69: 989:  536:(SEMICOLON, (2853 . 2853)) : reduce 1 tokens to name
 name_2: (name, (2850 . 2852)) <= ( 535:(IDENTIFIER, (2850 . 2852)))
@@ -7863,7 +7863,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 2889)) <= ((compilation_
 name_2: (name, (2902 . 2915)) <= ( 546:(IDENTIFIER, (2902 . 2915)))
 semantic check OK
  ... goto state 111
- 69: spawn 70, (2 active)
+ 69: spawn 70, (2 active),  547:(IS, (2917 . 2918))
  70: 111:  547:(IS, (2917 . 2918)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -7895,7 +7895,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  70: 67:  551:(SLASH_EQUAL, (2931 . 2932)) : reduce 1 tokens to primary
 primary_0: (primary, (2929 . 2929)) <= ( 550:(NUMERIC_LITERAL, (2929 . 2929)))
  ... goto state 74
- 69: terminate (1 active): zombie
+ 69: terminate (1 active): zombie 548:(BEGIN, (2920 . 2924))
  70: 74:  551:(SLASH_EQUAL, (2931 . 2932)) : reduce 1 tokens to factor
 factor_0: (factor, (2929 . 2929)) <= ((primary, (2929 . 2929)))
  ... goto state 71
@@ -8100,7 +8100,7 @@ sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
  70: 1500: (END) : shift and goto state 1866
  71: 1866: (IF) : shift and goto state 2214
  70: 1866: (IF) : shift and goto state 2214
- 70: terminate (1 active): duplicate state: random
+ 70: terminate (1 active): duplicate state: random<invalid_token_index>
  71: 2214: (SEMICOLON) : shift and goto state 2405
  71: 2405:  557:(END, (2955 . 2957)) : reduce 7 tokens to if_statement
 if_statement_3: (if_statement, (2926 . 2953)) <= ( 549:(IF, (2926 . 2927)), (expression_opt, (2929 . 2953)), (THEN), (sequence_of_statements_opt), (END), (IF), (SEMICOLON))
@@ -8186,7 +8186,7 @@ semantic check OK
 subprogram_specification_1: (subprogram_specification, (2998 . 3054)) <= ((function_specification, (2998 . 3054)))
 semantic check OK
  ... goto state 1419
- 71: spawn 72, (2 active)
+ 71: spawn 72, (2 active),  573:(IS, (3056 . 3057))
  72: 1419:  573:(IS, (3056 . 3057)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -8222,7 +8222,7 @@ recover: succeed, parser count 4
  71: resume_active: True, token goal 578
  72: 2177:  575:(TYPE, (3065 . 3068)) : shift and goto state 290
  71: 1821: (SEPARATE) : shift and goto state 2176
- 74: spawn 75, (5 active)
+ 74: spawn 75, (5 active),  573:(IS, (3056 . 3057))
  75: 1419:  573:(IS, (3056 . 3057)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 1823
@@ -8233,11 +8233,11 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  75: 2177:  575:(TYPE, (3065 . 3068)) : shift and goto state 290
  74: 1821:  575:(TYPE, (3065 . 3068)) : ERROR
  74: expecting: SEPARATE
- 74: terminate (4 active): error in conflict during resume
+ 74: terminate (4 active): error in conflict during resume 575:(TYPE, (3065 . 3068))
  73: 1822:  575:(TYPE, (3065 . 3068)) : reduce 2 tokens to subprogram_declaration
 subprogram_declaration_0: (subprogram_declaration, (2998 . 3054)) <= ((subprogram_specification, (2998 . 3054)), (SEMICOLON))
  ... goto state 1418
- 75: terminate (3 active): duplicate state: cost
+ 75: terminate (3 active): duplicate state: cost 575:(TYPE, (3065 . 3068))
  72: 290:  576:(IDENTIFIER, (3070 . 3080)) : shift and goto state 670
  71: 2387:  575:(TYPE, (3065 . 3068)) : reduce 4 tokens to subprogram_body_stub
 subprogram_body_stub_0: (subprogram_body_stub, (2998 . 3057)) <= ((subprogram_specification, (2998 . 3054)),  573:(IS, (3056 . 3057)), (SEPARATE), (SEMICOLON))
@@ -8399,7 +8399,7 @@ declarative_part_opt_0: (declarative_part_opt, (2998 . 3100)) <= ((declarations,
  ... goto state 1411
  73: 1411:  583:(END, (3102 . 3104)) : shift and goto state 1820
  71: 1411:  583:(END, (3102 . 3104)) : shift and goto state 1820
- 71: terminate (2 active): duplicate state: random
+ 71: terminate (2 active): duplicate state: random 584:(IDENTIFIER, (3106 . 3110))
  73: 1820:  584:(IDENTIFIER, (3106 . 3110)) : shift and goto state 919
  72: 2772:  584:(IDENTIFIER, (3106 . 3110)) : shift and goto state 919
  73: resume_active: False
@@ -8447,7 +8447,7 @@ name_2: (name, (3124 . 3136)) <= ( 587:(IDENTIFIER, (3124 . 3136)))
 semantic check OK
  ... goto state 111
  72: zombie
- 73: spawn 76, (3 active)
+ 73: spawn 76, (3 active),  588:(IS, (3138 . 3139))
  76: 111:  588:(IS, (3138 . 3139)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -8475,7 +8475,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
  73: 240:  589:(BEGIN, (3141 . 3145)) : ERROR
  73: expecting: NEW
  73: zombie
- 72: terminate (2 active): zombie
+ 72: terminate (2 active): zombie 586:(PROCEDURE, (3114 . 3122))
  76: 719:  589:(BEGIN, (3141 . 3145)) : shift and goto state 1170
  73: zombie
  76: 1170:  590:(IF, (3147 . 3148)) : shift and goto state 267
@@ -8486,7 +8486,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (3150 . 3157)) <= ( 591:(IDENTIFIER, (3150 . 3157)))
 semantic check OK
  ... goto state 72
- 73: terminate (1 active): zombie
+ 73: terminate (1 active): zombie 589:(BEGIN, (3141 . 3145))
  76: 72:  592:(THEN, (3159 . 3162)) : reduce 1 tokens to primary
 primary_2: (primary, (3150 . 3157)) <= ((name, (3150 . 3157)))
  ... goto state 74
@@ -8677,7 +8677,7 @@ sequence_of_statements_opt_0: (sequence_of_statements_opt, (3190 . 3227)) <= ((s
  ... goto state 2213
  77: 2213:  610:(END, (3229 . 3231)) : shift and goto state 2404
  76: 2213:  610:(END, (3229 . 3231)) : shift and goto state 2404
- 76: terminate (1 active): duplicate state: random
+ 76: terminate (1 active): duplicate state: random 611:(IF, (3233 . 3234))
  77: 2404:  611:(IF, (3233 . 3234)) : shift and goto state 2584
  77: resume_active: False
  77: 2584:  612:(SEMICOLON, (3235 . 3235)) : shift and goto state 2676
@@ -8726,7 +8726,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 3254)) <= ((compilation_
 name_2: (name, (3267 . 3279)) <= ( 617:(IDENTIFIER, (3267 . 3279)))
 semantic check OK
  ... goto state 111
- 77: spawn 78, (2 active)
+ 77: spawn 78, (2 active),  618:(IS, (3281 . 3282))
  78: 111:  618:(IS, (3281 . 3282)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -8759,7 +8759,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (3293 . 3300)) <= ( 621:(IDENTIFIER, (3293 . 3300)))
 semantic check OK
  ... goto state 72
- 77: terminate (1 active): zombie
+ 77: terminate (1 active): zombie 619:(BEGIN, (3284 . 3288))
  78: 72:  622:(THEN, (3302 . 3305)) : reduce 1 tokens to primary
 primary_2: (primary, (3293 . 3300)) <= ((name, (3293 . 3300)))
  ... goto state 74
@@ -8981,7 +8981,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 3396)) <= ((compilation_
 name_2: (name, (3409 . 3421)) <= ( 654:(IDENTIFIER, (3409 . 3421)))
 semantic check OK
  ... goto state 111
- 78: spawn 79, (2 active)
+ 78: spawn 79, (2 active),  655:(IS, (3423 . 3424))
  79: 111:  655:(IS, (3423 . 3424)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -9014,7 +9014,7 @@ declarative_part_opt_1: (declarative_part_opt) <= ()
 name_2: (name, (3435 . 3442)) <= ( 658:(IDENTIFIER, (3435 . 3442)))
 semantic check OK
  ... goto state 72
- 78: terminate (1 active): zombie
+ 78: terminate (1 active): zombie 656:(BEGIN, (3426 . 3430))
  79: 72:  659:(THEN, (3444 . 3447)) : reduce 1 tokens to primary
 primary_2: (primary, (3435 . 3442)) <= ((name, (3435 . 3442)))
  ... goto state 74
@@ -9234,7 +9234,7 @@ sequence_of_statements_opt_0: (sequence_of_statements_opt, (3476 . 3516)) <= ((s
  ... goto state 2213
  80: 2213:  682:(END, (3518 . 3520)) : shift and goto state 2404
  79: 2213:  682:(END, (3518 . 3520)) : shift and goto state 2404
- 79: terminate (1 active): duplicate state: random
+ 79: terminate (1 active): duplicate state: random 683:(IF, (3522 . 3523))
  80: 2404:  683:(IF, (3522 . 3523)) : shift and goto state 2584
  80: resume_active: False
  80: 2584:  684:(SEMICOLON, (3524 . 3524)) : shift and goto state 2676
@@ -9283,7 +9283,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 3543)) <= ((compilation_
 name_2: (name, (3556 . 3568)) <= ( 689:(IDENTIFIER, (3556 . 3568)))
 semantic check OK
  ... goto state 111
- 80: spawn 81, (2 active)
+ 80: spawn 81, (2 active),  690:(IS, (3570 . 3571))
  81: 111:  690:(IS, (3570 . 3571)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -9318,7 +9318,7 @@ semantic check OK
  81: 281:  693:(LEFT_PAREN, (3588 . 3588)) : shift and goto state 140
  80: zombie
  81: 140:  694:(IDENTIFIER, (3589 . 3597)) : shift and goto state 311
- 80: terminate (1 active): zombie
+ 80: terminate (1 active): zombie 691:(BEGIN, (3573 . 3577))
  81: 311:  695:(COMMA, (3598 . 3598)) : reduce 1 tokens to name
 name_2: (name, (3589 . 3597)) <= ( 694:(IDENTIFIER, (3589 . 3597)))
 semantic check OK

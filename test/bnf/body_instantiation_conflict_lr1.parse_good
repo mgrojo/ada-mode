@@ -34,7 +34,7 @@ subprogram_specification_0: (subprogram_specification, (43 . 55)) <= ( 11:(PROCE
  1: 11:  13:(IS, (57 . 58)) : shift and goto state 18
  1: 18:  14:(NEW, (60 . 62)) : ERROR
  1: expecting: BEGIN
- 1: terminate (1 active)
+ 1: terminate (1 active):  14:(NEW, (58 . 60))
  0: 22:  14:(NEW, (60 . 62)) : shift and goto state 27
  0: 27:  15:(IDENTIFIER, (64 . 66)) : shift and goto state 31
  0: 31:  16:(LEFT_PAREN, (68 . 68)) : shift and goto state 35

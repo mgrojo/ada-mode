@@ -33,7 +33,7 @@ semantic check OK
 name_2: (name, (191 . 197)) <= ( 5:(IDENTIFIER, (191 . 197)))
 semantic check OK
  ... goto state 111
- 0: spawn 1, (2 active)
+ 0: spawn 1, (2 active),  6:(IS, (197 . 198))
  1: 111:  6:(IS, (199 . 200)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -62,7 +62,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
 name_2: (name, (209 . 215)) <= ( 9:(IDENTIFIER, (209 . 215)))
 semantic check OK
  ... goto state 990
- 0: terminate (1 active): zombie
+ 0: terminate (1 active): zombie 7:(IDENTIFIER, (203 . 203))
  1: 990:  10:(COLON_EQUAL, (217 . 218)) : reduce 1 tokens to subtype_indication
 subtype_indication_1: (subtype_indication, (209 . 215)) <= ((name, (209 . 215)))
  ... goto state 992
@@ -450,7 +450,7 @@ compilation_unit_list_0: (compilation_unit_list, (161 . 435)) <= ((compilation_u
 name_2: (name, (448 . 453)) <= ( 66:(IDENTIFIER, (448 . 453)))
 semantic check OK
  ... goto state 111
- 1: spawn 2, (2 active)
+ 1: spawn 2, (2 active),  67:(IS, (453 . 454))
  2: 111:  67:(IS, (455 . 456)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -479,7 +479,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
 name_2: (name, (465 . 471)) <= ( 70:(IDENTIFIER, (465 . 471)))
 semantic check OK
  ... goto state 990
- 1: terminate (1 active): zombie
+ 1: terminate (1 active): zombie 68:(IDENTIFIER, (459 . 459))
  2: 990:  71:(SEMICOLON, (472 . 472)) : reduce 1 tokens to subtype_indication
 subtype_indication_1: (subtype_indication, (465 . 471)) <= ((name, (465 . 471)))
  ... goto state 992
@@ -810,7 +810,7 @@ compilation_unit_list_0: (compilation_unit_list, (161 . 625)) <= ((compilation_u
 name_2: (name, (638 . 643)) <= ( 108:(IDENTIFIER, (638 . 643)))
 semantic check OK
  ... goto state 111
- 2: spawn 3, (2 active)
+ 2: spawn 3, (2 active),  109:(IS, (643 . 644))
  3: 111:  109:(IS, (645 . 646)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 245
@@ -839,7 +839,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
 name_2: (name, (655 . 661)) <= ( 112:(IDENTIFIER, (655 . 661)))
 semantic check OK
  ... goto state 990
- 2: terminate (1 active): zombie
+ 2: terminate (1 active): zombie 110:(IDENTIFIER, (649 . 649))
  3: 990:  113:(SEMICOLON, (662 . 662)) : reduce 1 tokens to subtype_indication
 subtype_indication_1: (subtype_indication, (655 . 661)) <= ((name, (655 . 661)))
  ... goto state 992
