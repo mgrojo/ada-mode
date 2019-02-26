@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -82,7 +82,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
           (+END_ID) & (+ENTRY_ID) & (+EXCEPTION_ID) & (+EXIT_ID) & (+FOR_ID) & (+FUNCTION_ID) & (+GENERIC_ID) &
           (+GOTO_ID) & (+IF_ID) & (+LOOP_ID) & (+OVERRIDING_ID) & (+PACKAGE_ID) & (+PRAGMA_ID) & (+PROCEDURE_ID) &
           (+PROTECTED_ID) & (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+SELECT_ID) & (+SUBTYPE_ID) & (+TASK_ID) &
-          (+TYPE_ID) & (+USE_ID) & (+WHEN_ID) & (+WITH_ID));
+          (+TYPE_ID) & (+USE_ID) & (+WHEN_ID) & (+WITH_ID) &
+          Descriptor.EOF_ID);
    --  Terminal tokens that must be preceded by an end of statement/declaration.
 
    procedure Handle_Check_Fail

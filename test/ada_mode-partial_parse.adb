@@ -16,9 +16,6 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
--- FIXME: Debugging
---EMACSCMD:(setq debug-on-error t)
-
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 
 -- emulate font-lock (disabled below for debugging); parse in 500 byte chunks
@@ -34,8 +31,13 @@ is
    procedure Nested
    is
       --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
-      use Ada.Strings;
+      use Ada.Strings; -- target 1
 
+      --EMACSCMD:(progn (wisi-backward-statement-keyword) (looking-at "; -- target 1"))
+      --EMACSRESULT: t
+
+      -- The expanded region is all of Nested
+      --EMACSCMD:(progn (forward-line 1)(ada-align))
       A : Boolean;
       I : Integer;
    begin
@@ -56,8 +58,17 @@ is
    --EMACSRESULT: 3
    --EMACSCMD:(progn (forward-line -4) (current-indentation))
    --EMACSRESULT: 3
+
+   -- The expanded region ends at 'begin'; ensure align works
+   --EMACSCMD:(progn (forward-line 1)(ada-align))
+   C : Integer;
+   D : Integer;
 begin
    Nested;
+
+   --EMACSCMD:(progn (forward-line 3)(wisi-indent-line)(back-to-indentation)(current-column))
+   --EMACSRESULT: 3
+
 
 end Ada_Mode.Partial_Parse;
 -- Local Variables:

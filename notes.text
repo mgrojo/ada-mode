@@ -16,23 +16,17 @@ run test from emacs -Q using source:
   (package-initialize)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2018/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode")
+  (add-to-list 'load-path "c:/Projects/org.emacs.ada-mode/build")
   ; (setq debug-on-error t)
   ; (setq debug-on-quit t)
-  (setq default-directory "c:/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (setq default-directory "c:/Projects/org.emacs.ada-mode/build/")
   (setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_lalr_parse.exe"))
   (load "run-indent-test")
   ; (setq wisi-debug 1)
   (setq wisi-trace-action 2)
   (setq wisi-disable-face t)
-  (find-file "../test/ada_mode-nominal-child.ads")
-  ; (run-test "ada-number-literal")
-;  (wisi-debug-keys)
-  (ada-parse-prj-file "subdir/ada_mode.adp")
-  (ada-select-prj-file "subdir/ada_mode.adp")
-  (indent-rigidly (point-min) (point-max) -1)
-  (indent-region (point-min) (point-max))
+  (find-file "../test/ada_mode-partial_parse.adb")
 )
 
 (dvc-state-multiple
@@ -60,12 +54,35 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+partial parse
+    c:/eurocontrol/regulation-iflight.adb
+
+    refactor _lr _lr_text_rep to avoid ediff
+        factor out common non-generic subprogram; emacs_wisi_common_parse.main
+
+        gen_emacs_wisi_lr_parse.adb
+        gen_emacs_wisi_lr_text_rep_parse.adb
+
+    test buffer_text in test_partial_parse
+
+    review fixmes
+
+    don't set margin error marks for errors from partial parse
+
+    expand-region check nav cache
+
+wisi-reset-parser also remove fringe marks
+
+ada-align groups preceding comment lines with declarations
+
+run_ada_lr1_parse.exe hangs in free string if input file not found
+
 recover bug:
        procedure Tree (Parser : in Base_Parser) return Syntax_Trees.Tree;
 
 package for Ludovic: elpa/archive/packages *.tar, archive-contents
 
-optimize Grow of SAL.Gen_Unbounded_Definite_Vectors
+optimize Grow of SAL.Gen_Unbounded_Definite_Vectors?
     run-time parameter and/or generic parameter giving initial size
     output max size, accumulate in Emacs session
 
@@ -80,26 +97,13 @@ doc wisi-disable-face
 enforce unix line endings
     run dos2unix in a mtn pre-commit hook?
 
-partial parse
-    c:/eurocontrol/regulation-iflight.adb
-
-    refactor _lr _lr_text_rep to avoid ediff
-
-    test buffer_text in test_partial_parse
-
-    review fixmes
-
-    don't set margin error marks for errors from partial parse
-
-    expand-region check nav cache
-
-    Recover treat eof same as "end"
-
 time lex with no lex debug
 
 optimize begin in wisi-goto-*
 
 rename parser actions to "parse", "post-parse"
+
+show ada subprogram params as in elisp
 
 ada.wy
     result_profile should not use name_opt, because it should not call wisi-propagate-name

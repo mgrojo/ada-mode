@@ -238,8 +238,8 @@ package body Wisi is
       Offset       : in     Integer)
      return Integer
    is
-      Left_Paren_ID  : WisiToken.Token_ID renames Data.Descriptor.Left_Paren_ID;
-      Right_Paren_ID : WisiToken.Token_ID renames Data.Descriptor.Right_Paren_ID;
+      Left_Paren_ID  : Token_ID renames Data.Descriptor.Left_Paren_ID;
+      Right_Paren_ID : Token_ID renames Data.Descriptor.Right_Paren_ID;
 
       I              : Base_Token_Index := Anchor_Token.First_Terminals_Index;
       Paren_Count    : Integer          := 0;
@@ -296,8 +296,8 @@ package body Wisi is
    begin
       Append (Line, Navigate_Cache_Code);
       Append (Line, Buffer_Pos'Image (Cache.Pos));
-      Append (Line, WisiToken.Token_ID'Image (Cache.Statement_ID));
-      Append (Line, WisiToken.Token_ID'Image (Cache.ID));
+      Append (Line, Token_ID'Image (Cache.Statement_ID));
+      Append (Line, Token_ID'Image (Cache.ID));
       Append (Line, Integer'Image (Cache.Length));
       Append (Line, Integer'Image (Navigate_Class_Type'Pos (Cache.Class)));
       Append (Cache.Containing_Pos);
@@ -356,14 +356,14 @@ package body Wisi is
    is
       use Ada.Containers;
       use Ada.Strings.Unbounded;
-      use WisiToken.Parse.LR;
+      use Parse.LR;
 
       Line    : Unbounded_String := To_Unbounded_String ("[");
       Last_Op : Config_Op        := (Fast_Forward, Token_Index'Last);
 
    begin
       if Trace_Action > Detail then
-         Ada.Text_IO.Put_Line (Parse.LR.Image (Item.Ops, Descriptor));
+         Ada.Text_IO.Put_Line (";; " & Parse.LR.Image (Item.Ops, Descriptor));
       end if;
 
       Append (Line, Recover_Code);
@@ -472,7 +472,7 @@ package body Wisi is
    begin
       if Trace_Action > Outline then
          Ada.Text_IO.New_Line;
-         Ada.Text_IO.Put_Line (Integer'Image (Data.Begin_Indent));
+         Ada.Text_IO.Put_Line (";; " & Integer'Image (Data.Begin_Indent));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Ada.Text_IO.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
@@ -557,7 +557,7 @@ package body Wisi is
       Source_File_Name  : in     String;
       Post_Parse_Action : in     Post_Parse_Action_Type;
       Begin_Line        : in     Line_Number_Type;
-      End_Line          : in     WisiToken.Line_Number_Type;
+      End_Line          : in     Line_Number_Type;
       Begin_Indent      : in     Integer;
       Params            : in     String)
    is
@@ -570,7 +570,7 @@ package body Wisi is
       --  + 1 for data on line following last line; see Lexer_To_Augmented.
       Data.Line_Paren_State.Set_First_Last
         (First   => Begin_Line,
-         Last    => End_Line);
+         Last    => End_Line + 1);
 
       Data.Descriptor        := Descriptor;
       Data.Source_File_Name  := +Source_File_Name;
@@ -708,7 +708,7 @@ package body Wisi is
    is
       use all type Ada.Containers.Count_Type;
       Deleted_Token    : Augmented_Token renames Data.Terminals (Token_Index);
-      Prev_Token_Index : WisiToken.Base_Token_Index := Token_Index - 1;
+      Prev_Token_Index : Base_Token_Index := Token_Index - 1;
    begin
       pragma Assert (Deleted_Token.Deleted = False);
       Deleted_Token.Deleted := True;
@@ -893,7 +893,7 @@ package body Wisi is
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type)
    is
-      use all type WisiToken.Syntax_Trees.Node_Label;
+      use all type Syntax_Trees.Node_Label;
       pragma Unreferenced (Nonterm);
 
       --  [2] wisi-containing-action.
@@ -969,21 +969,21 @@ package body Wisi is
       end;
    end Containing_Action;
 
-   function "+" (Item : in WisiToken.Token_ID) return Token_ID_Lists.List
+   function "+" (Item : in Token_ID) return Token_ID_Lists.List
    is begin
       return Result : Token_ID_Lists.List do
          Result.Append (Item);
       end return;
    end "+";
 
-   function "&" (List : in Token_ID_Lists.List; Item : in WisiToken.Token_ID) return Token_ID_Lists.List
+   function "&" (List : in Token_ID_Lists.List; Item : in Token_ID) return Token_ID_Lists.List
    is begin
       return Result : Token_ID_Lists.List := List do
          Result.Append (Item);
       end return;
    end "&";
 
-   function "&" (Left, Right : in WisiToken.Token_ID) return Token_ID_Lists.List
+   function "&" (Left, Right : in Token_ID) return Token_ID_Lists.List
    is begin
       return Result : Token_ID_Lists.List do
          Result.Append (Left);
@@ -1301,7 +1301,7 @@ package body Wisi is
       return "(" & Simple_Indent_Param_Label'Image (Item.Label) &
         (case Item.Label is
          when Int => Integer'Image (Item.Int_Delta),
-         when Anchored_Label => WisiToken.Positive_Index_Type'Image (Item.Anchored_Index) & "," &
+         when Anchored_Label => Positive_Index_Type'Image (Item.Anchored_Index) & "," &
               Integer'Image (Item.Anchored_Delta),
          when Language => "<language_function>") & ")";
    end Image;
@@ -1331,7 +1331,7 @@ package body Wisi is
       Params  : in     Indent_Param_Array)
    is begin
       if Trace_Action > Outline then
-         Ada.Text_IO.Put_Line ("indent_action_0: " & Tree.Image (Nonterm, Data.Descriptor.all));
+         Ada.Text_IO.Put_Line (";; indent_action_0: " & Tree.Image (Nonterm, Data.Descriptor.all));
       end if;
 
       --  [2] wisi-indent-action
@@ -1350,7 +1350,7 @@ package body Wisi is
             begin
                if Trace_Action > Detail then
                   Ada.Text_IO.Put_Line
-                    ("indent_action_0 a: " & Tree.Image (Tree_Token, Data.Descriptor.all) & ": " & Image (Pair));
+                    (";; indent_action_0 a: " & Tree.Image (Tree_Token, Data.Descriptor.all) & ": " & Image (Pair));
                end if;
 
                if Token.First_Indent_Line /= Invalid_Line_Number then
@@ -1394,7 +1394,7 @@ package body Wisi is
       N       : in     Positive_Index_Type;
       Params  : in     Indent_Param_Array)
    is
-      use all type WisiToken.Syntax_Trees.Node_Label;
+      use all type Syntax_Trees.Node_Label;
    begin
       --  [2] wisi-indent-action*
       for I in Tokens'First .. N loop
@@ -1443,7 +1443,7 @@ package body Wisi is
       end if;
    end Indent_Hanging_1;
 
-   procedure Put (Data : in out Parse_Data_Type; Parser : in WisiToken.Parse.Base_Parser'Class)
+   procedure Put (Data : in out Parse_Data_Type; Parser : in Parse.Base_Parser'Class)
    is
       function Get_Last_Char_Pos return Buffer_Pos
       is
@@ -1493,6 +1493,12 @@ package body Wisi is
 
    begin
       Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos) & ']');
+
+      if Trace_Action > Outline then
+         Ada.Text_IO.Put_Line
+           (";; last_char_pos:" & Buffer_Pos'Image (Last_Char_Pos) &
+              " last_line:" & Line_Number_Type'Image (Get_Last_Line));
+      end if;
 
       case Data.Post_Parse_Action is
       when Navigate =>
@@ -1717,7 +1723,7 @@ package body Wisi is
       Descriptor : in WisiToken.Descriptor)
      return String
    is
-      ID_Image : constant String := WisiToken.Image (Item.ID, Descriptor);
+      ID_Image : constant String := Image (Item.ID, Descriptor);
    begin
       if Item.Line /= Invalid_Line_Number and Trace_Action <= Detail then
          return "(" & ID_Image &
@@ -1911,7 +1917,7 @@ package body Wisi is
    begin
       if Trace_Action > Detail then
          Ada.Text_IO.Put_Line
-           ("indent_token_1: " & Indenting_Token.Image (Data.Descriptor.all) & " " & Image (Delta_Indent) &
+           (";; indent_token_1: " & Indenting_Token.Image (Data.Descriptor.all) & " " & Image (Delta_Indent) &
               Line_Number_Type'Image (First_Line) & " .." & Line_Number_Type'Image (Last_Line) &
               (if Indenting_Comment then " comment" else ""));
       end if;
