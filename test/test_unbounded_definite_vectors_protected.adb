@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,8 +24,9 @@ with SAL.Gen_Unbounded_Definite_Vectors.Gen_Protected;
 package body Test_Unbounded_Definite_Vectors_Protected
 is
    package Integer_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Index_Type   => Positive,
-      Element_Type => Integer);
+     (Index_Type      => Positive,
+      Element_Type    => Integer,
+      Default_Element => Integer'Last);
 
    package Task_Safe_Int_Vectors is new Integer_Vectors.Gen_Protected;
    use Task_Safe_Int_Vectors;

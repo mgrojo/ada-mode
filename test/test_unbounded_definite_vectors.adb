@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,8 +22,9 @@ package body Test_Unbounded_Definite_Vectors
 is
    type Index_Type is range -10 .. 10;
    package Integer_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
-     (Index_Type   => Index_Type,
-      Element_Type => Integer);
+     (Index_Type      => Index_Type,
+      Element_Type    => Integer,
+      Default_Element => Integer'Last);
 
    use Integer_Vectors;
 
