@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -683,11 +683,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
    end Insert_Minimal_Complete_Actions;
 
    procedure Try_Insert_Terminal
-     (Super                      : not null access Base.Supervisor;
-      Shared                     : not null access Base.Shared;
-      Parser_Index               : in              SAL.Base_Peek_Type;
-      Config                     : in              Configuration;
-      Local_Config_Heap          : in out          Config_Heaps.Heap_Type;
+     (Super                        : not null access Base.Supervisor;
+      Shared                       : not null access Base.Shared;
+      Parser_Index                 : in              SAL.Base_Peek_Type;
+      Config                       : in              Configuration;
+      Local_Config_Heap            : in out          Config_Heaps.Heap_Type;
       Use_Minimal_Complete_Actions : in              Boolean)
    is begin
       if Use_Minimal_Complete_Actions then
