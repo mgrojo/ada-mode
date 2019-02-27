@@ -158,9 +158,7 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-post-parse-fail ()
   "For `wisi-post-parse-fail-hook'."
-  ;; FIXME: pass parsed region
   (save-excursion
-    (wisi-validate-cache (point-min) (point) nil 'navigate)
     (let ((start-cache (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))))
       (when start-cache
 	;; nil when in a comment at point-min
@@ -716,7 +714,7 @@ TOKEN-TEXT; move point to just past token."
   )
 
 (defconst ada-wisi-partial-begin-regexp
-  (concat "\\bbegin\\b\\|\\bdeclare\\b\\|\\b" ada-wisi-named-begin-regexp))
+  (concat "\\bbegin\\b\\|\\bdeclare\\b\\|" ada-wisi-named-begin-regexp))
 
 (defconst ada-wisi-partial-end-regexp
   ;; Terminal semicolon, or end of current declare/statement block.
@@ -724,13 +722,18 @@ TOKEN-TEXT; move point to just past token."
 
 (defun ada-wisi-find-begin ()
   "Starting at current point, search backward for a parse start point."
-    ;; FIXME: ignore begin candidates matching '<keywords> name is separate;'
-  (if (search-backward-regexp ada-wisi-partial-begin-regexp nil t)
-	(progn
-	  (while (and (ada-in-string-or-comment-p)
-		      (search-backward-regexp ada-wisi-partial-begin-regexp nil t)))
-	  (point))
-    (point-min)))
+  (cond
+   ((looking-at (concat "\\(\\s-*\\)" ada-wisi-named-begin-regexp))
+    (match-end 1))
+
+   ((search-backward-regexp ada-wisi-partial-begin-regexp nil t)
+    (while (and (ada-in-string-or-comment-p)
+		(search-backward-regexp ada-wisi-partial-begin-regexp nil t)))
+    (point))
+
+   (t
+    (point-min))
+   ))
 
 (defun ada-wisi-find-end ()
   "Starting at current point, search forward for a reasonable parse end point."
@@ -788,23 +791,25 @@ Point must have been set by `ada-wisi-find-begin'."
 
 (cl-defmethod wisi-parse-expand-region ((_parser ada-wisi-parser) begin end)
   (let (begin-cand end-cand result)
-    (goto-char begin)
+    (save-excursion
+      (goto-char begin)
 
-    (setq begin-cand (ada-wisi-find-begin))
-    (if (= begin-cand (point-min)) ;; No code between BEGIN and bob
-	(progn
+      (setq begin-cand (ada-wisi-find-begin))
+      (if (= begin-cand (point-min)) ;; No code between BEGIN and bob
+	  (progn
+	    (goto-char end)
+	    (setq result (cons begin-cand (ada-wisi-find-end))))
+
+	;; Else search for a matching name; avoids error recovery.
+	(setq end-cand (ada-wisi-find-matching-end))
+	(if (and end-cand
+		 (>= end-cand end))
+	    (setq result (cons begin-cand end-cand))
 	  (goto-char end)
 	  (setq result (cons begin-cand (ada-wisi-find-end))))
 
-      ;; Else search for a matching name; avoids error recovery.
-      (setq end-cand (ada-wisi-find-matching-end))
-      (if (and end-cand
-	       (>= end-cand end))
-	  (setq result (cons begin-cand end-cand))
-	(goto-char end)
-	(setq result (cons begin-cand (ada-wisi-find-end))))
-
-      result)))
+	result))
+    ))
 
 (defun ada-wisi-show-expanded-region ()
   "For debugging. Expand currently selected region."

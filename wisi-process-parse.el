@@ -707,4 +707,24 @@ Returns reversed sequence."
       (push (aref token-table i) enum-ids))
     enum-ids))
 
+(defun wisi-process-parse-show-args ()
+  "Show the partial parse command-line args for run_ada_[lalr | lr1]_parse for current region.
+Also add it to the kill ring."
+  (interactive)
+  (let* ((begin (region-beginning))
+	 (end   (region-end))
+	 (msg
+	  (format "%s %d %d %d %d %d %d %d"
+		  (file-name-nondirectory (buffer-file-name))
+		  (position-bytes begin)
+		  (position-bytes end)
+		  (position-bytes end)
+		  begin ;; char_pos
+		  (line-number-at-pos begin)
+		  (line-number-at-pos end)
+		  (save-excursion (goto-char begin) (back-to-indentation) (current-column));; indent-begin
+		  )))
+    (kill-new msg)
+    (message msg)))
+
 (provide 'wisi-process-parse)

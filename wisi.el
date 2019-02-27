@@ -245,14 +245,15 @@ Regions in a list are in random order.")
 	(cdr (assoc wisi--parse-action wisi--cached-regions))))
 
 (defun wisi-cache-delete-regions-after (parse-action pos)
-  "Delete any PARSE-ACTION parsed region after POS."
+  "Delete any PARSE-ACTION parsed region at or after POS."
   (let ((region-list (cdr (assoc parse-action wisi--cached-regions)))
 	result)
     (while (and (not result) region-list)
-      (when (>= pos (car (car region-list)))
+      (when (> pos (car (car region-list)))
 	(push (car region-list) result))
       (pop region-list))
-    (setcdr (assoc parse-action wisi--cached-regions) result)))
+    (setcdr (assoc parse-action wisi--cached-regions) result)
+    ))
 
 (defun wisi--delete-face-cache (after)
   (with-silent-modifications
@@ -852,7 +853,7 @@ If LIMIT (a buffer position) is reached, throw an error."
 cache. Otherwise move to cache-next, or cache-end, or next cache
 if both nil.  Return cache found."
   (unless (eobp)
-    (wisi-validate-cache (point-min) (point-max) t 'navigate) ;; ensure there is a next cache to move to
+    (wisi-validate-cache (line-beginning-position) (line-end-position) t 'navigate)
     (let ((cache (wisi-get-cache (point))))
       (if (and cache
 	       (not (eq (wisi-cache-class cache) 'statement-end)))
@@ -1106,9 +1107,10 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 
       (wisi-set-parse-try nil)
 
-      ;; Parse to next line beyond END, to ensure computing an
-      ;; indent for the line containing END.
-      (wisi--run-parse begin (progn (goto-char end) (forward-line 1) (point)))
+      ;; Parse from line before BEGIN to line beyond END, to ensure
+      ;; computing an indent for the lines containing BEGIN and END.
+      (wisi--run-parse (progn (goto-char begin) (line-beginning-position 0))
+		       (progn (goto-char end) (line-beginning-position 2)))
 
       ;; If there were errors corrected, the indentation is
       ;; potentially ambiguous; see test/ada_mode-interactive_2.adb
@@ -1238,6 +1240,12 @@ If non-nil, only repair errors in BEG END region."
     ))
 
 ;;;; debugging
+
+(defun wisi-show-region (begin &optional end)
+  (interactive)
+  (unless (consp begin) (setq begin (cons begin end)))
+  (set-mark  (car begin))
+  (goto-char (cdr begin)))
 
 (defun wisi-debug-keys ()
   "Add debug key definitions to `global-map'."

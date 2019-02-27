@@ -57,8 +57,12 @@ run test from emacs -Q using source:
 partial parse
     c:/eurocontrol/regulation-iflight.adb
 
+    ada-which-function broken when partial-parse
+
+    c:/Projects/org.emacs.ada-mode.stephe-2/emacs_wisi_common_parse.adb
+
     refactor _lr _lr_text_rep to avoid ediff
-        factor out common non-generic subprogram; emacs_wisi_common_parse.main
+        factor out common non-generic subprogram; emacs_wisi_common_parse.parse_file, parse_stream
 
         gen_emacs_wisi_lr_parse.adb
         gen_emacs_wisi_lr_text_rep_parse.adb
@@ -70,6 +74,25 @@ partial parse
     don't set margin error marks for errors from partial parse
 
     expand-region check nav cache
+
+    in package spec private part, all indent is wrong
+        wisitoken-text_io_trace.ads indent 'type trace'
+        search for 'private'; if found, find preceding 'package' with same indent.
+
+    stack has compilation_unit_list, next input is "end if;"
+        only insert tokens whose minimal complete includes 'end'
+            requires another precomputed list; w.stephe-1
+            one for each possible token
+            current list is for wisi_eof
+
+
+test/lalr_parse_fail.adb
+    lalr parse raises constraint_error in main parser
+    lr1 no error.
+    parser 0: aspect_clause
+    parser 1: iteration_scheme
+    both merged into state 6 in lalr, but iteration_sheme has no lookaheads!
+    bug in lalr generator
 
 wisi-reset-parser also remove fringe marks
 
