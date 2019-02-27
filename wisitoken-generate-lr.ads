@@ -140,7 +140,7 @@ package WisiToken.Generate.LR is
       Ancestors              : in     Token_Array_Token_Set;
       Descriptor             : in     WisiToken.Descriptor;
       Grammar                : in     WisiToken.Productions.Prod_Arrays.Vector);
-   --  Set State.Minimal_Terminal_First to the set of terminals that will
+   --  Set State.Minimal_Complete_Actions to the set of actions that will
    --  most quickly complete the productions in Kernel (which must be for
    --  State). Useful in error correction when we know the next actual
    --  terminal is a block ending or statement start.

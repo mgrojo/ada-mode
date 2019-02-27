@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -558,7 +558,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
         (Kernels, Grammar, Has_Empty_Production, First_Nonterm_Set, First_Terminal_Sequence, Unknown_Conflicts,
          Table.all, Descriptor);
 
-      --  Set Table.States.Productions, Minimal_Terminal_First for McKenzie_Recover
+      --  Set Table.States.Productions, Minimal_Complete_Actions for McKenzie_Recover
       for State in Table.States'Range loop
          Table.States (State).Productions := LR1_Items.Productions (Kernels (State));
          WisiToken.Generate.LR.Set_Minimal_Complete_Actions

@@ -26,7 +26,6 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with Ada.Calendar.Formatting;
 with Ada.Strings.Fixed;
 package body WisiToken is
 
@@ -290,14 +289,6 @@ package body WisiToken is
          Put_Line ((if Paren_Done then " " else "") & "others => (others => False))");
       end if;
    end Put;
-
-   procedure Put_Clock (Label : in String)
-   is begin
-      Ada.Text_IO.Put_Line
-        (Ada.Text_IO.Standard_Error,
-         Ada.Calendar.Formatting.Image
-           (Ada.Calendar.Clock, Include_Time_Fraction => True) & " " & Label);
-   end Put_Clock;
 
    function Error_Message
      (File_Name : in String;

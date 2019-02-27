@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -791,7 +791,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
       end if;
 
       case Ada_Lite_Actions.Token_Enum_ID'(-Next_Token) is
-      when END_ID =>
+      when END_ID | EXCEPTION_ID =>
          return True;
 
       when others =>

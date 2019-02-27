@@ -460,7 +460,7 @@ package body WisiToken.Parse.LR.Parser is
 
    begin
       if Debug_Mode then
-         Put_Clock ("start");
+         Trace.Put_Clock ("start");
       end if;
 
       if Shared_Parser.User_Data /= null then
@@ -708,11 +708,11 @@ package body WisiToken.Parse.LR.Parser is
                      Trace.Put_Line ("recover");
                   end if;
                   if Debug_Mode then
-                     Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
+                     Trace.Put_Clock ("pre-recover" & Shared_Parser.Parsers.Count'Img & " active");
                   end if;
                   Recover_Result := McKenzie_Recover.Recover (Shared_Parser);
                   if Debug_Mode then
-                     Put_Clock ("post-recover" & Shared_Parser.Parsers.Count'Img & " active");
+                     Trace.Put_Clock ("post-recover" & Shared_Parser.Parsers.Count'Img & " active");
                   end if;
 
                   if Trace_Parse > Outline then
@@ -976,7 +976,7 @@ package body WisiToken.Parse.LR.Parser is
          end loop Action_Loop;
       end loop Main_Loop;
       if Debug_Mode then
-         Put_Clock ("finish");
+         Trace.Put_Clock ("finish");
       end if;
 
       --  We don't raise Syntax_Error for lexer errors, since they are all
@@ -985,7 +985,7 @@ package body WisiToken.Parse.LR.Parser is
    exception
    when Syntax_Error | WisiToken.Parse_Error | Partial_Parse =>
       if Debug_Mode then
-         Put_Clock ("finish - error");
+         Trace.Put_Clock ("finish - error");
       end if;
       raise;
 

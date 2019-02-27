@@ -404,6 +404,10 @@ package WisiToken is
    --  Output for tests/debugging. Descriptor included here because many
    --  uses of Trace will use Image (Item, Descriptor);
 
+   procedure Set_Prefix (Trace : in out WisiToken.Trace; Prefix : in String) is abstract;
+   --  Prepend Prefix to all subsequent messages. Usefull for adding
+   --  comment syntax.
+
    procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace display.
 
@@ -413,8 +417,8 @@ package WisiToken is
    procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
    --  Put a newline to the Trace display.
 
-   procedure Put_Clock (Label : in String);
-   --  Put Ada.Calendar.Clock to Ada.Text_IO.Current_Error.
+   procedure Put_Clock (Trace : in out WisiToken.Trace; Label : in String) is abstract;
+   --  Put Ada.Calendar.Clock to Trace.
 
    ----------
    --  Misc

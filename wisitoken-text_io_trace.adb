@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,7 +17,14 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Calendar.Formatting;
 package body WisiToken.Text_IO_Trace is
+
+   overriding
+   procedure Set_Prefix (Trace : in out Text_IO_Trace.Trace; Prefix : in String)
+   is begin
+      Trace.Prefix := +Prefix;
+   end Set_Prefix;
 
    overriding
    procedure Put (Trace : in out Text_IO_Trace.Trace; Item : in String)
@@ -25,7 +32,7 @@ package body WisiToken.Text_IO_Trace is
       use Ada.Text_IO;
    begin
       if Trace.File /= null and then Is_Open (Trace.File.all) then
-         Ada.Text_IO.Put (Trace.File.all, Item);
+         Ada.Text_IO.Put (Trace.File.all, -Trace.Prefix & Item);
       else
          Ada.Text_IO.Put (Item);
       end if;
@@ -37,10 +44,10 @@ package body WisiToken.Text_IO_Trace is
       use Ada.Text_IO;
    begin
       if Trace.File /= null and then Is_Open (Trace.File.all) then
-         Ada.Text_IO.Put_Line (Trace.File.all, Item);
+         Ada.Text_IO.Put_Line (Trace.File.all, -Trace.Prefix & Item);
          Ada.Text_IO.Flush (Trace.File.all);
       else
-         Ada.Text_IO.Put_Line (Item);
+         Ada.Text_IO.Put_Line (-Trace.Prefix & Item);
          Ada.Text_IO.Flush;
       end if;
    end Put_Line;
@@ -56,6 +63,14 @@ package body WisiToken.Text_IO_Trace is
          Ada.Text_IO.New_Line;
       end if;
    end New_Line;
+
+   overriding
+   procedure Put_Clock (Trace : in out Text_IO_Trace.Trace; Label : in String)
+   is begin
+      Trace.Put_Line
+        (Ada.Calendar.Formatting.Image
+           (Ada.Calendar.Clock, Include_Time_Fraction => True) & " " & Label);
+   end Put_Clock;
 
    procedure Set_File (Trace : in out Text_IO_Trace.Trace; File : in Ada.Text_IO.File_Access)
    is begin

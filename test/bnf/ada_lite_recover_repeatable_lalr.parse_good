@@ -5058,123 +5058,122 @@ spawn parser 45 from 44 (3 active)
  45:  7, (283 : (BEGIN))| 319:(IDENTIFIER, (1652 . 1652))|((PUSH_BACK, IDENTIFIER, 319), (INSERT, BEGIN, 319))
  44:  7, (42 : (IDENTIFIER))| 320:(COLON_EQUAL, (1654 . 1655))|((INSERT, COLON, 320), (INSERT, IDENTIFIER, 320))
 spawn parser 46 from 43 (4 active)
- 46:  7, (283 : (BEGIN))| 319:(IDENTIFIER, (1652 . 1652))|((PUSH_BACK, IDENTIFIER, 319), (INSERT, BEGIN, 319))
- 43:  7, (42 : (IDENTIFIER))| 320:(COLON_EQUAL, (1654 . 1655))|((INSERT, COLON, 320), (INSERT, IDENTIFIER, 320))
+ 46:  7, (42 : (IDENTIFIER))| 320:(COLON_EQUAL, (1654 . 1655))|((INSERT, COLON, 320), (INSERT, IDENTIFIER, 320))
+ 43:  7, (283 : (BEGIN))| 319:(IDENTIFIER, (1652 . 1652))|((PUSH_BACK, IDENTIFIER, 319), (INSERT, BEGIN, 319))
 recover: succeed, parser count 4
- 46: Current_Token (BEGIN) Shared_Token  319:(IDENTIFIER, (1652 . 1652))
+ 46: Current_Token (COLON) Shared_Token  320:(COLON_EQUAL, (1654 . 1655))
  46: resume_active: True, token goal 323
  45: Current_Token (BEGIN) Shared_Token  319:(IDENTIFIER, (1652 . 1652))
  45: resume_active: True, token goal 323
  44: Current_Token (COLON) Shared_Token  320:(COLON_EQUAL, (1654 . 1655))
  44: resume_active: True, token goal 323
- 43: Current_Token (COLON) Shared_Token  320:(COLON_EQUAL, (1654 . 1655))
+ 43: Current_Token (BEGIN) Shared_Token  319:(IDENTIFIER, (1652 . 1652))
  43: resume_active: True, token goal 323
+ 46: 132: (COLON) : shift and goto state 194
  44: 132: (COLON) : shift and goto state 194
- 43: 132: (COLON) : shift and goto state 194
- 46: 136: (BEGIN) : reduce 1 tokens to declarative_part_opt
-declarative_part_opt_0: (declarative_part_opt, (1603 . 1650)) <= ((declarations, (1603 . 1650)))
- ... goto state 258
  45: 136: (BEGIN) : reduce 1 tokens to declarative_part_opt
 declarative_part_opt_0: (declarative_part_opt, (1603 . 1650)) <= ((declarations, (1603 . 1650)))
  ... goto state 258
- 46: 258: (BEGIN) : shift and goto state 283
+ 43: 136: (BEGIN) : reduce 1 tokens to declarative_part_opt
+declarative_part_opt_0: (declarative_part_opt, (1603 . 1650)) <= ((declarations, (1603 . 1650)))
+ ... goto state 258
  45: 258: (BEGIN) : shift and goto state 283
+ 43: 258: (BEGIN) : shift and goto state 283
+ 46: 194: (IDENTIFIER) : shift and goto state 42
  44: 194: (IDENTIFIER) : shift and goto state 42
- 43: 194: (IDENTIFIER) : shift and goto state 42
- 46: 283:  319:(IDENTIFIER, (1652 . 1652)) : shift and goto state 10
+ 46: 42:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to name
+name_2: (name) <= ((IDENTIFIER))
+semantic check OK
+ ... goto state 188
  45: 283:  319:(IDENTIFIER, (1652 . 1652)) : shift and goto state 10
  44: 42:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to name
 name_2: (name) <= ((IDENTIFIER))
 semantic check OK
  ... goto state 188
- 43: 42:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to name
-name_2: (name) <= ((IDENTIFIER))
-semantic check OK
- ... goto state 188
+ 43: 283:  319:(IDENTIFIER, (1652 . 1652)) : shift and goto state 10
+ 46: 188:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to subtype_indication
+subtype_indication_1: (subtype_indication) <= ((name))
+ ... goto state 234
  44: 188:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to subtype_indication
 subtype_indication_1: (subtype_indication) <= ((name))
  ... goto state 234
- 43: 188:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to subtype_indication
-subtype_indication_1: (subtype_indication) <= ((name))
- ... goto state 234
+ 46: 234:  320:(COLON_EQUAL, (1654 . 1655)) : shift and goto state 268
  44: 234:  320:(COLON_EQUAL, (1654 . 1655)) : shift and goto state 268
- 43: 234:  320:(COLON_EQUAL, (1654 . 1655)) : shift and goto state 268
- 46: 10:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to name
-name_2: (name, (1652 . 1652)) <= ( 319:(IDENTIFIER, (1652 . 1652)))
-semantic check OK
- ... goto state 25
+ 46: 268:  321:(IDENTIFIER, (1657 . 1657)) : shift and goto state 42
  45: 10:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to name
 name_2: (name, (1652 . 1652)) <= ( 319:(IDENTIFIER, (1652 . 1652)))
 semantic check OK
  ... goto state 25
  44: 268:  321:(IDENTIFIER, (1657 . 1657)) : shift and goto state 42
- 43: 268:  321:(IDENTIFIER, (1657 . 1657)) : shift and goto state 42
- 46: 25:  320:(COLON_EQUAL, (1654 . 1655)) : shift and goto state 78
+ 43: 10:  320:(COLON_EQUAL, (1654 . 1655)) : reduce 1 tokens to name
+name_2: (name, (1652 . 1652)) <= ( 319:(IDENTIFIER, (1652 . 1652)))
+semantic check OK
+ ... goto state 25
  45: 25:  320:(COLON_EQUAL, (1654 . 1655)) : shift and goto state 78
- 46: 78:  321:(IDENTIFIER, (1657 . 1657)) : shift and goto state 42
+ 43: 25:  320:(COLON_EQUAL, (1654 . 1655)) : shift and goto state 78
+ 46: 42:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to name
+name_2: (name, (1657 . 1657)) <= ( 321:(IDENTIFIER, (1657 . 1657)))
+semantic check OK
+ ... goto state 46
  45: 78:  321:(IDENTIFIER, (1657 . 1657)) : shift and goto state 42
  44: 42:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to name
 name_2: (name, (1657 . 1657)) <= ( 321:(IDENTIFIER, (1657 . 1657)))
 semantic check OK
  ... goto state 46
- 43: 42:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to name
-name_2: (name, (1657 . 1657)) <= ( 321:(IDENTIFIER, (1657 . 1657)))
-semantic check OK
- ... goto state 46
+ 43: 78:  321:(IDENTIFIER, (1657 . 1657)) : shift and goto state 42
+ 46: 46:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to primary
+primary_2: (primary, (1657 . 1657)) <= ((name, (1657 . 1657)))
+ ... goto state 48
  44: 46:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to primary
 primary_2: (primary, (1657 . 1657)) <= ((name, (1657 . 1657)))
  ... goto state 48
- 43: 46:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to primary
-primary_2: (primary, (1657 . 1657)) <= ((name, (1657 . 1657)))
- ... goto state 48
+ 46: 48:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to factor
+factor_0: (factor, (1657 . 1657)) <= ((primary, (1657 . 1657)))
+ ... goto state 45
  44: 48:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to factor
 factor_0: (factor, (1657 . 1657)) <= ((primary, (1657 . 1657)))
  ... goto state 45
- 43: 48:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to factor
-factor_0: (factor, (1657 . 1657)) <= ((primary, (1657 . 1657)))
- ... goto state 45
+ 46: 45:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term
+term_1: (term, (1657 . 1657)) <= ((factor, (1657 . 1657)))
+ ... goto state 54
  44: 45:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term
 term_1: (term, (1657 . 1657)) <= ((factor, (1657 . 1657)))
  ... goto state 54
- 43: 45:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term
-term_1: (term, (1657 . 1657)) <= ((factor, (1657 . 1657)))
- ... goto state 54
+ 46: 54:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term_list
+term_list_1: (term_list, (1657 . 1657)) <= ((term, (1657 . 1657)))
+ ... goto state 55
  44: 54:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term_list
 term_list_1: (term_list, (1657 . 1657)) <= ((term, (1657 . 1657)))
  ... goto state 55
- 43: 54:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term_list
-term_list_1: (term_list, (1657 . 1657)) <= ((term, (1657 . 1657)))
- ... goto state 55
+ 46: 55:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to simple_expression
+simple_expression_1: (simple_expression, (1657 . 1657)) <= ((term_list, (1657 . 1657)))
+ ... goto state 53
  44: 55:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to simple_expression
 simple_expression_1: (simple_expression, (1657 . 1657)) <= ((term_list, (1657 . 1657)))
  ... goto state 53
- 43: 55:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to simple_expression
-simple_expression_1: (simple_expression, (1657 . 1657)) <= ((term_list, (1657 . 1657)))
- ... goto state 53
+ 46: 53:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to relation
+relation_1: (relation, (1657 . 1657)) <= ((simple_expression, (1657 . 1657)))
+ ... goto state 52
  44: 53:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to relation
 relation_1: (relation, (1657 . 1657)) <= ((simple_expression, (1657 . 1657)))
  ... goto state 52
- 43: 53:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to relation
-relation_1: (relation, (1657 . 1657)) <= ((simple_expression, (1657 . 1657)))
- ... goto state 52
+ 46: 52:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression
+expression_0: (expression, (1657 . 1657)) <= ((relation, (1657 . 1657)))
+ ... goto state 43
  44: 52:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression
 expression_0: (expression, (1657 . 1657)) <= ((relation, (1657 . 1657)))
  ... goto state 43
- 43: 52:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression
-expression_0: (expression, (1657 . 1657)) <= ((relation, (1657 . 1657)))
- ... goto state 43
+ 46: 43:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression_opt
+expression_opt_0: (expression_opt, (1657 . 1657)) <= ((expression, (1657 . 1657)))
+ ... goto state 289
  44: 43:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression_opt
 expression_opt_0: (expression_opt, (1657 . 1657)) <= ((expression, (1657 . 1657)))
  ... goto state 289
- 43: 43:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression_opt
-expression_opt_0: (expression_opt, (1657 . 1657)) <= ((expression, (1657 . 1657)))
- ... goto state 289
+ 46: 289:  322:(SEMICOLON, (1658 . 1658)) : shift and goto state 304
  44: 289:  322:(SEMICOLON, (1658 . 1658)) : shift and goto state 304
- 43: 289:  322:(SEMICOLON, (1658 . 1658)) : shift and goto state 304
- 46: 42:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to name
-name_2: (name, (1657 . 1657)) <= ( 321:(IDENTIFIER, (1657 . 1657)))
-semantic check OK
- ... goto state 46
+ 46: 304:  323:(END, (1660 . 1662)) : reduce 6 tokens to object_declaration
+object_declaration_0: (object_declaration, (1652 . 1658)) <= ( 319:(IDENTIFIER, (1652 . 1652)), (COLON), (subtype_indication),  320:(COLON_EQUAL, (1654 . 1655)), (expression_opt, (1657 . 1657)),  322:(SEMICOLON, (1658 . 1658)))
+ ... goto state 139
  45: 42:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to name
 name_2: (name, (1657 . 1657)) <= ( 321:(IDENTIFIER, (1657 . 1657)))
 semantic check OK
@@ -5182,125 +5181,126 @@ semantic check OK
  44: 304:  323:(END, (1660 . 1662)) : reduce 6 tokens to object_declaration
 object_declaration_0: (object_declaration, (1652 . 1658)) <= ( 319:(IDENTIFIER, (1652 . 1652)), (COLON), (subtype_indication),  320:(COLON_EQUAL, (1654 . 1655)), (expression_opt, (1657 . 1657)),  322:(SEMICOLON, (1658 . 1658)))
  ... goto state 139
- 43: 304:  323:(END, (1660 . 1662)) : reduce 6 tokens to object_declaration
-object_declaration_0: (object_declaration, (1652 . 1658)) <= ( 319:(IDENTIFIER, (1652 . 1652)), (COLON), (subtype_indication),  320:(COLON_EQUAL, (1654 . 1655)), (expression_opt, (1657 . 1657)),  322:(SEMICOLON, (1658 . 1658)))
- ... goto state 139
- 46: 46:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to primary
-primary_2: (primary, (1657 . 1657)) <= ((name, (1657 . 1657)))
- ... goto state 48
+ 43: 42:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to name
+name_2: (name, (1657 . 1657)) <= ( 321:(IDENTIFIER, (1657 . 1657)))
+semantic check OK
+ ... goto state 46
+ 46: 139:  323:(END, (1660 . 1662)) : reduce 1 tokens to declaration
+declaration_1: (declaration, (1652 . 1658)) <= ((object_declaration, (1652 . 1658)))
+ ... goto state 195
  45: 46:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to primary
 primary_2: (primary, (1657 . 1657)) <= ((name, (1657 . 1657)))
  ... goto state 48
  44: 139:  323:(END, (1660 . 1662)) : reduce 1 tokens to declaration
 declaration_1: (declaration, (1652 . 1658)) <= ((object_declaration, (1652 . 1658)))
  ... goto state 195
- 43: 139:  323:(END, (1660 . 1662)) : reduce 1 tokens to declaration
-declaration_1: (declaration, (1652 . 1658)) <= ((object_declaration, (1652 . 1658)))
- ... goto state 195
- 46: 48:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to factor
-factor_0: (factor, (1657 . 1657)) <= ((primary, (1657 . 1657)))
- ... goto state 45
+ 43: 46:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to primary
+primary_2: (primary, (1657 . 1657)) <= ((name, (1657 . 1657)))
+ ... goto state 48
+ 46: 195:  323:(END, (1660 . 1662)) : reduce 2 tokens to declarations
+declarations_0: (declarations, (1603 . 1658)) <= ((declarations, (1603 . 1650)), (declaration, (1652 . 1658)))
+ ... goto state 136
  45: 48:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to factor
 factor_0: (factor, (1657 . 1657)) <= ((primary, (1657 . 1657)))
  ... goto state 45
  44: 195:  323:(END, (1660 . 1662)) : reduce 2 tokens to declarations
 declarations_0: (declarations, (1603 . 1658)) <= ((declarations, (1603 . 1650)), (declaration, (1652 . 1658)))
  ... goto state 136
- 43: 195:  323:(END, (1660 . 1662)) : reduce 2 tokens to declarations
-declarations_0: (declarations, (1603 . 1658)) <= ((declarations, (1603 . 1650)), (declaration, (1652 . 1658)))
- ... goto state 136
- 46: 45:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term
-term_1: (term, (1657 . 1657)) <= ((factor, (1657 . 1657)))
- ... goto state 54
+ 43: 48:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to factor
+factor_0: (factor, (1657 . 1657)) <= ((primary, (1657 . 1657)))
+ ... goto state 45
+ 46: 136:  323:(END, (1660 . 1662)) : reduce 1 tokens to declarative_part_opt
+declarative_part_opt_0: (declarative_part_opt, (1603 . 1658)) <= ((declarations, (1603 . 1658)))
+ ... goto state 258
  45: 45:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term
 term_1: (term, (1657 . 1657)) <= ((factor, (1657 . 1657)))
  ... goto state 54
  44: 136:  323:(END, (1660 . 1662)) : reduce 1 tokens to declarative_part_opt
 declarative_part_opt_0: (declarative_part_opt, (1603 . 1658)) <= ((declarations, (1603 . 1658)))
  ... goto state 258
- 43: 136:  323:(END, (1660 . 1662)) : reduce 1 tokens to declarative_part_opt
-declarative_part_opt_0: (declarative_part_opt, (1603 . 1658)) <= ((declarations, (1603 . 1658)))
- ... goto state 258
- 46: 54:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term_list
-term_list_1: (term_list, (1657 . 1657)) <= ((term, (1657 . 1657)))
- ... goto state 55
+ 43: 45:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term
+term_1: (term, (1657 . 1657)) <= ((factor, (1657 . 1657)))
+ ... goto state 54
+ 46: 258:  323:(END, (1660 . 1662)) : shift and goto state 284
  45: 54:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term_list
 term_list_1: (term_list, (1657 . 1657)) <= ((term, (1657 . 1657)))
  ... goto state 55
  44: 258:  323:(END, (1660 . 1662)) : shift and goto state 284
- 43: 258:  323:(END, (1660 . 1662)) : shift and goto state 284
- 46: 55:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to simple_expression
-simple_expression_1: (simple_expression, (1657 . 1657)) <= ((term_list, (1657 . 1657)))
- ... goto state 53
+ 43: 54:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to term_list
+term_list_1: (term_list, (1657 . 1657)) <= ((term, (1657 . 1657)))
+ ... goto state 55
+ 46: resume_active: False
  45: 55:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to simple_expression
 simple_expression_1: (simple_expression, (1657 . 1657)) <= ((term_list, (1657 . 1657)))
  ... goto state 53
- 46: 53:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to relation
-relation_1: (relation, (1657 . 1657)) <= ((simple_expression, (1657 . 1657)))
- ... goto state 52
+ 43: 55:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to simple_expression
+simple_expression_1: (simple_expression, (1657 . 1657)) <= ((term_list, (1657 . 1657)))
+ ... goto state 53
  45: 53:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to relation
 relation_1: (relation, (1657 . 1657)) <= ((simple_expression, (1657 . 1657)))
  ... goto state 52
- 46: 52:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression
-expression_0: (expression, (1657 . 1657)) <= ((relation, (1657 . 1657)))
- ... goto state 43
+ 43: 53:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to relation
+relation_1: (relation, (1657 . 1657)) <= ((simple_expression, (1657 . 1657)))
+ ... goto state 52
  45: 52:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression
 expression_0: (expression, (1657 . 1657)) <= ((relation, (1657 . 1657)))
  ... goto state 43
- 46: 43:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression_opt
-expression_opt_0: (expression_opt, (1657 . 1657)) <= ((expression, (1657 . 1657)))
- ... goto state 155
+ 43: 52:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression
+expression_0: (expression, (1657 . 1657)) <= ((relation, (1657 . 1657)))
+ ... goto state 43
  45: 43:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression_opt
 expression_opt_0: (expression_opt, (1657 . 1657)) <= ((expression, (1657 . 1657)))
  ... goto state 155
- 46: 155:  322:(SEMICOLON, (1658 . 1658)) : shift and goto state 205
+ 43: 43:  322:(SEMICOLON, (1658 . 1658)) : reduce 1 tokens to expression_opt
+expression_opt_0: (expression_opt, (1657 . 1657)) <= ((expression, (1657 . 1657)))
+ ... goto state 155
  45: 155:  322:(SEMICOLON, (1658 . 1658)) : shift and goto state 205
+ 43: 155:  322:(SEMICOLON, (1658 . 1658)) : shift and goto state 205
  44: resume_active: False
- 43: resume_active: False
- 46: 205:  323:(END, (1660 . 1662)) : reduce 4 tokens to assignment_statement
-assignment_statement_0: (assignment_statement, (1652 . 1658)) <= ((name, (1652 . 1652)),  320:(COLON_EQUAL, (1654 . 1655)), (expression_opt, (1657 . 1657)),  322:(SEMICOLON, (1658 . 1658)))
- ... goto state 11
  45: 205:  323:(END, (1660 . 1662)) : reduce 4 tokens to assignment_statement
 assignment_statement_0: (assignment_statement, (1652 . 1658)) <= ((name, (1652 . 1652)),  320:(COLON_EQUAL, (1654 . 1655)), (expression_opt, (1657 . 1657)),  322:(SEMICOLON, (1658 . 1658)))
  ... goto state 11
- 46: 11:  323:(END, (1660 . 1662)) : reduce 1 tokens to simple_statement
-simple_statement_0: (simple_statement, (1652 . 1658)) <= ((assignment_statement, (1652 . 1658)))
- ... goto state 31
+ 43: 205:  323:(END, (1660 . 1662)) : reduce 4 tokens to assignment_statement
+assignment_statement_0: (assignment_statement, (1652 . 1658)) <= ((name, (1652 . 1652)),  320:(COLON_EQUAL, (1654 . 1655)), (expression_opt, (1657 . 1657)),  322:(SEMICOLON, (1658 . 1658)))
+ ... goto state 11
  45: 11:  323:(END, (1660 . 1662)) : reduce 1 tokens to simple_statement
 simple_statement_0: (simple_statement, (1652 . 1658)) <= ((assignment_statement, (1652 . 1658)))
  ... goto state 31
- 46: 31:  323:(END, (1660 . 1662)) : reduce 1 tokens to statement
-statement_0: (statement, (1652 . 1658)) <= ((simple_statement, (1652 . 1658)))
- ... goto state 64
+ 43: 11:  323:(END, (1660 . 1662)) : reduce 1 tokens to simple_statement
+simple_statement_0: (simple_statement, (1652 . 1658)) <= ((assignment_statement, (1652 . 1658)))
+ ... goto state 31
  45: 31:  323:(END, (1660 . 1662)) : reduce 1 tokens to statement
 statement_0: (statement, (1652 . 1658)) <= ((simple_statement, (1652 . 1658)))
  ... goto state 64
- 46: 64:  323:(END, (1660 . 1662)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (1652 . 1658)) <= ((statement, (1652 . 1658)))
- ... goto state 62
+ 43: 31:  323:(END, (1660 . 1662)) : reduce 1 tokens to statement
+statement_0: (statement, (1652 . 1658)) <= ((simple_statement, (1652 . 1658)))
+ ... goto state 64
  45: 64:  323:(END, (1660 . 1662)) : reduce 1 tokens to sequence_of_statements
 sequence_of_statements_1: (sequence_of_statements, (1652 . 1658)) <= ((statement, (1652 . 1658)))
  ... goto state 62
- 46: 62:  323:(END, (1660 . 1662)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (1652 . 1658)) <= ((sequence_of_statements, (1652 . 1658)))
- ... goto state 128
+ 43: 64:  323:(END, (1660 . 1662)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_1: (sequence_of_statements, (1652 . 1658)) <= ((statement, (1652 . 1658)))
+ ... goto state 62
  45: 62:  323:(END, (1660 . 1662)) : reduce 1 tokens to sequence_of_statements_opt
 sequence_of_statements_opt_0: (sequence_of_statements_opt, (1652 . 1658)) <= ((sequence_of_statements, (1652 . 1658)))
  ... goto state 128
- 46: 128:  323:(END, (1660 . 1662)) : reduce 1 tokens to handled_sequence_of_statements
-handled_sequence_of_statements_1: (handled_sequence_of_statements, (1652 . 1658)) <= ((sequence_of_statements_opt, (1652 . 1658)))
- ... goto state 298
+ 43: 62:  323:(END, (1660 . 1662)) : reduce 1 tokens to sequence_of_statements_opt
+sequence_of_statements_opt_0: (sequence_of_statements_opt, (1652 . 1658)) <= ((sequence_of_statements, (1652 . 1658)))
+ ... goto state 128
  45: 128:  323:(END, (1660 . 1662)) : reduce 1 tokens to handled_sequence_of_statements
 handled_sequence_of_statements_1: (handled_sequence_of_statements, (1652 . 1658)) <= ((sequence_of_statements_opt, (1652 . 1658)))
  ... goto state 298
- 46: 298:  323:(END, (1660 . 1662)) : shift and goto state 309
+ 43: 128:  323:(END, (1660 . 1662)) : reduce 1 tokens to handled_sequence_of_statements
+handled_sequence_of_statements_1: (handled_sequence_of_statements, (1652 . 1658)) <= ((sequence_of_statements_opt, (1652 . 1658)))
+ ... goto state 298
  45: 298:  323:(END, (1660 . 1662)) : shift and goto state 309
- 46: resume_active: False
+ 43: 298:  323:(END, (1660 . 1662)) : shift and goto state 309
  45: resume_active: False
- 46: 309:  324:(IDENTIFIER, (1664 . 1669)) : shift and goto state 42
+ 43: resume_active: False
+ 46: 284:  324:(IDENTIFIER, (1664 . 1669)) : shift and goto state 42
  45: 309:  324:(IDENTIFIER, (1664 . 1669)) : shift and goto state 42
  44: 284:  324:(IDENTIFIER, (1664 . 1669)) : shift and goto state 42
- 43: 284:  324:(IDENTIFIER, (1664 . 1669)) : shift and goto state 42
+ 43: 309:  324:(IDENTIFIER, (1664 . 1669)) : shift and goto state 42
  46: 42:  325:(SEMICOLON, (1670 . 1670)) : reduce 1 tokens to name
 name_2: (name, (1664 . 1669)) <= ( 324:(IDENTIFIER, (1664 . 1669)))
 semantic check OK
@@ -5320,7 +5320,7 @@ semantic check OK
  46: 299:  325:(SEMICOLON, (1670 . 1670)) : reduce 1 tokens to name_opt
 name_opt_0: (name_opt, (1664 . 1669)) <= ((name, (1664 . 1669)))
 semantic check OK
- ... goto state 314
+ ... goto state 300
  45: 299:  325:(SEMICOLON, (1670 . 1670)) : reduce 1 tokens to name_opt
 name_opt_0: (name_opt, (1664 . 1669)) <= ((name, (1664 . 1669)))
 semantic check OK
@@ -5332,13 +5332,13 @@ semantic check OK
  43: 299:  325:(SEMICOLON, (1670 . 1670)) : reduce 1 tokens to name_opt
 name_opt_0: (name_opt, (1664 . 1669)) <= ((name, (1664 . 1669)))
 semantic check OK
- ... goto state 300
- 46: 314:  325:(SEMICOLON, (1670 . 1670)) : shift and goto state 315
+ ... goto state 314
+ 46: 300:  325:(SEMICOLON, (1670 . 1670)) : shift and goto state 310
  45: 314:  325:(SEMICOLON, (1670 . 1670)) : shift and goto state 315
  44: 300:  325:(SEMICOLON, (1670 . 1670)) : shift and goto state 310
- 43: 300:  325:(SEMICOLON, (1670 . 1670)) : shift and goto state 310
- 46: 315:  326:(END, (1672 . 1674)) : reduce 11 tokens to package_body
-package_body_0: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1650)), (BEGIN), (handled_sequence_of_statements, (1652 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
+ 43: 314:  325:(SEMICOLON, (1670 . 1670)) : shift and goto state 315
+ 46: 310:  326:(END, (1672 . 1674)) : reduce 9 tokens to package_body
+package_body_1: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
 semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
  46: zombie
  45: 315:  326:(END, (1672 . 1674)) : reduce 11 tokens to package_body
@@ -5349,15 +5349,15 @@ semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669
 package_body_1: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
 semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
  44: zombie
- 43: 310:  326:(END, (1672 . 1674)) : reduce 9 tokens to package_body
-package_body_1: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
+ 43: 315:  326:(END, (1672 . 1674)) : reduce 11 tokens to package_body
+package_body_0: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1650)), (BEGIN), (handled_sequence_of_statements, (1652 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
 semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
  43: zombie
 recover
- 46:  5, (26 : (package_body, (1585 . 1670)))| 327:(IDENTIFIER, (1676 . 1676))|((UNDO_REDUCE, package_body, 11), (DELETE, END, 326))
+ 46:  5, (26 : (package_body, (1585 . 1670)))| 327:(IDENTIFIER, (1676 . 1676))|((UNDO_REDUCE, package_body, 9), (DELETE, END, 326))
  45:  11, (33 : (subprogram_body, (1087 . 1677)))| 329:(PROCEDURE, (1679 . 1687))|((UNDO_REDUCE, package_body, 11), (INSERT, BEGIN, 326), (FAST_FORWARD,  329))
  44:  11, (33 : (subprogram_body, (1087 . 1677)))| 329:(PROCEDURE, (1679 . 1687))|((UNDO_REDUCE, package_body, 9), (INSERT, BEGIN, 326), (FAST_FORWARD,  329))
- 43:  5, (26 : (package_body, (1585 . 1670)))| 327:(IDENTIFIER, (1676 . 1676))|((UNDO_REDUCE, package_body, 9), (DELETE, END, 326))
+ 43:  5, (26 : (package_body, (1585 . 1670)))| 327:(IDENTIFIER, (1676 . 1676))|((UNDO_REDUCE, package_body, 11), (DELETE, END, 326))
 recover: succeed, parser count 4
  46: Current_Token  327:(IDENTIFIER, (1676 . 1676)) Shared_Token  327:(IDENTIFIER, (1676 . 1676))
  46: resume_active: True, token goal 330
@@ -5367,8 +5367,8 @@ recover: succeed, parser count 4
  44: resume_active: True, token goal 329
  43: Current_Token  327:(IDENTIFIER, (1676 . 1676)) Shared_Token  327:(IDENTIFIER, (1676 . 1676))
  43: resume_active: True, token goal 330
- 46: 315:  327:(IDENTIFIER, (1676 . 1676)) : reduce 11 tokens to package_body
-package_body_0: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1650)), (BEGIN), (handled_sequence_of_statements, (1652 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
+ 46: 310:  327:(IDENTIFIER, (1676 . 1676)) : reduce 9 tokens to package_body
+package_body_1: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
 semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
  ... goto state 26
  45: 315: (BEGIN) : reduce 11 tokens to package_body
@@ -5379,8 +5379,8 @@ semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669
 package_body_1: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
 semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
  ... goto state 140
- 43: 310:  327:(IDENTIFIER, (1676 . 1676)) : reduce 9 tokens to package_body
-package_body_1: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
+ 43: 315:  327:(IDENTIFIER, (1676 . 1676)) : reduce 11 tokens to package_body
+package_body_0: (package_body, (1585 . 1670)) <= ( 304:(PACKAGE, (1585 . 1591)),  305:(BODY, (1593 . 1596)), (name, (1598 . 1598)), (aspect_specification_opt),  307:(IS, (1600 . 1601)), (declarative_part_opt, (1603 . 1650)), (BEGIN), (handled_sequence_of_statements, (1652 . 1658)),  323:(END, (1660 . 1662)), (name_opt, (1664 . 1669)),  325:(SEMICOLON, (1670 . 1670)))
 semantic check (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
  ... goto state 26
  46: 26:  327:(IDENTIFIER, (1676 . 1676)) : reduce 1 tokens to compilation_unit
@@ -9562,9 +9562,9 @@ ada_lite_recover_repeatable.input:38:43: syntax error: expecting BEGIN, CASE, DE
 ada_lite_recover_repeatable.input:40:49: syntax error: expecting AND, IS, LEFT_PAREN, LOOP, OR, RANGE, RETURN, RIGHT_PAREN, THEN, WITH, XOR, AMPERSAND, COLON_EQUAL, COMMA, DOT, DOT_DOT, EQUAL, EQUAL_GREATER, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, MINUS, PLUS, SEMICOLON, SLASH, SLASH_EQUAL, STAR, found '"'
    recovered: ((PUSH_BACK, IDENTIFIER, 277), (DELETE, IDENTIFIER, 277), (FAST_FORWARD,  278))
 ada_lite_recover_repeatable.input:45:69: syntax error: expecting COLON, found ':='
-   recovered: ((PUSH_BACK, IDENTIFIER, 319), (INSERT, BEGIN, 319))
+   recovered: ((INSERT, COLON, 320), (INSERT, IDENTIFIER, 320))
 ada_lite_recover_repeatable.input:0:0: semantic check error: (MATCH_NAMES_ERROR, (name, (1598 . 1598)),(name_opt, (1664 . 1669)))
-   recovered: ((UNDO_REDUCE, package_body, 11), (DELETE, END, 326))
+   recovered: ((UNDO_REDUCE, package_body, 9), (DELETE, END, 326))
 ada_lite_recover_repeatable.input:0:0: semantic check error: (EXTRA_NAME_ERROR, (block_label_opt),(identifier_opt, (2023 . 2032)))
    recovered: ((UNDO_REDUCE, block_statement, 6), (PUSH_BACK, SEMICOLON, 405), (PUSH_BACK, identifier_opt, 404), (PUSH_BACK, END, 403), (INSERT, END, 403), (INSERT, SEMICOLON, 403), (FAST_FORWARD,  403))
 ada_lite_recover_repeatable.input:57:37: syntax error: expecting BEGIN, FUNCTION, PACKAGE, PROCEDURE, TYPE, IDENTIFIER, found 'end'

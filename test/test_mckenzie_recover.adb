@@ -269,7 +269,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11),
-         Enqueue_Low             => 81,
+         Enqueue_Low             => 153,
          Check_Low               => 42,
          Cost                    => 2);
    end Error_1;
@@ -302,7 +302,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (63, 69),
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
-         Enqueue_Low             => 26,
+         Enqueue_Low             => 38,
          Check_Low               => 11,
          Cost                    => 1);
    end Error_2;
@@ -768,8 +768,8 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Push_Back, +EXCEPTION_ID, 8) & (Push_Back, +sequence_of_statements_opt_ID, 8) &
              (Delete, +EXCEPTION_ID, 8),
-         Enqueue_Low             => 41,
-         Check_Low               => 10,
+         Enqueue_Low             => 43,
+         Check_Low               => 18,
          Cost                    => 4);
    end If_In_Handler;
 
@@ -1644,6 +1644,48 @@ package body Test_McKenzie_Recover is
          Cost                    => 2);
    end Multiple_Complete_Reduce;
 
+   procedure Minimal_Complete_Full_Reduce_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test McKenzie_Recover.Explore.Insert_Minimal_Complete_Actions when
+      --  it reduces, but then inserts nothing (it reduces to
+      --  compilation_unit_list). It used to not try any insertions; now it
+      --  goes back to try normal insertions.
+      --
+      --  This finds "insert begin" quickly.
+
+      Parse_Text ("A; exception when A => null; end Debug;");
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +EXCEPTION_ID,
+         Error_Token_Byte_Region => (4, 12),
+         Ops                     => +(Insert, +BEGIN_ID, 3),
+         Enqueue_Low             => 107,
+         Check_Low               => 18,
+         Cost                    => 3);
+   end Minimal_Complete_Full_Reduce_1;
+
+   procedure Minimal_Complete_Full_Reduce_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Similar to Minimal_Complete_Full_Reduce_1; this takes longer to
+      --  find "insert if then".
+
+      Parse_Text ("A; end if;");
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (4, 6),
+         Ops                     => +(Insert, +IF_ID, 3) & (Insert, +THEN_ID, 3),
+         Enqueue_Low             => 210,
+         Check_Low               => 58,
+         Cost                    => 4);
+   end Minimal_Complete_Full_Reduce_2;
+
    procedure Out_Of_Order_Ops (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1735,6 +1777,8 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, String_Quote_4'Access, "String_Quote_4");
       Register_Routine (T, Enqueue_Limit'Access, "Enqueue_Limit");
       Register_Routine (T, Multiple_Complete_Reduce'Access, "Multiple_Complete_Reduce");
+      Register_Routine (T, Minimal_Complete_Full_Reduce_1'Access, "Minimal_Complete_Full_Reduce_1");
+      Register_Routine (T, Minimal_Complete_Full_Reduce_2'Access, "Minimal_Complete_Full_Reduce_2");
       Register_Routine (T, Out_Of_Order_Ops'Access, "Out_Of_Order_Ops");
    end Register_Tests;
 
