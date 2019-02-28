@@ -25,7 +25,7 @@ exec_mem/%.exe : %.adb force
 # the command line doesn't get too long on large directories.
 clean ::
 	rm -f *.TMP *.exe *.bexch
-	rm -rf objects
+	rm -rf obj
 
 # this can be useful when experimenting with different compiler versions
 recursive-clean ::
