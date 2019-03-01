@@ -29,6 +29,8 @@ procedure Ada_Mode.Partial_Parse
 is
    --  test-face will invoke the parser on Nested, not the full file.
    procedure Nested
+     (Arg_1 : Integer;
+      Arg_2 : Integer);
    is
       --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
       use Ada.Strings; -- target 1

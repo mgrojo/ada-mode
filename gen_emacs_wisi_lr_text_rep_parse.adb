@@ -67,6 +67,8 @@ begin
       end if;
    end;
 
+   Trace.Set_Prefix (";; "); -- so debug messages don't confuse Emacs.
+
    Put_Line (Name & " " & Version & ", protocol version " & Protocol_Version);
 
    --  Read commands and tokens from standard_input via GNAT.OS_Lib,

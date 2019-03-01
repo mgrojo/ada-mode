@@ -57,15 +57,12 @@ run test from emacs -Q using source:
 partial parse
     c:/eurocontrol/regulation-iflight.adb
 
-    ada-which-function broken when partial-parse
-
-    c:/Projects/org.emacs.ada-mode.stephe-2/emacs_wisi_common_parse.adb
+    c:/Projects/org.wisitoken/Test/wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
+        Use_Minimal_Complete_Actions
+        insert 'use all type' failed indent
 
     refactor _lr _lr_text_rep to avoid ediff
         factor out common non-generic subprogram; emacs_wisi_common_parse.parse_file, parse_stream
-
-        gen_emacs_wisi_lr_parse.adb
-        gen_emacs_wisi_lr_text_rep_parse.adb
 
     test buffer_text in test_partial_parse
 

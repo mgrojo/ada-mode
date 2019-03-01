@@ -176,7 +176,7 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-context-clause ()
   "For `ada-fix-context-clause'."
-  (wisi-validate-cache (point-min) (point-min) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (save-excursion
     (goto-char (point-min))
     (let ((begin nil)
@@ -228,7 +228,7 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
-  (wisi-validate-cache (point-min) (point-min) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let (cache
 	(name-pos nil))
@@ -251,7 +251,7 @@ For `wisi-indent-calculate-functions'.
 (defun ada-wisi-goto-declaration-start (&optional include-type)
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
-  (wisi-validate-cache (point) (point) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let ((cache (wisi-get-cache (point)))
 	(done nil))
@@ -304,7 +304,7 @@ Also return cache at start."
 
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
-  (wisi-validate-cache (point) (point) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let ((done nil)
 	(first t)
@@ -383,7 +383,7 @@ Also return cache at start."
 
 (defun ada-wisi-in-paramlist-p (&optional parse-result)
   "For `ada-in-paramlist-p'."
-  (wisi-validate-cache (point) (point) nil 'navigate)
+  (wisi-validate-cache (point-min) (point-max) nil 'navigate)
   ;; (info "(elisp)Parser State" "*syntax-ppss*")
   (let ((parse-result (or parse-result (syntax-ppss)))
 	 cache)
@@ -397,7 +397,7 @@ Also return cache at start."
   "For `ada-make-subprogram-body'."
   ;; point is at start of subprogram specification;
   ;; ada-wisi-expand-region will find the terminal semicolon.
-  (wisi-validate-cache (point) (point) t 'navigate)
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (let* ((begin (point))
 	 (end (wisi-cache-end (wisi-get-cache (point))))
@@ -421,9 +421,16 @@ Also return cache at start."
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
   ;; IMPROVEME: define mini grammar that does this
-  (wisi-validate-cache begin end t 'navigate)
+  ;;
+  ;; BEGIN is at (, end at ). We need to parse the entire
+  ;; subprogram_specification, so start back two tokens.
+  (goto-char begin)
+  (wisi-backward-token)
+  (wisi-backward-token)
+  (wisi-validate-cache (point) end t 'navigate)
 
   (goto-char begin)
+
   (let (tok
 	token
 	text
@@ -541,7 +548,7 @@ Also return cache at start."
 
 (defun ada-wisi-which-function (include-type)
   "For `ada-which-function'."
-  (wisi-validate-cache (point) (point) nil 'navigate)
+  (wisi-validate-cache (line-beginning-position) (line-end-position) nil 'navigate)
   ;; No message on parse fail, since this could be called from which-function-mode
   (when (wisi-cache-covers-pos 'navigate (point))
     (save-excursion
@@ -723,8 +730,13 @@ TOKEN-TEXT; move point to just past token."
 (defun ada-wisi-find-begin ()
   "Starting at current point, search backward for a parse start point."
   (cond
-   ((looking-at (concat "\\(\\s-*\\)" ada-wisi-named-begin-regexp))
-    (match-end 1))
+   ((looking-at (concat "\\s-*\\(" ada-wisi-named-begin-regexp "\\)"))
+    (match-beginning 1))
+
+   ((save-excursion
+      (skip-syntax-backward "->")
+      (looking-back (concat  "end;\\|end " ada-name-regexp ";") (line-beginning-position -5)))
+    (match-end 0))
 
    ((search-backward-regexp ada-wisi-partial-begin-regexp nil t)
     (while (and (ada-in-string-or-comment-p)
@@ -819,6 +831,15 @@ Point must have been set by `ada-wisi-find-begin'."
     (set-mark (car region))
     (goto-char (cdr region))
     ))
+
+(cl-defmethod wisi-parse-adjust-indent ((_parser ada-wisi-parser) indent repair)
+  (cond
+   ((wisi-list-memq (wisi--parse-error-repair-inserted repair) '(LOOP BEGIN IF))
+    (- indent ada-indent))
+
+   (t indent)
+   ))
+
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
 (defvar ada-process-token-table nil) ;; ada-process.el

@@ -332,8 +332,8 @@ package body Wisi is
       --  grammar indent rules or the algorithms in this package.
       case Item.Label is
       when Not_Set =>
-         Ada.Text_IO.Put_Line
-           ('[' & Indent_Code & Trimmed_Image (Integer (Line_Number)) & " 0]");
+         --  Especially with partial parse, we have no idea what this indent should be.
+         null;
 
       when Int =>
          declare
@@ -472,7 +472,7 @@ package body Wisi is
    begin
       if Trace_Action > Outline then
          Ada.Text_IO.New_Line;
-         Ada.Text_IO.Put_Line (";; " & Integer'Image (Data.Begin_Indent));
+         Ada.Text_IO.Put_Line (";; Begin_Indent: " & Integer'Image (Data.Begin_Indent));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Ada.Text_IO.Put_Line (Line_Number_Type'Image (I) & ", " & Image (Data.Indents (I)));
          end loop;
@@ -484,7 +484,8 @@ package body Wisi is
          begin
             case Indent.Label is
             when Not_Set =>
-               Data.Indents.Replace_Element (I, (Int, Begin_Indent));
+               --  Indent not computed, therefore not output.
+               null;
 
             when Int =>
                Data.Indents.Replace_Element (I, (Int, Indent.Int_Indent + Begin_Indent));
@@ -497,12 +498,12 @@ package body Wisi is
 
             when Anchored =>
                Data.Indents.Replace_Element
-                 (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta + Begin_Indent));
+                 (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta));
 
             when Anchor_Anchored =>
                declare
                   Temp : constant Integer :=
-                    Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta + Begin_Indent;
+                    Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta;
                begin
                   for I of Indent.Anchor_Anchored_IDs loop
                      Anchor_Indent (I) := Temp;
@@ -1357,9 +1358,7 @@ package body Wisi is
                   Code_Delta := Indent_Compute_Delta
                     (Data, Tree, Tokens, Pair.Code_Delta, Tree_Token, Indenting_Comment => False);
 
-                  if Code_Delta /= Null_Delta then
-                     Indent_Token_1 (Data, Token, Code_Delta, Indenting_Comment => False);
-                  end if;
+                  Indent_Token_1 (Data, Token, Code_Delta, Indenting_Comment => False);
                end if;
 
                if Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
@@ -1370,15 +1369,17 @@ package body Wisi is
                   elsif I < Tokens'Last then
                      Comment_Param     := Params (I + 1).Code_Delta;
                      Comment_Param_Set := True;
+
+                  else
+                     Comment_Param     := Params (I).Code_Delta;
+                     Comment_Param_Set := True;
                   end if;
 
                   if Comment_Param_Set then
                      Comment_Delta := Indent_Compute_Delta
                        (Data, Tree, Tokens, Comment_Param, Tree_Token, Indenting_Comment => True);
 
-                     if Comment_Delta /= Null_Delta then
-                        Indent_Token_1 (Data, Token, Comment_Delta, Indenting_Comment => True);
-                     end if;
+                     Indent_Token_1 (Data, Token, Comment_Delta, Indenting_Comment => True);
                   end if;
                end if;
             end;
@@ -1492,11 +1493,12 @@ package body Wisi is
       end Get_Last_Line;
 
    begin
-      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos) & ']');
+      --  +1 to match Emacs region
+      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos + 1) & ']');
 
       if Trace_Action > Outline then
          Ada.Text_IO.Put_Line
-           (";; last_char_pos:" & Buffer_Pos'Image (Last_Char_Pos) &
+           (";; last_char_pos:" & Buffer_Pos'Image (Last_Char_Pos + 1) &
               " last_line:" & Line_Number_Type'Image (Get_Last_Line));
       end if;
 
@@ -1513,13 +1515,12 @@ package body Wisi is
 
       when Indent =>
          --  We don't need "Indent_Leading_Comments"; they are indented to 0,
-         --  which is the default.
+         --  which is the default. FIXME: no, they are not set.
 
          Resolve_Anchors (Data);
 
-         --  No need to reindent first line. It may be that not all lines in
-         --  Data.Indents were parsed.
-         for I in Data.Indents.First_Index + 1 .. Get_Last_Line loop
+         --  It may be that not all lines in Data.Indents were parsed.
+         for I in Data.Indents.First_Index .. Get_Last_Line loop
             Put (I, Data.Indents (I));
          end loop;
       end case;
