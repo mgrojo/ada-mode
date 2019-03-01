@@ -784,9 +784,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
       Config     : in Configuration)
      return Boolean
    is
-      pragma Unreferenced (Config);
+      use all type SAL.Base_Peek_Type;
    begin
-      if Next_Token = Invalid_Token_ID then
+      if Config.Stack.Depth = 1 then
+         --  We want to match the following tokens, not attempt to complete the
+         --  current one (since there isn't one).
          return False;
       end if;
 

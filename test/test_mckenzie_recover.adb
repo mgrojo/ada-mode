@@ -1686,6 +1686,25 @@ package body Test_McKenzie_Recover is
          Cost                    => 4);
    end Minimal_Complete_Full_Reduce_2;
 
+   procedure Minimal_Complete_Full_Reduce_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Don't use minimal_complete with nothing on stack; match the
+      --  following tokens instead.
+
+      Parse_Text (" end loop;");
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (2, 4),
+         Ops                     => +(Insert, +LOOP_ID, 1),
+         Enqueue_Low             => 30,
+         Check_Low               => 5,
+         Cost                    => 2);
+   end Minimal_Complete_Full_Reduce_3;
+
    procedure Out_Of_Order_Ops (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1779,6 +1798,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Multiple_Complete_Reduce'Access, "Multiple_Complete_Reduce");
       Register_Routine (T, Minimal_Complete_Full_Reduce_1'Access, "Minimal_Complete_Full_Reduce_1");
       Register_Routine (T, Minimal_Complete_Full_Reduce_2'Access, "Minimal_Complete_Full_Reduce_2");
+      Register_Routine (T, Minimal_Complete_Full_Reduce_3'Access, "Minimal_Complete_Full_Reduce_3");
       Register_Routine (T, Out_Of_Order_Ops'Access, "Out_Of_Order_Ops");
    end Register_Tests;
 
