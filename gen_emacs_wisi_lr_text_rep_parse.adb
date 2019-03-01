@@ -21,8 +21,7 @@ pragma License (GPL);
 with Ada.Command_Line;
 with Ada.Directories;
 with Emacs_Wisi_Common_Parse; use Emacs_Wisi_Common_Parse;
-with WisiToken.Lexer;
-with WisiToken.Parse.LR.Parser;
+
 with WisiToken.Text_IO_Trace;
 procedure Gen_Emacs_Wisi_LR_Text_Rep_Parse
 is

@@ -57,20 +57,11 @@ run test from emacs -Q using source:
 partial parse
     c:/eurocontrol/regulation-iflight.adb
 
+    need "indent_leading_comments"; tests failing
+
     c:/Projects/org.wisitoken/Test/wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
         Use_Minimal_Complete_Actions
         insert 'use all type' failed indent
-
-    refactor _lr _lr_text_rep to avoid ediff
-        factor out common non-generic subprogram;
-
-        gen_run_wisi_lr_parse.adb
-        gen_run_wisi_lr_text_rep_parse.adb
-            run_wisi_common_parse.parse_file done
-
-        gen_emacs_wisi_lr_parse.adb
-        gen_emacs_wisi_lr_text_rep_parse.adb
-            emacs_wisi_common_parse.parse_stream done
 
     test buffer_text in test_partial_parse
 
