@@ -62,10 +62,15 @@ partial parse
     c:/Projects/org.emacs.ada-mode.stephe-2/emacs_wisi_common_parse.adb
 
     refactor _lr _lr_text_rep to avoid ediff
-        factor out common non-generic subprogram; emacs_wisi_common_parse.parse_file, parse_stream
+        factor out common non-generic subprogram;
+
+        gen_run_wisi_lr_parse.adb
+        gen_run_wisi_lr_text_rep_parse.adb
+            run_wisi_common_parse.parse_file done
 
         gen_emacs_wisi_lr_parse.adb
         gen_emacs_wisi_lr_text_rep_parse.adb
+            emacs_wisi_common_parse.parse_stream done
 
     test buffer_text in test_partial_parse
 

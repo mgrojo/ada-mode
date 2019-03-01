@@ -47,4 +47,9 @@ package Run_Wisi_Common_Parse is
    --
    --  Handles --help by outputing help, raising Finish.
 
+   procedure Parse_File
+     (Parser     : in out WisiToken.Parse.LR.Parser.Parser;
+      Parse_Data : in out Wisi.Parse_Data_Type'Class;
+      Descriptor : in     WisiToken.Descriptor);
+
 end Run_Wisi_Common_Parse;

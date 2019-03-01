@@ -5,9 +5,6 @@
 
 -- It does pass the reindent and diff test; all insertions are deleted.
 
--- Since we are editing, the syntax will be illegal at times; don't fail for that.
---EMACSCMD:(setq wisi-debug 0)
-
 procedure Ada_Mode.Interactive_1
 is
    -- For 'indent-line', do insert spaces on an empty line
@@ -83,9 +80,9 @@ is
    end Func_1;
 
    -- Properly highlight keyword next to type identifier when insert/delete separating space
-   --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1)(font-lock-ensure))
+   --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1))
    --EMACSCMD:(test-face "accessString" 'font-lock-type-face)
-   --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " ")(font-lock-ensure))
+   --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " "))
    --EMACSCMD:(test-face "access" 'font-lock-keyword-face)
    --EMACSCMD:(test-face "String" 'font-lock-type-face)
    Obj_1 : access String;
