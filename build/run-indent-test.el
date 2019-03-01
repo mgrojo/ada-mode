@@ -13,9 +13,9 @@
 
 (defun test-face (token face)
   "Test if all of TOKEN in next code line has FACE.
-FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
+FACE may be a list."
   (save-excursion
-    (wisi-validate-cache (line-beginning-position 0) (line-end-position 3) nil 'face)
+    (wisi-validate-cache (line-beginning-position 0) (line-end-position 5) nil 'face)
     (when (test-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))

@@ -61,17 +61,16 @@ is
    --EMACSCMD:(progn (forward-line -4) (current-indentation))
    --EMACSRESULT: 3
 
-   --EMACSCMD:(progn (forward-line 2) (forward-sexp 1)(looking-at "-- target 2"))
+   --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-sexp 3)(looking-at "; -- target 2"))
    --EMACSRESULT: t
    procedure Forward
    is begin
       null;
    end Forward; -- target 2
 
-   -- wisi-cache-exand-region can't find the matching "procedure", so it
-   -- just finds the "begin".
-   --
-   --EMACSCMD:(progn (forward-line 5)(goto-char (line-end-position)) (backward-sexp 3)(looking-at "begin -- target 3"))
+   --EMACSCMD:(progn (forward-line 7)(goto-char (line-end-position))(backward-sexp 2)(looking-at "begin -- target 3"))
+   --EMACSRESULT: t
+   --EMACSCMD:(progn (forward-line 3)(forward-word 2)(backward-sexp 3)(looking-at "procedure Backward"))
    --EMACSRESULT: t
    procedure Backward
    is begin -- target 3
