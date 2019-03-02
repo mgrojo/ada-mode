@@ -54,79 +54,8 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-partial parse
-    c:/eurocontrol/regulation-iflight.adb
-
-    need "indent_leading_comments"; tests failing
-
-    c:/Projects/org.wisitoken/Test/wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
-        Use_Minimal_Complete_Actions
-        insert 'use all type' failed indent
-
-    test buffer_text in test_partial_parse
-
-    review fixmes
-
-    don't set margin error marks for errors from partial parse
-
-    expand-region check nav cache
-
-    in package spec private part, all indent is wrong
-        wisitoken-text_io_trace.ads indent 'type trace'
-        search for 'private'; if found, find preceding 'package' with same indent.
-
-    stack has compilation_unit_list, next input is "end if;"
-        only insert tokens whose minimal complete includes 'end'
-            requires another precomputed list; w.stephe-1
-            one for each possible token
-            current list is for wisi_eof
-
-
-test/lalr_parse_fail.adb
-    lalr parse raises constraint_error in main parser
-    lr1 no error.
-    parser 0: aspect_clause
-    parser 1: iteration_scheme
-    both merged into state 6 in lalr, but iteration_sheme has no lookaheads!
-    bug in lalr generator
-
-wisi-reset-parser also remove fringe marks
-
-ada-align groups preceding comment lines with declarations
-
-run_ada_lr1_parse.exe hangs in free string if input file not found
-
-recover bug:
-       procedure Tree (Parser : in Base_Parser) return Syntax_Trees.Tree;
-
-package for Ludovic: elpa/archive/packages *.tar, archive-contents
-
-optimize Grow of SAL.Gen_Unbounded_Definite_Vectors?
-    run-time parameter and/or generic parameter giving initial size
-    output max size, accumulate in Emacs session
-
-    go thru all uses
-        wisitoken.syntax_tree.s.node_arrays
-
-    similar for parse_stack?
-
 doc wisi-disable-face
     alternative to jit-defer-time
-
-enforce unix line endings
-    run dos2unix in a mtn pre-commit hook?
-
-time lex with no lex debug
-
-optimize begin in wisi-goto-*
-
-rename parser actions to "parse", "post-parse"
-
-show ada subprogram params as in elisp
-
-ada.wy
-    result_profile should not use name_opt, because it should not call wisi-propagate-name
-        on the other hand, it doesn't really hurt
 
 add error recovery strategy counts to recover.log
     also enough source text to reconstruct fail; +- 10 lines/200 chars?
@@ -231,6 +160,48 @@ Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAG
 Action, expecting: BEGIN, ENTRY, FOR, FUNCTION, GENERIC, NOT, OVERRIDING, PACKAGE, PRAGMA, PROCEDURE, PROTECTED, SUBTYPE, TASK, TYPE, USE, IDENTIFIER, found 20655:(Wisi_EOI, (170222 . 170221))
      error due to some previous bad recovery
      956: succeed 1, enqueue 126, check  23, cost:  1
+
+test/lalr_parse_fail.adb
+    lalr parse raises constraint_error in main parser
+    lr1 no error.
+    parser 0: aspect_clause
+    parser 1: iteration_scheme
+    both merged into state 6 in lalr, but iteration_sheme has no lookaheads!
+    bug in lalr generator
+
+ada-align groups preceding comment lines with declarations
+
+run_ada_lr1_parse.exe hangs in free string if input file not found
+
+package for Ludovic: elpa/archive/packages *.tar, archive-contents
+
+stack has compilation_unit_list, next input is "end if;"
+    only insert tokens whose minimal complete includes 'end if ;'
+        requires another precomputed list; w.stephe-1
+        one for each possible token sequence; just to "end ;", "end * ;"?
+        current list is for wisi_eof
+
+optimize Grow of SAL.Gen_Unbounded_Definite_Vectors?
+    run-time parameter and/or generic parameter giving initial size
+    output max size, accumulate in Emacs session
+
+    go thru all uses
+        wisitoken.syntax_tree.s.node_arrays
+
+    similar for parse_stack?
+
+enforce unix line endings
+    run dos2unix in a mtn pre-commit hook?
+
+time lex with no lex debug
+
+rename parser actions to "parse", "post-parse"
+
+show ada subprogram params as in elisp
+
+ada.wy
+    result_profile should not use name_opt, because it should not call wisi-propagate-name
+        on the other hand, it doesn't really hurt
 
 
 wisi-process-time-out is local to *-parse* buffer; setting from .adb has no effect
