@@ -271,12 +271,13 @@ complete."
   ;; see ‘wisi-process-parse--execute’
   (let ((pos (aref (wisi-process--parser-line-begin parser) (1- (aref sexp 1)))))
     (with-silent-modifications
-      (put-text-property
-       (1- pos)
-       pos
-       'wisi-indent
-       (aref sexp 2)))
-    ))
+      (when (< (point-min) pos)
+	(put-text-property
+	 (1- pos)
+	 pos
+	 'wisi-indent
+	 (aref sexp 2)))
+      )))
 
 (defun wisi-process-parse--Lexer_Error (parser sexp)
   ;; sexp is [Lexer_Error char-position <message> <repair-char>]

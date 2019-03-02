@@ -1118,17 +1118,17 @@ for parse errors. BEGIN, END is the parsed region."
     (when (and (wisi--partial-parse-p begin end)
 	       (< 0 (length (wisi-parser-parse-errors wisi--parser))))
       (dolist (err (wisi-parser-parse-errors wisi--parser))
-	(when (> (point) (wisi--parse-error-pos err))
-	  (dolist (repair (wisi--parse-error-repair err))
-	    (when (> (point) (wisi--parse-error-repair-pos repair))
-	      (setq indent (wisi-parse-adjust-indent wisi--parser indent repair)))
-	    ))))
+	(dolist (repair (wisi--parse-error-repair err))
+	  ;; point is at bol; error may be on same line at first token.
+	  (when (>= (line-number-at-pos (point)) (line-number-at-pos (wisi--parse-error-repair-pos repair)))
+	    (setq indent (wisi-parse-adjust-indent wisi--parser indent repair)))
+	  )))
     indent))
 
 (defun wisi-indent-region (begin end &optional indent-blank-lines)
   "For `indent-region-function', using the wisi indentation engine.
 If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
-’indent-line-function’)."
+`indent-line-function')."
   (when (< 0 wisi-debug)
     (message "wisi-indent-region %d %d"
 	     (wisi-safe-marker-pos begin)
