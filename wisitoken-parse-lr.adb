@@ -61,16 +61,17 @@ package body WisiToken.Parse.LR is
    begin
       case Item.Verb is
       when Shift =>
-         Trace.Put ("shift and goto state" & State_Index'Image (Item.State));
+         Trace.Put ("shift and goto state" & State_Index'Image (Item.State), Prefix => False);
 
       when Reduce =>
          Trace.Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Item.Production.LHS, Trace.Descriptor.all));
+              Image (Item.Production.LHS, Trace.Descriptor.all),
+            Prefix => False);
       when Accept_It =>
-         Trace.Put ("accept it");
+         Trace.Put ("accept it", Prefix => False);
       when Error =>
-         Trace.Put ("ERROR");
+         Trace.Put ("ERROR", Prefix => False);
       end case;
    end Put;
 

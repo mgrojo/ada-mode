@@ -9,7 +9,7 @@
 --
 --  See wisitoken.ads
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 - 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This file is part of the WisiToken package.
 --
@@ -79,7 +79,7 @@ package WisiToken.Parse.LR is
    --  Ada aggregate syntax, leaving out Action, Check in reduce; for debug output
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
-   --  Put a line for Item in parse trace format.
+   --  Put a line for Item in parse trace format, with no prefix.
 
    function Equal (Left, Right : in Parse_Action_Rec) return Boolean;
    --  Ignore Action, Check.

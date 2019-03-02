@@ -27,7 +27,7 @@ package WisiToken.Text_IO_Trace is
    procedure Set_Prefix (Trace : in out Text_IO_Trace.Trace; Prefix : in String);
 
    overriding
-   procedure Put (Trace : in out Text_IO_Trace.Trace; Item : in String);
+   procedure Put (Trace : in out Text_IO_Trace.Trace; Item : in String; Prefix : in Boolean := True);
 
    overriding
    procedure Put_Line (Trace : in out Text_IO_Trace.Trace; Item : in String);

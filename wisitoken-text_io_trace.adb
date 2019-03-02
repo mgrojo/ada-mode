@@ -27,14 +27,14 @@ package body WisiToken.Text_IO_Trace is
    end Set_Prefix;
 
    overriding
-   procedure Put (Trace : in out Text_IO_Trace.Trace; Item : in String)
+   procedure Put (Trace : in out Text_IO_Trace.Trace; Item : in String; Prefix : in Boolean := True)
    is
       use Ada.Text_IO;
    begin
       if Trace.File /= null and then Is_Open (Trace.File.all) then
-         Ada.Text_IO.Put (Trace.File.all, -Trace.Prefix & Item);
+         Ada.Text_IO.Put (Trace.File.all, (if Prefix then -Trace.Prefix else "") & Item);
       else
-         Ada.Text_IO.Put (Item);
+         Ada.Text_IO.Put ((if Prefix then -Trace.Prefix else "") & Item);
       end if;
    end Put;
 

@@ -408,8 +408,8 @@ package WisiToken is
    --  Prepend Prefix to all subsequent messages. Usefull for adding
    --  comment syntax.
 
-   procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
-   --  Put Item to the Trace display.
+   procedure Put (Trace : in out WisiToken.Trace; Item : in String; Prefix : in Boolean := True) is abstract;
+   --  Put Item to the Trace display. If Prefix is True, prepend the stored prefix.
 
    procedure Put_Line (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace display, followed by a newline.
