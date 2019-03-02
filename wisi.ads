@@ -530,7 +530,7 @@ private
       --  immediately following non-grammar tokens. Does not contain
       --  nonterminal or virtual tokens.
 
-      Leading_Non_Grammar : WisiToken.Base_Token_Arrays.Vector;
+      Leading_Non_Grammar : Non_Grammar_Token_Arrays.Vector;
       --  non-grammar tokens before first grammar token.
 
       Line_Begin_Pos : Line_Begin_Pos_Vectors.Vector;

@@ -365,7 +365,8 @@ Truncate any region that overlaps POS."
   (wisi-invalidate-cache 'navigate (point-min))
   (wisi-set-parse-try t 'indent)
   (wisi-set-parse-try t 'face)
-  (wisi-set-parse-try t 'navigate))
+  (wisi-set-parse-try t 'navigate)
+  (wisi-fringe-clean))
 
 ;; wisi--change-* keep track of buffer modifications.
 ;; If wisi--change-end comes before wisi--change-beg, it means there were
@@ -726,10 +727,11 @@ Usefull if the parser appears to be hung."
 	 (signal (car err) (cdr err)))
 	)
 
-      (wisi-fringe-display-errors
-       (append
-	(seq-map (lambda (err) (wisi--lexer-error-pos err)) (wisi-parser-lexer-errors wisi--parser))
-	(seq-map (lambda (err) (wisi--parse-error-pos err)) (wisi-parser-parse-errors wisi--parser))))
+      (unless partial-parse-p
+	(wisi-fringe-display-errors
+	 (append
+	  (seq-map (lambda (err) (wisi--lexer-error-pos err)) (wisi-parser-lexer-errors wisi--parser))
+	  (seq-map (lambda (err) (wisi--parse-error-pos err)) (wisi-parser-parse-errors wisi--parser)))))
 
       (when (> wisi-debug 1)
 	(if (or (wisi-parser-lexer-errors wisi--parser)

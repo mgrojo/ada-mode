@@ -903,7 +903,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
       elsif Config.Error_Token.ID = +WHEN_ID then
          declare
-            Label         : constant String := "missing 'case' ";
+            Label         : constant String := "missing  'case' ";
             New_Config    : Configuration;
             Matching_Index : SAL.Peek_Type := 1;
          begin
@@ -912,7 +912,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                --  missing 'case'
                New_Config := Config;
                New_Config.Error_Token.ID := Invalid_Token_ID;
-               Push_Back_Check (New_Config, +sequence_of_statements_opt_ID);
                Insert (New_Config, (+CASE_ID, +IS_ID));
                Local_Config_Heap.Add (New_Config);
                if Trace_McKenzie > Detail then

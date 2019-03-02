@@ -646,7 +646,7 @@ package body Wisi is
          end if;
 
          if Data.Terminals.Length = 0 then
-            Data.Leading_Non_Grammar.Append (Token);
+            Data.Leading_Non_Grammar.Append ((Token with Lexer.First));
          else
             declare
                Containing_Token : Augmented_Token renames Data.Terminals (Data.Terminals.Last_Index);
@@ -1514,8 +1514,12 @@ package body Wisi is
          end loop;
 
       when Indent =>
-         --  We don't need "Indent_Leading_Comments"; they are indented to 0,
-         --  which is the default. FIXME: no, they are not set.
+
+         for Token of Data.Leading_Non_Grammar loop
+            if Token.First then
+               Put (Token.Line, (Int, Data.Begin_Indent));
+            end if;
+         end loop;
 
          Resolve_Anchors (Data);
 

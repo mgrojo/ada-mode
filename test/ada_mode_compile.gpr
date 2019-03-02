@@ -30,6 +30,7 @@ project Ada_Mode_Compile is
       "ada_mode-opentoken.ads",
 
       -- These have syntax errors on purpose
+      "ada_mode-partial_parse.ads",
       "ada_mode-partial_parse.adb",
       "ada_mode-recover_1.adb",
       "ada_mode-recover_2.adb",

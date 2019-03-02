@@ -548,8 +548,9 @@ Also return cache at start."
 
 (defun ada-wisi-which-function (include-type)
   "For `ada-which-function'."
-  (wisi-validate-cache (line-beginning-position) (line-end-position) nil 'navigate)
-  ;; No message on parse fail, since this could be called from which-function-mode
+  ;; No message on parse fail, since this could be called from
+  ;; which-function-mode.
+  (wisi-validate-cache (point-min) (point) nil 'navigate)
   (when (wisi-cache-covers-pos 'navigate (point))
     (save-excursion
       (let ((result nil)
@@ -834,12 +835,16 @@ Point must have been set by `ada-wisi-find-begin'."
 
 (cl-defmethod wisi-parse-adjust-indent ((_parser ada-wisi-parser) indent repair)
   (cond
-   ((wisi-list-memq (wisi--parse-error-repair-inserted repair) '(LOOP BEGIN IF))
+   ((wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
     (- indent ada-indent))
+
+   ((memq 'CASE (wisi--parse-error-repair-inserted repair))
+    ;; We don't need to handle comments between 'case' and 'when'; the
+    ;; 'case' is virtual.
+    (- indent (+ ada-indent ada-indent-when)))
 
    (t indent)
    ))
-
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
 (defvar ada-process-token-table nil) ;; ada-process.el
