@@ -10,14 +10,12 @@ GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
 GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
-ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
-
 .PRECIOUS : %-elisp.el %-process.el %.ads %_packrat.re2c %.re2c %.tmp %_process.adb %_re2c.c %_packrat_re2c.c %.diff
 
 .PHONY : all force one test test-clean
 
-vpath %.adb   ../test ../test/ada-gps ../test/subdir ../test/wisi
-vpath %.ads   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.adb   ../test ../test/subdir ../test/wisi
+vpath %.ads   ../test ../test/subdir ../test/wisi
 vpath %.re2c  ../test/wisi
 vpath %.el    ../ ../test/wisi
 vpath %.gpr   ../test/gpr
@@ -149,7 +147,6 @@ exe-clean ::
 	rm -rf ../obj
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
 	rm -rf ../gpr_query-process_refresh.adb
-	rm -rf ../ada_mode_gps_indent$(EXE_EXT) ../ada_mode_gps_indent.gpr
 	rm -rf ../ada_mode_wisi_*_parse$(EXE_EXT)
 	rm -rf ../gpr_mode_wisi_parse$(EXE_EXT)
 	rm -f ../ada_mode_wisi_parse.gpr

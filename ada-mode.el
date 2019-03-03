@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2018  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -311,12 +311,6 @@ Useful for setting `ada-xref-tool' and similar vars."
 nil, only the file name."
   :type 'boolean
   :safe #'booleanp)
-
-(defcustom ada-gps-indent-exec "ada_mode_gps_indent"
-  ;; declared here, not in ada-gps.el, for auto-detection of indent engine below
-  "Name of executable to use for ada_mode_gps_indent,"
-  :type 'string
-  :group 'ada-indentation)
 
 (defcustom ada-process-parse-exec "ada_mode_wisi_lr1_parse.exe"
   ;; We use .exe even on Linux to simplify the Makefile
@@ -3045,12 +3039,10 @@ process : wisi elisp lexer, external process parser specified
   by ‘ada-process-parse-exec ’.
 ")
 
-(defvar ada-fallback nil
+(defvar ada-fallback 'simple
   "Indicate fallback indentation engine for Ada buffers.
 
-simple: indent to previous line.
-
-gps: gps external parser.")
+simple: indent to previous line.")
 
 (provide 'ada-mode)
 
@@ -3063,10 +3055,6 @@ gps: gps external parser.")
 (cl-case ada-fallback
   (simple
    (require 'ada-wisi))
-  (t
-   (if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
-       (require 'ada-gps)
-     (require 'ada-wisi)))
   )
 
 (cl-case ada-parser

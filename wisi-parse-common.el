@@ -66,8 +66,9 @@ contains END, and ends at a point the parser can handle
 gracefully."
   (cons begin end))
 
-(cl-defgeneric wisi-parse-adjust-indent ((parser wisi-parser) indent repair)
-  "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent.")
+(cl-defgeneric wisi-parse-adjust-indent ((parser wisi-parser) indent _repair)
+  "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent."
+  indent)
 
 (cl-defgeneric wisi-parse-current ((parser wisi-parser) begin send-end parse-end)
   "Parse current buffer starting at BEGIN, continuing at least thru PARSE-END.

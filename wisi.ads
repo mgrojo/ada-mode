@@ -79,6 +79,12 @@ package Wisi is
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
+   procedure Update_First
+     (Data   : in out Parse_Data_Type;
+      Errors : in     WisiToken.Parse.LR.Parse_Error_Lists.List);
+   --  If any error correction has deleted at token with First set, set
+   --  fields on the next token so indent is computed for the line.
+
    type Navigate_Class_Type is (Motion, Name, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
 

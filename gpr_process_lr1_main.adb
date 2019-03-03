@@ -431,7 +431,7 @@ package body Gpr_Process_LR1_Main is
             Add_Goto (Table.States (54), 56, 73);
             Set_Minimal_Action (Table.States (54).Minimal_Complete_Actions, (1 => (Reduce, 56, 0)));
             Table.States (55).Productions := WisiToken.To_Vector ((1 => (46, 0)));
-            Add_Action (Table.States (55), (1 =>  37), (46, 0), 3, null, null);
+            Add_Action (Table.States (55), (1 =>  37), (46, 0), 3, compilation_unit_0'Access, null);
             Set_Minimal_Action (Table.States (55).Minimal_Complete_Actions, (1 => (Reduce, 46, 3)));
             Table.States (56).Productions := WisiToken.To_Vector ((1 => (62, 2)));
             Add_Action (Table.States (56), (1 =>  37), (62, 2), 1, null, null);

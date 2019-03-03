@@ -86,17 +86,19 @@ begin
 
    -- interactive edit of structures that change indent
 
-   --EMACSCMD:(progn (end-of-line 3)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
    --EMACSRESULT: 6
    begin
+
       A;
    end;
 
    case Data.Post_Parse_Action is
       --  Parse region starts after 'end;'
-      --EMACSCMD:(progn (end-of-line 3)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+      --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
       --EMACSRESULT: 9
       when Navigate =>
+
          loop
             Put (Cache);
          end loop;
@@ -104,15 +106,17 @@ begin
          -- Parse region starts after 'end loop;'
          -- indent leading comment
          --EMACSCMD:(progn (forward-line -1)(delete-char 2)(indent-for-tab-command)(back-to-indentation)(current-column))
-         --EMACSRESULT: 6
+         --EMACSRESULT: 9
 
-         --EMACSCMD:(progn (end-of-line 3)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+         --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
          --EMACSRESULT: 9
       when Face =>
-         --EMACSCMD:(progn (end-of-line 4)(ada-indent-newline-indent)(back-to-indentation)(current-column))
-         --EMACSRESULT: 9
+
+         --EMACSCMD:(progn (end-of-line 4)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+         --EMACSRESULT: 12
          Resolve_Anchors
            (Data       => User_Data,
+
             Descriptor => User_Descriptor);
    end case;
 

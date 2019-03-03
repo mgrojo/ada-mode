@@ -51,10 +51,6 @@ update-install : docs
 
 install : install_gpr_query
 install : install_ada_executables
-ifeq ($(GNAT_VERSION),GPL_2016)
-# GPS source code copied from GPS GPL 2016; not compatible with gnatcoll GPL 2017
-install : install_ada_mode_gps_indent
-endif
 
 # *-elisp.el are in monotone, so this is all we need after a monotone
 # update. Doing byte-compile-clean first avoids errors caused by
@@ -74,9 +70,6 @@ test : ada_unit_tests
 test : test-ada-elisp-gpr_query.stamp
 test : test-ada-lalr-process-gpr_query.stamp
 #test : test-ada-packrat-process-gpr_query.stamp
-ifeq ($(GNAT_VERSION),GPL_2016)
-test : test-ada-gps.stamp
-endif
 test : gpr-skel.gpr.diff
 test : test-gpr-elisp.stamp
 test : test-gpr-lalr-process.stamp
@@ -109,8 +102,9 @@ one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
-two : RUN_ARGS ?= ../test/ada_mode-partial_parse.adb Face 1 873 1 1
-#two : RUN_ARGS ?= --repeat_count 5
+# partial indent args: begin-byte send-end parse-end begin-char begin-line end-line begin-indent
+two : RUN_ARGS ?= ../gen_emacs_wisi_lr_parse.adb Face 1481 2415 2365 1481 41 66 3 --verbosity 1 1 0
+RUN_ARGS ?= c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
 two : build_ada_executables
 	../run_ada_lalr_parse.exe $(RUN_ARGS)
 
@@ -121,8 +115,8 @@ two_mem : build_ada_executables
 
 two_pro : export Standard_Common_Profile := On
 two_pro : build_ada_executables
-	../exec_pro/run_ada_parse.exe ../test/ada_mode-recover_bad_char.adb Indent --repeat_count 5
-	gprof ../exec_pro/run_ada_parse.exe > ada_mode-recover_bad_char.profile
+	../exec_pro/run_ada_lr1_parse.exe c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
+	gprof ../exec_pro/run_ada_lr1_parse.exe > query_display-flight_operations.profile
 
 # WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -184,17 +178,6 @@ test-ada-packrat-process-gpr_query.stamp : force
 	echo "test-ada-packrat-process-gpr_query" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
-# ada-gps specific tests
-test-ada-gps : RUNTEST := run-indent-test-gps.el
-test-ada-gps : $(addsuffix .diff, $(ADA_GPS_TEST_FILES))
-
-test-ada-gps.stamp : force
-	rm -f *.diff *.tmp
-	$(MAKE) test-ada-gps
-	touch $@
-	echo "test-ada-gps" >> test.log
-	find . -name "*.diff" -not -size 0 >> test.log
-
 test-gpr-elisp : RUNTEST := run-indent-test-elisp-gpr_query.el
 test-gpr-elisp : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
@@ -213,17 +196,6 @@ test-gpr-lalr-process.stamp : force
 	$(MAKE) test-gpr-lalr-process
 	touch $@
 	echo "test-gpr-lalr-process" >> test.log
-	find . -name "*.diff" -not -size 0 >> test.log
-
-# compare gps indent to ada-wisi indent
-compare-ada-gps : RUNTEST := run-indent-test-gps.el
-compare-ada-gps : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
-
-compare-ada-gps.stamp : force
-	rm -f *.diff *.tmp
-	$(MAKE) test-ada-gps
-	touch $@
-	echo "compare-ada-gps" >> test.log
 	find . -name "*.diff" -not -size 0 >> test.log
 
 BRANCH := $(notdir $(shell cd ..; pwd))
@@ -285,8 +257,6 @@ pub-ada : force
 	cp ../*.c $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	cp ../config.pragmas $(ELPA_ROOT)/packages/ada-mode
-	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
-	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
@@ -371,7 +341,7 @@ install-elpa :
 install-elpa-review :
 	emacs -Q --eval '(load-file "install-elpa.el")'
 
-## build gpr_query, ada_mode_gps_indent
+## build gpr_query
 
 ifeq ($(shell uname),Linux)
 EXE_EXT :=
@@ -398,7 +368,6 @@ endif
 # for debugging:
 #export Gnatcoll_Build := Debug
 # export Gpr_Query_Build := Debug
-#export Ada_Mode_GPS_Indent_Build := Debug
 #export BUILD := Debug
 
 # In December 2016, GNATCOLL changed its Xref interface. First, the
@@ -418,30 +387,17 @@ include Makefile.conf
 ../gpr_query.gpr : ../gpr_query.gpr.gp
 	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
 
-../ada_mode_gps_indent.gpr : ../ada_mode_gps_indent.gpr.gp
-	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
-
 ../ada_mode_wisi_parse.gpr : ../ada_mode_wisi_parse.gpr.gp
 	gnatprep -DHAVE_LIBADALANG=$(HAVE_LIBADALANG) $< $@
 
 gpr_query$(EXE_EXT) : gpr_query-process_refresh.adb ../gpr_query.gpr force
 	gprbuild -p ../gpr_query.gpr
 
-# (setq ada-gps-exec (concat default-directory "ada_mode_gps_indent"))
-ada_mode_gps_indent$(EXE_EXT) : ../ada_mode_gps_indent.gpr force
-	gprbuild -p ../ada_mode_gps_indent.gpr
-
-debug_gps_indent$(EXE_EXT) : force
-	gprbuild -p ../ada_mode_gps_indent.gpr debug_gps_indent
-
 trace :
 	addr2line -e ../exec_pro/run_ada_parser.exe 0x79c027 0x7715ff3f 0x7715ff11 0x7716068d 0x758a42 0x402903 0x7afce0 0x4013db 0x74927c02 0x7717ad2d 0x7717acf8
 
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
-
-$(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
-	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
 build_ada_executables : ../ada_mode_wisi_parse.gpr ../gpr_re2c.c ../ada_re2c.c force
 	gprbuild -p ../ada_mode_wisi_parse.gpr

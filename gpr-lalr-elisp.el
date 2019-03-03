@@ -112,7 +112,8 @@
        ((case_item ))
        ((case_items case_item )))
       (compilation_unit
-       ((context_clause_opt project_qualifier_opt project_declaration_opt )))
+       ((context_clause_opt project_qualifier_opt project_declaration_opt )
+        (wisi-indent-action [0 0 0])))
       (context_clause
        ((with_clause ))
        ((context_clause with_clause )))

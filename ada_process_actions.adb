@@ -718,6 +718,62 @@ package body Ada_Process_Actions is
       end case;
    end case_statement_alternative_0;
 
+   procedure compilation_unit_2
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         0)))));
+      end case;
+   end compilation_unit_2;
+
+   procedure compilation_unit_list_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 0)),
+         (Simple, (Int, 0)))));
+      end case;
+   end compilation_unit_list_0;
+
+   procedure compilation_unit_list_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (1 => (True, (Simple, (Int, 0)), (Simple, (Int, 0)))));
+      end case;
+   end compilation_unit_list_1;
+
    function compilation_unit_list_1_check
     (Lexer          : access constant WisiToken.Lexer.Instance'Class;
      Nonterm        : in out WisiToken.Recover_Token;

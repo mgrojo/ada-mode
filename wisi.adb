@@ -820,6 +820,36 @@ package body Wisi is
       end loop;
    end Reduce;
 
+   procedure Update_First
+     (Data   : in out Parse_Data_Type;
+      Errors : in     WisiToken.Parse.LR.Parse_Error_Lists.List)
+   is
+      use all type WisiToken.Parse.LR.Config_Op_Label;
+   begin
+      for Error of Errors loop
+         for Op of Error.Recover.Ops loop
+            case Op.Op is
+            when Delete =>
+               if Data.Terminals (Op.Token_Index).First and
+                 (Op.Token_Index < Data.Terminals.Last_Index and then
+                    (not Data.Terminals (Op.Token_Index + 1).First))
+               then
+                  declare
+                     Deleted_Term : Augmented_Token renames Data.Terminals (Op.Token_Index);
+                     Term : Augmented_Token renames Data.Terminals (Op.Token_Index + 1);
+                  begin
+                     Term.First             := True;
+                     Term.First_Indent_Line := Deleted_Term.First_Indent_Line;
+                     Term.Last_Indent_Line  := Deleted_Term.Last_Indent_Line;
+                  end;
+               end if;
+            when others =>
+               null;
+            end case;
+         end loop;
+      end loop;
+   end Update_First;
+
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
       Tree    : in     Syntax_Trees.Tree;
@@ -1339,14 +1369,14 @@ package body Wisi is
       for I in Tokens'Range loop
          if Tree.Byte_Region (Tokens (I)) /= Null_Buffer_Region then
             declare
+               use all type WisiToken.Syntax_Trees.Node_Index;
                use all type SAL.Base_Peek_Type;
-               Tree_Token : constant Syntax_Trees.Valid_Node_Index := Tokens (I);
-
-               Token             : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tree_Token);
+               Tree_Token        : constant Syntax_Trees.Valid_Node_Index := Tokens (I);
+               Token             : constant Aug_Token_Ref                 := Get_Aug_Token (Data, Tree, Tree_Token);
                Pair              : Indent_Pair renames Params (I);
                Code_Delta        : Delta_Type;
                Comment_Param     : Indent_Param;
-               Comment_Param_Set : Boolean                := False;
+               Comment_Param_Set : Boolean                                := False;
                Comment_Delta     : Delta_Type;
             begin
                if Trace_Action > Detail then
@@ -1370,9 +1400,6 @@ package body Wisi is
                      Comment_Param     := Params (I + 1).Code_Delta;
                      Comment_Param_Set := True;
 
-                  else
-                     Comment_Param     := Params (I).Code_Delta;
-                     Comment_Param_Set := True;
                   end if;
 
                   if Comment_Param_Set then
@@ -1446,10 +1473,12 @@ package body Wisi is
 
    procedure Put (Data : in out Parse_Data_Type; Parser : in Parse.Base_Parser'Class)
    is
+      use all type Ada.Containers.Count_Type;
+
+      Last_Term : constant Base_Token_Index := Parser.Tree.Max_Terminal_Index (Parser.Tree.Root);
+
       function Get_Last_Char_Pos return Buffer_Pos
-      is
-         use all type Ada.Containers.Count_Type;
-      begin
+      is begin
          if Parser.Terminals.Length = 0 then
             --  All comments, or empty
             if Data.Leading_Non_Grammar.Length > 0 then
@@ -1458,25 +1487,21 @@ package body Wisi is
                return Buffer_Pos'First;
             end if;
          else
-            declare
-               Term : constant Base_Token_Index := Parser.Tree.Max_Terminal_Index (Parser.Tree.Root);
-            begin
-               if Term = Invalid_Token_Index then
-                  --  All grammar tokens inserted by recover
-                  if Data.Leading_Non_Grammar.Length > 0 then
-                     return Data.Leading_Non_Grammar (Data.Leading_Non_Grammar.Last_Index).Char_Region.Last;
-                  else
-                     return Buffer_Pos'First;
-                  end if;
+            if Last_Term = Invalid_Token_Index then
+               --  All grammar tokens inserted by recover
+               if Data.Leading_Non_Grammar.Length > 0 then
+                  return Data.Leading_Non_Grammar (Data.Leading_Non_Grammar.Last_Index).Char_Region.Last;
                else
-                  if Data.Terminals (Term).Non_Grammar.Length > 0 then
-                     return Data.Terminals (Term).Non_Grammar
-                       (Data.Terminals (Term).Non_Grammar.Last_Index).Char_Region.Last;
-                  else
-                     return Parser.Terminals (Term).Char_Region.Last;
-                  end if;
+                  return Buffer_Pos'First;
                end if;
-            end;
+            else
+               if Data.Terminals (Last_Term).Non_Grammar.Length > 0 then
+                  return Data.Terminals (Last_Term).Non_Grammar
+                    (Data.Terminals (Last_Term).Non_Grammar.Last_Index).Char_Region.Last;
+               else
+                  return Parser.Terminals (Last_Term).Char_Region.Last;
+               end if;
+            end if;
          end if;
       end Get_Last_Char_Pos;
 
@@ -1493,14 +1518,14 @@ package body Wisi is
       end Get_Last_Line;
 
    begin
-      --  +1 to match Emacs region
-      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos + 1) & ']');
-
       if Trace_Action > Outline then
          Ada.Text_IO.Put_Line
            (";; last_char_pos:" & Buffer_Pos'Image (Last_Char_Pos + 1) &
               " last_line:" & Line_Number_Type'Image (Get_Last_Line));
       end if;
+
+      --  +1 to match Emacs region
+      Ada.Text_IO.Put_Line ('[' & End_Code & Buffer_Pos'Image (Last_Char_Pos + 1) & ']');
 
       case Data.Post_Parse_Action is
       when Navigate =>
@@ -1515,18 +1540,30 @@ package body Wisi is
 
       when Indent =>
 
+         Resolve_Anchors (Data);
+
          for Token of Data.Leading_Non_Grammar loop
             if Token.First then
                Put (Token.Line, (Int, Data.Begin_Indent));
             end if;
          end loop;
 
-         Resolve_Anchors (Data);
-
          --  It may be that not all lines in Data.Indents were parsed.
          for I in Data.Indents.First_Index .. Get_Last_Line loop
             Put (I, Data.Indents (I));
          end loop;
+
+         --  Trailing comments
+         if Last_Term /= Invalid_Token_Index and then
+           Data.Terminals (Last_Term).Non_Grammar.Length > 0
+         then
+            for Token of Data.Terminals (Last_Term).Non_Grammar loop
+               if Token.First then
+                  Put (Token.Line, (Int, Data.Begin_Indent));
+               end if;
+            end loop;
+         end if;
+
       end case;
    end Put;
 
@@ -1933,7 +1970,7 @@ package body Wisi is
                use all type Ada.Text_IO.Count;
                Indent : Boolean := True;
             begin
-               if Data.Line_Begin_Token.all (Line) /= Augmented_Token_Arrays.No_Index then
+               if Data.Line_Begin_Token.all (Line - 1) /= Augmented_Token_Arrays.No_Index then
                   for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line - 1)).Non_Grammar loop
                      if Tok.Line = Line and then
                        Tok.ID = Data.Descriptor.Comment_ID and then
@@ -1947,6 +1984,8 @@ package body Wisi is
 
                if Indent then
                   Indent_Line (Data, Line, Delta_Indent);
+               else
+                  Indent_Line (Data, Line, Null_Delta);
                end if;
             end;
          else

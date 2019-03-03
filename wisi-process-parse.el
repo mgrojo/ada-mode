@@ -714,9 +714,11 @@ Also add it to the kill ring."
   (interactive)
   (let* ((begin (region-beginning))
 	 (end   (region-end))
+	 (parse-action (wisi-read-parse-action))
 	 (msg
-	  (format "%s %d %d %d %d %d %d %d"
+	  (format "%s %s %d %d %d %d %d %d %d"
 		  (file-name-nondirectory (buffer-file-name))
+		  parse-action
 		  (position-bytes begin)
 		  (position-bytes end)
 		  (position-bytes end)

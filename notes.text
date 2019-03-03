@@ -54,9 +54,6 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-doc wisi-disable-face
-    alternative to jit-defer-time
-
 add error recovery strategy counts to recover.log
     also enough source text to reconstruct fail; +- 10 lines/200 chars?
 
@@ -410,9 +407,6 @@ time with w32-pipe-read-delay 0
 
 add missing features to gpr_query; see fixmes.
     option to run in background, from Makefiles
-
-ada-gps-size-threshold not safe local variable
-    use in some tests
 
 Contact ada cubesat lab, see if they will beta test indentation engine.
 
@@ -903,11 +897,6 @@ plain parse, no actions:
             (wisi-time #'wisi-process-send-tokens-noop 1)
             1.559691 seconds 2 gcs
 
-        just send full buffer text to subprocess
-            (require 'ada-gps)
-            (wisi-time #'ada-gps-noop-send 1)
-            1.054854 seconds 0 gcs
-
     16 Dec 2017:
         process parser: re2c lexer, name in base_token, block_label_opt in block, loop
         ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
@@ -962,9 +951,6 @@ history
  indent issues
 http://langserver.org/
     open protocol for IDE/compiler communication
-
-ada_mode_gps_indent bug #12: comment align with hanging code.
-    bug in GPS
 
 ada-indent-hanging-rel-exp
     see FIXME: in ada-wisi.el
@@ -1442,7 +1428,8 @@ bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         bump third digit for bug fixes, minor features
         bump second digit for major features
-            - GPS indentation engine
+            - GPS indentation engine add/delete
+            - partial parse
         bump first digit for really major or user-incompatible changes
             - 5 use parser
             - 6 compute indentation in grammar actions, external parser with error correction

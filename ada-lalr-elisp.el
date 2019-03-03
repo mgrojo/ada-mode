@@ -346,12 +346,15 @@
       (compilation_unit
        ((with_clause ))
        ((subunit ))
-       ((PRIVATE declaration ))
+       ((PRIVATE declaration )
+        (wisi-indent-action [0 0]))
        ((declaration ))
        ((statement )))
       (compilation_unit_list
-       ((compilation_unit_list compilation_unit ))
-       ((compilation_unit )))
+       ((compilation_unit_list compilation_unit )
+        (wisi-indent-action [0 [0 0]]))
+       ((compilation_unit )
+        (wisi-indent-action [[0 0]])))
       (component_clause
        ((IDENTIFIER AT simple_expression RANGE simple_expression DOT_DOT simple_expression SEMICOLON )
         (progn

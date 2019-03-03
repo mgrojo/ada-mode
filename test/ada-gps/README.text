@@ -1,5 +1,0 @@
-Tests for bugs reported against ada-gps, when it is the primary indentation engine.
-
-Use ../build/wisi/Makefile test-ada-gps to run these tests.
-
-None of these files compile; they are missing definitions.

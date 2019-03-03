@@ -766,8 +766,8 @@ package body Ada_Process_LALR_Main is
             Set_Minimal_Action (Table.States (47).Minimal_Complete_Actions, (1 => (Reduce, 151, 1)));
             Table.States (48).Productions := WisiToken.To_Vector ((1 => (143, 1)));
             Add_Action (Table.States (48), (4, 5, 13, 15, 17, 18, 25, 27, 28, 29, 30, 31, 32, 36, 37, 40, 41, 46, 47,
-            48, 49, 50, 51, 52, 57, 58, 60, 61, 63, 66, 69, 71, 73, 74, 93, 104, 105, 106, 107), (143, 1), 1, null,
-            compilation_unit_list_1_check'Access);
+            48, 49, 50, 51, 52, 57, 58, 60, 61, 63, 66, 69, 71, 73, 74, 93, 104, 105, 106, 107), (143, 1), 1,
+            compilation_unit_list_1'Access, compilation_unit_list_1_check'Access);
             Set_Minimal_Action (Table.States (48).Minimal_Complete_Actions, (1 => (Reduce, 143, 1)));
             Table.States (49).Productions := WisiToken.To_Vector (((108, 0), (143, 0)));
             Add_Action (Table.States (49), 4, 1);
@@ -2051,8 +2051,8 @@ package body Ada_Process_LALR_Main is
             Set_Minimal_Action (Table.States (185).Minimal_Complete_Actions, ((Shift, 81, 343), (Reduce, 219, 1)));
             Table.States (186).Productions := WisiToken.To_Vector ((1 => (142, 2)));
             Add_Action (Table.States (186), (4, 5, 13, 15, 17, 18, 25, 27, 28, 29, 30, 31, 32, 36, 37, 40, 41, 46, 47,
-            48, 49, 50, 51, 52, 57, 58, 60, 61, 63, 66, 69, 71, 73, 74, 93, 104, 105, 106, 107), (142, 2), 2, null,
-            null);
+            48, 49, 50, 51, 52, 57, 58, 60, 61, 63, 66, 69, 71, 73, 74, 93, 104, 105, 106, 107), (142, 2), 2,
+            compilation_unit_2'Access, null);
             Set_Minimal_Action (Table.States (186).Minimal_Complete_Actions, (1 => (Reduce, 142, 2)));
             Table.States (187).Productions := WisiToken.To_Vector (((128, 0), (239, 0), (239, 1), (262, 0), (272, 0),
             (293, 0), (293, 1), (293, 2), (293, 3)));
@@ -2770,8 +2770,8 @@ package body Ada_Process_LALR_Main is
             Set_Minimal_Action (Table.States (228).Minimal_Complete_Actions, (1 => (Shift, 37, 397)));
             Table.States (229).Productions := WisiToken.To_Vector ((1 => (143, 0)));
             Add_Action (Table.States (229), (4, 5, 13, 15, 17, 18, 25, 27, 28, 29, 30, 31, 32, 36, 37, 40, 41, 46, 47,
-            48, 49, 50, 51, 52, 57, 58, 60, 61, 63, 66, 69, 71, 73, 74, 93, 104, 105, 106, 107), (143, 0), 2, null,
-            null);
+            48, 49, 50, 51, 52, 57, 58, 60, 61, 63, 66, 69, 71, 73, 74, 93, 104, 105, 106, 107), (143, 0), 2,
+            compilation_unit_list_0'Access, null);
             Set_Minimal_Action (Table.States (229).Minimal_Complete_Actions, (1 => (Reduce, 143, 2)));
             Table.States (230).Productions := WisiToken.To_Vector (((251, 0), (251, 1)));
             Add_Action (Table.States (230), 104, 119);

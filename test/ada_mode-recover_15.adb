@@ -40,8 +40,8 @@ package body Wisitoken.Lr.Parser is
                end if;
             end if;
 
-         end if; --  recover changes this to 'end loop', deletes next line
-      end loop;
+         end if; --  recover deletes 'if ; end'
+         end loop;
       end loop Main_Loop;
 
    end Parse;

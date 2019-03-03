@@ -1158,13 +1158,13 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	(unless (get-text-property (1- (point)) 'wisi-indent)
 	  (setq parse-required t))
 	(forward-line))
-      )
 
-    ;; Parse from line before BEGIN to line beyond END, to ensure
-    ;; computing an indent for the lines containing BEGIN and END.
-    ;; Set these here for wisi--get-cached-indent below.
-    (setq parse-begin (progn (goto-char begin) (line-beginning-position 0)))
-    (setq parse-end   (progn (goto-char end) (line-end-position 2)))
+      ;; Parse from line before BEGIN to line beyond END, to ensure
+      ;; computing an indent for the lines containing BEGIN and END.
+      ;; Set these here for wisi--get-cached-indent below.
+      (setq parse-begin (progn (goto-char begin) (line-beginning-position 0)))
+      (setq parse-end   (progn (goto-char end) (line-end-position 2)))
+      )
 
     ;; A parse either succeeds and sets the indent cache on all
     ;; lines in the parsed region, or fails and leaves valid caches
@@ -1337,11 +1337,14 @@ If non-nil, only repair errors in BEG END region."
   (define-key global-map "\M-j" 'wisi-show-cache)
   )
 
+(defun wisi-read-parse-action ()
+  "Read a parse action symbol from the minibuffer."
+  (intern-soft (completing-read "parse action (indent): " '(face navigate indent) nil t nil nil 'indent)))
+
 (defun wisi-parse-buffer (&optional parse-action begin end)
   (interactive)
   (unless parse-action
-    (setq parse-action
-	  (intern-soft (completing-read "parse action (indent): " '(face navigate indent) nil t nil nil 'indent))))
+    (setq parse-action (wisi-read-parse-action)))
   (if (use-region-p)
       (progn
 	(setq begin (region-beginning))

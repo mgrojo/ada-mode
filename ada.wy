@@ -695,14 +695,17 @@ compilation_unit
   : with_clause
   | subunit
   | PRIVATE declaration
+    %((wisi-indent-action [0 0]))%
   | declaration
   | statement
   ;
 
+;; Compute indent for trailing comments.
 compilation_unit_list
   : compilation_unit_list compilation_unit
+    %((wisi-indent-action [0 [0 0]]))%
   | compilation_unit
-    %( )%
+    %((wisi-indent-action [[0 0]]))%
     %((wisi-terminate-partial-parse))%
   ;
 

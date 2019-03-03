@@ -199,12 +199,12 @@ package body Ada_Process_LR1_Main is
             Set_Production (Prods (142), 142, 4);
             Set_RHS (Prods (142), 0, (1 => 332), null, null);
             Set_RHS (Prods (142), 1, (1 => 315), null, null);
-            Set_RHS (Prods (142), 2, (49, 157), null, null);
+            Set_RHS (Prods (142), 2, (49, 157), compilation_unit_2'Access, null);
             Set_RHS (Prods (142), 3, (1 => 157), null, null);
             Set_RHS (Prods (142), 4, (1 => 306), null, null);
             Set_Production (Prods (143), 143, 1);
-            Set_RHS (Prods (143), 0, (143, 142), null, null);
-            Set_RHS (Prods (143), 1, (1 => 142), null, compilation_unit_list_1_check'Access);
+            Set_RHS (Prods (143), 0, (143, 142), compilation_unit_list_0'Access, null);
+            Set_RHS (Prods (143), 1, (1 => 142), compilation_unit_list_1'Access, compilation_unit_list_1_check'Access);
             Set_Production (Prods (144), 144, 0);
             Set_RHS (Prods (144), 0, (104, 12, 301, 53, 301, 85, 301, 96), component_clause_0'Access, null);
             Set_Production (Prods (145), 145, 1);

@@ -23,10 +23,6 @@ export GPR_PROJECT_PATH="../wisi-2.0.1"
 gprbuild -p -P gpr_query.gpr
 gprinstall -f -p -P gpr_query.gpr --install-name=gpr_query
 
-gnatprep -DHAVE_GNATCOLL_XREF=$HAVE_GNATCOLL_XREF ada_mode_gps_indent.gpr.gp ada_mode_gps_indent.gpr
-gprbuild -p -P ada_mode_gps_indent.gpr
-gprinstall -f -p -P ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
-
 gprbuild -p -P ada_mode_wisi_parse.gpr
 gzip -d -q ada_lr1_parse_table.txt.gz
 gprinstall -f -p -P ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
