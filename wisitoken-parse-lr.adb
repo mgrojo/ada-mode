@@ -856,6 +856,18 @@ package body WisiToken.Parse.LR is
       Item.Cost := Key;
    end Set_Key;
 
+   procedure Accumulate (Data : in McKenzie_Data; Counts : in out Strategy_Counts)
+   is
+      procedure Proc (Config : in Configuration)
+      is begin
+         for I in Config.Strategy_Counts'Range loop
+            Counts (I) := Counts (I) + Config.Strategy_Counts (I);
+         end loop;
+      end Proc;
+   begin
+      Data.Results.Process (Proc'Unrestricted_Access);
+   end Accumulate;
+
    function Image
      (Item       : in Parse_Error;
       Tree       : in Syntax_Trees.Tree;

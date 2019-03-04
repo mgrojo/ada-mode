@@ -275,18 +275,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          end if;
 
          if Syntax_Trees.Invalid_Node_Index = Tree.Find_Child (Config.Stack (4).Tree_Index, +EXCEPTION_ID) then
-            --  'exception' not found; case 1b - assume extra 'end ;'; delete it.
+            --  'exception' not found; case 1a - assume extra 'end ;'; delete it.
             declare
-               New_Config : Configuration := Config;
-               Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
-               Stack      : Recover_Stacks.Stack renames New_Config.Stack;
-               End_Item   : constant Recover_Stack_Item := Stack.Peek (3);
+               New_Config     : Configuration               := Config;
+               Ops            : Config_Op_Arrays.Vector renames New_Config.Ops;
+               Stack          : Recover_Stacks.Stack renames New_Config.Stack;
+               End_Item       : constant Recover_Stack_Item := Stack.Peek (3);
+               Semicolon_Item : constant Recover_Stack_Item := Stack.Peek (1);
             begin
-               --  This is a guess, but it is equally as likely as 'ignore error', so
-               --  it has the same cost.
-
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
+
+               New_Config.Cost := New_Config.Cost + 1;
 
                Push_Back_Check
                  (New_Config,
@@ -303,13 +303,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
 
                Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_ID);
 
+               Check (+END_ID, Terminals (End_Item.Token.Min_Terminal_Index).ID);
                Ops.Append ((Delete, +END_ID, Token_Index => End_Item.Token.Min_Terminal_Index));
-               Ops.Append ((Delete, +SEMICOLON_ID, Token_Index => End_Item.Token.Min_Terminal_Index + 1));
+
+               Check (+SEMICOLON_ID, Terminals (Semicolon_Item.Token.Min_Terminal_Index).ID);
+               Ops.Append ((Delete, +SEMICOLON_ID, Token_Index => Semicolon_Item.Token.Min_Terminal_Index));
 
                New_Config.Current_Shared_Token := Config.Current_Shared_Token; --  After pushed_back SEMICOLON.
 
                if Trace_McKenzie > Detail then
-                  Put ("Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
+                  Put ("Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -318,15 +321,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
             end;
 
          else
-            --  'exception' found; case 1a - assume missing 'begin'; insert it
+            --  'exception' found; case 1b - assume missing 'begin'; insert it
             --  before 'handled_sequence_of_statements'
             declare
                New_Config : Configuration := Config;
             begin
-               --  This is a guess, but it is equally as likely as 'ignore error', so
-               --  it has the same cost.
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
+
+               New_Config.Cost := New_Config.Cost + 1;
 
                Push_Back_Check
                  (New_Config,
@@ -339,7 +342,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
                Insert (New_Config, +BEGIN_ID);
 
                if Trace_McKenzie > Detail then
-                  Put ("Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
+                  Put ("Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -639,6 +642,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          --     insert a matching <begin_keyword> before the '...'
          --     sequence_of_statements_opt.
          --
+         --  c. 'end <keyword>;' could be in the wrong place;
+         --
+         --      see test_mckenzie_recover.adb/error_during_resume_2. Best
+         --      solution there is to replace the wrong keyword with the right one,
+         --      so we enqueue that solution also.
          declare
             Label             : constant String := "end keyword 2";
             New_Config        : Configuration   := Config;
@@ -692,6 +700,29 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
                end if;
             end if;
 
+            Local_Config_Heap.Add (New_Config);
+         exception
+         when Bad_Config =>
+            null;
+         end;
+
+         declare
+            Label      : constant String := "end keyword 2c ";
+            New_Config : Configuration   := Config;
+         begin
+            Delete (New_Config, New_Config.Error_Token.ID); -- wrong keyword
+
+            --  It's not easy to tell what the right keyword to insert is; the
+            --  normal explore mechanism will find it.
+
+            New_Config.Error_Token.ID := Invalid_Token_ID;
+
+            --  Inserting the replacement is likely to cost 2, so make this cost 0.
+            New_Config.Cost := New_Config.Cost + 0;
+
+            if Trace_McKenzie > Detail then
+               Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor), New_Config);
+            end if;
             Local_Config_Heap.Add (New_Config);
          exception
          when Bad_Config =>
@@ -759,13 +790,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
       use all type SAL.Base_Peek_Type;
    begin
       if Trace_McKenzie > Extra then
-         Put ("Ada_Lite Language_Fixes", Trace, Parser_Label, Terminals, Config);
+         Put ("Language_Fixes", Trace, Parser_Label, Terminals, Config);
          Put_Line (Trace, Parser_Label, "config stack: " & Image (Config.Stack, Descriptor));
       end if;
 
       if Config.Current_Ops /= No_Insert_Delete then
          if Trace_McKenzie > Outline then
-            Put_Line (Trace, Parser_Label, "Ada_Lite Language_Fixes: Config.Current_Ops /= No_Insert_Delete");
+            Put_Line (Trace, Parser_Label, "Language_Fixes: Config.Current_Ops /= No_Insert_Delete");
          end if;
          return;
       end if;

@@ -311,15 +311,18 @@ package WisiToken is
    type Base_Token_Index is range 0 .. Integer'Last;
    subtype Token_Index is Base_Token_Index range 1 .. Base_Token_Index'Last;
 
+   Invalid_Token_Index : constant Base_Token_Index := Base_Token_Index'First;
+
    type Token_Index_Array is array (Natural range <>) of Token_Index;
+
+   package Recover_Token_Index_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Natural, Base_Token_Index, Default_Element => Invalid_Token_Index);
 
    type Base_Token_Array is array (Positive_Index_Type range <>) of Base_Token;
 
    package Base_Token_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Token_Index, Base_Token, Default_Element => (others => <>));
    type Base_Token_Array_Access is access all Base_Token_Arrays.Vector;
-
-   Invalid_Token_Index : constant Base_Token_Index := Base_Token_Arrays.No_Index;
 
    package Line_Begin_Token_Vectors is new SAL.Gen_Unbounded_Definite_Vectors
      (Line_Number_Type, Base_Token_Index, Default_Element => Invalid_Token_Index);

@@ -296,6 +296,7 @@ package body WisiToken.Parse.LR.Parser_Lists is
          New_Item :=
            (Shared_Token           => Item.Shared_Token,
             Recover_Insert_Delete  => Item.Recover_Insert_Delete,
+            Prev_Deleted           => Item.Prev_Deleted,
             Current_Token          => Item.Current_Token,
             Inc_Shared_Token       => Item.Inc_Shared_Token,
             Stack                  => Item.Stack,

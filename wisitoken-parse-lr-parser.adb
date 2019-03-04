@@ -187,7 +187,7 @@ package body WisiToken.Parse.LR.Parser is
 
          declare
             Expecting : constant Token_ID_Set := LR.Expecting
-              (Shared_Parser.Table.all, Current_Parser.State_Ref.Stack.Peek.State);
+              (Shared_Parser.Table.all, Parser_State.Stack.Peek.State);
          begin
             Parser_State.Errors.Append
               ((Label          => LR.Action,
@@ -200,7 +200,8 @@ package body WisiToken.Parse.LR.Parser is
             if Trace_Parse > Outline then
                Put
                  (Trace,
-                  Integer'Image (Current_Parser.Label) & ": expecting: " &
+                  Integer'Image (Current_Parser.Label) & ":" &
+                    Unknown_State_Index'Image (Parser_State.Stack.Peek.State) & ": expecting: " &
                     Image (Expecting, Trace.Descriptor.all));
                Trace.New_Line;
             end if;
@@ -228,8 +229,19 @@ package body WisiToken.Parse.LR.Parser is
             then Parser_State.Shared_Token + 1
             else Parser_State.Shared_Token)
          then
-            Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+            Parser_State.Shared_Token     := Parser_State.Shared_Token + 1;
+            --  We don't reset Inc_Shared_Token here; only after the next token is
+            --  actually used.
+            Parser_State.Prev_Deleted.Append (Parser_State.Recover_Insert_Delete.Peek.Token_Index);
             Parser_State.Recover_Insert_Delete.Drop;
+
+         elsif Parser_State.Prev_Deleted.Contains
+           ((if Parser_State.Inc_Shared_Token
+             then Parser_State.Shared_Token + 1
+             else Parser_State.Shared_Token))
+         then
+            Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+
          else
             exit;
          end if;
@@ -510,8 +522,11 @@ package body WisiToken.Parse.LR.Parser is
                elsif Parser_State.Verb = Shift then
                   if Parser_State.Inc_Shared_Token then
                      --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
-                     --  for when/why.
-                     Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                     --  for when/why. Don't increment past wisi_eoi (happens when input
+                     --  buffer is empty; test_mckenzie_recover.adb Empty_Comments).
+                     if Parser_State.Shared_Token < Shared_Parser.Terminals.Last_Index then
+                        Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                     end if;
                   else
                      Parser_State.Inc_Shared_Token := True;
                   end if;
@@ -532,7 +547,7 @@ package body WisiToken.Parse.LR.Parser is
             --  input from Shared_Parser.Terminals during error recovery.
 
             for Parser_State of Shared_Parser.Parsers loop
-               --  We don't check for Verb = Error; during recovery, errors cause
+               --  We don't check for Verb = Error; during resume, errors cause
                --  parsers to terminate immediately.
 
                if Parser_State.Verb = Shift_Recover then
@@ -695,7 +710,10 @@ package body WisiToken.Parse.LR.Parser is
             --  All parsers errored; attempt recovery
             declare
                use all type McKenzie_Recover.Recover_Status;
+
                Recover_Result : McKenzie_Recover.Recover_Status := McKenzie_Recover.Recover_Status'First;
+
+               Pre_Recover_Parser_Count : constant SAL.Base_Peek_Type := Shared_Parser.Parsers.Count;
             begin
                --  Recover algorithms expect current token at
                --  Parsers(*).Current_Token, will set
@@ -729,21 +747,27 @@ package body WisiToken.Parse.LR.Parser is
                   if Ada.Text_IO.Is_Open (Shared_Parser.Recover_Log_File) then
                      declare
                         use Ada.Text_IO;
+                        Strategy_Counts : LR.Strategy_Counts := (others => 0);
                      begin
                         Put
                           (Shared_Parser.Recover_Log_File,
                            Ada.Calendar.Formatting.Image (Ada.Calendar.Clock) & " " &
                              McKenzie_Recover.Recover_Status'Image (Recover_Result) & " " &
-                             SAL.Base_Peek_Type'Image (Shared_Parser.Parsers.Count) & " '" &
+                             SAL.Base_Peek_Type'Image (Pre_Recover_Parser_Count) & " '" &
                              Shared_Parser.Lexer.File_Name & "'");
 
+                        Put (Shared_Parser.Recover_Log_File, '(');
                         for Parser of Shared_Parser.Parsers loop
+                           Accumulate (Parser.Recover, Strategy_Counts);
                            Put
                              (Shared_Parser.Recover_Log_File,
                               Integer'Image (Parser.Recover.Enqueue_Count) &
                                 Integer'Image (Parser.Recover.Check_Count) & " " &
                                 Boolean'Image (Parser.Recover.Success));
                         end loop;
+                        Put (Shared_Parser.Recover_Log_File, ')');
+
+                        Put (Shared_Parser.Recover_Log_File, Image (Strategy_Counts));
                         New_Line (Shared_Parser.Recover_Log_File);
                         Flush (Shared_Parser.Recover_Log_File);
                      end;
@@ -1031,7 +1055,24 @@ package body WisiToken.Parse.LR.Parser is
 
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
-      procedure Process_Node
+      procedure Process_Reduce
+        (Tree : in out Syntax_Trees.Tree;
+         Node : in     Syntax_Trees.Valid_Node_Index)
+      is
+         use all type Syntax_Trees.Node_Label;
+      begin
+         if Tree.Label (Node) /= Nonterm then
+            return;
+         end if;
+
+         declare
+            Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
+         begin
+            Parser.User_Data.Reduce (Tree, Node, Tree_Children);
+         end;
+      end Process_Reduce;
+
+      procedure Process_Action
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Syntax_Trees.Valid_Node_Index)
       is
@@ -1045,31 +1086,16 @@ package body WisiToken.Parse.LR.Parser is
             use all type Syntax_Trees.Semantic_Action;
             Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
          begin
-            Parser.User_Data.Reduce (Tree, Node, Tree_Children);
-
             if Tree.Action (Node) /= null then
                Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Tree_Children);
             end if;
          end;
-      end Process_Node;
+      end Process_Action;
 
    begin
       if Parser.User_Data /= null then
          if Parser.Parsers.Count > 1 then
             raise Syntax_Error with "ambiguous parse; can't execute actions";
-         end if;
-
-         if (for some Err of Parser.Parsers.First_State_Ref.Errors => Any (Err.Recover.Ops, Delete)) then
-            for Err of Parser.Parsers.First_State_Ref.Errors loop
-               for Op of Err.Recover.Ops loop
-                  case Op.Op is
-                  when Delete =>
-                     Parser.User_Data.Delete_Token (Op.Token_Index);
-                  when others =>
-                     null;
-                  end case;
-               end loop;
-            end loop;
          end if;
 
          declare
@@ -1078,10 +1104,25 @@ package body WisiToken.Parse.LR.Parser is
             if Trace_Action > Outline then
                Parser.Trace.Put_Line
                  (Integer'Image (Parser_State.Label) & ": root node: " & Parser_State.Tree.Image
-                    (Parser_State.Tree.Root, Descriptor));
+                 (Parser_State.Tree.Root, Descriptor));
             end if;
 
-            Parser_State.Tree.Process_Tree (Process_Node'Access);
+            Parser_State.Tree.Process_Tree (Process_Reduce'Access);
+
+            if (for some Err of Parser_State.Errors => Any (Err.Recover.Ops, Delete)) then
+               for Err of Parser_State.Errors loop
+                  for Op of Err.Recover.Ops loop
+                     case Op.Op is
+                     when Delete =>
+                        Parser.User_Data.Delete_Token (Parser_State.Tree, Op.Token_Index);
+                     when others =>
+                        null;
+                     end case;
+                  end loop;
+               end loop;
+            end if;
+
+            Parser_State.Tree.Process_Tree (Process_Action'Access);
          end;
       end if;
    end Execute_Actions;

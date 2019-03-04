@@ -89,12 +89,13 @@ package WisiToken.Syntax_Trees is
    --  input stream.
 
    procedure Delete_Token
-     (Data        : in out User_Data_Type;
+     (User_Data   : in out User_Data_Type;
+      Tree        : in out Syntax_Trees.Tree'Class;
       Token_Index : in     WisiToken.Token_Index)
    is null;
    --  Token at Token_Index was deleted in error recovery; update
-   --  remaining tokens as needed. Called from Execute_Actions for each
-   --  deleted token, before processing the syntax tree.
+   --  remaining tokens and Tree as needed. Called from Execute_Actions
+   --  for each deleted token, before processing the syntax tree.
 
    procedure Reduce
      (User_Data : in out User_Data_Type;
@@ -265,7 +266,7 @@ package WisiToken.Syntax_Trees is
       ID   : in Token_ID)
      return Node_Index
    with Pre => Tree.Is_Nonterm (Node);
-   --  Return the child of Node that contains ID, or Invalid_Node_Index if
+   --  Return the child of Node whose ID is ID, or Invalid_Node_Index if
    --  none match.
 
    function Find_Descendant
@@ -273,7 +274,23 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index;
-   --  Return the child of Node that contains ID (may be Node), or
+   --  Return the descendant of Node (may be Node) whose ID is ID, or
+   --  Invalid_Node_Index if none match.
+
+   function Find_Min_Terminal_Index
+     (Tree  : in Syntax_Trees.Tree;
+      Index : in Token_Index)
+     return Node_Index
+   with Post => Tree.Is_Nonterm (Find_Min_Terminal_Index'Result);
+   --  Return the first node whose Min_Terminal_Index is Index, or
+   --  Invalid_Node_Index if none match.
+
+   function Find_Max_Terminal_Index
+     (Tree  : in Syntax_Trees.Tree;
+      Index : in Token_Index)
+     return Node_Index
+   with Post => Tree.Is_Nonterm (Find_Max_Terminal_Index'Result);
+   --  Return the first node whose Max_Terminal_Index is Index, or
    --  Invalid_Node_Index if none match.
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index);

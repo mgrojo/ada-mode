@@ -129,7 +129,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
          Terminals_Current         => Config.Current_Shared_Token,
          Restore_Terminals_Current => Restore_Terminals_Current,
          Insert_Delete             => Config.Insert_Delete,
-         Current_Insert_Delete     => Config.Current_Insert_Delete);
+         Current_Insert_Delete     => Config.Current_Insert_Delete,
+         Prev_Deleted              => Super.Parser_State (Parser_Index).Prev_Deleted);
 
       New_State : Unknown_State_Index;
       Success   : Boolean := True;
@@ -196,7 +197,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                Terminals_Current         => Config.Current_Shared_Token,
                Restore_Terminals_Current => Restore_Terminals_Current,
                Insert_Delete             => Config.Insert_Delete,
-               Current_Insert_Delete     => Config.Current_Insert_Delete);
+               Current_Insert_Delete     => Config.Current_Insert_Delete,
+               Prev_Deleted              => Super.Parser_State (Parser_Index).Prev_Deleted);
 
          when Reduce =>
             declare

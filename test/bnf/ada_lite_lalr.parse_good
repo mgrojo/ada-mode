@@ -52,7 +52,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  1: 84:  6:(IS, (199 . 200)) : shift and goto state 158
  1: 158:  7:(IDENTIFIER, (205 . 205)) : shift and goto state 132
  0: 121:  7:(IDENTIFIER, (205 . 205)) : ERROR
- 0: expecting: NEW
+ 0: 121: expecting: NEW
  0: zombie
  1: 132:  8:(COLON, (207 . 207)) : shift and goto state 194
  0: zombie
@@ -469,7 +469,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  2: 84:  67:(IS, (455 . 456)) : shift and goto state 158
  2: 158:  68:(IDENTIFIER, (461 . 461)) : shift and goto state 132
  1: 121:  68:(IDENTIFIER, (461 . 461)) : ERROR
- 1: expecting: NEW
+ 1: 121: expecting: NEW
  1: zombie
  2: 132:  69:(COLON, (463 . 463)) : shift and goto state 194
  1: zombie
@@ -829,7 +829,7 @@ aspect_specification_opt_1: (aspect_specification_opt) <= ()
  3: 84:  109:(IS, (645 . 646)) : shift and goto state 158
  3: 158:  110:(IDENTIFIER, (651 . 651)) : shift and goto state 132
  2: 121:  110:(IDENTIFIER, (651 . 651)) : ERROR
- 2: expecting: NEW
+ 2: 121: expecting: NEW
  2: zombie
  3: 132:  111:(COLON, (653 . 653)) : shift and goto state 194
  2: zombie

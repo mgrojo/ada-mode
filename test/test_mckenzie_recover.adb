@@ -104,10 +104,10 @@ package body Test_McKenzie_Recover is
       Ops                     : in WisiToken.Parse.LR.Config_Op_Arrays.Vector   :=
         WisiToken.Parse.LR.Config_Op_Arrays.Empty_Vector;
       Ops_Race_Condition      : in Boolean                                      := False;
-      Enqueue_Low             : in Integer;
-      Enqueue_High            : in Integer                                      := 0;
-      Check_Low               : in Integer;
-      Check_High              : in Integer                                      := 0;
+      Enqueue_Low             : in Integer                                      := 0;
+      Enqueue_High            : in Integer                                      := Integer'Last;
+      Check_Low               : in Integer                                      := 0;
+      Check_High              : in Integer                                      := Integer'Last;
       Cost                    : in Integer;
       Expecting               : in WisiToken.Token_ID_Set                       := Empty_Token_ID_Set;
       Code                    : in WisiToken.Semantic_Checks.Check_Status_Label := WisiToken.Semantic_Checks.Ok)
@@ -184,7 +184,10 @@ package body Test_McKenzie_Recover is
          --  Recover does not come from the same parser as Error if the
          --  succeeding parser was spawned after error recovery, but we copy
          --  Enqueue_Count and Check_Count in Prepend_Copy just for this check.
-         if Enqueue_High = 0 then
+         if Enqueue_Low = 0 and Enqueue_High = Integer'Last then
+            --  Not checking enqueue or check counts
+            null;
+         elsif Enqueue_High = Integer'Last then
             Check (Label_I & ".enqueue_low", Parser_State.Recover.Enqueue_Count, Enqueue_Low);
             Check (Label_I & ".check_low", Parser_State.Recover.Check_Count, Check_Low);
          else
@@ -269,8 +272,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11),
-         Enqueue_Low             => 153,
-         Check_Low               => 42,
+         Enqueue_Low             => 125,
+         Check_Low               => 32,
          Cost                    => 2);
    end Error_1;
 
@@ -302,8 +305,8 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (63, 69),
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
-         Enqueue_Low             => 38,
-         Check_Low               => 11,
+         Enqueue_Low             => 34,
+         Check_Low               => 9,
          Cost                    => 1);
    end Error_2;
 
@@ -910,7 +913,7 @@ package body Test_McKenzie_Recover is
            (Push_Back, +END_ID, 16) & (Insert, +END_ID, 16) & (Insert, +SEMICOLON_ID, 16) & (Fast_Forward,  16),
          Enqueue_Low             => 4,
          Check_Low               => 4,
-         Cost                    => 1,
+         Cost                    => 2,
          Code                    => Missing_Name_Error);
    end Missing_Name_0;
 
@@ -948,7 +951,7 @@ package body Test_McKenzie_Recover is
              (Fast_Forward, 9),
          Enqueue_Low             => 12,
          Check_Low               => 2,
-         Cost                    => 0,
+         Cost                    => 1,
          Code                    => Missing_Name_Error);
    end Missing_Name_1;
 
@@ -985,7 +988,7 @@ package body Test_McKenzie_Recover is
              (Delete, +END_ID, 13) & (Delete, +SEMICOLON_ID, 14),
          Enqueue_Low             => 12,
          Check_Low               => 2,
-         Cost                    => 0,
+         Cost                    => 1,
          Code                    => Missing_Name_Error);
    end Missing_Name_2;
 
@@ -1024,7 +1027,7 @@ package body Test_McKenzie_Recover is
            (Insert, +SEMICOLON_ID, 15) & (Fast_Forward,  15),
          Enqueue_Low             => 4,
          Check_Low               => 4,
-         Cost                    => 1,
+         Cost                    => 2,
          Code                    => Missing_Name_Error);
    end Missing_Name_3;
 
@@ -1429,10 +1432,6 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +BEGIN_ID,
          Error_Token_Byte_Region => (84, 88),
          Ops                     => +(Insert, +SEPARATE_ID, 15) & (Insert, +SEMICOLON_ID, 15) & (Delete, +BEGIN_ID, 15),
-         Enqueue_Low             => 0,
-         Enqueue_High            => Integer'Last,
-         Check_Low               => 0,
-         Check_High              => Integer'Last,
          --  We only save Enqueue_Count and Check_Count from the last error, so
          --  we can't check them for error 1.
          Cost                    => 6);
@@ -1681,8 +1680,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (4, 6),
          Ops                     => +(Insert, +IF_ID, 3) & (Insert, +THEN_ID, 3),
-         Enqueue_Low             => 210,
-         Check_Low               => 58,
+         Enqueue_Low             => 238,
+         Check_Low               => 67,
          Cost                    => 4);
    end Minimal_Complete_Full_Reduce_2;
 
@@ -1743,10 +1742,68 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Push_Back, +END_ID, 42) & (Insert, +END_ID, 42) & (Insert, +IF_ID, 42) &
            (Insert, +SEMICOLON_ID, 42) & (Fast_Forward,  44) & (Push_Back, +sequence_of_statements_opt_ID, 10) &
            (Insert, +IF_ID, 10) & (Insert, +THEN_ID, 10) & (Fast_Forward,  42),
-         Enqueue_Low             => 29,
-         Check_Low               => 12,
+         Enqueue_Low             => 25,
+         Check_Low               => 10,
          Cost                    => 1);
    end Out_Of_Order_Ops;
+
+   procedure Error_During_Resume_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  previously got "error during resume"; stack is empty in error recover.
+
+      Parse_Text ("end Process_Node;");
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (1, 3),
+         Ops                     => +(Delete, +END_ID, 1),
+         Enqueue_Low             => 14,
+         Check_Low               => 2,
+         Cost                    => 1);
+   end Error_During_Resume_1;
+
+   procedure Error_During_Resume_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Previously got "error during resume"; second recover set
+      --  Current_Token to deleted token 'loop' from first recover.
+
+      Parser.Table.McKenzie_Param.Check_Limit       := 4;
+      Parser.Table.McKenzie_Param.Ignore_Check_Fail := 0;     -- Allow finding desired solution.
+      End_Name_Optional                             := False; -- Triggers Missing_Name_Error.
+
+      Parse_Text ("procedure Update_First is begin end loop; end loop; end Update_First;");
+      --           1         2            3  4     5   6   7 8   9   10 11 12          13
+
+      --  Three solutions succeed to the end. Unfortunately, the "correct"
+      --  one (that deleted 'loop' in the first error) has longer recover
+      --  ops, so it is terminated. We are mostly verifying that "error
+      --  during resume" no longer occurs.
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 1,
+         Error_Token_ID          => +BEGIN_ID,
+         Error_Token_Byte_Region => (27, 31),
+         Ops                     => +(Push_Back, +IS_ID, 3) & (Fast_Forward,  6) & (Push_Back, +END_ID, 5) &
+           (Push_Back, +handled_sequence_of_statements_ID, 5) & (Insert, +LOOP_ID, 5) & (Fast_Forward,  5),
+         Cost                    => 5);
+
+      Check_Recover
+        (Errors_Length           => 2,
+         Checking_Error          => 2,
+         Error_Token_ID          => +LOOP_ID,
+         Error_Token_Byte_Region => (47, 50),
+         Ops                     => +(Delete, +LOOP_ID, 9) & (Fast_Forward,  11) & (Delete, +END_ID, 11),
+         Enqueue_Low             => 181,
+         Check_Low               => 39,
+         Cost                    => 2);
+
+   end Error_During_Resume_2;
 
    ----------
    --  Public subprograms
@@ -1800,6 +1857,8 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Minimal_Complete_Full_Reduce_2'Access, "Minimal_Complete_Full_Reduce_2");
       Register_Routine (T, Minimal_Complete_Full_Reduce_3'Access, "Minimal_Complete_Full_Reduce_3");
       Register_Routine (T, Out_Of_Order_Ops'Access, "Out_Of_Order_Ops");
+      Register_Routine (T, Error_During_Resume_1'Access, "Error_During_Resume_1");
+      Register_Routine (T, Error_During_Resume_2'Access, "Error_During_Resume_2");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

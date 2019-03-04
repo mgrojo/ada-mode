@@ -60,6 +60,11 @@ package WisiToken.Parse.LR.Parser_Lists is
       Recover_Insert_Delete : Config_Op_Queues.Queue;
       --  Tokens in that were inserted during error recovery, or should be
       --  deleted/skipped when read. Contains only Insert and Delete ops.
+      --  Used/emptied by main parse.
+
+      Prev_Deleted : Recover_Token_Index_Arrays.Vector;
+      --  Tokens deleted by previous error recovery; don't process in new
+      --  error recovery.
 
       Current_Token : Syntax_Trees.Node_Index := Syntax_Trees.Invalid_Node_Index;
       --  Current terminal, in Tree

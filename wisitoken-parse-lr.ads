@@ -36,8 +36,9 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
-with SAL.Gen_Bounded_Definite_Vectors.Gen_Sorted;
+with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
+with SAL.Gen_Bounded_Definite_Vectors.Gen_Sorted;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
@@ -497,6 +498,11 @@ package WisiToken.Parse.LR is
    --  which is true if they were copied from the parser stack, and not
    --  pushed by recover.
 
+   type Strategies is (Language_Fix, Minimal_Complete, Explore_Table);
+
+   type Strategy_Counts is array (Strategies) of Natural;
+   function Image is new SAL.Gen_Array_Image (Strategies, Natural, Strategy_Counts, Trimmed_Image);
+
    type Configuration is record
       Stack : Recover_Stacks.Stack;
       --  Initially built from the parser stack, then the stack after the
@@ -549,6 +555,9 @@ package WisiToken.Parse.LR is
       --  remaining ops at Current_Shared_Token.
 
       Cost : Natural := 0;
+
+      Strategy_Counts : LR.Strategy_Counts;
+      --  Count of strategies that produced Ops.
    end record;
    type Configuration_Access is access all Configuration;
    for Configuration_Access'Storage_Size use 0;
@@ -574,8 +583,10 @@ package WisiToken.Parse.LR is
       Results       : Config_Heaps.Heap_Type;
       Success       : Boolean := False;
    end record;
-
    type McKenzie_Access is access all McKenzie_Data;
+
+   procedure Accumulate (Data : in McKenzie_Data; Counts : in out Strategy_Counts);
+   --  Sum Results.Strategy_Counts.
 
    type Parse_Error_Label is (Action, Check, Message);
 

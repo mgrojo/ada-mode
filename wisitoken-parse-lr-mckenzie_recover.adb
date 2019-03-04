@@ -365,6 +365,15 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   Current_Token_Virtual : Boolean := False;
 
                   Sorted_Insert_Delete : Sorted_Insert_Delete_Arrays.Vector;
+
+                  procedure Apply_Prev_Token
+                  is begin
+                     loop
+                        exit when not Parser_State.Prev_Deleted.Contains (Parser_State.Shared_Token);
+                        Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
+                     end loop;
+                  end Apply_Prev_Token;
+
                begin
                   Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
 
@@ -403,6 +412,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   --  there's no point in applying ops that are later superceded by such
                   --  a Push_Back. See test_mckenzie_recover.adb Out_Of_Order_Ops for an
                   --  example.
+                  --
+                  --  Push_Back can also go back past a previous error recovery; we must
+                  --  apply Parser_State.Prev_Deleted here as well, when computing
+                  --  Current_Token and Shared_Token.
                   --
                   --  So first we go thru Ops to find the earliest Push_Back. Then we
                   --  apply ops that are before that point, up to the first Insert or
@@ -521,6 +534,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                         if Stack_Matches_Ops and Op.Token_Index = Parser_State.Shared_Token then
                            --  We can apply multiple deletes.
                            Parser_State.Shared_Token := Op.Token_Index + 1;
+                           Apply_Prev_Token;
                            Shared_Token_Changed      := True;
                         else
                            Sorted_Insert_Delete.Insert (Op);
@@ -539,6 +553,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                         when Delete =>
                            Parser_State.Shared_Token := Op.Token_Index + 1;
+                           Apply_Prev_Token;
                            Shared_Token_Changed      := True;
                         end case;
                      else
@@ -557,8 +572,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end if;
 
                   --  Parser_State.Verb is the action that produced the current stack
-                  --  top. Parser_State.Inc_Shared_Token determines how to get the next
-                  --  token from Shared_Parser.Terminals.
+                  --  top (or Shift_Recover if there are tokens to insert).
+                  --  Parser_State.Inc_Shared_Token determines how to get the next token
+                  --  from Shared_Parser.Terminals.
                   --
                   --  If the stack top or Current_Token is virtual, then after all
                   --  virtuals are inserted, the main parser would normally increment
@@ -567,7 +583,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   --  increment. We could set Shared_Token to 1 less, but this way the
                   --  debug messages all show the expected Shared_Terminal.
 
-                  if Parser_State.Stack (1).Token = Syntax_Trees.Invalid_Node_Index then
+                  if Parser_State.Stack.Depth = 1 then
+                     --  Empty stack
+                     if Current_Token_Virtual then
+                        Parser_State.Set_Verb (Shift_Recover);
+                        Parser_State.Inc_Shared_Token := False;
+                     else
+                        Parser_State.Set_Verb (Shift);
+                        Parser_State.Inc_Shared_Token := True;
+                     end if;
+
+                  elsif Parser_State.Stack (1).Token = Syntax_Trees.Invalid_Node_Index then
                      --  a virtual token from a previous recover
                      Parser_State.Set_Verb (Shift_Recover);
                      Parser_State.Inc_Shared_Token := False;
@@ -652,7 +678,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Terminals_Current         : in out WisiToken.Base_Token_Index;
       Restore_Terminals_Current :    out WisiToken.Base_Token_Index;
       Insert_Delete             : in out Sorted_Insert_Delete_Arrays.Vector;
-      Current_Insert_Delete     : in out SAL.Base_Peek_Type)
+      Current_Insert_Delete     : in out SAL.Base_Peek_Type;
+      Prev_Deleted              : in     Recover_Token_Index_Arrays.Vector)
      return Base_Token
    is
       use all type SAL.Base_Peek_Type;
@@ -667,7 +694,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end Inc_I_D;
 
    begin
-      if Terminals_Current = Base_Token_Index'First then
+      if Terminals_Current = Invalid_Token_Index then
          --  Happens with really bad syntax; see test_mckenzie_recover.adb Error_4.
          raise Bad_Config;
       end if;
@@ -690,7 +717,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   return (ID => Op.ID, others => <>);
 
                when Delete =>
-                  Terminals_Current         := Terminals_Current + 1;
+                  Terminals_Current    := Terminals_Current + 1;
+                  loop
+                     exit when not Prev_Deleted.Contains (Terminals_Current);
+                     Terminals_Current := Terminals_Current + 1;
+                  end loop;
                   Restore_Terminals_Current := Terminals_Current;
                   Inc_I_D;
                end case;
@@ -898,23 +929,33 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Terminals_Current         : in out Base_Token_Index;
       Restore_Terminals_Current : in out WisiToken.Base_Token_Index;
       Insert_Delete             : in out Sorted_Insert_Delete_Arrays.Vector;
-      Current_Insert_Delete     : in out SAL.Base_Peek_Type)
+      Current_Insert_Delete     : in out SAL.Base_Peek_Type;
+      Prev_Deleted              : in     Recover_Token_Index_Arrays.Vector)
      return Base_Token
    is
       use all type SAL.Base_Peek_Type;
+
+      function Next_Terminal return Base_Token
+      is begin
+         Terminals_Current    := Terminals_Current + 1;
+         loop
+            exit when not Prev_Deleted.Contains (Terminals_Current);
+            Terminals_Current := Terminals_Current + 1;
+         end loop;
+
+         Restore_Terminals_Current := Terminals_Current;
+         return Terminals (Terminals_Current);
+      end Next_Terminal;
+
    begin
       loop
          if Insert_Delete.Last_Index > 0 and then Current_Insert_Delete = Insert_Delete.Last_Index then
             Current_Insert_Delete     := No_Insert_Delete;
             Insert_Delete.Clear;
-            Terminals_Current         := Terminals_Current + 1;
-            Restore_Terminals_Current := Terminals_Current;
-            return Terminals (Terminals_Current);
+            return Next_Terminal;
 
          elsif Current_Insert_Delete = No_Insert_Delete then
-            Terminals_Current         := Terminals_Current + 1;
-            Restore_Terminals_Current := Terminals_Current;
-            return Terminals (Terminals_Current);
+            return Next_Terminal;
 
          elsif Insert_Delete (Current_Insert_Delete + 1).Token_Index = Terminals_Current + 1 then
             Current_Insert_Delete := Current_Insert_Delete + 1;
@@ -932,9 +973,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             end;
 
          else
-            Terminals_Current         := Terminals_Current + 1;
-            Restore_Terminals_Current := Terminals_Current;
-            return Terminals (Terminals_Current);
+            return Next_Terminal;
          end if;
       end loop;
    end Next_Token;
