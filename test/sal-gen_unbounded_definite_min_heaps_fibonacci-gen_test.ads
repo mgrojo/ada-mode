@@ -2,7 +2,7 @@
 --
 --  Access to private part of parent for unit test
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,19 +19,9 @@
 pragma License (GPL);
 
 generic
-   with procedure Check
-     (Label    : in String;
-      Computed : in Element_Type;
-      Expected : in Element_Type);
-
 package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci.Gen_Test is
 
    type Element_Array_Type is array (SAL.Peek_Type range <>) of Element_Type;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Heap_Type;
-      Expected : in Element_Array_Type);
 
    function Max_Degree (Heap : in Heap_Type) return Integer;
 

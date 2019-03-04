@@ -2,7 +2,7 @@
 --
 --  Test SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci
 --
---  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017, 2019 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Min_Heap_Fibonacci is
+package Test_Min_Heaps_Fibonacci is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Min_Heap_Fibonacci is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Min_Heap_Fibonacci;
+end Test_Min_Heaps_Fibonacci;

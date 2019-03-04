@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,7 +21,7 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with SAL.AUnit;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci.Gen_Test;
-package body Test_Min_Heap_Fibonacci is
+package body Test_Min_Heaps_Fibonacci is
 
    type Element_Type is record
       Data : Float;
@@ -54,7 +54,32 @@ package body Test_Min_Heap_Fibonacci is
       Check (Label & ".key", Computed.Key, Expected.Key);
    end Check;
 
-   package Heap_Test is new Heaps.Gen_Test (Check);
+   package Heap_Test is new Heaps.Gen_Test;
+   use Heap_Test;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Heaps.Heap_Type;
+      Expected : in Element_Array_Type)
+   is
+      use SAL.AUnit;
+   begin
+      Check (Label & ".count", Computed.Count, Expected'Length);
+      declare
+         I : SAL.Base_Peek_Type := Expected'First;
+
+         procedure Check_Node (Element : in Element_Type)
+         is
+            use all type SAL.Base_Peek_Type;
+         begin
+            Check (Label & SAL.Base_Peek_Type'Image (I), Element, Expected (I));
+            I := I + 1;
+         end Check_Node;
+      begin
+         Check (Label & ".count", Computed.Count, Expected'Length);
+         Computed.Process (Check_Node'Unrestricted_Access);
+      end;
+   end Check;
 
    --  We don't 'use Unbounded_Definite_Min_Heaps', to test that
    --  object.method notation works for heap operations.
@@ -67,7 +92,6 @@ package body Test_Min_Heap_Fibonacci is
       pragma Unreferenced (T);
 
       use AUnit.Checks;
-      use Heap_Test;
       use SAL.AUnit;
 
       Min_Heap : Heaps.Heap_Type;
@@ -153,8 +177,6 @@ package body Test_Min_Heap_Fibonacci is
    is
       pragma Unreferenced (T);
 
-      use Heap_Test;
-
       A : Heaps.Heap_Type;
       B : Heaps.Heap_Type;
    begin
@@ -188,7 +210,7 @@ package body Test_Min_Heap_Fibonacci is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("test_min_heaps.adb");
+      return new String'("test_min_heaps_fibonacci.adb");
    end Name;
 
-end Test_Min_Heap_Fibonacci;
+end Test_Min_Heaps_Fibonacci;
