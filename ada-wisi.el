@@ -778,6 +778,8 @@ TOKEN-TEXT; move point to just past token."
   "Starting at current point, search forward for a matching end.
 Point must have been set by `ada-wisi-find-begin'."
   (let (end-regexp)
+    ;; Point is at bol
+    (back-to-indentation)
     (when (looking-at ada-wisi-named-begin-regexp)
       (skip-syntax-forward "ws")
       (skip-syntax-forward " ")

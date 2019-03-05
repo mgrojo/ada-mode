@@ -70,6 +70,7 @@ package Wisi is
    overriding
    procedure Delete_Token
      (Data        : in out Parse_Data_Type;
+      Tree        : in out WisiToken.Syntax_Trees.Tree'Class;
       Token_Index : in     WisiToken.Token_Index);
 
    overriding
@@ -78,12 +79,6 @@ package Wisi is
       Tree    : in out WisiToken.Syntax_Trees.Tree'Class;
       Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
       Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
-
-   procedure Update_First
-     (Data   : in out Parse_Data_Type;
-      Errors : in     WisiToken.Parse.LR.Parse_Error_Lists.List);
-   --  If any error correction has deleted at token with First set, set
-   --  fields on the next token so indent is computed for the line.
 
    type Navigate_Class_Type is (Motion, Name, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.

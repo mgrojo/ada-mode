@@ -327,7 +327,6 @@ package body Emacs_Wisi_Common_Parse is
                   when WisiToken.Partial_Parse =>
                      null;
                   end;
-                  Parse_Data.Update_First (Parser.Parsers.First.State_Ref.Errors);
                   Parser.Execute_Actions;
                   Parse_Data.Put (Parser);
                   Clean_Up;

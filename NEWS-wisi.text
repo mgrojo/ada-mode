@@ -12,7 +12,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 ** Add support for partial parsing; useful in very large files. Files
    larger than wisi-partial-parse-threshold (default 100_001) will be
    parsed partially. In general, partial parsing may yield incorrect
-   results for indentation (although not often); the Ada menu entry
+   results for indentation; the Ada menu entry
    "Edit | Indent lines in file" will parse the entire file and indent
    correctly.
 

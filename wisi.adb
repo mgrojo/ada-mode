@@ -705,40 +705,127 @@ package body Wisi is
    overriding
    procedure Delete_Token
      (Data        : in out Parse_Data_Type;
+      Tree        : in out Syntax_Trees.Tree'Class;
       Token_Index : in     WisiToken.Token_Index)
    is
       use all type Ada.Containers.Count_Type;
       Deleted_Token    : Augmented_Token renames Data.Terminals (Token_Index);
       Prev_Token_Index : Base_Token_Index := Token_Index - 1;
+      Update_Prev      : Boolean          := False;
+
+      procedure Update_Containing_Last_Term (Mod_Token_Index : in WisiToken.Token_Index)
+      is
+         use WisiToken.Syntax_Trees;
+         Mod_Token : Augmented_Token renames Data.Terminals (Mod_Token_Index);
+         Node      : Valid_Node_Index := Tree.Find_Max_Terminal_Index (Mod_Token_Index);
+      begin
+         loop
+            declare
+               Aug_Token : Augmented_Token renames Augmented_Token (Tree.Augmented (Node).all);
+               Children  : constant Valid_Node_Index_Array := Tree.Children (Node);
+            begin
+               if Aug_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
+                  Aug_Token.First_Trailing_Comment_Line := Mod_Token.First_Trailing_Comment_Line;
+                  Aug_Token.Last_Trailing_Comment_Line  := Mod_Token.Last_Trailing_Comment_Line;
+               else
+                  Aug_Token.Last_Trailing_Comment_Line  := Mod_Token.Last_Trailing_Comment_Line;
+               end if;
+
+               exit when Children'Length = 0;
+               Node := Children (Children'Last);
+               exit when Tree.Label (Node) /= Nonterm;
+            end;
+         end loop;
+      end Update_Containing_Last_Term;
+
    begin
       pragma Assert (Deleted_Token.Deleted = False);
       Deleted_Token.Deleted := True;
-      if Deleted_Token.Non_Grammar.Length = 0 then
-         return;
+
+      if Deleted_Token.Non_Grammar.Length > 0 then
+         --  Move Non_Grammar to previous non-deleted token, update containing
+         --  nonterms in Tree.
+
+         loop
+            exit when Prev_Token_Index = Base_Token_Index'First;
+            exit when Data.Terminals (Prev_Token_Index).Deleted = False;
+            Prev_Token_Index := Prev_Token_Index - 1;
+         end loop;
+
+         if Prev_Token_Index = Base_Token_Index'First then
+            Data.Leading_Non_Grammar.Append (Deleted_Token.Non_Grammar);
+         else
+            declare
+               Prev_Token : Augmented_Token renames Data.Terminals (Prev_Token_Index);
+            begin
+               Update_Prev := True;
+               Prev_Token.Non_Grammar.Append (Deleted_Token.Non_Grammar);
+
+               if Deleted_Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
+                  if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
+                     if Deleted_Token.First then
+                        Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Indent_Line;
+                     else
+                        Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Trailing_Comment_Line;
+                     end if;
+                  end if;
+                  Prev_Token.Last_Trailing_Comment_Line  := Deleted_Token.Last_Trailing_Comment_Line;
+               end if;
+            end;
+         end if;
       end if;
 
-      loop
-         if Prev_Token_Index = Base_Token_Index'First then
-            return;
-         end if;
-         exit when Data.Terminals (Prev_Token_Index).Deleted = False;
-         Prev_Token_Index := Prev_Token_Index - 1;
-      end loop;
-      declare
-         Prev_Token : Augmented_Token renames Data.Terminals (Prev_Token_Index);
-      begin
-         Prev_Token.Non_Grammar.Append (Deleted_Token.Non_Grammar);
-         if Deleted_Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
+      if Deleted_Token.First and Token_Index + 1 = Data.Terminals.Last_Index then
+         --  Deleted_Token is last token before EOF. Deleted_Token.Line is now
+         --  blank; add to previous token non grammar.
+         declare
+            Prev_Token : Augmented_Token renames Data.Terminals (Prev_Token_Index);
+         begin
+            Update_Prev := True;
+
             if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-               if Deleted_Token.First then
-                  Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Indent_Line;
-               else
-                  Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Trailing_Comment_Line;
-               end if;
+               Prev_Token.First_Trailing_Comment_Line := Deleted_Token.Line;
+               Prev_Token.Last_Trailing_Comment_Line  := Deleted_Token.Line;
+            else
+               Prev_Token.Last_Trailing_Comment_Line := Deleted_Token.Last_Trailing_Comment_Line;
             end if;
-            Prev_Token.Last_Trailing_Comment_Line  := Deleted_Token.Last_Trailing_Comment_Line;
+         end;
+      end if;
+
+      if Update_Prev then
+         Update_Containing_Last_Term (Prev_Token_Index);
+      end if;
+
+      if Deleted_Token.First and Token_Index < Data.Terminals.Last_Index then
+         --  We know the next token is not deleted; deleted tokens are in
+         --  token_index order.
+         if not Data.Terminals (Token_Index + 1).First then
+            declare
+               use WisiToken.Syntax_Trees;
+               Next_Token : Augmented_Token renames Data.Terminals (Token_Index + 1);
+               Node       : Valid_Node_Index := Tree.Find_Min_Terminal_Index (Token_Index + 1);
+            begin
+               Next_Token.First             := True;
+               Next_Token.First_Indent_Line := Deleted_Token.First_Indent_Line;
+               Next_Token.Last_Indent_Line  := Deleted_Token.Last_Indent_Line;
+
+               loop
+                  declare
+                     Aug_Token : Augmented_Token renames Augmented_Token (Tree.Augmented (Node).all);
+                     Children  : constant Valid_Node_Index_Array := Tree.Children (Node);
+                  begin
+                     Aug_Token.First             := True;
+                     Aug_Token.First_Indent_Line := Next_Token.First_Indent_Line;
+                     Aug_Token.Last_Indent_Line  := Next_Token.Last_Indent_Line;
+
+                     exit when Children'Length = 0;
+                     Node := Children (Children'Last);
+                     exit when Tree.Label (Node) /= Nonterm;
+                  end;
+               end loop;
+            end;
          end if;
-      end;
+      end if;
    end Delete_Token;
 
    overriding
@@ -819,36 +906,6 @@ package body Wisi is
          end if; -- Aug_Token not virtual
       end loop;
    end Reduce;
-
-   procedure Update_First
-     (Data   : in out Parse_Data_Type;
-      Errors : in     WisiToken.Parse.LR.Parse_Error_Lists.List)
-   is
-      use all type WisiToken.Parse.LR.Config_Op_Label;
-   begin
-      for Error of Errors loop
-         for Op of Error.Recover.Ops loop
-            case Op.Op is
-            when Delete =>
-               if Data.Terminals (Op.Token_Index).First and
-                 (Op.Token_Index < Data.Terminals.Last_Index and then
-                    (not Data.Terminals (Op.Token_Index + 1).First))
-               then
-                  declare
-                     Deleted_Term : Augmented_Token renames Data.Terminals (Op.Token_Index);
-                     Term : Augmented_Token renames Data.Terminals (Op.Token_Index + 1);
-                  begin
-                     Term.First             := True;
-                     Term.First_Indent_Line := Deleted_Term.First_Indent_Line;
-                     Term.Last_Indent_Line  := Deleted_Term.Last_Indent_Line;
-                  end;
-               end if;
-            when others =>
-               null;
-            end case;
-         end loop;
-      end loop;
-   end Update_First;
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;

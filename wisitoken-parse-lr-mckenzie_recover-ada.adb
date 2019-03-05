@@ -199,6 +199,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                begin
                   New_Config.Cost := New_Config.Cost + 1;
 
+                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
@@ -273,6 +275,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
+                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
                   Push_Back_Check
                     (New_Config,
                      (+SEMICOLON_ID,
@@ -345,7 +349,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          --
          --  1a. The 'end <end_name_token> ;' is left over from editing, and
          --  should be deleted. Note that there could be an End_Keyword_IDs
-         --  with that end.
+         --  with that end instead of a name.
          --
          --  1b. There is a missing 'begin'.
          --
@@ -383,11 +387,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Keyword_Item   : Recover_Stack_Item; -- keyword after 'end'; may not be present
                Semicolon_Item : Recover_Stack_Item; -- semicolon after 'end'
             begin
-               --  This is a guess, but it is equally as likely as 'ignore error', so
-               --  it has the same cost.
-
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
+
+               --  This is a guess, and sometimes deleting the error keyword is better, so
+               --  give it a cost.
+               New_Config.Cost := New_Config.Cost + 1;
+
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                when block_statement_ID | package_body_ID | subprogram_body_ID | task_body_ID =>
@@ -447,7 +454,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Local_Config_Heap.Add (New_Config);
 
                if Trace_McKenzie > Detail then
-                  Put ("Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
+                  Put ("Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -458,15 +465,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             end;
 
          else
-            --  'exception' found; case 1a - assume missing 'begin'; insert it
+            --  'exception' found; case 1b - assume missing 'begin'; insert it
             --  before 'handled_sequence_of_statements'
             declare
                New_Config : Configuration := Config;
             begin
-               --  This is a guess, but it is equally as likely as 'ignore error', so
-               --  it has the same cost.
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
+
+               New_Config.Cost := New_Config.Cost + 1;
+
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                Push_Back_Check
                  (New_Config,
@@ -481,7 +490,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Local_Config_Heap.Add (New_Config);
 
                if Trace_McKenzie > Detail then
-                  Put ("Missing_Name_Error 1a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
+                  Put ("Missing_Name_Error 1b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
                   if Trace_McKenzie > Extra then
                      Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
                   end if;
@@ -538,6 +547,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
 
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
                --  Push_Back the failed reduce tokens.
                for I in 1 .. New_Config.Check_Token_Count loop
                   declare
@@ -573,6 +584,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             begin
                New_Config.Error_Token.ID := Invalid_Token_ID;
                New_Config.Check_Status   := (Label => Ok);
+
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                when block_statement_ID =>
@@ -767,6 +780,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             New_Config.Error_Token.ID := Invalid_Token_ID;
             New_Config.Cost := New_Config.Cost + 2;
 
+            New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
             Push_Back_Check (New_Config, +END_ID);
 
             Insert (New_Config, (+END_ID, Config.Stack (Keyword_Index).Token.ID, +SEMICOLON_ID));
@@ -823,6 +838,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
             New_Config.Error_Token.ID := Invalid_Token_ID;
             New_Config.Cost := New_Config.Cost + 1;
+
+            New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
             Push_Back (New_Config); -- end_id
 
@@ -892,6 +909,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             --  Inserting the replacement is likely to cost 2, so make this cost 0.
             New_Config.Cost := New_Config.Cost + 0;
 
+            New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
             if Trace_McKenzie > Detail then
                Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor), New_Config);
             end if;
@@ -912,6 +931,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                --  missing 'case'
                New_Config := Config;
                New_Config.Error_Token.ID := Invalid_Token_ID;
+
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
                Insert (New_Config, (+CASE_ID, +IS_ID));
                Local_Config_Heap.Add (New_Config);
                if Trace_McKenzie > Detail then
@@ -937,6 +959,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
 
                New_Config := Config;
                New_Config.Error_Token.ID := Invalid_Token_ID;
+
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                if New_Config.Stack (1).Token.ID /= Invalid_Token_ID then
                   case Ada_Process_Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
@@ -977,6 +1001,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          declare
             New_Config : Configuration := Config;
          begin
+            New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
             Push_Back_Check (New_Config, (+COLON_ID, +IDENTIFIER_ID));
             Insert (New_Config, (+END_ID, +SEMICOLON_ID));
             Local_Config_Heap.Add (New_Config);

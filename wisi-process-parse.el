@@ -22,6 +22,18 @@
 (require 'cl-lib)
 (require 'wisi-parse-common)
 
+(defgroup wisi nil
+  "Options for Wisi package."
+  :group 'programming)
+
+(defcustom wisi-process-time-out 1.0
+  "Time out waiting for parser response. An error occurs if there
+  is no response from the parser after waiting this amount 5
+  times."
+  :type 'float
+  :safe 'floatp)
+(make-variable-buffer-local 'wisi-process-time-out)
+
 (defconst wisi-process-parse-prompt "^;;> "
   "Regexp matching executable prompt; indicates previous command is complete.")
 
@@ -57,18 +69,6 @@
 
 (defvar wisi-process--alist nil
   "Alist mapping string label to ‘wisi-process--session’ struct")
-
-(defgroup wisi nil
-  "Options for Wisi package."
-  :group 'programming)
-
-(defcustom wisi-process-time-out 1.0
-  "Time out waiting for parser response. An error occurs if there
-  is no response from the parser after waiting this amount 5
-  times."
-  :type 'float
-  :safe 'floatp)
-(make-variable-buffer-local 'wisi-process-time-out)
 
 ;;;###autoload
 (defun wisi-process-parse-get (parser)

@@ -442,6 +442,11 @@ it is approximately the current subprogram or package. For navigation,
 it is always the entire file, which will still be slow; that is the
 only way to ensure useful results.
 
+With this setting, indentation may not be correct; the Ada menu entry
+``Edit | Indent lines in file'' (or ``Edit | Indent current
+statement'', if point is on a keyword of a large enough enclosing
+statement) will parse the entire file and indent correctly.
+
 @item Delay fontification by setting @code{jit-lock-defer-time} in your
 @file{~./emacs}:
 

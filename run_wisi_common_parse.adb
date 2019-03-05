@@ -90,7 +90,7 @@ package body Run_Wisi_Common_Parse is
          Result.Source_File_Name  := +Ada.Command_Line.Argument (1);
          Result.Post_Parse_Action := Wisi.Post_Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
 
-         if Argument (3)(1) /= '-' then
+         if Argument_Count >= 3 and then Argument (3)(1) /= '-' then
             Result.Begin_Byte_Pos := WisiToken.Buffer_Pos'Value (Argument (3));
             Result.End_Byte_Pos   := WisiToken.Buffer_Pos'Value (Argument (4)) - 1; -- match emacs region
             Result.Goal_Byte_Pos  := WisiToken.Buffer_Pos'Value (Argument (5));
@@ -248,7 +248,6 @@ package body Run_Wisi_Common_Parse is
             when WisiToken.Partial_Parse =>
                null;
             end;
-            Parse_Data.Update_First (Parser.Parsers.First.State_Ref.Errors);
             Parser.Execute_Actions;
 
             if Cl_Params.Repeat_Count = 1 then

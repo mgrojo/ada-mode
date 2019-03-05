@@ -436,6 +436,7 @@ Used to ignore whitespace changes in before/after change hooks.")
   ;;
   ;; This change might be changing to/from a keyword; trigger
   ;; font-lock. See test/ada_mode-interactive_common.adb Obj_1.
+  ;; Also delete navigate, indent caches.
   (unless wisi-indenting-p
     (save-excursion
       (let (word-end)
@@ -445,7 +446,9 @@ Used to ignore whitespace changes in before/after change hooks.")
 	(goto-char begin)
 	(skip-syntax-backward "w_")
 	(with-silent-modifications
-	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil)))
+	  (remove-text-properties
+	   (point) word-end
+	   '(font-lock-face nil fontified nil wisi-cache nil wisi-indent nil)))
 	)
       )))
 
@@ -1117,13 +1120,15 @@ Called with BEGIN END.")
   "Return cached indent for point (must be bol), after correcting
 for parse errors. BEGIN, END is the parsed region."
   (let ((indent (get-text-property (1- (point)) 'wisi-indent)))
+    (unless indent
+      (error "nil indent for line %d" (line-number-at-pos (point))))
     (when (and (wisi--partial-parse-p begin end)
 	       (< 0 (length (wisi-parser-parse-errors wisi--parser))))
       (dolist (err (wisi-parser-parse-errors wisi--parser))
 	(dolist (repair (wisi--parse-error-repair err))
 	  ;; point is at bol; error may be on same line at first token.
 	  (when (>= (line-number-at-pos (point)) (line-number-at-pos (wisi--parse-error-repair-pos repair)))
-	    (setq indent (wisi-parse-adjust-indent wisi--parser indent repair)))
+	    (setq indent (max 0 (wisi-parse-adjust-indent wisi--parser indent repair))))
 	  )))
     indent))
 
@@ -1181,8 +1186,9 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
       ;; potentially ambiguous; see
       ;; test/ada_mode-interactive_2.adb. Or it was a partial parse,
       ;; where errors producing bad indent are pretty much expected.
-      (setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
-				       (length (wisi-parser-parse-errors wisi--parser)))))
+      (unless (wisi--partial-parse-p parse-begin parse-end)
+	(setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
+					 (length (wisi-parser-parse-errors wisi--parser))))))
       )
 
     (if wisi-parse-failed
@@ -1190,6 +1196,8 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	  ;; primary indent failed
 	  (setq wisi-indent-failed t)
 	  (when (functionp wisi-indent-region-fallback)
+	    (when (< 0 wisi-debug)
+	      (message "wisi-indent-region fallback"))
 	    (funcall wisi-indent-region-fallback begin end)))
 
       (save-excursion
@@ -1202,9 +1210,7 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	    (when (or indent-blank-lines (not (eolp)))
 	      ;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
 	      (let ((indent (if (bobp) 0 (wisi--get-cached-indent parse-begin parse-end))))
-		(if indent
-		    (indent-line-to indent)
-		  (error "nil indent for line %d" (line-number-at-pos (point)))))
+		    (indent-line-to indent))
 	      )
 	    (forward-line 1))
 
@@ -1228,6 +1234,8 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	  ;; Previous parse failed or indent was potentially
 	  ;; ambiguous, this one is not.
 	  (goto-char end-mark)
+	  (when (< 0 wisi-debug)
+	    (message "wisi-indent-region post-parse-fail-hook"))
 	  (run-hooks 'wisi-post-indent-fail-hook))
 	))
     ))

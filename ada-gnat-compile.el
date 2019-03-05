@@ -202,7 +202,7 @@ Prompt user if more than one."
 	  ;;
 	  ;; Then style errors.
 
-	  ((looking-at (concat ada-gnat-quoted-name-regexp " is not a component of the aggregate subtype"))
+	  ((looking-at (concat ada-gnat-quoted-name-regexp " is not a component of "))
 	 	   (save-excursion
 	     (let ((child-name (match-string 1))
 		   (correct-spelling (ada-gnat-misspelling)))

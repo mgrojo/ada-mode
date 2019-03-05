@@ -120,11 +120,21 @@ begin
             Descriptor => User_Descriptor);
    end case;
 
+   --  Parse region starts after 'end case;'
+   --EMACSCMD:(progn (end-of-line 3)(delete-char 1)(ada-indent-newline-indent)(back-to-indentation)(current-column))
+   --EMACSRESULT: 6
    if A then
+
       B;
    else
       C;
+
+      --  Parse region starts after 'end case;', but the inserted 'if is an ending.
+      --EMACSCMD:(progn (forward-line 2)(forward-word 1)(delete-char 4)(indent-for-tab-command)(back-to-indentation)(current-column))
+      --EMACSRESULT: 3
    end if;
+   --EMACSCMD:(progn (end-of-line 0)(insert " if;"))
+
    -- blank line before "end"
    --EMACSCMD:(progn (forward-line 3)(wisi-indent-line)(back-to-indentation)(current-column))
    --EMACSRESULT: 3

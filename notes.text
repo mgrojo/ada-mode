@@ -54,10 +54,19 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+error_during_resume_3.adb
+enqueue_limit_2.adb
+ada_mode-recover_new_generic.ads
+ada_mode-recover_partial_1.adb
+enqueue_limit_1.adb
+
 add error recovery strategy counts to recover.log
-    also enough source text to reconstruct fail; +- 10 lines/200 chars?
+    language_fixes, minimal_complete_actions, explore
 
 sort error messages in line order
+
+don't repeat language_fixes
+    error_during_resume_2
 
 c:/eurocontrol/query_display-flight_operations.adb
     errors cause huge slowdown in parse speed
