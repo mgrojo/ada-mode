@@ -54,11 +54,29 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-error_during_resume_3.adb
-enqueue_limit_2.adb
-ada_mode-recover_new_generic.ads
-ada_mode-recover_partial_1.adb
-enqueue_limit_1.adb
+test/ada_mode-recover_partial_2_lr1.adb
+    first error at 47:(LEFT_PAREN, (594 . 594)); finds 4 solutions:
+        parser 1: (insert identifier 47) - convert to function call
+        parser 2: (INSERT, IF, 47)       - treat it as condition
+        parser 3: (INSERT, CASE, 47)     - treat is as expression
+        parser 0: (INSERT, RETURN, 47)   - "
+
+    second error at 62:(RIGHT_PAREN, (641 . 641)); all 4 parsers active, all fail with enqueue limit
+        if should find:
+        (delete right_paren)(fast_forward)(insert 'end if; end if; end if; end case; end loop; end loop; end;')
+        cost:                                                          7       8         9
+        enqueue:                                                               | 1080    |5062
+                                                                                   | 3013
+
+        minimal_complete_actions for if_statement after then (lr1 state 9890) is (ELSE, ELSIF, END)
+            should be just END
+            wisitoken test_ada_lite_terminal_sequence.adb => ok if_statement ==> (IF, THEN, END, IF, SEMICOLON)
+            add test of wisitoken-generate-lr.adb Set_Minimal_Complete_Actions
+                store rhs_id of prod that produced minimal sequence; ignore others. o.w.s-1
+
+        per_process enqueue limit?
+
+... _7
 
 add error recovery strategy counts to recover.log
     language_fixes, minimal_complete_actions, explore

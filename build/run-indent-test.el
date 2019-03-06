@@ -11,6 +11,11 @@
 (defun test-in-comment-p ()
   (nth 4 (syntax-ppss)))
 
+(defun switch-to-lr1 ()
+  (setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_lr1_parse.exe"))
+  (setq wisi-process--alist nil)
+  (ada-mode))
+
 (defun test-face (token face)
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list."

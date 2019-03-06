@@ -1,13 +1,7 @@
 --  LR1 Recover used to hit enqueue_limit, now works nicely.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
-
--- Change parser to LR1 (normally run tests only with LALR)
-
---EMACSCMD:(setq wisi-indent-region-fallback nil)
---EMACSCMD:(setq ada-process-parse-exec (expand-file-name "../ada_mode_wisi_lr1_parse.exe"))
---EMACSCMD:(setq wisi-process--alist nil)
---EMACSCMD:(ada-mode)
+--EMACSCMD:(switch-to-lr1)
 
 -- Before, when hitting the enqueue limit, there were two errors, one
 -- from the sytax error, one from recover fail. In addition, all lines

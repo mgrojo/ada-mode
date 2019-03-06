@@ -725,8 +725,8 @@ TOKEN-TEXT; move point to just past token."
   (concat "\\bbegin\\b\\|\\bdeclare\\b\\|" ada-wisi-named-begin-regexp))
 
 (defconst ada-wisi-partial-end-regexp
-  ;; Terminal semicolon, or end of current declare/statement block.
-  (concat ";\\|\\bend\\b" "\\|" ada-wisi-partial-begin-regexp))
+  (concat ada-wisi-partial-begin-regexp
+	  "\\|;\\|\\bend;\\|\\bend " ada-name-regexp ";"))
 
 (defun ada-wisi-find-begin ()
   "Starting at current point, search backward for a parse start point."
@@ -734,15 +734,17 @@ TOKEN-TEXT; move point to just past token."
    ((looking-at (concat "\\s-*\\(" ada-wisi-named-begin-regexp "\\)"))
     (match-beginning 1))
 
-   ((save-excursion
-      (skip-syntax-backward "->")
-      (looking-back (concat  "end;\\|end " ada-name-regexp ";") (line-beginning-position -5)))
-    (match-end 0))
-
    ((search-backward-regexp ada-wisi-partial-begin-regexp nil t)
     (while (and (ada-in-string-or-comment-p)
 		(search-backward-regexp ada-wisi-partial-begin-regexp nil t)))
-    (point))
+    (let ((found (match-string 0)))
+      (cond
+       ((and (>= 3 (length found))
+	     (string-equal "end" (substring found 0 2)))
+	(match-end 0))
+
+      (t
+       (point)))))
 
    (t
     (point-min))

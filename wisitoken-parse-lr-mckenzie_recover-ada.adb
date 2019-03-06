@@ -75,16 +75,18 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       +package_specification_ID  & (+protected_type_declaration_ID) & (+single_protected_declaration_ID) &
         (+single_task_declaration_ID) & (+task_type_declaration_ID));
 
-   Statement_Declaration_Start_IDs : constant Terminal_Token_ID_Set :=
+   Minimal_Complete_Action_IDs : constant Terminal_Token_ID_Set :=
      To_Token_ID_Set
        (Descriptor.First_Terminal, Descriptor.Last_Terminal,
         +ABORT_ID & (+ACCEPT_ID) & (+BEGIN_ID) & (+CASE_ID) & (+DECLARE_ID) & (+DELAY_ID) & (+ELSE_ID) & (+ELSIF_ID) &
           (+END_ID) & (+ENTRY_ID) & (+EXCEPTION_ID) & (+EXIT_ID) & (+FOR_ID) & (+FUNCTION_ID) & (+GENERIC_ID) &
           (+GOTO_ID) & (+IF_ID) & (+LOOP_ID) & (+OVERRIDING_ID) & (+PACKAGE_ID) & (+PRAGMA_ID) & (+PROCEDURE_ID) &
-          (+PROTECTED_ID) & (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+SELECT_ID) & (+SUBTYPE_ID) & (+TASK_ID) &
-          (+TYPE_ID) & (+USE_ID) & (+WHEN_ID) & (+WITH_ID) &
+          (+PROTECTED_ID) & (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+RIGHT_PAREN_ID) & (+SELECT_ID) &
+          (+SUBTYPE_ID) & (+TASK_ID) & (+TYPE_ID) & (+USE_ID) & (+WHEN_ID) & (+WITH_ID) &
           Descriptor.EOF_ID);
-   --  Terminal tokens that must be preceded by an end of statement/declaration.
+   --  Terminal tokens where Minimal_Complete_Actions is useful. That
+   --  includes tokens that must be preceded by an end of a statement,
+   --  declaration, or expression (for trailing right paren).
 
    procedure Handle_Check_Fail
      (Trace             : in out WisiToken.Trace'Class;
@@ -1063,7 +1065,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
          return False;
       end if;
 
-      if Statement_Declaration_Start_IDs (Next_Token) then
+      if Minimal_Complete_Action_IDs (Next_Token) then
          case Ada_Process_Actions.Token_Enum_ID'(-Next_Token) is
          when ELSE_ID | ELSIF_ID =>
             --  Check for missing 'if ... then'
