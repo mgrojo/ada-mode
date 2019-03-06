@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,16 +20,41 @@ pragma License (GPL);
 
 with AUnit.Checks.Containers;
 with Ada.Text_IO;
-with WisiToken.BNF.Generate_Utils;
 with WisiToken.AUnit;
-with WisiToken.Generate.LR;
+with WisiToken.BNF.Generate_Utils;
+with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.LR1_Items;
+with WisiToken.Parse.LR.AUnit;
 with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 package body Test_Ada_Lite_Terminal_Sequence is
+
+   Input_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
+
+   Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
+   Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+   Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+   Generate_Data  : access WisiToken.BNF.Generate_Utils.Generate_Data;
+
+   Save_Trace_Generate : Integer := 0;
+
+   function "+" (Token_Name : in String) return WisiToken.Token_ID
+   is begin
+      return WisiToken.BNF.Generate_Utils.Find_Token_ID (Generate_Data.all, Token_Name);
+   end "+";
+
+   function To_List (Item : in WisiToken.Token_ID) return WisiToken.Parse.LR.Minimal_Action_Lists.List
+   is
+      use WisiToken.Parse.LR;
+   begin
+      return WisiToken.Parse.LR.Minimal_Action_Lists.To_List
+        ((Verb => Shift, ID => Item, State => WisiToken.State_Index'Last));
+   end To_List;
 
    ----------
    --  Test procedures
@@ -40,53 +65,135 @@ package body Test_Ada_Lite_Terminal_Sequence is
       use WisiToken.AUnit;
       use WisiToken.AUnit.Token_ID_Arrays_AUnit;
       use AUnit.Checks.Containers;
+      use WisiToken.BNF.Generate_Utils;
 
-      Input_File_Name  : constant String := "../Test/bnf/ada_lite.wy";
-
-      Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
-      Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
-      Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+      Computed : WisiToken.Token_Sequence_Arrays.Vector;
+      Sequence : WisiToken.Token_ID_Arrays.Vector;
    begin
-      Wisitoken_Grammar_Main.Create_Parser (Grammar_Parser, Trace'Unchecked_Access, Input_Data'Unchecked_Access);
+      WisiToken.Trace_Generate := Save_Trace_Generate;
 
-      Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
-      Grammar_Parser.Parse;
-      Input_Data.User_Parser := WisiToken.BNF.LALR;
-      Grammar_Parser.Execute_Actions;
+      WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences
+        (Generate_Data.Grammar, Generate_Data.Descriptor.all, Computed);
 
-      declare
-         use WisiToken.BNF.Generate_Utils;
+      if WisiToken.Trace_Generate > WisiToken.Detail then
+         Ada.Text_IO.New_Line;
+         for I in Computed.First_Index .. Computed.Last_Index loop
+            Ada.Text_IO.Put_Line
+              (WisiToken.Image (I, Generate_Data.Descriptor.all) & " => " &
+                 WisiToken.Image (Computed (I), Generate_Data.Descriptor.all));
+         end loop;
+      end if;
 
-         Generate_Data : aliased constant WisiToken.BNF.Generate_Utils.Generate_Data := Initialize (Input_Data);
+      --  We only check a couple things; the main test is that this runs in
+      --  a reasonable time, and there are no exceptions.
+      Check ("first", Computed.First_Index, Find_Token_ID (Generate_Data.all, "wisitoken_accept"));
+      Check ("last", Computed.Last_Index, Find_Token_ID (Generate_Data.all, "unary_adding_operator"));
 
-         Computed : WisiToken.Token_Sequence_Arrays.Vector;
-         Sequence : WisiToken.Token_ID_Arrays.Vector;
-      begin
-         WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences
-           (Generate_Data.Grammar, Generate_Data.Descriptor.all, Computed);
+      Check ("empty 1", Computed (Find_Token_ID (Generate_Data.all, "aspect_specification_opt")).Length, 0);
 
-         if WisiToken.Trace_Generate > WisiToken.Detail then
-            Ada.Text_IO.New_Line;
-            for I in Computed.First_Index .. Computed.Last_Index loop
-               Ada.Text_IO.Put_Line
-                 (WisiToken.Image (I, Generate_Data.Descriptor.all) & " => " &
-                    WisiToken.Image (Computed (I), Generate_Data.Descriptor.all));
-            end loop;
-         end if;
+      Sequence.Append (+"IDENTIFIER");
+      Sequence.Append (+"COLON_EQUAL");
+      Sequence.Append (+"SEMICOLON");
+      Check ("assignment_statement", Computed (+"assignment_statement"), Sequence);
 
-         --  We only check a couple things; the main test is that this runs in
-         --  a reasonable time, and there are no exceptions.
-         Check ("first", Computed.First_Index, Find_Token_ID (Generate_Data, "wisitoken_accept"));
-         Check ("last", Computed.Last_Index, Find_Token_ID (Generate_Data, "unary_adding_operator"));
-
-         Check ("empty 1", Computed (Find_Token_ID (Generate_Data, "aspect_specification_opt")).Length, 0);
-
-         Sequence.Append (Find_Token_ID (Generate_Data, "IDENTIFIER"));
-         Sequence.Append (Find_Token_ID (Generate_Data, "COLON_EQUAL"));
-         Sequence.Append (Find_Token_ID (Generate_Data, "SEMICOLON"));
-         Check ("assignment_statement", Computed (Find_Token_ID (Generate_Data, "assignment_statement")), Sequence);
-      end;
+      Sequence.Clear;
+      Sequence.Append (+"IF");
+      Sequence.Append (+"THEN");
+      Sequence.Append (+"END");
+      Sequence.Append (+"IF");
+      Sequence.Append (+"SEMICOLON");
+      Check ("if_statement", Computed (+"if_statement"), Sequence);
    end Test_Terminal_Sequence;
+
+   procedure Test_Minimal_Complete_Actions (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use WisiToken;
+      use WisiToken.Parse.LR.AUnit.Minimal_Action_Lists_AUnit;
+
+      Has_Empty_Production : constant Token_ID_Set := Generate.Has_Empty_Production (Generate_Data.Grammar);
+
+      First_Nonterm_Set : constant Token_Array_Token_Set := Generate.First
+        (Generate_Data.Grammar, Has_Empty_Production, Generate_Data.Descriptor.First_Terminal);
+
+      First_Terminal_Sequence : constant Token_Sequence_Arrays.Vector :=
+        WisiToken.Generate.To_Terminal_Sequence_Array (First_Nonterm_Set, Generate_Data.Descriptor.all);
+
+      Item_Sets : constant Generate.LR1_Items.Item_Set_List := Generate.LR.LR1_Generate.LR1_Item_Sets
+        (Has_Empty_Production, First_Terminal_Sequence, Generate_Data.Grammar, Generate_Data.Descriptor.all);
+
+      Unknown_Conflicts : Generate.LR.Conflict_Lists.List;
+
+      Table : Parse.LR.Parse_Table
+        (State_First       => Item_Sets.First_Index,
+         State_Last        => Item_Sets.Last_Index,
+         First_Terminal    => Generate_Data.Descriptor.First_Terminal,
+         Last_Terminal     => Generate_Data.Descriptor.Last_Terminal,
+         First_Nonterminal => Generate_Data.Descriptor.First_Nonterminal,
+         Last_Nonterminal  => Generate_Data.Descriptor.Last_Nonterminal);
+
+      Minimal_Terminal_First : constant Token_Array_Token_ID :=
+        Generate.LR.Minimal_Terminal_First (Generate_Data.Grammar, Generate_Data.Descriptor.all);
+
+      Ancestors : constant Token_Array_Token_Set := Generate.Ancestors
+        (Generate_Data.Grammar, Generate_Data.Descriptor.all);
+
+      function Build_Dot
+        (Grammar   : in Productions.Prod_Arrays.Vector;
+         Prod_ID   : in Production_ID;
+         Dot_After : in Natural)
+        return Token_ID_Arrays.Cursor
+      is
+         Tokens : Token_ID_Arrays.Vector renames Grammar (Prod_ID.LHS).RHSs (Prod_ID.RHS).Tokens;
+      begin
+         return Tokens.To_Cursor (Dot_After + 1);
+      end Build_Dot;
+
+      State : Unknown_State_Index := Unknown_State;
+
+      procedure Find_State (Prod_ID : in Production_ID; Dot_After : in Natural)
+      is
+         use all type Generate.LR1_Items.Item_Lists.Cursor;
+      begin
+         for I in Item_Sets.First_Index .. Item_Sets.Last_Index loop
+            if Generate.LR1_Items.Item_Lists.No_Element /= Generate.LR1_Items.Find
+              (Prod_ID, Build_Dot (Generate_Data.Grammar, Prod_ID, Dot_After), Item_Sets (I))
+            then
+               State := I;
+               exit;
+            end if;
+         end loop;
+      end Find_State;
+
+   begin
+      Generate.LR.LR1_Generate.Add_Actions
+        (Item_Sets, Generate_Data.Grammar, Has_Empty_Production, First_Nonterm_Set, Unknown_Conflicts, Table,
+         Generate_Data.Descriptor.all);
+
+      Trace_Generate := Save_Trace_Generate;
+
+      --  States 485, 907, 1500, 1763, 2475 have kernel:
+      --
+      --  "IF expression_opt THEN sequence_of_statements_opt ^"
+      --
+      --  All have the same Minimal_Complete_Actions. To be robust against
+      --  ada_lite grammar changes, we search Item_Sets for the state.
+
+      Find_State (Prod_ID => (+"if_statement", 3), Dot_After => 4);
+      if Trace_Generate > Detail then
+         Ada.Text_IO.Put_Line ("state" & Unknown_State_Index'Image (State));
+      end if;
+
+      WisiToken.Generate.LR.Set_Minimal_Complete_Actions
+        (Table.States (State),
+         Generate.LR1_Items.Filter
+           (Item_Sets (State), Generate_Data.Grammar, Generate_Data.Descriptor.all,
+            Generate.LR1_Items.In_Kernel'Access),
+         Minimal_Terminal_First, Ancestors,
+         Generate_Data.Descriptor.all, Generate_Data.Grammar);
+      Check ("1", Table.States (State).Minimal_Complete_Actions, To_List (+"END"));
+   end Test_Minimal_Complete_Actions;
+
 
    ----------
    --  Public subprograms
@@ -96,6 +203,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Terminal_Sequence'Access, "Test_Terminal_Sequence");
+      Register_Routine (T, Test_Minimal_Complete_Actions'Access, "Test_Minimal_Complete_Actions");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -104,5 +212,23 @@ package body Test_Ada_Lite_Terminal_Sequence is
    begin
       return new String'("test_ada_lite_terminal_sequence.adb");
    end Name;
+
+   overriding procedure Set_Up_Case (Test : in out Test_Case)
+   is
+      pragma Unreferenced (Test);
+   begin
+      Save_Trace_Generate      := WisiToken.Trace_Generate;
+      WisiToken.Trace_Generate := 0; -- Only trace the part we are interested in.
+
+      Wisitoken_Grammar_Main.Create_Parser (Grammar_Parser, Trace'Unchecked_Access, Input_Data'Unchecked_Access);
+
+      Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
+      Grammar_Parser.Parse;
+      Input_Data.User_Parser := WisiToken.BNF.LALR;
+      Grammar_Parser.Execute_Actions;
+      Generate_Data := new WisiToken.BNF.Generate_Utils.Generate_Data'
+        (WisiToken.BNF.Generate_Utils.Initialize (Input_Data));
+
+   end Set_Up_Case;
 
 end Test_Ada_Lite_Terminal_Sequence;

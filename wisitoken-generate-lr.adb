@@ -753,6 +753,11 @@ package body WisiToken.Generate.LR is
          end;
       end loop;
 
+      if Trace_Generate > Extra then
+         Ada.Text_IO.Put_Line ("after deletions:");
+         LR1_Items.Put (Grammar, Descriptor, Working_Set, Show_Lookaheads => False);
+      end if;
+
       for Item of Working_Set loop
          if not Has_Element (Item.Dot) then
             --  Item has no next terminal. Include a reduce action; the

@@ -857,7 +857,11 @@ package body WisiToken.Parse.LR.Parser is
          loop
             exit Action_Loop when Current_Parser.Is_Done;
 
-            if Shared_Parser.Terminate_Same_State and
+            --  We don't check duplicate state during resume, because the tokens
+            --  inserted/deleted by error recover may cause initially duplicate
+            --  states to diverge.
+            if not Current_Parser.State_Ref.Resume_Active and
+              Shared_Parser.Terminate_Same_State and
               Current_Verb in Shift | Shift_Recover and
               (for all Parser of Shared_Parser.Parsers => Parser.Recover_Insert_Delete.Count = 0)
             then

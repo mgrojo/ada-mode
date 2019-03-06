@@ -5,7 +5,7 @@
 --
 --  Tests grouped together because they use the same simple grammar.
 --
---  Copyright (C) 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -29,5 +29,7 @@ package Test_Ada_Lite_Terminal_Sequence is
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
+
+   overriding procedure Set_Up_Case (Test : in out Test_Case);
 
 end Test_Ada_Lite_Terminal_Sequence;

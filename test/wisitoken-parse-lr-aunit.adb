@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,6 +23,28 @@ with AUnit.Checks.Containers;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Parse.LR.AUnit is
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Minimal_Action;
+      Expected : in Minimal_Action)
+   is
+      use Standard.AUnit.Checks.Containers;
+      use WisiToken.AUnit;
+   begin
+      Check (Label & ".Verb", Computed.Verb, Expected.Verb);
+      case Computed.Verb is
+      when Shift =>
+         Check (Label & ".ID", Computed.ID, Expected.ID);
+         if Expected.State /= Unknown_State then
+            Check (Label & ".State", Computed.State, Expected.State);
+         end if;
+      when Reduce =>
+         Check (Label & ".Nonterm", Computed.Nonterm, Expected.Nonterm);
+         Check (Label & ".Token_count", Computed.Token_Count, Expected.Token_Count);
+      end case;
+   end Check;
+
 
    procedure Check
      (Label    : in String;

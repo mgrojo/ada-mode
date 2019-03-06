@@ -313,6 +313,13 @@ package WisiToken.Generate.LR1_Items is
    procedure Put
      (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
       Descriptor      : in WisiToken.Descriptor;
+      Item            : in Item_Lists.List;
+      Show_Lookaheads : in Boolean := True;
+      Kernel_Only     : in Boolean := False);
+
+   procedure Put
+     (Grammar         : in WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor      : in WisiToken.Descriptor;
       Item            : in Item_Set;
       Show_Lookaheads : in Boolean := True;
       Kernel_Only     : in Boolean := False;
