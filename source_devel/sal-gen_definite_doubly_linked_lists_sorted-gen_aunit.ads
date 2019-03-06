@@ -2,7 +2,7 @@
 --
 --  AUnit checks for parent
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,7 +19,10 @@
 pragma License (Modified_GPL);
 
 generic
+   with procedure Check_Element (Label : in String; Computed, Expected : in Element_Type);
 package SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit is
+
+   procedure Check (Label : in String; Computed : in List; Expected : in List);
 
    procedure Check
      (Label : in String;
