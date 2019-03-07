@@ -40,7 +40,7 @@ package body WisiToken is
 
    function Image (Item : in Token_ID; Desc : in Descriptor) return String
    is begin
-      return (if Item = Invalid_Token_ID then "" else Desc.Image (Item).all);
+      return (if Item = Invalid_Token_ID then "-" else Desc.Image (Item).all);
    end Image;
 
    procedure Put_Tokens (Descriptor : in WisiToken.Descriptor)

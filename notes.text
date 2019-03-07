@@ -21,10 +21,17 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-test partial parse
-    ada_lite.wy compilation_unit_list actions
-    null post-parse
-    (wisi-terminate-partial-parse) in-parse
+minimal_complete_actions fixed, running all tests
+
+    test_mckenzie_recover.adb : Multiple_Complete_Reduce
+        state 153 has null complete_actions
+        should be RIGHT_PAREN
+
+    test_lr_expecting_terminal_sequence.adb : Test_Terminal_Sequence
+        get verbose
+
+delete wisitoken.generate.ancestors?
+    no longer used in minimal_complete_actions; used by packrat?
 
 delete "assume ignore semantic check is a solution"; only language_fixes knows that
     provide subprog to enqueue that in language_fixes

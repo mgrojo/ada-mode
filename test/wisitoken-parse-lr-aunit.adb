@@ -20,6 +20,7 @@ pragma License (GPL); --  AUnit
 
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
+with WisiToken.AUnit;
 with WisiToken.Semantic_Checks.AUnit;
 with WisiToken.Syntax_Trees.AUnit_Public;
 package body WisiToken.Parse.LR.AUnit is
@@ -36,7 +37,7 @@ package body WisiToken.Parse.LR.AUnit is
       case Computed.Verb is
       when Shift =>
          Check (Label & ".ID", Computed.ID, Expected.ID);
-         if Expected.State /= Unknown_State then
+         if Expected.State /= State_Index'Last then
             Check (Label & ".State", Computed.State, Expected.State);
          end if;
       when Reduce =>

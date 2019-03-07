@@ -2,7 +2,7 @@
 --
 --  AUnit Checks for parent
 --
---  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -64,6 +64,10 @@ package WisiToken.AUnit is
    package Token_ID_Arrays_AUnit is new Token_ID_Arrays.Gen_AUnit
      (Check_Index   => Standard.AUnit.Checks.Check,
       Check_Element => Check);
+
+   package Token_Sequence_Arrays_AUnit is new Token_Sequence_Arrays.Gen_AUnit
+     (Check_Index   => Check,
+      Check_Element => Token_ID_Arrays_AUnit.Check);
 
    procedure Check_Valid is new Standard.AUnit.Checks.Gen_Check_Valid (Buffer_Pos);
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Buffer_Pos);

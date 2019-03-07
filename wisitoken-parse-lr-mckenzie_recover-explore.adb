@@ -660,6 +660,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          declare
             Item : constant Work_Type := Work.Get;
          begin
+            if Trace_McKenzie > Extra then
+               Put_Line (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions get work item");
+            end if;
+
             for Action of Item.Complete_Actions loop
                case Action.Verb is
                when Reduce =>
@@ -671,17 +675,23 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                      Reduce_Action : Reduce_Action_Rec := To_Reduce_Action (Action);
 
                      Temp_Actions : Minimal_Action_Lists.List;
+                     Prev_State   : Unknown_State_Index := Unknown_State;
                   begin
                      loop
+                        if Trace_McKenzie > Extra then
+                           Prev_State := New_Config.Stack.Peek.State;
+                        end if;
+
                         Do_Reduce_1
                           (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Reduce_Action,
                            Do_Language_Fixes => False);
 
                         if Trace_McKenzie > Extra then
                            Put_Line
-                             (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions reduce to" &
-                                State_Index'Image (New_Config.Stack.Peek.State) & ", " &
-                                Image (Reduce_Action.Production.LHS, Descriptor));
+                             (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions" &
+                                State_Index'Image (Prev_State) & ": reduce to " &
+                                Image (Reduce_Action.Production.LHS, Descriptor) & ", goto" &
+                                State_Index'Image (New_Config.Stack.Peek.State));
                         end if;
 
                         Temp_Actions := Reduce_Only

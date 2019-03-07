@@ -26,8 +26,6 @@ with AUnit.Checks;
 with SAL.AUnit;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
 with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit;
-with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
-with WisiToken.AUnit;
 package WisiToken.Parse.LR.AUnit is
 
    Strict : Boolean := False;
@@ -60,10 +58,6 @@ package WisiToken.Parse.LR.AUnit is
       Expected : in Config_Op);
 
    procedure Check is new Config_Op_Arrays.Gen_AUnit (SAL.AUnit.Check, Check);
-
-   package Token_Sequence_Arrays_AUnit is new Token_Sequence_Arrays.Gen_AUnit
-     (Check_Index   => WisiToken.AUnit.Check,
-      Check_Element => WisiToken.AUnit.Token_ID_Arrays_AUnit.Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
 

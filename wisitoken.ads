@@ -164,7 +164,7 @@ package WisiToken is
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive, Token_ID, Default_Element => Invalid_Token_ID);
 
-   function Image is new Token_ID_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
+   function Image is new Token_ID_Arrays.Gen_Image_Aux (Descriptor, Image);
    function Trimmed_Image is new Token_ID_Arrays.Gen_Image (Trimmed_Image);
 
    procedure To_Vector (Item : in Token_ID_Array; Vector : in out Token_ID_Arrays.Vector);

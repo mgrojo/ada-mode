@@ -19,9 +19,11 @@
 pragma License (GPL);
 
 with AUnit.Checks.Containers;
+with Ada.Containers;
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.BNF.Generate_Utils;
+with WisiToken.Generate.LR.AUnit;
 with WisiToken.Generate.LR.LR1_Generate;
 with WisiToken.Generate.LR1_Items;
 with WisiToken.Parse.LR.AUnit;
@@ -48,12 +50,21 @@ package body Test_Ada_Lite_Terminal_Sequence is
       return WisiToken.BNF.Generate_Utils.Find_Token_ID (Generate_Data.all, Token_Name);
    end "+";
 
-   function To_List (Item : in WisiToken.Token_ID) return WisiToken.Parse.LR.Minimal_Action_Lists.List
+   function To_List
+     (Item        : in WisiToken.Token_ID;
+      Token_Count : in Ada.Containers.Count_Type := 0)
+     return WisiToken.Parse.LR.Minimal_Action_Lists.List
    is
+      use all type WisiToken.Token_ID;
       use WisiToken.Parse.LR;
    begin
-      return WisiToken.Parse.LR.Minimal_Action_Lists.To_List
-        ((Verb => Shift, ID => Item, State => WisiToken.State_Index'Last));
+      if Item < Generate_Data.Descriptor.First_Nonterminal then
+         return WisiToken.Parse.LR.Minimal_Action_Lists.To_List
+           ((Verb => Shift, ID => Item, State => WisiToken.State_Index'Last));
+      else
+         return WisiToken.Parse.LR.Minimal_Action_Lists.To_List
+           ((Verb => Reduce, Nonterm => Item, Token_Count => Token_Count));
+      end if;
    end To_List;
 
    ----------
@@ -62,53 +73,66 @@ package body Test_Ada_Lite_Terminal_Sequence is
    procedure Test_Terminal_Sequence (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use WisiToken;
       use WisiToken.AUnit;
-      use WisiToken.AUnit.Token_ID_Arrays_AUnit;
+      use WisiToken.Generate.LR;
+      use WisiToken.Generate.LR.AUnit.Minimal_RHS_Arrays_AUnit;
+      use WisiToken.Generate.LR.Minimal_RHS_Arrays;
+      use WisiToken.Token_ID_Arrays;
       use AUnit.Checks.Containers;
       use WisiToken.BNF.Generate_Utils;
-
-      Computed : WisiToken.Token_Sequence_Arrays.Vector;
-      Sequence : WisiToken.Token_ID_Arrays.Vector;
    begin
-      WisiToken.Trace_Generate := Save_Trace_Generate;
+      Trace_Generate := Save_Trace_Generate;
+      declare
+         Computed : constant Minimal_Sequence_Array :=
+           Compute_Minimal_Terminal_Sequences
+             (Generate_Data.Descriptor.all, Generate_Data.Grammar);
+      begin
+         if Trace_Generate > Detail then
+            Ada.Text_IO.New_Line;
+            for I in Computed'Range loop
+               Ada.Text_IO.Put_Line
+                 (Image (I, Generate_Data.Descriptor.all) & " => " &
+                    Image (Computed (I), Generate_Data.Descriptor.all));
+            end loop;
+         end if;
 
-      WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences
-        (Generate_Data.Grammar, Generate_Data.Descriptor.all, Computed);
+         --  We only check a couple things; the main test is that this runs in
+         --  a reasonable time, and there are no exceptions.
+         Check ("first", Computed'First, Find_Token_ID (Generate_Data.all, "wisitoken_accept"));
+         Check ("last", Computed'Last, Find_Token_ID (Generate_Data.all, "unary_adding_operator"));
 
-      if WisiToken.Trace_Generate > WisiToken.Detail then
-         Ada.Text_IO.New_Line;
-         for I in Computed.First_Index .. Computed.Last_Index loop
-            Ada.Text_IO.Put_Line
-              (WisiToken.Image (I, Generate_Data.Descriptor.all) & " => " &
-                 WisiToken.Image (Computed (I), Generate_Data.Descriptor.all));
-         end loop;
-      end if;
+         Check ("empty 1", Min (Computed (+"aspect_specification_opt")).Length, 0);
 
-      --  We only check a couple things; the main test is that this runs in
-      --  a reasonable time, and there are no exceptions.
-      Check ("first", Computed.First_Index, Find_Token_ID (Generate_Data.all, "wisitoken_accept"));
-      Check ("last", Computed.Last_Index, Find_Token_ID (Generate_Data.all, "unary_adding_operator"));
+         Check
+           ("assignment_statement",
+            Computed (+"assignment_statement"),
+            Minimal_RHS_Arrays.To_Vector (+"IDENTIFIER" & (+"COLON_EQUAL") & (+"SEMICOLON")));
 
-      Check ("empty 1", Computed (Find_Token_ID (Generate_Data.all, "aspect_specification_opt")).Length, 0);
+         Check
+           ("if_statement",
+            Computed (+"if_statement"),
+            (+"IF" & (+"THEN") & (+"ELSIF") & (+"THEN") & (+"ELSE") & (+"END") & (+"IF") & (+"SEMICOLON")) &
+              (+"IF" & (+"THEN") & (+"ELSE") & (+"END") & (+"IF") & (+"SEMICOLON")) &
+              (+"IF" & (+"THEN") & (+"ELSIF") & (+"THEN") & (+"END") & (+"IF") & (+"SEMICOLON")) &
+              (+"IF" & (+"THEN") & (+"END") & (+"IF") & (+"SEMICOLON")));
 
-      Sequence.Append (+"IDENTIFIER");
-      Sequence.Append (+"COLON_EQUAL");
-      Sequence.Append (+"SEMICOLON");
-      Check ("assignment_statement", Computed (+"assignment_statement"), Sequence);
-
-      Sequence.Clear;
-      Sequence.Append (+"IF");
-      Sequence.Append (+"THEN");
-      Sequence.Append (+"END");
-      Sequence.Append (+"IF");
-      Sequence.Append (+"SEMICOLON");
-      Check ("if_statement", Computed (+"if_statement"), Sequence);
+         Check
+           ("name",
+            Computed (+"name"),
+            ((+"IDENTIFIER") & (+"LEFT_PAREN") & (+"NUMERIC_LITERAL") & (+"DOT_DOT") & (+"NUMERIC_LITERAL") &
+               (+"RIGHT_PAREN")) &
+              ((+"IDENTIFIER") & (+"LEFT_PAREN") & (+"RIGHT_PAREN")) &
+              To_Vector (+"IDENTIFIER") &
+              ((+"IDENTIFIER") & (+"DOT") & (+"IDENTIFIER")));
+      end;
    end Test_Terminal_Sequence;
 
    procedure Test_Minimal_Complete_Actions (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use WisiToken;
+      use WisiToken.Generate.LR;
       use WisiToken.Parse.LR.AUnit.Minimal_Action_Lists_AUnit;
 
       Has_Empty_Production : constant Token_ID_Set := Generate.Has_Empty_Production (Generate_Data.Grammar);
@@ -132,11 +156,11 @@ package body Test_Ada_Lite_Terminal_Sequence is
          First_Nonterminal => Generate_Data.Descriptor.First_Nonterminal,
          Last_Nonterminal  => Generate_Data.Descriptor.Last_Nonterminal);
 
-      Minimal_Terminal_First : constant Token_Array_Token_ID :=
-        Generate.LR.Minimal_Terminal_First (Generate_Data.Grammar, Generate_Data.Descriptor.all);
+      Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
+        Compute_Minimal_Terminal_Sequences (Generate_Data.Descriptor.all, Generate_Data.Grammar);
 
-      Ancestors : constant Token_Array_Token_Set := Generate.Ancestors
-        (Generate_Data.Grammar, Generate_Data.Descriptor.all);
+      Minimal_Terminal_First : constant Token_Array_Token_ID := Generate.LR.Compute_Minimal_Terminal_First
+          (Generate_Data.Descriptor.all, Minimal_Terminal_Sequences);
 
       function Build_Dot
         (Grammar   : in Productions.Prod_Arrays.Vector;
@@ -149,21 +173,44 @@ package body Test_Ada_Lite_Terminal_Sequence is
          return Tokens.To_Cursor (Dot_After + 1);
       end Build_Dot;
 
-      State : Unknown_State_Index := Unknown_State;
-
-      procedure Find_State (Prod_ID : in Production_ID; Dot_After : in Natural)
+      procedure Check
+        (Label     : in String;
+         Prod_ID   : in Production_ID;
+         Dot_After : in Natural;
+         Expected  : in WisiToken.Parse.LR.Minimal_Action_Lists.List)
       is
-         use all type Generate.LR1_Items.Item_Lists.Cursor;
+         State : Unknown_State_Index := Unknown_State;
+
+         procedure Find_State (Prod_ID : in Production_ID; Dot_After : in Natural)
+         is
+            use all type Generate.LR1_Items.Item_Lists.Cursor;
+         begin
+            for I in Item_Sets.First_Index .. Item_Sets.Last_Index loop
+               if Generate.LR1_Items.Item_Lists.No_Element /= Generate.LR1_Items.Find
+                 (Prod_ID, Build_Dot (Generate_Data.Grammar, Prod_ID, Dot_After), Item_Sets (I))
+               then
+                  State := I;
+                  exit;
+               end if;
+            end loop;
+         end Find_State;
+
       begin
-         for I in Item_Sets.First_Index .. Item_Sets.Last_Index loop
-            if Generate.LR1_Items.Item_Lists.No_Element /= Generate.LR1_Items.Find
-              (Prod_ID, Build_Dot (Generate_Data.Grammar, Prod_ID, Dot_After), Item_Sets (I))
-            then
-               State := I;
-               exit;
-            end if;
-         end loop;
-      end Find_State;
+         Find_State (Prod_ID, Dot_After);
+         if Trace_Generate > Detail then
+            Ada.Text_IO.Put_Line ("state" & Unknown_State_Index'Image (State));
+         end if;
+
+         Set_Minimal_Complete_Actions
+           (Table.States (State),
+            Generate.LR1_Items.Filter
+              (Item_Sets (State), Generate_Data.Grammar, Generate_Data.Descriptor.all,
+               Generate.LR1_Items.In_Kernel'Access),
+            Generate_Data.Descriptor.all, Generate_Data.Grammar,
+            Minimal_Terminal_Sequences, Minimal_Terminal_First);
+         Check (Label, Table.States (State).Minimal_Complete_Actions, Expected);
+
+      end Check;
 
    begin
       Generate.LR.LR1_Generate.Add_Actions
@@ -172,28 +219,19 @@ package body Test_Ada_Lite_Terminal_Sequence is
 
       Trace_Generate := Save_Trace_Generate;
 
-      --  States 485, 907, 1500, 1763, 2475 have kernel:
-      --
-      --  "IF expression_opt THEN sequence_of_statements_opt ^"
-      --
-      --  All have the same Minimal_Complete_Actions. To be robust against
-      --  ada_lite grammar changes, we search Item_Sets for the state.
-
-      Find_State (Prod_ID => (+"if_statement", 3), Dot_After => 4);
-      if Trace_Generate > Detail then
-         Ada.Text_IO.Put_Line ("state" & Unknown_State_Index'Image (State));
+      if Trace_Generate > Extra then
+         for Nonterm in Minimal_Terminal_Sequences'Range loop
+            Ada.Text_IO.Put_Line
+              (Image (Nonterm, Generate_Data.Descriptor.all) & " => " &
+                 Image (Minimal_Terminal_Sequences (Nonterm), Generate_Data.Descriptor.all));
+         end loop;
       end if;
 
-      WisiToken.Generate.LR.Set_Minimal_Complete_Actions
-        (Table.States (State),
-         Generate.LR1_Items.Filter
-           (Item_Sets (State), Generate_Data.Grammar, Generate_Data.Descriptor.all,
-            Generate.LR1_Items.In_Kernel'Access),
-         Minimal_Terminal_First, Ancestors,
-         Generate_Data.Descriptor.all, Generate_Data.Grammar);
-      Check ("1", Table.States (State).Minimal_Complete_Actions, To_List (+"END"));
+      Check ("if 4", Prod_ID => (+"if_statement", 3), Dot_After => 4, Expected => To_List (+"END"));
+      Check ("case 1", Prod_ID => (+"case_statement", 0), Dot_After => 1, Expected => To_List (+"expression_opt"));
+      Check ("body_stub 1", Prod_ID => (+"body_stub", 0), Dot_After => 1, Expected => To_List (+"body_stub", 1));
+      Check ("body_g 1", Prod_ID => (+"body_g", 1), Dot_After => 1, Expected => To_List (+"body_g", 1));
    end Test_Minimal_Complete_Actions;
-
 
    ----------
    --  Public subprograms
