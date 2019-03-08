@@ -73,12 +73,12 @@ package body Test_Ada_Lite_Terminal_Sequence is
    procedure Test_Terminal_Sequence (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use WisiToken;
       use WisiToken.AUnit;
+      use WisiToken.Generate.LR.AUnit.RHS_Sequence_Arrays_AUnit;
+      use WisiToken.Generate.LR.RHS_Sequence_Arrays;
       use WisiToken.Generate.LR;
-      use WisiToken.Generate.LR.AUnit.Minimal_RHS_Arrays_AUnit;
-      use WisiToken.Generate.LR.Minimal_RHS_Arrays;
       use WisiToken.Token_ID_Arrays;
+      use WisiToken;
       use AUnit.Checks.Containers;
       use WisiToken.BNF.Generate_Utils;
    begin
@@ -102,29 +102,31 @@ package body Test_Ada_Lite_Terminal_Sequence is
          Check ("first", Computed'First, Find_Token_ID (Generate_Data.all, "wisitoken_accept"));
          Check ("last", Computed'Last, Find_Token_ID (Generate_Data.all, "unary_adding_operator"));
 
-         Check ("empty 1", Min (Computed (+"aspect_specification_opt")).Length, 0);
+         Check ("empty 1", Min (Computed (+"aspect_specification_opt")).Sequence.Length, 0);
 
          Check
            ("assignment_statement",
             Computed (+"assignment_statement"),
-            Minimal_RHS_Arrays.To_Vector (+"IDENTIFIER" & (+"COLON_EQUAL") & (+"SEMICOLON")));
+            RHS_Sequence_Arrays.To_Vector
+              ((Left_Recursive => False,
+                Sequence       => +"IDENTIFIER" & (+"COLON_EQUAL") & (+"SEMICOLON"))));
 
          Check
            ("if_statement",
             Computed (+"if_statement"),
-            (+"IF" & (+"THEN") & (+"ELSIF") & (+"THEN") & (+"ELSE") & (+"END") & (+"IF") & (+"SEMICOLON")) &
-              (+"IF" & (+"THEN") & (+"ELSE") & (+"END") & (+"IF") & (+"SEMICOLON")) &
-              (+"IF" & (+"THEN") & (+"ELSIF") & (+"THEN") & (+"END") & (+"IF") & (+"SEMICOLON")) &
-              (+"IF" & (+"THEN") & (+"END") & (+"IF") & (+"SEMICOLON")));
+            (False, +"IF" & (+"THEN") & (+"ELSIF") & (+"THEN") & (+"ELSE") & (+"END") & (+"IF") & (+"SEMICOLON")) &
+              (False, +"IF" & (+"THEN") & (+"ELSE") & (+"END") & (+"IF") & (+"SEMICOLON")) &
+              (False, +"IF" & (+"THEN") & (+"ELSIF") & (+"THEN") & (+"END") & (+"IF") & (+"SEMICOLON")) &
+              (False, +"IF" & (+"THEN") & (+"END") & (+"IF") & (+"SEMICOLON")));
 
          Check
            ("name",
             Computed (+"name"),
-            ((+"IDENTIFIER") & (+"LEFT_PAREN") & (+"NUMERIC_LITERAL") & (+"DOT_DOT") & (+"NUMERIC_LITERAL") &
+            (True, (+"IDENTIFIER") & (+"LEFT_PAREN") & (+"NUMERIC_LITERAL") & (+"DOT_DOT") & (+"NUMERIC_LITERAL") &
                (+"RIGHT_PAREN")) &
-              ((+"IDENTIFIER") & (+"LEFT_PAREN") & (+"RIGHT_PAREN")) &
-              To_Vector (+"IDENTIFIER") &
-              ((+"IDENTIFIER") & (+"DOT") & (+"IDENTIFIER")));
+              (True, (+"IDENTIFIER") & (+"LEFT_PAREN") & (+"RIGHT_PAREN")) &
+              (False, To_Vector (+"IDENTIFIER")) &
+              (False, (+"IDENTIFIER") & (+"DOT") & (+"IDENTIFIER")));
       end;
    end Test_Terminal_Sequence;
 
@@ -268,5 +270,12 @@ package body Test_Ada_Lite_Terminal_Sequence is
         (WisiToken.BNF.Generate_Utils.Initialize (Input_Data));
 
    end Set_Up_Case;
+
+   overriding procedure Tear_Down_Case (Test : in out Test_Case)
+   is
+      pragma Unreferenced (Test);
+   begin
+      WisiToken.Trace_Generate := Save_Trace_Generate;
+   end Tear_Down_Case;
 
 end Test_Ada_Lite_Terminal_Sequence;

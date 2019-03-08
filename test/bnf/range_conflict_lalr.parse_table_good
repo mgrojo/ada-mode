@@ -30,12 +30,6 @@ Productions:
 15.2: range_g <= primary DOT_DOT primary
 16.0: relation <= primary IN membership_choice
 
-Ancestors:
-IDENTIFIER => membership_choice, primary
-STRING_LITERAL => membership_choice, primary
-primary => membership_choice
-range_g => membership_choice
-
 LALR Parse Table:
 State 0:
      11.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -50,7 +44,7 @@ State 0:
    primary           goto state 6
    range_g           goto state 7
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 1:
      14.2:primary <= LEFT_PAREN ^ relation RIGHT_PAREN, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
@@ -63,7 +57,7 @@ State 1:
    primary           goto state 9
    relation          goto state 10
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 2:
      14.0:primary <= IDENTIFIER ^, LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL
@@ -78,7 +72,7 @@ State 2:
    STRING_LITERAL    => reduce 1 tokens to primary 14.0
    default           => ERROR
 
-   Minimal_Complete_Actions => (TICK, primary)
+   Minimal_Complete_Actions => (primary)
 
 State 3:
      14.1:primary <= STRING_LITERAL ^, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
@@ -100,6 +94,8 @@ State 4:
    Wisi_EOI          => accept it 11.0
    default           => ERROR
 
+   Minimal_Complete_Actions => ()
+
 State 5:
      12.0:compilation_unit <= membership_choice ^ range_g, Wisi_EOI
 
@@ -111,7 +107,7 @@ State 5:
    primary           goto state 12
    range_g           goto state 13
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 6:
      13.0:membership_choice <= primary ^, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL
@@ -124,7 +120,7 @@ State 6:
    STRING_LITERAL    => reduce 1 tokens to membership_choice 13.0
    default           => ERROR
 
-   Minimal_Complete_Actions => (DOT_DOT, membership_choice)
+   Minimal_Complete_Actions => (membership_choice)
 
 State 7:
      13.1:membership_choice <= range_g ^, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL
@@ -201,7 +197,7 @@ State 14:
 
    primary           goto state 18
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 15:
      16.0:relation <= primary IN ^ membership_choice, RIGHT_PAREN
@@ -215,7 +211,7 @@ State 15:
    primary           goto state 6
    range_g           goto state 7
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 16:
      14.2:primary <= LEFT_PAREN relation RIGHT_PAREN ^, IN/LEFT_PAREN/RIGHT_PAREN/DOT_DOT/IDENTIFIER/STRING_LITERAL/Wisi_EOI
@@ -276,7 +272,7 @@ State 20:
    primary           goto state 9
    relation          goto state 21
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 21:
      15.0:range_g <= IDENTIFIER TICK RANGE LEFT_PAREN relation ^ RIGHT_PAREN, LEFT_PAREN/RIGHT_PAREN/IDENTIFIER/STRING_LITERAL/Wisi_EOI

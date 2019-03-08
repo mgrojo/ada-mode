@@ -21,10 +21,6 @@ Productions:
 11.0: other_indicator <= OTHER
 11.1: other_indicator <=
 
-Ancestors:
-OVERRIDING => overriding_indicator
-OTHER => other_indicator
-
 LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -62,6 +58,8 @@ State 3:
 
    Wisi_EOI               => accept it 7.0
    default                => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 4:
       8.0:compilation_unit <= subprogram_declaration ^ subprogram_declaration subprogram_declaration, Wisi_EOI

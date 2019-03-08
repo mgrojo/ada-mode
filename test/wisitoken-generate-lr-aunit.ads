@@ -23,14 +23,19 @@ with SAL.Gen_Unbounded_Definite_Vectors.Gen_AUnit;
 with WisiToken.AUnit;
 package WisiToken.Generate.LR.AUnit is
 
-   package Minimal_RHS_Arrays_AUnit is new Minimal_RHS_Arrays.Gen_AUnit
-     (Standard.AUnit.Checks.Check, WisiToken.AUnit.Token_ID_Arrays_AUnit.Check);
+   procedure Check
+     (Label    : in String;
+      Computed : in RHS_Sequence;
+      Expected : in RHS_Sequence);
+
+   package RHS_Sequence_Arrays_AUnit is new RHS_Sequence_Arrays.Gen_AUnit
+     (Standard.AUnit.Checks.Check, Check);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Unconstrained_Array
      (Index_Type  => Token_ID,
-      Item_Type   => Minimal_RHS_Arrays.Vector,
+      Item_Type   => RHS_Sequence_Arrays.Vector,
       Array_Type  => Minimal_Sequence_Array,
       Check_Index => WisiToken.AUnit.Check,
-      Check_Item  => Minimal_RHS_Arrays_AUnit.Check);
+      Check_Item  => RHS_Sequence_Arrays_AUnit.Check);
 
 end WisiToken.Generate.LR.AUnit;

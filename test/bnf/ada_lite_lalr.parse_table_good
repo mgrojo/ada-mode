@@ -285,7 +285,6 @@ Productions:
 126.0: simple_expression <= unary_adding_operator term_list
 126.1: simple_expression <= term_list
 127.0: simple_return_statement <= RETURN expression_opt SEMICOLON
-127.1: simple_return_statement <= RETURN SEMICOLON
 128.0: simple_statement <= assignment_statement
 128.1: simple_statement <= exit_statement
 128.2: simple_statement <= procedure_call_statement
@@ -478,76 +477,6 @@ Check_Limit       => 3
 Check_Delta_Limit => 2147483647
 Enqueue_Limit     => 2147483647
 
-Ancestors:
-AMPERSAND => binary_adding_operator
-EQUAL => relational_operator
-GREATER => relational_operator
-GREATER_EQUAL => relational_operator
-LESS => relational_operator
-LESS_EQUAL => relational_operator
-MINUS => binary_adding_operator, unary_adding_operator
-PLUS => binary_adding_operator, unary_adding_operator
-SLASH => multiplying_operator
-SLASH_EQUAL => relational_operator
-STAR => multiplying_operator
-STRING_LITERAL => association_opt, association_list, expression, expression_opt, factor, primary, relation, simple_expression, term, term_list
-NUMERIC_LITERAL => association_opt, association_list, expression, expression_opt, factor, primary, relation, simple_expression, term, term_list
-IDENTIFIER => association_opt, association_list, discrete_subtype_definition, enumeration_literal_list, exception_choice, expression, expression_opt, factor, identifier_opt, name, name_opt, primary, relation, simple_expression, subtype_indication, term, term_list
-assignment_statement => compilation_unit, compilation_unit_list, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
-association_opt => association_list
-block_statement => compilation_unit, compilation_unit_list, compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
-body_g => declaration, declarations, declarative_part_opt
-body_stub => body_g, declaration, declarations, declarative_part_opt
-case_statement => compilation_unit, compilation_unit_list, compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
-case_statement_alternative => case_statement_alternative_list
-compilation_unit => compilation_unit_list
-compound_statement => compilation_unit, compilation_unit_list, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
-declaration => declarations, declarative_part_opt
-declarations => declarative_part_opt
-elsif_statement_item => elsif_statement_list
-enumeration_type_definition => type_definition
-exception_handler => exception_handler_list, exception_handler_list_opt
-exception_handler_list => exception_handler_list_opt
-exit_statement => compilation_unit, compilation_unit_list, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
-expression => association_opt, association_list, expression_opt
-extended_return_statement => compilation_unit, compilation_unit_list, compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
-factor => association_opt, association_list, expression, expression_opt, relation, simple_expression, term, term_list
-formal_part => parameter_profile_opt
-full_type_declaration => declaration, declarations, declarative_part_opt, type_declaration
-function_specification => subprogram_specification
-generic_instantiation => compilation_unit, compilation_unit_list
-if_statement => compilation_unit, compilation_unit_list, compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
-index_constraint => constraint
-loop_statement => compilation_unit, compilation_unit_list, compound_statement, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
-name => association_opt, association_list, discrete_subtype_definition, exception_choice, expression, expression_opt, factor, name_opt, primary, relation, simple_expression, subtype_indication, term, term_list
-object_declaration => declaration, declarations, declarative_part_opt
-package_body => body_g, compilation_unit, compilation_unit_list, declaration, declarations, declarative_part_opt, proper_body
-parameter_specification => parameter_specification_list
-paren_expression => association_opt, association_list, expression, expression_opt, factor, primary, relation, simple_expression, term, term_list
-primary => association_opt, association_list, expression, expression_opt, factor, relation, simple_expression, term, term_list
-procedure_call_statement => compilation_unit, compilation_unit_list, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
-procedure_specification => subprogram_specification
-proper_body => body_g, declaration, declarations, declarative_part_opt
-range_g => discrete_subtype_definition, range_list
-relation_and_list => association_opt, association_list, expression, expression_opt
-relation_or_list => association_opt, association_list, expression, expression_opt
-relation_xor_list => association_opt, association_list, expression, expression_opt
-relation => association_opt, association_list, expression, expression_opt
-selected_component => association_opt, association_list, discrete_subtype_definition, exception_choice, expression, expression_opt, factor, name, name_opt, primary, relation, simple_expression, subtype_indication, term, term_list
-sequence_of_statements => handled_sequence_of_statements, sequence_of_statements_opt
-sequence_of_statements_opt => handled_sequence_of_statements
-simple_expression => association_opt, association_list, expression, expression_opt, relation
-simple_return_statement => compilation_unit, compilation_unit_list, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, simple_statement, statement
-simple_statement => compilation_unit, compilation_unit_list, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt, statement
-statement => compilation_unit, compilation_unit_list, handled_sequence_of_statements, sequence_of_statements, sequence_of_statements_opt
-subprogram_body => body_g, compilation_unit, compilation_unit_list, declaration, declarations, declarative_part_opt, proper_body
-subprogram_body_stub => body_g, body_stub, declaration, declarations, declarative_part_opt
-subprogram_declaration => compilation_unit, compilation_unit_list, declaration, declarations, declarative_part_opt
-subtype_indication => discrete_subtype_definition
-term => association_opt, association_list, expression, expression_opt, relation, simple_expression, term_list
-term_list => association_opt, association_list, expression, expression_opt, relation, simple_expression
-type_declaration => declaration, declarations, declarative_part_opt
-
 LALR Parse Table:
 State 0:
      56.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI, 
@@ -592,7 +521,7 @@ State 0:
    subprogram_declaration             goto state 34
    subprogram_specification           goto state 35
 
-   Minimal_Complete_Actions => (RETURN)
+   Minimal_Complete_Actions => (EXIT)
 
 State 1:
      67.0:case_statement <= CASE ^ expression_opt IS case_statement_alternative_list END CASE SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -739,7 +668,7 @@ State 7:
    name                               goto state 66
    selected_component                 goto state 29
 
-   Minimal_Complete_Actions => (BODY, IDENTIFIER)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 8:
      95.1:generic_instantiation <= PROCEDURE ^ name IS NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
@@ -756,22 +685,20 @@ State 8:
 State 9:
      90.0:extended_return_statement <= RETURN ^ extended_return_object_declaration SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
     127.0:simple_return_statement <= RETURN ^ expression_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-    127.1:simple_return_statement <= RETURN ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
    MINUS                              => shift and goto state 38
    PLUS                               => shift and goto state 39
-   SEMICOLON                          => shift and goto state 68,
-                                         reduce 0 tokens to expression_opt 88.1
+   SEMICOLON                          => reduce 0 tokens to expression_opt 88.1
    STRING_LITERAL                     => shift and goto state 40
    NUMERIC_LITERAL                    => shift and goto state 41
-   IDENTIFIER                         => shift and goto state 69
+   IDENTIFIER                         => shift and goto state 68
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 70
-   extended_return_object_declaration goto state 71
+   expression_opt                     goto state 69
+   extended_return_object_declaration goto state 70
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -786,20 +713,20 @@ State 9:
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (SEMICOLON, IDENTIFIER, expression_opt)
+   Minimal_Complete_Actions => (expression_opt)
 
 State 10:
      63.0:block_label_opt <= IDENTIFIER ^ COLON, BEGIN/DECLARE
     103.2:name <= IDENTIFIER ^, LEFT_PAREN/COLON_EQUAL/DOT/SEMICOLON
 
    LEFT_PAREN                         => reduce 1 tokens to name 103.2
-   COLON                              => shift and goto state 72
+   COLON                              => shift and goto state 71
    COLON_EQUAL                        => reduce 1 tokens to name 103.2
    DOT                                => reduce 1 tokens to name 103.2
    SEMICOLON                          => reduce 1 tokens to name 103.2
    default                            => ERROR
 
-   Minimal_Complete_Actions => (COLON, name)
+   Minimal_Complete_Actions => (name)
 
 State 11:
     128.0:simple_statement <= assignment_statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -830,11 +757,11 @@ State 12:
      64.0:block_statement <= block_label_opt ^ DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      64.1:block_statement <= block_label_opt ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   BEGIN                              => shift and goto state 73
-   DECLARE                            => shift and goto state 74
+   BEGIN                              => shift and goto state 72
+   DECLARE                            => shift and goto state 73
    default                            => ERROR
 
-   Minimal_Complete_Actions => (BEGIN, DECLARE)
+   Minimal_Complete_Actions => (BEGIN)
 
 State 13:
      72.3:compound_statement <= block_statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -929,7 +856,7 @@ State 16:
    block_label_opt                    goto state 12
    block_statement                    goto state 13
    case_statement                     goto state 14
-   compilation_unit                   goto state 75
+   compilation_unit                   goto state 74
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
@@ -949,6 +876,8 @@ State 16:
    subprogram_body                    goto state 33
    subprogram_declaration             goto state 34
    subprogram_specification           goto state 35
+
+   Minimal_Complete_Actions => ()
 
 State 17:
     129.1:statement <= compound_statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -1083,7 +1012,7 @@ State 22:
 State 23:
     101.0:loop_statement <= iteration_scheme ^ LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   LOOP                               => shift and goto state 76
+   LOOP                               => shift and goto state 75
    default                            => ERROR
 
    Minimal_Complete_Actions => (LOOP)
@@ -1120,15 +1049,15 @@ State 25:
     113.0:procedure_call_statement <= name ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
     123.0:selected_component <= name ^ DOT IDENTIFIER, LEFT_PAREN/COLON_EQUAL/DOT/SEMICOLON
 
-   LEFT_PAREN                         => shift and goto state 77
-   COLON_EQUAL                        => shift and goto state 78
-   DOT                                => shift and goto state 79
-   SEMICOLON                          => shift and goto state 80
+   LEFT_PAREN                         => shift and goto state 76
+   COLON_EQUAL                        => shift and goto state 77
+   DOT                                => shift and goto state 78
+   SEMICOLON                          => shift and goto state 79
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
+   actual_parameter_part              goto state 80
 
-   Minimal_Complete_Actions => (COLON_EQUAL, DOT, SEMICOLON)
+   Minimal_Complete_Actions => (SEMICOLON)
 
 State 26:
      70.0:compilation_unit <= package_body ^, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
@@ -1335,13 +1264,13 @@ State 35:
     132.0:subprogram_declaration <= subprogram_specification ^ SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    IS                                 => reduce 0 tokens to aspect_specification_opt 58.1
-   WITH                               => shift and goto state 82
-   SEMICOLON                          => shift and goto state 83
+   WITH                               => shift and goto state 81
+   SEMICOLON                          => shift and goto state 82
    default                            => ERROR
 
-   aspect_specification_opt           goto state 84
+   aspect_specification_opt           goto state 83
 
-   Minimal_Complete_Actions => (SEMICOLON, aspect_specification_opt)
+   Minimal_Complete_Actions => (SEMICOLON)
 
 State 36:
     111.0:paren_expression <= LEFT_PAREN ^ expression_opt RIGHT_PAREN, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1357,7 +1286,7 @@ State 36:
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 85
+   expression_opt                     goto state 84
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -1385,10 +1314,10 @@ State 37:
 
    name                               goto state 46
    paren_expression                   goto state 47
-   primary                            goto state 86
+   primary                            goto state 85
    selected_component                 goto state 29
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
 State 38:
     139.1:unary_adding_operator <= MINUS ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
@@ -1522,7 +1451,7 @@ State 43:
 State 44:
      67.0:case_statement <= CASE expression_opt ^ IS case_statement_alternative_list END CASE SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   IS                                 => shift and goto state 87
+   IS                                 => shift and goto state 86
    default                            => ERROR
 
    Minimal_Complete_Actions => (IS)
@@ -1564,7 +1493,7 @@ State 46:
 
    AND                                => reduce 1 tokens to primary 112.2
    IS                                 => reduce 1 tokens to primary 112.2
-   LEFT_PAREN                         => shift and goto state 77
+   LEFT_PAREN                         => shift and goto state 76
    LOOP                               => reduce 1 tokens to primary 112.2
    OR                                 => reduce 1 tokens to primary 112.2
    RIGHT_PAREN                        => reduce 1 tokens to primary 112.2
@@ -1573,7 +1502,7 @@ State 46:
    AMPERSAND                          => reduce 1 tokens to primary 112.2
    COLON_EQUAL                        => reduce 1 tokens to primary 112.2
    COMMA                              => reduce 1 tokens to primary 112.2
-   DOT                                => shift and goto state 79
+   DOT                                => shift and goto state 78
    DOT_DOT                            => reduce 1 tokens to primary 112.2
    EQUAL                              => reduce 1 tokens to primary 112.2
    GREATER                            => reduce 1 tokens to primary 112.2
@@ -1588,9 +1517,9 @@ State 46:
    STAR                               => reduce 1 tokens to primary 112.2
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
+   actual_parameter_part              goto state 80
 
-   Minimal_Complete_Actions => (DOT, primary)
+   Minimal_Complete_Actions => (primary)
 
 State 47:
     112.3:primary <= paren_expression ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -1654,7 +1583,7 @@ State 49:
      87.1:expression <= relation_and_list ^, IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
     118.0:relation_and_list <= relation_and_list ^ AND relation, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
-   AND                                => shift and goto state 88
+   AND                                => shift and goto state 87
    IS                                 => reduce 1 tokens to expression 87.1
    RIGHT_PAREN                        => reduce 1 tokens to expression 87.1
    THEN                               => reduce 1 tokens to expression 87.1
@@ -1669,7 +1598,7 @@ State 50:
     119.0:relation_or_list <= relation_or_list ^ OR relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    IS                                 => reduce 1 tokens to expression 87.2
-   OR                                 => shift and goto state 89
+   OR                                 => shift and goto state 88
    RIGHT_PAREN                        => reduce 1 tokens to expression 87.2
    THEN                               => reduce 1 tokens to expression 87.2
    COMMA                              => reduce 1 tokens to expression 87.2
@@ -1685,7 +1614,7 @@ State 51:
    IS                                 => reduce 1 tokens to expression 87.3
    RIGHT_PAREN                        => reduce 1 tokens to expression 87.3
    THEN                               => reduce 1 tokens to expression 87.3
-   XOR                                => shift and goto state 90
+   XOR                                => shift and goto state 89
    COMMA                              => reduce 1 tokens to expression 87.3
    SEMICOLON                          => reduce 1 tokens to expression 87.3
    default                            => ERROR
@@ -1698,17 +1627,17 @@ State 52:
     119.1:relation_or_list <= relation ^ OR relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
     120.1:relation_xor_list <= relation ^ XOR relation, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
 
-   AND                                => shift and goto state 91
+   AND                                => shift and goto state 90
    IS                                 => reduce 1 tokens to expression 87.0
-   OR                                 => shift and goto state 92
+   OR                                 => shift and goto state 91
    RIGHT_PAREN                        => reduce 1 tokens to expression 87.0
    THEN                               => reduce 1 tokens to expression 87.0
-   XOR                                => shift and goto state 93
+   XOR                                => shift and goto state 92
    COMMA                              => reduce 1 tokens to expression 87.0
    SEMICOLON                          => reduce 1 tokens to expression 87.0
    default                            => ERROR
 
-   Minimal_Complete_Actions => (AND, OR, XOR, expression)
+   Minimal_Complete_Actions => (expression)
 
 State 53:
     121.0:relation <= simple_expression ^ relational_operator simple_expression, AND/IS/OR/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
@@ -1721,16 +1650,16 @@ State 53:
    THEN                               => reduce 1 tokens to relation 121.1
    XOR                                => reduce 1 tokens to relation 121.1
    COMMA                              => reduce 1 tokens to relation 121.1
-   EQUAL                              => shift and goto state 94
-   GREATER                            => shift and goto state 95
-   GREATER_EQUAL                      => shift and goto state 96
-   LESS                               => shift and goto state 97
-   LESS_EQUAL                         => shift and goto state 98
+   EQUAL                              => shift and goto state 93
+   GREATER                            => shift and goto state 94
+   GREATER_EQUAL                      => shift and goto state 95
+   LESS                               => shift and goto state 96
+   LESS_EQUAL                         => shift and goto state 97
    SEMICOLON                          => reduce 1 tokens to relation 121.1
-   SLASH_EQUAL                        => shift and goto state 99
+   SLASH_EQUAL                        => shift and goto state 98
    default                            => ERROR
 
-   relational_operator                goto state 100
+   relational_operator                goto state 99
 
    Minimal_Complete_Actions => (relation)
 
@@ -1757,12 +1686,12 @@ State 54:
    MINUS                              => reduce 1 tokens to term_list 136.1
    PLUS                               => reduce 1 tokens to term_list 136.1
    SEMICOLON                          => reduce 1 tokens to term_list 136.1
-   SLASH                              => shift and goto state 101
+   SLASH                              => shift and goto state 100
    SLASH_EQUAL                        => reduce 1 tokens to term_list 136.1
-   STAR                               => shift and goto state 102
+   STAR                               => shift and goto state 101
    default                            => ERROR
 
-   multiplying_operator               goto state 103
+   multiplying_operator               goto state 102
 
    Minimal_Complete_Actions => (term_list)
 
@@ -1777,7 +1706,7 @@ State 55:
    RIGHT_PAREN                        => reduce 1 tokens to simple_expression 126.1
    THEN                               => reduce 1 tokens to simple_expression 126.1
    XOR                                => reduce 1 tokens to simple_expression 126.1
-   AMPERSAND                          => shift and goto state 104
+   AMPERSAND                          => shift and goto state 103
    COLON_EQUAL                        => reduce 1 tokens to simple_expression 126.1
    COMMA                              => reduce 1 tokens to simple_expression 126.1
    DOT_DOT                            => reduce 1 tokens to simple_expression 126.1
@@ -1786,13 +1715,13 @@ State 55:
    GREATER_EQUAL                      => reduce 1 tokens to simple_expression 126.1
    LESS                               => reduce 1 tokens to simple_expression 126.1
    LESS_EQUAL                         => reduce 1 tokens to simple_expression 126.1
-   MINUS                              => shift and goto state 105
-   PLUS                               => shift and goto state 106
+   MINUS                              => shift and goto state 104
+   PLUS                               => shift and goto state 105
    SEMICOLON                          => reduce 1 tokens to simple_expression 126.1
    SLASH_EQUAL                        => reduce 1 tokens to simple_expression 126.1
    default                            => ERROR
 
-   binary_adding_operator             goto state 107
+   binary_adding_operator             goto state 106
 
    Minimal_Complete_Actions => (simple_expression)
 
@@ -1812,9 +1741,9 @@ State 56:
    primary                            goto state 48
    selected_component                 goto state 29
    term                               goto state 54
-   term_list                          goto state 108
+   term_list                          goto state 107
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
 State 57:
      97.0:identifier_opt <= IDENTIFIER ^, WHEN/SEMICOLON
@@ -1829,16 +1758,16 @@ State 58:
      86.0:exit_statement <= EXIT identifier_opt ^ WHEN expression_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      86.1:exit_statement <= EXIT identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   WHEN                               => shift and goto state 109
-   SEMICOLON                          => shift and goto state 110
+   WHEN                               => shift and goto state 108
+   SEMICOLON                          => shift and goto state 109
    default                            => ERROR
 
-   Minimal_Complete_Actions => (WHEN, SEMICOLON)
+   Minimal_Complete_Actions => (SEMICOLON)
 
 State 59:
     100.0:iteration_scheme <= FOR IDENTIFIER ^ IN discrete_subtype_definition, LOOP
 
-   IN                                 => shift and goto state 111
+   IN                                 => shift and goto state 110
    default                            => ERROR
 
    Minimal_Complete_Actions => (IN)
@@ -1849,16 +1778,16 @@ State 60:
     103.1:name <= name ^ actual_parameter_part, LEFT_PAREN/RETURN/DOT
     123.0:selected_component <= name ^ DOT IDENTIFIER, LEFT_PAREN/RETURN/DOT
 
-   LEFT_PAREN                         => shift and goto state 112
-   RETURN                             => shift and goto state 113
-   DOT                                => shift and goto state 79
+   LEFT_PAREN                         => shift and goto state 111
+   RETURN                             => shift and goto state 112
+   DOT                                => shift and goto state 78
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
-   formal_part                        goto state 114
-   parameter_and_result_profile       goto state 115
+   actual_parameter_part              goto state 80
+   formal_part                        goto state 113
+   parameter_and_result_profile       goto state 114
 
-   Minimal_Complete_Actions => (RETURN, DOT)
+   Minimal_Complete_Actions => (RETURN)
 
 State 61:
      98.0:if_statement <= IF expression_opt ^ THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -1866,7 +1795,7 @@ State 61:
      98.2:if_statement <= IF expression_opt ^ THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      98.3:if_statement <= IF expression_opt ^ THEN sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   THEN                               => shift and goto state 116
+   THEN                               => shift and goto state 115
    default                            => ERROR
 
    Minimal_Complete_Actions => (THEN)
@@ -1906,14 +1835,14 @@ State 62:
    selected_component                 goto state 29
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
-   statement                          goto state 117
+   statement                          goto state 116
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
 State 63:
     101.1:loop_statement <= LOOP sequence_of_statements_opt ^ END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   END                                => shift and goto state 118
+   END                                => shift and goto state 117
    default                            => ERROR
 
    Minimal_Complete_Actions => (END)
@@ -1946,7 +1875,7 @@ State 65:
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   name                               goto state 119
+   name                               goto state 118
    selected_component                 goto state 29
 
    Minimal_Complete_Actions => (IDENTIFIER)
@@ -1957,14 +1886,14 @@ State 66:
     103.1:name <= name ^ actual_parameter_part, IS/LEFT_PAREN/DOT
     123.0:selected_component <= name ^ DOT IDENTIFIER, IS/LEFT_PAREN/DOT
 
-   IS                                 => shift and goto state 120
-   LEFT_PAREN                         => shift and goto state 77
-   DOT                                => shift and goto state 79
+   IS                                 => shift and goto state 119
+   LEFT_PAREN                         => shift and goto state 76
+   DOT                                => shift and goto state 78
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
+   actual_parameter_part              goto state 80
 
-   Minimal_Complete_Actions => (IS, DOT)
+   Minimal_Complete_Actions => (IS)
 
 State 67:
      95.1:generic_instantiation <= PROCEDURE name ^ IS NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
@@ -1973,46 +1902,21 @@ State 67:
     114.0:procedure_specification <= PROCEDURE name ^ parameter_profile_opt, IS/WITH/SEMICOLON
     123.0:selected_component <= name ^ DOT IDENTIFIER, IS/LEFT_PAREN/WITH/DOT/SEMICOLON
 
-   IS                                 => shift and goto state 121,
+   IS                                 => shift and goto state 120,
                                          reduce 0 tokens to parameter_profile_opt 108.1
-   LEFT_PAREN                         => shift and goto state 112
+   LEFT_PAREN                         => shift and goto state 111
    WITH                               => reduce 0 tokens to parameter_profile_opt 108.1
-   DOT                                => shift and goto state 79
+   DOT                                => shift and goto state 78
    SEMICOLON                          => reduce 0 tokens to parameter_profile_opt 108.1
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
-   formal_part                        goto state 122
-   parameter_profile_opt              goto state 123
+   actual_parameter_part              goto state 80
+   formal_part                        goto state 121
+   parameter_profile_opt              goto state 122
 
-   Minimal_Complete_Actions => (IS, DOT, parameter_profile_opt)
+   Minimal_Complete_Actions => (parameter_profile_opt)
 
 State 68:
-    127.1:simple_return_statement <= RETURN SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-
-   BEGIN                              => reduce 2 tokens to simple_return_statement 127.1
-   CASE                               => reduce 2 tokens to simple_return_statement 127.1
-   DECLARE                            => reduce 2 tokens to simple_return_statement 127.1
-   ELSE                               => reduce 2 tokens to simple_return_statement 127.1
-   ELSIF                              => reduce 2 tokens to simple_return_statement 127.1
-   END                                => reduce 2 tokens to simple_return_statement 127.1
-   EXIT                               => reduce 2 tokens to simple_return_statement 127.1
-   EXCEPTION                          => reduce 2 tokens to simple_return_statement 127.1
-   FOR                                => reduce 2 tokens to simple_return_statement 127.1
-   FUNCTION                           => reduce 2 tokens to simple_return_statement 127.1
-   IF                                 => reduce 2 tokens to simple_return_statement 127.1
-   LOOP                               => reduce 2 tokens to simple_return_statement 127.1
-   PACKAGE                            => reduce 2 tokens to simple_return_statement 127.1
-   PROCEDURE                          => reduce 2 tokens to simple_return_statement 127.1
-   RETURN                             => reduce 2 tokens to simple_return_statement 127.1
-   WHEN                               => reduce 2 tokens to simple_return_statement 127.1
-   IDENTIFIER                         => reduce 2 tokens to simple_return_statement 127.1
-   Wisi_EOI                           => reduce 2 tokens to simple_return_statement 127.1
-   default                            => ERROR
-
-   Minimal_Complete_Actions => (simple_return_statement)
-
-State 69:
      89.0:extended_return_object_declaration <= IDENTIFIER ^ COLON subtype_indication, SEMICOLON
     103.2:name <= IDENTIFIER ^, AND/LEFT_PAREN/OR/XOR/AMPERSAND/DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
@@ -2021,7 +1925,7 @@ State 69:
    OR                                 => reduce 1 tokens to name 103.2
    XOR                                => reduce 1 tokens to name 103.2
    AMPERSAND                          => reduce 1 tokens to name 103.2
-   COLON                              => shift and goto state 124
+   COLON                              => shift and goto state 123
    DOT                                => reduce 1 tokens to name 103.2
    EQUAL                              => reduce 1 tokens to name 103.2
    GREATER                            => reduce 1 tokens to name 103.2
@@ -2036,10 +1940,18 @@ State 69:
    STAR                               => reduce 1 tokens to name 103.2
    default                            => ERROR
 
-   Minimal_Complete_Actions => (COLON, name)
+   Minimal_Complete_Actions => (name)
+
+State 69:
+    127.0:simple_return_statement <= RETURN expression_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+
+   SEMICOLON                          => shift and goto state 124
+   default                            => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON)
 
 State 70:
-    127.0:simple_return_statement <= RETURN expression_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     90.0:extended_return_statement <= RETURN extended_return_object_declaration ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 125
    default                            => ERROR
@@ -2047,14 +1959,6 @@ State 70:
    Minimal_Complete_Actions => (SEMICOLON)
 
 State 71:
-     90.0:extended_return_statement <= RETURN extended_return_object_declaration ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-
-   SEMICOLON                          => shift and goto state 126
-   default                            => ERROR
-
-   Minimal_Complete_Actions => (SEMICOLON)
-
-State 72:
      63.0:block_label_opt <= IDENTIFIER COLON ^, BEGIN/DECLARE
 
    BEGIN                              => reduce 2 tokens to block_label_opt 63.0
@@ -2063,7 +1967,7 @@ State 72:
 
    Minimal_Complete_Actions => (block_label_opt)
 
-State 73:
+State 72:
      64.1:block_statement <= block_label_opt BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -2086,7 +1990,7 @@ State 73:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 127
+   handled_sequence_of_statements     goto state 126
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
@@ -2094,44 +1998,44 @@ State 73:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 128
+   sequence_of_statements_opt         goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (handled_sequence_of_statements)
 
-State 74:
+State 73:
      64.0:block_statement <= block_label_opt DECLARE ^ declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to declarative_part_opt 76.1
    FUNCTION                           => shift and goto state 4
-   PACKAGE                            => shift and goto state 129
-   PROCEDURE                          => shift and goto state 130
-   TYPE                               => shift and goto state 131
-   IDENTIFIER                         => shift and goto state 132
+   PACKAGE                            => shift and goto state 128
+   PROCEDURE                          => shift and goto state 129
+   TYPE                               => shift and goto state 130
+   IDENTIFIER                         => shift and goto state 131
    default                            => ERROR
 
-   body_g                             goto state 133
-   body_stub                          goto state 134
-   declaration                        goto state 135
-   declarations                       goto state 136
-   declarative_part_opt               goto state 137
-   full_type_declaration              goto state 138
+   body_g                             goto state 132
+   body_stub                          goto state 133
+   declaration                        goto state 134
+   declarations                       goto state 135
+   declarative_part_opt               goto state 136
+   full_type_declaration              goto state 137
    function_specification             goto state 20
-   object_declaration                 goto state 139
-   package_body                       goto state 140
+   object_declaration                 goto state 138
+   package_body                       goto state 139
    procedure_specification            goto state 28
-   proper_body                        goto state 141
-   subprogram_body                    goto state 142
-   subprogram_body_stub               goto state 143
-   subprogram_declaration             goto state 144
-   subprogram_specification           goto state 145
-   type_declaration                   goto state 146
+   proper_body                        goto state 140
+   subprogram_body                    goto state 141
+   subprogram_body_stub               goto state 142
+   subprogram_declaration             goto state 143
+   subprogram_specification           goto state 144
+   type_declaration                   goto state 145
 
    Minimal_Complete_Actions => (declarative_part_opt)
 
-State 75:
+State 74:
      71.0:compilation_unit_list <= compilation_unit_list compilation_unit ^, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 2 tokens to compilation_unit_list 71.0
@@ -2151,7 +2055,7 @@ State 75:
 
    Minimal_Complete_Actions => (compilation_unit_list)
 
-State 76:
+State 75:
     101.0:loop_statement <= iteration_scheme LOOP ^ sequence_of_statements_opt END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -2180,14 +2084,14 @@ State 76:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 147
+   sequence_of_statements_opt         goto state 146
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
-State 77:
+State 76:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN, AND/IS/LEFT_PAREN/LOOP/OR/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
     103.0:name <= name LEFT_PAREN ^ range_list RIGHT_PAREN, AND/IS/LEFT_PAREN/LOOP/OR/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
@@ -2199,31 +2103,31 @@ State 77:
    PLUS                               => shift and goto state 39
    STRING_LITERAL                     => shift and goto state 40
    NUMERIC_LITERAL                    => shift and goto state 41
-   IDENTIFIER                         => shift and goto state 148
+   IDENTIFIER                         => shift and goto state 147
    default                            => ERROR
 
-   association_opt                    goto state 149
-   association_list                   goto state 150
-   expression                         goto state 151
+   association_opt                    goto state 148
+   association_list                   goto state 149
+   expression                         goto state 150
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 152
-   range_list                         goto state 153
+   range_g                            goto state 151
+   range_list                         goto state 152
    relation_and_list                  goto state 49
    relation_or_list                   goto state 50
    relation_xor_list                  goto state 51
    relation                           goto state 52
    selected_component                 goto state 29
-   simple_expression                  goto state 154
+   simple_expression                  goto state 153
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER, association_list)
+   Minimal_Complete_Actions => (association_list)
 
-State 78:
+State 77:
      59.0:assignment_statement <= name COLON_EQUAL ^ expression_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    LEFT_PAREN                         => shift and goto state 36
@@ -2237,7 +2141,7 @@ State 78:
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 155
+   expression_opt                     goto state 154
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -2254,15 +2158,15 @@ State 78:
 
    Minimal_Complete_Actions => (expression_opt)
 
-State 79:
+State 78:
     123.0:selected_component <= name DOT ^ IDENTIFIER, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
-   IDENTIFIER                         => shift and goto state 156
+   IDENTIFIER                         => shift and goto state 155
    default                            => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 80:
+State 79:
     113.0:procedure_call_statement <= name SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 2 tokens to procedure_call_statement 113.0
@@ -2287,7 +2191,7 @@ State 80:
 
    Minimal_Complete_Actions => (procedure_call_statement)
 
-State 81:
+State 80:
     103.1:name <= name actual_parameter_part ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    AND                                => reduce 2 tokens to name 103.1
@@ -2322,7 +2226,7 @@ State 81:
 
    Minimal_Complete_Actions => (name)
 
-State 82:
+State 81:
      58.0:aspect_specification_opt <= WITH ^ association_list, IS
 
    IS                                 => reduce 0 tokens to association_opt 60.2
@@ -2333,12 +2237,12 @@ State 82:
    PLUS                               => shift and goto state 39
    STRING_LITERAL                     => shift and goto state 40
    NUMERIC_LITERAL                    => shift and goto state 41
-   IDENTIFIER                         => shift and goto state 148
+   IDENTIFIER                         => shift and goto state 147
    default                            => ERROR
 
-   association_opt                    goto state 149
-   association_list                   goto state 157
-   expression                         goto state 151
+   association_opt                    goto state 148
+   association_list                   goto state 156
+   expression                         goto state 150
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -2355,7 +2259,7 @@ State 82:
 
    Minimal_Complete_Actions => (association_list)
 
-State 83:
+State 82:
     132.0:subprogram_declaration <= subprogram_specification SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 2 tokens to subprogram_declaration 132.0
@@ -2377,23 +2281,23 @@ State 83:
 
    Minimal_Complete_Actions => (subprogram_declaration)
 
-State 84:
+State 83:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt ^ IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   IS                                 => shift and goto state 158
+   IS                                 => shift and goto state 157
    default                            => ERROR
 
    Minimal_Complete_Actions => (IS)
 
-State 85:
+State 84:
     111.0:paren_expression <= LEFT_PAREN expression_opt ^ RIGHT_PAREN, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
-   RIGHT_PAREN                        => shift and goto state 159
+   RIGHT_PAREN                        => shift and goto state 158
    default                            => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)
 
-State 86:
+State 85:
      91.1:factor <= NOT primary ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    AND                                => reduce 2 tokens to factor 91.1
@@ -2422,19 +2326,44 @@ State 86:
 
    Minimal_Complete_Actions => (factor)
 
-State 87:
+State 86:
      67.0:case_statement <= CASE expression_opt IS ^ case_statement_alternative_list END CASE SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   WHEN                               => shift and goto state 160
+   WHEN                               => shift and goto state 159
    default                            => ERROR
 
-   case_statement_alternative         goto state 161
-   case_statement_alternative_list    goto state 162
+   case_statement_alternative         goto state 160
+   case_statement_alternative_list    goto state 161
 
    Minimal_Complete_Actions => (WHEN)
 
-State 88:
+State 87:
     118.0:relation_and_list <= relation_and_list AND ^ relation, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
+
+   LEFT_PAREN                         => shift and goto state 36
+   NOT                                => shift and goto state 37
+   MINUS                              => shift and goto state 38
+   PLUS                               => shift and goto state 39
+   STRING_LITERAL                     => shift and goto state 40
+   NUMERIC_LITERAL                    => shift and goto state 41
+   IDENTIFIER                         => shift and goto state 42
+   default                            => ERROR
+
+   factor                             goto state 45
+   name                               goto state 46
+   paren_expression                   goto state 47
+   primary                            goto state 48
+   relation                           goto state 162
+   selected_component                 goto state 29
+   simple_expression                  goto state 53
+   term                               goto state 54
+   term_list                          goto state 55
+   unary_adding_operator              goto state 56
+
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
+
+State 88:
+    119.0:relation_or_list <= relation_or_list OR ^ relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
@@ -2456,10 +2385,10 @@ State 88:
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
 State 89:
-    119.0:relation_or_list <= relation_or_list OR ^ relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
+    120.0:relation_xor_list <= relation_xor_list XOR ^ relation, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
@@ -2481,10 +2410,10 @@ State 89:
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
 State 90:
-    120.0:relation_xor_list <= relation_xor_list XOR ^ relation, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
+    118.1:relation_and_list <= relation AND ^ relation, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
@@ -2506,10 +2435,10 @@ State 90:
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
 State 91:
-    118.1:relation_and_list <= relation AND ^ relation, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
+    119.1:relation_or_list <= relation OR ^ relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
@@ -2531,10 +2460,10 @@ State 91:
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
 State 92:
-    119.1:relation_or_list <= relation OR ^ relation, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
+    120.1:relation_xor_list <= relation XOR ^ relation, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
@@ -2556,34 +2485,9 @@ State 92:
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
 State 93:
-    120.1:relation_xor_list <= relation XOR ^ relation, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
-
-   LEFT_PAREN                         => shift and goto state 36
-   NOT                                => shift and goto state 37
-   MINUS                              => shift and goto state 38
-   PLUS                               => shift and goto state 39
-   STRING_LITERAL                     => shift and goto state 40
-   NUMERIC_LITERAL                    => shift and goto state 41
-   IDENTIFIER                         => shift and goto state 42
-   default                            => ERROR
-
-   factor                             goto state 45
-   name                               goto state 46
-   paren_expression                   goto state 47
-   primary                            goto state 48
-   relation                           goto state 168
-   selected_component                 goto state 29
-   simple_expression                  goto state 53
-   term                               goto state 54
-   term_list                          goto state 55
-   unary_adding_operator              goto state 56
-
-   Minimal_Complete_Actions => (IDENTIFIER)
-
-State 94:
     122.0:relational_operator <= EQUAL ^, LEFT_PAREN/NOT/MINUS/PLUS/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to relational_operator 122.0
@@ -2597,7 +2501,7 @@ State 94:
 
    Minimal_Complete_Actions => (relational_operator)
 
-State 95:
+State 94:
     122.4:relational_operator <= GREATER ^, LEFT_PAREN/NOT/MINUS/PLUS/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to relational_operator 122.4
@@ -2611,7 +2515,7 @@ State 95:
 
    Minimal_Complete_Actions => (relational_operator)
 
-State 96:
+State 95:
     122.5:relational_operator <= GREATER_EQUAL ^, LEFT_PAREN/NOT/MINUS/PLUS/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to relational_operator 122.5
@@ -2625,7 +2529,7 @@ State 96:
 
    Minimal_Complete_Actions => (relational_operator)
 
-State 97:
+State 96:
     122.2:relational_operator <= LESS ^, LEFT_PAREN/NOT/MINUS/PLUS/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to relational_operator 122.2
@@ -2639,7 +2543,7 @@ State 97:
 
    Minimal_Complete_Actions => (relational_operator)
 
-State 98:
+State 97:
     122.3:relational_operator <= LESS_EQUAL ^, LEFT_PAREN/NOT/MINUS/PLUS/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to relational_operator 122.3
@@ -2653,7 +2557,7 @@ State 98:
 
    Minimal_Complete_Actions => (relational_operator)
 
-State 99:
+State 98:
     122.1:relational_operator <= SLASH_EQUAL ^, LEFT_PAREN/NOT/MINUS/PLUS/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to relational_operator 122.1
@@ -2667,7 +2571,7 @@ State 99:
 
    Minimal_Complete_Actions => (relational_operator)
 
-State 100:
+State 99:
     121.0:relation <= simple_expression relational_operator ^ simple_expression, AND/IS/OR/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
@@ -2684,14 +2588,14 @@ State 100:
    paren_expression                   goto state 47
    primary                            goto state 48
    selected_component                 goto state 29
-   simple_expression                  goto state 169
+   simple_expression                  goto state 168
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
-State 101:
+State 100:
     102.1:multiplying_operator <= SLASH ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to multiplying_operator 102.1
@@ -2703,7 +2607,7 @@ State 101:
 
    Minimal_Complete_Actions => (multiplying_operator)
 
-State 102:
+State 101:
     102.0:multiplying_operator <= STAR ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to multiplying_operator 102.0
@@ -2715,7 +2619,7 @@ State 102:
 
    Minimal_Complete_Actions => (multiplying_operator)
 
-State 103:
+State 102:
     135.0:term <= term multiplying_operator ^ factor, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    LEFT_PAREN                         => shift and goto state 36
@@ -2725,15 +2629,15 @@ State 103:
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   factor                             goto state 170
+   factor                             goto state 169
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
    selected_component                 goto state 29
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
-State 104:
+State 103:
      62.2:binary_adding_operator <= AMPERSAND ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to binary_adding_operator 62.2
@@ -2745,7 +2649,7 @@ State 104:
 
    Minimal_Complete_Actions => (binary_adding_operator)
 
-State 105:
+State 104:
      62.1:binary_adding_operator <= MINUS ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to binary_adding_operator 62.1
@@ -2757,7 +2661,7 @@ State 105:
 
    Minimal_Complete_Actions => (binary_adding_operator)
 
-State 106:
+State 105:
      62.0:binary_adding_operator <= PLUS ^, LEFT_PAREN/NOT/STRING_LITERAL/NUMERIC_LITERAL/IDENTIFIER
 
    LEFT_PAREN                         => reduce 1 tokens to binary_adding_operator 62.0
@@ -2769,7 +2673,7 @@ State 106:
 
    Minimal_Complete_Actions => (binary_adding_operator)
 
-State 107:
+State 106:
     136.0:term_list <= term_list binary_adding_operator ^ term, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH_EQUAL
 
    LEFT_PAREN                         => shift and goto state 36
@@ -2784,11 +2688,11 @@ State 107:
    paren_expression                   goto state 47
    primary                            goto state 48
    selected_component                 goto state 29
-   term                               goto state 171
+   term                               goto state 170
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
-State 108:
+State 107:
     126.0:simple_expression <= unary_adding_operator term_list ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/SEMICOLON/SLASH_EQUAL
     136.0:term_list <= term_list ^ binary_adding_operator term, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH_EQUAL
 
@@ -2799,7 +2703,7 @@ State 108:
    RIGHT_PAREN                        => reduce 2 tokens to simple_expression 126.0
    THEN                               => reduce 2 tokens to simple_expression 126.0
    XOR                                => reduce 2 tokens to simple_expression 126.0
-   AMPERSAND                          => shift and goto state 104
+   AMPERSAND                          => shift and goto state 103
    COLON_EQUAL                        => reduce 2 tokens to simple_expression 126.0
    COMMA                              => reduce 2 tokens to simple_expression 126.0
    DOT_DOT                            => reduce 2 tokens to simple_expression 126.0
@@ -2808,17 +2712,17 @@ State 108:
    GREATER_EQUAL                      => reduce 2 tokens to simple_expression 126.0
    LESS                               => reduce 2 tokens to simple_expression 126.0
    LESS_EQUAL                         => reduce 2 tokens to simple_expression 126.0
-   MINUS                              => shift and goto state 105
-   PLUS                               => shift and goto state 106
+   MINUS                              => shift and goto state 104
+   PLUS                               => shift and goto state 105
    SEMICOLON                          => reduce 2 tokens to simple_expression 126.0
    SLASH_EQUAL                        => reduce 2 tokens to simple_expression 126.0
    default                            => ERROR
 
-   binary_adding_operator             goto state 107
+   binary_adding_operator             goto state 106
 
    Minimal_Complete_Actions => (simple_expression)
 
-State 109:
+State 108:
      86.0:exit_statement <= EXIT identifier_opt WHEN ^ expression_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    LEFT_PAREN                         => shift and goto state 36
@@ -2832,7 +2736,7 @@ State 109:
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 172
+   expression_opt                     goto state 171
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -2849,7 +2753,7 @@ State 109:
 
    Minimal_Complete_Actions => (expression_opt)
 
-State 110:
+State 109:
      86.1:exit_statement <= EXIT identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 3 tokens to exit_statement 86.1
@@ -2874,7 +2778,7 @@ State 110:
 
    Minimal_Complete_Actions => (exit_statement)
 
-State 111:
+State 110:
     100.0:iteration_scheme <= FOR IDENTIFIER IN ^ discrete_subtype_definition, LOOP
 
    LEFT_PAREN                         => shift and goto state 36
@@ -2886,22 +2790,22 @@ State 111:
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   discrete_subtype_definition        goto state 173
+   discrete_subtype_definition        goto state 172
    factor                             goto state 45
-   name                               goto state 174
+   name                               goto state 173
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 175
+   range_g                            goto state 174
    selected_component                 goto state 29
-   simple_expression                  goto state 176
-   subtype_indication                 goto state 177
+   simple_expression                  goto state 175
+   subtype_indication                 goto state 176
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 112:
+State 111:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN, IS/LEFT_PAREN/RETURN/WITH/DOT/SEMICOLON
      92.0:formal_part <= LEFT_PAREN ^ parameter_specification_list RIGHT_PAREN, IS/RETURN/WITH/SEMICOLON
     103.0:name <= name LEFT_PAREN ^ range_list RIGHT_PAREN, IS/LEFT_PAREN/RETURN/WITH/DOT/SEMICOLON
@@ -2916,49 +2820,49 @@ State 112:
    SEMICOLON                          => reduce 0 tokens to parameter_specification 109.2
    STRING_LITERAL                     => shift and goto state 40
    NUMERIC_LITERAL                    => shift and goto state 41
-   IDENTIFIER                         => shift and goto state 178
+   IDENTIFIER                         => shift and goto state 177
    default                            => ERROR
 
-   association_opt                    goto state 149
-   association_list                   goto state 150
-   expression                         goto state 151
+   association_opt                    goto state 148
+   association_list                   goto state 149
+   expression                         goto state 150
    factor                             goto state 45
    name                               goto state 46
-   parameter_specification            goto state 179
-   parameter_specification_list       goto state 180
+   parameter_specification            goto state 178
+   parameter_specification_list       goto state 179
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 152
-   range_list                         goto state 153
+   range_g                            goto state 151
+   range_list                         goto state 152
    relation_and_list                  goto state 49
    relation_or_list                   goto state 50
    relation_xor_list                  goto state 51
    relation                           goto state 52
    selected_component                 goto state 29
-   simple_expression                  goto state 154
+   simple_expression                  goto state 153
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER, association_list, parameter_specification_list)
+   Minimal_Complete_Actions => (association_list)
 
-State 113:
+State 112:
     107.1:parameter_and_result_profile <= RETURN ^ IDENTIFIER, IS/WITH/SEMICOLON
 
-   IDENTIFIER                         => shift and goto state 181
+   IDENTIFIER                         => shift and goto state 180
    default                            => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 114:
+State 113:
     107.0:parameter_and_result_profile <= formal_part ^ RETURN IDENTIFIER, IS/WITH/SEMICOLON
 
-   RETURN                             => shift and goto state 182
+   RETURN                             => shift and goto state 181
    default                            => ERROR
 
    Minimal_Complete_Actions => (RETURN)
 
-State 115:
+State 114:
      94.0:function_specification <= FUNCTION name parameter_and_result_profile ^, IS/WITH/SEMICOLON
 
    IS                                 => reduce 3 tokens to function_specification 94.0
@@ -2968,7 +2872,7 @@ State 115:
 
    Minimal_Complete_Actions => (function_specification)
 
-State 116:
+State 115:
      98.0:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      98.1:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      98.2:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -3002,14 +2906,14 @@ State 116:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 183
+   sequence_of_statements_opt         goto state 182
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
-State 117:
+State 116:
     124.0:sequence_of_statements <= sequence_of_statements statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
 
    BEGIN                              => reduce 2 tokens to sequence_of_statements 124.0
@@ -3030,15 +2934,15 @@ State 117:
 
    Minimal_Complete_Actions => (sequence_of_statements)
 
-State 118:
+State 117:
     101.1:loop_statement <= LOOP sequence_of_statements_opt END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   LOOP                               => shift and goto state 184
+   LOOP                               => shift and goto state 183
    default                            => ERROR
 
    Minimal_Complete_Actions => (LOOP)
 
-State 119:
+State 118:
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, IS/LEFT_PAREN/WITH/DOT
     103.1:name <= name ^ actual_parameter_part, IS/LEFT_PAREN/WITH/DOT
     106.0:package_body <= PACKAGE BODY name ^ aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
@@ -3046,18 +2950,26 @@ State 119:
     123.0:selected_component <= name ^ DOT IDENTIFIER, IS/LEFT_PAREN/WITH/DOT
 
    IS                                 => reduce 0 tokens to aspect_specification_opt 58.1
-   LEFT_PAREN                         => shift and goto state 77
-   WITH                               => shift and goto state 82
-   DOT                                => shift and goto state 79
+   LEFT_PAREN                         => shift and goto state 76
+   WITH                               => shift and goto state 81
+   DOT                                => shift and goto state 78
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
-   aspect_specification_opt           goto state 185
+   actual_parameter_part              goto state 80
+   aspect_specification_opt           goto state 184
 
-   Minimal_Complete_Actions => (DOT, aspect_specification_opt)
+   Minimal_Complete_Actions => (aspect_specification_opt)
+
+State 119:
+     95.0:generic_instantiation <= PACKAGE name IS ^ NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
+
+   NEW                                => shift and goto state 185
+   default                            => ERROR
+
+   Minimal_Complete_Actions => (NEW)
 
 State 120:
-     95.0:generic_instantiation <= PACKAGE name IS ^ NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
+     95.1:generic_instantiation <= PROCEDURE name IS ^ NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    NEW                                => shift and goto state 186
    default                            => ERROR
@@ -3065,14 +2977,6 @@ State 120:
    Minimal_Complete_Actions => (NEW)
 
 State 121:
-     95.1:generic_instantiation <= PROCEDURE name IS ^ NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
-
-   NEW                                => shift and goto state 187
-   default                            => ERROR
-
-   Minimal_Complete_Actions => (NEW)
-
-State 122:
     108.0:parameter_profile_opt <= formal_part ^, IS/WITH/SEMICOLON
 
    IS                                 => reduce 1 tokens to parameter_profile_opt 108.0
@@ -3082,7 +2986,7 @@ State 122:
 
    Minimal_Complete_Actions => (parameter_profile_opt)
 
-State 123:
+State 122:
     114.0:procedure_specification <= PROCEDURE name parameter_profile_opt ^, IS/WITH/SEMICOLON
 
    IS                                 => reduce 3 tokens to procedure_specification 114.0
@@ -3092,19 +2996,19 @@ State 123:
 
    Minimal_Complete_Actions => (procedure_specification)
 
-State 124:
+State 123:
      89.0:extended_return_object_declaration <= IDENTIFIER COLON ^ subtype_indication, SEMICOLON
 
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   name                               goto state 188
+   name                               goto state 187
    selected_component                 goto state 29
-   subtype_indication                 goto state 189
+   subtype_indication                 goto state 188
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 125:
+State 124:
     127.0:simple_return_statement <= RETURN expression_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 3 tokens to simple_return_statement 127.0
@@ -3129,7 +3033,7 @@ State 125:
 
    Minimal_Complete_Actions => (simple_return_statement)
 
-State 126:
+State 125:
      90.0:extended_return_statement <= RETURN extended_return_object_declaration SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 3 tokens to extended_return_statement 90.0
@@ -3154,25 +3058,25 @@ State 126:
 
    Minimal_Complete_Actions => (extended_return_statement)
 
-State 127:
+State 126:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   END                                => shift and goto state 190
+   END                                => shift and goto state 189
    default                            => ERROR
 
    Minimal_Complete_Actions => (END)
 
-State 128:
+State 127:
      96.0:handled_sequence_of_statements <= sequence_of_statements_opt ^ EXCEPTION exception_handler_list_opt, END
      96.1:handled_sequence_of_statements <= sequence_of_statements_opt ^, END
 
    END                                => reduce 1 tokens to handled_sequence_of_statements 96.1
-   EXCEPTION                          => shift and goto state 191
+   EXCEPTION                          => shift and goto state 190
    default                            => ERROR
 
    Minimal_Complete_Actions => (handled_sequence_of_statements)
 
-State 129:
+State 128:
     106.0:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     106.1:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
@@ -3181,35 +3085,35 @@ State 129:
 
    Minimal_Complete_Actions => (BODY)
 
-State 130:
+State 129:
     114.0:procedure_specification <= PROCEDURE ^ name parameter_profile_opt, IS/WITH/SEMICOLON
 
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   name                               goto state 192
+   name                               goto state 191
    selected_component                 goto state 29
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 131:
+State 130:
      93.0:full_type_declaration <= TYPE ^ IDENTIFIER IS type_definition SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   IDENTIFIER                         => shift and goto state 193
+   IDENTIFIER                         => shift and goto state 192
    default                            => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 132:
+State 131:
     105.0:object_declaration <= IDENTIFIER ^ COLON subtype_indication COLON_EQUAL expression_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     105.1:object_declaration <= IDENTIFIER ^ COLON subtype_indication SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   COLON                              => shift and goto state 194
+   COLON                              => shift and goto state 193
    default                            => ERROR
 
    Minimal_Complete_Actions => (COLON)
 
-State 133:
+State 132:
      74.0:declaration <= body_g ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to declaration 74.0
@@ -3223,7 +3127,7 @@ State 133:
 
    Minimal_Complete_Actions => (declaration)
 
-State 134:
+State 133:
      65.1:body_g <= body_stub ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to body_g 65.1
@@ -3237,7 +3141,7 @@ State 134:
 
    Minimal_Complete_Actions => (body_g)
 
-State 135:
+State 134:
      75.1:declarations <= declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to declarations 75.1
@@ -3251,45 +3155,45 @@ State 135:
 
    Minimal_Complete_Actions => (declarations)
 
-State 136:
+State 135:
      75.0:declarations <= declarations ^ declaration, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
      76.0:declarative_part_opt <= declarations ^, BEGIN/END
 
    BEGIN                              => reduce 1 tokens to declarative_part_opt 76.0
    END                                => reduce 1 tokens to declarative_part_opt 76.0
    FUNCTION                           => shift and goto state 4
-   PACKAGE                            => shift and goto state 129
-   PROCEDURE                          => shift and goto state 130
-   TYPE                               => shift and goto state 131
-   IDENTIFIER                         => shift and goto state 132
+   PACKAGE                            => shift and goto state 128
+   PROCEDURE                          => shift and goto state 129
+   TYPE                               => shift and goto state 130
+   IDENTIFIER                         => shift and goto state 131
    default                            => ERROR
 
-   body_g                             goto state 133
-   body_stub                          goto state 134
-   declaration                        goto state 195
-   full_type_declaration              goto state 138
+   body_g                             goto state 132
+   body_stub                          goto state 133
+   declaration                        goto state 194
+   full_type_declaration              goto state 137
    function_specification             goto state 20
-   object_declaration                 goto state 139
-   package_body                       goto state 140
+   object_declaration                 goto state 138
+   package_body                       goto state 139
    procedure_specification            goto state 28
-   proper_body                        goto state 141
-   subprogram_body                    goto state 142
-   subprogram_body_stub               goto state 143
-   subprogram_declaration             goto state 144
-   subprogram_specification           goto state 145
-   type_declaration                   goto state 146
+   proper_body                        goto state 140
+   subprogram_body                    goto state 141
+   subprogram_body_stub               goto state 142
+   subprogram_declaration             goto state 143
+   subprogram_specification           goto state 144
+   type_declaration                   goto state 145
 
    Minimal_Complete_Actions => (declarative_part_opt)
 
-State 137:
+State 136:
      64.0:block_statement <= block_label_opt DECLARE declarative_part_opt ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   BEGIN                              => shift and goto state 196
+   BEGIN                              => shift and goto state 195
    default                            => ERROR
 
    Minimal_Complete_Actions => (BEGIN)
 
-State 138:
+State 137:
     137.0:type_declaration <= full_type_declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to type_declaration 137.0
@@ -3303,7 +3207,7 @@ State 138:
 
    Minimal_Complete_Actions => (type_declaration)
 
-State 139:
+State 138:
      74.1:declaration <= object_declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to declaration 74.1
@@ -3317,7 +3221,7 @@ State 139:
 
    Minimal_Complete_Actions => (declaration)
 
-State 140:
+State 139:
     115.0:proper_body <= package_body ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to proper_body 115.0
@@ -3331,7 +3235,7 @@ State 140:
 
    Minimal_Complete_Actions => (proper_body)
 
-State 141:
+State 140:
      65.0:body_g <= proper_body ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to body_g 65.0
@@ -3345,7 +3249,7 @@ State 141:
 
    Minimal_Complete_Actions => (body_g)
 
-State 142:
+State 141:
     115.1:proper_body <= subprogram_body ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to proper_body 115.1
@@ -3359,7 +3263,7 @@ State 142:
 
    Minimal_Complete_Actions => (proper_body)
 
-State 143:
+State 142:
      66.0:body_stub <= subprogram_body_stub ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to body_stub 66.0
@@ -3373,7 +3277,7 @@ State 143:
 
    Minimal_Complete_Actions => (body_stub)
 
-State 144:
+State 143:
      74.2:declaration <= subprogram_declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to declaration 74.2
@@ -3387,22 +3291,22 @@ State 144:
 
    Minimal_Complete_Actions => (declaration)
 
-State 145:
+State 144:
     130.0:subprogram_body <= subprogram_specification ^ aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     131.0:subprogram_body_stub <= subprogram_specification ^ IS SEPARATE SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     132.0:subprogram_declaration <= subprogram_specification ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   IS                                 => shift and goto state 197,
+   IS                                 => shift and goto state 196,
                                          reduce 0 tokens to aspect_specification_opt 58.1
-   WITH                               => shift and goto state 82
-   SEMICOLON                          => shift and goto state 83
+   WITH                               => shift and goto state 81
+   SEMICOLON                          => shift and goto state 82
    default                            => ERROR
 
-   aspect_specification_opt           goto state 84
+   aspect_specification_opt           goto state 83
 
-   Minimal_Complete_Actions => (IS, SEMICOLON, aspect_specification_opt)
+   Minimal_Complete_Actions => (SEMICOLON)
 
-State 146:
+State 145:
      74.3:declaration <= type_declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 1 tokens to declaration 74.3
@@ -3416,15 +3320,15 @@ State 146:
 
    Minimal_Complete_Actions => (declaration)
 
-State 147:
+State 146:
     101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt ^ END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   END                                => shift and goto state 198
+   END                                => shift and goto state 197
    default                            => ERROR
 
    Minimal_Complete_Actions => (END)
 
-State 148:
+State 147:
      60.0:association_opt <= IDENTIFIER ^ EQUAL_GREATER expression_opt, IS/RIGHT_PAREN/COMMA
     103.2:name <= IDENTIFIER ^, AND/IS/LEFT_PAREN/OR/RANGE/RIGHT_PAREN/XOR/AMPERSAND/COMMA/DOT/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SLASH/SLASH_EQUAL/STAR
 
@@ -3440,7 +3344,7 @@ State 148:
    DOT                                => reduce 1 tokens to name 103.2
    DOT_DOT                            => reduce 1 tokens to name 103.2
    EQUAL                              => reduce 1 tokens to name 103.2
-   EQUAL_GREATER                      => shift and goto state 199
+   EQUAL_GREATER                      => shift and goto state 198
    GREATER                            => reduce 1 tokens to name 103.2
    GREATER_EQUAL                      => reduce 1 tokens to name 103.2
    LESS                               => reduce 1 tokens to name 103.2
@@ -3454,7 +3358,7 @@ State 148:
 
    Minimal_Complete_Actions => (name)
 
-State 149:
+State 148:
      61.1:association_list <= association_opt ^, IS/RIGHT_PAREN/COMMA
 
    IS                                 => reduce 1 tokens to association_list 61.1
@@ -3464,17 +3368,17 @@ State 149:
 
    Minimal_Complete_Actions => (association_list)
 
-State 150:
+State 149:
      57.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
      61.0:association_list <= association_list ^ COMMA association_opt, RIGHT_PAREN/COMMA
 
-   RIGHT_PAREN                        => shift and goto state 200
-   COMMA                              => shift and goto state 201
+   RIGHT_PAREN                        => shift and goto state 199
+   COMMA                              => shift and goto state 200
    default                            => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)
 
-State 151:
+State 150:
      60.1:association_opt <= expression ^, IS/RIGHT_PAREN/COMMA
 
    IS                                 => reduce 1 tokens to association_opt 60.1
@@ -3484,7 +3388,7 @@ State 151:
 
    Minimal_Complete_Actions => (association_opt)
 
-State 152:
+State 151:
     117.1:range_list <= range_g ^, RIGHT_PAREN/COMMA
 
    RIGHT_PAREN                        => reduce 1 tokens to range_list 117.1
@@ -3493,17 +3397,17 @@ State 152:
 
    Minimal_Complete_Actions => (range_list)
 
-State 153:
+State 152:
     103.0:name <= name LEFT_PAREN range_list ^ RIGHT_PAREN, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
     117.0:range_list <= range_list ^ COMMA range_g, RIGHT_PAREN/COMMA
 
-   RIGHT_PAREN                        => shift and goto state 202
-   COMMA                              => shift and goto state 203
+   RIGHT_PAREN                        => shift and goto state 201
+   COMMA                              => shift and goto state 202
    default                            => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)
 
-State 154:
+State 153:
     116.0:range_g <= simple_expression ^ DOT_DOT simple_expression, RIGHT_PAREN/COMMA
     121.0:relation <= simple_expression ^ relational_operator simple_expression, AND/OR/RIGHT_PAREN/XOR/COMMA
     121.1:relation <= simple_expression ^, AND/OR/RIGHT_PAREN/XOR/COMMA
@@ -3513,28 +3417,28 @@ State 154:
    RIGHT_PAREN                        => reduce 1 tokens to relation 121.1
    XOR                                => reduce 1 tokens to relation 121.1
    COMMA                              => reduce 1 tokens to relation 121.1
-   DOT_DOT                            => shift and goto state 204
-   EQUAL                              => shift and goto state 94
-   GREATER                            => shift and goto state 95
-   GREATER_EQUAL                      => shift and goto state 96
-   LESS                               => shift and goto state 97
-   LESS_EQUAL                         => shift and goto state 98
-   SLASH_EQUAL                        => shift and goto state 99
+   DOT_DOT                            => shift and goto state 203
+   EQUAL                              => shift and goto state 93
+   GREATER                            => shift and goto state 94
+   GREATER_EQUAL                      => shift and goto state 95
+   LESS                               => shift and goto state 96
+   LESS_EQUAL                         => shift and goto state 97
+   SLASH_EQUAL                        => shift and goto state 98
    default                            => ERROR
 
-   relational_operator                goto state 100
+   relational_operator                goto state 99
 
-   Minimal_Complete_Actions => (DOT_DOT, relation)
+   Minimal_Complete_Actions => (relation)
 
-State 155:
+State 154:
      59.0:assignment_statement <= name COLON_EQUAL expression_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 205
+   SEMICOLON                          => shift and goto state 204
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 156:
+State 155:
     123.0:selected_component <= name DOT IDENTIFIER ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    AND                                => reduce 3 tokens to selected_component 123.0
@@ -3569,47 +3473,47 @@ State 156:
 
    Minimal_Complete_Actions => (selected_component)
 
-State 157:
+State 156:
      58.0:aspect_specification_opt <= WITH association_list ^, IS
      61.0:association_list <= association_list ^ COMMA association_opt, IS/COMMA
 
    IS                                 => reduce 2 tokens to aspect_specification_opt 58.0
-   COMMA                              => shift and goto state 201
+   COMMA                              => shift and goto state 200
    default                            => ERROR
 
    Minimal_Complete_Actions => (aspect_specification_opt)
 
-State 158:
+State 157:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS ^ declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to declarative_part_opt 76.1
    FUNCTION                           => shift and goto state 4
-   PACKAGE                            => shift and goto state 129
-   PROCEDURE                          => shift and goto state 130
-   TYPE                               => shift and goto state 131
-   IDENTIFIER                         => shift and goto state 132
+   PACKAGE                            => shift and goto state 128
+   PROCEDURE                          => shift and goto state 129
+   TYPE                               => shift and goto state 130
+   IDENTIFIER                         => shift and goto state 131
    default                            => ERROR
 
-   body_g                             goto state 133
-   body_stub                          goto state 134
-   declaration                        goto state 135
-   declarations                       goto state 136
-   declarative_part_opt               goto state 206
-   full_type_declaration              goto state 138
+   body_g                             goto state 132
+   body_stub                          goto state 133
+   declaration                        goto state 134
+   declarations                       goto state 135
+   declarative_part_opt               goto state 205
+   full_type_declaration              goto state 137
    function_specification             goto state 20
-   object_declaration                 goto state 139
-   package_body                       goto state 140
+   object_declaration                 goto state 138
+   package_body                       goto state 139
    procedure_specification            goto state 28
-   proper_body                        goto state 141
-   subprogram_body                    goto state 142
-   subprogram_body_stub               goto state 143
-   subprogram_declaration             goto state 144
-   subprogram_specification           goto state 145
-   type_declaration                   goto state 146
+   proper_body                        goto state 140
+   subprogram_body                    goto state 141
+   subprogram_body_stub               goto state 142
+   subprogram_declaration             goto state 143
+   subprogram_specification           goto state 144
+   type_declaration                   goto state 145
 
    Minimal_Complete_Actions => (declarative_part_opt)
 
-State 159:
+State 158:
     111.0:paren_expression <= LEFT_PAREN expression_opt RIGHT_PAREN ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    AND                                => reduce 3 tokens to paren_expression 111.0
@@ -3638,15 +3542,15 @@ State 159:
 
    Minimal_Complete_Actions => (paren_expression)
 
-State 160:
+State 159:
      68.0:case_statement_alternative <= WHEN ^ NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements_opt, END/WHEN
 
-   NUMERIC_LITERAL                    => shift and goto state 207
+   NUMERIC_LITERAL                    => shift and goto state 206
    default                            => ERROR
 
    Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
-State 161:
+State 160:
      69.1:case_statement_alternative_list <= case_statement_alternative ^, END/WHEN
 
    END                                => reduce 1 tokens to case_statement_alternative_list 69.1
@@ -3655,19 +3559,19 @@ State 161:
 
    Minimal_Complete_Actions => (case_statement_alternative_list)
 
-State 162:
+State 161:
      67.0:case_statement <= CASE expression_opt IS case_statement_alternative_list ^ END CASE SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      69.0:case_statement_alternative_list <= case_statement_alternative_list ^ case_statement_alternative, END/WHEN
 
-   END                                => shift and goto state 208
-   WHEN                               => shift and goto state 160
+   END                                => shift and goto state 207
+   WHEN                               => shift and goto state 159
    default                            => ERROR
 
-   case_statement_alternative         goto state 209
+   case_statement_alternative         goto state 208
 
    Minimal_Complete_Actions => (END)
 
-State 163:
+State 162:
     118.0:relation_and_list <= relation_and_list AND relation ^, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    AND                                => reduce 3 tokens to relation_and_list 118.0
@@ -3680,7 +3584,7 @@ State 163:
 
    Minimal_Complete_Actions => (relation_and_list)
 
-State 164:
+State 163:
     119.0:relation_or_list <= relation_or_list OR relation ^, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    IS                                 => reduce 3 tokens to relation_or_list 119.0
@@ -3693,7 +3597,7 @@ State 164:
 
    Minimal_Complete_Actions => (relation_or_list)
 
-State 165:
+State 164:
     120.0:relation_xor_list <= relation_xor_list XOR relation ^, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
 
    IS                                 => reduce 3 tokens to relation_xor_list 120.0
@@ -3706,7 +3610,7 @@ State 165:
 
    Minimal_Complete_Actions => (relation_xor_list)
 
-State 166:
+State 165:
     118.1:relation_and_list <= relation AND relation ^, AND/IS/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    AND                                => reduce 3 tokens to relation_and_list 118.1
@@ -3719,7 +3623,7 @@ State 166:
 
    Minimal_Complete_Actions => (relation_and_list)
 
-State 167:
+State 166:
     119.1:relation_or_list <= relation OR relation ^, IS/OR/RIGHT_PAREN/THEN/COMMA/SEMICOLON
 
    IS                                 => reduce 3 tokens to relation_or_list 119.1
@@ -3732,7 +3636,7 @@ State 167:
 
    Minimal_Complete_Actions => (relation_or_list)
 
-State 168:
+State 167:
     120.1:relation_xor_list <= relation XOR relation ^, IS/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
 
    IS                                 => reduce 3 tokens to relation_xor_list 120.1
@@ -3745,7 +3649,7 @@ State 168:
 
    Minimal_Complete_Actions => (relation_xor_list)
 
-State 169:
+State 168:
     121.0:relation <= simple_expression relational_operator simple_expression ^, AND/IS/OR/RIGHT_PAREN/THEN/XOR/COMMA/SEMICOLON
 
    AND                                => reduce 3 tokens to relation 121.0
@@ -3760,7 +3664,7 @@ State 169:
 
    Minimal_Complete_Actions => (relation)
 
-State 170:
+State 169:
     135.0:term <= term multiplying_operator factor ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    AND                                => reduce 3 tokens to term 135.0
@@ -3789,7 +3693,7 @@ State 170:
 
    Minimal_Complete_Actions => (term)
 
-State 171:
+State 170:
     135.0:term <= term ^ multiplying_operator factor, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
     136.0:term_list <= term_list binary_adding_operator term ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH_EQUAL
 
@@ -3812,24 +3716,24 @@ State 171:
    MINUS                              => reduce 3 tokens to term_list 136.0
    PLUS                               => reduce 3 tokens to term_list 136.0
    SEMICOLON                          => reduce 3 tokens to term_list 136.0
-   SLASH                              => shift and goto state 101
+   SLASH                              => shift and goto state 100
    SLASH_EQUAL                        => reduce 3 tokens to term_list 136.0
-   STAR                               => shift and goto state 102
+   STAR                               => shift and goto state 101
    default                            => ERROR
 
-   multiplying_operator               goto state 103
+   multiplying_operator               goto state 102
 
    Minimal_Complete_Actions => (term_list)
 
-State 172:
+State 171:
      86.0:exit_statement <= EXIT identifier_opt WHEN expression_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 210
+   SEMICOLON                          => shift and goto state 209
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 173:
+State 172:
     100.0:iteration_scheme <= FOR IDENTIFIER IN discrete_subtype_definition ^, LOOP
 
    LOOP                               => reduce 4 tokens to iteration_scheme 100.0
@@ -3837,7 +3741,7 @@ State 173:
 
    Minimal_Complete_Actions => (iteration_scheme)
 
-State 174:
+State 173:
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, AND/LEFT_PAREN/LOOP/OR/RANGE/RIGHT_PAREN/XOR/AMPERSAND/COMMA/DOT/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SLASH/SLASH_EQUAL/STAR
     103.1:name <= name ^ actual_parameter_part, AND/LEFT_PAREN/LOOP/OR/RANGE/RIGHT_PAREN/XOR/AMPERSAND/COMMA/DOT/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SLASH/SLASH_EQUAL/STAR
     112.2:primary <= name ^, AND/OR/RIGHT_PAREN/XOR/AMPERSAND/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SLASH/SLASH_EQUAL/STAR
@@ -3846,16 +3750,16 @@ State 174:
     134.1:subtype_indication <= name ^, LOOP/RIGHT_PAREN
 
    AND                                => reduce 1 tokens to primary 112.2
-   LEFT_PAREN                         => shift and goto state 211
+   LEFT_PAREN                         => shift and goto state 210
    LOOP                               => reduce 1 tokens to subtype_indication 134.1
    OR                                 => reduce 1 tokens to primary 112.2
-   RANGE                              => shift and goto state 212
+   RANGE                              => shift and goto state 211
    RIGHT_PAREN                        => reduce 1 tokens to primary 112.2,
                                          reduce 1 tokens to subtype_indication 134.1
    XOR                                => reduce 1 tokens to primary 112.2
    AMPERSAND                          => reduce 1 tokens to primary 112.2
    COMMA                              => reduce 1 tokens to primary 112.2
-   DOT                                => shift and goto state 79
+   DOT                                => shift and goto state 78
    DOT_DOT                            => reduce 1 tokens to primary 112.2
    EQUAL                              => reduce 1 tokens to primary 112.2
    GREATER                            => reduce 1 tokens to primary 112.2
@@ -3869,13 +3773,13 @@ State 174:
    STAR                               => reduce 1 tokens to primary 112.2
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
-   constraint                         goto state 213
-   index_constraint                   goto state 214
+   actual_parameter_part              goto state 80
+   constraint                         goto state 212
+   index_constraint                   goto state 213
 
-   Minimal_Complete_Actions => (DOT, primary, subtype_indication)
+   Minimal_Complete_Actions => (primary)
 
-State 175:
+State 174:
      77.1:discrete_subtype_definition <= range_g ^, LOOP
 
    LOOP                               => reduce 1 tokens to discrete_subtype_definition 77.1
@@ -3883,15 +3787,15 @@ State 175:
 
    Minimal_Complete_Actions => (discrete_subtype_definition)
 
-State 176:
+State 175:
     116.0:range_g <= simple_expression ^ DOT_DOT simple_expression, LOOP/RIGHT_PAREN/COLON_EQUAL/COMMA/SEMICOLON
 
-   DOT_DOT                            => shift and goto state 204
+   DOT_DOT                            => shift and goto state 203
    default                            => ERROR
 
    Minimal_Complete_Actions => (DOT_DOT)
 
-State 177:
+State 176:
      77.0:discrete_subtype_definition <= subtype_indication ^, LOOP/RIGHT_PAREN
 
    LOOP                               => reduce 1 tokens to discrete_subtype_definition 77.0
@@ -3900,7 +3804,7 @@ State 177:
 
    Minimal_Complete_Actions => (discrete_subtype_definition)
 
-State 178:
+State 177:
      60.0:association_opt <= IDENTIFIER ^ EQUAL_GREATER expression_opt, RIGHT_PAREN/COMMA
     103.2:name <= IDENTIFIER ^, AND/LEFT_PAREN/OR/RIGHT_PAREN/XOR/AMPERSAND/COMMA/DOT/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SLASH/SLASH_EQUAL/STAR
     109.0:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER COLON_EQUAL expression_opt, RIGHT_PAREN/SEMICOLON
@@ -3912,12 +3816,12 @@ State 178:
    RIGHT_PAREN                        => reduce 1 tokens to name 103.2
    XOR                                => reduce 1 tokens to name 103.2
    AMPERSAND                          => reduce 1 tokens to name 103.2
-   COLON                              => shift and goto state 215
+   COLON                              => shift and goto state 214
    COMMA                              => reduce 1 tokens to name 103.2
    DOT                                => reduce 1 tokens to name 103.2
    DOT_DOT                            => reduce 1 tokens to name 103.2
    EQUAL                              => reduce 1 tokens to name 103.2
-   EQUAL_GREATER                      => shift and goto state 199
+   EQUAL_GREATER                      => shift and goto state 198
    GREATER                            => reduce 1 tokens to name 103.2
    GREATER_EQUAL                      => reduce 1 tokens to name 103.2
    LESS                               => reduce 1 tokens to name 103.2
@@ -3929,9 +3833,9 @@ State 178:
    STAR                               => reduce 1 tokens to name 103.2
    default                            => ERROR
 
-   Minimal_Complete_Actions => (COLON, name)
+   Minimal_Complete_Actions => (name)
 
-State 179:
+State 178:
     110.1:parameter_specification_list <= parameter_specification ^, RIGHT_PAREN/SEMICOLON
 
    RIGHT_PAREN                        => reduce 1 tokens to parameter_specification_list 110.1
@@ -3940,17 +3844,17 @@ State 179:
 
    Minimal_Complete_Actions => (parameter_specification_list)
 
-State 180:
+State 179:
      92.0:formal_part <= LEFT_PAREN parameter_specification_list ^ RIGHT_PAREN, IS/RETURN/WITH/SEMICOLON
     110.0:parameter_specification_list <= parameter_specification_list ^ SEMICOLON parameter_specification, RIGHT_PAREN/SEMICOLON
 
-   RIGHT_PAREN                        => shift and goto state 216
-   SEMICOLON                          => shift and goto state 217
+   RIGHT_PAREN                        => shift and goto state 215
+   SEMICOLON                          => shift and goto state 216
    default                            => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)
 
-State 181:
+State 180:
     107.1:parameter_and_result_profile <= RETURN IDENTIFIER ^, IS/WITH/SEMICOLON
 
    IS                                 => reduce 2 tokens to parameter_and_result_profile 107.1
@@ -3960,52 +3864,63 @@ State 181:
 
    Minimal_Complete_Actions => (parameter_and_result_profile)
 
-State 182:
+State 181:
     107.0:parameter_and_result_profile <= formal_part RETURN ^ IDENTIFIER, IS/WITH/SEMICOLON
 
-   IDENTIFIER                         => shift and goto state 218
+   IDENTIFIER                         => shift and goto state 217
    default                            => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 183:
+State 182:
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   ELSE                               => shift and goto state 219
-   ELSIF                              => shift and goto state 220
-   END                                => shift and goto state 221
+   ELSE                               => shift and goto state 218
+   ELSIF                              => shift and goto state 219
+   END                                => shift and goto state 220
    default                            => ERROR
 
-   elsif_statement_item               goto state 222
-   elsif_statement_list               goto state 223
+   elsif_statement_item               goto state 221
+   elsif_statement_list               goto state 222
 
-   Minimal_Complete_Actions => (ELSE, ELSIF, END)
+   Minimal_Complete_Actions => (END)
 
-State 184:
+State 183:
     101.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 97.1
    IDENTIFIER                         => shift and goto state 57
    default                            => ERROR
 
-   identifier_opt                     goto state 224
+   identifier_opt                     goto state 223
 
    Minimal_Complete_Actions => (identifier_opt)
 
-State 185:
+State 184:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt ^ IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
     106.1:package_body <= PACKAGE BODY name aspect_specification_opt ^ IS declarative_part_opt END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   IS                                 => shift and goto state 225
+   IS                                 => shift and goto state 224
    default                            => ERROR
 
    Minimal_Complete_Actions => (IS)
 
-State 186:
+State 185:
      95.0:generic_instantiation <= PACKAGE name IS NEW ^ name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
+
+   IDENTIFIER                         => shift and goto state 42
+   default                            => ERROR
+
+   name                               goto state 225
+   selected_component                 goto state 29
+
+   Minimal_Complete_Actions => (IDENTIFIER)
+
+State 186:
+     95.1:generic_instantiation <= PROCEDURE name IS NEW ^ name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
@@ -4016,37 +3931,26 @@ State 186:
    Minimal_Complete_Actions => (IDENTIFIER)
 
 State 187:
-     95.1:generic_instantiation <= PROCEDURE name IS NEW ^ name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
-
-   IDENTIFIER                         => shift and goto state 42
-   default                            => ERROR
-
-   name                               goto state 227
-   selected_component                 goto state 29
-
-   Minimal_Complete_Actions => (IDENTIFIER)
-
-State 188:
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, LEFT_PAREN/RANGE/COLON_EQUAL/DOT/SEMICOLON
     103.1:name <= name ^ actual_parameter_part, LEFT_PAREN/RANGE/COLON_EQUAL/DOT/SEMICOLON
     123.0:selected_component <= name ^ DOT IDENTIFIER, LEFT_PAREN/RANGE/COLON_EQUAL/DOT/SEMICOLON
     134.0:subtype_indication <= name ^ constraint, COLON_EQUAL/SEMICOLON
     134.1:subtype_indication <= name ^, COLON_EQUAL/SEMICOLON
 
-   LEFT_PAREN                         => shift and goto state 211
-   RANGE                              => shift and goto state 212
+   LEFT_PAREN                         => shift and goto state 210
+   RANGE                              => shift and goto state 211
    COLON_EQUAL                        => reduce 1 tokens to subtype_indication 134.1
-   DOT                                => shift and goto state 79
+   DOT                                => shift and goto state 78
    SEMICOLON                          => reduce 1 tokens to subtype_indication 134.1
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
-   constraint                         goto state 213
-   index_constraint                   goto state 214
+   actual_parameter_part              goto state 80
+   constraint                         goto state 212
+   index_constraint                   goto state 213
 
-   Minimal_Complete_Actions => (DOT, subtype_indication)
+   Minimal_Complete_Actions => (subtype_indication)
 
-State 189:
+State 188:
      89.0:extended_return_object_declaration <= IDENTIFIER COLON subtype_indication ^, SEMICOLON
 
    SEMICOLON                          => reduce 3 tokens to extended_return_object_declaration 89.0
@@ -4054,71 +3958,71 @@ State 189:
 
    Minimal_Complete_Actions => (extended_return_object_declaration)
 
-State 190:
+State 189:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 97.1
    IDENTIFIER                         => shift and goto state 57
    default                            => ERROR
 
-   identifier_opt                     goto state 228
+   identifier_opt                     goto state 227
 
    Minimal_Complete_Actions => (identifier_opt)
 
-State 191:
+State 190:
      96.0:handled_sequence_of_statements <= sequence_of_statements_opt EXCEPTION ^ exception_handler_list_opt, END
 
    END                                => reduce 0 tokens to exception_handler_list_opt 85.1
-   WHEN                               => shift and goto state 229
+   WHEN                               => shift and goto state 228
    default                            => ERROR
 
-   exception_handler                  goto state 230
-   exception_handler_list             goto state 231
-   exception_handler_list_opt         goto state 232
+   exception_handler                  goto state 229
+   exception_handler_list             goto state 230
+   exception_handler_list_opt         goto state 231
 
    Minimal_Complete_Actions => (exception_handler_list_opt)
 
-State 192:
+State 191:
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, IS/LEFT_PAREN/WITH/DOT/SEMICOLON
     103.1:name <= name ^ actual_parameter_part, IS/LEFT_PAREN/WITH/DOT/SEMICOLON
     114.0:procedure_specification <= PROCEDURE name ^ parameter_profile_opt, IS/WITH/SEMICOLON
     123.0:selected_component <= name ^ DOT IDENTIFIER, IS/LEFT_PAREN/WITH/DOT/SEMICOLON
 
    IS                                 => reduce 0 tokens to parameter_profile_opt 108.1
-   LEFT_PAREN                         => shift and goto state 112
+   LEFT_PAREN                         => shift and goto state 111
    WITH                               => reduce 0 tokens to parameter_profile_opt 108.1
-   DOT                                => shift and goto state 79
+   DOT                                => shift and goto state 78
    SEMICOLON                          => reduce 0 tokens to parameter_profile_opt 108.1
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
-   formal_part                        goto state 122
-   parameter_profile_opt              goto state 123
+   actual_parameter_part              goto state 80
+   formal_part                        goto state 121
+   parameter_profile_opt              goto state 122
 
-   Minimal_Complete_Actions => (DOT, parameter_profile_opt)
+   Minimal_Complete_Actions => (parameter_profile_opt)
 
-State 193:
+State 192:
      93.0:full_type_declaration <= TYPE IDENTIFIER ^ IS type_definition SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   IS                                 => shift and goto state 233
+   IS                                 => shift and goto state 232
    default                            => ERROR
 
    Minimal_Complete_Actions => (IS)
 
-State 194:
+State 193:
     105.0:object_declaration <= IDENTIFIER COLON ^ subtype_indication COLON_EQUAL expression_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     105.1:object_declaration <= IDENTIFIER COLON ^ subtype_indication SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   name                               goto state 188
+   name                               goto state 187
    selected_component                 goto state 29
-   subtype_indication                 goto state 234
+   subtype_indication                 goto state 233
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 195:
+State 194:
      75.0:declarations <= declarations declaration ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 2 tokens to declarations 75.0
@@ -4132,7 +4036,7 @@ State 195:
 
    Minimal_Complete_Actions => (declarations)
 
-State 196:
+State 195:
      64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -4155,7 +4059,7 @@ State 196:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 235
+   handled_sequence_of_statements     goto state 234
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
@@ -4163,30 +4067,30 @@ State 196:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 128
+   sequence_of_statements_opt         goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (handled_sequence_of_statements)
 
-State 197:
+State 196:
     131.0:subprogram_body_stub <= subprogram_specification IS ^ SEPARATE SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   SEPARATE                           => shift and goto state 236
+   SEPARATE                           => shift and goto state 235
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEPARATE)
 
-State 198:
+State 197:
     101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   LOOP                               => shift and goto state 237
+   LOOP                               => shift and goto state 236
    default                            => ERROR
 
    Minimal_Complete_Actions => (LOOP)
 
-State 199:
+State 198:
      60.0:association_opt <= IDENTIFIER EQUAL_GREATER ^ expression_opt, IS/RIGHT_PAREN/COMMA
 
    IS                                 => reduce 0 tokens to expression_opt 88.1
@@ -4202,7 +4106,7 @@ State 199:
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 238
+   expression_opt                     goto state 237
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -4219,7 +4123,7 @@ State 199:
 
    Minimal_Complete_Actions => (expression_opt)
 
-State 200:
+State 199:
      57.0:actual_parameter_part <= LEFT_PAREN association_list RIGHT_PAREN ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    AND                                => reduce 3 tokens to actual_parameter_part 57.0
@@ -4254,7 +4158,7 @@ State 200:
 
    Minimal_Complete_Actions => (actual_parameter_part)
 
-State 201:
+State 200:
      61.0:association_list <= association_list COMMA ^ association_opt, IS/RIGHT_PAREN/COMMA
 
    IS                                 => reduce 0 tokens to association_opt 60.2
@@ -4266,11 +4170,11 @@ State 201:
    PLUS                               => shift and goto state 39
    STRING_LITERAL                     => shift and goto state 40
    NUMERIC_LITERAL                    => shift and goto state 41
-   IDENTIFIER                         => shift and goto state 148
+   IDENTIFIER                         => shift and goto state 147
    default                            => ERROR
 
-   association_opt                    goto state 239
-   expression                         goto state 151
+   association_opt                    goto state 238
+   expression                         goto state 150
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -4287,7 +4191,7 @@ State 201:
 
    Minimal_Complete_Actions => (association_opt)
 
-State 202:
+State 201:
     103.0:name <= name LEFT_PAREN range_list RIGHT_PAREN ^, AND/IS/LEFT_PAREN/LOOP/OR/RANGE/RETURN/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
 
    AND                                => reduce 4 tokens to name 103.0
@@ -4322,7 +4226,7 @@ State 202:
 
    Minimal_Complete_Actions => (name)
 
-State 203:
+State 202:
     117.0:range_list <= range_list COMMA ^ range_g, RIGHT_PAREN/COMMA
 
    LEFT_PAREN                         => shift and goto state 36
@@ -4338,16 +4242,16 @@ State 203:
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 240
+   range_g                            goto state 239
    selected_component                 goto state 29
-   simple_expression                  goto state 176
+   simple_expression                  goto state 175
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
-State 204:
+State 203:
     116.0:range_g <= simple_expression DOT_DOT ^ simple_expression, LOOP/RIGHT_PAREN/COLON_EQUAL/COMMA/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
@@ -4364,14 +4268,14 @@ State 204:
    paren_expression                   goto state 47
    primary                            goto state 48
    selected_component                 goto state 29
-   simple_expression                  goto state 241
+   simple_expression                  goto state 240
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
-State 205:
+State 204:
      59.0:assignment_statement <= name COLON_EQUAL expression_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 4 tokens to assignment_statement 59.0
@@ -4396,31 +4300,31 @@ State 205:
 
    Minimal_Complete_Actions => (assignment_statement)
 
-State 206:
+State 205:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   BEGIN                              => shift and goto state 242
+   BEGIN                              => shift and goto state 241
    default                            => ERROR
 
    Minimal_Complete_Actions => (BEGIN)
 
-State 207:
+State 206:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL ^ EQUAL_GREATER sequence_of_statements_opt, END/WHEN
 
-   EQUAL_GREATER                      => shift and goto state 243
+   EQUAL_GREATER                      => shift and goto state 242
    default                            => ERROR
 
    Minimal_Complete_Actions => (EQUAL_GREATER)
 
-State 208:
+State 207:
      67.0:case_statement <= CASE expression_opt IS case_statement_alternative_list END ^ CASE SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   CASE                               => shift and goto state 244
+   CASE                               => shift and goto state 243
    default                            => ERROR
 
    Minimal_Complete_Actions => (CASE)
 
-State 209:
+State 208:
      69.0:case_statement_alternative_list <= case_statement_alternative_list case_statement_alternative ^, END/WHEN
 
    END                                => reduce 2 tokens to case_statement_alternative_list 69.0
@@ -4429,7 +4333,7 @@ State 209:
 
    Minimal_Complete_Actions => (case_statement_alternative_list)
 
-State 210:
+State 209:
      86.0:exit_statement <= EXIT identifier_opt WHEN expression_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 5 tokens to exit_statement 86.0
@@ -4454,7 +4358,7 @@ State 210:
 
    Minimal_Complete_Actions => (exit_statement)
 
-State 211:
+State 210:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN, AND/LEFT_PAREN/LOOP/OR/RANGE/RIGHT_PAREN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
      99.0:index_constraint <= LEFT_PAREN ^ discrete_subtype_definition RIGHT_PAREN, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
     103.0:name <= name LEFT_PAREN ^ range_list RIGHT_PAREN, AND/LEFT_PAREN/LOOP/OR/RANGE/RIGHT_PAREN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -4467,33 +4371,33 @@ State 211:
    PLUS                               => shift and goto state 39
    STRING_LITERAL                     => shift and goto state 40
    NUMERIC_LITERAL                    => shift and goto state 41
-   IDENTIFIER                         => shift and goto state 148
+   IDENTIFIER                         => shift and goto state 147
    default                            => ERROR
 
-   association_opt                    goto state 149
-   association_list                   goto state 150
-   discrete_subtype_definition        goto state 245
-   expression                         goto state 151
+   association_opt                    goto state 148
+   association_list                   goto state 149
+   discrete_subtype_definition        goto state 244
+   expression                         goto state 150
    factor                             goto state 45
-   name                               goto state 174
+   name                               goto state 173
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 246
-   range_list                         goto state 153
+   range_g                            goto state 245
+   range_list                         goto state 152
    relation_and_list                  goto state 49
    relation_or_list                   goto state 50
    relation_xor_list                  goto state 51
    relation                           goto state 52
    selected_component                 goto state 29
-   simple_expression                  goto state 154
-   subtype_indication                 goto state 177
+   simple_expression                  goto state 153
+   subtype_indication                 goto state 176
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER, association_list)
+   Minimal_Complete_Actions => (association_list)
 
-State 212:
+State 211:
      73.0:constraint <= RANGE ^ range_g, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
@@ -4509,16 +4413,16 @@ State 212:
    name                               goto state 46
    paren_expression                   goto state 47
    primary                            goto state 48
-   range_g                            goto state 247
+   range_g                            goto state 246
    selected_component                 goto state 29
-   simple_expression                  goto state 176
+   simple_expression                  goto state 175
    term                               goto state 54
    term_list                          goto state 55
    unary_adding_operator              goto state 56
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Actions => (NUMERIC_LITERAL)
 
-State 213:
+State 212:
     134.0:subtype_indication <= name constraint ^, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
 
    LOOP                               => reduce 2 tokens to subtype_indication 134.0
@@ -4529,7 +4433,7 @@ State 213:
 
    Minimal_Complete_Actions => (subtype_indication)
 
-State 214:
+State 213:
      73.1:constraint <= index_constraint ^, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
 
    LOOP                               => reduce 1 tokens to constraint 73.1
@@ -4540,16 +4444,16 @@ State 214:
 
    Minimal_Complete_Actions => (constraint)
 
-State 215:
+State 214:
     109.0:parameter_specification <= IDENTIFIER COLON ^ IDENTIFIER COLON_EQUAL expression_opt, RIGHT_PAREN/SEMICOLON
     109.1:parameter_specification <= IDENTIFIER COLON ^ IDENTIFIER, RIGHT_PAREN/SEMICOLON
 
-   IDENTIFIER                         => shift and goto state 248
+   IDENTIFIER                         => shift and goto state 247
    default                            => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 216:
+State 215:
      92.0:formal_part <= LEFT_PAREN parameter_specification_list RIGHT_PAREN ^, IS/RETURN/WITH/SEMICOLON
 
    IS                                 => reduce 3 tokens to formal_part 92.0
@@ -4560,19 +4464,19 @@ State 216:
 
    Minimal_Complete_Actions => (formal_part)
 
-State 217:
+State 216:
     110.0:parameter_specification_list <= parameter_specification_list SEMICOLON ^ parameter_specification, RIGHT_PAREN/SEMICOLON
 
    RIGHT_PAREN                        => reduce 0 tokens to parameter_specification 109.2
    SEMICOLON                          => reduce 0 tokens to parameter_specification 109.2
-   IDENTIFIER                         => shift and goto state 249
+   IDENTIFIER                         => shift and goto state 248
    default                            => ERROR
 
-   parameter_specification            goto state 250
+   parameter_specification            goto state 249
 
    Minimal_Complete_Actions => (parameter_specification)
 
-State 218:
+State 217:
     107.0:parameter_and_result_profile <= formal_part RETURN IDENTIFIER ^, IS/WITH/SEMICOLON
 
    IS                                 => reduce 3 tokens to parameter_and_result_profile 107.0
@@ -4582,7 +4486,7 @@ State 218:
 
    Minimal_Complete_Actions => (parameter_and_result_profile)
 
-State 219:
+State 218:
      98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE ^ sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -4611,14 +4515,14 @@ State 219:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 251
+   sequence_of_statements_opt         goto state 250
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
-State 220:
+State 219:
      78.0:elsif_statement_item <= ELSIF ^ expression_opt THEN sequence_of_statements_opt, ELSE/ELSIF/END
 
    LEFT_PAREN                         => shift and goto state 36
@@ -4632,7 +4536,7 @@ State 220:
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 252
+   expression_opt                     goto state 251
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -4649,15 +4553,15 @@ State 220:
 
    Minimal_Complete_Actions => (expression_opt)
 
-State 221:
+State 220:
      98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   IF                                 => shift and goto state 253
+   IF                                 => shift and goto state 252
    default                            => ERROR
 
    Minimal_Complete_Actions => (IF)
 
-State 222:
+State 221:
      79.1:elsif_statement_list <= elsif_statement_item ^, ELSE/ELSIF/END
 
    ELSE                               => reduce 1 tokens to elsif_statement_list 79.1
@@ -4667,111 +4571,111 @@ State 222:
 
    Minimal_Complete_Actions => (elsif_statement_list)
 
-State 223:
+State 222:
      79.0:elsif_statement_list <= elsif_statement_list ^ elsif_statement_item, ELSE/ELSIF/END
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ^ ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   ELSE                               => shift and goto state 254
-   ELSIF                              => shift and goto state 220
-   END                                => shift and goto state 255
+   ELSE                               => shift and goto state 253
+   ELSIF                              => shift and goto state 219
+   END                                => shift and goto state 254
    default                            => ERROR
 
-   elsif_statement_item               goto state 256
+   elsif_statement_item               goto state 255
 
-   Minimal_Complete_Actions => (ELSE, END)
+   Minimal_Complete_Actions => (END)
 
-State 224:
+State 223:
     101.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 257
+   SEMICOLON                          => shift and goto state 256
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 225:
+State 224:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
     106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part_opt END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to declarative_part_opt 76.1
    END                                => reduce 0 tokens to declarative_part_opt 76.1
    FUNCTION                           => shift and goto state 4
-   PACKAGE                            => shift and goto state 129
-   PROCEDURE                          => shift and goto state 130
-   TYPE                               => shift and goto state 131
-   IDENTIFIER                         => shift and goto state 132
+   PACKAGE                            => shift and goto state 128
+   PROCEDURE                          => shift and goto state 129
+   TYPE                               => shift and goto state 130
+   IDENTIFIER                         => shift and goto state 131
    default                            => ERROR
 
-   body_g                             goto state 133
-   body_stub                          goto state 134
-   declaration                        goto state 135
-   declarations                       goto state 136
-   declarative_part_opt               goto state 258
-   full_type_declaration              goto state 138
+   body_g                             goto state 132
+   body_stub                          goto state 133
+   declaration                        goto state 134
+   declarations                       goto state 135
+   declarative_part_opt               goto state 257
+   full_type_declaration              goto state 137
    function_specification             goto state 20
-   object_declaration                 goto state 139
-   package_body                       goto state 140
+   object_declaration                 goto state 138
+   package_body                       goto state 139
    procedure_specification            goto state 28
-   proper_body                        goto state 141
-   subprogram_body                    goto state 142
-   subprogram_body_stub               goto state 143
-   subprogram_declaration             goto state 144
-   subprogram_specification           goto state 145
-   type_declaration                   goto state 146
+   proper_body                        goto state 140
+   subprogram_body                    goto state 141
+   subprogram_body_stub               goto state 142
+   subprogram_declaration             goto state 143
+   subprogram_specification           goto state 144
+   type_declaration                   goto state 145
 
    Minimal_Complete_Actions => (declarative_part_opt)
 
-State 226:
+State 225:
      95.0:generic_instantiation <= PACKAGE name IS NEW name ^ SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, LEFT_PAREN/DOT/SEMICOLON
     103.1:name <= name ^ actual_parameter_part, LEFT_PAREN/DOT/SEMICOLON
     123.0:selected_component <= name ^ DOT IDENTIFIER, LEFT_PAREN/DOT/SEMICOLON
 
-   LEFT_PAREN                         => shift and goto state 77
-   DOT                                => shift and goto state 79
-   SEMICOLON                          => shift and goto state 259
+   LEFT_PAREN                         => shift and goto state 76
+   DOT                                => shift and goto state 78
+   SEMICOLON                          => shift and goto state 258
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
+   actual_parameter_part              goto state 80
 
-   Minimal_Complete_Actions => (DOT, SEMICOLON)
+   Minimal_Complete_Actions => (SEMICOLON)
 
-State 227:
+State 226:
      95.1:generic_instantiation <= PROCEDURE name IS NEW name ^ SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, LEFT_PAREN/DOT/SEMICOLON
     103.1:name <= name ^ actual_parameter_part, LEFT_PAREN/DOT/SEMICOLON
     123.0:selected_component <= name ^ DOT IDENTIFIER, LEFT_PAREN/DOT/SEMICOLON
 
-   LEFT_PAREN                         => shift and goto state 77
-   DOT                                => shift and goto state 79
-   SEMICOLON                          => shift and goto state 260
+   LEFT_PAREN                         => shift and goto state 76
+   DOT                                => shift and goto state 78
+   SEMICOLON                          => shift and goto state 259
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
+   actual_parameter_part              goto state 80
 
-   Minimal_Complete_Actions => (DOT, SEMICOLON)
+   Minimal_Complete_Actions => (SEMICOLON)
 
-State 228:
+State 227:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 261
+   SEMICOLON                          => shift and goto state 260
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 229:
+State 228:
      83.0:exception_handler <= WHEN ^ exception_choice EQUAL_GREATER sequence_of_statements_opt, END/WHEN
 
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   exception_choice                   goto state 262
-   name                               goto state 263
+   exception_choice                   goto state 261
+   name                               goto state 262
    selected_component                 goto state 29
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 230:
+State 229:
      84.1:exception_handler_list <= exception_handler ^, END/WHEN
 
    END                                => reduce 1 tokens to exception_handler_list 84.1
@@ -4780,19 +4684,19 @@ State 230:
 
    Minimal_Complete_Actions => (exception_handler_list)
 
-State 231:
+State 230:
      84.0:exception_handler_list <= exception_handler_list ^ exception_handler, END/WHEN
      85.0:exception_handler_list_opt <= exception_handler_list ^, END
 
    END                                => reduce 1 tokens to exception_handler_list_opt 85.0
-   WHEN                               => shift and goto state 229
+   WHEN                               => shift and goto state 228
    default                            => ERROR
 
-   exception_handler                  goto state 264
+   exception_handler                  goto state 263
 
    Minimal_Complete_Actions => (exception_handler_list_opt)
 
-State 232:
+State 231:
      96.0:handled_sequence_of_statements <= sequence_of_statements_opt EXCEPTION exception_handler_list_opt ^, END
 
    END                                => reduce 3 tokens to handled_sequence_of_statements 96.0
@@ -4800,55 +4704,55 @@ State 232:
 
    Minimal_Complete_Actions => (handled_sequence_of_statements)
 
-State 233:
+State 232:
      93.0:full_type_declaration <= TYPE IDENTIFIER IS ^ type_definition SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   LEFT_PAREN                         => shift and goto state 265
+   LEFT_PAREN                         => shift and goto state 264
    default                            => ERROR
 
-   enumeration_type_definition        goto state 266
-   type_definition                    goto state 267
+   enumeration_type_definition        goto state 265
+   type_definition                    goto state 266
 
    Minimal_Complete_Actions => (LEFT_PAREN)
 
-State 234:
+State 233:
     105.0:object_declaration <= IDENTIFIER COLON subtype_indication ^ COLON_EQUAL expression_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     105.1:object_declaration <= IDENTIFIER COLON subtype_indication ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   COLON_EQUAL                        => shift and goto state 268
-   SEMICOLON                          => shift and goto state 269
-   default                            => ERROR
-
-   Minimal_Complete_Actions => (COLON_EQUAL, SEMICOLON)
-
-State 235:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-
-   END                                => shift and goto state 270
-   default                            => ERROR
-
-   Minimal_Complete_Actions => (END)
-
-State 236:
-    131.0:subprogram_body_stub <= subprogram_specification IS SEPARATE ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
-
-   SEMICOLON                          => shift and goto state 271
+   COLON_EQUAL                        => shift and goto state 267
+   SEMICOLON                          => shift and goto state 268
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 237:
+State 234:
+     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+
+   END                                => shift and goto state 269
+   default                            => ERROR
+
+   Minimal_Complete_Actions => (END)
+
+State 235:
+    131.0:subprogram_body_stub <= subprogram_specification IS SEPARATE ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
+
+   SEMICOLON                          => shift and goto state 270
+   default                            => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON)
+
+State 236:
     101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END LOOP ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 97.1
    IDENTIFIER                         => shift and goto state 57
    default                            => ERROR
 
-   identifier_opt                     goto state 272
+   identifier_opt                     goto state 271
 
    Minimal_Complete_Actions => (identifier_opt)
 
-State 238:
+State 237:
      60.0:association_opt <= IDENTIFIER EQUAL_GREATER expression_opt ^, IS/RIGHT_PAREN/COMMA
 
    IS                                 => reduce 3 tokens to association_opt 60.0
@@ -4858,7 +4762,7 @@ State 238:
 
    Minimal_Complete_Actions => (association_opt)
 
-State 239:
+State 238:
      61.0:association_list <= association_list COMMA association_opt ^, IS/RIGHT_PAREN/COMMA
 
    IS                                 => reduce 3 tokens to association_list 61.0
@@ -4868,7 +4772,7 @@ State 239:
 
    Minimal_Complete_Actions => (association_list)
 
-State 240:
+State 239:
     117.0:range_list <= range_list COMMA range_g ^, RIGHT_PAREN/COMMA
 
    RIGHT_PAREN                        => reduce 3 tokens to range_list 117.0
@@ -4877,7 +4781,7 @@ State 240:
 
    Minimal_Complete_Actions => (range_list)
 
-State 241:
+State 240:
     116.0:range_g <= simple_expression DOT_DOT simple_expression ^, LOOP/RIGHT_PAREN/COLON_EQUAL/COMMA/SEMICOLON
 
    LOOP                               => reduce 3 tokens to range_g 116.0
@@ -4889,7 +4793,7 @@ State 241:
 
    Minimal_Complete_Actions => (range_g)
 
-State 242:
+State 241:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -4912,7 +4816,7 @@ State 242:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 273
+   handled_sequence_of_statements     goto state 272
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
@@ -4920,14 +4824,14 @@ State 242:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 128
+   sequence_of_statements_opt         goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (handled_sequence_of_statements)
 
-State 243:
+State 242:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER ^ sequence_of_statements_opt, END/WHEN
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -4957,30 +4861,30 @@ State 243:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 274
+   sequence_of_statements_opt         goto state 273
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
-State 244:
+State 243:
      67.0:case_statement <= CASE expression_opt IS case_statement_alternative_list END CASE ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 275
+   SEMICOLON                          => shift and goto state 274
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 245:
+State 244:
      99.0:index_constraint <= LEFT_PAREN discrete_subtype_definition ^ RIGHT_PAREN, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
 
-   RIGHT_PAREN                        => shift and goto state 276
+   RIGHT_PAREN                        => shift and goto state 275
    default                            => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)
 
-State 246:
+State 245:
      77.1:discrete_subtype_definition <= range_g ^, RIGHT_PAREN
     117.1:range_list <= range_g ^, RIGHT_PAREN/COMMA
 
@@ -4989,9 +4893,9 @@ State 246:
    COMMA                              => reduce 1 tokens to range_list 117.1
    default                            => ERROR
 
-   Minimal_Complete_Actions => (discrete_subtype_definition, range_list)
+   Minimal_Complete_Actions => (discrete_subtype_definition)
 
-State 247:
+State 246:
      73.0:constraint <= RANGE range_g ^, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
 
    LOOP                               => reduce 2 tokens to constraint 73.0
@@ -5002,27 +4906,27 @@ State 247:
 
    Minimal_Complete_Actions => (constraint)
 
-State 248:
+State 247:
     109.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER ^ COLON_EQUAL expression_opt, RIGHT_PAREN/SEMICOLON
     109.1:parameter_specification <= IDENTIFIER COLON IDENTIFIER ^, RIGHT_PAREN/SEMICOLON
 
    RIGHT_PAREN                        => reduce 3 tokens to parameter_specification 109.1
-   COLON_EQUAL                        => shift and goto state 277
+   COLON_EQUAL                        => shift and goto state 276
    SEMICOLON                          => reduce 3 tokens to parameter_specification 109.1
    default                            => ERROR
 
    Minimal_Complete_Actions => (parameter_specification)
 
-State 249:
+State 248:
     109.0:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER COLON_EQUAL expression_opt, RIGHT_PAREN/SEMICOLON
     109.1:parameter_specification <= IDENTIFIER ^ COLON IDENTIFIER, RIGHT_PAREN/SEMICOLON
 
-   COLON                              => shift and goto state 215
+   COLON                              => shift and goto state 214
    default                            => ERROR
 
    Minimal_Complete_Actions => (COLON)
 
-State 250:
+State 249:
     110.0:parameter_specification_list <= parameter_specification_list SEMICOLON parameter_specification ^, RIGHT_PAREN/SEMICOLON
 
    RIGHT_PAREN                        => reduce 3 tokens to parameter_specification_list 110.0
@@ -5031,31 +4935,31 @@ State 250:
 
    Minimal_Complete_Actions => (parameter_specification_list)
 
-State 251:
+State 250:
      98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   END                                => shift and goto state 278
+   END                                => shift and goto state 277
    default                            => ERROR
 
    Minimal_Complete_Actions => (END)
 
-State 252:
+State 251:
      78.0:elsif_statement_item <= ELSIF expression_opt ^ THEN sequence_of_statements_opt, ELSE/ELSIF/END
 
-   THEN                               => shift and goto state 279
+   THEN                               => shift and goto state 278
    default                            => ERROR
 
    Minimal_Complete_Actions => (THEN)
 
-State 253:
+State 252:
      98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 280
+   SEMICOLON                          => shift and goto state 279
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 254:
+State 253:
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE ^ sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5084,22 +4988,22 @@ State 254:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 281
+   sequence_of_statements_opt         goto state 280
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
-State 255:
+State 254:
      98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   IF                                 => shift and goto state 282
+   IF                                 => shift and goto state 281
    default                            => ERROR
 
    Minimal_Complete_Actions => (IF)
 
-State 256:
+State 255:
      79.0:elsif_statement_list <= elsif_statement_list elsif_statement_item ^, ELSE/ELSIF/END
 
    ELSE                               => reduce 2 tokens to elsif_statement_list 79.0
@@ -5109,7 +5013,7 @@ State 256:
 
    Minimal_Complete_Actions => (elsif_statement_list)
 
-State 257:
+State 256:
     101.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 6 tokens to loop_statement 101.1
@@ -5134,17 +5038,17 @@ State 257:
 
    Minimal_Complete_Actions => (loop_statement)
 
-State 258:
+State 257:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
     106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   BEGIN                              => shift and goto state 283
-   END                                => shift and goto state 284
+   BEGIN                              => shift and goto state 282
+   END                                => shift and goto state 283
    default                            => ERROR
 
-   Minimal_Complete_Actions => (BEGIN, END)
+   Minimal_Complete_Actions => (END)
 
-State 259:
+State 258:
      95.0:generic_instantiation <= PACKAGE name IS NEW name SEMICOLON ^, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 6 tokens to generic_instantiation 95.0
@@ -5164,7 +5068,7 @@ State 259:
 
    Minimal_Complete_Actions => (generic_instantiation)
 
-State 260:
+State 259:
      95.1:generic_instantiation <= PROCEDURE name IS NEW name SEMICOLON ^, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 6 tokens to generic_instantiation 95.1
@@ -5184,7 +5088,7 @@ State 260:
 
    Minimal_Complete_Actions => (generic_instantiation)
 
-State 261:
+State 260:
      64.1:block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 6 tokens to block_statement 64.1
@@ -5209,30 +5113,30 @@ State 261:
 
    Minimal_Complete_Actions => (block_statement)
 
-State 262:
+State 261:
      83.0:exception_handler <= WHEN exception_choice ^ EQUAL_GREATER sequence_of_statements_opt, END/WHEN
 
-   EQUAL_GREATER                      => shift and goto state 285
+   EQUAL_GREATER                      => shift and goto state 284
    default                            => ERROR
 
    Minimal_Complete_Actions => (EQUAL_GREATER)
 
-State 263:
+State 262:
      82.0:exception_choice <= name ^, EQUAL_GREATER
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, LEFT_PAREN/DOT/EQUAL_GREATER
     103.1:name <= name ^ actual_parameter_part, LEFT_PAREN/DOT/EQUAL_GREATER
     123.0:selected_component <= name ^ DOT IDENTIFIER, LEFT_PAREN/DOT/EQUAL_GREATER
 
-   LEFT_PAREN                         => shift and goto state 77
-   DOT                                => shift and goto state 79
+   LEFT_PAREN                         => shift and goto state 76
+   DOT                                => shift and goto state 78
    EQUAL_GREATER                      => reduce 1 tokens to exception_choice 82.0
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
+   actual_parameter_part              goto state 80
 
-   Minimal_Complete_Actions => (DOT, exception_choice)
+   Minimal_Complete_Actions => (exception_choice)
 
-State 264:
+State 263:
      84.0:exception_handler_list <= exception_handler_list exception_handler ^, END/WHEN
 
    END                                => reduce 2 tokens to exception_handler_list 84.0
@@ -5241,17 +5145,17 @@ State 264:
 
    Minimal_Complete_Actions => (exception_handler_list)
 
-State 265:
+State 264:
      81.0:enumeration_type_definition <= LEFT_PAREN ^ enumeration_literal_list RIGHT_PAREN, SEMICOLON
 
-   IDENTIFIER                         => shift and goto state 286
+   IDENTIFIER                         => shift and goto state 285
    default                            => ERROR
 
-   enumeration_literal_list           goto state 287
+   enumeration_literal_list           goto state 286
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 266:
+State 265:
     138.0:type_definition <= enumeration_type_definition ^, SEMICOLON
 
    SEMICOLON                          => reduce 1 tokens to type_definition 138.0
@@ -5259,15 +5163,15 @@ State 266:
 
    Minimal_Complete_Actions => (type_definition)
 
-State 267:
+State 266:
      93.0:full_type_declaration <= TYPE IDENTIFIER IS type_definition ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
-   SEMICOLON                          => shift and goto state 288
+   SEMICOLON                          => shift and goto state 287
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 268:
+State 267:
     105.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL ^ expression_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    LEFT_PAREN                         => shift and goto state 36
@@ -5281,7 +5185,7 @@ State 268:
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 289
+   expression_opt                     goto state 288
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -5298,7 +5202,7 @@ State 268:
 
    Minimal_Complete_Actions => (expression_opt)
 
-State 269:
+State 268:
     105.1:object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 4 tokens to object_declaration 105.1
@@ -5312,18 +5216,18 @@ State 269:
 
    Minimal_Complete_Actions => (object_declaration)
 
-State 270:
+State 269:
      64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 97.1
    IDENTIFIER                         => shift and goto state 57
    default                            => ERROR
 
-   identifier_opt                     goto state 290
+   identifier_opt                     goto state 289
 
    Minimal_Complete_Actions => (identifier_opt)
 
-State 271:
+State 270:
     131.0:subprogram_body_stub <= subprogram_specification IS SEPARATE SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 4 tokens to subprogram_body_stub 131.0
@@ -5337,23 +5241,23 @@ State 271:
 
    Minimal_Complete_Actions => (subprogram_body_stub)
 
-State 272:
+State 271:
     101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 291
+   SEMICOLON                          => shift and goto state 290
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 273:
+State 272:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   END                                => shift and goto state 292
+   END                                => shift and goto state 291
    default                            => ERROR
 
    Minimal_Complete_Actions => (END)
 
-State 274:
+State 273:
      68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements_opt ^, END/WHEN
 
    END                                => reduce 4 tokens to case_statement_alternative 68.0
@@ -5362,7 +5266,7 @@ State 274:
 
    Minimal_Complete_Actions => (case_statement_alternative)
 
-State 275:
+State 274:
      67.0:case_statement <= CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 7 tokens to case_statement 67.0
@@ -5387,7 +5291,7 @@ State 275:
 
    Minimal_Complete_Actions => (case_statement)
 
-State 276:
+State 275:
      99.0:index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN ^, LOOP/RIGHT_PAREN/COLON_EQUAL/SEMICOLON
 
    LOOP                               => reduce 3 tokens to index_constraint 99.0
@@ -5398,7 +5302,7 @@ State 276:
 
    Minimal_Complete_Actions => (index_constraint)
 
-State 277:
+State 276:
     109.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER COLON_EQUAL ^ expression_opt, RIGHT_PAREN/SEMICOLON
 
    LEFT_PAREN                         => shift and goto state 36
@@ -5413,7 +5317,7 @@ State 277:
    default                            => ERROR
 
    expression                         goto state 43
-   expression_opt                     goto state 293
+   expression_opt                     goto state 292
    factor                             goto state 45
    name                               goto state 46
    paren_expression                   goto state 47
@@ -5430,15 +5334,15 @@ State 277:
 
    Minimal_Complete_Actions => (expression_opt)
 
-State 278:
+State 277:
      98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   IF                                 => shift and goto state 294
+   IF                                 => shift and goto state 293
    default                            => ERROR
 
    Minimal_Complete_Actions => (IF)
 
-State 279:
+State 278:
      78.0:elsif_statement_item <= ELSIF expression_opt THEN ^ sequence_of_statements_opt, ELSE/ELSIF/END
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5469,14 +5373,14 @@ State 279:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 295
+   sequence_of_statements_opt         goto state 294
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
-State 280:
+State 279:
      98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 7 tokens to if_statement 98.3
@@ -5501,23 +5405,23 @@ State 280:
 
    Minimal_Complete_Actions => (if_statement)
 
-State 281:
+State 280:
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   END                                => shift and goto state 296
+   END                                => shift and goto state 295
    default                            => ERROR
 
    Minimal_Complete_Actions => (END)
 
-State 282:
+State 281:
      98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 297
+   SEMICOLON                          => shift and goto state 296
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 283:
+State 282:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5540,7 +5444,7 @@ State 283:
    compound_statement                 goto state 17
    exit_statement                     goto state 18
    extended_return_statement          goto state 19
-   handled_sequence_of_statements     goto state 298
+   handled_sequence_of_statements     goto state 297
    if_statement                       goto state 22
    iteration_scheme                   goto state 23
    loop_statement                     goto state 24
@@ -5548,27 +5452,27 @@ State 283:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 128
+   sequence_of_statements_opt         goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (handled_sequence_of_statements)
 
-State 284:
+State 283:
     106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to name_opt 104.1
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   name                               goto state 299
-   name_opt                           goto state 300
+   name                               goto state 298
+   name_opt                           goto state 299
    selected_component                 goto state 29
 
    Minimal_Complete_Actions => (name_opt)
 
-State 285:
+State 284:
      83.0:exception_handler <= WHEN exception_choice EQUAL_GREATER ^ sequence_of_statements_opt, END/WHEN
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
@@ -5598,14 +5502,14 @@ State 285:
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
    sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 301
+   sequence_of_statements_opt         goto state 300
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
    Minimal_Complete_Actions => (sequence_of_statements_opt)
 
-State 286:
+State 285:
      80.1:enumeration_literal_list <= IDENTIFIER ^, RIGHT_PAREN/COMMA
 
    RIGHT_PAREN                        => reduce 1 tokens to enumeration_literal_list 80.1
@@ -5614,17 +5518,17 @@ State 286:
 
    Minimal_Complete_Actions => (enumeration_literal_list)
 
-State 287:
+State 286:
      80.0:enumeration_literal_list <= enumeration_literal_list ^ COMMA IDENTIFIER, RIGHT_PAREN/COMMA
      81.0:enumeration_type_definition <= LEFT_PAREN enumeration_literal_list ^ RIGHT_PAREN, SEMICOLON
 
-   RIGHT_PAREN                        => shift and goto state 302
-   COMMA                              => shift and goto state 303
+   RIGHT_PAREN                        => shift and goto state 301
+   COMMA                              => shift and goto state 302
    default                            => ERROR
 
    Minimal_Complete_Actions => (RIGHT_PAREN)
 
-State 288:
+State 287:
      93.0:full_type_declaration <= TYPE IDENTIFIER IS type_definition SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 5 tokens to full_type_declaration 93.0
@@ -5638,8 +5542,16 @@ State 288:
 
    Minimal_Complete_Actions => (full_type_declaration)
 
-State 289:
+State 288:
     105.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression_opt ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
+
+   SEMICOLON                          => shift and goto state 303
+   default                            => ERROR
+
+   Minimal_Complete_Actions => (SEMICOLON)
+
+State 289:
+     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 304
    default                            => ERROR
@@ -5647,14 +5559,6 @@ State 289:
    Minimal_Complete_Actions => (SEMICOLON)
 
 State 290:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-
-   SEMICOLON                          => shift and goto state 305
-   default                            => ERROR
-
-   Minimal_Complete_Actions => (SEMICOLON)
-
-State 291:
     101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 7 tokens to loop_statement 101.0
@@ -5679,20 +5583,20 @@ State 291:
 
    Minimal_Complete_Actions => (loop_statement)
 
-State 292:
+State 291:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to name_opt 104.1
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   name                               goto state 299
-   name_opt                           goto state 306
+   name                               goto state 298
+   name_opt                           goto state 305
    selected_component                 goto state 29
 
    Minimal_Complete_Actions => (name_opt)
 
-State 293:
+State 292:
     109.0:parameter_specification <= IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression_opt ^, RIGHT_PAREN/SEMICOLON
 
    RIGHT_PAREN                        => reduce 5 tokens to parameter_specification 109.0
@@ -5701,15 +5605,15 @@ State 293:
 
    Minimal_Complete_Actions => (parameter_specification)
 
-State 294:
+State 293:
      98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 307
+   SEMICOLON                          => shift and goto state 306
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 295:
+State 294:
      78.0:elsif_statement_item <= ELSIF expression_opt THEN sequence_of_statements_opt ^, ELSE/ELSIF/END
 
    ELSE                               => reduce 4 tokens to elsif_statement_item 78.0
@@ -5719,15 +5623,15 @@ State 295:
 
    Minimal_Complete_Actions => (elsif_statement_item)
 
-State 296:
+State 295:
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   IF                                 => shift and goto state 308
+   IF                                 => shift and goto state 307
    default                            => ERROR
 
    Minimal_Complete_Actions => (IF)
 
-State 297:
+State 296:
      98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 8 tokens to if_statement 98.2
@@ -5752,38 +5656,38 @@ State 297:
 
    Minimal_Complete_Actions => (if_statement)
 
-State 298:
+State 297:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   END                                => shift and goto state 309
+   END                                => shift and goto state 308
    default                            => ERROR
 
    Minimal_Complete_Actions => (END)
 
-State 299:
+State 298:
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, LEFT_PAREN/DOT/SEMICOLON
     103.1:name <= name ^ actual_parameter_part, LEFT_PAREN/DOT/SEMICOLON
     104.0:name_opt <= name ^, SEMICOLON
     123.0:selected_component <= name ^ DOT IDENTIFIER, LEFT_PAREN/DOT/SEMICOLON
 
-   LEFT_PAREN                         => shift and goto state 77
-   DOT                                => shift and goto state 79
+   LEFT_PAREN                         => shift and goto state 76
+   DOT                                => shift and goto state 78
    SEMICOLON                          => reduce 1 tokens to name_opt 104.0
    default                            => ERROR
 
-   actual_parameter_part              goto state 81
+   actual_parameter_part              goto state 80
 
-   Minimal_Complete_Actions => (DOT, name_opt)
+   Minimal_Complete_Actions => (name_opt)
 
-State 300:
+State 299:
     106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 310
+   SEMICOLON                          => shift and goto state 309
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 301:
+State 300:
      83.0:exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements_opt ^, END/WHEN
 
    END                                => reduce 4 tokens to exception_handler 83.0
@@ -5792,7 +5696,7 @@ State 301:
 
    Minimal_Complete_Actions => (exception_handler)
 
-State 302:
+State 301:
      81.0:enumeration_type_definition <= LEFT_PAREN enumeration_literal_list RIGHT_PAREN ^, SEMICOLON
 
    SEMICOLON                          => reduce 3 tokens to enumeration_type_definition 81.0
@@ -5800,15 +5704,15 @@ State 302:
 
    Minimal_Complete_Actions => (enumeration_type_definition)
 
-State 303:
+State 302:
      80.0:enumeration_literal_list <= enumeration_literal_list COMMA ^ IDENTIFIER, RIGHT_PAREN/COMMA
 
-   IDENTIFIER                         => shift and goto state 311
+   IDENTIFIER                         => shift and goto state 310
    default                            => ERROR
 
    Minimal_Complete_Actions => (IDENTIFIER)
 
-State 304:
+State 303:
     105.0:object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression_opt SEMICOLON ^, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BEGIN                              => reduce 6 tokens to object_declaration 105.0
@@ -5822,7 +5726,7 @@ State 304:
 
    Minimal_Complete_Actions => (object_declaration)
 
-State 305:
+State 304:
      64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 8 tokens to block_statement 64.0
@@ -5847,15 +5751,15 @@ State 305:
 
    Minimal_Complete_Actions => (block_statement)
 
-State 306:
+State 305:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 312
+   SEMICOLON                          => shift and goto state 311
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 307:
+State 306:
      98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 9 tokens to if_statement 98.1
@@ -5880,28 +5784,28 @@ State 307:
 
    Minimal_Complete_Actions => (if_statement)
 
-State 308:
+State 307:
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 313
+   SEMICOLON                          => shift and goto state 312
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 309:
+State 308:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to name_opt 104.1
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
 
-   name                               goto state 299
-   name_opt                           goto state 314
+   name                               goto state 298
+   name_opt                           goto state 313
    selected_component                 goto state 29
 
    Minimal_Complete_Actions => (name_opt)
 
-State 310:
+State 309:
     106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 9 tokens to package_body 106.1
@@ -5923,7 +5827,7 @@ State 310:
 
    Minimal_Complete_Actions => (package_body)
 
-State 311:
+State 310:
      80.0:enumeration_literal_list <= enumeration_literal_list COMMA IDENTIFIER ^, RIGHT_PAREN/COMMA
 
    RIGHT_PAREN                        => reduce 3 tokens to enumeration_literal_list 80.0
@@ -5932,7 +5836,7 @@ State 311:
 
    Minimal_Complete_Actions => (enumeration_literal_list)
 
-State 312:
+State 311:
     130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 9 tokens to subprogram_body 130.0
@@ -5954,7 +5858,7 @@ State 312:
 
    Minimal_Complete_Actions => (subprogram_body)
 
-State 313:
+State 312:
      98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 10 tokens to if_statement 98.0
@@ -5979,15 +5883,15 @@ State 313:
 
    Minimal_Complete_Actions => (if_statement)
 
-State 314:
+State 313:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   SEMICOLON                          => shift and goto state 315
+   SEMICOLON                          => shift and goto state 314
    default                            => ERROR
 
    Minimal_Complete_Actions => (SEMICOLON)
 
-State 315:
+State 314:
     106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 11 tokens to package_body 106.0
@@ -6009,8 +5913,7 @@ State 315:
 
    Minimal_Complete_Actions => (package_body)
 
-States with multiple reduce in Minimal_Complete_Action: (112, 174, 246)
-States with conflicts: 9 67 112 145 174 246
+States with conflicts: 67 111 144 173 245
 
- 83 rules, 13 user actions, 16 checks, 316 states, 2544 parse actions
- 0 accept/reduce conflicts, 3 shift/reduce conflicts, 3 reduce/reduce conflicts
+ 83 rules, 13 user actions, 16 checks, 315 states, 2525 parse actions
+ 0 accept/reduce conflicts, 2 shift/reduce conflicts, 3 reduce/reduce conflicts

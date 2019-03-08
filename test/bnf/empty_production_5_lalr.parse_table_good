@@ -20,9 +20,6 @@ Productions:
 11.0: parameter_profile <= LEFT_PAREN IDENTIFIER RIGHT_PAREN
 11.1: parameter_profile <=
 
-Ancestors:
-IDENTIFIER => name
-
 LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -50,6 +47,8 @@ State 2:
 
    Wisi_EOI          => accept it 7.0
    default           => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 3:
       8.0:compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI

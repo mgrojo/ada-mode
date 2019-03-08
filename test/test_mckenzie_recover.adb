@@ -226,9 +226,9 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOF_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     => +(Insert, +RETURN_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-         Enqueue_Low             => 99,
-         Check_Low               => 21,
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
+         Enqueue_Low             => 98,
+         Check_Low               => 20,
          Cost                    => 4);
 
       Parse_Text ("   ");
@@ -237,9 +237,9 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOF_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     => +(Insert, +RETURN_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-         Enqueue_Low             => 99,
-         Check_Low               => 21,
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
+         Enqueue_Low             => 98,
+         Check_Low               => 20,
          Cost                    => 4);
 
       Parse_Text ("--  a comment");
@@ -248,9 +248,9 @@ package body Test_McKenzie_Recover is
          Errors_Length           => 1,
          Error_Token_ID          => Descriptor.EOF_ID,
          Error_Token_Byte_Region => (1, 0),
-         Ops                     => +(Insert, +RETURN_ID, 1) & (Insert, +SEMICOLON_ID, 1),
-         Enqueue_Low             => 99,
-         Check_Low               => 21,
+         Ops                     => +(Insert, +IDENTIFIER_ID, 1) & (Insert, +SEMICOLON_ID, 1),
+         Enqueue_Low             => 98,
+         Check_Low               => 20,
          Cost                    => 4);
    end Empty_Comments;
 
@@ -272,7 +272,7 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11),
-         Enqueue_Low             => 125,
+         Enqueue_Low             => 123,
          Check_Low               => 32,
          Cost                    => 2);
    end Error_1;
@@ -305,7 +305,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (63, 69),
          Ops                     => +(Push_Back, +END_ID, 15) & (Push_Back, +sequence_of_statements_opt_ID, 15) &
            (Delete,  +END_ID, 15),
-         Enqueue_Low             => 34,
+         Enqueue_Low             => 32,
          Check_Low               => 9,
          Cost                    => 1);
    end Error_2;
@@ -828,8 +828,8 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +END_ID, 11) & (Insert, +LOOP_ID, 11) & (Fast_Forward, 13) &
            (Push_Back, +END_ID, 12) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
            (Fast_Forward, 12),
-         Enqueue_Low             => 232,
-         Check_Low               => 39,
+         Enqueue_Low             => 210,
+         Check_Low               => 35,
          Cost                    => 4);
    end Push_Back_1;
 
@@ -1402,7 +1402,7 @@ package body Test_McKenzie_Recover is
          Ops                     =>
            +(Insert, +RIGHT_PAREN_ID, 13) & (Insert, +THEN_ID, 13) &
              (Insert, +END_ID, 13) & (Insert, +IF_ID, 13) & (Insert, +SEMICOLON_ID, 13),
-         Enqueue_Low             => 43,
+         Enqueue_Low             => 41,
          Check_Low               => 17,
          Cost                    => 5);
    end Actual_Parameter_Part_1;
@@ -1624,25 +1624,6 @@ package body Test_McKenzie_Recover is
          Cost                    => 0);
    end Enqueue_Limit;
 
-   procedure Multiple_Complete_Reduce (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (T);
-   begin
-      --  Test McKenzie_Recover.Explore.Insert_Minimal_Complete_Actions
-      --  encounter multiple Reduce actions.
-
-      Parse_Text ("package body Debug is A : Integer; B : Integer_Array (1 .. Last end Debug;");
-
-      Check_Recover
-        (Errors_Length           => 1,
-         Error_Token_ID          => +END_ID,
-         Error_Token_Byte_Region => (65, 67),
-         Ops                     => +(Insert, +RIGHT_PAREN_ID, 16) & (Insert, +SEMICOLON_ID, 16),
-         Enqueue_Low             => 12,
-         Check_Low               => 6,
-         Cost                    => 2);
-   end Multiple_Complete_Reduce;
-
    procedure Minimal_Complete_Full_Reduce_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1661,8 +1642,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +EXCEPTION_ID,
          Error_Token_Byte_Region => (4, 12),
          Ops                     => +(Insert, +BEGIN_ID, 3),
-         Enqueue_Low             => 107,
-         Check_Low               => 18,
+         Enqueue_Low             => 88,
+         Check_Low               => 17,
          Cost                    => 3);
    end Minimal_Complete_Full_Reduce_1;
 
@@ -1680,8 +1661,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +END_ID,
          Error_Token_Byte_Region => (4, 6),
          Ops                     => +(Insert, +IF_ID, 3) & (Insert, +THEN_ID, 3),
-         Enqueue_Low             => 238,
-         Check_Low               => 67,
+         Enqueue_Low             => 216,
+         Check_Low               => 65,
          Cost                    => 4);
    end Minimal_Complete_Full_Reduce_2;
 
@@ -1852,7 +1833,6 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, String_Quote_3'Access, "String_Quote_3");
       Register_Routine (T, String_Quote_4'Access, "String_Quote_4");
       Register_Routine (T, Enqueue_Limit'Access, "Enqueue_Limit");
-      Register_Routine (T, Multiple_Complete_Reduce'Access, "Multiple_Complete_Reduce");
       Register_Routine (T, Minimal_Complete_Full_Reduce_1'Access, "Minimal_Complete_Full_Reduce_1");
       Register_Routine (T, Minimal_Complete_Full_Reduce_2'Access, "Minimal_Complete_Full_Reduce_2");
       Register_Routine (T, Minimal_Complete_Full_Reduce_3'Access, "Minimal_Complete_Full_Reduce_3");

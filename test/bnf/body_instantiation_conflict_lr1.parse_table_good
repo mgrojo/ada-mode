@@ -31,10 +31,6 @@ Productions:
 18.1: parameter_list <=
 19.0: generic_instantiation <= PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON
 
-Ancestors:
-subprogram_body => library_item
-generic_instantiation => library_item
-
 LR1 Parse Table:
 State 0:
      13.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
@@ -64,6 +60,8 @@ State 2:
 
    Wisi_EOI                 => accept it 13.0
    default                  => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 3:
      14.0:compilation_unit <= library_item ^ library_item, Wisi_EOI
@@ -113,7 +111,7 @@ State 7:
 
    parameter_list           goto state 16
 
-   Minimal_Complete_Actions => (IS, parameter_list)
+   Minimal_Complete_Actions => (parameter_list)
 
 State 8:
      17.0:subprogram_specification <= PROCEDURE ^ IDENTIFIER parameter_list, IS
@@ -199,7 +197,7 @@ State 17:
 
    parameter_list           goto state 16
 
-   Minimal_Complete_Actions => (IS, parameter_list)
+   Minimal_Complete_Actions => (parameter_list)
 
 State 18:
      16.0:subprogram_body <= subprogram_specification IS ^ BEGIN NULL END SEMICOLON, Wisi_EOI

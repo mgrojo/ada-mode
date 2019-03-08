@@ -494,10 +494,11 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       Has_Empty_Production : constant Token_ID_Set := WisiToken.Generate.Has_Empty_Production (Grammar);
 
-      Minimal_Terminal_First : constant Token_Array_Token_ID :=
-        WisiToken.Generate.LR.Minimal_Terminal_First (Grammar, Descriptor);
+      Minimal_Terminal_Sequences : constant Minimal_Sequence_Array :=
+        Compute_Minimal_Terminal_Sequences (Descriptor, Grammar);
 
-      Ancestors : constant Token_Array_Token_Set := WisiToken.Generate.Ancestors (Grammar, Descriptor);
+      Minimal_Terminal_First : constant Token_Array_Token_ID :=
+        Compute_Minimal_Terminal_First (Descriptor, Minimal_Terminal_Sequences);
 
       First_Nonterm_Set : constant Token_Array_Token_Set := WisiToken.Generate.First
         (Grammar, Has_Empty_Production, Descriptor.First_Terminal);
@@ -561,13 +562,17 @@ package body WisiToken.Generate.LR.LALR_Generate is
       --  Set Table.States.Productions, Minimal_Complete_Actions for McKenzie_Recover
       for State in Table.States'Range loop
          Table.States (State).Productions := LR1_Items.Productions (Kernels (State));
+         if Trace_Generate > Extra then
+            Ada.Text_IO.Put_Line ("Set_Minimal_Complete_Actions:" & State_Index'Image (State));
+         end if;
          WisiToken.Generate.LR.Set_Minimal_Complete_Actions
-           (Table.States (State), Kernels (State), Minimal_Terminal_First, Ancestors, Descriptor, Grammar);
+           (Table.States (State), Kernels (State), Descriptor, Grammar, Minimal_Terminal_Sequences,
+            Minimal_Terminal_First);
       end loop;
 
       if Put_Parse_Table then
          WisiToken.Generate.LR.Put_Parse_Table
-           (Table, "LALR", Grammar, Kernels, Ancestors, Unknown_Conflicts, Descriptor);
+           (Table, "LALR", Grammar, Kernels, Unknown_Conflicts, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);

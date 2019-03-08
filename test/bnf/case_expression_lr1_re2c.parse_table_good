@@ -31,15 +31,6 @@ Productions:
 17.0: range_nt <= IDENTIFIER TICK RANGE
 17.1: range_nt <= factor_list DOT_DOT factor_list
 
-Ancestors:
-NUMBER_LITERAL => choice_expression, choice_relation, discrete_choice, factor, factor_list
-IDENTIFIER => choice_expression, choice_relation, discrete_choice, factor, factor_list
-choice_expression => discrete_choice
-choice_relation => choice_expression, discrete_choice
-factor => choice_expression, choice_relation, discrete_choice, factor_list
-factor_list => choice_expression, choice_relation, discrete_choice
-range_nt => discrete_choice
-
 LR1 Parse Table:
 State 0:
      10.0:wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI
@@ -65,13 +56,15 @@ State 1:
    factor_list       goto state 9
    range_nt          goto state 10
 
-   Minimal_Complete_Actions => (NUMBER_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 2:
      10.0:wisitoken_accept <= case_expression ^ Wisi_EOI, Wisi_EOI
 
    Wisi_EOI          => accept it 10.0
    default           => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 3:
      15.1:factor <= NUMBER_LITERAL ^, DOT_DOT/EQUAL_GREATER
@@ -91,7 +84,7 @@ State 4:
    TICK              => shift and goto state 11
    default           => ERROR
 
-   Minimal_Complete_Actions => (TICK, factor)
+   Minimal_Complete_Actions => (factor)
 
 State 5:
      14.0:discrete_choice <= choice_expression ^, EQUAL_GREATER
@@ -134,7 +127,7 @@ State 9:
    EQUAL_GREATER     => reduce 1 tokens to choice_relation 13.0
    default           => ERROR
 
-   Minimal_Complete_Actions => (DOT_DOT, choice_relation)
+   Minimal_Complete_Actions => (choice_relation)
 
 State 10:
      14.1:discrete_choice <= range_nt ^, EQUAL_GREATER
@@ -161,7 +154,7 @@ State 12:
 
    factor            goto state 17
 
-   Minimal_Complete_Actions => (NUMBER_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 13:
      17.1:range_nt <= factor_list DOT_DOT ^ factor_list, EQUAL_GREATER
@@ -173,7 +166,7 @@ State 13:
    factor            goto state 20
    factor_list       goto state 21
 
-   Minimal_Complete_Actions => (NUMBER_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 14:
      17.0:range_nt <= IDENTIFIER TICK RANGE ^, EQUAL_GREATER

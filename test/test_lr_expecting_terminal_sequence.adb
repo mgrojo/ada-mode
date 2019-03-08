@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009-2010, 2012-2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,14 +23,14 @@ with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Parse.LR.AUnit;
+with WisiToken.Generate.LR.AUnit;
 with WisiToken.Generate.LR.LALR_Generate;
-with WisiToken.Parse.LR.Parser;
 with WisiToken.Lexer.Regexp;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Productions;
 with WisiToken.Syntax_Trees;
-with WisiToken.Wisi_Ada; use WisiToken.Wisi_Ada;
 with WisiToken.Text_IO_Trace;
+with WisiToken.Wisi_Ada;
 package body Test_LR_Expecting_Terminal_Sequence is
 
    --  A simple grammar for testing the Expecting function for generating nice error messages.
@@ -76,6 +76,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
    use Token_Enum;
 
    package Set_Statement is
+      use WisiToken.Wisi_Ada;
 
       Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
         --  set symbol = value
@@ -84,6 +85,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
    end Set_Statement;
 
    package Verify_Statement is
+      use WisiToken.Wisi_Ada;
 
       Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
         --  verify symbol = value +- tolerance
@@ -106,10 +108,14 @@ package body Test_LR_Expecting_Terminal_Sequence is
        EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
-   Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
-     +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action) and
-     Set_Statement.Grammar and
-     Verify_Statement.Grammar;
+   package Top_Level is
+      use WisiToken.Wisi_Ada;
+
+      Grammar : constant WisiToken.Productions.Prod_Arrays.Vector :=
+        +(Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Syntax_Trees.Null_Action) and
+        Set_Statement.Grammar and
+        Verify_Statement.Grammar;
+   end Top_Level;
 
    Parser : WisiToken.Parse.LR.Parser.Parser;
 
@@ -146,7 +152,7 @@ package body Test_LR_Expecting_Terminal_Sequence is
         (Parser,
          Trace'Access,
          Lexer.New_Lexer (Trace.Descriptor, Syntax),
-         WisiToken.Generate.LR.LALR_Generate.Generate (Grammar, LALR_Descriptor),
+         WisiToken.Generate.LR.LALR_Generate.Generate (Top_Level.Grammar, LALR_Descriptor),
          User_Data                             => null,
          Language_Fixes                        => null,
          Language_Use_Minimal_Complete_Actions => null,
@@ -178,32 +184,26 @@ package body Test_LR_Expecting_Terminal_Sequence is
    procedure Test_Terminal_Sequence (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use WisiToken.Parse.LR.AUnit;
-      use WisiToken.Parse.LR.AUnit.Token_Sequence_Arrays_AUnit;
-      Computed : WisiToken.Token_Sequence_Arrays.Vector;
-      Expected : WisiToken.Token_Sequence_Arrays.Vector;
-      Sequence : WisiToken.Token_ID_Arrays.Vector;
+      use WisiToken.Generate.LR.AUnit;
+      use WisiToken.Generate.LR.RHS_Sequence_Arrays;
+      use WisiToken.Token_ID_Arrays;
+
+      Computed : constant WisiToken.Generate.LR.Minimal_Sequence_Array :=
+        WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences (LALR_Descriptor, Top_Level.Grammar);
+
+      Expected : constant WisiToken.Generate.LR.Minimal_Sequence_Array (+Parse_Sequence_ID .. +Statement_ID) :=
+        (To_Vector ((False, +Set_ID & (+Identifier_ID) & (+Equals_ID) & (+Int_ID) & (+Semicolon_ID) & (+EOF_ID))),
+         ((False, +Set_ID & (+Identifier_ID) & (+Equals_ID) & (+Int_ID)) &
+          (False, +Verify_ID & (+Identifier_ID) & (+Equals_ID) & (+Int_ID) & (+Plus_Minus_ID) & (+Int_ID))));
    begin
-      WisiToken.Generate.LR.Compute_Minimal_Terminal_Sequences (Grammar, LALR_Descriptor, Computed);
-
-      Expected.Set_First (+Parse_Sequence_ID);
-      Expected.Set_Last (+Statement_ID);
-
-      Sequence.Append (+Set_ID);
-      Sequence.Append (+Identifier_ID);
-      Sequence.Append (+Equals_ID);
-      Sequence.Append (+Int_ID);
-      Expected (+Statement_ID) := Sequence;
-
-      --  We don't do Sequence.Clear here; Parse_Sequence_ID begins with Statement_ID
-      Sequence.Append (+Semicolon_ID);
-      Sequence.Append (+EOF_ID);
-      Expected (+Parse_Sequence_ID) := Sequence;
-
       if WisiToken.Trace_Generate > WisiToken.Outline then
          Ada.Text_IO.Put_Line ("Computed:");
          for S of Computed loop
-            Ada.Text_IO.Put_Line (WisiToken.Image (S, LALR_Descriptor));
+            Ada.Text_IO.Put_Line (WisiToken.Generate.LR.Image (S, LALR_Descriptor));
+         end loop;
+         Ada.Text_IO.Put_Line ("Expected:");
+         for S of Expected loop
+            Ada.Text_IO.Put_Line (WisiToken.Generate.LR.Image (S, LALR_Descriptor));
          end loop;
       end if;
       Check ("1", Computed, Expected);

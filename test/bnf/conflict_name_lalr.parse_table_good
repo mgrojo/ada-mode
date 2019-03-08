@@ -22,12 +22,6 @@ Productions:
 10.2: name <= qualified_expression
 11.0: qualified_expression <= name TICK aggregate
 
-Ancestors:
-IDENTIFIER => attribute_designator, name
-attribute_reference => attribute_designator, name
-name => attribute_designator
-qualified_expression => attribute_designator, name
-
 LALR Parse Table:
 State 0:
       6.0:wisitoken_accept <= ^ name Wisi_EOI, 
@@ -70,7 +64,7 @@ State 3:
    Wisi_EOI             => accept it 6.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (TICK)
+   Minimal_Complete_Actions => ()
 
 State 4:
      10.2:name <= qualified_expression ^, RIGHT_PAREN/TICK/Wisi_EOI
@@ -96,7 +90,7 @@ State 5:
    name                 goto state 9
    qualified_expression goto state 4
 
-   Minimal_Complete_Actions => (LEFT_PAREN, IDENTIFIER)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 6:
       7.0:aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
@@ -141,7 +135,7 @@ State 9:
    Wisi_EOI             => reduce 1 tokens to attribute_designator 9.0
    default              => ERROR
 
-   Minimal_Complete_Actions => (TICK, attribute_designator)
+   Minimal_Complete_Actions => (attribute_designator)
 
 State 10:
       7.0:aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK/Wisi_EOI
@@ -152,7 +146,7 @@ State 10:
    TICK                 => shift and goto state 5
    default              => ERROR
 
-   Minimal_Complete_Actions => (RIGHT_PAREN, TICK)
+   Minimal_Complete_Actions => (RIGHT_PAREN)
 
 State 11:
       7.0:aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/TICK/Wisi_EOI

@@ -12,9 +12,6 @@ Productions:
 6.0: expr <= expr MINUS NUMERIC_LITERAL
 6.1: expr <= NUMERIC_LITERAL
 
-Ancestors:
-NUMERIC_LITERAL => expr
-
 LALR Parse Table:
 State 0:
       5.0:wisitoken_accept <= ^ expr Wisi_EOI, 
@@ -42,6 +39,8 @@ State 2:
    MINUS            => shift and goto state 3
    Wisi_EOI         => accept it 5.0
    default          => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 3:
       6.0:expr <= expr MINUS ^ NUMERIC_LITERAL, MINUS/Wisi_EOI

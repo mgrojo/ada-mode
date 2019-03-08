@@ -21,11 +21,6 @@ Productions:
 10.0: constant_opt <= CONSTANT
 10.1: constant_opt <=
 
-Ancestors:
-ALIASED => aliased_opt
-CONSTANT => constant_opt
-object_declaration => object_declaration_list
-
 LALR Parse Table:
 State 0:
       6.0:wisitoken_accept <= ^ object_declaration_list Wisi_EOI, 
@@ -59,6 +54,8 @@ State 2:
    default                 => ERROR
 
    object_declaration      goto state 6
+
+   Minimal_Complete_Actions => ()
 
 State 3:
       7.1:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI

@@ -23,11 +23,6 @@ Productions:
 11.0: constant_opt <= CONSTANT
 11.1: constant_opt <=
 
-Ancestors:
-ALIASED => aliased_opt
-CONSTANT => constant_opt
-object_declaration => object_declaration_list
-
 LALR Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ object_declaration_list Wisi_EOI, 
@@ -54,7 +49,7 @@ State 1:
    aliased_opt             goto state 6
    constant_opt            goto state 7
 
-   Minimal_Complete_Actions => (aliased_opt, constant_opt)
+   Minimal_Complete_Actions => (aliased_opt)
 
 State 2:
       7.0:wisitoken_accept <= object_declaration_list ^ Wisi_EOI, 
@@ -65,6 +60,8 @@ State 2:
    default                 => ERROR
 
    object_declaration      goto state 8
+
+   Minimal_Complete_Actions => ()
 
 State 3:
       8.1:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI
@@ -155,7 +152,6 @@ State 12:
 
    Minimal_Complete_Actions => (object_declaration)
 
-States with multiple reduce in Minimal_Complete_Action: (1)
 States with conflicts: 1
 
  4 rules, 0 user actions, 0 checks, 13 states, 37 parse actions

@@ -36,14 +36,6 @@ Productions:
 17.0: selector_name <= IDENTIFIER
 17.1: selector_name <= STRING_LITERAL
 
-Ancestors:
-STRING_LITERAL => compilation_unit, name, name_list, selector_name
-IDENTIFIER => compilation_unit, identifier_list, name, name_list, selector_name
-association => association_list
-identifier_list => compilation_unit
-name => compilation_unit, name_list
-name_list => compilation_unit
-
 LALR Parse Table:
 State 0:
       9.0:wisitoken_accept <= ^ compilation Wisi_EOI, 
@@ -59,7 +51,7 @@ State 0:
    name             goto state 7
    name_list        goto state 8
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 1:
      13.2:compilation_unit <= LEFT_PAREN ^ association_list RIGHT_PAREN, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -72,7 +64,7 @@ State 1:
    association_list goto state 12
    selector_name    goto state 13
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 2:
      15.1:name <= STRING_LITERAL ^, LEFT_PAREN/RIGHT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -103,13 +95,15 @@ State 3:
                        reduce 1 tokens to name 15.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (identifier_list, name)
+   Minimal_Complete_Actions => (identifier_list)
 
 State 4:
       9.0:wisitoken_accept <= compilation ^ Wisi_EOI, 
 
    Wisi_EOI         => accept it 9.0
    default          => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 5:
      12.0:compilation <= compilation_unit ^ compilation_unit compilation_unit, Wisi_EOI
@@ -124,7 +118,7 @@ State 5:
    name             goto state 7
    name_list        goto state 8
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 6:
      13.0:compilation_unit <= identifier_list ^, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -220,7 +214,7 @@ State 14:
    name             goto state 7
    name_list        goto state 8
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 15:
      14.0:identifier_list <= identifier_list COMMA ^ IDENTIFIER, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -239,7 +233,7 @@ State 16:
 
    name             goto state 23
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 17:
      13.2:compilation_unit <= LEFT_PAREN association_list RIGHT_PAREN ^, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/Wisi_EOI
@@ -262,7 +256,7 @@ State 18:
    association      goto state 24
    selector_name    goto state 13
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 19:
      10.0:association <= selector_name EQUAL_GREATER ^ name, RIGHT_PAREN/COMMA
@@ -273,7 +267,7 @@ State 19:
 
    name             goto state 25
 
-   Minimal_Complete_Actions => (STRING_LITERAL)
+   Minimal_Complete_Actions => (IDENTIFIER)
 
 State 20:
      12.0:compilation <= compilation_unit compilation_unit compilation_unit ^, Wisi_EOI
@@ -338,7 +332,6 @@ State 25:
 
    Minimal_Complete_Actions => (association)
 
-States with multiple reduce in Minimal_Complete_Action: (3)
 States with conflicts: 3
 
  8 rules, 1 user actions, 0 checks, 26 states, 103 parse actions

@@ -36,6 +36,7 @@ OK grune_9_30.adb : Test_Parse
 OK name_grammar_test.adb : Nominal
 OK test_accept_state.adb : Nominal
 OK test_ada_lite_terminal_sequence.adb : Test_Terminal_Sequence
+OK test_ada_lite_terminal_sequence.adb : Test_Minimal_Complete_Actions
 OK test_follow.adb : Subprograms.One
 OK test_lr_expecting_terminal_sequence.adb : Test_Expecting
 OK test_lr_expecting_terminal_sequence.adb : Test_Terminal_Sequence
@@ -79,11 +80,12 @@ OK test_mckenzie_recover.adb : String_Quote_2
 OK test_mckenzie_recover.adb : String_Quote_3
 OK test_mckenzie_recover.adb : String_Quote_4
 OK test_mckenzie_recover.adb : Enqueue_Limit
-OK test_mckenzie_recover.adb : Multiple_Complete_Reduce
 OK test_mckenzie_recover.adb : Minimal_Complete_Full_Reduce_1
 OK test_mckenzie_recover.adb : Minimal_Complete_Full_Reduce_2
 OK test_mckenzie_recover.adb : Minimal_Complete_Full_Reduce_3
 OK test_mckenzie_recover.adb : Out_Of_Order_Ops
+OK test_mckenzie_recover.adb : Error_During_Resume_1
+OK test_mckenzie_recover.adb : Error_During_Resume_2
 OK test_partial_parse.adb : Plain_String
 OK test_partial_parse.adb : File_String_Access
 OK test_skip_to.adb : Nominal
@@ -94,7 +96,7 @@ OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   94
-Successful Tests:  94
+Total Tests Run:   96
+Successful Tests:  96
 Failed Assertions: 0
 Unexpected Errors: 0

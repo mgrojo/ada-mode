@@ -173,7 +173,6 @@
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation  on token IS
-%conflict SHIFT/REDUCE in state simple_return_statement, simple_return_statement  on token SEMICOLON
 %conflict SHIFT/REDUCE in state subprogram_body, subprogram_body  on token IS
 
 ;;;; grammar rules
@@ -559,7 +558,6 @@ simple_expression
 
 simple_return_statement
   : RETURN expression_opt SEMICOLON
-  | RETURN SEMICOLON
   ;
 
 simple_statement

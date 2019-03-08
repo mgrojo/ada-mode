@@ -116,14 +116,6 @@ Check_Limit       => 3
 Check_Delta_Limit => 200
 Enqueue_Limit     => 10000
 
-Ancestors:
-SYMBOL => name, name_list, subtype
-declarations => compilation_unit
-declaration => compilation_unit, declarations
-name => name_list, subtype
-subprogram => compilation_unit, declarations, declaration
-use_clause => compilation_unit, declarations, declaration
-
 LALR Parse Table:
 State 0:
      20.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -177,6 +169,8 @@ State 4:
 
    Wisi_EOI         => accept it 20.0
    default          => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 5:
      22.0:compilation_unit <= declarations ^, Wisi_EOI
@@ -307,7 +301,7 @@ State 15:
    SYMBOL           => shift and goto state 22
    default          => ERROR
 
-   Minimal_Complete_Actions => (RIGHT_PAREN, SYMBOL)
+   Minimal_Complete_Actions => (RIGHT_PAREN)
 
 State 16:
      26.0:name <= name DOT ^ SYMBOL, BEGIN/END/LOOP/LEFT_PAREN/COMMA/DOT/SEMICOLON
@@ -397,7 +391,7 @@ State 24:
 
    loop_statement   goto state 31
 
-   Minimal_Complete_Actions => (END, FOR)
+   Minimal_Complete_Actions => (END)
 
 State 25:
      29.0:subprogram <= FUNCTION name parameter_list block ^ SEMICOLON, FUNCTION/PROCEDURE/USE/Wisi_EOI

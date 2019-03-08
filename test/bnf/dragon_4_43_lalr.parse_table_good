@@ -14,9 +14,6 @@ Productions:
 7.0: upper_c <= LOWER_C upper_c
 7.1: upper_c <= LOWER_D
 
-Ancestors:
-LOWER_D => upper_c
-
 LALR Parse Table:
 State 0:
       5.0:wisitoken_accept <= ^ upper_s Wisi_EOI, 
@@ -56,6 +53,8 @@ State 3:
 
    Wisi_EOI         => accept it 5.0
    default          => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 4:
       6.0:upper_s <= upper_c ^ upper_c, Wisi_EOI

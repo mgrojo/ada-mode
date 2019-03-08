@@ -117,15 +117,24 @@ package WisiToken.Generate.LR is
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
 
-   package Minimal_RHS_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (Natural, Token_ID_Arrays.Vector, Default_Element => Token_ID_Arrays.Empty_Vector);
+   type RHS_Sequence is
+   record
+      Left_Recursive : Boolean := False;
+      Sequence       : Token_ID_Arrays.Vector;
+   end record;
 
-   function Min (Item : in Minimal_RHS_Arrays.Vector) return Token_ID_Arrays.Vector;
+   package RHS_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (Natural, RHS_Sequence, Default_Element => (others => <>));
+
+   function Image (Item : in RHS_Sequence; Descriptor : in WisiToken.Descriptor) return String;
+   --  Positional Ada aggregate syntax.
+
+   function Image is new RHS_Sequence_Arrays.Gen_Image_Aux (Descriptor, Image);
+
+   function Min (Item : in RHS_Sequence_Arrays.Vector) return RHS_Sequence;
    --  Return element of Item with minimum length;
 
-   function Image is new Minimal_RHS_Arrays.Gen_Image_Aux (Descriptor, Image);
-
-   type Minimal_Sequence_Array is array (Token_ID range <>) of Minimal_RHS_Arrays.Vector;
+   type Minimal_Sequence_Array is array (Token_ID range <>) of RHS_Sequence_Arrays.Vector;
 
    function Compute_Minimal_Terminal_Sequences
      (Descriptor : in     WisiToken.Descriptor;

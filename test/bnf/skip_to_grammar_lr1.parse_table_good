@@ -24,13 +24,6 @@ Productions:
 12.0: compilation_unit_list <= compilation_unit_list compilation_unit
 12.1: compilation_unit_list <= compilation_unit
 
-Ancestors:
-PREAMBLE => compilation_unit, compilation_unit_list
-IDENTIFIER => declaration_item_list, declaration_item
-declaration => compilation_unit, compilation_unit_list
-declaration_item => declaration_item_list
-compilation_unit => compilation_unit_list
-
 LR1 Parse Table:
 State 0:
       7.0:wisitoken_accept <= ^ compilation_unit_list Wisi_EOI, Wisi_EOI
@@ -94,6 +87,8 @@ State 5:
 
    declaration           goto state 3
    compilation_unit      goto state 7
+
+   Minimal_Complete_Actions => ()
 
 State 6:
       8.0:declaration <= PERCENT IDENTIFIER ^ declaration_item_list, PERCENT/PREAMBLE/Wisi_EOI

@@ -22,9 +22,6 @@ Productions:
 12.0: label_opt <= IDENTIFIER COLON
 12.1: label_opt <=
 
-Ancestors:
-statement => sequence_of_statements
-
 LALR Parse Table:
 State 0:
       8.0:wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
@@ -54,6 +51,8 @@ State 2:
 
    Wisi_EOI               => accept it 8.0
    default                => ERROR
+
+   Minimal_Complete_Actions => ()
 
 State 3:
      12.0:label_opt <= IDENTIFIER ^ COLON, IDENTIFIER

@@ -21,14 +21,12 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-minimal_complete_actions fixed, running all tests
+take Dot into account when finding min?
+    best metric is min remaining to insert
+        won't make much difference; only matters when dot is not near beginning, but then don't have multiple productions (they all must have same prefix)
 
-    test_mckenzie_recover.adb : Multiple_Complete_Reduce
-        state 153 has null complete_actions
-        should be RIGHT_PAREN
-
-    test_lr_expecting_terminal_sequence.adb : Test_Terminal_Sequence
-        get verbose
+minimal_complete_actions has either 1 or 0 entries
+    simplifies Insert_From_Minimal
 
 delete wisitoken.generate.ancestors?
     no longer used in minimal_complete_actions; used by packrat?

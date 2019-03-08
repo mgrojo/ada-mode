@@ -152,7 +152,7 @@ package body Subprograms_Process_LALR_Main is
             Add_Action (Table.States (15), 14, 21);
             Add_Action (Table.States (15), 18, 22);
             Add_Error (Table.States (15));
-            Set_Minimal_Action (Table.States (15).Minimal_Complete_Actions, ((Shift, 14, 21), (Shift, 18, 22)));
+            Set_Minimal_Action (Table.States (15).Minimal_Complete_Actions, (1 => (Shift, 14, 21)));
             Table.States (16).Productions := WisiToken.To_Vector ((1 => (26, 0)));
             Add_Action (Table.States (16), 18, 23);
             Add_Error (Table.States (16));
@@ -189,7 +189,7 @@ package body Subprograms_Process_LALR_Main is
             Add_Action (Table.States (24), 6, 30);
             Add_Error (Table.States (24));
             Add_Goto (Table.States (24), 25, 31);
-            Set_Minimal_Action (Table.States (24).Minimal_Complete_Actions, ((Shift, 4, 29), (Shift, 6, 30)));
+            Set_Minimal_Action (Table.States (24).Minimal_Complete_Actions, (1 => (Shift, 4, 29)));
             Table.States (25).Productions := WisiToken.To_Vector ((1 => (29, 0)));
             Add_Action (Table.States (25), 17, 32);
             Add_Error (Table.States (25));
