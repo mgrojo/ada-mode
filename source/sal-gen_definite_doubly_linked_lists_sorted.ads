@@ -47,6 +47,8 @@ package SAL.Gen_Definite_Doubly_Linked_Lists_Sorted is
    overriding procedure Finalize (Container : in out List);
    --  Free all items in List.
 
+   procedure Clear (Container : in out List) renames Finalize;
+
    overriding function "=" (Left, Right : in List) return Boolean;
    --  True if contents are the same.
 
