@@ -705,51 +705,28 @@ package body Wisi is
    overriding
    procedure Delete_Token
      (Data                : in out Parse_Data_Type;
-      Tree                : in out Syntax_Trees.Tree'Class;
       Deleted_Token_Index : in     WisiToken.Token_Index)
    is
       use all type Ada.Containers.Count_Type;
       Deleted_Token    : Augmented_Token renames Data.Terminals (Deleted_Token_Index);
       Prev_Token_Index : Base_Token_Index := Deleted_Token_Index - 1;
       Next_Token_Index : Base_Token_Index := Deleted_Token_Index + 1;
-      Update_Prev      : Boolean          := False;
-
-      procedure Update_Containing_Last_Term (Mod_Token_Index : in WisiToken.Token_Index)
-      is
-         use WisiToken.Syntax_Trees;
-         Mod_Token : Augmented_Token renames Data.Terminals (Mod_Token_Index);
-         Node      : Valid_Node_Index := Tree.Find_Max_Terminal_Index (Mod_Token_Index);
-      begin
-         loop
-            declare
-               Nonterm_Token : Augmented_Token renames Augmented_Token (Tree.Augmented (Node).all);
-               Children  : constant Valid_Node_Index_Array := Tree.Children (Node);
-            begin
-               if Nonterm_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-                  Nonterm_Token.First_Trailing_Comment_Line := Mod_Token.First_Trailing_Comment_Line;
-                  Nonterm_Token.Last_Trailing_Comment_Line  := Mod_Token.Last_Trailing_Comment_Line;
-               else
-                  Nonterm_Token.Last_Trailing_Comment_Line  := Mod_Token.Last_Trailing_Comment_Line;
-               end if;
-
-               exit when Children'Length = 0;
-               Node := Children (Children'Last);
-               exit when Tree.Label (Node) /= Nonterm;
-            end;
-         end loop;
-      end Update_Containing_Last_Term;
-
    begin
+      if Deleted_Token.Deleted then
+         --  This can happen if error recovery screws up.
+         if WisiToken.Trace_Action > WisiToken.Detail then
+            Ada.Text_IO.Put_Line (";; delete token again; ignored " & Image (Deleted_Token, Data.Descriptor.all));
+         end if;
+         return;
+      end if;
       if WisiToken.Trace_Action > WisiToken.Detail then
          Ada.Text_IO.Put_Line (";; delete token " & Image (Deleted_Token, Data.Descriptor.all));
       end if;
 
-      pragma Assert (Deleted_Token.Deleted = False);
       Deleted_Token.Deleted := True;
 
       if Deleted_Token.Non_Grammar.Length > 0 then
-         --  Move Non_Grammar to previous non-deleted token, update containing
-         --  nonterms in Tree.
+         --  Move Non_Grammar to previous non-deleted token
 
          loop
             exit when Prev_Token_Index = Base_Token_Index'First;
@@ -758,12 +735,12 @@ package body Wisi is
          end loop;
 
          if Prev_Token_Index = Base_Token_Index'First then
+            Deleted_Token.Non_Grammar (Deleted_Token.Non_Grammar.Last_Index).First := Deleted_Token.First;
             Data.Leading_Non_Grammar.Append (Deleted_Token.Non_Grammar);
          else
             declare
                Prev_Token : Augmented_Token renames Data.Terminals (Prev_Token_Index);
             begin
-               Update_Prev := True;
                Prev_Token.Non_Grammar.Append (Deleted_Token.Non_Grammar);
 
                if Deleted_Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
@@ -792,56 +769,33 @@ package body Wisi is
       then
          --  Deleted_Token.Line is now blank; add to previous token non
          --  grammar.
-         declare
-            Prev_Token : Augmented_Token renames Data.Terminals (Prev_Token_Index);
-         begin
-            Update_Prev := True;
-
-            if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-               Prev_Token.First_Trailing_Comment_Line := Deleted_Token.Line;
-               Prev_Token.Last_Trailing_Comment_Line  := Deleted_Token.Line;
-            else
-               if Prev_Token.First_Trailing_Comment_Line > Deleted_Token.Line then
+         if Prev_Token_Index > Base_Token_Index'First then
+            declare
+               Prev_Token : Augmented_Token renames Data.Terminals (Prev_Token_Index);
+            begin
+               if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
                   Prev_Token.First_Trailing_Comment_Line := Deleted_Token.Line;
+                  Prev_Token.Last_Trailing_Comment_Line  := Deleted_Token.Line;
+               else
+                  if Prev_Token.First_Trailing_Comment_Line > Deleted_Token.Line then
+                     Prev_Token.First_Trailing_Comment_Line := Deleted_Token.Line;
+                  end if;
+                  if Prev_Token.Last_Trailing_Comment_Line < Deleted_Token.Line then
+                     Prev_Token.Last_Trailing_Comment_Line := Deleted_Token.Line;
+                  end if;
                end if;
-               if Prev_Token.Last_Trailing_Comment_Line < Deleted_Token.Line then
-                  Prev_Token.Last_Trailing_Comment_Line := Deleted_Token.Line;
-               end if;
-            end if;
-         end;
-      end if;
-
-      if Update_Prev then
-         Update_Containing_Last_Term (Prev_Token_Index);
+            end;
+         end if;
       end if;
 
       if Deleted_Token.First and Next_Token_Index < Data.Terminals.Last_Index then
          if not Data.Terminals (Next_Token_Index).First then
             declare
-               use WisiToken.Syntax_Trees;
                Next_Token : Augmented_Token renames Data.Terminals (Next_Token_Index);
-               Node       : Node_Index := Tree.Find_Min_Terminal_Index (Next_Token_Index);
             begin
                Next_Token.First             := True;
                Next_Token.First_Indent_Line := Deleted_Token.First_Indent_Line;
                Next_Token.Last_Indent_Line  := Deleted_Token.Last_Indent_Line;
-
-               if Node /= Invalid_Node_Index then
-                  loop
-                     declare
-                        Nonterm_Token : Augmented_Token renames Augmented_Token (Tree.Augmented (Node).all);
-                        Children      : constant Valid_Node_Index_Array := Tree.Children (Node);
-                     begin
-                        Nonterm_Token.First             := True;
-                        Nonterm_Token.First_Indent_Line := Next_Token.First_Indent_Line;
-                        Nonterm_Token.Last_Indent_Line  := Next_Token.Last_Indent_Line;
-
-                        exit when Children'Length = 0;
-                        Node := Children (Children'Last);
-                        exit when Tree.Label (Node) /= Nonterm;
-                     end;
-                  end loop;
-               end if;
             end;
          end if;
       end if;
@@ -1618,6 +1572,9 @@ package body Wisi is
 
          Resolve_Anchors (Data);
 
+         if Trace_Action > Outline then
+            Ada.Text_IO.Put_Line (";; indent leading non_grammar");
+         end if;
          for Token of Data.Leading_Non_Grammar loop
             if Token.First then
                Put (Token.Line, (Int, Data.Begin_Indent));
@@ -1625,21 +1582,12 @@ package body Wisi is
          end loop;
 
          --  It may be that not all lines in Data.Indents were parsed.
+         if Trace_Action > Outline then
+            Ada.Text_IO.Put_Line (";; indent grammar");
+         end if;
          for I in Data.Indents.First_Index .. Get_Last_Line loop
             Put (I, Data.Indents (I));
          end loop;
-
-         --  Trailing comments
-         if Last_Term /= Invalid_Token_Index and then
-           Data.Terminals (Last_Term).Non_Grammar.Length > 0
-         then
-            for Token of Data.Terminals (Last_Term).Non_Grammar loop
-               if Token.First then
-                  Put (Token.Line, (Int, Data.Begin_Indent));
-               end if;
-            end loop;
-         end if;
-
       end case;
    end Put;
 

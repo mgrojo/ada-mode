@@ -70,7 +70,6 @@ package Wisi is
    overriding
    procedure Delete_Token
      (Data                : in out Parse_Data_Type;
-      Tree                : in out WisiToken.Syntax_Trees.Tree'Class;
       Deleted_Token_Index : in     WisiToken.Token_Index);
 
    overriding

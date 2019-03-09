@@ -216,10 +216,11 @@
 ;; 'package.function (object, args);'
 ;; to
 ;; 'object.function (args)'
-;;
 ;; However, inserting LEFT_PAREN turns a missing 'then' into a
-;; function call with a missing right paren. COMMA is here, to avoid
-;; inserting LEFT_PAREN when either is possible.
+;; function call with a missing right paren.
+;;
+;; COMMA is here, to avoid inserting LEFT_PAREN when either is
+;; possible.
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
@@ -240,10 +241,10 @@
 %mckenzie_cost_insert THEN 2
 %mckenzie_cost_insert WHEN 2
 
-;; We often have an extra 'begin' while moving stuff around. Deleting
-;; that requires popping it and the precediing declarative part back
-;; from the stack into the input stream (called 'push_back), then
-;; deleting it.
+;; We often have an extra 'begin' (or 'is begin') while moving stuff
+;; around. Deleting 'begin' requires popping it and the precediing
+;; declarative part back from the stack into the input stream (called
+;; 'push_back'), then deleting it.
 ;;
 ;; Deleting an extra 'declare' requires deleting (and re-inserting)
 ;; the following identifier, since the error is detected after that,
@@ -259,6 +260,7 @@
 %mckenzie_cost_delete END 1
 %mckenzie_cost_delete IDENTIFIER 2
 %mckenzie_cost_delete IF 2
+%mckenzie_cost_delete IS 2
 %mckenzie_cost_delete LOOP 2
 %mckenzie_cost_delete SEMICOLON 1
 %mckenzie_cost_push_back BEGIN 1
@@ -271,8 +273,9 @@
 %mckenzie_cost_push_back declarative_part_opt 1
 %mckenzie_cost_push_back SEMICOLON 1
 
-;; Most common paren error is missing closing paren.
+;; Missing or extra closing paren are common.
 %mckenzie_cost_insert RIGHT_PAREN 1
+%mckenzie_cost_delete RIGHT_PAREN 1
 
 ;; Prefer inserting these over everything; lets us finish a subprogram
 ;; body or other block statement. BEGIN is not here, because that

@@ -722,11 +722,13 @@ TOKEN-TEXT; move point to just past token."
   )
 
 (defconst ada-wisi-partial-begin-regexp
-  (concat "\\bbegin\\b\\|\\bdeclare\\b\\|" ada-wisi-named-begin-regexp))
+  (concat "\\bbegin\\b\\|\\bdeclare\\b\\|"
+	  ada-wisi-named-begin-regexp
+	  "\\|\\bend;\\|\\bend " ada-name-regexp ";"))
 
 (defconst ada-wisi-partial-end-regexp
   (concat ada-wisi-partial-begin-regexp
-	  "\\|;\\|\\bend;\\|\\bend " ada-name-regexp ";"))
+	  "\\|;"))
 
 (defun ada-wisi-find-begin ()
   "Starting at current point, search backward for a parse start point."
@@ -737,14 +739,22 @@ TOKEN-TEXT; move point to just past token."
    ((search-backward-regexp ada-wisi-partial-begin-regexp nil t)
     (while (and (ada-in-string-or-comment-p)
 		(search-backward-regexp ada-wisi-partial-begin-regexp nil t)))
-    (let ((found (match-string 0)))
+    (let ((found (match-string 0))
+	  cache)
       (cond
-       ((and (>= 3 (length found))
-	     (string-equal "end" (substring found 0 2)))
+       ((and (>= (length found) 3)
+	     (string-equal "end" (substring found 0 3)))
 	(match-end 0))
 
-      (t
-       (point)))))
+       (t
+	(setq cache (wisi-get-cache (point)))
+	(when cache
+	  ;; This distinguishes 'begin' as a statement start from
+	  ;; 'begin' following 'declare', 'procedure' etc.  We don't
+	  ;; force a parse to get this; the user may choose to do so.
+	  (wisi-goto-start cache))
+	(point))
+       )))
 
    (t
     (point-min))
@@ -840,6 +850,7 @@ Point must have been set by `ada-wisi-find-begin'."
 (cl-defmethod wisi-parse-adjust-indent ((_parser ada-wisi-parser) indent repair)
   (cond
    ((wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
+    ;; Error token terminates the block containing the start token
     (- indent ada-indent))
 
    ((memq 'CASE (wisi--parse-error-repair-inserted repair))

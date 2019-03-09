@@ -54,29 +54,118 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-test/ada_mode-recover_partial_2_lr1.adb
-    first error at 47:(LEFT_PAREN, (594 . 594)); finds 4 solutions:
-        parser 1: (insert identifier 47) - convert to function call
-        parser 2: (INSERT, IF, 47)       - treat it as condition
-        parser 3: (INSERT, CASE, 47)     - treat is as expression
-        parser 0: (INSERT, RETURN, 47)   - "
+run all test
+    wisitoken
+        inc_shared token with empty stack
+        test_mckenzie_recover.adb Error_During_Resume_1 fails
+        do_action changes verb to shift, bypassing inc_current_token
+            => delete shift_recover. o.w.s-1
+                use 'resume_active' to bypass resume checks
 
-    second error at 62:(RIGHT_PAREN, (641 . 641)); all 4 parsers active, all fail with enqueue limit
-        if should find:
-        (delete right_paren)(fast_forward)(insert 'end if; end if; end if; end case; end loop; end loop; end;')
-        cost:                                                          7       8         9
-        enqueue:                                                               | 1080    |5062
-                                                                                   | 3013
+ada_mode-recover_04_lr1.adb fails
+parser 0: State 0 Current_Token 1:(END, (467 . 469)) Resume_Token_Goal 5
+Action, expecting: ACCEPT, ABORT, BEGIN, CASE, DECLARE, DELAY, ENTRY, EXIT, FOR, FUNCTION, GENERIC, GOTO, IF, LIMITED, LOOP, NOT, NULL, OVERRIDING, PACKAGE, PRAGMA, PRIVATE, PROCEDURE, PROTECTED, RAISE, REQUEUE, RETURN, SEPARATE, SELECT, SUBTYPE, TASK, TYPE, USE, WHILE, WITH, LESS_LESS, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 1:(END, (467 . 469))
 
-        minimal_complete_actions for if_statement after then (lr1 state 9890) is (ELSE, ELSIF, END)
-            should be just END
-            wisitoken test_ada_lite_terminal_sequence.adb => ok if_statement ==> (IF, THEN, END, IF, SEMICOLON)
-            add test of wisitoken-generate-lr.adb Set_Minimal_Complete_Actions
-                store rhs_id of prod that produced minimal sequence; ignore others. o.w.s-1
+ 7 parallel tasks
+ 0: succeed 1, enqueue 53, check  8, cost:  1
+ 0:  1, (0 : (-))| 2:(IDENTIFIER, (471 . 482))|((DELETE, END, 1))
+ 0: inc_shared_token FALSE parser verb SHIFT
+recover: succeed, parser count 1
+ 0: Current_Token  2:(IDENTIFIER, (471 . 482)) Shared_Token  2:(IDENTIFIER, (471 . 482))
+ 0: resume_active: True, token goal 6
+current_verb: SHIFT, 0.verb: SHIFT
+ 0 stack: (0 :)
+ 0: 0:  2:(IDENTIFIER, (471 . 482)) : shift and goto state 29  --  FIXME: reset inc_shared_token here!
+ 0: recover_insert_delete: ()
+cycle start; current_verb: SHIFT
+ 0: current_token 2:(IDENTIFIER, (471 . 482))
+current_verb: SHIFT, 0.verb: SHIFT
+ 0 stack: (29 : 2:(IDENTIFIER, (471 . 482)), 0 :)
+ 0: 29:  2:(IDENTIFIER, (471 . 482)) : ERROR
+ 0: 29: expecting: LEFT_PAREN, COLON, COLON_EQUAL, COMMA, DOT, SEMICOLON, TICK_1, TICK_2
+ 0: error during resume
+[5 467 "syntax error: expecting ACCEPT, ABORT, BEGIN, CASE, DECLARE, DELAY, ENTRY, EXIT, FOR, FUNCTION, GENERIC, GOTO, IF, LIMITED, LOOP, NOT, NULL, OVERRIDING, PACKAGE, PRAGMA, PRIVATE, PROCEDURE, PROTECTED, RAISE, REQUEUE, RETURN, SEPARATE, SELECT, SUBTYPE, TASK, TYPE, USE, WHILE, WITH, LESS_LESS, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 'END'"]
+[7 [ 467[][ 24]]]
+[5 471 "syntax error: expecting LEFT_PAREN, COLON, COLON_EQUAL, COMMA, DOT, SEMICOLON, TICK_1, TICK_2, found 'IDENTIFIER'"]
+[5 1 "error during resume"]
+(parse_error)
 
-        per_process enqueue limit?
+            ada_mode-recover_05_lr1.adb passes; not stack empty
 
-... _7
+ada_mode-recover_11.adb passes
+parser 0: State 0 Current_Token 1:(END, (98 . 100)) Resume_Token_Goal 5
+Action, expecting: ACCEPT, ABORT, BEGIN, CASE, DECLARE, DELAY, ENTRY, EXIT, FOR, FUNCTION, GENERIC, GOTO, IF, LIMITED, LOOP, NOT, NULL, OVERRIDING, PACKAGE, PRAGMA, PRIVATE, PROCEDURE, PROTECTED, RAISE, REQUEUE, RETURN, SEPARATE, SELECT, SUBTYPE, TASK, TYPE, USE, WHILE, WITH, LESS_LESS, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL, found 1:(END, (98 . 100))
+
+ 7 parallel tasks
+ 0: succeed 2, enqueue 144, check  16, cost:  2
+spawn parser 1 from 0 (2 active)
+ 1:  2, (313 : (BEGIN))| 1:(END, (98 . 100))|((INSERT, BEGIN, 1))
+ 0:  2, (0 : (-))| 3:(IDENTIFIER, (103 . 106))|((DELETE, END, 1), (DELETE, SEMICOLON, 2))
+ 1: inc_shared_token FALSE parser verb SHIFT_RECOVER
+ 0: inc_shared_token FALSE parser verb SHIFT
+recover: succeed, parser count 2
+ 1: Current_Token (BEGIN) Shared_Token  1:(END, (98 . 100))
+ 1: resume_active: True, token goal 5
+ 0: Current_Token  3:(IDENTIFIER, (103 . 106)) Shared_Token  3:(IDENTIFIER, (103 . 106))
+ 0: resume_active: True, token goal 7
+current_verb: SHIFT_RECOVER, 1.verb: SHIFT_RECOVER
+ 1 stack: (0 :)
+ 1: 0: (BEGIN) : reduce 0 tokens to block_label_opt
+block_label_opt_1: (block_label_opt) <= ()
+ ... goto state 40
+current_verb: SHIFT_RECOVER, 0.verb: SHIFT
+cycle start; current_verb: REDUCE
+current_verb: REDUCE, 1.verb: REDUCE
+ 1 stack: (40 :(block_label_opt), 0 :)
+ 1: 40: (BEGIN) : shift and goto state 313
+current_verb: REDUCE, 0.verb: SHIFT
+ 1: recover_insert_delete: ()
+ 0: recover_insert_delete: ()
+cycle start; current_verb: SHIFT
+ 1: current_token 1:(END, (98 . 100))
+ 0: current_token 3:(IDENTIFIER, (103 . 106))
+current_verb: SHIFT, 1.verb: SHIFT
+ 1 stack: (313 :(BEGIN), 40 :(block_label_opt), 0 :)
+ 1: 313:  1:(END, (98 . 100)) : reduce 0 tokens to sequence_of_statements_opt
+sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
+ ... goto state 844
+current_verb: SHIFT, 0.verb: SHIFT
+ 0 stack: (0 :)
+ 0: 0:  3:(IDENTIFIER, (103 . 106)) : shift and goto state 29
+cycle start; current_verb: REDUCE
+current_verb: REDUCE, 1.verb: REDUCE
+ 1 stack: (844 :(sequence_of_statements_opt), 313 :(BEGIN), 40 :(block_label_opt), 0 :)
+ 1: 844:  1:(END, (98 . 100)) : reduce 1 tokens to handled_sequence_of_statements
+handled_sequence_of_statements_1: (handled_sequence_of_statements) <= ((sequence_of_statements_opt))
+ ... goto state 833
+current_verb: REDUCE, 0.verb: SHIFT
+cycle start; current_verb: REDUCE
+current_verb: REDUCE, 1.verb: REDUCE
+ 1 stack: (833 :(handled_sequence_of_statements), 313 :(BEGIN), 40 :(block_label_opt), 0 :)
+ 1: 833:  1:(END, (98 . 100)) : shift and goto state 2064
+current_verb: REDUCE, 0.verb: SHIFT
+ 1: recover_insert_delete: ()
+ 0: recover_insert_delete: ()
+cycle start; current_verb: SHIFT
+ 1: current_token 2:(SEMICOLON, (101 . 101))
+ 0: current_token 4:(LEFT_PAREN, (108 . 108))
+current_verb: SHIFT, 1.verb: SHIFT
+ 1 stack: (2064 : 1:(END, (98 . 100)), 833 :(handled_sequence_of_statements), 313 :(BEGIN), 40 :(block_label_opt), 0 :)
+ 1: 2064:  2:(SEMICOLON, (101 . 101)) : reduce 0 tokens to identifier_opt
+identifier_opt_1: (identifier_opt) <= ()
+ ... goto state 3935
+current_verb: SHIFT, 0.verb: SHIFT
+ 0 stack: (29 : 3:(IDENTIFIER, (103 . 106)), 0 :)
+ 0: 29:  4:(LEFT_PAREN, (108 . 108)) : reduce 1 tokens to name
+
+test/ada_mode-recover_partial_10.adb
+    interactive; partial parse deletes 'end' instead of inserting 'begin'
+test/ada_mode-recover_partial_07.adb
+    trailing "end if; end case;"
+
+    both need minimal_complete with 'end' target instead of 'wisi_eoi'
+
+loop_statement motion_action include "exit"?
 
 add error recovery strategy counts to recover.log
     language_fixes, minimal_complete_actions, explore

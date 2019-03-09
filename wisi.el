@@ -348,7 +348,9 @@ Truncate any region that overlaps POS."
       (wisi--delete-navigate-cache after))
 
      ((eq 'indent action)
-      ;; indent cache is stored on newline before line being indented.
+      ;; The indent cache is stored on newline before line being
+      ;; indented. We delete that, because changing text on a line can
+      ;; change the indent of that line.
       (setq after
 	    (save-excursion
 	      (goto-char after)
@@ -1126,10 +1128,12 @@ for parse errors. BEGIN, END is the parsed region."
 	       (< 0 (length (wisi-parser-parse-errors wisi--parser))))
       (dolist (err (wisi-parser-parse-errors wisi--parser))
 	(dolist (repair (wisi--parse-error-repair err))
-	  ;; point is at bol; error may be on same line at first token.
-	  (when (>= (line-number-at-pos (point)) (line-number-at-pos (wisi--parse-error-repair-pos repair)))
-	    (setq indent (max 0 (wisi-parse-adjust-indent wisi--parser indent repair))))
-	  )))
+	  ;; point is at bol; error pos may be at first token on same line.
+	  (save-excursion
+	    (back-to-indentation)
+	    (when (>= (point) (wisi--parse-error-repair-pos repair))
+	      (setq indent (max 0 (wisi-parse-adjust-indent wisi--parser indent repair))))
+	    ))))
     indent))
 
 (defun wisi-indent-region (begin end &optional indent-blank-lines)
@@ -1164,11 +1168,26 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	  (setq parse-required t))
 	(forward-line))
 
-      ;; Parse from line before BEGIN to line beyond END, to ensure
-      ;; computing an indent for the lines containing BEGIN and END.
-      ;; Set these here for wisi--get-cached-indent below.
+      ;; There is a trade-off in deciding where to start parsing. If we have:
+      ;;
+      ;; procedure ...
+      ;; is
+      ;;
+      ;; and are inserting a new line after 'is', we need to include
+      ;; 'is' in the parse to see the indent. On the other hand, if we
+      ;; have:
+      ;;
+      ;;    ...
+      ;; end;
+      ;;
+      ;; and are inserting a new line after 'end;', we want to exclude
+      ;; 'end;', because error correction will probably delete it,
+      ;; losing the dedent.
+      ;;
+      ;; For now, we assume the former case, and will try to improve
+      ;; error correction.
       (setq parse-begin (progn (goto-char begin) (line-beginning-position 0)))
-      (setq parse-end   (progn (goto-char end) (line-end-position 2)))
+      (setq parse-end (progn (goto-char end) (line-end-position 2)))
       )
 
     ;; A parse either succeeds and sets the indent cache on all
