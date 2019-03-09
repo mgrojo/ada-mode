@@ -1587,6 +1587,38 @@ package body Test_McKenzie_Recover is
          Cost                    => 1);
    end String_Quote_4;
 
+   procedure String_Quote_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Test that syntax error recovery handles a missing string quote at EOF.
+      --
+      --  See also String_Quote_*, ada_mode-recover_bad_char.adb,
+      --  ada_mode-recover_string_quote_*.
+
+      Parse_Text
+        ("procedure Remove is begin A := B"";" & ASCII.CR & "-- trailing comment");
+         --        |10       |20       |30
+
+      --  In process of splitting a string across two lines; missing open
+      --  quote at 32.
+      --
+      --  lexer error at '"' 33.
+      --
+      --  Desired solution is insert quote char before 'B'; insert at EOF
+      --  would also be ok.
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +STRING_LITERAL_ID,
+         Error_Token_Byte_Region => (33, 33),
+         Ops                     => +(Insert, +SEMICOLON_ID, 8) & (Insert, +END_ID, 8) &
+           (Delete, +STRING_LITERAL_ID, 8),
+         Enqueue_Low             => 548,
+         Check_Low               => 67,
+         Cost                    => 4);
+   end String_Quote_5;
+
    procedure Enqueue_Limit (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
@@ -1732,7 +1764,8 @@ package body Test_McKenzie_Recover is
    is
       pragma Unreferenced (T);
    begin
-      --  previously got "error during resume"; stack is empty in error recover.
+      --  previously got "error during resume"; stack is empty in error
+      --  recover, finds one solution.
 
       Parse_Text ("end Process_Node;");
 
@@ -1747,6 +1780,25 @@ package body Test_McKenzie_Recover is
    end Error_During_Resume_1;
 
    procedure Error_During_Resume_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  previously got "error during resume"; stack is empty in error
+      --  recover, finds two solutions.
+
+      Parse_Text ("end; next (I);");
+
+      Check_Recover
+        (Errors_Length           => 1,
+         Error_Token_ID          => +END_ID,
+         Error_Token_Byte_Region => (1, 3),
+         Ops                     => +(Insert, +BEGIN_ID, 1),
+         Enqueue_Low             => 110,
+         Check_Low               => 23,
+         Cost                    => 3);
+   end Error_During_Resume_2;
+
+   procedure Error_During_Resume_3 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -1784,7 +1836,7 @@ package body Test_McKenzie_Recover is
          Check_Low               => 39,
          Cost                    => 2);
 
-   end Error_During_Resume_2;
+   end Error_During_Resume_3;
 
    ----------
    --  Public subprograms
@@ -1832,6 +1884,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, String_Quote_2'Access, "String_Quote_2");
       Register_Routine (T, String_Quote_3'Access, "String_Quote_3");
       Register_Routine (T, String_Quote_4'Access, "String_Quote_4");
+      Register_Routine (T, String_Quote_5'Access, "String_Quote_5");
       Register_Routine (T, Enqueue_Limit'Access, "Enqueue_Limit");
       Register_Routine (T, Minimal_Complete_Full_Reduce_1'Access, "Minimal_Complete_Full_Reduce_1");
       Register_Routine (T, Minimal_Complete_Full_Reduce_2'Access, "Minimal_Complete_Full_Reduce_2");
@@ -1839,6 +1892,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Out_Of_Order_Ops'Access, "Out_Of_Order_Ops");
       Register_Routine (T, Error_During_Resume_1'Access, "Error_During_Resume_1");
       Register_Routine (T, Error_During_Resume_2'Access, "Error_During_Resume_2");
+      Register_Routine (T, Error_During_Resume_3'Access, "Error_During_Resume_3");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

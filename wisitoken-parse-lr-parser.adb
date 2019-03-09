@@ -1056,10 +1056,11 @@ package body WisiToken.Parse.LR.Parser is
    is
       use all type SAL.Base_Peek_Type;
       use all type Syntax_Trees.User_Data_Access;
+      use all type WisiToken.Syntax_Trees.Semantic_Action;
 
       Descriptor : WisiToken.Descriptor renames Parser.Trace.Descriptor.all;
 
-      procedure Process_Reduce
+      procedure Process_Node
         (Tree : in out Syntax_Trees.Tree;
          Node : in     Syntax_Trees.Valid_Node_Index)
       is
@@ -1073,28 +1074,11 @@ package body WisiToken.Parse.LR.Parser is
             Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
          begin
             Parser.User_Data.Reduce (Tree, Node, Tree_Children);
-         end;
-      end Process_Reduce;
-
-      procedure Process_Action
-        (Tree : in out Syntax_Trees.Tree;
-         Node : in     Syntax_Trees.Valid_Node_Index)
-      is
-         use all type Syntax_Trees.Node_Label;
-      begin
-         if Tree.Label (Node) /= Nonterm then
-            return;
-         end if;
-
-         declare
-            use all type Syntax_Trees.Semantic_Action;
-            Tree_Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
-         begin
             if Tree.Action (Node) /= null then
                Tree.Action (Node) (Parser.User_Data.all, Tree, Node, Tree_Children);
             end if;
          end;
-      end Process_Action;
+      end Process_Node;
 
    begin
       if Parser.User_Data /= null then
@@ -1111,14 +1095,12 @@ package body WisiToken.Parse.LR.Parser is
                  (Parser_State.Tree.Root, Descriptor));
             end if;
 
-            Parser_State.Tree.Process_Tree (Process_Reduce'Access);
-
             if (for some Err of Parser_State.Errors => Any (Err.Recover.Ops, Delete)) then
                for Err of Parser_State.Errors loop
                   for Op of Err.Recover.Ops loop
                      case Op.Op is
                      when Delete =>
-                        Parser.User_Data.Delete_Token (Parser_State.Tree, Op.Token_Index);
+                        Parser.User_Data.Delete_Token (Op.Token_Index);
                      when others =>
                         null;
                      end case;
@@ -1126,7 +1108,7 @@ package body WisiToken.Parse.LR.Parser is
                end loop;
             end if;
 
-            Parser_State.Tree.Process_Tree (Process_Action'Access);
+            Parser_State.Tree.Process_Tree (Process_Node'Access);
          end;
       end if;
    end Execute_Actions;

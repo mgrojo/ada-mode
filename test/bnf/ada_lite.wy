@@ -156,6 +156,7 @@
 %mckenzie_cost_push_back declarative_part_opt 1
 %mckenzie_cost_push_back END 1
 %mckenzie_cost_delete END 1
+%mckenzie_cost_delete SEMICOLON 2
 
 ;; Recovering from a missing quote yields a STRING_LITERAL, but the
 ;; editing that lead to the missing quote may also lead to a grammar

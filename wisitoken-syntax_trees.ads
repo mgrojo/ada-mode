@@ -90,7 +90,6 @@ package WisiToken.Syntax_Trees is
 
    procedure Delete_Token
      (User_Data   : in out User_Data_Type;
-      Tree        : in out Syntax_Trees.Tree'Class;
       Token_Index : in     WisiToken.Token_Index)
    is null;
    --  Token at Token_Index was deleted in error recovery; update
@@ -281,7 +280,8 @@ package WisiToken.Syntax_Trees is
      (Tree  : in Syntax_Trees.Tree;
       Index : in Token_Index)
      return Node_Index
-   with Post => Tree.Is_Nonterm (Find_Min_Terminal_Index'Result);
+   with Post => Find_Min_Terminal_Index'Result = Invalid_Node_Index or else
+                Tree.Is_Nonterm (Find_Min_Terminal_Index'Result);
    --  Return the first node whose Min_Terminal_Index is Index, or
    --  Invalid_Node_Index if none match.
 
@@ -289,7 +289,8 @@ package WisiToken.Syntax_Trees is
      (Tree  : in Syntax_Trees.Tree;
       Index : in Token_Index)
      return Node_Index
-   with Post => Tree.Is_Nonterm (Find_Max_Terminal_Index'Result);
+   with Post => Find_Min_Terminal_Index'Result = Invalid_Node_Index or else
+                Tree.Is_Nonterm (Find_Max_Terminal_Index'Result);
    --  Return the first node whose Max_Terminal_Index is Index, or
    --  Invalid_Node_Index if none match.
 
