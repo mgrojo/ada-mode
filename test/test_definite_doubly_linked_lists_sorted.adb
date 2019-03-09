@@ -2,7 +2,7 @@
 --
 --  Test Sal.Gen_Definite_Doubly_Linked_Lists_Sorted
 --
---  Copyright (C) 2017, 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -39,7 +39,7 @@ package body Test_Definite_Doubly_Linked_Lists_Sorted is
 
    package Val is new Integer_Lists.Gen_Validate;
 
-   package Lists_AUnit is new Integer_Lists.Gen_AUnit;
+   package Lists_AUnit is new Integer_Lists.Gen_AUnit (AUnit.Checks.Check);
 
    ----------
    --  Test procedures

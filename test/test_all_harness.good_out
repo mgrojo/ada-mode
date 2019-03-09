@@ -85,8 +85,8 @@ OK test_definite_doubly_linked_lists.adb : Test_Insert
 OK test_definite_doubly_linked_lists_sorted.adb : Nominal
 OK test_definite_doubly_linked_lists_sorted.adb : Test_Find
 OK test_min_heaps_binary.adb : Nominal
-OK test_min_heaps.adb : Nominal
-OK test_min_heaps.adb : Test_Adjust
+OK test_min_heaps_fibonacci.adb : Nominal
+OK test_min_heaps_fibonacci.adb : Test_Adjust
 OK sal-network_order.adb : all data types
 OK ../../test/test_randomize_lists.adb : Randomize
 OK test_red_black_trees.adb : Nominal
