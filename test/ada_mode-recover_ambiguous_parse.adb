@@ -10,7 +10,7 @@
 --EMACSCMD:(wisi-parse-buffer 'indent)
 procedure Ada_Mode.Ambiguous_Parse is
 begin
---EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
---EMACSRESULT:1
---EMACSCMD:wisi-parse-failed
---EMACSRESULT:nil
+   --EMACSCMD:(length (wisi-parser-parse-errors wisi--parser))
+   --EMACSRESULT:1
+   --EMACSCMD:wisi-parse-failed
+   --EMACSRESULT:nil

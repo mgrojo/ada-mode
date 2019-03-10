@@ -11,21 +11,21 @@ package body Ada_Mode.Recover_End_1 is
       case  is
          when =>
             --  end case;
-      end;
+         end;
 
    procedure If_Example
    is begin
       if A > 0 then
          null;
          --  end if;
-      end;
+         end;
 
    procedure Loop_Example
    is begin
       loop
          null;
          -- end loop;
-      end;
+         end;
 
    function Return_Example return Integer
    is begin

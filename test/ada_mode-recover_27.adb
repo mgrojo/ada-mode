@@ -42,13 +42,13 @@ package body Wisi.Libadalang is
             raise SAL.Programmer_Error with "production not found; " &
               WisiToken.Image (W_Token_ID, Data.Descriptor.all) & ", " &
               Tree.Image (Tree_Children.Nodes, Data.Descriptor.all);
-         end Find_Production;
+      end Find_Production;
 
-         begin
-            Find_Production;
-         end;
-      end if;
-   end Create_Tree_Node;
+   begin
+      Find_Production;
+   end;
+end if;
+end Create_Tree_Node;
 
 begin
 end To_WisiToken_Tree;

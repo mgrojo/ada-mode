@@ -16,7 +16,7 @@ is begin
                 Col   => Ada.Text_IO.Count (Token.Sloc_Range.Start_Column),
                 First => Line /= Token.Line));
 
-         end; -- error here; misplaced 'end'; should be just before 'end loop;'
+            end; -- error here; misplaced 'end'; should be just before 'end loop;'
          else
             raise WisiToken.Programmer_Error;
          end if;

@@ -18,7 +18,7 @@ is begin
             if B then
             end if;
             exit when C;
-      end; -- error reported here
+         end; -- error reported here
    end
    loop
    ;

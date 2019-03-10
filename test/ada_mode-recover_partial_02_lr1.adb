@@ -7,12 +7,12 @@
 begin
    for Error of Errors loop
       for Op of Error.Recover.Ops loop
-         case Op.Op is
-            when Delete =>
-               if Data.Terminals (Op.Token_Index).First then
-                  if Op.Token_Index = Data.Terminals.Last_Index then
+	 case Op.Op is
+	    when Delete =>
+	       if Data.Terminals (Op.Token_Index).First then
+		  if Op.Token_Index = Data.Terminals.Last_Index then
 
-                     -- editing condition left next line exposed, with extra right paren
+		     -- editing condition left next line exposed, with extra right paren
 
-                     (not Data.Terminals (Op.Token_Index + 1).First))
-                     then
+		       (not Data.Terminals (Op.Token_Index + 1).First))
+		     then

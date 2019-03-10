@@ -36,10 +36,10 @@ package body Ada_Mode.Recover_2 is
          -- Copied from above, intending to move the function call here.
    Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
-   if Check (Data, Config, Current_Input) then
+if Check (Data, Config, Current_Input) then
 
-      return;
-   end if;
+   return;
+end if;
 
 end Check_One;
 

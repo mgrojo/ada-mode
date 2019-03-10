@@ -5,13 +5,13 @@
 -- good solution is found more quickly.
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq skip-recase-test t)
 procedure Update_Containing_Nonterms (Modified_Token_Index : in WisiToken.Token_Index)
 is
-Node : in     Valid_Node_Index)
+   Node : in     Valid_Node_Index)
 is begin
-            if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
-         end Process_Node;
-
+   if Tree.Max_Terminal_Index (Node) = Modified_Token_Index then
+      end Process_Node;
 
       begin
 
