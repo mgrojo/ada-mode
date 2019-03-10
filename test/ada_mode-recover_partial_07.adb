@@ -1,7 +1,7 @@
 -- Recover failed with enqueue_limit. FIXME: Not yet fixed; requires
 -- minimal_complete with 'end' target instead of 'wisi_eoi'.
 --
---EMACS_SKIP_UNLESS:(nil)
+--EMACS_SKIP_UNLESS: nil
 
 begin
 New_Config.Check_Status := (Label => WisiToken.Semantic_Checks.Ok);

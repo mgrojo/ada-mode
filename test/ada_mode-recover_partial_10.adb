@@ -2,6 +2,8 @@
 --
 -- The parse region starts after 'end if;'. Error recovery used to
 -- delete 'end' instead of inserting 'begin', giving incorrect indent.
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
+--EMACSCMD:(setq skip-recase-test t)
 package body Ada_Mode.Recover_Partial_10 is
    function Is_Reduce (Item : in LR1_Items.Item) return Boolean
    is begin
