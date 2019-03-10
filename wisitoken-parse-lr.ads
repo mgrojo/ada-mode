@@ -49,7 +49,7 @@ with WisiToken.Semantic_Checks;
 with WisiToken.Syntax_Trees;
 package WisiToken.Parse.LR is
 
-   type All_Parse_Action_Verbs is (Pause, Shift_Recover, Shift, Reduce, Accept_It, Error);
+   type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
    subtype Minimal_Verbs is All_Parse_Action_Verbs range Shift .. Reduce;
    --  Pause, Shift_Recover are only used for error recovery.

@@ -168,7 +168,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          when Error =>
             Error_Count := Error_Count + 1;
 
-         when Pause | Shift_Recover =>
+         when Pause =>
             --  This is parser_no_recover
             raise SAL.Programmer_Error;
          end case;
@@ -313,7 +313,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             --  raise the exception.
             raise Syntax_Error;
 
-         when Pause | Shift_Recover =>
+         when Pause =>
             --  This is parser_no_recover
             raise SAL.Programmer_Error;
          end case;

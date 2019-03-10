@@ -289,7 +289,7 @@ package WisiToken.Syntax_Trees is
      (Tree  : in Syntax_Trees.Tree;
       Index : in Token_Index)
      return Node_Index
-   with Post => Find_Min_Terminal_Index'Result = Invalid_Node_Index or else
+   with Post => Find_Max_Terminal_Index'Result = Invalid_Node_Index or else
                 Tree.Is_Nonterm (Find_Max_Terminal_Index'Result);
    --  Return the first node whose Max_Terminal_Index is Index, or
    --  Invalid_Node_Index if none match.

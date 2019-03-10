@@ -272,8 +272,8 @@ package body Test_McKenzie_Recover is
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
          Ops                     => +(Insert, +IF_ID, 11),
-         Enqueue_Low             => 123,
-         Check_Low               => 32,
+         Enqueue_Low             => 125,
+         Check_Low               => 33,
          Cost                    => 2);
    end Error_1;
 
@@ -395,7 +395,7 @@ package body Test_McKenzie_Recover is
       --
       --  Error recovery is entered and exited with parallel parsers active;
       --  one parsing a subprogram_body, the other a generic_instantiation
-      --  (which will fail eventually). The syntax trees are not flushed.
+      --  (which will fail eventually).
       --
       --  While checking the prefered solution, there are conflicts that
       --  must be handled.
@@ -825,11 +825,10 @@ package body Test_McKenzie_Recover is
         (Errors_Length           => 1,
          Error_Token_ID          => +SEMICOLON_ID,
          Error_Token_Byte_Region => (44, 44),
-         Ops                     => +(Insert, +END_ID, 11) & (Insert, +LOOP_ID, 11) & (Fast_Forward, 13) &
-           (Push_Back, +END_ID, 12) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) & (Insert, +SEMICOLON_ID, 12) &
-           (Fast_Forward, 12),
-         Enqueue_Low             => 210,
-         Check_Low               => 35,
+         Ops                     => +(Delete, +SEMICOLON_ID, 11) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) &
+           (Insert, +SEMICOLON_ID, 12) & (Insert, +END_ID, 12) & (Insert, +LOOP_ID, 12) & (Insert, +SEMICOLON_ID, 12),
+         Enqueue_Low             => 290,
+         Check_Low               => 71,
          Cost                    => 4);
    end Push_Back_1;
 
@@ -1615,7 +1614,7 @@ package body Test_McKenzie_Recover is
          Ops                     => +(Insert, +SEMICOLON_ID, 8) & (Insert, +END_ID, 8) &
            (Delete, +STRING_LITERAL_ID, 8),
          Enqueue_Low             => 548,
-         Check_Low               => 67,
+         Check_Low               => 68,
          Cost                    => 4);
    end String_Quote_5;
 
@@ -1694,7 +1693,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (4, 6),
          Ops                     => +(Insert, +IF_ID, 3) & (Insert, +THEN_ID, 3),
          Enqueue_Low             => 216,
-         Check_Low               => 65,
+         Check_Low               => 66,
          Cost                    => 4);
    end Minimal_Complete_Full_Reduce_2;
 
@@ -1794,7 +1793,7 @@ package body Test_McKenzie_Recover is
          Error_Token_Byte_Region => (1, 3),
          Ops                     => +(Insert, +BEGIN_ID, 1),
          Enqueue_Low             => 110,
-         Check_Low               => 23,
+         Check_Low               => 24,
          Cost                    => 3);
    end Error_During_Resume_2;
 

@@ -217,7 +217,9 @@ package body WisiToken.Parse.LR.Parser is
    begin
       if Trace_Parse > Extra then
          Shared_Parser.Trace.Put_Line
-           (Integer'Image (Parser_State.Label) & ": recover_insert_delete: " &
+           (Integer'Image (Parser_State.Label) & ": shared_token:" & Token_Index'Image (Parser_State.Shared_Token) &
+              " inc_shared_token: " & Boolean'Image (Parser_State.Inc_Shared_Token) &
+              " recover_insert_delete: " &
               Image (Parser_State.Recover_Insert_Delete, Shared_Parser.Trace.Descriptor.all));
       end if;
 
@@ -255,9 +257,6 @@ package body WisiToken.Parse.LR.Parser is
    --  Shift : some Parsers.Verb return Shift, all with the same current
    --  token in Shared_Parser.Terminals.
    --
-   --  Shift_Recover : some Parsers.Verb return Shift, with current
-   --  tokens virtual (inserted by error recovery).
-   --
    --  Pause : Resume is active, and this parser has reached Resume_Goal,
    --  so it is waiting for the others to catch up.
    --
@@ -273,36 +272,20 @@ package body WisiToken.Parse.LR.Parser is
    is
       use all type SAL.Base_Peek_Type;
 
-      Shift_Count         : SAL.Base_Peek_Type := 0;
-      Shift_Recover_Count : SAL.Base_Peek_Type := 0;
-      Shift_Virtual_Count : SAL.Base_Peek_Type := 0;
-      Accept_Count        : SAL.Base_Peek_Type := 0;
-      Error_Count         : SAL.Base_Peek_Type := 0;
-      Resume_Active       : Boolean            := False;
+      Shift_Count   : SAL.Base_Peek_Type := 0;
+      Accept_Count  : SAL.Base_Peek_Type := 0;
+      Error_Count   : SAL.Base_Peek_Type := 0;
+      Resume_Active : Boolean            := False;
    begin
       Zombie_Count := 0;
 
       for Parser_State of Shared_Parser.Parsers loop
          case Parser_State.Verb is
-         when Pause | Shift_Recover | Shift =>
+         when Pause | Shift =>
             Do_Deletes (Shared_Parser, Parser_State);
 
-            if Parser_State.Recover_Insert_Delete.Length > 0 and then
-              Parser_State.Recover_Insert_Delete.Peek.Op = Insert and then
-              Parser_State.Recover_Insert_Delete.Peek.Token_Index =
-              (if Parser_State.Inc_Shared_Token
-               then Parser_State.Shared_Token + 1
-               else Parser_State.Shared_Token)
-            then
-               --  Shifting a virtual token.
-               Shift_Virtual_Count := Shift_Virtual_Count + 1;
-               Shift_Recover_Count := Shift_Recover_Count + 1;
-               Parser_State.Set_Verb (Shift_Recover);
-
-            else
-               Shift_Count := Shift_Count + 1;
-               Parser_State.Set_Verb (Shift);
-            end if;
+            Shift_Count := Shift_Count + 1;
+            Parser_State.Set_Verb (Shift);
 
             if Parser_State.Resume_Active then
                if Parser_State.Resume_Token_Goal <= Parser_State.Shared_Token then
@@ -339,9 +322,6 @@ package body WisiToken.Parse.LR.Parser is
       elsif Shared_Parser.Parsers.Count = Error_Count + Zombie_Count then
          Verb := Error;
 
-      elsif Shift_Recover_Count > 0 then
-         Verb := Shift_Recover;
-
       elsif Shift_Count > 0 then
          Verb := Shift;
 
@@ -351,7 +331,7 @@ package body WisiToken.Parse.LR.Parser is
 
       if Resume_Active then
          for Parser_State of Shared_Parser.Parsers loop
-            if Parser_State.Verb in Shift | Shift_Recover and not Parser_State.Resume_Active then
+            if Parser_State.Verb = Shift and not Parser_State.Resume_Active then
                Parser_State.Set_Verb (Pause);
             end if;
          end loop;
@@ -416,10 +396,11 @@ package body WisiToken.Parse.LR.Parser is
 
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
-      Current_Verb   : All_Parse_Action_Verbs;
-      Current_Parser : Parser_Lists.Cursor;
-      Action         : Parse_Action_Node_Ptr;
-      Zombie_Count   : SAL.Base_Peek_Type;
+      Current_Verb    : All_Parse_Action_Verbs;
+      Error_Recovered : Boolean := False;
+      Current_Parser  : Parser_Lists.Cursor;
+      Action          : Parse_Action_Node_Ptr;
+      Zombie_Count    : SAL.Base_Peek_Type;
 
       procedure Check_Error (Check_Parser : in out Parser_Lists.Cursor)
       is begin
@@ -520,37 +501,6 @@ package body WisiToken.Parse.LR.Parser is
                   end if;
 
                elsif Parser_State.Verb = Shift then
-                  if Parser_State.Inc_Shared_Token then
-                     --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
-                     --  for when/why. Don't increment past wisi_eoi (happens when input
-                     --  buffer is empty; test_mckenzie_recover.adb Empty_Comments).
-                     if Parser_State.Shared_Token < Shared_Parser.Terminals.Last_Index then
-                        Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
-                     end if;
-                  else
-                     Parser_State.Inc_Shared_Token := True;
-                  end if;
-
-                  Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
-                    (Parser_State.Shared_Token, Shared_Parser.Terminals);
-
-                  if Trace_Parse > Extra then
-                     Trace.Put_Line
-                       (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
-                          (Parser_State.Current_Token, Trace.Descriptor.all));
-                  end if;
-               end if;
-            end loop;
-
-         when Shift_Recover =>
-            --  Same as Shift, except input a token inserted by error recovery, or
-            --  input from Shared_Parser.Terminals during error recovery.
-
-            for Parser_State of Shared_Parser.Parsers loop
-               --  We don't check for Verb = Error; during resume, errors cause
-               --  parsers to terminate immediately.
-
-               if Parser_State.Verb = Shift_Recover then
                   if Parser_State.Recover_Insert_Delete.Length > 0 and then
                     Parser_State.Recover_Insert_Delete.Peek.Op = Insert and then
                     Parser_State.Recover_Insert_Delete.Peek.Token_Index =
@@ -561,19 +511,14 @@ package body WisiToken.Parse.LR.Parser is
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Recover_Insert_Delete.Get.ID);
 
-                     if Trace_Parse > Extra then
-                        Trace.Put_Line
-                          (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
-                             (Parser_State.Current_Token, Trace.Descriptor.all));
-                     end if;
-
                   elsif (if Parser_State.Inc_Shared_Token
                          then Parser_State.Shared_Token + 1
                          else Parser_State.Shared_Token) <= Shared_Parser.Terminals.Last_Index
                   then
                      if Parser_State.Inc_Shared_Token then
-                        --  Inc_Shared_Token is only set False by McKenzie_Recover, see there
-                        --  for when/why.
+                        --  Inc_Shared_Token is only set False by McKenzie_Recover; see there
+                        --  for when/why. Don't increment past wisi_eoi (happens when input
+                        --  buffer is empty; test_mckenzie_recover.adb Empty_Comments).
                         Parser_State.Shared_Token := Parser_State.Shared_Token + 1;
                      else
                         Parser_State.Inc_Shared_Token := True;
@@ -582,15 +527,12 @@ package body WisiToken.Parse.LR.Parser is
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Shared_Token, Shared_Parser.Terminals);
 
-                     if Trace_Parse > Extra then
-                        Trace.Put_Line
-                          (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
-                             (Parser_State.Current_Token, Trace.Descriptor.all));
-                     end if;
+                  end if;
 
-                  else
-                     --  Set_Verb set the wrong verb.
-                     raise SAL.Programmer_Error;
+                  if Trace_Parse > Extra then
+                     Trace.Put_Line
+                       (Integer'Image (Parser_State.Label) & ": current_token" & Parser_State.Tree.Image
+                          (Parser_State.Current_Token, Trace.Descriptor.all));
                   end if;
                end if;
             end loop;
@@ -774,63 +716,48 @@ package body WisiToken.Parse.LR.Parser is
                   end if;
                else
                   if Trace_Parse > Outline then
-                     Trace.Put_Line ("recover disabled or not defined");
+                     Trace.Put_Line ("recover disabled");
                   end if;
                end if;
 
                if Recover_Result = Success then
-                  declare
-                     Shift_Recover_Count : Integer := 0;
-                  begin
-                     for Parser_State of Shared_Parser.Parsers loop
-                        Parser_State.Resume_Active          := True;
-                        Parser_State.Conflict_During_Resume := False;
+                  for Parser_State of Shared_Parser.Parsers loop
+                     Parser_State.Resume_Active          := True;
+                     Parser_State.Conflict_During_Resume := False;
 
-                        if Trace_Parse > Outline then
-                           Trace.Put_Line
-                             (Integer'Image (Parser_State.Label) & ": Current_Token " &
-                                Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
-                                " Shared_Token " & Image
-                                  (Parser_State.Shared_Token, Shared_Parser.Terminals, Trace.Descriptor.all));
+                     if Trace_Parse > Outline then
+                        Trace.Put_Line
+                          (Integer'Image (Parser_State.Label) & ": Current_Token " &
+                             Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) &
+                             " Shared_Token " & Image
+                               (Parser_State.Shared_Token, Shared_Parser.Terminals, Trace.Descriptor.all));
 
-                           if Trace_Parse > Detail then
-                              Shared_Parser.Trace.Put_Line
-                                (Integer'Image (Parser_State.Label) & ": resume_active: True, token goal" &
-                                   Token_Index'Image (Parser_State.Resume_Token_Goal));
-                           end if;
+                        if Trace_Parse > Detail then
+                           Shared_Parser.Trace.Put_Line
+                             (Integer'Image (Parser_State.Label) & ": resume_active: True, token goal" &
+                                Token_Index'Image (Parser_State.Resume_Token_Goal));
+                        end if;
+                     end if;
+
+                     Parser_State.Zombie_Token_Count := 0;
+
+                     case Parser_State.Verb is
+                     when Reduce =>
+                        null;
+
+                     when Error =>
+                        --  Force this parser to be terminated.
+                        if Shared_Parser.Enable_McKenzie_Recover then
+                           Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Check_Limit + 1;
                         end if;
 
-                        case Parser_State.Verb is
-                        when Shift_Recover =>
-                           Shift_Recover_Count := Shift_Recover_Count + 1;
+                     when Shift =>
+                        null;
 
-                           Parser_State.Zombie_Token_Count := 0;
-
-                        when Reduce =>
-                           Current_Verb := Reduce;
-
-                           Parser_State.Zombie_Token_Count := 0;
-
-                        when Error =>
-                           --  Force this parser to be terminated.
-                           if Shared_Parser.Enable_McKenzie_Recover then
-                              Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Check_Limit + 1;
-                           end if;
-
-                        when Shift =>
-                           if Current_Verb /= Reduce then
-                              Current_Verb := Shift;
-                           end if;
-
-                        when Pause | Accept_It =>
-                           raise SAL.Programmer_Error;
-                        end case;
-                     end loop;
-
-                     if Shift_Recover_Count > 0 then
-                        Current_Verb := Shift_Recover;
-                     end if;
-                  end;
+                     when Pause | Accept_It =>
+                        raise SAL.Programmer_Error;
+                     end case;
+                  end loop;
 
                else
                   --  Terminate with error. Parser_State has all the required info on
@@ -846,6 +773,12 @@ package body WisiToken.Parse.LR.Parser is
                   end loop;
                   raise WisiToken.Syntax_Error;
                end if;
+
+               --  Immediately execute Do_Action for Current_Token, since it changed
+               --  in error recovery; this sets Parser.Verb. This replaces the
+               --  execution of Do_Action that resulted in Error.
+               Error_Recovered := True;
+
             end;
          end case;
 
@@ -862,7 +795,7 @@ package body WisiToken.Parse.LR.Parser is
             --  states to diverge.
             if not Current_Parser.State_Ref.Resume_Active and
               Shared_Parser.Terminate_Same_State and
-              Current_Verb in Shift | Shift_Recover and
+              Current_Verb = Shift and
               (for all Parser of Shared_Parser.Parsers => Parser.Recover_Insert_Delete.Count = 0)
             then
                Shared_Parser.Parsers.Duplicate_State
@@ -874,10 +807,14 @@ package body WisiToken.Parse.LR.Parser is
             exit Action_Loop when Current_Parser.Is_Done;
 
             if Trace_Parse > Extra then
-               Trace.Put_Line
-                 ("current_verb: " & Parse_Action_Verbs'Image (Current_Verb) &
-                    "," & Integer'Image (Current_Parser.Label) &
-                    ".verb: " & Parse_Action_Verbs'Image (Current_Parser.Verb));
+               if Error_Recovered then
+                  Trace.Put_Line (Integer'Image (Current_Parser.Label) & ".error_recovered");
+               else
+                  Trace.Put_Line
+                    ("current_verb: " & Parse_Action_Verbs'Image (Current_Verb) &
+                       "," & Integer'Image (Current_Parser.Label) &
+                       ".verb: " & Parse_Action_Verbs'Image (Current_Parser.Verb));
+               end if;
             end if;
 
             --  Each branch of the following 'if' calls either Current_Parser.Free
@@ -900,7 +837,8 @@ package body WisiToken.Parse.LR.Parser is
                     (Current_Parser, "zombie", Shared_Parser.Trace.all, Shared_Parser.Terminals);
                end if;
 
-            elsif Current_Parser.Verb = Current_Verb then
+            elsif Current_Parser.Verb = Current_Verb or Error_Recovered then
+
                if Trace_Parse > Extra then
                   Parser_Lists.Put_Top_10 (Trace, Current_Parser);
                end if;
@@ -1002,6 +940,7 @@ package body WisiToken.Parse.LR.Parser is
                Current_Parser.Next;
             end if;
          end loop Action_Loop;
+         Error_Recovered := False;
       end loop Main_Loop;
       if Debug_Mode then
          Trace.Put_Clock ("finish");

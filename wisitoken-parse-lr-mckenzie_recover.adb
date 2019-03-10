@@ -375,6 +375,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end Apply_Prev_Token;
 
                begin
+                  --  The verb will be reset by the main parser; just indicate the
+                  --  parser recovered from the error.
+                  Parser_State.Set_Verb (Shift);
+
                   Parser_State.Errors (Parser_State.Errors.Last).Recover := Result;
 
                   Parser_State.Resume_Token_Goal := Result.Resume_Token_Goal;
@@ -415,7 +419,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   --
                   --  Push_Back can also go back past a previous error recovery; we must
                   --  apply Parser_State.Prev_Deleted here as well, when computing
-                  --  Current_Token and Shared_Token.
+                  --  Shared_Token.
                   --
                   --  So first we go thru Ops to find the earliest Push_Back. Then we
                   --  apply ops that are before that point, up to the first Insert or
@@ -562,55 +566,23 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                   end loop;
 
                   --  If not Shared_Token_Changed, Shared_Token is the error token,
-                  --  which is the next token to read. If Shared_Token_Changed, we
-                  --  have set Shared_Token consistent with that; it is the next token to
-                  --  read.
+                  --  which is the next token to read. If Shared_Token_Changed, we have
+                  --  set Shared_Token consistent with that; it is the next token to
+                  --  read. If Current_Token_Virtual, then after all the virtual tokens
+                  --  are inserted, the main parser would normally increment
+                  --  Parser_State.Shared_Token to get the next token, but we don't want
+                  --  that now. We could set Shared_Token to 1 less, but this way the
+                  --  debug messages all show the expected Shared_Terminal.
+
+                  Parser_State.Inc_Shared_Token := not Current_Token_Virtual;
+
+                  --  The main parser always sets Current_Token to be the syntax tree
+                  --  node containing Shared_Token; ensure that is true here (virtual
+                  --  tokens where handled above).
 
                   if (not Current_Token_Virtual) and Shared_Token_Changed then
                      Parser_State.Current_Token := Parser_State.Tree.Add_Terminal
                        (Parser_State.Shared_Token, Shared_Parser.Terminals);
-                  end if;
-
-                  --  Parser_State.Verb is the action that produced the current stack
-                  --  top (or Shift_Recover if there are tokens to insert).
-                  --  Parser_State.Inc_Shared_Token determines how to get the next token
-                  --  from Shared_Parser.Terminals.
-                  --
-                  --  If the stack top or Current_Token is virtual, then after all
-                  --  virtuals are inserted, the main parser would normally increment
-                  --  Parser_State.Shared_Token to get the next token. However, we have
-                  --  set Shared_Token to the next token, so we don't want it to
-                  --  increment. We could set Shared_Token to 1 less, but this way the
-                  --  debug messages all show the expected Shared_Terminal.
-
-                  if Parser_State.Stack.Depth = 1 then
-                     --  Empty stack
-                     if Current_Token_Virtual then
-                        Parser_State.Set_Verb (Shift_Recover);
-                        Parser_State.Inc_Shared_Token := False;
-                     else
-                        Parser_State.Set_Verb (Shift);
-                        Parser_State.Inc_Shared_Token := True;
-                     end if;
-
-                  elsif Parser_State.Stack (1).Token = Syntax_Trees.Invalid_Node_Index then
-                     --  a virtual token from a previous recover
-                     Parser_State.Set_Verb (Shift_Recover);
-                     Parser_State.Inc_Shared_Token := False;
-                  else
-                     case Tree.Label (Parser_State.Stack (1).Token) is
-                     when Syntax_Trees.Shared_Terminal =>
-                        Parser_State.Set_Verb (Shift_Recover);
-                        Parser_State.Inc_Shared_Token := not Current_Token_Virtual;
-
-                     when Syntax_Trees.Virtual_Terminal =>
-                        Parser_State.Set_Verb (Shift_Recover);
-                        Parser_State.Inc_Shared_Token := False;
-
-                     when Syntax_Trees.Nonterm =>
-                        Parser_State.Set_Verb (Reduce);
-                        Parser_State.Inc_Shared_Token := not Current_Token_Virtual;
-                     end case;
                   end if;
 
                   if Trace_McKenzie > Extra then
@@ -628,12 +600,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                      Put_Line
                        (Trace, Parser_State.Label, "recover_insert_delete " & Image
                           (Parser_State.Recover_Insert_Delete, Descriptor), Task_ID => False);
-                     Put_Line
-                       (Trace, Parser_State.Label, "inc_shared_token " & Boolean'Image (Parser_State.Inc_Shared_Token) &
-                          " parser verb " & All_Parse_Action_Verbs'Image (Parser_State.Verb),
-                        Task_ID => False);
-
-                  elsif Trace_McKenzie > Outline then
                      Put_Line
                        (Trace, Parser_State.Label, "inc_shared_token " & Boolean'Image (Parser_State.Inc_Shared_Token) &
                           " parser verb " & All_Parse_Action_Verbs'Image (Parser_State.Verb),
