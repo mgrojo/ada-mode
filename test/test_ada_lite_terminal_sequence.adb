@@ -50,22 +50,20 @@ package body Test_Ada_Lite_Terminal_Sequence is
       return WisiToken.BNF.Generate_Utils.Find_Token_ID (Generate_Data.all, Token_Name);
    end "+";
 
-   function To_List
+   function To_Action
      (Item        : in WisiToken.Token_ID;
       Token_Count : in Ada.Containers.Count_Type := 0)
-     return WisiToken.Parse.LR.Minimal_Action_Lists.List
+     return WisiToken.Parse.LR.Minimal_Action
    is
       use all type WisiToken.Token_ID;
       use WisiToken.Parse.LR;
    begin
       if Item < Generate_Data.Descriptor.First_Nonterminal then
-         return WisiToken.Parse.LR.Minimal_Action_Lists.To_List
-           ((Verb => Shift, ID => Item, State => WisiToken.State_Index'Last));
+         return (Verb => Shift, ID => Item, State => WisiToken.State_Index'Last);
       else
-         return WisiToken.Parse.LR.Minimal_Action_Lists.To_List
-           ((Verb => Reduce, Nonterm => Item, Token_Count => Token_Count));
+         return (Verb => Reduce, Nonterm => Item, Token_Count => Token_Count);
       end if;
-   end To_List;
+   end To_Action;
 
    ----------
    --  Test procedures
@@ -135,7 +133,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
       pragma Unreferenced (T);
       use WisiToken;
       use WisiToken.Generate.LR;
-      use WisiToken.Parse.LR.AUnit.Minimal_Action_Lists_AUnit;
+      use WisiToken.Parse.LR.AUnit;
 
       Has_Empty_Production : constant Token_ID_Set := Generate.Has_Empty_Production (Generate_Data.Grammar);
 
@@ -179,7 +177,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
         (Label     : in String;
          Prod_ID   : in Production_ID;
          Dot_After : in Natural;
-         Expected  : in WisiToken.Parse.LR.Minimal_Action_Lists.List)
+         Expected  : in WisiToken.Parse.LR.Minimal_Action)
       is
          State : Unknown_State_Index := Unknown_State;
 
@@ -210,8 +208,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
                Generate.LR1_Items.In_Kernel'Access),
             Generate_Data.Descriptor.all, Generate_Data.Grammar,
             Minimal_Terminal_Sequences, Minimal_Terminal_First);
-         Check (Label, Table.States (State).Minimal_Complete_Actions, Expected);
-
+         Check (Label, Table.States (State).Minimal_Complete_Action, Expected);
       end Check;
 
    begin
@@ -229,10 +226,10 @@ package body Test_Ada_Lite_Terminal_Sequence is
          end loop;
       end if;
 
-      Check ("if 4", Prod_ID => (+"if_statement", 3), Dot_After => 4, Expected => To_List (+"END"));
-      Check ("case 1", Prod_ID => (+"case_statement", 0), Dot_After => 1, Expected => To_List (+"expression_opt"));
-      Check ("body_stub 1", Prod_ID => (+"body_stub", 0), Dot_After => 1, Expected => To_List (+"body_stub", 1));
-      Check ("body_g 1", Prod_ID => (+"body_g", 1), Dot_After => 1, Expected => To_List (+"body_g", 1));
+      Check ("if 4", Prod_ID => (+"if_statement", 3), Dot_After => 4, Expected => To_Action (+"END"));
+      Check ("case 1", Prod_ID => (+"case_statement", 0), Dot_After => 1, Expected => To_Action (+"expression_opt"));
+      Check ("body_stub 1", Prod_ID => (+"body_stub", 0), Dot_After => 1, Expected => To_Action (+"body_stub", 1));
+      Check ("body_g 1", Prod_ID => (+"body_g", 1), Dot_After => 1, Expected => To_Action (+"body_g", 1));
    end Test_Minimal_Complete_Actions;
 
    ----------

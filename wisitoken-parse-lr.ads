@@ -39,7 +39,6 @@ with Ada.Unchecked_Deallocation;
 with SAL.Gen_Array_Image;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Image_Aux;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_Sorted;
-with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_Image;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Queues.Gen_Image_Aux;
 with SAL.Gen_Unbounded_Definite_Stacks.Gen_Image_Aux;
@@ -51,8 +50,8 @@ package WisiToken.Parse.LR is
 
    type All_Parse_Action_Verbs is (Pause, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
-   subtype Minimal_Verbs is All_Parse_Action_Verbs range Shift .. Reduce;
-   --  Pause, Shift_Recover are only used for error recovery.
+   subtype Minimal_Verbs is All_Parse_Action_Verbs range Pause .. Reduce;
+   --  Pause is only used for error recovery.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
@@ -117,8 +116,12 @@ package WisiToken.Parse.LR is
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
-   type Minimal_Action (Verb : Minimal_Verbs := Shift) is record
+   type Minimal_Action (Verb : Minimal_Verbs := Pause) is record
       case Verb is
+      when Pause =>
+         --  In this case, 'Pause' means no minimal action.
+         null;
+
       when Shift =>
          ID    : Token_ID;
          State : State_Index;
@@ -129,19 +132,8 @@ package WisiToken.Parse.LR is
       end case;
    end record;
 
-   function Compare_Minimal_Action (Left, Right : in Minimal_Action) return SAL.Compare_Result;
-
-   type Minimal_Action_Array is array (Positive range <>) of Minimal_Action;
-
-   package Minimal_Action_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists_Sorted
-     (Minimal_Action, Compare_Minimal_Action);
-
    function Strict_Image (Item : in Minimal_Action) return String;
    --  Strict Ada aggregate syntax, for generated code.
-
-   function Image is new Minimal_Action_Lists.Gen_Image (Strict_Image);
-
-   procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array);
 
    type Parse_State is record
       Productions : Production_ID_Arrays.Vector;
@@ -149,9 +141,9 @@ package WisiToken.Parse.LR is
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
 
-      Minimal_Complete_Actions : Minimal_Action_Lists.List;
-      --  Set of parse actions that will most quickly complete the
-      --  productions in this state; used in error recovery
+      Minimal_Complete_Action : Minimal_Action;
+      --  Parse action that will most quickly complete a
+      --  production in this state; used in error recovery
    end record;
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;

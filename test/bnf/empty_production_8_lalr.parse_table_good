@@ -33,7 +33,7 @@ State 0:
    object_declaration_list goto state 2
    object_declaration      goto state 3
 
-   Minimal_Complete_Actions => (IDENTIFIER)
+   Minimal_Complete_Action => (IDENTIFIER)
 
 State 1:
       9.0:object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
@@ -49,7 +49,7 @@ State 1:
    aliased_opt             goto state 6
    constant_opt            goto state 7
 
-   Minimal_Complete_Actions => (aliased_opt)
+   Minimal_Complete_Action => (aliased_opt)
 
 State 2:
       7.0:wisitoken_accept <= object_declaration_list ^ Wisi_EOI, 
@@ -61,7 +61,7 @@ State 2:
 
    object_declaration      goto state 8
 
-   Minimal_Complete_Actions => ()
+   Minimal_Complete_Action => ()
 
 State 3:
       8.1:object_declaration_list <= object_declaration ^, IDENTIFIER/Wisi_EOI
@@ -70,7 +70,7 @@ State 3:
    Wisi_EOI                => reduce 1 tokens to object_declaration_list 8.1
    default                 => ERROR
 
-   Minimal_Complete_Actions => (object_declaration_list)
+   Minimal_Complete_Action => (object_declaration_list)
 
 State 4:
      10.0:aliased_opt <= ALIASED ^, CONSTANT/SEMICOLON
@@ -79,7 +79,7 @@ State 4:
    SEMICOLON               => reduce 1 tokens to aliased_opt 10.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (aliased_opt)
+   Minimal_Complete_Action => (aliased_opt)
 
 State 5:
      11.0:constant_opt <= CONSTANT ^, COLON_EQUAL/SEMICOLON
@@ -88,7 +88,7 @@ State 5:
    SEMICOLON               => reduce 1 tokens to constant_opt 11.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (constant_opt)
+   Minimal_Complete_Action => (constant_opt)
 
 State 6:
       9.0:object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON, IDENTIFIER/Wisi_EOI
@@ -99,7 +99,7 @@ State 6:
 
    constant_opt            goto state 9
 
-   Minimal_Complete_Actions => (constant_opt)
+   Minimal_Complete_Action => (constant_opt)
 
 State 7:
       9.1:object_declaration <= IDENTIFIER constant_opt ^ COLON_EQUAL SEMICOLON, IDENTIFIER/Wisi_EOI
@@ -107,7 +107,7 @@ State 7:
    COLON_EQUAL             => shift and goto state 10
    default                 => ERROR
 
-   Minimal_Complete_Actions => (COLON_EQUAL)
+   Minimal_Complete_Action => (COLON_EQUAL)
 
 State 8:
       8.0:object_declaration_list <= object_declaration_list object_declaration ^, IDENTIFIER/Wisi_EOI
@@ -116,7 +116,7 @@ State 8:
    Wisi_EOI                => reduce 2 tokens to object_declaration_list 8.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (object_declaration_list)
+   Minimal_Complete_Action => (object_declaration_list)
 
 State 9:
       9.0:object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/Wisi_EOI
@@ -124,7 +124,7 @@ State 9:
    SEMICOLON               => shift and goto state 11
    default                 => ERROR
 
-   Minimal_Complete_Actions => (SEMICOLON)
+   Minimal_Complete_Action => (SEMICOLON)
 
 State 10:
       9.1:object_declaration <= IDENTIFIER constant_opt COLON_EQUAL ^ SEMICOLON, IDENTIFIER/Wisi_EOI
@@ -132,7 +132,7 @@ State 10:
    SEMICOLON               => shift and goto state 12
    default                 => ERROR
 
-   Minimal_Complete_Actions => (SEMICOLON)
+   Minimal_Complete_Action => (SEMICOLON)
 
 State 11:
       9.0:object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^, IDENTIFIER/Wisi_EOI
@@ -141,7 +141,7 @@ State 11:
    Wisi_EOI                => reduce 4 tokens to object_declaration 9.0
    default                 => ERROR
 
-   Minimal_Complete_Actions => (object_declaration)
+   Minimal_Complete_Action => (object_declaration)
 
 State 12:
       9.1:object_declaration <= IDENTIFIER constant_opt COLON_EQUAL SEMICOLON ^, IDENTIFIER/Wisi_EOI
@@ -150,8 +150,7 @@ State 12:
    Wisi_EOI                => reduce 4 tokens to object_declaration 9.1
    default                 => ERROR
 
-   Minimal_Complete_Actions => (object_declaration)
-
+   Minimal_Complete_Action => (object_declaration)
 States with conflicts: 1
 
  4 rules, 0 user actions, 0 checks, 13 states, 37 parse actions

@@ -25,7 +25,6 @@ pragma License (Modified_GPL);
 with AUnit.Checks;
 with SAL.AUnit;
 with SAL.Gen_Bounded_Definite_Vectors.Gen_AUnit;
-with SAL.Gen_Definite_Doubly_Linked_Lists_Sorted.Gen_AUnit;
 package WisiToken.Parse.LR.AUnit is
 
    Strict : Boolean := False;
@@ -37,8 +36,6 @@ package WisiToken.Parse.LR.AUnit is
       Computed : in Minimal_Action;
       Expected : in Minimal_Action);
    --  If Expected.State is State_Index'Last, ignore it.
-
-   package Minimal_Action_Lists_AUnit is new Minimal_Action_Lists.Gen_AUnit (Check);
 
    procedure Check
      (Label    : in String;

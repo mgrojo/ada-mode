@@ -35,6 +35,9 @@ package body WisiToken.Parse.LR.AUnit is
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
+      when Pause =>
+         null;
+
       when Shift =>
          Check (Label & ".ID", Computed.ID, Expected.ID);
          if Expected.State /= State_Index'Last then

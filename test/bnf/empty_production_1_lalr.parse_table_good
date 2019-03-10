@@ -30,7 +30,7 @@ State 0:
    declarative_part goto state 3
    body             goto state 4
 
-   Minimal_Complete_Actions => (declarative_part)
+   Minimal_Complete_Action => (declarative_part)
 
 State 1:
       9.0:body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
@@ -43,7 +43,7 @@ State 1:
    declarative_part goto state 5
    body             goto state 4
 
-   Minimal_Complete_Actions => (declarative_part)
+   Minimal_Complete_Action => (declarative_part)
 
 State 2:
       7.0:declarations <= declarations ^ body, BEGIN/IS/Wisi_EOI
@@ -56,7 +56,7 @@ State 2:
 
    body             goto state 6
 
-   Minimal_Complete_Actions => (declarative_part)
+   Minimal_Complete_Action => (declarative_part)
 
 State 3:
       6.0:wisitoken_accept <= declarative_part ^ Wisi_EOI, 
@@ -64,7 +64,7 @@ State 3:
    Wisi_EOI         => accept it 6.0
    default          => ERROR
 
-   Minimal_Complete_Actions => ()
+   Minimal_Complete_Action => ()
 
 State 4:
       7.1:declarations <= body ^, BEGIN/IS/Wisi_EOI
@@ -74,7 +74,7 @@ State 4:
    Wisi_EOI         => reduce 1 tokens to declarations 7.1
    default          => ERROR
 
-   Minimal_Complete_Actions => (declarations)
+   Minimal_Complete_Action => (declarations)
 
 State 5:
       9.0:body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
@@ -82,7 +82,7 @@ State 5:
    BEGIN            => shift and goto state 7
    default          => ERROR
 
-   Minimal_Complete_Actions => (BEGIN)
+   Minimal_Complete_Action => (BEGIN)
 
 State 6:
       7.0:declarations <= declarations body ^, BEGIN/IS/Wisi_EOI
@@ -92,7 +92,7 @@ State 6:
    Wisi_EOI         => reduce 2 tokens to declarations 7.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (declarations)
+   Minimal_Complete_Action => (declarations)
 
 State 7:
       9.0:body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
@@ -100,7 +100,7 @@ State 7:
    SEMICOLON        => shift and goto state 8
    default          => ERROR
 
-   Minimal_Complete_Actions => (SEMICOLON)
+   Minimal_Complete_Action => (SEMICOLON)
 
 State 8:
       9.0:body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
@@ -110,7 +110,7 @@ State 8:
    Wisi_EOI         => reduce 4 tokens to body 9.0
    default          => ERROR
 
-   Minimal_Complete_Actions => (body)
+   Minimal_Complete_Action => (body)
 
  3 rules, 1 user actions, 0 checks, 9 states, 28 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

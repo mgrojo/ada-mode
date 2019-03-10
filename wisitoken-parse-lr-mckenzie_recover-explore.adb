@@ -421,9 +421,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
      return Boolean
       --  Returns True if Config reduces to the start nonterm.
    is
-      use all type Ada.Containers.Count_Type;
-      use all type SAL.Base_Peek_Type;
-
       Table : Parse_Table renames Shared.Table.all;
 
       function To_Reduce_Action (Item : in Minimal_Action) return Reduce_Action_Rec
@@ -433,25 +430,25 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Local_Config_Heap : Config_Heaps.Heap_Type; -- never used, because Do_Language_Fixes is False.
 
-      Config  : Configuration             := Orig_Config;
-      Actions : Minimal_Action_Lists.List := Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions;
-
+      Config : Configuration  := Orig_Config;
+      Action : Minimal_Action := Table.States (Config.Stack.Peek.State).Minimal_Complete_Action;
    begin
       loop
-         if Actions.Length = 0 then return True; end if;
+         case Action.Verb is
+         when Pause =>
+            return True;
 
-         if Actions.Length > 1 then return False; end if;
+         when Shift =>
+            return False;
 
-         --  Actions is sorted shift first
-         if Actions (Actions.First).Verb = Shift then return False; end if;
+         when Reduce =>
+            Do_Reduce_1
+              (Super, Shared, Parser_Index, Local_Config_Heap, Config,
+               To_Reduce_Action (Action),
+               Do_Language_Fixes => False);
 
-         Do_Reduce_1
-           (Super, Shared, Parser_Index, Local_Config_Heap, Config,
-            To_Reduce_Action (Actions (Actions.First).Element.all),
-            Do_Language_Fixes => False);
-
-         Actions := Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions;
-
+            Action := Table.States (Config.Stack.Peek.State).Minimal_Complete_Action;
+         end case;
          --  loop only exits via returns above
       end loop;
    end Check_Reduce_To_Start;
@@ -620,7 +617,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       --  the start nonterm.
    is
       use all type Ada.Containers.Count_Type;
-      use all type SAL.Base_Peek_Type;
 
       Table        : Parse_Table renames Shared.Table.all;
       Descriptor   : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
@@ -628,131 +624,94 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       Cost_Delta : constant Integer := -1;
 
-      type Work_Type is record
-         Config : Configuration;
-         Complete_Actions : Minimal_Action_Lists.List;
-      end record;
-
-      package Work_Queues is new SAL.Gen_Unbounded_Definite_Queues (Work_Type);
-
-      Work : Work_Queues.Queue;
-
-      function Reduce_Only (Item : in Minimal_Action_Lists.List) return Minimal_Action_Lists.List
-      is begin
-         return Result : Minimal_Action_Lists.List do
-            for Action of Item loop
-               if Action.Verb = Reduce then
-                  Result.Insert (Action);
-               end if;
-            end loop;
-         end return;
-      end Reduce_Only;
+      New_Config      : Configuration  := Orig_Config;
+      Complete_Action : Minimal_Action := Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Action;
 
       function To_Reduce_Action (Item : in Minimal_Action) return Reduce_Action_Rec
       is begin
          return (Reduce, (Item.Nonterm, 0), null, null, Item.Token_Count);
       end To_Reduce_Action;
 
-   begin
-      Work.Put ((Orig_Config, Table.States (Orig_Config.Stack.Peek.State).Minimal_Complete_Actions));
-      loop
-         exit when Work.Length = 0;
-         declare
-            Item : constant Work_Type := Work.Get;
-         begin
+      procedure Minimal_Do_Shift
+      is begin
+         if New_Config.Ops.Length > 0 and then
+           --  Don't insert an ID we just pushed back or deleted; we know that failed.
+           (New_Config.Ops (New_Config.Ops.Last_Index) =
+              (Push_Back, Complete_Action.ID, New_Config.Current_Shared_Token) or
+              New_Config.Ops (New_Config.Ops.Last_Index) =
+              (Delete, Complete_Action.ID, New_Config.Current_Shared_Token))
+         then
             if Trace_McKenzie > Extra then
-               Put_Line (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions get work item");
+               Put_Line
+                 (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions abandoned " &
+                    Image (Complete_Action.ID, Descriptor));
             end if;
+            pragma Assert (Insert_Count = 0);
+         else
+            if Trace_McKenzie > Extra then
+               Put_Line
+                 (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions shift " &
+                    Image (Complete_Action.ID, Descriptor));
+            end if;
+            New_Config.Check_Status := (Label => WisiToken.Semantic_Checks.Ok);
+            Insert_Count            := Insert_Count + 1;
 
-            for Action of Item.Complete_Actions loop
-               case Action.Verb is
-               when Reduce =>
-                  --  Do a reduce, look at resulting state. Keep reducing until we can't
-                  --  anymore (ignoring possible shifts along the way; we are looking
-                  --  for the _minimal_ terminals to insert).
-                  declare
-                     New_Config    : Configuration     := Item.Config;
-                     Reduce_Action : Reduce_Action_Rec := To_Reduce_Action (Action);
+            Do_Shift
+              (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Complete_Action.State, Complete_Action.ID,
+               Cost_Delta,
+               Strategy   => Minimal_Complete);
+         end if;
+      end Minimal_Do_Shift;
 
-                     Temp_Actions : Minimal_Action_Lists.List;
-                     Prev_State   : Unknown_State_Index := Unknown_State;
-                  begin
-                     loop
-                        if Trace_McKenzie > Extra then
-                           Prev_State := New_Config.Stack.Peek.State;
-                        end if;
+   begin
+      case Complete_Action.Verb is
+      when Pause =>
+         return 0;
 
-                        Do_Reduce_1
-                          (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Reduce_Action,
-                           Do_Language_Fixes => False);
+      when Reduce =>
+         --  Do a reduce, look at resulting state. Keep reducing until we can't
+         --  anymore.
+         declare
+            Reduce_Action : Reduce_Action_Rec   := To_Reduce_Action (Complete_Action);
+            Prev_State    : Unknown_State_Index := Unknown_State;
+         begin
+            loop
+               if Trace_McKenzie > Extra then
+                  Prev_State := New_Config.Stack.Peek.State;
+               end if;
 
-                        if Trace_McKenzie > Extra then
-                           Put_Line
-                             (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions" &
-                                State_Index'Image (Prev_State) & ": reduce to " &
-                                Image (Reduce_Action.Production.LHS, Descriptor) & ", goto" &
-                                State_Index'Image (New_Config.Stack.Peek.State));
-                        end if;
+               Do_Reduce_1
+                 (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Reduce_Action,
+                  Do_Language_Fixes => False);
 
-                        Temp_Actions := Reduce_Only
-                          (Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Actions);
+               if Trace_McKenzie > Extra then
+                  Put_Line
+                    (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions" &
+                       State_Index'Image (Prev_State) & ": reduce to " &
+                       Image (Reduce_Action.Production.LHS, Descriptor) & ", goto" &
+                       State_Index'Image (New_Config.Stack.Peek.State));
+               end if;
 
-                        exit when Temp_Actions.Length = 0;
+               Complete_Action := Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Action;
 
-                        Reduce_Action := To_Reduce_Action (Temp_Actions.Pop);
-
-                        if Temp_Actions.Length > 0 then
-                           if Trace_McKenzie > Extra then
-                              Put_Line
-                                (Super.Trace.all, Super.Label (Parser_Index),
-                                 "Minimal_Complete_Actions add work item");
-                           end if;
-                           Work.Put ((New_Config, Temp_Actions));
-                        end if;
-                     end loop;
-
-                     Insert_Count := Insert_Count +
-                       Insert_Minimal_Complete_Actions (Super, Shared, Parser_Index, New_Config, Local_Config_Heap);
-                  end;
-
+               case Complete_Action.Verb is
+               when Pause =>
+                  return 0;
                when Shift =>
-                  if Item.Config.Ops.Length > 0 and then
-                        --  Don't insert an ID we just pushed back or deleted; we know that failed.
-                    (Item.Config.Ops (Item.Config.Ops.Last_Index) =
-                       (Push_Back, Action.ID, Item.Config.Current_Shared_Token) or
-                       Item.Config.Ops (Item.Config.Ops.Last_Index) =
-                       (Delete, Action.ID, Item.Config.Current_Shared_Token))
-                  then
-                     if Trace_McKenzie > Extra then
-                        Put_Line
-                          (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions abandoned " &
-                             Image (Action.ID, Descriptor));
-                     end if;
-
-                     pragma Assert (Insert_Count = 0);
-                     return Insert_Count;
-                  else
-                     if Trace_McKenzie > Extra then
-                        Put_Line
-                          (Super.Trace.all, Super.Label (Parser_Index), "Minimal_Complete_Actions shift " &
-                             Image (Action.ID, Descriptor));
-                     end if;
-                     declare
-                        New_Config : Configuration := Item.Config;
-                     begin
-                        New_Config.Check_Status := (Label => WisiToken.Semantic_Checks.Ok);
-                        Insert_Count            := Insert_Count + 1;
-
-                        Do_Shift
-                          (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Action.State, Action.ID,
-                           Cost_Delta,
-                           Strategy   => Minimal_Complete);
-                     end;
-                  end if;
+                  Minimal_Do_Shift;
+                  return Insert_Count;
+               when Reduce =>
+                  null;
                end case;
+
+               Reduce_Action := To_Reduce_Action
+                 (Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Action);
             end loop;
          end;
-      end loop;
+
+      when Shift =>
+         Minimal_Do_Shift;
+      end case;
       return Insert_Count;
    end Insert_Minimal_Complete_Actions;
 
@@ -1184,11 +1143,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Use_Minimal_Complete_Actions : Boolean := False;
 
       function Allow_Insert_Terminal (Config : in Configuration) return Boolean
-      is
-         use all type Ada.Containers.Count_Type;
-      begin
+      is begin
          if Use_Minimal_Complete_Actions then
-            if Table.States (Config.Stack.Peek.State).Minimal_Complete_Actions.Length = 0 then
+            if Table.States (Config.Stack.Peek.State).Minimal_Complete_Action.Verb = Pause then
                --  This happens when there is an extra token after an acceptable
                --  grammar statement. There is no production to complete, so try
                --  other things.

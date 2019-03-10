@@ -21,15 +21,19 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+when use_minimal_complete is true, but minimal_complete has no actions:
+    insert production that ends in next token sequence
+        'end if ;'
+        'end loop [name] ;'
+        'end [name] ;'
+        'end <name> ;'
+        none for wisi_eof
+    precompute for each token sequence, store action that starts the production. then minimal complete takes over.
+    use_minimal_complete return that action? or the token sequence.
+
 take Dot into account when finding min?
     best metric is min remaining to insert
         won't make much difference; only matters when dot is not near beginning, but then don't have multiple productions (they all must have same prefix)
-
-minimal_complete_actions has either 1 or 0 entries
-    simplifies Insert_From_Minimal
-
-delete wisitoken.generate.ancestors?
-    no longer used in minimal_complete_actions; used by packrat?
 
 delete "assume ignore semantic check is a solution"; only language_fixes knows that
     provide subprog to enqueue that in language_fixes

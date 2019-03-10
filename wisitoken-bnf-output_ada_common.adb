@@ -536,7 +536,7 @@ package body WisiToken.BNF.Output_Ada_Common is
      (Input_Data    : in WisiToken_Grammar_Runtime.User_Data_Type;
       Generate_Data : in WisiToken.BNF.Generate_Utils.Generate_Data)
    is
-      use all type Ada.Containers.Count_Type;
+      use all type WisiToken.Parse.LR.All_Parse_Action_Verbs;
       use Ada.Strings.Unbounded;
 
       Table            : WisiToken.Parse.LR.Parse_Table_Ptr renames Generate_Data.LR_Parse_Table;
@@ -712,10 +712,12 @@ package body WisiToken.BNF.Output_Ada_Common is
             end loop;
          end Gotos;
 
-         if Table.States (State_Index).Minimal_Complete_Actions.Length > 0 then
+         if Input_Data.Language_Params.Error_Recover and
+           Table.States (State_Index).Minimal_Complete_Action.Verb /= Parse.LR.Pause
+         then
             Indent_Wrap
-              ("Set_Minimal_Action (Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Actions, " &
-                 WisiToken.Parse.LR.Image (Table.States (State_Index).Minimal_Complete_Actions, Strict => True) & ");");
+              ("Table.States (" & Trimmed_Image (State_Index) & ").Minimal_Complete_Action := " &
+                 WisiToken.Parse.LR.Strict_Image (Table.States (State_Index).Minimal_Complete_Action) & ";");
          end if;
 
          if Line_Count > Lines_Per_Subr then

@@ -140,37 +140,11 @@ package body WisiToken.Parse.LR is
       return List.Next;
    end Next;
 
-   function Compare_Minimal_Action (Left, Right : in Minimal_Action) return SAL.Compare_Result
-   is begin
-      if Left.Verb > Right.Verb then
-         return SAL.Greater;
-      elsif Left.Verb < Right.Verb then
-         return SAL.Less;
-      else
-         case Left.Verb is
-         when Shift =>
-            if Left.ID > Right.ID then
-               return SAL.Greater;
-            elsif Left.ID < Right.ID then
-               return SAL.Less;
-            else
-               return SAL.Equal;
-            end if;
-         when Reduce =>
-            if Left.Nonterm > Right.Nonterm then
-               return SAL.Greater;
-            elsif Left.Nonterm < Right.Nonterm then
-               return SAL.Less;
-            else
-               return SAL.Equal;
-            end if;
-         end case;
-      end if;
-   end Compare_Minimal_Action;
-
    function Strict_Image (Item : in Minimal_Action) return String
    is begin
       case Item.Verb is
+      when Pause =>
+         return "(Verb => Shift)";
       when Shift =>
          return "(Shift," & Token_ID'Image (Item.ID) & "," & State_Index'Image (Item.State) & ")";
       when Reduce =>
@@ -178,13 +152,6 @@ package body WisiToken.Parse.LR is
            Ada.Containers.Count_Type'Image (Item.Token_Count) & ")";
       end case;
    end Strict_Image;
-
-   procedure Set_Minimal_Action (List : out Minimal_Action_Lists.List; Actions : in Minimal_Action_Array)
-   is begin
-      for Action of Actions loop
-         List.Insert (Action);
-      end loop;
-   end Set_Minimal_Action;
 
    function First (State : in Parse_State) return Action_List_Iterator
    is begin
@@ -576,6 +543,19 @@ package body WisiToken.Parse.LR is
          end if;
       end Check_Semicolon;
 
+      procedure Check_Semicolon
+      is begin
+         if Buffer (Buffer_Last) = ';' then
+            --  There is a space, newline, or newline and space after ';'. Leave
+            --  Buffer_Last on newline for Check_New_Line.
+            Buffer_Last := Buffer_Last + 1;
+         else
+            raise SAL.Programmer_Error with Error_Message
+              (File_Name, 1, Ada.Text_IO.Count (Buffer_Last),
+               "expecting semicolon, found '" & Buffer (Buffer_Last) & "'");
+         end if;
+      end Check_Semicolon;
+
       function Check_EOI return Boolean
       is begin
          return Buffer_Last >= Buffer_Abs_Last;
@@ -765,28 +745,32 @@ package body WisiToken.Parse.LR is
             end if;
             Check_New_Line;
 
-            declare
-               Verb         : Minimal_Verbs;
-               ID           : Token_ID;
-               Action_State : State_Index;
-               Count        : Ada.Containers.Count_Type;
-            begin
-               loop
-                  exit when Check_Semicolon;
-
-                  Verb := Next_Parse_Action_Verbs;
+            if Check_Semicolon then
+               --  No minimal action
+               null;
+            else
+               declare
+                  Verb         : constant Minimal_Verbs := Next_Parse_Action_Verbs;
+                  ID           : Token_ID;
+                  Action_State : State_Index;
+                  Count        : Ada.Containers.Count_Type;
+               begin
                   case Verb is
+                  when Pause =>
+                     null; --  Generate.LR.Put_Text_Rep does not output this
+
                   when Shift =>
                      ID           := Next_Token_ID;
                      Action_State := Next_State_Index;
-                     State.Minimal_Complete_Actions.Insert ((Shift, ID, Action_State));
+                     State.Minimal_Complete_Action := (Shift, ID, Action_State);
                   when Reduce =>
                      ID    := Next_Token_ID;
                      Count := Next_Count_Type;
-                     State.Minimal_Complete_Actions.Insert ((Reduce, ID, Count));
+                     State.Minimal_Complete_Action := (Reduce, ID, Count);
                   end case;
-               end loop;
-            end;
+               end;
+               Check_Semicolon;
+            end if;
             Check_New_Line;
 
             exit when Check_EOI;

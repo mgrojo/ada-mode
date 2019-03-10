@@ -29,18 +29,6 @@ package body WisiToken.Generate.LR is
    ----------
    --  Body subprograms, alphabetical
 
-   function Count_Reduce (List : in Parse.LR.Minimal_Action_Lists.List) return Integer
-   is
-      Count : Integer := 0;
-   begin
-      for Item of List loop
-         if Item.Verb = Reduce then
-            Count := Count + 1;
-         end if;
-      end loop;
-      return Count;
-   end Count_Reduce;
-
    function Find
      (Symbol      : in Token_ID;
       Action_List : in Action_Node_Ptr)
@@ -738,13 +726,6 @@ package body WisiToken.Generate.LR is
       Working_Set : LR1_Items.Item_Lists.List := Kernel.Set;
       Del         : LR1_Items.Item_Lists.Cursor;
 
-      procedure Append_No_Dup (Item : in Minimal_Action)
-      is begin
-         if not State.Minimal_Complete_Actions.Contains (Item) then
-            State.Minimal_Complete_Actions.Insert (Item);
-         end if;
-      end Append_No_Dup;
-
       function Find_Action (List : in Action_Node_Ptr; ID : in Token_ID) return Minimal_Action
       is
          Node : Action_Node_Ptr := List;
@@ -871,9 +852,9 @@ package body WisiToken.Generate.LR is
             if Trace_Generate > Extra then
                Ada.Text_IO.Put_Line ("reduce " & Image (Item.Prod));
             end if;
-            Append_No_Dup
-              ((Reduce, Item.Prod.LHS,
-                Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length));
+            State.Minimal_Complete_Action :=
+              (Reduce, Item.Prod.LHS,
+                Token_Count => Grammar (Item.Prod.LHS).RHSs (Item.Prod.RHS).Tokens.Length);
          else
             declare
                ID : constant Token_ID := Element (Item.Dot);
@@ -881,17 +862,17 @@ package body WisiToken.Generate.LR is
                if ID /= Descriptor.EOF_ID then
 
                   if ID in Terminals then
-                     Append_No_Dup (Find_Action (State.Action_List, ID));
+                     State.Minimal_Complete_Action := Find_Action (State.Action_List, ID);
 
                   else
                      if Minimal_Terminal_First (ID) = Invalid_Token_ID then
                         --  Item.Dot is a nullable nonterm, include a reduce of the null
                         --  nonterm, rather than a shift of the following terminal; recover
                         --  must do the reduce first.
-                        Append_No_Dup ((Reduce, ID, Token_Count => 0));
+                        State.Minimal_Complete_Action := (Reduce, ID, Token_Count => 0);
 
                      else
-                        Append_No_Dup (Find_Action (State.Action_List, Minimal_Terminal_First (ID)));
+                        State.Minimal_Complete_Action := Find_Action (State.Action_List, Minimal_Terminal_First (ID));
                      end if;
                   end if;
                end if;
@@ -1005,15 +986,20 @@ package body WisiToken.Generate.LR is
             New_Line (File);
          end;
 
-         for Action of State.Minimal_Complete_Actions loop
-            Put (File, ' ' & Minimal_Verbs'Image (Action.Verb));
-            case Action.Verb is
+         declare
+            Action  : Minimal_Action renames State.Minimal_Complete_Action;
+         begin
+            case State.Minimal_Complete_Action.Verb is
+            when Pause =>
+               null;
             when Shift =>
+               Put (File, Minimal_Verbs'Image (Action.Verb));
                Put (File, Token_ID'Image (Action.ID) & State_Index'Image (Action.State));
             when Reduce =>
+               Put (File, Minimal_Verbs'Image (Action.Verb));
                Put (File, Token_ID'Image (Action.Nonterm) & Ada.Containers.Count_Type'Image (Action.Token_Count));
             end case;
-         end loop;
+         end;
          Put (File, ';');
          New_Line (File);
       end loop;
@@ -1121,7 +1107,6 @@ package body WisiToken.Generate.LR is
       use Ada.Strings.Fixed;
       Action_Ptr : Action_Node_Ptr := State.Action_List;
       Goto_Ptr   : Goto_Node_Ptr   := State.Goto_List;
-      Need_Comma : Boolean := False;
    begin
       while Action_Ptr /= null loop
          Put ("   ");
@@ -1151,20 +1136,15 @@ package body WisiToken.Generate.LR is
       end loop;
 
       New_Line;
-      Put ("   Minimal_Complete_Actions => (");
-      for Action of State.Minimal_Complete_Actions loop
-         if Need_Comma then
-            Put (", ");
-         else
-            Need_Comma := True;
-         end if;
-         case Action.Verb is
-         when Shift =>
-            Put (Image (Action.ID, Descriptor));
-         when Reduce =>
-            Put (Image (Action.Nonterm, Descriptor));
-         end case;
-      end loop;
+      Put ("   Minimal_Complete_Action => (");
+      case State.Minimal_Complete_Action.Verb is
+      when Pause =>
+         null;
+      when Shift =>
+         Put (Image (State.Minimal_Complete_Action.ID, Descriptor));
+      when Reduce =>
+         Put (Image (State.Minimal_Complete_Action.Nonterm, Descriptor));
+      end case;
       Put_Line (")");
    end Put;
 
@@ -1178,7 +1158,6 @@ package body WisiToken.Generate.LR is
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
-      Minimal_Complete_Multiple_Reduce : State_Index_Arrays.Vector;
    begin
       Put_Line ("Tokens:");
       WisiToken.Put_Tokens (Descriptor);
@@ -1205,23 +1184,10 @@ package body WisiToken.Generate.LR is
          New_Line;
          Put (Descriptor, Table.States (State_Index));
 
-         if Count_Reduce (Table.States (State_Index).Minimal_Complete_Actions) > 1 then
-            Minimal_Complete_Multiple_Reduce.Append (State_Index);
-         end if;
-
          if State_Index /= Table.States'Last then
             New_Line;
          end if;
       end loop;
-
-      if Minimal_Complete_Multiple_Reduce.Length + Conflicts.Length > 0 then
-         New_Line;
-      end if;
-
-      if Minimal_Complete_Multiple_Reduce.Length > 0 then
-         Indent_Wrap
-           ("States with multiple reduce in Minimal_Complete_Action: " & Image (Minimal_Complete_Multiple_Reduce));
-      end if;
 
       if Conflicts.Length > 0 then
          declare

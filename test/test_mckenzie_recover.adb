@@ -1764,7 +1764,7 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  previously got "error during resume"; stack is empty in error
-      --  recover, finds one solution.
+      --  recover, now finds one solution.
 
       Parse_Text ("end Process_Node;");
 

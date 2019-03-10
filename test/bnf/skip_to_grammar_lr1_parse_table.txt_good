@@ -4,33 +4,33 @@ SHIFT 1; 3
 SHIFT 2; 4
 ERROR;
  8 3 11 4 12 5;
- SHIFT 4 2;
+SHIFT 4 2;
  1 1 8 0
 SHIFT 6; 5
 ERROR;
 ;
- SHIFT 5 6;
+SHIFT 5 6;
  1 1 11 0
 REDUCE 11 0 false false 1; 3
 REDUCE 11 0 false false 1; 4
 REDUCE 11 0 false false 1; 6
 ERROR;
 ;
- REDUCE 11 1;
+REDUCE 11 1;
  1 1 11 1
 REDUCE 11 1 false false 1; 3
 REDUCE 11 1 false false 1; 4
 REDUCE 11 1 false false 1; 6
 ERROR;
 ;
- REDUCE 11 1;
+REDUCE 11 1;
  1 1 12 1
 REDUCE 12 1 false false 1; 3
 REDUCE 12 1 false false 1; 4
 REDUCE 12 1 false false 1; 6
 ERROR;
 ;
- REDUCE 12 1;
+REDUCE 12 1;
  1 2 7 0 12 0
 SHIFT 1; 3
 SHIFT 2; 4
@@ -42,14 +42,14 @@ ERROR;
 SHIFT 8; 5
 ERROR;
  9 9 10 10;
- SHIFT 5 8;
+SHIFT 5 8;
  1 1 12 0
 REDUCE 12 0 false false 2; 3
 REDUCE 12 0 false false 2; 4
 REDUCE 12 0 false false 2; 6
 ERROR;
 ;
- REDUCE 12 2;
+REDUCE 12 2;
  1 1 10 0
 REDUCE 10 0 false false 1; 3
 REDUCE 10 0 false false 1; 4
@@ -57,7 +57,7 @@ REDUCE 10 0 false false 1; 5
 REDUCE 10 0 false false 1; 6
 ERROR;
 ;
- REDUCE 10 1;
+REDUCE 10 1;
  1 2 8 0 9 0
 REDUCE 8 0 true false 3; 3
 REDUCE 8 0 true false 3; 4
@@ -65,7 +65,7 @@ SHIFT 8; 5
 REDUCE 8 0 true false 3; 6
 ERROR;
  10 11;
- REDUCE 8 3;
+REDUCE 8 3;
  1 1 9 1
 REDUCE 9 1 false false 1; 3
 REDUCE 9 1 false false 1; 4
@@ -73,7 +73,7 @@ REDUCE 9 1 false false 1; 5
 REDUCE 9 1 false false 1; 6
 ERROR;
 ;
- REDUCE 9 1;
+REDUCE 9 1;
  1 1 9 0
 REDUCE 9 0 false false 2; 3
 REDUCE 9 0 false false 2; 4
@@ -81,4 +81,4 @@ REDUCE 9 0 false false 2; 5
 REDUCE 9 0 false false 2; 6
 ERROR;
 ;
- REDUCE 9 2;
+REDUCE 9 2;
