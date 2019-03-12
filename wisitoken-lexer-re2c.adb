@@ -182,7 +182,7 @@ package body WisiToken.Lexer.re2c is
            (ID => Lexer.ID,
 
             Byte_Region =>
-              (if Lexer.ID = Lexer.Descriptor.EOF_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
+              (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
                then
                   --  EOF in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,
@@ -196,12 +196,12 @@ package body WisiToken.Lexer.re2c is
 
             Column =>
               (if Lexer.ID = Lexer.Descriptor.New_Line_ID or
-                 Lexer.ID = Lexer.Descriptor.EOF_ID
+                 Lexer.ID = Lexer.Descriptor.EOI_ID
                then 0
                else Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start)),
 
             Char_Region =>
-              (if Lexer.ID = Lexer.Descriptor.EOF_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
+              (if Lexer.ID = Lexer.Descriptor.EOI_ID and then Lexer.Byte_Position = Integer (Base_Buffer_Pos'First)
                then
                   --  EOF in empty buffer
                  (Lexer.Source.Buffer_Nominal_First_Byte,

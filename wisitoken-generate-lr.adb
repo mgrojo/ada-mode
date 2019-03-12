@@ -334,7 +334,7 @@ package body WisiToken.Generate.LR is
 
                Goto_State : constant Unknown_State_Index := LR1_Items.Goto_State (Closure, Dot_ID);
             begin
-               if Dot_ID = Descriptor.EOF_ID then
+               if Dot_ID = Descriptor.EOI_ID then
                   --  This is the start symbol production with dot before EOF.
                   declare
                      P_ID : constant Production_ID := Item.Prod;
@@ -826,7 +826,7 @@ package body WisiToken.Generate.LR is
 
       if (for some Item of Working_Set =>
             Item.Prod.LHS = Descriptor.Accept_ID and
-            (Has_Element (Item.Dot) and then Element (Item.Dot) = Descriptor.EOF_ID))
+            (Has_Element (Item.Dot) and then Element (Item.Dot) = Descriptor.EOI_ID))
       then
          --  No actions
          return;
@@ -859,7 +859,7 @@ package body WisiToken.Generate.LR is
             declare
                ID : constant Token_ID := Element (Item.Dot);
             begin
-               if ID /= Descriptor.EOF_ID then
+               if ID /= Descriptor.EOI_ID then
 
                   if ID in Terminals then
                      State.Minimal_Complete_Action := Find_Action (State.Action_List, ID);

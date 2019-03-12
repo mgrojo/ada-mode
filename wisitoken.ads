@@ -96,7 +96,7 @@ package WisiToken is
       Last_Terminal     : Token_ID;
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID;
-      EOF_ID            : Token_ID;
+      EOI_ID            : Token_ID;
       Accept_ID         : Token_ID)
    is record
       --  Tokens in the range Token_ID'First .. First_Terminal - 1 are

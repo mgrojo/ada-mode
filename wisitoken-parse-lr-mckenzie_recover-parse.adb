@@ -172,7 +172,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
             Put_Line
               (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image (Config.Stack.Peek.State) &
                  " :" & Token_Index'Image (Config.Current_Shared_Token) &
-                 " : " & Image (Current_Token, Descriptor) &
+                 ":" & Image (Current_Token, Descriptor) &
                  " : " & Image (Action.Item, Descriptor));
          end if;
 

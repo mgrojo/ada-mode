@@ -810,25 +810,65 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
       end case;
    end Fixes;
 
-   function Use_Minimal_Complete_Actions
-     (Next_Token : in Token_ID;
-      Config     : in Configuration)
-     return Boolean
+   procedure Use_Minimal_Complete_Actions
+     (Current_Token        : in     Token_ID;
+      Next_Token           : in     Token_ID;
+      Config               : in     Configuration;
+      Use_Complete         :    out Boolean;
+      Matching_Begin_Token :    out Token_ID)
    is
       use all type SAL.Base_Peek_Type;
    begin
-      if Config.Stack.Depth = 1 then
-         --  We want to match the following tokens, not attempt to complete the
-         --  current one (since there isn't one).
-         return False;
+      if Config.Stack.Depth = 1 and Current_Token = Descriptor.EOI_ID then
+         --  Empty input buffer
+         Use_Complete         := True;
+         Matching_Begin_Token := +IDENTIFIER_ID;
+
+      else
+         case Ada_Lite_Actions.Token_Enum_ID'(-Current_Token) is
+         when END_ID | EXCEPTION_ID | SEMICOLON_ID | Wisi_EOI_ID =>
+            Use_Complete := True;
+
+         when others =>
+            Use_Complete := False;
+         end case;
       end if;
 
-      case Ada_Lite_Actions.Token_Enum_ID'(-Next_Token) is
-      when END_ID | EXCEPTION_ID =>
-         return True;
+      case Ada_Lite_Actions.Token_Enum_ID'(-Current_Token) is
+      when END_ID =>
+         if Next_Token = Invalid_Token_ID then
+            Matching_Begin_Token := +BEGIN_ID;
+         else
+            case Ada_Lite_Actions.Token_Enum_ID'(-Next_Token) is
+            when IF_ID =>
+               Matching_Begin_Token := +IF_ID;
+
+            when IDENTIFIER_ID | SEMICOLON_ID =>
+               Matching_Begin_Token := +BEGIN_ID;
+
+            when LOOP_ID =>
+               Matching_Begin_Token := +LOOP_ID;
+
+            when others =>
+               --  'end' is misplaced (see test_mckenzie_recover.adb Conflict_1);
+               --  best to delete it.
+               Use_Complete         := False;
+               Matching_Begin_Token := Invalid_Token_ID;
+            end case;
+         end if;
+
+      when EXCEPTION_ID =>
+         Matching_Begin_Token := +BEGIN_ID;
+
+      when SEMICOLON_ID =>
+         Matching_Begin_Token := +IDENTIFIER_ID;
+
+      when Wisi_EOI_ID =>
+         Matching_Begin_Token := Invalid_Token_ID;
 
       when others =>
-         return False;
+         Use_Complete         := False;
+         Matching_Begin_Token := Invalid_Token_ID;
       end case;
    end Use_Minimal_Complete_Actions;
 

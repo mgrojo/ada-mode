@@ -138,7 +138,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("Last_Terminal                 =>" & WisiToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");
       Indent_Line ("First_Nonterminal             =>" & WisiToken.Token_ID'Image (Descriptor.First_Nonterminal) & ",");
       Indent_Line ("Last_Nonterminal              =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
-      Indent_Line ("EOF_ID                        =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
+      Indent_Line ("EOI_ID                        =>" & WisiToken.Token_ID'Image (Descriptor.EOI_ID) & ",");
       Indent_Line ("Accept_ID                     =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
       Indent_Line ("Case_Insensitive              => " & Image (Input_Data.Language_Params.Case_Insensitive) & ",");
       Indent_Line ("New_Line_ID                   =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
@@ -1153,7 +1153,7 @@ package body WisiToken.BNF.Output_Ada_Common is
       Indent_Line ("if (lexer->cursor > lexer->buffer_last)");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.Descriptor.EOF_ID) & ";");
+      Indent_Line ("*id            =" & WisiToken.Token_ID'Image (Generate_Data.Descriptor.EOI_ID) & ";");
       Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer + 1;");
       Indent_Line ("*byte_length   = 0;");
       Indent_Line ("*char_position = lexer->char_token_start;");

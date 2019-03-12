@@ -50,7 +50,7 @@ package body WisiToken.Lexer.Regexp is
       --  We only support Reset_With_String.
 
       if Current_Char > Lexer.Source.Buffer'Last then
-         Lexer.ID := Lexer.Descriptor.EOF_ID;
+         Lexer.ID := Lexer.Descriptor.EOI_ID;
          Lexer.Lexeme_Head := Lexer.Buffer_Head;
          Lexer.Lexeme_Tail := Lexer.Buffer_Head - 1;
          return True;
@@ -116,7 +116,7 @@ package body WisiToken.Lexer.Regexp is
          return True;
 
       elsif Current_Char = Lexer.Source.Buffer'Last then
-         Lexer.ID := Lexer.Descriptor.EOF_ID;
+         Lexer.ID := Lexer.Descriptor.EOI_ID;
          Lexer.Buffer_Head := Lexer.Buffer_Head + 1;
          return True;
 

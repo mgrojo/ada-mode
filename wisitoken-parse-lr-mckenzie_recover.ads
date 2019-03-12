@@ -74,12 +74,14 @@ private
    --
    --  See Next_Token for more info.
 
-   function Current_Token_ID_Peek
-     (Terminals             : in Base_Token_Arrays.Vector;
-      Terminals_Current     : in Base_Token_Index;
-      Insert_Delete         : in Sorted_Insert_Delete_Arrays.Vector;
-      Current_Insert_Delete : in SAL.Base_Peek_Type)
-     return Token_ID;
+   procedure Current_Token_ID_Peek_2
+     (Terminals             : in     Base_Token_Arrays.Vector;
+      Terminals_Current     : in     Base_Token_Index;
+      Insert_Delete         : in     Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete : in     SAL.Base_Peek_Type;
+      Prev_Deleted          : in     Recover_Token_Index_Arrays.Vector;
+      Current_Token         :    out Token_ID;
+      Next_Token            :    out Token_ID);
    --  Return the current token, from either Terminals or Insert_Delete,
    --  without setting up for Next_Token.
 

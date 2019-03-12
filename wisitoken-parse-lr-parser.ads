@@ -53,14 +53,19 @@ package WisiToken.Parse.LR.Parser is
    --  For an Error action, Config.Error_Token gives the terminal that
    --  caused the error.
 
-   type Language_Use_Minimal_Complete_Actions_Access is access function
-     (Next_Token : in Token_ID;
-      Config     : in Configuration)
-     return Boolean;
-   --  Return True if using Minimal_Complete_Actions is appropriate.
+   type Language_Use_Minimal_Complete_Actions_Access is access procedure
+     (Current_Token        : in     Token_ID;
+      Next_Token           : in     Token_ID;
+      Config               : in     Configuration;
+      Use_Complete         :    out Boolean;
+      Matching_Begin_Token :    out Token_ID);
+   --  Set Use_Complete True if using Minimal_Complete_Actions is
+   --  appropriate. Set Matching_Begin_Token to token that starts a production
+   --  matching Next_Token (and following tokens, if any).
    --
    --  For example, if Next_Token is a block end, return True to complete
-   --  the current statement/declaration as quickly as possible..
+   --  the current statement/declaration as quickly as possible, and
+   --  Matching_Begin_Token to the corresponding block begin.
 
    type Language_String_ID_Set_Access is access function
      (Descriptor        : in WisiToken.Descriptor;

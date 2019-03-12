@@ -43,7 +43,7 @@ package body WisiToken.Generate.LR1_Items is
    begin
       for Item of Set loop
          if Item.Dot /= Token_ID_Arrays.No_Element then
-            if Element (Item.Dot) /= Descriptor.EOF_ID then
+            if Element (Item.Dot) /= Descriptor.EOI_ID then
                IDs (Element (Item.Dot)) := True;
             end if;
          end if;

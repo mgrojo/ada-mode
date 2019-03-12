@@ -43,10 +43,10 @@ package body WisiToken.Generate.LR.LR1_Generate is
       for Item of Set.Set loop
          if Item.Dot /= No_Element then
             if Element (Item.Dot) = Symbol and
-              --  We don't need a state with dot after EOF in the
-              --  accept production. EOF should only appear in the
+              --  We don't need a state with dot after EOI in the
+              --  accept production. EOI should only appear in the
               --  accept production.
-              Symbol /= Descriptor.EOF_ID
+              Symbol /= Descriptor.EOI_ID
             then
                Goto_Set.Set.Insert ((Item.Prod, Next (Item.Dot), new Token_ID_Set'(Item.Lookaheads.all)));
             end if;
@@ -91,7 +91,7 @@ package body WisiToken.Generate.LR.LR1_Generate is
         ((Set            => Item_Lists.To_List
             ((Prod       => (Grammar.First_Index, 0),
               Dot        => Grammar (Grammar.First_Index).RHSs (0).Tokens.First,
-              Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOF_ID, Descriptor)))),
+              Lookaheads => new Token_ID_Set'(To_Lookahead (Descriptor.EOI_ID, Descriptor)))),
           Goto_List      => <>,
           Dot_IDs        => <>,
           State          => First_State_Index),

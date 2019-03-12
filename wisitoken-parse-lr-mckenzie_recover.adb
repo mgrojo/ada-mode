@@ -698,22 +698,35 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       end loop;
    end Current_Token;
 
-   function Current_Token_ID_Peek
-     (Terminals             : in Base_Token_Arrays.Vector;
-      Terminals_Current     : in Base_Token_Index;
-      Insert_Delete         : in Sorted_Insert_Delete_Arrays.Vector;
-      Current_Insert_Delete : in SAL.Base_Peek_Type)
-     return Token_ID
+   procedure Current_Token_ID_Peek_2
+     (Terminals             : in     Base_Token_Arrays.Vector;
+      Terminals_Current     : in     Base_Token_Index;
+      Insert_Delete         : in     Sorted_Insert_Delete_Arrays.Vector;
+      Current_Insert_Delete : in     SAL.Base_Peek_Type;
+      Prev_Deleted          : in     Recover_Token_Index_Arrays.Vector;
+      Current_Token         :    out Token_ID;
+      Next_Token            :    out Token_ID)
    is
       use all type SAL.Base_Peek_Type;
+      Terminals_Next : Token_Index := Terminals_Current + 1;
    begin
       if Terminals_Current = Base_Token_Index'First then
          --  Happens with really bad syntax; see test_mckenzie_recover.adb Error_4.
          raise Bad_Config;
       end if;
 
+      loop
+         exit when not Prev_Deleted.Contains (Terminals_Next);
+         Terminals_Next := Terminals_Next + 1;
+      end loop;
+      if Terminals_Next <= Terminals.Last_Index then
+         Next_Token := Terminals (Terminals_Next).ID;
+      else
+         Next_Token := Invalid_Token_ID;
+      end if;
+
       if Current_Insert_Delete = No_Insert_Delete then
-         return Terminals (Terminals_Current).ID;
+         Current_Token := Terminals (Terminals_Current).ID;
 
       elsif Insert_Delete (Current_Insert_Delete).Token_Index = Terminals_Current then
          declare
@@ -721,7 +734,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          begin
             case Insert_Delete_Op_Label (Op.Op) is
             when Insert =>
-               return Op.ID;
+               Current_Token := Op.ID;
 
             when Delete =>
                --  This should have been handled in Check
@@ -729,9 +742,27 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
             end case;
          end;
       else
-         return Terminals (Terminals_Current).ID;
+         Current_Token := Terminals (Terminals_Current).ID;
       end if;
-   end Current_Token_ID_Peek;
+
+      if Current_Insert_Delete = Insert_Delete.Last_Index then
+         null;
+
+      elsif Insert_Delete (Current_Insert_Delete + 1).Token_Index = Terminals_Current then
+         declare
+            Op : Insert_Delete_Op renames Insert_Delete (Current_Insert_Delete + 1);
+         begin
+            case Insert_Delete_Op_Label (Op.Op) is
+            when Insert =>
+               Next_Token := Op.ID;
+
+            when Delete =>
+               --  This should have been handled in Check
+               raise SAL.Programmer_Error;
+            end case;
+         end;
+      end if;
+   end Current_Token_ID_Peek_2;
 
    procedure Delete (Config : in out Configuration; ID : in Token_ID)
    is

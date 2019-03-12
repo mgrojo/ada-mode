@@ -98,7 +98,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
             --  If Symbol = EOF_Token, this is the start symbol accept
             --  production; don't need a kernel with dot after EOF.
-            if (Dot_ID = Symbol and Symbol /= Descriptor.EOF_ID) and then
+            if (Dot_ID = Symbol and Symbol /= Descriptor.EOI_ID) and then
               not Has_Element (Find (Item.Prod, Next (Item.Dot), Goto_Set))
             then
                Goto_Set.Set.Insert

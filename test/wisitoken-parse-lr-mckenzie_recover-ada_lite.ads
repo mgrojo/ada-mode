@@ -2,7 +2,7 @@
 --
 --  Ada_Lite language specific algorithms for McKenzie_Recover
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018, 2019 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -29,10 +29,12 @@ package WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration);
 
-   function Use_Minimal_Complete_Actions
-     (Next_Token : in Token_ID;
-      Config     : in Configuration)
-     return Boolean;
+   procedure Use_Minimal_Complete_Actions
+     (Current_Token        : in     Token_ID;
+      Next_Token           : in     Token_ID;
+      Config               : in     Configuration;
+      Use_Complete         :    out Boolean;
+      Matching_Begin_Token :    out Token_ID);
 
    function String_ID_Set
      (Descriptor        : in WisiToken.Descriptor;
