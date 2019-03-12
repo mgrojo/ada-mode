@@ -9,4 +9,17 @@ procedure Ada_Mode.Recover_3 is
    begin
       return Node.Id = Id;
    end Process;
+
+   function Process_1 return Boolean
+   is
+      Node_Id : Token_Id
+
+        --  'renames' is deleted; ensure indent is computed for 'begin'
+   renames begin
+      return Node.Id = Id;
+   end Process_1;
 end Ada_Mode.Recover_3;
+-- Error recovery has a race condition; force it to return repeatable results
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

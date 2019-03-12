@@ -204,7 +204,7 @@ package body Run_Wisi_Common_Parse is
          begin
             loop
                Lexer_Error := Parser.Lexer.Find_Next (Token);
-               exit when Token.ID = Descriptor.EOF_ID;
+               exit when Token.ID = Descriptor.EOI_ID;
             end loop;
             Cl_Params.End_Line := Token.Line;
          end;

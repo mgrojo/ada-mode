@@ -247,13 +247,10 @@ package body Wisi.Ada is
          declare
             First_Terminal : Augmented_Token renames
               Data.Terminals (Indenting_Token.First_Terminals_Index);
-
-            First_Terminal_First_On_Line : constant Boolean := First_Terminal.First and
-              First_Terminal.First_Indent_Line /= Invalid_Line_Number;
          begin
             if Option then
                --  Test cases with "Item => ..."
-               if First_Terminal_First_On_Line then
+               if First_Terminal.First then
                   if Indenting_Token.First_Indent_Line = Indenting_Token.Last_Indent_Line then
                      return Comment_Result (Delta_1);
                   else
@@ -268,7 +265,7 @@ package body Wisi.Ada is
                end if;
 
             else
-               if First_Terminal_First_On_Line then
+               if First_Terminal.First then
                   if Indenting_Token.First_Indent_Line = Indenting_Token.Last_Indent_Line then
                      return Comment_Result (Delta_1);
                   else

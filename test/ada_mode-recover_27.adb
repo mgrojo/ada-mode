@@ -20,7 +20,7 @@ package body Wisi.Libadalang is
                use WisiToken.Syntax_Trees;
 
                procedure Find_Production
-               is begin --  extra 'begin'
+                 is begin --  extra 'begin'
                Prod : WisiToken.Productions.Instance renames Grammar
                  (if K = 0 then Prod_ID.LHS else LHS_Descendants (K));
             begin

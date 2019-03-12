@@ -80,12 +80,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
        (Descriptor.First_Terminal, Descriptor.Last_Terminal,
         +ABORT_ID & (+ACCEPT_ID) & (+BEGIN_ID) & (+CASE_ID) & (+DECLARE_ID) & (+DELAY_ID) & (+ELSE_ID) & (+ELSIF_ID) &
           (+END_ID) & (+ENTRY_ID) & (+EXCEPTION_ID) & (+EXIT_ID) & (+FOR_ID) & (+FUNCTION_ID) & (+GENERIC_ID) &
-          (+GOTO_ID) & (+IF_ID) & (+LOOP_ID) & (+OVERRIDING_ID) & (+PACKAGE_ID) & (+PRAGMA_ID) & (+PROCEDURE_ID) &
-          (+PROTECTED_ID) & (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+RIGHT_PAREN_ID) & (+SELECT_ID) &
-          (+SUBTYPE_ID) & (+TASK_ID) & (+TYPE_ID) & (+USE_ID) & (+WHEN_ID) & (+WITH_ID) &
-          Descriptor.EOF_ID);
+          (+GOTO_ID) & (+IF_ID) & (+IS_ID) & (+LOOP_ID) & (+OVERRIDING_ID) & (+PACKAGE_ID) & (+PRAGMA_ID) &
+          (+PROCEDURE_ID) & (+PROTECTED_ID) & (+RAISE_ID) & (+REQUEUE_ID) & (+RETURN_ID) & (+RIGHT_PAREN_ID) &
+          (+SELECT_ID) & (+SUBTYPE_ID) & (+TASK_ID) & (+THEN_ID) & (+TYPE_ID) & (+USE_ID) & (+WHEN_ID) & (+WITH_ID) &
+          Descriptor.EOI_ID);
    --  Terminal tokens where Minimal_Complete_Actions is useful. That
-   --  includes tokens that must be preceded by an end of a statement,
+   --  includes tokens that must be preceded by the end of a statement,
    --  declaration, or expression (for trailing right paren).
 
    procedure Handle_Check_Fail
@@ -1051,36 +1051,54 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
       end case;
    end Language_Fixes;
 
-   function Use_Minimal_Complete_Actions
-     (Next_Token : in Token_ID;
-      Config     : in Configuration)
-     return Boolean
+   procedure Use_Minimal_Complete_Actions
+     (Current_Token        : in     Token_ID;
+      Next_Token           : in     Token_ID;
+      Config               : in     Configuration;
+      Use_Complete         :    out Boolean;
+      Matching_Begin_Token :    out Token_ID)
    is
       use all type SAL.Base_Peek_Type;
-      Matching_Index : SAL.Peek_Type := 1;
    begin
-      if Config.Stack.Depth = 1 then
-         --  We want to match the following tokens, not attempt to complete the
-         --  current one (since there isn't one).
-         return False;
-      end if;
+      if Config.Stack.Depth = 1 and Current_Token = Descriptor.EOI_ID then
+         --  Empty input buffer
+         Use_Complete         := True;
+         Matching_Begin_Token := +IDENTIFIER_ID;
 
-      if Minimal_Complete_Action_IDs (Next_Token) then
-         case Ada_Process_Actions.Token_Enum_ID'(-Next_Token) is
-         when ELSE_ID | ELSIF_ID =>
-            --  Check for missing 'if ... then'
-            Find_ID (Config, +IF_ID, Matching_Index);
-            return Matching_Index /= Config.Stack.Depth;
+      elsif Minimal_Complete_Action_IDs (Current_Token) then
+         Use_Complete := True;
+         case Ada_Process_Actions.Token_Enum_ID'(-Current_Token) is
+         when END_ID =>
+            case Ada_Process_Actions.Token_Enum_ID'(-Next_Token) is
+            when CASE_ID | IF_ID | LOOP_ID | RETURN_ID | SELECT_ID =>
+               Matching_Begin_Token := Next_Token;
+            when IDENTIFIER_ID | SEMICOLON_ID =>
+               Matching_Begin_Token := +BEGIN_ID;
+            when others =>
+               --  'end' is misplaced (see test_mckenzie_recover.adb Conflict_1);
+               --  best to delete it.
+               Use_Complete         := False;
+               Matching_Begin_Token := Invalid_Token_ID;
+            end case;
 
-         when WHEN_ID =>
-            Find_ID (Config, +CASE_ID, Matching_Index);
-            return Matching_Index /= Config.Stack.Depth;
+         when ELSE_ID | ELSIF_ID | THEN_ID =>
+            Matching_Begin_Token := +IF_ID;
+
+         when EXCEPTION_ID =>
+            Matching_Begin_Token := +BEGIN_ID;
+
+         --  We don't return LEFT_PAREN for RIGHT_PAREN; better to delete it.
+
+         when IS_ID | WHEN_ID =>
+            --  'IS' could also be FUNCTION, PACKAGE, PROCEDURE; 'WHEN' could also be EXCEPTION.
+            Matching_Begin_Token := +CASE_ID;
 
          when others =>
-            return True;
+            Matching_Begin_Token := Invalid_Token_ID;
          end case;
       else
-         return False;
+         Use_Complete := False;
+         Matching_Begin_Token := Invalid_Token_ID;
       end if;
    end Use_Minimal_Complete_Actions;
 

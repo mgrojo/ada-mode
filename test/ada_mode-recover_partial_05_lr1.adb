@@ -15,3 +15,7 @@ begin
    end loop;
 end loop;
 end Update_First;
+-- Error recovery has a race condition; force it to return repeatable results
+-- Local Variables:
+-- wisi-mckenzie-task-count: 1
+-- End:

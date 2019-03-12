@@ -658,8 +658,6 @@ package body Wisi is
                       (Containing_Token.Non_Grammar.Last_Index).ID = Data.Descriptor.New_Line_ID);
             begin
                if Lexer.First and (Token.ID = Data.Descriptor.Comment_ID or Trailing_Blank) then
-                  Containing_Token.First := True;
-
                   if Containing_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
                      Containing_Token.First_Trailing_Comment_Line := Token.Line;
                   end if;
@@ -735,7 +733,7 @@ package body Wisi is
          end loop;
 
          if Prev_Token_Index = Base_Token_Index'First then
-            Deleted_Token.Non_Grammar (Deleted_Token.Non_Grammar.Last_Index).First := Deleted_Token.First;
+            Deleted_Token.Non_Grammar (Deleted_Token.Non_Grammar.First_Index).First := Deleted_Token.First;
             Data.Leading_Non_Grammar.Append (Deleted_Token.Non_Grammar);
          else
             declare
@@ -745,11 +743,7 @@ package body Wisi is
 
                if Deleted_Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
                   if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-                     if Deleted_Token.First then
-                        Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Indent_Line;
-                     else
-                        Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Trailing_Comment_Line;
-                     end if;
+                     Prev_Token.First_Trailing_Comment_Line := Deleted_Token.First_Trailing_Comment_Line;
                   end if;
                   Prev_Token.Last_Trailing_Comment_Line  := Deleted_Token.Last_Trailing_Comment_Line;
                end if;
@@ -764,8 +758,9 @@ package body Wisi is
          exit when Next_Token_Index = Data.Terminals.Last_Index;
       end loop;
 
-      if Deleted_Token.First and (Next_Token_Index = Data.Terminals.Last_Index or else
-                                    Data.Terminals (Next_Token_Index).Line > Deleted_Token.Line)
+      if Deleted_Token.First and
+        (Next_Token_Index = Data.Terminals.Last_Index or else
+           Data.Terminals (Next_Token_Index).Line > Deleted_Token.Line)
       then
          --  Deleted_Token.Line is now blank; add to previous token non
          --  grammar.

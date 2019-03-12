@@ -351,11 +351,9 @@ private
       --  The following fields are only needed for indent.
 
       First : Boolean := False;
-      --  For a terminal, True if the token is not empty and it is first on
-      --  a line, or if it contains trailing blank or comment lines.
+      --  For a terminal, True if the token is first on a line.
       --
-      --  For a nonterminal, True if some contained token's First is True,
-      --  including trailing comments and blank lines.
+      --  For a nonterminal, True if some contained token's First is True.
 
       Paren_State : Integer := 0;
       --  Parenthesis nesting count, before token.
