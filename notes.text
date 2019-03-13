@@ -1,6 +1,6 @@
 Release process:
 
-do aunit_ext release
+(no separate aunit_ext release)
 
 (dvc-state-multiple
   '((xmtn . ".")
@@ -18,6 +18,8 @@ build/Makefile
 
 source/sal.html
     doc version
+    # review mtn log since last release date
+    $ mtn log --to d:yyyy-mm-dd > release.log
 
 source/sal.adb
     edit Version to match html

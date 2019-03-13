@@ -23,4 +23,6 @@ test-clean ::
 profile-clean ::
 	rm -rf exec_pro
 	rm -rf obj_pro
+	rm -rf exec_mem
+	rm -rf obj_mem
 # end of file
