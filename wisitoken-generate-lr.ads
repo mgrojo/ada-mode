@@ -120,7 +120,10 @@ package WisiToken.Generate.LR is
    type RHS_Sequence is
    record
       Left_Recursive : Boolean := False;
-      Sequence       : Token_ID_Arrays.Vector;
+      --  Direct or indirect; see comment in
+      --  Set_Minimal_Complete_Actions.Delete_Non_Minimal.
+
+      Sequence : Token_ID_Arrays.Vector;
    end record;
 
    package RHS_Sequence_Arrays is new SAL.Gen_Unbounded_Definite_Vectors

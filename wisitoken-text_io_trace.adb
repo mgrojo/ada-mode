@@ -18,7 +18,29 @@
 pragma License (Modified_GPL);
 
 with Ada.Calendar.Formatting;
+with Ada.Strings.Fixed;
 package body WisiToken.Text_IO_Trace is
+
+   function Insert_Prefix_At_Newlines (Trace : in Text_IO_Trace.Trace; Item : in String) return String
+   is
+      use Ada.Strings.Fixed;
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+      First : Integer := Item'First;
+      Last : Integer;
+   begin
+      loop
+         Last := Index (Pattern => "" & ASCII.LF, Source => Item (First .. Item'Last));
+         exit when Last = 0;
+         Result := Result & Item (First .. Last) & Trace.Prefix;
+         First := Last + 1;
+      end loop;
+      Result := Result & Item (First .. Item'Last);
+      return -Result;
+   end Insert_Prefix_At_Newlines;
+
+   ----------
+   --  Public subprograms, declaration order
 
    overriding
    procedure Set_Prefix (Trace : in out Text_IO_Trace.Trace; Prefix : in String)
@@ -41,13 +63,19 @@ package body WisiToken.Text_IO_Trace is
    overriding
    procedure Put_Line (Trace : in out Text_IO_Trace.Trace; Item : in String)
    is
+      use Ada.Strings.Fixed;
       use Ada.Text_IO;
+      Temp : constant String :=
+        (if 0 /= Index (Item, "" & ASCII.LF)
+         then Insert_Prefix_At_Newlines (Trace, Item)
+         else Item);
    begin
+
       if Trace.File /= null and then Is_Open (Trace.File.all) then
-         Ada.Text_IO.Put_Line (Trace.File.all, -Trace.Prefix & Item);
+         Ada.Text_IO.Put_Line (Trace.File.all, -Trace.Prefix & Temp);
          Ada.Text_IO.Flush (Trace.File.all);
       else
-         Ada.Text_IO.Put_Line (-Trace.Prefix & Item);
+         Ada.Text_IO.Put_Line (-Trace.Prefix & Temp);
          Ada.Text_IO.Flush;
       end if;
    end Put_Line;

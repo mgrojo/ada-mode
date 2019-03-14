@@ -26,6 +26,8 @@ package body WisiToken.Generate.LR is
    package RHS_Set is new SAL.Gen_Unbounded_Definite_Vectors (Natural, Boolean, Default_Element => False);
    type Token_ID_RHS_Set is array (Token_ID range <>) of RHS_Set.Vector;
 
+   type Token_ID_Array_Positive is array (Token_ID range <>) of Positive;
+
    ----------
    --  Body subprograms, alphabetical
 
@@ -49,7 +51,7 @@ package body WisiToken.Generate.LR is
    function Min
      (Item    : in RHS_Sequence_Arrays.Vector;
       RHS_Set : in LR.RHS_Set.Vector)
-     return RHS_Sequence
+     return Integer
    is
       use all type Ada.Containers.Count_Type;
       Min_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
@@ -64,18 +66,19 @@ package body WisiToken.Generate.LR is
       if Min_RHS = Natural'Last then
          raise SAL.Programmer_Error with "nonterm has no minimum terminal sequence";
       else
-         return Item (Min_RHS).Element.all;
+         return Min_RHS;
       end if;
    end Min;
 
    procedure Terminal_Sequence
-     (Grammar       : in     WisiToken.Productions.Prod_Arrays.Vector;
-      Descriptor    : in     WisiToken.Descriptor;
-      All_Sequences : in out Minimal_Sequence_Array;
-      All_Set       : in out Token_ID_Set;
-      RHS_Set       : in out Token_ID_RHS_Set;
-      Recursing     : in out Token_ID_Set;
-      Nonterm       : in     Token_ID)
+     (Grammar         : in     WisiToken.Productions.Prod_Arrays.Vector;
+      Descriptor      : in     WisiToken.Descriptor;
+      All_Sequences   : in out Minimal_Sequence_Array;
+      All_Set         : in out Token_ID_Set;
+      RHS_Set         : in out Token_ID_RHS_Set;
+      Recursing       : in out Token_ID_Set;
+      Recursing_Index : in out Token_ID_Array_Positive;
+      Nonterm         : in     Token_ID)
    is
       use Ada.Containers;
       use Token_ID_Arrays;
@@ -113,6 +116,7 @@ package body WisiToken.Generate.LR is
 
             else
                for I in Prod.RHSs (RHS).Tokens.First_Index .. Prod.RHSs (RHS).Tokens.Last_Index loop
+                  Recursing_Index (Nonterm) := I;
                   declare
                      ID : Token_ID renames Prod.RHSs (RHS).Tokens (I);
                   begin
@@ -125,19 +129,22 @@ package body WisiToken.Generate.LR is
 
                            if ID = Nonterm or Recursing (ID) then
                               --  Nonterm is mutually recursive with itself or some other.
-                              All_Sequences (Nonterm)(RHS).Left_Recursive := I = Prod.RHSs (RHS).Tokens.First_Index;
+                              All_Sequences (Nonterm)(RHS).Left_Recursive := I = Positive'First and
+                                (ID = Nonterm or Recursing_Index (ID) = Positive'First);
+
                               if (for some RHS of RHS_Set (ID) => RHS) then
                                  --  There is a minimal sequence for ID; use it
                                  null;
                               else
                                  if Trace_Generate > Extra then
                                     Ada.Text_IO.Put_Line
-                                      (Trimmed_Image (Production_ID'(Nonterm, RHS)) & " => " &
+                                      (Trimmed_Image (Production_ID'(Nonterm, RHS)) & "." & Trimmed_Image (I) & " => " &
                                          (if ID = Nonterm
                                           then "direct recursive"
                                           else "indirect recursive " & Image (ID, Descriptor)));
                                  end if;
 
+                                 All_Sequences (Nonterm)(RHS).Left_Recursive := False;
                                  All_Sequences (Nonterm)(RHS).Sequence.Clear;
                                  goto Skip;
                               end if;
@@ -146,7 +153,8 @@ package body WisiToken.Generate.LR is
                               if Trace_Generate > Extra then
                                  Ada.Text_IO.Put_Line (Trimmed_Image (ID) & " " & Image (ID, Descriptor) & " compute");
                               end if;
-                              Terminal_Sequence (Grammar, Descriptor, All_Sequences, All_Set, RHS_Set, Recursing, ID);
+                              Terminal_Sequence
+                                (Grammar, Descriptor, All_Sequences, All_Set, RHS_Set, Recursing, Recursing_Index, ID);
                               Recursing (ID) := False;
 
                               if All_Set (ID) or else (for some RHS of RHS_Set (ID) => RHS) then
@@ -158,7 +166,11 @@ package body WisiToken.Generate.LR is
                               end if;
                            end if;
                         end if;
-                        All_Sequences (Nonterm)(RHS).Sequence.Append (Min (All_Sequences (ID), RHS_Set (ID)).Sequence);
+                        declare
+                           Min_RHS : constant Integer := Min (All_Sequences (ID), RHS_Set (ID));
+                        begin
+                           All_Sequences (Nonterm)(RHS).Sequence.Append (All_Sequences (ID)(Min_RHS).Sequence);
+                        end;
                      end if;
                   end;
                end loop;
@@ -625,7 +637,7 @@ package body WisiToken.Generate.LR is
 
    function Image (Item : in RHS_Sequence; Descriptor : in WisiToken.Descriptor) return String
    is begin
-      return "(" & Boolean'Image (Item.Left_Recursive) & ", " & Image (Item.Sequence, Descriptor);
+      return "(" & Boolean'Image (Item.Left_Recursive) & ", " & Image (Item.Sequence, Descriptor) & ")";
    end Image;
 
    function Min (Item : in RHS_Sequence_Arrays.Vector) return RHS_Sequence
@@ -662,6 +674,9 @@ package body WisiToken.Generate.LR is
       All_Set   : Token_ID_Set := (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal  => False);
       Recursing : Token_ID_Set := (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal  => False);
 
+      Recursing_Index : Token_ID_Array_Positive :=
+        (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal  => Positive'Last);
+
       RHS_Set : Token_ID_RHS_Set :=
         (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal => LR.RHS_Set.Empty_Vector);
 
@@ -673,7 +688,7 @@ package body WisiToken.Generate.LR is
             exit when (for all B of All_Set => B);
             for P of Grammar loop
                if not All_Set (P.LHS) then
-                  Terminal_Sequence (Grammar, Descriptor, Result, All_Set, RHS_Set, Recursing, P.LHS);
+                  Terminal_Sequence (Grammar, Descriptor, Result, All_Set, RHS_Set, Recursing, Recursing_Index, P.LHS);
                end if;
             end loop;
             This_Count := Count (All_Set);
@@ -762,8 +777,7 @@ package body WisiToken.Generate.LR is
          --  aggregate <= LEFT_PAREN expression_opt WITH ^ NULL RECORD RIGHT_PAREN
          --  aggregate <= LEFT_PAREN expression_opt WITH ^ association_list RIGHT_PAREN
          --
-         --  Find the minimum of the productions that are present, and are not
-         --  left recursive.
+         --  Find the minimum of the productions that are present
 
          I := Working_Set.First;
          loop
@@ -772,15 +786,48 @@ package body WisiToken.Generate.LR is
                Prod : constant WisiToken.Production_ID := Constant_Ref (I).Prod;
             begin
                --  IMPROVEME: If Dot is near the end of a production, this is not the
-               --  best metric.
-               if Min_Length > Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Sequence.Length then
-                  if not (Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Left_Recursive and
-                            (Has_Element (Constant_Ref (I).Dot) and then
-                               Constant_Ref (I).Dot = To_Cursor (Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens, 2)))
-                  then
-                     Min_Length := Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Sequence.Length;
-                     Min_I      := I;
-                  end if;
+               --  best metric; the best metric is count of remaining tokens to
+               --  insert. But changing to that won't make much difference; it only
+               --  matters when Dot is not near the beginning, but then we don't have
+               --  multiple productions (they all must have same prefix).
+               --
+               --  We must eliminate direct left recursion; otherwise it can appear
+               --  to have a minimum length. For example, consider ada_lite state
+               --  149:
+               --
+               --  57.0:actual_parameter_part <= LEFT_PAREN association_list ^ RIGHT_PAREN
+               --  61.0:association_list <= association_list ^ COMMA association_opt
+               --
+               --  Both have length 2, but the association_list requires a
+               --  RIGHT_PAREN eventually.
+               --
+               --  We also have to eliminate indirect left recursion; consider ada_lite state 60:
+               --
+               --   94.0:function_specification <= FUNCTION name ^ parameter_and_result_profile
+               --  103.0:name <= name ^ LEFT_PAREN range_list
+               --  103.1:name <= name ^ actual_parameter_part
+               --  123.0:selected_component <= name ^ DOT IDENTIFIER
+               --
+               --  'selected' component has length 3, which two others also have, but
+               --  it requires more eventually.
+               --
+               --  An item production is left recursive only if Dot is after the
+               --  first token (ie, before the second token); consider conflict_name
+               --  state 5:
+               --
+               --   8.0:attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/Wisi_EOI
+               --  11.0:qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/Wisi_EOI
+               --
+               --  Both are indirect left recursive with "name", but both are past
+               --  the recursion, and can be completed.
+
+               if Min_Length > Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Sequence.Length and
+                 not (Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Left_Recursive and then
+                        (Has_Element (Constant_Ref (I).Dot) and then
+                           Constant_Ref (I).Dot = To_Cursor (Grammar (Prod.LHS).RHSs (Prod.RHS).Tokens, 2)))
+               then
+                  Min_Length := Minimal_Terminal_Sequences (Prod.LHS)(Prod.RHS).Sequence.Length;
+                  Min_I      := I;
                end if;
             end;
             Next (I);

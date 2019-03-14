@@ -100,10 +100,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
          null;
 
       when Semantic_Checks.Error =>
-         if Do_Language_Fixes then
-            Config.Error_Token       := Nonterm;
-            Config.Check_Token_Count := Action.Token_Count;
+         Config.Error_Token       := Nonterm;
+         Config.Check_Token_Count := Action.Token_Count;
 
+         if Do_Language_Fixes then
             if Shared.Language_Fixes /= null then
                Shared.Language_Fixes
                  (Super.Trace.all, Shared.Lexer, Super.Label (Parser_Index), Shared.Table.all, Shared.Terminals.all,

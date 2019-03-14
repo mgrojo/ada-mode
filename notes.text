@@ -21,13 +21,8 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-ada_lite.wy minimum_terminal_sequences bogus left_recursive true
-    proper_body
-    discrete_subtype_definition
-    range_g
-    term
-
-    output in .parse_table for full check?
+declare recover tasks at package level
+    reuse them in recover
 
 take Dot into account when finding min?
     best metric is min remaining to insert

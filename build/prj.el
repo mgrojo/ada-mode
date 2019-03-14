@@ -80,5 +80,40 @@
     (ediff (locate-file filename-good compilation-search-path)
        (locate-file filename compilation-search-path))))
 
+(defun wisitoken-goto-aunit-fail ()
+  (interactive)
+  ;; point is on the first line in a failure message:
+  ;;
+  ;; FAIL test_mckenzie_recover.adb : Empty_Comments
+  ;;     1. 1.recover.ops. 1.id got  26 expecting  54
+  ;;
+  ;; goto that file and procedure
+  (let (filename
+	subprogram-name
+	(table (project-file-completion-table (project-current) nil)))
+    (save-excursion
+      (beginning-of-line)
+      (forward-word 2)
+      (setq filename (thing-at-point 'filename))
+      (end-of-line)
+      (backward-word 1)
+      (setq subprogram-name (thing-at-point 'filename))
+      )
+    (let ((abs-file (car (completion-try-completion filename table nil 0))))
+      (find-file abs-file)
+      (search-forward subprogram-name))))
+
+(defun wisitoken-compilation-next ()
+  (interactive)
+  (search-forward "FAIL")
+  (forward-line)
+  (back-to-indentation)
+  (unless (looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+") ;; a file diff failed
+    (forward-line -1)
+    (forward-word 2)) ;; an AUnit test failed
+  )
+
 (define-key compilation-mode-map "e" 'wisitoken-ediff-good)
+(define-key compilation-mode-map "n" #'wisitoken-compilation-next)
+(define-key compilation-mode-map "g" #'wisitoken-goto-aunit-fail)
 ;; end of file

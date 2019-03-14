@@ -125,6 +125,17 @@ package body Test_Ada_Lite_Terminal_Sequence is
               (True, (+"IDENTIFIER") & (+"LEFT_PAREN") & (+"RIGHT_PAREN")) &
               (False, To_Vector (+"IDENTIFIER")) &
               (False, (+"IDENTIFIER") & (+"DOT") & (+"IDENTIFIER")));
+
+         Check
+           ("proper_body",
+            Computed (+"proper_body"),
+            ((False, ((+"PACKAGE") & (+"BODY") & (+"IDENTIFIER") & (+"IS") & (+"END") & (+"SEMICOLON"))) &
+               (False, ((+"PROCEDURE") & (+"IDENTIFIER") & (+"IS") & (+"BEGIN") & (+"END") & (+"SEMICOLON")))));
+
+         Check
+           ("selected_component",
+            Computed (+"selected_component"),
+            To_Vector ((True, ((+"IDENTIFIER") & (+"DOT") & (+"IDENTIFIER")))));
       end;
    end Test_Terminal_Sequence;
 

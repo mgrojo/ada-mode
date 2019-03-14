@@ -42,17 +42,24 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    task body Worker_Task
    is
       use all type Base.Config_Status;
-      Status : Base.Config_Status;
+      Status : Base.Config_Status := Valid;
    begin
       accept Start;
 
       loop
-         Explore.Process_One (Super, Shared, Status);
+         select
+            accept Done;
+            exit;
 
-         exit when Status = All_Done;
+         else
+            Explore.Process_One (Super, Shared, Status);
+            exit when Status = All_Done;
+         end select;
       end loop;
 
-      accept Done;
+      if Status = All_Done then
+         accept Done;
+      end if;
    exception
    when E : others =>
       Super.Fatal (E);
@@ -197,26 +204,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Worker_Tasks : array (1 .. Task_Count) of Worker_Task (Super'Access, Shared'Access);
 
-      procedure Cleanup
-      is begin
-         for I in Worker_Tasks'Range loop
-            if Worker_Tasks (I)'Callable then
-               --  We only get here when one worker throws an unhandled exception
-               --  (due to a bug), and we are trying to force the other workers to
-               --  stop.
-               --
-               --  We don't use 'abort' here, so we can use 'pragma Restrictions
-               --  (No_Abort_Statements)', which gives a 10% speed up in the parsers.
-               --  Waiting for them instead will most likely work, at the risk an
-               --  indefinite wait.
-
-               --  Output a warning, so we have some chance of diagnosing the problem
-               --  when we do get here.
-               Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "recovery aborting with running worker tasks");
-            end if;
-         end loop;
-      end Cleanup;
-
    begin
       if Trace_McKenzie > Outline then
          Trace.New_Line;
@@ -244,18 +231,19 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Message : Ada.Strings.Unbounded.Unbounded_String;
       begin
          Super.Done (ID, Message); -- Wait for all parsers to fail or succeed
+
+         --  Ensure all tasks terminate before proceeding; otherwise local
+         --  variables disappear while task is still trying to access them.
+         for I in Worker_Tasks'Range loop
+            if Worker_Tasks (I)'Callable then
+               Worker_Tasks (I).Done;
+            end if;
+         end loop;
+
          if ID /= Null_Id then
             Raise_Exception (ID, -Message);
          end if;
       end;
-
-      --  Ensure all tasks terminate before proceeding; otherwise local
-      --  variables disappear while task is still trying to access them.
-      for I in Worker_Tasks'Range loop
-         if Worker_Tasks (I)'Callable then
-            Worker_Tasks (I).Done;
-         end if;
-      end loop;
 
       --  Adjust parser state for each successful recovery.
       --
@@ -626,7 +614,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
    exception
    when others =>
-      Cleanup;
       return Fail_Programmer_Error;
    end Recover;
 
