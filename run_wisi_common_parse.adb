@@ -60,6 +60,7 @@ package body Run_Wisi_Common_Parse is
                   Integer'Image (WisiToken.Parse.LR.Parser.Default_Max_Parallel) & ")");
       Put_Line ("--task_count n : worker tasks in error recovery");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
+      Put_Line ("--debug_mode : tracebacks from unhandled exceptions; default disabled");
       Put_Line ("--lang_params <language-specific params>");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       New_Line;

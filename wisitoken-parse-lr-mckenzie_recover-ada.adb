@@ -282,7 +282,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                   Push_Back_Check
                     (New_Config,
                      (+SEMICOLON_ID,
-                     (case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
+                      (case Ada_Process_Actions.Token_Enum_ID'(-Config.Error_Token.ID) is
                        when package_body_ID | package_specification_ID | subprogram_body_ID => +name_opt_ID,
                        when protected_type_declaration_ID | single_protected_declaration_ID => +protected_definition_ID,
                        when others =>  +identifier_opt_ID)));
@@ -630,6 +630,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
             end;
          end;
       end case;
+   exception
+   when Bad_Config =>
+      null;
+
+   when System.Assertions.Assert_Failure =>
+      if Trace_McKenzie > Outline then
+         Trace.Put_Line ("Ada Language_Fixes Handle_Check_Fail Assert fail");
+      end if;
    end Handle_Check_Fail;
 
    procedure Handle_Parse_Error
@@ -1012,6 +1020,14 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada is
                Put ("Language_Fixes terminate_subprogram" & Image (Config.Error_Token.ID, Descriptor), New_Config);
             end if;
          end;
+      end if;
+   exception
+   when Bad_Config =>
+      null;
+
+   when System.Assertions.Assert_Failure =>
+      if Trace_McKenzie > Outline then
+         Trace.Put_Line ("Ada Language_Fixes Handle_Parse_Error Assert fail");
       end if;
    end Handle_Parse_Error;
 

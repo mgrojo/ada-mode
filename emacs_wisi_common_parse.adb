@@ -397,5 +397,4 @@ package body Emacs_Wisi_Common_Parse is
 
    end Parse_Stream;
 
-
 end Emacs_Wisi_Common_Parse;

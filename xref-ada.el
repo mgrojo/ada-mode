@@ -31,7 +31,7 @@
 	 ;; (spec/body).
 	 ;;
 	 ;; If t-prop is nil: identifier is from prompt/completion,
-	 ;; the line number is incuded in the identifier
+	 ;; the line number may be included in the identifier
 	 ;; wrapped in <>, and the desired file is the current file.
 	 (ident
 	  (if t-prop
@@ -46,7 +46,8 @@
 	 (line
 	  (if t-prop
 	      (plist-get t-prop ':line)
-	    (string-to-number (match-string 2 identifier))))
+	    (when (match-string 2 identifier)
+	      (string-to-number (match-string 2 identifier)))))
 	 (column
 	  (if t-prop
 	      (plist-get t-prop ':column)

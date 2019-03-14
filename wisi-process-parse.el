@@ -436,8 +436,9 @@ complete."
 
 (cl-defmethod wisi-parse-kill ((parser wisi-process--parser))
   (when (process-live-p (wisi-process--parser-process parser))
-    (process-send-string (wisi-process--parser-process parser) wisi-process-parse-quit-cmd)
-    (sit-for 1.0)
+    ;; We used to send a quit command first, to be nice. But there's
+    ;; no timeout on that, so it would hang when the process
+    ;; executable is not reading command input.
     (when (process-live-p (wisi-process--parser-process parser))
       (kill-process (wisi-process--parser-process parser)))
     )
@@ -540,49 +541,61 @@ Send BEGIN thru SEND-END to external parser."
 		  (setq sexp-start (point))
 
 		  (set-buffer source-buffer) ;; for put-text-property in actions
-		  (if (listp response)
-		      ;; error of some sort
-		      (cond
-		       ((equal '(parse_error) response)
-			;; Parser detected a syntax error, and recovery failed, so signal it.
-			(if (wisi-parser-parse-errors parser)
-			    (signal 'wisi-parse-error
-				    (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
+		  (cond
+		   ((listp response)
+		    ;; error of some sort
+		    (cond
+		     ((equal '(parse_error) response)
+		      ;; Parser detected a syntax error, and recovery failed, so signal it.
+		      (if (wisi-parser-parse-errors parser)
+			  (signal 'wisi-parse-error
+				  (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))
 
-			  ;; can have no errors when testing a new parser
-			  (push
-			   (make-wisi--parse-error :pos 0 :message "parser failed with no message")
-			   (wisi-parser-parse-errors parser))
-			  (signal 'wisi-parse-error "parser failed with no message")))
+			;; can have no errors when testing a new parser
+			(push
+			 (make-wisi--parse-error :pos 0 :message "parser failed with no message")
+			 (wisi-parser-parse-errors parser))
+			(signal 'wisi-parse-error "parser failed with no message")))
 
-		       ((equal 'parse_error (car response))
-			;; Parser detected some other error non-fatal error, so signal it.
-			(signal 'wisi-parse-error (cdr response)))
+		     ((equal 'parse_error (car response))
+		      ;; Parser detected some other error non-fatal error, so signal it.
+		      (signal 'wisi-parse-error (cdr response)))
 
-		       ((and (eq 'error (car response))
-			     (string-prefix-p "bad command:" (cadr response)))
-			;; Parser dropped bytes, is treating buffer
-			;; content bytes as commands. Kill the process
-			;; to kill the pipes; there is no other way to
-			;; flush them.
-			(kill-process (wisi-process--parser-process parser))
-			(signal 'wisi-parse-error "parser lost sync; killed"))
+		     ((and (eq 'error (car response))
+			   (string-prefix-p "bad command:" (cadr response)))
+		      ;; Parser dropped bytes, is treating buffer
+		      ;; content bytes as commands. Kill the process
+		      ;; to kill the pipes; there is no other way to
+		      ;; flush them.
+		      (kill-process (wisi-process--parser-process parser))
+		      (signal 'wisi-parse-error "parser lost sync; killed"))
 
-		       (t
-			;; Some other error
-			(condition-case-unless-debug err
-			    (eval response)
-			  (error
-			   (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
-			   (signal (car err) (cdr err)))))
-		       )
+		     (t
+		      ;; Some other error
+		      (condition-case-unless-debug err
+			  (eval response)
+			(error
+			 (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
+			 (signal (car err) (cdr err)))))
+		     ))
 
-		    ;; else encoded action
+		   ((arrayp response)
+		    ;; encoded action
 		    (condition-case-unless-debug err
 			(wisi-process-parse--execute parser response)
 		      (wisi-parse-error
 		       (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
-		       (signal (car err) (cdr err)))))
+		       (signal (car err) (cdr err)))
+
+		      (error ;; ie from [C:\Windows\system32\KERNEL32.DLL]
+		       (set-buffer response-buffer)
+		       (let ((content (buffer-substring-no-properties (point-min) (point-max)))
+			     (buf-name (concat (buffer-name) "-save-error")))
+			 (set-buffer (get-buffer-create buf-name))
+			 (insert content))
+		       (error "parser failed; error messages in %s" buf-name))
+		      ))
+		   )
 
 		  (set-buffer response-buffer)
 		  ))
@@ -597,8 +610,12 @@ Send BEGIN thru SEND-END to external parser."
 	    (unless done
 	      ;; end of response buffer
 	      (unless (process-live-p process)
-		(wisi-process-parse-show-buffer parser)
-		(error "wisi-process-parse process died"))
+		(set-buffer response-buffer)
+		(let ((content (buffer-substring-no-properties (point-min) (point-max)))
+		      (buf-name (concat (buffer-name) "-save-error")))
+		  (set-buffer (get-buffer-create buf-name))
+		  (insert content))
+		(error "parser failed; error messages in %s" buf-name))
 
 	      (setq wait-count (1+ wait-count))
 	      (setq start-wait-time (float-time))
@@ -620,7 +637,7 @@ Send BEGIN thru SEND-END to external parser."
 		       (- (float-time) start-wait-time)))
 
 	      (when (and (= (point-max) need-more)
-		       (> wait-count 5))
+			 (> wait-count 5))
 		(error "wisi-process-parse not getting more text (or bad syntax in process output)"))
 
 	      (setq need-more nil))

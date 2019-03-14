@@ -11,8 +11,8 @@ package body Ada_Mode.Recover_Partial_10 is
          return True;
       end if;
 
-      -- EMACSCMD:(progn (end-of-line 3)(ada-indent-newline-indent)(current-column))
-      -- EMACSRESULT:3
+      --EMACSCMD:(progn (end-of-line 3)(ada-indent-newline-indent)(current-column))
+      --EMACSRESULT:3
    end Is_Reduce;
 
 end Ada_Mode.Recover_Partial_10;
