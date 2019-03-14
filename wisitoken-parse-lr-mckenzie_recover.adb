@@ -20,6 +20,7 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Task_Identification;
+with GNAT.Traceback.Symbolic;
 with System.Multiprocessors;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Explore;
@@ -63,6 +64,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    exception
    when E : others =>
       Super.Fatal (E);
+      if Debug_Mode then
+         Shared.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      end if;
    end Worker_Task;
 
    function To_Recover

@@ -21,8 +21,15 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+recover still hanging on exception in worker_task
+    but get no output in *Ada_wisi_parse*, not even parse command
+    only symptom is "not getting more text", several times, from jit-lock
+    some previous command hung, later commands wiped its output?
+        parser-busy is supposed to prevent that
+
 declare recover tasks at package level
     reuse them in recover
+    o.w.s-1
 
 take Dot into account when finding min?
     best metric is min remaining to insert
