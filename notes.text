@@ -13,7 +13,7 @@ org.wisitoken.stephe-2 - add EBNF syntax to .wy parser
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
-   ("../org.wisitoken"        . "../org.wisitoken.stephe-1")))
+   ("../org.wisitoken"        . "../org.wisitoken.stephe-2")))
 
 update-wisi_grammar
 (dvc-propagate-multiple
@@ -24,7 +24,9 @@ update-wisi_grammar
 add EBNF
     ada-lite-ebnf.wy
         pure EBNF for nonterms first
+            after translate to bnf with new nonterms, substitute new nonterms into grammar, compare to ada-lite.wy
         replace %keywords with literals
+
 
     add ANTLR syntax for java
 

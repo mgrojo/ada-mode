@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,8 +17,8 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Stacks;
+with SAL.Generic_Decimal_Image;
 with WisiToken.Generate;   use WisiToken.Generate;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 package body WisiToken_Grammar_Runtime is
@@ -57,7 +57,7 @@ package body WisiToken_Grammar_Runtime is
       when Shared_Terminal =>
          return Strip_Delimiters (Tree_Index);
 
-      when Virtual_Terminal =>
+      when Virtual_Terminal | Virtual_Identifier =>
          raise SAL.Programmer_Error;
 
       when Nonterm =>
@@ -257,19 +257,21 @@ package body WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
+      use all type WisiToken.Syntax_Trees.Node_Label;
       use all type Ada.Strings.Unbounded.Unbounded_String;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
       function Token (Index : in SAL.Peek_Type) return Base_Token
       is
-         use all type WisiToken.Syntax_Trees.Node_Label;
          use all type SAL.Base_Peek_Type;
       begin
          if Tokens'Last < Index then
             raise SAL.Programmer_Error;
          elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Shared_Terminal then
-            raise SAL.Programmer_Error;
+            raise SAL.Programmer_Error with "token at " & Image (Tree.Byte_Region (Tokens (Index))) &
+              " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Tokens (Index))) &
+              ", expecting Shared_Terminal";
          else
             return Data.Terminals.all (Tree.Terminal (Tokens (Index)));
          end if;
@@ -294,18 +296,20 @@ package body WisiToken_Grammar_Runtime is
 
    begin
       if Data.Phase = 0 then
-         case Enum_ID (2) is
-         when IDENTIFIER_ID =>
-            declare
-               Kind : constant String := Data.Grammar_Lexer.Buffer_Text (Token (2).Byte_Region);
-            begin
-               if Kind = "meta_syntax" then
-                  Set_Meta_Syntax;
-               end if;
-            end;
-         when others =>
-            null;
-         end case;
+         if Tree.Label (Tokens (2)) = WisiToken.Syntax_Trees.Shared_Terminal then
+            case Enum_ID (2) is
+            when IDENTIFIER_ID =>
+               declare
+                  Kind : constant String := Data.Grammar_Lexer.Buffer_Text (Token (2).Byte_Region);
+               begin
+                  if Kind = "meta_syntax" then
+                     Set_Meta_Syntax;
+                  end if;
+               end;
+            when others =>
+               null;
+            end case;
+         end if;
          return;
       end if;
 
@@ -480,6 +484,8 @@ package body WisiToken_Grammar_Runtime is
                elsif Kind = "elisp_indent" then
                   Data.User_Names.Indents.Append
                     ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1, Strip_Quotes => True),
+                      Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
+
                elsif Kind = "embedded_quote_escape_doubled" then
                   Data.Language_Params.Embedded_Quote_Escape_Doubled := True;
 
@@ -586,11 +592,6 @@ package body WisiToken_Grammar_Runtime is
                elsif Kind = "no_enum" then
                   Data.Language_Params.Declare_Enums := False;
 
-               elsif Kind = "regexp_name" then
-                  Data.User_Names.Regexps.Append
-                    ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1),
-                      Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
-
                elsif Kind = "start" then
                   Data.Language_Params.Start_Token := +Get_Text (Data, Tree, Tokens (3));
 
@@ -611,7 +612,7 @@ package body WisiToken_Grammar_Runtime is
               (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
          end case;
 
-      when Syntax_Trees.Virtual_Terminal =>
+      when Syntax_Trees.Virtual_Terminal | Syntax_Trees.Virtual_Identifier =>
          raise SAL.Programmer_Error;
       end case;
    end Add_Declaration;
@@ -663,9 +664,14 @@ package body WisiToken_Grammar_Runtime is
            (Data.Grammar_Lexer.File_Name, Token.Line, Token.Column,
             "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
       end if;
+
+      --  FIXME: actually add it?
    end Add_EBNF;
 
-   procedure Rewrite_EBNF_To_BNF (Tree : in out WisiToken.Syntax_Trees.Tree)
+   procedure Rewrite_EBNF_To_BNF
+     (Tree       : in out WisiToken.Syntax_Trees.Tree;
+      User_Data  : in out User_Data_Type;
+      Descriptor : in     WisiToken.Descriptor)
    is
       use WisiToken.Syntax_Trees;
 
@@ -673,137 +679,151 @@ package body WisiToken_Grammar_Runtime is
 
       Parents : Node_Index_Stacks.Stack;
 
+      function Next_Nonterm_Name return Token_Index
+      is
+         function Image is new SAL.Generic_Decimal_Image (Token_Index);
+         ID : constant Token_Index := Token_Index (User_Data.Virtual_Identifiers.Length) + 1;
+      begin
+
+         if ID > 999 then
+            --  We assume 3 digits below
+            raise SAL.Programmer_Error with "more than 3 digits needed for virtual identifiers in EBNF rewrite";
+         end if;
+
+         User_Data.Virtual_Identifiers.Append (+("$nonterminal_" & Image (ID, Width => 3)));
+
+         return ID;
+      end Next_Nonterm_Name;
+
+      function To_RHS_List
+        (Node           : in Valid_Node_Index;
+         New_Identifier : in Token_Index)
+        return Valid_Node_Index
+      is
+         --  Convert subtree rooted at Node from an rhs_alternative_list to an
+         --  rhs_list contained by New_Nonterm.
+
+         Child_1 : constant Valid_Node_Index := Tree.Add_Identifier (+IDENTIFIER_ID, New_Identifier);
+         Child_2 : constant Valid_Node_Index := Tree.Add_Terminal (+COLON_ID);
+         Child_4 : constant Valid_Node_Index := Tree.Add_Nonterm
+           ((+semicolon_opt_ID, 0), (1 .. 0 => Invalid_Node_Index));
+
+         New_Nonterm : constant Valid_Node_Index := Tree.Add_Nonterm
+           ((+nonterminal_ID, 0), (Child_1, Child_2, Node, Child_4));
+
+         Alt_Node : Valid_Node_Index := Node;
+      begin
+         loop
+            declare
+               Children : constant Valid_Node_Index_Array := Tree.Children (Alt_Node);
+            begin
+               if Children'Length = 3 then
+                  Tree.Set_ID (Alt_Node, (+rhs_list_ID, 1));
+
+                  --  current tree:
+                  --  rhs_alternative_list : Alt_Node
+                  --  |\
+                  --  | rhs_item_list
+                  --  | terminal: BAR
+                  --  | rhs_item_list
+                  --  |/
+
+                  --  new tree:
+                  --  rhs_list : Alt_Node
+                  --  |\
+                  --  | rhs_list : new
+                  --  | |\
+                  --  | | rhs : new
+                  --  | | |\
+                  --  | | | rhs_item_list : reuse
+                  --  | | |/
+                  --  | |/
+                  --  | terminal: BAR : reuse
+                  --  | |
+                  --  | rhs : new
+                  --  | |\
+                  --  | | rhs_item_list : reuse
+                  --  | |/
+                  --  |/
+                  declare
+                     Alt_List  : constant Valid_Node_Index := Children (1);
+                     Bar       : constant Valid_Node_Index := Children (2);
+                     Item_List : constant Valid_Node_Index := Children (3);
+
+                     Child_1 : constant Valid_Node_Index := Tree.Add_Nonterm
+                       ((+rhs_list_ID, 1),
+                        (1 => Tree.Add_Nonterm ((+rhs_ID, 1), (1 => Alt_List))));
+
+                     Child_3   : constant Valid_Node_Index := Tree.Add_Nonterm ((+rhs_ID, 1), (1 => Item_List));
+                  begin
+                     Tree.Set_Children (Alt_Node, (Child_1, Bar, Child_3));
+
+                     Alt_Node := Alt_List;
+                  end;
+
+               else
+                  Tree.Set_ID (Alt_Node, (+rhs_list_ID, 0));
+
+                  --  current tree:
+                  --  rhs_alternative_list : Alt_Node
+                  --  |\
+                  --  | rhs_item_list
+                  --  |/
+
+                  --  new tree:
+                  --  rhs_list : Alt_Node
+                  --  |\
+                  --  | rhs : new
+                  --  | |\
+                  --  | | rhs_item_list : reuse
+                  --  | |/
+                  --  |/
+                  Tree.Set_Children (Alt_Node, (1 => Tree.Add_Nonterm ((+rhs_ID, 1), (1 => Children (1)))));
+                  exit;
+               end if;
+            end;
+         end loop;
+
+         return New_Nonterm;
+      end To_RHS_List;
+
       procedure Process_Node (Node : in Valid_Node_Index)
       is
-         Edited_Node : Valid_Node_Index := Node;
       begin
-         if To_Token_Enum (Tree.ID (Node)) in rhs_optional_item_ID | rhs_multiple_item_ID | rhs_group_item_ID then
-            case To_Token_Enum (Tree.ID (Node)) is
-            when rhs_optional_item_ID =>
-               --  aspect_specification
-               --    : [WITH association_list]
-               --    ;
-               --  rewritten to:
-               --  aspect_specification
-               --   : WITH association_list
-               --   | ;; empty
-               --   ;
-               --
-               --  current tree:
-               --  nonterminal:aspect_specification : ... ;
-               --  |\
-               --  | terminal:IDENTIFIER "aspect_specification"
-               --  | |
-               --  | terminal:COLON
-               --  | |
-               --  | rhs_list:[WITH association_list         ]             = Parents (4)
-               --  | |\
-               --  | | rhs:[WITH association_list]                         = Parents (3)
-               --  | | |\
-               --  | | | rhs_item_list:[WITH association_list]             = Parents (2)
-               --  | | | |\
-               --  | | | | rhs_item:[WITH association_list]                = Parents (1)
-               --  | | | | |\
-               --  | | | | | rhs_optional_item:[WITH association_list]     = Node
-               --  | | | | | |\
-               --  | | | | | | rhs_item:[                                  = Children_0 (1)
-               --  | | | | | | |\
-               --  | | | | | | | terminal:LEFT_BRACKET
-               --  | | | | | | |/
-               --  | | | | | | rhs_alternative_list:WITH association_list  = Children_0 (2)
-               --  | | | | | | |\
-               --  | | | | | | | rhs_item_list:WITH association_list       = Children_2 (1)
-               --  | | | | | | | |\
-               --  | | | | | | | | ...
-               --  | | | | | | | |/
-               --  | | | | | | |/
-               --  | | | | | | rhs_item:]                                  = Children_0 (3)
-               --  | | | | | | |\
-               --  | | | | | | | terminal:RIGHT_BRACKET
-               --  | | | | | | |/
-               --  | | | | | |/
-               --  | | | | |/
-               --  | | | |/
-               --  | | |/
-               --  | |/
-               --  | semicolon_opt: ;
-               --  | |\
-               --  | | terminal:SEMICOLON
-               --  | |/
-               --  |/
-               --
-               --  new tree:
-               --  nonterminal:aspect_specification : ... ;
-               --  |\
-               --  | terminal:IDENTIFIER "aspect_specification"
-               --  | |
-               --  | terminal:COLON
-               --  | |
-               --  | rhs_list:WITH association_list | ;;empty = Parents (4)
-               --  | |\
-               --  | | rhs: WITH association_list             = Parents (3)
-               --  | | |\
-               --  | | | rhs_item_list:WITH association_list  = Children_2 (1)
-               --  | | | |\
-               --  | | | | ...
-               --  | | | |/
-               --  | | |/
-               --  | | virtual_terminal:BAR                   = new node
-               --  | | |
-               --  | | rhs: ;; empty                          = new node
-               --  | |/
-               --  |/
+         case To_Token_Enum (Tree.ID (Node)) is
+         when rhs_optional_item_ID =>
+            if Tree.Children (Parents (3))'Length > 1 then
+               raise SAL.Not_Implemented with "ebnf_to_bnf rhs_optional_item_ID action " &
+                 Tree.Image (Parents (3), Descriptor);
+            end if;
 
-               declare
-                  Children_0 : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Node);
-                  Children_2 : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Children_0 (2));
-               begin
-                  if Tree.Children (Parents (2))'Length = 1 and
-                    Children_2'Length = 1
-                  then
-                     --  Special case; can just add edit existing rhs, add an empty one.
+            declare
+               New_Identifier : constant Token_Index      := Next_Nonterm_Name;
+               New_Nonterm    : constant Valid_Node_Index := To_RHS_List (Tree.Children (Node)(2), New_Identifier);
+            begin
+               Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Identifier);
 
-                     Tree.Set_Parent
-                       (Node   => Children_2 (1),
-                        Parent => Parents (3));
+               Process_Node (New_Nonterm);
+            end;
 
-                     Tree.Set_Children
-                       (Node     => Parents (3),
-                        Children => (1 => Children_2 (1)));
+         when rhs_multiple_item_ID =>
+            raise SAL.Not_Implemented;
 
-                     Edited_Node := Children_2 (1); -- children of this node will be processed.
-                  else
-                     --  Add new nonterminal
-                     --  FIXME: Not_Implemented
-                     null;
-                  end if;
+         when rhs_group_item_ID =>
+            raise SAL.Not_Implemented;
 
-                  Tree.Add_Child
-                    (Parent => Parents (3),
-                     Child => Tree.Add_Terminal (+BAR_ID));
+         when others =>
+            --  process children
+            if Tree.Label (Node) = Nonterm then
+               Parents.Push (Node);
+               for Child of Tree.Children (Node) loop
+                  Process_Node (Child);
+               end loop;
+               Parents.Pop;
+            end if;
 
-                  Tree.Add_Child
-                    (Parent => Parents (3),
-                     Child => Tree.Add_Nonterm
-                       (Production      => (LHS => +rhs_ID, RHS => 0), -- empty
-                        Children        => (1 .. 0 => Invalid_Node_Index),
-                        Action          => null,
-                        Default_Virtual => False));
-               end;
+         end case;
 
-            when others =>
-               null;
-            end case;
-         end if;
-
-         --  process children
-         if Tree.Label (Edited_Node) = Nonterm then
-            Parents.Push (Edited_Node);
-            for Child of Tree.Children (Edited_Node) loop
-               Process_Node (Child);
-            end loop;
-            Parents.Pop;
-         end if;
       end Process_Node;
 
    begin

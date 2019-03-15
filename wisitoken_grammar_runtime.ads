@@ -2,7 +2,7 @@
 --
 --  Runtime utils for wisi_grammar.wy actions.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,6 +17,8 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Strings.Unbounded;
+with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.BNF;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
@@ -24,6 +26,9 @@ package WisiToken_Grammar_Runtime is
 
    type Meta_Syntax is (BNF_Syntax, EBNF_Syntax);
    --  Syntax used in grammar file.
+
+   package String_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (WisiToken.Token_Index, Ada.Strings.Unbounded.Unbounded_String);
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
@@ -45,15 +50,15 @@ package WisiToken_Grammar_Runtime is
       --  0 - meta declarations, like %meta_syntax
       --  1 - everything.
 
-      Meta_Syntax      : WisiToken_Grammar_Runtime.Meta_Syntax := BNF_Syntax;
-      BNF_Tree         : WisiToken.Syntax_Trees.Tree;
-      Terminals        : WisiToken.Base_Token_Array_Access;
-      Raw_Code         : WisiToken.BNF.Raw_Code;
-      Language_Params  : WisiToken.BNF.Language_Param_Type;
-      Tokens           : aliased WisiToken.BNF.Tokens;
-      User_Names       : WisiToken.BNF.User_Names;
-      Conflicts        : WisiToken.BNF.Conflict_Lists.List;
-      McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
+      Meta_Syntax         : WisiToken_Grammar_Runtime.Meta_Syntax := BNF_Syntax;
+      Terminals           : WisiToken.Base_Token_Array_Access;
+      Virtual_Identifiers : String_Arrays.Vector;
+      Raw_Code            : WisiToken.BNF.Raw_Code;
+      Language_Params     : WisiToken.BNF.Language_Param_Type;
+      Tokens              : aliased WisiToken.BNF.Tokens;
+      User_Names          : WisiToken.BNF.User_Names;
+      Conflicts           : WisiToken.BNF.Conflict_Lists.List;
+      McKenzie_Recover    : WisiToken.BNF.McKenzie_Recover_Param_Type;
 
       Rule_Count      : Integer := 0;
       Action_Count    : Integer := 0;
@@ -97,8 +102,13 @@ package WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
-   procedure Rewrite_EBNF_To_BNF (Tree : in out WisiToken.Syntax_Trees.Tree);
+   procedure Rewrite_EBNF_To_BNF
+     (Tree       : in out WisiToken.Syntax_Trees.Tree;
+      User_Data  : in out User_Data_Type;
+      Descriptor : in     WisiToken.Descriptor);
    --  Process EBNF nonterms, adding new nonterms as needed, resulting in
-   --  a BNF tree.
+   --  a BNF tree. Descriptor is used for error messages.
+   --
+   --  Generator.LR.*_Generate requires a BNF grammar.
 
 end WisiToken_Grammar_Runtime;

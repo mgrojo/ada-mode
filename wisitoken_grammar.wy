@@ -8,7 +8,7 @@
 ;;  - no ',' between tokens, just space
 ;;
 ;;  - Terminating ';' optional in nonterminals (for compatibility with
-;;    Python syntax).
+;;    Python grammar syntax).
 ;;
 ;;  In addition, we support the Python grammar file given at
 ;;  https://docs.python.org/3.8/reference/grammar.html
@@ -20,7 +20,7 @@
 
 
 %code copyright_license %{
-;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -164,7 +164,10 @@ nonterminal
     %(Add_Nonterminal (User_Data, Tree, Tokens);)%
   ;
 
-semicolon_opt : SEMICOLON | ;
+semicolon_opt :
+;; Terminating semicolon optional for Python grammar syntax (see
+;; header comments).
+  SEMICOLON | ;
 
 rhs_list
   : rhs
@@ -215,7 +218,7 @@ rhs_multiple_item
 
 rhs_alternative_list
   : rhs_item_list
-  | rhs_item_list BAR rhs_item_list
+  | rhs_alternative_list BAR rhs_item_list
   ;
 
 ;; We don't enforce a complete order, nor require all parts, so

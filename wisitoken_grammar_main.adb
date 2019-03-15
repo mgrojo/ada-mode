@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -342,7 +342,7 @@ package body Wisitoken_Grammar_Main is
             Add_Error (Table.States (55));
             Add_Goto (Table.States (55), 40, 54);
             Set_Minimal_Action (Table.States (55).Minimal_Complete_Actions, (1 => (Reduce, 36, 4)));
-            Add_Action (Table.States (56), 12, 72);
+            Add_Action (Table.States (56), 12, Reduce, (50, 0), 1, null, null);
             Add_Action (Table.States (56), 17, 35);
             Add_Action (Table.States (56), 18, 36);
             Add_Action (Table.States (56), 19, 37);
@@ -358,12 +358,15 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (56), 48, 47);
             Add_Goto (Table.States (56), 49, 48);
             Set_Minimal_Action (Table.States (56).Minimal_Complete_Actions, (1 => (Reduce, 50, 1)));
+            Add_Action (Table.States (57), 12, 72);
             Add_Action (Table.States (57), 24, 73);
             Add_Error (Table.States (57));
             Set_Minimal_Action (Table.States (57).Minimal_Complete_Actions, (1 => (Shift, 24, 73)));
+            Add_Action (Table.States (58), 12, 72);
             Add_Action (Table.States (58), 25, 74);
             Add_Error (Table.States (58));
             Set_Minimal_Action (Table.States (58).Minimal_Complete_Actions, (1 => (Shift, 25, 74)));
+            Add_Action (Table.States (59), 12, 72);
             Add_Action (Table.States (59), 26, 75);
             Add_Error (Table.States (59));
             Set_Minimal_Action (Table.States (59).Minimal_Complete_Actions, (1 => (Shift, 26, 75)));
@@ -472,6 +475,7 @@ package body Wisitoken_Grammar_Main is
             Set_Minimal_Action (Table.States (80).Minimal_Complete_Actions, (1 => (Reduce, 43, 3)));
             Add_Action (Table.States (81), (12, 21, 27, 31, 34), (44, 3), 3, null, null);
             Set_Minimal_Action (Table.States (81).Minimal_Complete_Actions, (1 => (Reduce, 44, 3)));
+            Add_Action (Table.States (82), 12, Reduce, (50, 1), 3, null, null);
             Add_Action (Table.States (82), 17, 35);
             Add_Action (Table.States (82), 18, 36);
             Add_Action (Table.States (82), 19, 37);

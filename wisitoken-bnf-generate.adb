@@ -3,7 +3,7 @@
 --  Parser for Wisi grammar files, producing Ada or Elisp source
 --  files for a parser.
 --
---  Copyright (C) 2012 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -34,11 +34,12 @@ with WisiToken.BNF.Output_Ada_Common;
 with WisiToken.BNF.Output_Ada_Emacs;
 with WisiToken.BNF.Output_Elisp;
 with WisiToken.BNF.Output_Elisp_Common;
-with WisiToken.Generate.Packrat;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.Packrat;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
@@ -307,15 +308,20 @@ begin
          when EBNF_Syntax =>
             case Parser is
             when LR_Generate_Algorithm =>
-               if Trace_Generate > Detail then
-                  Ada.Text_IO.Put_Line ("EBNF tree:");
-                  Grammar_Parser.Parsers.First_State_Ref.Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
-               end if;
-               WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF (Grammar_Parser.Parsers.First_State_Ref.Tree);
-               if Trace_Generate > Detail then
-                  Ada.Text_IO.Put_Line ("BNF tree:");
-                  Grammar_Parser.Parsers.First_State_Ref.Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
-               end if;
+               declare
+                  Tree : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+               begin
+                  if Trace_Generate > Detail then
+                     Ada.Text_IO.Put_Line ("EBNF tree:");
+                     Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+                  end if;
+                  WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF
+                    (Tree, Input_Data, Wisitoken_Grammar_Actions.Descriptor);
+                  if Trace_Generate > Detail then
+                     Ada.Text_IO.Put_Line ("BNF tree:");
+                     Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+                  end if;
+               end;
 
             when Packrat_Generate_Algorithm =>
                --  FIXME: need to save EBNF tree for packrat
