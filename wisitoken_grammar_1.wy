@@ -3,6 +3,19 @@
 ;;  WisiToken uses the same grammar for parsing .wy files, but with
 ;;  different actions.
 ;;  (ediff "wisitoken_grammar_1.wy" "../org.wisitoken/wisitoken_grammar.wy")
+;;
+;;  The supported syntax is close to Extended Backus-Naur form, as defined by
+;;  https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
+;;
+;;  Differences from EBNF:
+;;  - ':' instead of '='
+;;
+;;  - Terminating ';' optional in nonterminals.
+;;
+;;  One requirement is to parse the Python grammar file given at
+;;  https://docs.python.org/3.8/reference/grammar.html
+;;  and the Java grammar file given at
+;;  https://github.com/antlr/grammars-v4/tree/master/java
 
 %code copyright_license %{
 ;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
@@ -30,6 +43,10 @@ Partial_Parse_Active    : Boolean := False;
 Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
+;; LR1 for better error correction
+%generate LR1 Ada_Emacs re2c Process
+%start compilation_unit_list
+
 %no_language_runtime
 
 %keyword CODE "code"
@@ -48,10 +65,19 @@ Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
+%token <punctuation> LEFT_BRACE "{"
+%token <punctuation> LEFT_BRACKET "["
+%token <punctuation> LEFT_PAREN "("
 %token <punctuation> LESS "<"
 %token <punctuation> PERCENT "%"
+%token <punctuation> PLUS "+"
+%token <punctuation> QUESTION "?"
+%token <punctuation> RIGHT_BRACE "}"
+%token <punctuation> RIGHT_BRACKET "]"
+%token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
+%token <punctuation> STAR "*"
 
 %if lexer = elisp
 %token <number> NUMERIC_LITERAL wisi-number-p
@@ -62,10 +88,16 @@ Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
 
+;; In re2c regexps, '...' indicates a case-insensitive match.
+;;
+;; In nonterminals, '...' indicates a literal, which we translate to a
+;; token; case-sensitive is then determined by the 'case_insensitive'
+;; declaration.
+;;
 ;; 0x22 = "
 ;; 0x27 = '
-%token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
-%token <string-single> STRING_LITERAL_CASE_INS %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]%
+%token <string-double> STRING_LITERAL_1 %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
+%token <string-single> STRING_LITERAL_2 %[ (['][\x20-\x26\x28-\U0010FFFF]*['])+ ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
@@ -78,10 +110,6 @@ Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 %elisp_face font-lock-type-face
 %elisp_face nil
 
-;; LR1 for better error correction
-%generate LR1 Ada_Emacs re2c Process
-%start compilation_unit_list
-
 %mckenzie_cost_default 2 2 2 2
 %mckenzie_cost_insert SEMICOLON 1
 %mckenzie_enqueue_limit 10_000
@@ -89,6 +117,10 @@ Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
+%conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token IDENTIFIER ( 15)
+%conflict SHIFT/REDUCE in state rhs_list, nonterminal  on token PERCENT ( 43)
+%conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token IDENTIFIER ( 54)
+%conflict SHIFT/REDUCE in state token_list, rhs  on token IDENTIFIER ( 46)
 
 ;;;; grammar rules, no particular order
 
@@ -124,6 +156,7 @@ token_keyword_non_grammar
     %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
   | TOKEN LESS IDENTIFIER GREATER
     %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
+  | TOKEN ;; default <punctuation>
   ;
 
 identifier_list
@@ -144,19 +177,21 @@ declaration_item
   | REGEXP
     %((wisi-face-apply-action [1 nil font-lock-string-face]))%
   | SLASH
-  | STRING_LITERAL
-  | STRING_LITERAL_CASE_INS
+  | STRING_LITERAL_1
+  | STRING_LITERAL_2
   | TOKEN
   ;; ",", "token", "/" appear in %conflict declarations
   ;
 
 nonterminal
-  : IDENTIFIER COLON rhs_list SEMICOLON
+  : IDENTIFIER COLON rhs_list semicolon_opt
     %( (progn
          (wisi-statement-action [1 statement-start 4 statement-end])
          (wisi-face-apply-action [1 nil font-lock-function-name-face])
          (wisi-indent-action [0 [2 -1] 2 2])) )%
   ;
+
+semicolon_opt : SEMICOLON | ;
 
 rhs_list
   : rhs
@@ -176,9 +211,26 @@ rhs
     %( (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1] [2 -1]]) )%
   ;
 
+token_item
+  : EQUAL
+  | GREATER
+  | IDENTIFIER
+  | LEFT_BRACE
+  | LEFT_BRACKET
+  | LEFT_PAREN
+  | LESS
+  | PLUS
+  | QUESTION
+  | RIGHT_BRACE
+  | RIGHT_BRACKET
+  | RIGHT_PAREN
+  | STAR
+  | STRING_LITERAL_2
+  ;
+
 token_list
-  : IDENTIFIER
-  | token_list IDENTIFIER
+  : token_item
+  | token_list token_item
   ;
 
 ;; We don't enforce a complete order, nor require all parts, so
