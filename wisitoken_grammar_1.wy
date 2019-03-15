@@ -5,7 +5,7 @@
 ;;  (ediff "wisitoken_grammar_1.wy" "../org.wisitoken/wisitoken_grammar.wy")
 
 %code copyright_license %{
-;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -23,6 +23,11 @@
 ;;
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%code actions spec post %{
+Partial_Parse_Active    : Boolean := False;
+Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
 %no_language_runtime
@@ -137,7 +142,7 @@ declaration_item
   | EQUAL
   | NUMERIC_LITERAL
   | REGEXP
-  %((wisi-face-apply-action [1 nil font-lock-string-face]))%
+    %((wisi-face-apply-action [1 nil font-lock-string-face]))%
   | SLASH
   | STRING_LITERAL
   | STRING_LITERAL_CASE_INS
@@ -183,9 +188,12 @@ compilation_unit
   | nonterminal
   ;
 
+;; Compute indent for trailing comments.
 compilation_unit_list
   : compilation_unit
+    %((wisi-indent-action [[0 0]]))%
   | compilation_unit_list compilation_unit
+    %((wisi-indent-action [0 [0 0]]))%
   ;
 
 ;; end of file

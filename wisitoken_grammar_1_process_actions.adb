@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 --
 
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -264,5 +264,42 @@ package body Wisitoken_Grammar_1_Process_Actions is
          -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1))), (True, (Simple, (Int, 2)), (Simple, (Int, -1)))));
       end case;
    end rhs_3;
+
+   procedure compilation_unit_list_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, (1 => (True, (Simple, (Int, 0)), (Simple, (Int, 0)))));
+      end case;
+   end compilation_unit_list_0;
+
+   procedure compilation_unit_list_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);
+   begin
+      case Parse_Data.Post_Parse_Action is
+      when Navigate =>
+         null;
+      when Face =>
+         null;
+      when Indent =>
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 0)),
+         (Simple, (Int, 0)))));
+      end case;
+   end compilation_unit_list_1;
 
 end Wisitoken_Grammar_1_Process_Actions;

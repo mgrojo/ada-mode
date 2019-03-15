@@ -1,6 +1,7 @@
 ;; Project definitions for compiling wisitoken_grammar_mode_parse.adb -*- no-byte-compile: t -*-
 
 (require 'ada-project)
+(require 'project-menu)
 (require 'xref-ada)
 
 (setq project-find-functions '(project-menu-prj))
@@ -11,10 +12,10 @@
 	     :env-vars
 	     (cl-ecase system-type
 	       (gnu/linux
-		'(("WISITOKEN" . "/Projects/org.wisitoken/build")
+		'(("WISITOKEN" . "/Projects/org.wisitoken")
 		  ("EMACS_WISI" . "/Projects/org.emacs.ada-mode")))
 	       (windows-nt
-		'(("WISITOKEN" . "c:/Projects/org.wisitoken/build")
+		'(("WISITOKEN" . "c:/Projects/org.wisitoken")
 		  ("EMACS_WISI" . "c:/Projects/org.emacs.ada-mode")))
 	       )
 	     :ada-prj-file prj-file)))

@@ -31,14 +31,14 @@ one : build_ada_executables
 one : RUNTEST := run-indent-test-grammar.el
 one : $(ONE_TEST_FILE).diff
 
-#two : RUN_ARGS ?= --verbosity 2 --cost_limit 5
+#two : RUN_ARGS ?= --verbosity 0 0 2 --cost_limit 5
 #two : RUN_ARGS ?= --repeat_count 5
 #two : RUN_LOG := > debug.log
 two : build_ada_executables
 	./run_wisitoken_grammar_parse.exe wisitoken_grammar_1.wy Indent $(RUN_ARGS) $(RUN_LOG)
 
-%.re2c : %.wy $(WISITOKEN)/wisitoken-bnf-generate.exe
-	$(WISITOKEN)/wisitoken-bnf-generate.exe $(<F)
+%.re2c : %.wy $(WISITOKEN)/build/wisitoken-bnf-generate.exe
+	$(WISITOKEN)/build/wisitoken-bnf-generate.exe $(<F)
 	dos2unix $(*F)_process_actions.ads $(*F)_process_actions.adb $(*F)-process.el
 	dos2unix $(*F)_process_main.ads $(*F)_process_main.adb
 
@@ -63,21 +63,21 @@ autoloads : force
 # it can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-export WISITOKEN ?= /Projects/org.wisitoken/build
+export WISITOKEN ?= /Projects/org.wisitoken
 export EMACS_WISI ?= /Projects/org.emacs.ada-mode.stephe-2
 
 else ifeq ($(shell uname),Darwin)
-export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken/build
+export WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken
 export EMACS_WISI ?= /Projects/org.emacs.ada-mode.stephe-2
 else
 # windows
-export WISITOKEN ?= c:/Projects/org.wisitoken/build
+export WISITOKEN ?= c:/Projects/org.wisitoken
 export EMACS_WISI ?= c:/Projects/org.emacs.ada-mode.stephe-2
 
 endif
 
-$(WISITOKEN)/wisitoken-bnf-generate.exe : force
-	$(MAKE) -C $(WISITOKEN) wisitoken-bnf-generate.exe
+$(WISITOKEN)/build/wisitoken-bnf-generate.exe : force
+	$(MAKE) -C $(WISITOKEN)/build wisitoken-bnf-generate.exe
 
 vpath %.wy ../org.emacs.ada-mode.stephe-2 ../org.wisitoken/wisi/test/ ../org.emacs.java-wisi/source/
 

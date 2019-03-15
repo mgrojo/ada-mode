@@ -2,7 +2,7 @@
 --
 --  External process parser for wisitoken-grammar mode
 --
---  Copyright (C) 2017, 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2017 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,6 +26,7 @@ procedure WisiToken_Grammar_Mode_Parse is new Gen_Emacs_Wisi_LR_Parse
   (Parse_Data_Type                       => Wisi.Parse_Data_Type,
    Name                                  => "wisi_grammar_mode",
    Descriptor                            => Wisitoken_Grammar_1_Process_Actions.Descriptor,
+   Partial_Parse_Active                  => Wisitoken_Grammar_1_Process_Actions.Partial_Parse_Active,
    Language_Fixes                        => null,
    Language_Use_Minimal_Complete_Actions => null,
    Language_String_ID_Set                => null,

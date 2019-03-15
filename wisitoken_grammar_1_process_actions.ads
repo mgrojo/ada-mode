@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 --
 
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -29,7 +29,7 @@ package Wisitoken_Grammar_1_Process_Actions is
       Last_Terminal                 => 25,
       First_Nonterminal             => 26,
       Last_Nonterminal              => 37,
-      EOF_ID                        => 25,
+      EOI_ID                        => 25,
       Accept_ID                     => 26,
       Case_Insensitive              => False,
       New_Line_ID                   => 1,
@@ -195,4 +195,17 @@ package Wisitoken_Grammar_1_Process_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure compilation_unit_list_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure compilation_unit_list_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+
+   Partial_Parse_Active    : Boolean := False;
+   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 end Wisitoken_Grammar_1_Process_Actions;

@@ -1,6 +1,6 @@
 ;; wisitoken-grammar-mode --- Major mode for editing WisiToken grammar files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017, 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -96,10 +96,10 @@ Otherwise insert a plain new line."
     ))
 
 (defun wisitoken-grammar-which-function ()
-  "For `which-func-functions'."
-  (wisi-validate-cache (point) nil 'navigate)
+  "For `which-func-functions', `add-log-current-defun-function'."
+  (wisi-validate-cache (point-min) (point-max) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
-  (when (> (wisi-cache-max 'navigate) (point))
+  (when (wisi-cache-covers-pos 'navigate (point))
     (save-excursion
       (let ((cache (wisi-backward-cache)))
 	;; Find terminal or nonterminal containing point (if any)
@@ -154,6 +154,7 @@ Otherwise insert a plain new line."
 	(cond
 	 ((or
 	   (string-equal (match-string 2) "Ada_Emacs")
+	   (string-equal (match-string 2) "Elisp")
 	   (string-equal (match-string 2) "elisp"))
 	  (setq wisitoken-grammar-action-mode 'emacs-lisp-mode))
 
@@ -184,7 +185,7 @@ Otherwise insert a plain new line."
   (save-excursion
     (let (result
 	  cache)
-      (wisi-validate-cache (point-max) nil 'navigate)
+      (wisi-validate-cache (point-min) (point-max) nil 'navigate)
       (goto-char (point-min))
       (while (setq cache (wisi-forward-cache))
 	(when (or (and (eq 'declaration (wisi-cache-nonterm cache))
@@ -208,7 +209,7 @@ Otherwise insert a plain new line."
       ;; identifier is from identifier-at-point; search for definition
       (save-excursion
 	(let (cache)
-	  (wisi-validate-cache (point-max) nil 'navigate)
+	  (wisi-validate-cache (point-min) (point-max) nil 'navigate)
 	  (goto-char (point-min))
 	  (while (and (null line)
 		      (setq cache (wisi-forward-cache)))
@@ -246,8 +247,7 @@ Otherwise insert a plain new line."
   (set (make-local-variable 'comment-multi-line) nil)
   (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'add-log-current-defun-function)
-       'wisitoken-grammar-add-log-current-function)
-  (setq wisi-size-threshold most-positive-fixnum);; grammar is simple enough for very large files
+       #'wisitoken-grammar-add-log-current-function)
 
   (wisitoken-grammar-set-action-mode)
 
