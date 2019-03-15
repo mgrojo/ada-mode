@@ -168,7 +168,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          when Error =>
             Error_Count := Error_Count + 1;
 
-         when Pause =>
+         when Pause | Shift_Recover =>
             --  This is parser_no_recover
             raise SAL.Programmer_Error;
          end case;
@@ -242,8 +242,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             if Shared_Parser.Parsers.Count = 1 then
                raise Syntax_Error;
             else
-               Shared_Parser.Parsers.Terminate_Parser
-                 (Check_Parser, "", Shared_Parser.Trace.all, Shared_Parser.Terminals);
+               Shared_Parser.Parsers.Terminate_Parser (Check_Parser, "", Shared_Parser.Trace.all);
             end if;
          else
             Check_Parser.Next;
@@ -313,7 +312,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             --  raise the exception.
             raise Syntax_Error;
 
-         when Pause =>
+         when Pause | Shift_Recover =>
             --  This is parser_no_recover
             raise SAL.Programmer_Error;
          end case;
@@ -328,8 +327,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
             if Shared_Parser.Terminate_Same_State and
               Current_Verb = Shift
             then
-               Shared_Parser.Parsers.Duplicate_State
-                 (Current_Parser, Shared_Parser.Trace.all, Shared_Parser.Terminals);
+               Shared_Parser.Parsers.Duplicate_State (Current_Parser, Shared_Parser.Trace.all);
                --  If Duplicate_State terminated Current_Parser, Current_Parser now
                --  points to the next parser. Otherwise it is unchanged.
             end if;
@@ -371,7 +369,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      begin
                         raise WisiToken.Parse_Error with Error_Message
                           (Shared_Parser.Lexer.File_Name, Token.Line, Token.Column,
-                           ": too many parallel parsers required in grammar state" &
+                           "too many parallel parsers required in grammar state" &
                              State_Index'Image (Parser_State.Stack.Peek.State) &
                              "; simplify grammar, or increase max-parallel (" &
                              SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
@@ -442,17 +440,6 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
          end loop;
       end if;
    end Execute_Actions;
-
-   overriding function Tree (Parser : in LR.Parser_No_Recover.Parser) return Syntax_Trees.Tree
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
-      if Parser.Parsers.Count > 1 then
-         raise WisiToken.Parse_Error with "ambigous parse";
-      else
-         return Parser.Parsers.First_State_Ref.Tree;
-      end if;
-   end Tree;
 
    overriding function Any_Errors (Parser : in LR.Parser_No_Recover.Parser) return Boolean
    is

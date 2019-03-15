@@ -3,7 +3,7 @@
 --  Parser for Wisi grammar files, producing Ada or Elisp source
 --  files for a parser.
 --
---  Copyright (C) 2012 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -34,11 +34,12 @@ with WisiToken.BNF.Output_Ada_Common;
 with WisiToken.BNF.Output_Ada_Emacs;
 with WisiToken.BNF.Output_Elisp;
 with WisiToken.BNF.Output_Elisp_Common;
-with WisiToken.Generate.Packrat;
 with WisiToken.Generate.LR.LALR_Generate;
 with WisiToken.Generate.LR.LR1_Generate;
+with WisiToken.Generate.Packrat;
 with WisiToken.Parse.LR.Parser_No_Recover; -- for reading BNF file
 with WisiToken.Productions;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
@@ -287,15 +288,53 @@ begin
       --  which are small.
 
       procedure Parse_Check (Lexer : in Lexer_Type; Parser : in Generate_Algorithm)
-      is begin
+      is
+         use all type WisiToken_Grammar_Runtime.Meta_Syntax;
+      begin
          Input_Data.User_Parser := Parser;
          Input_Data.User_Lexer  := Lexer;
          --  Specifying the parser and lexer can change the parsed grammar, due
          --  to %if {parser | lexer}.
 
          Input_Data.Reset;
-         Grammar_Parser.Execute_Actions;
-         --  Ensures Input_Data.User_{Parser|Lexer} are set if needed.
+
+         Input_Data.Phase := 0;
+         Grammar_Parser.Execute_Actions; --  Does phase 0; meta declarations (ie meta_syntax)
+
+         case Input_Data.Meta_Syntax is
+         when BNF_Syntax =>
+            null;
+
+         when EBNF_Syntax =>
+            case Parser is
+            when LR_Generate_Algorithm =>
+               declare
+                  Tree : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+               begin
+                  if Trace_Generate > Detail then
+                     Ada.Text_IO.Put_Line ("EBNF tree:");
+                     Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+                  end if;
+                  WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF
+                    (Tree, Input_Data, Wisitoken_Grammar_Actions.Descriptor);
+                  if Trace_Generate > Detail then
+                     Ada.Text_IO.Put_Line ("BNF tree:");
+                     Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+                  end if;
+               end;
+
+            when Packrat_Generate_Algorithm =>
+               --  FIXME: need to save EBNF tree for packrat
+               raise SAL.Not_Implemented;
+
+            when None | External =>
+               null;
+
+            end case;
+         end case;
+
+         Input_Data.Phase := 1;
+         Grammar_Parser.Execute_Actions; -- Does all actions
 
          if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
             raise WisiToken.Grammar_Error with "no rules";

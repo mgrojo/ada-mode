@@ -62,7 +62,12 @@ package WisiToken.Syntax_Trees is
      (Positive_Index_Type, Valid_Node_Index, Default_Element => Valid_Node_Index'First);
    --  Index matches Valid_Node_Index_Array.
 
-   type Node_Label is (Shared_Terminal, Virtual_Terminal, Nonterm);
+   type Node_Label is
+     (Shared_Terminal,    -- text is user input, accessed via Parser.Terminals
+      Virtual_Terminal,   -- no text; inserted during error recovery
+      Virtual_Identifier, -- text in user data, created during tree rewrite
+      Nonterm             -- contains terminals/nonterminals/identifiers
+     );
 
    type User_Data_Type is tagged limited null record;
    --  Many test languages don't need this, so we default the procedures
@@ -134,8 +139,8 @@ package WisiToken.Syntax_Trees is
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     Production_ID;
       Children        : in     Valid_Node_Index_Array;
-      Action          : in     Semantic_Action;
-      Default_Virtual : in     Boolean)
+      Action          : in     Semantic_Action := null;
+      Default_Virtual : in     Boolean         := False)
      return Valid_Node_Index
    with
      Pre  => not Tree.Traversing,
@@ -159,8 +164,53 @@ package WisiToken.Syntax_Trees is
       Terminal : in     Token_ID)
      return Valid_Node_Index
    with Pre => not Tree.Traversing;
-   --  Add a new virtual terminal node with no parent. Result points to
+   --  Add a new Virtual_Terminal node with no parent. Result points to
    --  the added node.
+
+   function Add_Identifier
+     (Tree       : in out Syntax_Trees.Tree;
+      ID         : in     Token_ID;
+      Identifier : in     Token_Index)
+     return Valid_Node_Index
+   with Pre => Tree.Flushed and (not Tree.Traversing);
+   --  Add a new Virtual_Identifier node with no parent. Result points to
+   --  the added node.
+
+   procedure Add_Child
+     (Tree   : in out Syntax_Trees.Tree;
+      Parent : in     Valid_Node_Index;
+      Child  : in     Valid_Node_Index)
+   with
+     Pre => Tree.Flushed and
+            (not Tree.Traversing) and
+            Tree.Is_Nonterm (Parent);
+   --  Child.Parent must already be set.
+
+   procedure Set_Children
+     (Tree     : in out Syntax_Trees.Tree;
+      Node     : in     Valid_Node_Index;
+      Children : in     Valid_Node_Index_Array)
+   with
+     Pre => Tree.Flushed and
+            (not Tree.Traversing) and
+            Tree.Is_Nonterm (Node);
+   --  Set children of Node to Children, parent of Children to Node.
+
+   procedure Set_ID
+     (Tree   : in Syntax_Trees.Tree;
+      Node   : in Valid_Node_Index;
+      New_ID : in WisiToken.Production_ID)
+   with Pre => Tree.Flushed and
+               Tree.Is_Nonterm (Node);
+
+   procedure Set_Node_Identifier
+     (Tree       : in Syntax_Trees.Tree;
+      Node       : in Valid_Node_Index;
+      ID         : in Token_ID;
+      Identifier : in Token_Index)
+   with Pre => Tree.Flushed and
+               Tree.Is_Nonterm (Node);
+   --  Change Node to a Virtual_Identifier.
 
    procedure Set_State
      (Tree  : in out Syntax_Trees.Tree;
@@ -341,8 +391,7 @@ package WisiToken.Syntax_Trees is
 private
 
    type Node (Label : Node_Label := Virtual_Terminal) is
-   --  Label has a default to allow use with Ada.Containers.Vectors; all
-   --  entries are the same size.
+   --  Label has a default to allow changing the label during tree editing.
    record
       ID : WisiToken.Token_ID := Invalid_Token_ID;
 
@@ -358,10 +407,13 @@ private
 
       case Label is
       when Shared_Terminal =>
-         Terminal : Token_Index;
+         Terminal : Token_Index; -- into Parser.Terminals
 
       when Virtual_Terminal =>
          null;
+
+      when Virtual_Identifier =>
+         Identifier : Token_Index; -- into user data
 
       when Nonterm =>
          Virtual : Boolean := False;
@@ -401,7 +453,8 @@ private
       --  no need for Nodes to be Protected. Packrat parsing also has a
       --  single Ada task.
       --
-      --  During McKenzie_Recover, the syntax tree is not modified.
+      --  During McKenzie_Recover, which has multiple Ada tasks, the syntax
+      --  tree is read but not modified.
 
       Augmented_Present : Boolean := False;
       --  True if Set_Augmented has been called on any node.

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018, 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,14 +17,16 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
-with SAL;
+with SAL.Gen_Unbounded_Definite_Stacks;
+with SAL.Generic_Decimal_Image;
 with WisiToken.Generate;   use WisiToken.Generate;
 with Wisitoken_Grammar_Actions; use Wisitoken_Grammar_Actions;
 package body WisiToken_Grammar_Runtime is
 
    use WisiToken;
+
+   ----------
+   --  Body subprograms, misc order
 
    function Get_Text
      (Data         : in User_Data_Type;
@@ -37,15 +39,13 @@ package body WisiToken_Grammar_Runtime is
 
       function Strip_Delimiters (Tree_Index : in Syntax_Trees.Valid_Node_Index) return String
       is
-         use Ada.Strings;
-         use Ada.Strings.Fixed;
          Region : Buffer_Region renames Data.Terminals.all (Tree.Terminal (Tree_Index)).Byte_Region;
       begin
          if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
-            --  strip delimiters, leading/trailing spaces.
-            return Trim (Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2)), Both);
+            --  strip delimiters.
+            return Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
 
-         elsif -Tree.ID (Tree_Index) in STRING_LITERAL_ID | STRING_LITERAL_CASE_INS_ID and Strip_Quotes then
+         elsif -Tree.ID (Tree_Index) in STRING_LITERAL_1_ID | STRING_LITERAL_2_ID and Strip_Quotes then
             return Data.Grammar_Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
          else
             return Data.Grammar_Lexer.Buffer_Text (Region);
@@ -57,7 +57,7 @@ package body WisiToken_Grammar_Runtime is
       when Shared_Terminal =>
          return Strip_Delimiters (Tree_Index);
 
-      when Virtual_Terminal =>
+      when Virtual_Terminal | Virtual_Identifier =>
          raise SAL.Programmer_Error;
 
       when Nonterm =>
@@ -218,6 +218,7 @@ package body WisiToken_Grammar_Runtime is
       --  Preserve User_Lexer
       --  Preserve User_Parser
       --  Perserve Generate_Set
+      --  Preserve Meta_Syntax
       --  Preserve Terminals
       Data.Raw_Code          := (others => <>);
       Data.Language_Params   := (others => <>);
@@ -239,6 +240,7 @@ package body WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is begin
+      --  all phases
       Start_If_1 (User_Data_Type (User_Data), Tree, Tokens (3), Tokens (5));
    end Start_If;
 
@@ -246,6 +248,7 @@ package body WisiToken_Grammar_Runtime is
    is
       Data : User_Data_Type renames User_Data_Type (User_Data);
    begin
+      --  all phases
       Data.Ignore_Lines := False;
    end End_If;
 
@@ -254,19 +257,21 @@ package body WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
    is
+      use all type WisiToken.Syntax_Trees.Node_Label;
       use all type Ada.Strings.Unbounded.Unbounded_String;
 
       Data : User_Data_Type renames User_Data_Type (User_Data);
 
       function Token (Index : in SAL.Peek_Type) return Base_Token
       is
-         use all type WisiToken.Syntax_Trees.Node_Label;
          use all type SAL.Base_Peek_Type;
       begin
          if Tokens'Last < Index then
             raise SAL.Programmer_Error;
          elsif Tree.Label (Tokens (Index)) /= WisiToken.Syntax_Trees.Shared_Terminal then
-            raise SAL.Programmer_Error;
+            raise SAL.Programmer_Error with "token at " & Image (Tree.Byte_Region (Tokens (Index))) &
+              " is a " & WisiToken.Syntax_Trees.Node_Label'Image (Tree.Label (Tokens (Index))) &
+              ", expecting Shared_Terminal";
          else
             return Data.Terminals.all (Tree.Terminal (Tokens (Index)));
          end if;
@@ -275,7 +280,39 @@ package body WisiToken_Grammar_Runtime is
       function Enum_ID (Index : in SAL.Peek_Type) return Token_Enum_ID
         is (Token_Enum_ID'(-Token (Index).ID));
 
+      procedure Set_Meta_Syntax
+      is
+         Value_Str : constant String := WisiToken.BNF.To_Lower (Get_Text (Data, Tree, Tokens (3)));
+      begin
+         if Value_Str = "bnf" then
+            Data.Meta_Syntax := BNF_Syntax;
+         elsif Value_Str = "ebnf" then
+            Data.Meta_Syntax := EBNF_Syntax;
+
+         else
+            Put_Error ("invalid value for %meta_syntax; must be BNF | EBNF.");
+         end if;
+      end Set_Meta_Syntax;
+
    begin
+      if Data.Phase = 0 then
+         if Tree.Label (Tokens (2)) = WisiToken.Syntax_Trees.Shared_Terminal then
+            case Enum_ID (2) is
+            when IDENTIFIER_ID =>
+               declare
+                  Kind : constant String := Data.Grammar_Lexer.Buffer_Text (Token (2).Byte_Region);
+               begin
+                  if Kind = "meta_syntax" then
+                     Set_Meta_Syntax;
+                  end if;
+               end;
+            when others =>
+               null;
+            end case;
+         end if;
+         return;
+      end if;
+
       --  Add declaration to User_Data.Generate_Set, Language_Params,
       --  Tokens, Conflicts, or McKenzie_Recover.
 
@@ -416,6 +453,8 @@ package body WisiToken_Grammar_Runtime is
             declare
                Kind : constant String := Data.Grammar_Lexer.Buffer_Text (Token (2).Byte_Region);
             begin
+               --  Alphabetical by Kind
+
                if Kind = "case_insensitive" then
                   Data.Language_Params.Case_Insensitive := True;
 
@@ -544,6 +583,9 @@ package body WisiToken_Grammar_Runtime is
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
 
+               elsif Kind = "meta_syntax" then
+                  Set_Meta_Syntax;
+
                elsif Kind = "no_language_runtime" then
                   Data.Language_Params.Language_Runtime := False;
 
@@ -570,7 +612,7 @@ package body WisiToken_Grammar_Runtime is
               (Data.Grammar_Lexer.File_Name, Token (2).Line, Token (2).Column, "unexpected syntax");
          end case;
 
-      when Syntax_Trees.Virtual_Terminal =>
+      when Syntax_Trees.Virtual_Terminal | Syntax_Trees.Virtual_Identifier =>
          raise SAL.Programmer_Error;
       end case;
    end Add_Declaration;
@@ -586,6 +628,10 @@ package body WisiToken_Grammar_Runtime is
 
       Right_Hand_Sides : WisiToken.BNF.RHS_Lists.List;
    begin
+      if Data.Phase = 0 then
+         return;
+      end if;
+
       Data.Rule_Count := Data.Rule_Count + 1;
 
       Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Tokens (3));
@@ -603,5 +649,187 @@ package body WisiToken_Grammar_Runtime is
              Source_Line => Data.Terminals.all (Tree.Min_Terminal_Index (Tokens (1))).Line));
       end if;
    end Add_Nonterminal;
+
+   procedure Add_EBNF
+     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+      Tree      : in     WisiToken.Syntax_Trees.Tree;
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      Data  : User_Data_Type renames User_Data_Type (User_Data);
+      Token : Base_Token renames Data.Terminals.all (Tree.Min_Terminal_Index (Tokens (1)));
+   begin
+      --  all phases
+      if Data.Meta_Syntax /= EBNF_Syntax then
+         raise Grammar_Error with Error_Message
+           (Data.Grammar_Lexer.File_Name, Token.Line, Token.Column,
+            "EBNF syntax used, but BNF specified; set '%meta_syntax EBNF'");
+      end if;
+
+      --  FIXME: actually add it?
+   end Add_EBNF;
+
+   procedure Rewrite_EBNF_To_BNF
+     (Tree       : in out WisiToken.Syntax_Trees.Tree;
+      User_Data  : in out User_Data_Type;
+      Descriptor : in     WisiToken.Descriptor)
+   is
+      use WisiToken.Syntax_Trees;
+
+      package Node_Index_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Node_Index);
+
+      Parents : Node_Index_Stacks.Stack;
+
+      function Next_Nonterm_Name return Token_Index
+      is
+         function Image is new SAL.Generic_Decimal_Image (Token_Index);
+         ID : constant Token_Index := Token_Index (User_Data.Virtual_Identifiers.Length) + 1;
+      begin
+
+         if ID > 999 then
+            --  We assume 3 digits below
+            raise SAL.Programmer_Error with "more than 3 digits needed for virtual identifiers in EBNF rewrite";
+         end if;
+
+         User_Data.Virtual_Identifiers.Append (+("$nonterminal_" & Image (ID, Width => 3)));
+
+         return ID;
+      end Next_Nonterm_Name;
+
+      function To_RHS_List
+        (Node           : in Valid_Node_Index;
+         New_Identifier : in Token_Index)
+        return Valid_Node_Index
+      is
+         --  Convert subtree rooted at Node from an rhs_alternative_list to an
+         --  rhs_list contained by New_Nonterm.
+
+         Child_1 : constant Valid_Node_Index := Tree.Add_Identifier (+IDENTIFIER_ID, New_Identifier);
+         Child_2 : constant Valid_Node_Index := Tree.Add_Terminal (+COLON_ID);
+         Child_4 : constant Valid_Node_Index := Tree.Add_Nonterm
+           ((+semicolon_opt_ID, 0), (1 .. 0 => Invalid_Node_Index));
+
+         New_Nonterm : constant Valid_Node_Index := Tree.Add_Nonterm
+           ((+nonterminal_ID, 0), (Child_1, Child_2, Node, Child_4));
+
+         Alt_Node : Valid_Node_Index := Node;
+      begin
+         loop
+            declare
+               Children : constant Valid_Node_Index_Array := Tree.Children (Alt_Node);
+            begin
+               if Children'Length = 3 then
+                  Tree.Set_ID (Alt_Node, (+rhs_list_ID, 1));
+
+                  --  current tree:
+                  --  rhs_alternative_list : Alt_Node
+                  --  |\
+                  --  | rhs_item_list
+                  --  | terminal: BAR
+                  --  | rhs_item_list
+                  --  |/
+
+                  --  new tree:
+                  --  rhs_list : Alt_Node
+                  --  |\
+                  --  | rhs_list : new
+                  --  | |\
+                  --  | | rhs : new
+                  --  | | |\
+                  --  | | | rhs_item_list : reuse
+                  --  | | |/
+                  --  | |/
+                  --  | terminal: BAR : reuse
+                  --  | |
+                  --  | rhs : new
+                  --  | |\
+                  --  | | rhs_item_list : reuse
+                  --  | |/
+                  --  |/
+                  declare
+                     Alt_List  : constant Valid_Node_Index := Children (1);
+                     Bar       : constant Valid_Node_Index := Children (2);
+                     Item_List : constant Valid_Node_Index := Children (3);
+
+                     Child_1 : constant Valid_Node_Index := Tree.Add_Nonterm
+                       ((+rhs_list_ID, 1),
+                        (1 => Tree.Add_Nonterm ((+rhs_ID, 1), (1 => Alt_List))));
+
+                     Child_3   : constant Valid_Node_Index := Tree.Add_Nonterm ((+rhs_ID, 1), (1 => Item_List));
+                  begin
+                     Tree.Set_Children (Alt_Node, (Child_1, Bar, Child_3));
+
+                     Alt_Node := Alt_List;
+                  end;
+
+               else
+                  Tree.Set_ID (Alt_Node, (+rhs_list_ID, 0));
+
+                  --  current tree:
+                  --  rhs_alternative_list : Alt_Node
+                  --  |\
+                  --  | rhs_item_list
+                  --  |/
+
+                  --  new tree:
+                  --  rhs_list : Alt_Node
+                  --  |\
+                  --  | rhs : new
+                  --  | |\
+                  --  | | rhs_item_list : reuse
+                  --  | |/
+                  --  |/
+                  Tree.Set_Children (Alt_Node, (1 => Tree.Add_Nonterm ((+rhs_ID, 1), (1 => Children (1)))));
+                  exit;
+               end if;
+            end;
+         end loop;
+
+         return New_Nonterm;
+      end To_RHS_List;
+
+      procedure Process_Node (Node : in Valid_Node_Index)
+      is
+      begin
+         case To_Token_Enum (Tree.ID (Node)) is
+         when rhs_optional_item_ID =>
+            if Tree.Children (Parents (3))'Length > 1 then
+               raise SAL.Not_Implemented with "ebnf_to_bnf rhs_optional_item_ID action " &
+                 Tree.Image (Parents (3), Descriptor);
+            end if;
+
+            declare
+               New_Identifier : constant Token_Index      := Next_Nonterm_Name;
+               New_Nonterm    : constant Valid_Node_Index := To_RHS_List (Tree.Children (Node)(2), New_Identifier);
+            begin
+               Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Identifier);
+
+               Process_Node (New_Nonterm);
+            end;
+
+         when rhs_multiple_item_ID =>
+            raise SAL.Not_Implemented;
+
+         when rhs_group_item_ID =>
+            raise SAL.Not_Implemented;
+
+         when others =>
+            --  process children
+            if Tree.Label (Node) = Nonterm then
+               Parents.Push (Node);
+               for Child of Tree.Children (Node) loop
+                  Process_Node (Child);
+               end loop;
+               Parents.Pop;
+            end if;
+
+         end case;
+
+      end Process_Node;
+
+   begin
+      --  We can't use Process_Tree because we are editing the tree.
+      Parents.Push (Tree.Root);
+      Process_Node (Tree.Root);
+   end Rewrite_EBNF_To_BNF;
 
 end WisiToken_Grammar_Runtime;

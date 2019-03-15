@@ -21,6 +21,17 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+add EBNF
+    ada-lite-ebnf.wy
+        pure EBNF for nonterms first
+            after translate to bnf with new nonterms, substitute new nonterms into grammar, compare to ada-lite.wy
+        replace %keywords with literals
+
+
+    add ANTLR syntax for java
+
+    add ? syntax for Python
+
 recover still hanging on exception in worker_task
     but get no output in *Ada_wisi_parse*, not even parse command
     only symptom is "not getting more text", several times, from jit-lock

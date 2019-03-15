@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c PROCESS wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -26,18 +26,18 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal                => 3,
-      Last_Terminal                 => 25,
-      First_Nonterminal             => 26,
-      Last_Nonterminal              => 37,
-      EOI_ID                        => 25,
-      Accept_ID                     => 26,
+      Last_Terminal                 => 34,
+      First_Nonterminal             => 35,
+      Last_Nonterminal              => 52,
+      EOF_ID                        => 34,
+      Accept_ID                     => 35,
       Case_Insensitive              => False,
       New_Line_ID                   => 1,
       Comment_ID                    => 2,
       Left_Paren_ID                 => 2147483647,
       Right_Paren_ID                => 2147483647,
-      String_1_ID                   => 24,
-      String_2_ID                   => 23,
+      String_1_ID                   => 33,
+      String_2_ID                   => 32,
       Embedded_Quote_Escape_Doubled => False,
       Image                         =>
         (new String'("WHITESPACE"),
@@ -57,14 +57,23 @@ package Wisitoken_Grammar_Actions is
          new String'("COMMA"),
          new String'("EQUAL"),
          new String'("GREATER"),
+         new String'("LEFT_BRACE"),
+         new String'("LEFT_BRACKET"),
+         new String'("LEFT_PAREN"),
          new String'("LESS"),
          new String'("PERCENT"),
+         new String'("PLUS"),
+         new String'("QUESTION"),
+         new String'("RIGHT_BRACE"),
+         new String'("RIGHT_BRACKET"),
+         new String'("RIGHT_PAREN"),
          new String'("SEMICOLON"),
          new String'("SLASH"),
+         new String'("STAR"),
          new String'("NUMERIC_LITERAL"),
          new String'("IDENTIFIER"),
-         new String'("STRING_LITERAL"),
-         new String'("STRING_LITERAL_CASE_INS"),
+         new String'("STRING_LITERAL_1"),
+         new String'("STRING_LITERAL_2"),
          new String'("Wisi_EOI"),
          new String'("wisitoken_accept"),
          new String'("declaration"),
@@ -73,14 +82,20 @@ package Wisitoken_Grammar_Actions is
          new String'("declaration_item_list"),
          new String'("declaration_item"),
          new String'("nonterminal"),
+         new String'("semicolon_opt"),
          new String'("rhs_list"),
          new String'("rhs"),
-         new String'("token_list"),
+         new String'("rhs_item_list"),
+         new String'("rhs_item"),
+         new String'("rhs_group_item"),
+         new String'("rhs_optional_item"),
+         new String'("rhs_multiple_item"),
+         new String'("rhs_alternative_list"),
          new String'("compilation_unit"),
          new String'("compilation_unit_list")),
-      Terminal_Image_Width => 23,
+      Terminal_Image_Width => 16,
       Image_Width          => 25,
-      Last_Lookahead       => 26);
+      Last_Lookahead       => 35);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -100,14 +115,23 @@ package Wisitoken_Grammar_Actions is
       COMMA_ID,
       EQUAL_ID,
       GREATER_ID,
+      LEFT_BRACE_ID,
+      LEFT_BRACKET_ID,
+      LEFT_PAREN_ID,
       LESS_ID,
       PERCENT_ID,
+      PLUS_ID,
+      QUESTION_ID,
+      RIGHT_BRACE_ID,
+      RIGHT_BRACKET_ID,
+      RIGHT_PAREN_ID,
       SEMICOLON_ID,
       SLASH_ID,
+      STAR_ID,
       NUMERIC_LITERAL_ID,
       IDENTIFIER_ID,
-      STRING_LITERAL_ID,
-      STRING_LITERAL_CASE_INS_ID,
+      STRING_LITERAL_1_ID,
+      STRING_LITERAL_2_ID,
       Wisi_EOI_ID,
       wisitoken_accept_ID,
       declaration_ID,
@@ -116,9 +140,15 @@ package Wisitoken_Grammar_Actions is
       declaration_item_list_ID,
       declaration_item_ID,
       nonterminal_ID,
+      semicolon_opt_ID,
       rhs_list_ID,
       rhs_ID,
-      token_list_ID,
+      rhs_item_list_ID,
+      rhs_item_ID,
+      rhs_group_item_ID,
+      rhs_optional_item_ID,
+      rhs_multiple_item_ID,
+      rhs_alternative_list_ID,
       compilation_unit_ID,
       compilation_unit_list_ID);
 
@@ -161,6 +191,21 @@ package Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
    procedure nonterminal_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure rhs_item_4
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure rhs_item_5
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure rhs_item_6
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
