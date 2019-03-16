@@ -592,8 +592,8 @@ Send BEGIN thru SEND-END to external parser."
 		       (let ((content (buffer-substring-no-properties (point-min) (point-max)))
 			     (buf-name (concat (buffer-name) "-save-error")))
 			 (set-buffer (get-buffer-create buf-name))
-			 (insert content))
-		       (error "parser failed; error messages in %s" buf-name))
+			 (insert content)
+			 (error "parser failed; error messages in %s" buf-name)))
 		      ))
 		   )
 
@@ -614,8 +614,8 @@ Send BEGIN thru SEND-END to external parser."
 		(let ((content (buffer-substring-no-properties (point-min) (point-max)))
 		      (buf-name (concat (buffer-name) "-save-error")))
 		  (set-buffer (get-buffer-create buf-name))
-		  (insert content))
-		(error "parser failed; error messages in %s" buf-name))
+		  (insert content)
+		  (error "parser failed; error messages in %s" buf-name)))
 
 	      (setq wait-count (1+ wait-count))
 	      (setq start-wait-time (float-time))
