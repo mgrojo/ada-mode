@@ -20,47 +20,65 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Task_Identification;
+with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;
 with System.Multiprocessors;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Explore;
 with WisiToken.Parse.LR.Parser_Lists;
 package body WisiToken.Parse.LR.McKenzie_Recover is
+   use all type System.Multiprocessors.CPU_Range;
 
-   task type Worker_Task
-     (Super  : not null access Base.Supervisor;
-      Shared : not null access Base.Shared)
-   is
-      entry Start;
-      --  Start getting parser/configs to check from Config_Store.
+   type Supervisor_Access is access all Base.Supervisor;
+   type Shared_Access is access all Base.Shared;
+
+   task type Worker_Task is
+      entry Start
+        (Super  : in Supervisor_Access;
+         Shared : in Shared_Access);
+      --  Start getting parser/configs to check from Config_Store. Stop when
+      --  Super reports All_Done;
 
       entry Done;
-      --  Available when task is ready to terminate; after this rendezvous,
-      --  task discriminants may be freed.
-
+      --  Available after Super has reported All_Done.
    end Worker_Task;
+
+   type Worker_Access is access Worker_Task;
+   procedure Free is new Ada.Unchecked_Deallocation (Worker_Task, Worker_Access);
 
    task body Worker_Task
    is
       use all type Base.Config_Status;
+      Super  : Supervisor_Access;
+      Shared : Shared_Access;
+
       Status : Base.Config_Status := Valid;
    begin
-      accept Start;
-
       loop
          select
-            accept Done;
-            exit;
+            accept Start
+              (Super  : in Supervisor_Access;
+               Shared : in Shared_Access)
 
-         else
+            do
+               Worker_Task.Super  := Super;
+               Worker_Task.Shared := Shared;
+            end Start;
+         or
+            terminate;
+         end select;
+
+         loop
             Explore.Process_One (Super, Shared, Status);
             exit when Status = All_Done;
-         end select;
+         end loop;
+
+         accept Done;
+
+         Super  := null;
+         Shared := null;
       end loop;
 
-      if Status = All_Done then
-         accept Done;
-      end if;
    exception
    when E : others =>
       Super.Fatal (E);
@@ -68,6 +86,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Shared.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       end if;
    end Worker_Task;
+
+   Worker_Tasks : array (1 .. System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs - 1)) of
+     Worker_Access;
+   --  Declaring an array of tasks directly causes a circular elaboration
+   --  problem, and would mean a task that terminates due to an exception
+   --  is never restarted.
 
    function To_Recover
      (Parser_Stack : in Parser_Lists.Parser_Stacks.Stack;
@@ -176,7 +200,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    is
       use all type Parser.Post_Recover_Access;
       use all type SAL.Base_Peek_Type;
-      use all type System.Multiprocessors.CPU_Range;
       Trace : WisiToken.Trace'Class renames Shared_Parser.Trace.all;
 
       Parsers : Parser_Lists.List renames Shared_Parser.Parsers;
@@ -202,11 +225,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
       Task_Count : constant System.Multiprocessors.CPU_Range :=
         (if Shared_Parser.Table.McKenzie_Param.Task_Count = 0
-         then System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs - 1)
+         then Worker_Tasks'Last
          --  Keep one CPU free for this main task, and the user.
          else Shared_Parser.Table.McKenzie_Param.Task_Count);
-
-      Worker_Tasks : array (1 .. Task_Count) of Worker_Task (Super'Access, Shared'Access);
 
    begin
       if Trace_McKenzie > Outline then
@@ -225,21 +246,36 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
          Trace.Put_Line (System.Multiprocessors.CPU_Range'Image (Worker_Tasks'Last) & " parallel tasks");
       end if;
 
-      for I in Worker_Tasks'Range loop
-         Worker_Tasks (I).Start;
+      for I in Worker_Tasks'First .. Task_Count loop
+         if Worker_Tasks (I) = null then
+            Worker_Tasks (I) := new Worker_Task;
+            if Debug_Mode then
+               Trace.Put_Line ("new Worker_Task" & System.Multiprocessors.CPU_Range'Image (I));
+            end if;
+
+         elsif Worker_Tasks (I)'Terminated then
+            Free (Worker_Tasks (I));
+            Worker_Tasks (I) := new Worker_Task;
+            if Debug_Mode then
+               Trace.Put_Line ("recreated Worker_Task" & System.Multiprocessors.CPU_Range'Image (I));
+            end if;
+         end if;
+
+         Worker_Tasks (I).Start (Super'Unchecked_Access, Shared'Unchecked_Access);
       end loop;
 
       declare
          use Ada.Exceptions;
-         ID : Exception_Id;
+         ID      : Exception_Id;
          Message : Ada.Strings.Unbounded.Unbounded_String;
       begin
          Super.Done (ID, Message); -- Wait for all parsers to fail or succeed
 
-         --  Ensure all tasks terminate before proceeding; otherwise local
-         --  variables disappear while task is still trying to access them.
-         for I in Worker_Tasks'Range loop
-            if Worker_Tasks (I)'Callable then
+         --  Ensure all worker tasks stop getting configs before proceeding;
+         --  otherwise local variables disappear while the task is still trying
+         --  to access them.
+         for I in Worker_Tasks'First .. Task_Count loop
+            if not Worker_Tasks (I)'Terminated then
                Worker_Tasks (I).Done;
             end if;
          end loop;

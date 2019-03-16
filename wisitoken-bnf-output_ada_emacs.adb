@@ -320,7 +320,7 @@ is
             First  := Index_Non_Blank (Params, Last + 1);
             Last   := Index (Params, Delim, First);
             Result := Result & ',' & Integer'Image
-              (Find_Elisp_ID (Input_Data.User_Names.Faces, Params (First .. Last - 1)));
+              (Find_Elisp_ID (Input_Data.Tokens.Faces, Params (First .. Last - 1)));
 
             if Params (Last) = ']' then
                Put_Error
@@ -332,7 +332,7 @@ is
             First  := Index_Non_Blank (Params, Last + 1);
             Last   := Index (Params, Delim, First);
             Result := Result & ',' &
-              Integer'Image (Find_Elisp_ID (Input_Data.User_Names.Faces, Params (First .. Last - 1))) & ")";
+              Integer'Image (Find_Elisp_ID (Input_Data.Tokens.Faces, Params (First .. Last - 1))) & ")";
 
             Need_Comma := True;
          end loop;
@@ -573,9 +573,9 @@ is
                   Last := Last + 1; -- get past ')'
                   return -Args;
 
-               elsif Is_Present (Input_Data.User_Names.Indents, -Function_Name) then
+               elsif Is_Present (Input_Data.Tokens.Indents, -Function_Name) then
                   --  Language-specific function call
-                  Function_Name := +Value (Input_Data.User_Names.Indents, -Function_Name);
+                  Function_Name := +Value (Input_Data.Tokens.Indents, -Function_Name);
                   Arg_Count     := 0;
                   loop
                      exit when Params (Last) = ')';
@@ -1171,7 +1171,7 @@ is
          Indent_Line ("      Elisp_Numbers (I) := Env.make_fixnum (Env, emacs_module_h.int64_t (I));");
          Indent_Line ("   end loop;");
          Indent_Line ("   for I in Lexer_Elisp_Symbols'Range loop");
-         Indent_Line ("      Lexer_Elisp_Symbols (I) := Intern_Soft (Env, Lexers.User_Names (I).all);");
+         Indent_Line ("      Lexer_Elisp_Symbols (I) := Intern_Soft (Env, Lexers.Tokens (I).all);");
          Indent_Line ("   end loop;");
          Indent_Line ("   Parser := Create_Parser (Env, Lexer_Elisp_Symbols);");
          Indent_Line ("   return 0;");
@@ -1230,7 +1230,7 @@ is
       New_Line;
 
       Output_Elisp_Common.Indent_Name_Table
-        (Output_File_Name_Root, "process-face-table", Input_Data.User_Names.Faces);
+        (Output_File_Name_Root, "process-face-table", Input_Data.Tokens.Faces);
 
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);

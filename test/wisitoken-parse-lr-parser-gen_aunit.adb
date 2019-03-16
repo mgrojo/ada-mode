@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -112,7 +112,7 @@ package body WisiToken.Parse.LR.Parser.Gen_AUnit is
             begin
                Check (Label_I & ".label", Error.Label, Action);
                Check (Label_I & ".error_token.id", Token.ID, Error_Token_ID);
-               if Error_Token_ID /= Descriptor.EOF_ID then
+               if Error_Token_ID /= Descriptor.EOI_ID then
                   --  EOF byte_region is unreliable
                   Check (Label_I & ".error_token.byte_region", Token.Byte_Region, Error_Token_Byte_Region);
                end if;

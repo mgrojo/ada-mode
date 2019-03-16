@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
+with WisiToken.Parse.LR.Parser;
 with WisiToken.Parse.LR.Parser_Lists;
 private package WisiToken.Parse.LR.McKenzie_Recover.Base is
 
