@@ -28,7 +28,8 @@ package WisiToken_Grammar_Runtime is
    --  Syntax used in grammar file.
 
    package String_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (WisiToken.Token_Index, Ada.Strings.Unbounded.Unbounded_String);
+     (WisiToken.Token_Index, Ada.Strings.Unbounded.Unbounded_String,
+      Default_Element => Ada.Strings.Unbounded.Null_Unbounded_String);
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
@@ -52,11 +53,9 @@ package WisiToken_Grammar_Runtime is
 
       Meta_Syntax         : WisiToken_Grammar_Runtime.Meta_Syntax := BNF_Syntax;
       Terminals           : WisiToken.Base_Token_Array_Access;
-      Virtual_Identifiers : String_Arrays.Vector;
       Raw_Code            : WisiToken.BNF.Raw_Code;
       Language_Params     : WisiToken.BNF.Language_Param_Type;
       Tokens              : aliased WisiToken.BNF.Tokens;
-      User_Names          : WisiToken.BNF.User_Names;
       Conflicts           : WisiToken.BNF.Conflict_Lists.List;
       McKenzie_Recover    : WisiToken.BNF.McKenzie_Recover_Param_Type;
 
@@ -97,18 +96,24 @@ package WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
-   procedure Add_EBNF
+   procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
    procedure Rewrite_EBNF_To_BNF
-     (Tree       : in out WisiToken.Syntax_Trees.Tree;
-      User_Data  : in out User_Data_Type;
-      Descriptor : in     WisiToken.Descriptor);
+     (Tree      : in out WisiToken.Syntax_Trees.Tree;
+      User_Data : in out User_Data_Type);
    --  Process EBNF nonterms, adding new nonterms as needed, resulting in
    --  a BNF tree. Descriptor is used for error messages.
    --
    --  Generator.LR.*_Generate requires a BNF grammar.
+
+   procedure Print_Source
+     (File_Name : in String;
+      Tree      : in WisiToken.Syntax_Trees.Tree;
+      Data      : in User_Data_Type);
+   --  Print the wisitoken grammar source represented by Tree, Terminals
+   --  to a new file File_Name.
 
 end WisiToken_Grammar_Runtime;

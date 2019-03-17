@@ -19,6 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Text_IO;
+with SAL.Generic_Decimal_Image;
 package body WisiToken.Syntax_Trees is
 
    --  Body specs, alphabetical, as needed
@@ -510,6 +511,11 @@ package body WisiToken.Syntax_Trees is
       Tree.Flush            := True;
    end Flush;
 
+   function Flushed (Tree : in Syntax_Trees.Tree) return Boolean
+   is begin
+      return Tree.Flush;
+   end Flushed;
+
    procedure Get_Terminals
      (Tree   : in     Syntax_Trees.Tree;
       Node   : in     Valid_Node_Index;
@@ -632,6 +638,14 @@ package body WisiToken.Syntax_Trees is
          else Tree.Branched_Nodes (Node).ID);
    end ID;
 
+   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   is begin
+      return
+        (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes (Node).Identifier
+         else Tree.Branched_Nodes (Node).Identifier);
+   end Identifier;
+
    function Image
      (Tree       : in Syntax_Trees.Tree;
       Children   : in Valid_Node_Index_Arrays.Vector;
@@ -665,9 +679,16 @@ package body WisiToken.Syntax_Trees is
          Result := +Image (N.ID, Descriptor) & '_' & Trimmed_Image (N.RHS_Index) & ": ";
       end if;
 
-      if N.Label = Shared_Terminal then
+      case N.Label is
+      when Shared_Terminal =>
          Result := Result & (+Token_Index'Image (N.Terminal)) & ":";
-      end if;
+
+      when Virtual_Identifier =>
+         Result := Result & (+Token_Index'Image (N.Identifier)) & ";";
+
+      when others =>
+         null;
+      end case;
 
       Result := Result & "(" & Image (N.ID, Descriptor) &
         (if N.Byte_Region = Null_Buffer_Region then "" else ", " & Image (N.Byte_Region)) & ")";
@@ -765,6 +786,14 @@ package body WisiToken.Syntax_Trees is
          return Compute (Tree.Branched_Nodes (Node));
       end if;
    end Is_Virtual;
+
+   function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean
+   is begin
+      return
+        (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes (Node).Label = Virtual_Identifier
+         else Tree.Branched_Nodes (Node).Label = Virtual_Identifier);
+   end Is_Virtual_Identifier;
 
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label
    is begin
@@ -866,9 +895,11 @@ package body WisiToken.Syntax_Trees is
       use Ada.Text_IO;
       procedure Print_Node (Node : in Valid_Node_Index; Level : in Integer)
       is
+         function Image is new SAL.Generic_Decimal_Image (Node_Index);
+
          N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
       begin
-         Put (Valid_Node_Index'Image (Node) & ": ");
+         Put (Image (Node, Width => 4) & ": ");
          for I in 1 .. Level loop
             Put ("| ");
          end loop;
@@ -972,6 +1003,17 @@ package body WisiToken.Syntax_Trees is
       raise;
    end Process_Tree;
 
+   function RHS_Index
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Natural
+   is begin
+      return
+        (if Node <= Tree.Last_Shared_Node
+         then Tree.Shared_Tree.Nodes (Node).RHS_Index
+         else Tree.Branched_Nodes (Node).RHS_Index);
+   end RHS_Index;
+
    procedure Set_ID
      (Tree   : in Syntax_Trees.Tree;
       Node   : in Valid_Node_Index;
@@ -981,6 +1023,11 @@ package body WisiToken.Syntax_Trees is
    begin
       The_Node.ID        := New_ID.LHS;
       The_Node.RHS_Index := New_ID.RHS;
+
+      if The_Node.Label = Nonterm then
+         --  Action was from the original ID; it is now wrong.
+         The_Node.Action := null;
+      end if;
    end Set_ID;
 
    procedure Set_Node_Identifier
@@ -1163,11 +1210,6 @@ package body WisiToken.Syntax_Trees is
       Tree.Flush := False;
       Tree.Branched_Nodes.Set_First (Tree.Last_Shared_Node + 1);
    end Set_Flush_False;
-
-   function Flushed (Tree : in Syntax_Trees.Tree) return Boolean
-   is begin
-      return Tree.Flush;
-   end Flushed;
 
    procedure Set_Name_Region
      (Tree   : in out Syntax_Trees.Tree;

@@ -13,7 +13,7 @@
 --  [1] https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 --  [2] http://www.nongnu.org/ada-mode/wisi/wisi-user_guide.html, (info "(wisi-user_guide)Top")
 --
---  Copyright (C) 2012 - 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2012 - 2015, 2017, 2018, 2019 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -256,6 +256,9 @@ package WisiToken.BNF is
       Rules       : Rule_Lists.List;
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
+
+      Virtual_Identifiers : String_Arrays.Vector;
+      --  Nonterminals introduced by tree editing.
 
       re2c_Regexps : String_Pair_Lists.List;
       --  From %re2c_regexp; included here because they are used in defining
