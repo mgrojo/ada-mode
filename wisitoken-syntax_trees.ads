@@ -232,6 +232,7 @@ package WisiToken.Syntax_Trees is
    function Is_Nonterm (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Is_Virtual (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
+   function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
    function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
@@ -251,6 +252,11 @@ package WisiToken.Syntax_Trees is
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
      return WisiToken.Buffer_Region;
+
+   function RHS_Index
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return Natural;
 
    function Same_Token
      (Tree_1  : in Syntax_Trees.Tree'Class;
@@ -357,6 +363,9 @@ package WisiToken.Syntax_Trees is
          Node : in     Valid_Node_Index));
    --  Traverse Tree in depth-first order, calling Process_Node on each
    --  node, starting at Tree.Root.
+
+   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   with Pre => Tree.Is_Virtual_Identifier (Node);
 
    function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
    with Pre => Tree.Is_Terminal (Node);

@@ -119,8 +119,10 @@ aspect_specification
   : [WITH association_list]
   ;
 ;; rewritten to:
+;;
+;; $nonterminal_001 : WITH association_list ;
 ;; aspect_specification
-;;   : WITH association_list
+;;   : $nonterminal_001
 ;;   | ;; empty
 ;;   ;
 

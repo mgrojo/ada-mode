@@ -112,6 +112,7 @@ is
       Put_Line (Standard_Error, "     1 - add diagnostics to standard out");
       Put_Line (Standard_Error, "     2 - more diagnostics to standard out, ignore unused tokens, unknown conflicts");
       Put_Line (Standard_Error, "  --generate ...: override grammar file %generate directive");
+      Put_Line (Standard_Error, "  --output_bnf <file_name> : output translated BNF source to file_name");
       Put_Line (Standard_Error, "  --suffix <string>; appended to grammar file name");
       Put_Line (Standard_Error,
                 "  --test_main; generate standalone main program for running the generated parser, modify file names");
@@ -122,6 +123,8 @@ is
    Language_Name         : Ada.Strings.Unbounded.Unbounded_String; -- The language the grammar defines
    Output_File_Name_Root : Ada.Strings.Unbounded.Unbounded_String;
    Suffix                : Ada.Strings.Unbounded.Unbounded_String;
+   BNF_File_Name         : Ada.Strings.Unbounded.Unbounded_String;
+   Output_BNF            : Boolean := False;
    Test_Main             : Boolean := False;
 
    Command_Generate_Set : Generate_Set_Access; -- override grammar file declarations
@@ -230,6 +233,12 @@ begin
                Add (Command_Generate_Set, Tuple);
             end;
 
+         elsif Argument (Arg_Next) = "--output_bnf" then
+            Output_BNF    := True;
+            Arg_Next      := Arg_Next + 1;
+            BNF_File_Name := +Argument (Arg_Next);
+            Arg_Next      := Arg_Next + 1;
+
          elsif Argument (Arg_Next) = "--suffix" then
             Arg_Next := Arg_Next + 1;
             Suffix   := +Argument (Arg_Next);
@@ -315,11 +324,14 @@ begin
                      Ada.Text_IO.Put_Line ("EBNF tree:");
                      Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
                   end if;
-                  WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF
-                    (Tree, Input_Data, Wisitoken_Grammar_Actions.Descriptor);
+                  WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF (Tree, Input_Data);
                   if Trace_Generate > Detail then
+                     Ada.Text_IO.New_Line;
                      Ada.Text_IO.Put_Line ("BNF tree:");
                      Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+                  end if;
+                  if Output_BNF then
+                     WisiToken_Grammar_Runtime.Print_Source (-BNF_File_Name, Tree, Input_Data);
                   end if;
                end;
 

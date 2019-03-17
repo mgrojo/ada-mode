@@ -82,9 +82,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    exception
    when E : others =>
       Super.Fatal (E);
-      if Debug_Mode then
-         Shared.Trace.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-      end if;
    end Worker_Task;
 
    Worker_Tasks : array (1 .. System.Multiprocessors.CPU_Range'Max (1, System.Multiprocessors.Number_Of_CPUs - 1)) of

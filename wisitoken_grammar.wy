@@ -194,11 +194,11 @@ rhs_item
   | IDENTIFIER
   | STRING_LITERAL_2
   | rhs_optional_item
-    %(Add_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens);)%
   | rhs_multiple_item
-    %(Add_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens);)%
   | rhs_group_item
-    %(Add_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens);)%
   ;
 
 rhs_group_item

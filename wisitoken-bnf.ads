@@ -257,9 +257,12 @@ package WisiToken.BNF is
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
 
-      --  The following are specified in grammar file declarations and used in other declarations
-      --  or actions. Faces, Indents only used if .wy action language is
-      --  elisp and output language is not elisp.
+      Virtual_Identifiers : String_Arrays.Vector;
+      --  Nonterminals introduced by tree editing.
+
+      --  The following are specified in grammar file declarations and used
+      --  in other declarations or actions. Faces, Indents only used if .wy
+      --  action language is elisp and output language is not elisp.
 
       re2c_Regexps : String_Pair_Lists.List; -- %re2c_regexp
       Faces        : String_Lists.List;      -- %elisp_face
