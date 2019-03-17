@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -224,7 +224,6 @@ package body WisiToken_Grammar_Runtime is
       Data.Language_Params   := (others => <>);
       WisiToken.BNF.Free (Data.Generate_Set);
       Data.Tokens            := (others => <>);
-      Data.User_Names        := (others => <>);
       Data.Conflicts.Clear;
       Data.McKenzie_Recover  := (others => <>);
       Data.Rule_Count        := 0;
@@ -479,10 +478,10 @@ package body WisiToken_Grammar_Runtime is
                   null;
 
                elsif Kind = "elisp_face" then
-                  Data.User_Names.Faces.Append (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
+                  Data.Tokens.Faces.Append (Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True));
 
                elsif Kind = "elisp_indent" then
-                  Data.User_Names.Indents.Append
+                  Data.Tokens.Indents.Append
                     ((Name  => +Get_Child_Text (Data, Tree, Tokens (3), 1, Strip_Quotes => True),
                       Value => +Get_Child_Text (Data, Tree, Tokens (3), 2)));
 

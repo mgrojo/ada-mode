@@ -2,6 +2,9 @@ do sal release ../../org.stephe_leake.sal/notes.text
 
 (dvc-state-one ".")
 
+Makefile
+    update-wisitoken_grammar
+
 review Debian bugs
     (no Debian package yet)
     http://packages.qa.debian.org/o/wisitoken.html

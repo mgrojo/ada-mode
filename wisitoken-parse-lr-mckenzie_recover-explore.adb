@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Parse.LR.McKenzie_Recover.Parse;
+with WisiToken.Parse.LR.Parser;
 package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
    procedure Do_Shift
