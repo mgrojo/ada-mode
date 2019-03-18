@@ -17,8 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Unbounded;
-with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.BNF;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
@@ -26,10 +24,6 @@ package WisiToken_Grammar_Runtime is
 
    type Meta_Syntax is (BNF_Syntax, EBNF_Syntax);
    --  Syntax used in grammar file.
-
-   package String_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
-     (WisiToken.Token_Index, Ada.Strings.Unbounded.Unbounded_String,
-      Default_Element => Ada.Strings.Unbounded.Null_Unbounded_String);
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
@@ -48,7 +42,7 @@ package WisiToken_Grammar_Runtime is
 
       Phase : Natural := 0;
       --  Determines which actions Execute_Actions executes:
-      --  0 - meta declarations, like %meta_syntax
+      --  0 - meta declarations, like %meta_syntax, %if
       --  1 - everything.
 
       Meta_Syntax         : WisiToken_Grammar_Runtime.Meta_Syntax := BNF_Syntax;
@@ -62,6 +56,8 @@ package WisiToken_Grammar_Runtime is
       Rule_Count      : Integer := 0;
       Action_Count    : Integer := 0;
       Check_Count     : Integer := 0;
+
+      EBNF_Nodes : WisiToken.Syntax_Trees.Node_Sets.Vector;
 
       If_Lexer_Present  : Boolean := False;
       If_Parser_Present : Boolean := False;
@@ -78,6 +74,11 @@ package WisiToken_Grammar_Runtime is
       Terminals : in     WisiToken.Base_Token_Array_Access);
 
    overriding procedure Reset (Data : in out User_Data_Type);
+
+   overriding
+   procedure Initialize_Actions
+     (Data : in out User_Data_Type;
+      Tree : in WisiToken.Syntax_Trees.Tree'Class);
 
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
@@ -102,8 +103,8 @@ package WisiToken_Grammar_Runtime is
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
    procedure Rewrite_EBNF_To_BNF
-     (Tree      : in out WisiToken.Syntax_Trees.Tree;
-      User_Data : in out User_Data_Type);
+     (Tree : in out WisiToken.Syntax_Trees.Tree;
+      Data : in out User_Data_Type);
    --  Process EBNF nonterms, adding new nonterms as needed, resulting in
    --  a BNF tree. Descriptor is used for error messages.
    --

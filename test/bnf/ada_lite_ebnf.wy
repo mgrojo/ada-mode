@@ -2,6 +2,8 @@
 
 ;; This file was produced by copying ada_lite.wy, and changing it to
 ;; use EBNF syntax, getting closer to Ada LRM Annex P.
+;;
+;; See ada_lite_bnf.wy for translation to BNF for parser generator.
 
 %code copyright_license %{
 ;;  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
@@ -36,7 +38,6 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
-;; FIXME: support indirect left recursion, add Packrat_Gen
 
 %meta_syntax EBNF
 
@@ -102,12 +103,12 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 %start compilation_unit_list
 
-%conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation  on token IS
-%conflict SHIFT/REDUCE in state simple_return_statement, simple_return_statement  on token SEMICOLON
-%conflict SHIFT/REDUCE in state subprogram_body, subprogram_body  on token IS
+%conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS
+%conflict SHIFT/REDUCE in state simple_return_statement, simple_return_statement on token SEMICOLON
+%conflict SHIFT/REDUCE in state subprogram_body, subprogram_body on token IS
 
 ;;;; grammar rules
 
@@ -118,28 +119,14 @@ actual_parameter_part
 aspect_specification
   : [WITH association_list]
   ;
-;; rewritten to:
-;;
-;; $nonterminal_001 : WITH association_list ;
-;; aspect_specification
-;;   : $nonterminal_001
-;;   | ;; empty
-;;   ;
 
 assignment_statement
-  : name COLON_EQUAL expression_opt SEMICOLON
+  : name COLON_EQUAL [expression] SEMICOLON
   ;
 
 association
   : [(IDENTIFIER EQUAL_GREATER [expression]) | expression]
   ;
-;; rewritten to:
-;; association
-;;   : IDENTIFIER EQUAL_GREATER expression
-;;   | IDENTIFIER EQUAL_GREATER
-;;   | expression
-;;   | ;; empty
-;;   ;
 
 association_list
   : association {COMMA association}
@@ -163,7 +150,8 @@ block_label_opt
   | ;; empty; specified explicitly because action is different
   ;
 
-;; Must use 'identifier_opt' for token numbering in actions. FIXME: verifying error.
+;; Must use 'identifier_opt' for token numbering in actions. FIXME:
+;; this code should generate an error: move to test for errors.
 block_statement
   : block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END [IDENTIFIER] SEMICOLON
     %()%
@@ -184,17 +172,11 @@ body_stub :
   ;
 
 case_statement
-  : CASE [expression] IS case_statement_alternative_list END CASE SEMICOLON
+  : CASE [expression] IS {case_statement_alternative} END CASE SEMICOLON
   ;
 
 case_statement_alternative
   : WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements
-  ;
-
-;; We don't allow an empty list here; that leads to parallel parser
-;; explosion in nested case statements.
-case_statement_alternative_list
-  : {case_statement_alternative}
   ;
 
 compilation_unit

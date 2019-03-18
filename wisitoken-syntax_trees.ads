@@ -84,6 +84,12 @@ package WisiToken.Syntax_Trees is
    procedure Reset (User_Data : in out User_Data_Type) is null;
    --  Reset to start a new parse.
 
+   procedure Initialize_Actions
+     (User_Data : in out User_Data_Type;
+      Tree      : in     Syntax_Trees.Tree'Class)
+     is null;
+   --  Called by Execute_Actions, before processing the tree.
+
    procedure Lexer_To_Augmented
      (User_Data  : in out          User_Data_Type;
       Token      : in              Base_Token;
@@ -189,19 +195,17 @@ package WisiToken.Syntax_Trees is
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Node     : in     Valid_Node_Index;
+      New_ID : in WisiToken.Production_ID;
       Children : in     Valid_Node_Index_Array)
    with
      Pre => Tree.Flushed and
             (not Tree.Traversing) and
             Tree.Is_Nonterm (Node);
-   --  Set children of Node to Children, parent of Children to Node.
-
-   procedure Set_ID
-     (Tree   : in Syntax_Trees.Tree;
-      Node   : in Valid_Node_Index;
-      New_ID : in WisiToken.Production_ID)
-   with Pre => Tree.Flushed and
-               Tree.Is_Nonterm (Node);
+   --  Set ID of Node to New_ID, and children to Children; set parent of
+   --  Children to Node. Remove any Action.
+   --
+   --  New_ID is required, and Action removed, because this is most
+   --  likely a different production.
 
    procedure Set_Node_Identifier
      (Tree       : in Syntax_Trees.Tree;
@@ -393,6 +397,17 @@ package WisiToken.Syntax_Trees is
      return String;
    --  For debug and error messages.
 
+   function First_Index (Tree : in Syntax_Trees.Tree) return Node_Index;
+   function Last_Index (Tree : in Syntax_Trees.Tree) return Node_Index;
+
+   package Node_Sets is new SAL.Gen_Unbounded_Definite_Vectors (Valid_Node_Index, Boolean, Default_Element => False);
+
+   function Image
+     (Item     : in Node_Sets.Vector;
+      Inverted : in Boolean := False)
+     return String;
+   --  Simple list of numbers, for debugging
+
    procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
    with Pre => Tree.Flushed;
    --  To Text_IO.Current_Output, for debugging.
@@ -483,8 +498,12 @@ private
       Last_Shared_Node : Node_Index := Invalid_Node_Index;
       Branched_Nodes   : Node_Arrays.Vector;
       Flush            : Boolean    := False;
-      --  We maintain Last_Shared_Node when Flush is True, so subprograms
-      --  that have no reason to check Flush can rely on Last_Shared_Node.
+      --  If Flush is True, all nodes are in Shared_Tree. Otherwise, all
+      --  greater than Last_Shared_Node are in Branched_Nodes.
+      --
+      --  We maintain Last_Shared_Node when Flush is True or False, so
+      --  subprograms that have no reason to check Flush can rely on
+      --  Last_Shared_Node.
 
       Root : Node_Index := Invalid_Node_Index;
    end record with

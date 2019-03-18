@@ -1047,6 +1047,7 @@ package body WisiToken.Parse.LR.Parser is
                end loop;
             end if;
 
+            Parser.User_Data.Initialize_Actions (Parser_State.Tree);
             Parser_State.Tree.Process_Tree (Process_Node'Access);
          end;
       end if;

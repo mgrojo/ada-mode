@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -110,7 +110,7 @@ package body Wisitoken_Grammar_Actions is
    is
       pragma Unreferenced (Nonterm);
    begin
-      Add_EBNF (User_Data, Tree, Tokens);
+      Check_EBNF (User_Data, Tree, Tokens);
    end rhs_item_4;
 
    procedure rhs_item_5
@@ -121,7 +121,7 @@ package body Wisitoken_Grammar_Actions is
    is
       pragma Unreferenced (Nonterm);
    begin
-      Add_EBNF (User_Data, Tree, Tokens);
+      Check_EBNF (User_Data, Tree, Tokens);
    end rhs_item_5;
 
    procedure rhs_item_6
@@ -132,7 +132,7 @@ package body Wisitoken_Grammar_Actions is
    is
       pragma Unreferenced (Nonterm);
    begin
-      Add_EBNF (User_Data, Tree, Tokens);
+      Check_EBNF (User_Data, Tree, Tokens);
    end rhs_item_6;
 
 end Wisitoken_Grammar_Actions;

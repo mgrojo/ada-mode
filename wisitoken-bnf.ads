@@ -110,6 +110,10 @@ package WisiToken.BNF is
 
    package String_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
+   package String_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (WisiToken.Token_Index, Ada.Strings.Unbounded.Unbounded_String,
+      Default_Element => Ada.Strings.Unbounded.Null_Unbounded_String);
+
    type Language_Param_Type is record
       --  Set by grammar file declarations or command line options. Error
       --  recover parameters are in McKenzie_Recover_Param_Type below.
@@ -257,7 +261,7 @@ package WisiToken.BNF is
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
 
-      Virtual_Identifiers : String_Arrays.Vector;
+      Virtual_Nonterminals : String_Arrays.Vector;
       --  Nonterminals introduced by tree editing.
 
       --  The following are specified in grammar file declarations and used

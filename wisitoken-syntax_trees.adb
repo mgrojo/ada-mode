@@ -503,6 +503,11 @@ package body WisiToken.Syntax_Trees is
           else Tree.Branched_Nodes (Node).Parent));
    end Find_Sibling;
 
+   function First_Index (Tree : in Syntax_Trees.Tree) return Node_Index
+   is begin
+      return Tree.Shared_Tree.Nodes.First_Index;
+   end First_Index;
+
    procedure Flush (Tree : in out Syntax_Trees.Tree)
    is begin
       --  This is the opposite of Move_Branch_Point
@@ -733,6 +738,22 @@ package body WisiToken.Syntax_Trees is
       return -Result;
    end Image;
 
+   function Image
+     (Item     : in Node_Sets.Vector;
+      Inverted : in Boolean := False)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+   begin
+      for I in Item.First_Index .. Item.Last_Index loop
+         if (if Inverted then not Item (I) else Item (I)) then
+            Result := Result & Node_Index'Image (I);
+         end if;
+      end loop;
+      return -Result;
+   end Image;
+
    procedure Initialize
      (Branched_Tree : in out Syntax_Trees.Tree;
       Shared_Tree   : in     Base_Tree_Access;
@@ -803,6 +824,14 @@ package body WisiToken.Syntax_Trees is
          return Tree.Branched_Nodes (Node).Label;
       end if;
    end Label;
+
+   function Last_Index (Tree : in Syntax_Trees.Tree) return Node_Index
+   is begin
+      return
+        (if Tree.Flush
+         then Tree.Shared_Tree.Nodes.Last_Index
+         else Tree.Branched_Nodes.Last_Index);
+   end Last_Index;
 
    function Min (Item : in Valid_Node_Index_Array) return Valid_Node_Index
    is
@@ -893,12 +922,23 @@ package body WisiToken.Syntax_Trees is
    procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
    is
       use Ada.Text_IO;
+
+      Node_Printed : Node_Sets.Vector;
+
       procedure Print_Node (Node : in Valid_Node_Index; Level : in Integer)
       is
          function Image is new SAL.Generic_Decimal_Image (Node_Index);
 
          N : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
       begin
+         if Node_Printed (Node) then
+            --  This does not catch all possible tree edit errors, but it does
+            --  catch circles.
+            raise SAL.Programmer_Error with "invalid tree" & Node_Index'Image (Node);
+         else
+            Node_Printed (Node) := True;
+         end if;
+
          Put (Image (Node, Width => 4) & ": ");
          for I in 1 .. Level loop
             Put ("| ");
@@ -913,6 +953,7 @@ package body WisiToken.Syntax_Trees is
       end Print_Node;
 
    begin
+      Node_Printed.Set_First_Last (Tree.First_Index, Tree.Last_Index);
       Print_Node (Tree.Root, 0);
    end Print_Tree;
 
@@ -991,11 +1032,7 @@ package body WisiToken.Syntax_Trees is
          raise SAL.Programmer_Error with "Tree.Root not set";
       end if;
       Tree.Shared_Tree.Traversing := True;
-      if Tree.Flush then
-         Process_Tree (Tree, Tree.Root, Process_Node);
-      else
-         Process_Tree (Tree, Tree.Root, Process_Node);
-      end if;
+      Process_Tree (Tree, Tree.Root, Process_Node);
       Tree.Shared_Tree.Traversing := False;
    exception
    when others =>
@@ -1014,30 +1051,22 @@ package body WisiToken.Syntax_Trees is
          else Tree.Branched_Nodes (Node).RHS_Index);
    end RHS_Index;
 
-   procedure Set_ID
-     (Tree   : in Syntax_Trees.Tree;
-      Node   : in Valid_Node_Index;
-      New_ID : in WisiToken.Production_ID)
-   is
-      The_Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Node);
-   begin
-      The_Node.ID        := New_ID.LHS;
-      The_Node.RHS_Index := New_ID.RHS;
-
-      if The_Node.Label = Nonterm then
-         --  Action was from the original ID; it is now wrong.
-         The_Node.Action := null;
-      end if;
-   end Set_ID;
-
    procedure Set_Node_Identifier
      (Tree       : in Syntax_Trees.Tree;
       Node       : in Valid_Node_Index;
       ID         : in Token_ID;
       Identifier : in Token_Index)
-   is begin
+   is
+      Current : constant Syntax_Trees.Node := Tree.Shared_Tree.Nodes (Node);
+   begin
       Tree.Shared_Tree.Nodes.Replace_Element
-        (Node, (Label => Virtual_Identifier, ID => ID, Identifier => Identifier, others => <>));
+        (Node,
+         (Label       => Virtual_Identifier,
+          ID          => ID,
+          Identifier  => Identifier,
+          Byte_Region => Current.Byte_Region,
+          Parent      => Current.Parent,
+          State       => Unknown_State));
    end Set_Node_Identifier;
 
    procedure Set_Root (Tree : in out Syntax_Trees.Tree; Root : in Valid_Node_Index)
@@ -1172,6 +1201,7 @@ package body WisiToken.Syntax_Trees is
    procedure Set_Children
      (Tree     : in out Syntax_Trees.Tree;
       Node     : in     Valid_Node_Index;
+      New_ID   : in     WisiToken.Production_ID;
       Children : in     Valid_Node_Index_Array)
    is
       use all type SAL.Base_Peek_Type;
@@ -1179,6 +1209,10 @@ package body WisiToken.Syntax_Trees is
 
       J : Positive_Index_Type := Positive_Index_Type'First;
    begin
+      Parent_Node.ID        := New_ID.LHS;
+      Parent_Node.RHS_Index := New_ID.RHS;
+      Parent_Node.Action    := null;
+
       Parent_Node.Children.Set_Length (Children'Length);
       for I in Children'Range loop
          --  We don't update Min/Max_terminal_index; we assume Set_Children is

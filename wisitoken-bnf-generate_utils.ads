@@ -3,7 +3,7 @@
 --  Utilities for translating input file structures to WisiToken
 --  structures needed for LALR.Generate.
 --
---  Copyright (C) 2014, 2015, 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2014, 2015, 2017 - 2019 Free Software Foundation, Inc.
 --
 --  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -129,7 +129,7 @@ package WisiToken.BNF.Generate_Utils is
    --  Return the token value from the .wy file:
    --  Keywords: Keywords (i).value
    --  Tokens  : Tokens (i).Tokens (j).Value
-   --  Rules   : "" - they have no Value
+   --  Rules   : empty string (they have no Value)
 
    function To_Conflicts
      (Data             : aliased in out Generate_Data;
@@ -161,16 +161,18 @@ package WisiToken.BNF.Generate_Utils is
 private
 
    type Token_Cursor_Kind is
-     (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
+     (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal,
+      Virtual_Nonterminal, Done);
 
    type Token_Cursor is record
-      Data        : not null access constant Generate_Data;
-      Kind        : Token_Cursor_Kind;
-      ID          : Token_ID;
-      Token_Kind  : WisiToken.BNF.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
-      Token_Item  : String_Pair_Lists.Cursor;
-      Keyword     : String_Pair_Lists.Cursor;
-      Nonterminal : Rule_Lists.Cursor;
+      Data                  : not null access constant Generate_Data;
+      Kind                  : Token_Cursor_Kind;
+      ID                    : Token_ID;
+      Token_Kind            : WisiToken.BNF.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
+      Token_Item            : String_Pair_Lists.Cursor;
+      Keyword               : String_Pair_Lists.Cursor;
+      Nonterminal           : Rule_Lists.Cursor;
+      Virtual_Nonterm_Index : Base_Token_Index;
    end record;
 
 end WisiToken.BNF.Generate_Utils;

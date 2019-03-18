@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c PROCESS wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -29,7 +29,7 @@ package Wisitoken_Grammar_Actions is
       Last_Terminal                 => 34,
       First_Nonterminal             => 35,
       Last_Nonterminal              => 52,
-      EOF_ID                        => 34,
+      EOI_ID                        => 34,
       Accept_ID                     => 35,
       Case_Insensitive              => False,
       New_Line_ID                   => 1,

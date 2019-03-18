@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -56,7 +56,6 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (0), 41, 4);
             Add_Goto (Table.States (0), 51, 5);
             Add_Goto (Table.States (0), 52, 6);
-            Set_Minimal_Action (Table.States (0).Minimal_Complete_Actions, (1 => (Shift, 31, 2)));
             Add_Action (Table.States (1), 3, 7);
             Add_Action (Table.States (1), 4, 8);
             Add_Action (Table.States (1), 5, 9);
@@ -66,17 +65,11 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (1), 31, 13);
             Add_Error (Table.States (1));
             Add_Goto (Table.States (1), 37, 14);
-            Set_Minimal_Action (Table.States (1).Minimal_Complete_Actions, ((Shift, 3, 7), (Shift, 4, 8), (Shift, 5,
-            9), (Shift, 6, 10), (Shift, 31, 13)));
             Add_Action (Table.States (2), 13, 15);
             Add_Error (Table.States (2));
-            Set_Minimal_Action (Table.States (2).Minimal_Complete_Actions, (1 => (Shift, 13, 15)));
             Add_Action (Table.States (3), (21, 31, 34), (51, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (3).Minimal_Complete_Actions, (1 => (Reduce, 51, 1)));
             Add_Action (Table.States (4), (21, 31, 34), (51, 1), 1, null, null);
-            Set_Minimal_Action (Table.States (4).Minimal_Complete_Actions, (1 => (Reduce, 51, 1)));
             Add_Action (Table.States (5), (21, 31, 34), (52, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (5).Minimal_Complete_Actions, (1 => (Reduce, 52, 1)));
             Add_Action (Table.States (6), 21, 1);
             Add_Action (Table.States (6), 31, 2);
             Add_Action (Table.States (6), 34, Accept_It, (35, 0), 1, null, null);
@@ -87,21 +80,15 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (7), 31, 17);
             Add_Error (Table.States (7));
             Add_Goto (Table.States (7), 38, 18);
-            Set_Minimal_Action (Table.States (7).Minimal_Complete_Actions, (1 => (Shift, 31, 17)));
             Add_Action (Table.States (8), 5, 19);
             Add_Error (Table.States (8));
-            Set_Minimal_Action (Table.States (8).Minimal_Complete_Actions, (1 => (Shift, 5, 19)));
             Add_Action (Table.States (9), 31, 20);
             Add_Error (Table.States (9));
-            Set_Minimal_Action (Table.States (9).Minimal_Complete_Actions, (1 => (Shift, 31, 20)));
             Add_Action (Table.States (10), (1 =>  31), (37, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (10).Minimal_Complete_Actions, (1 => (Reduce, 37, 1)));
             Add_Action (Table.States (11), 20, 21);
             Add_Error (Table.States (11));
-            Set_Minimal_Action (Table.States (11).Minimal_Complete_Actions, (1 => (Shift, 20, 21)));
             Add_Action (Table.States (12), 20, 22);
             Add_Error (Table.States (12));
-            Set_Minimal_Action (Table.States (12).Minimal_Complete_Actions, (1 => (Shift, 20, 22)));
             Add_Action (Table.States (13), 8, 23);
             Add_Action (Table.States (13), 10, 24);
             Add_Action (Table.States (13), 14, 25);
@@ -116,10 +103,8 @@ package body Wisitoken_Grammar_Main is
             Add_Error (Table.States (13));
             Add_Goto (Table.States (13), 39, 32);
             Add_Goto (Table.States (13), 40, 33);
-            Set_Minimal_Action (Table.States (13).Minimal_Complete_Actions, (1 => (Reduce, 36, 2)));
             Add_Action (Table.States (14), 31, 34);
             Add_Error (Table.States (14));
-            Set_Minimal_Action (Table.States (14).Minimal_Complete_Actions, (1 => (Shift, 31, 34)));
             Add_Action (Table.States (15), 12, Reduce, (44, 0), 0, null, null);
             Add_Action (Table.States (15), 17, 35);
             Add_Action (Table.States (15), 18, 36);
@@ -138,44 +123,27 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (15), 47, 46);
             Add_Goto (Table.States (15), 48, 47);
             Add_Goto (Table.States (15), 49, 48);
-            Set_Minimal_Action (Table.States (15).Minimal_Complete_Actions, (1 => (Reduce, 43, 0)));
             Add_Action (Table.States (16), (21, 31, 34), (52, 1), 2, null, null);
-            Set_Minimal_Action (Table.States (16).Minimal_Complete_Actions, (1 => (Reduce, 52, 2)));
             Add_Action (Table.States (17), (9, 31), (38, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (17).Minimal_Complete_Actions, (1 => (Reduce, 38, 1)));
             Add_Action (Table.States (18), 9, 49);
             Add_Action (Table.States (18), 31, 50);
             Add_Error (Table.States (18));
-            Set_Minimal_Action (Table.States (18).Minimal_Complete_Actions, (1 => (Shift, 9, 49)));
             Add_Action (Table.States (19), (21, 31, 34), (36, 5), 3, declaration_5'Access, null);
-            Set_Minimal_Action (Table.States (19).Minimal_Complete_Actions, (1 => (Reduce, 36, 3)));
             Add_Action (Table.States (20), 15, 51);
             Add_Error (Table.States (20));
-            Set_Minimal_Action (Table.States (20).Minimal_Complete_Actions, (1 => (Shift, 15, 51)));
             Add_Action (Table.States (21), 31, 52);
             Add_Error (Table.States (21));
-            Set_Minimal_Action (Table.States (21).Minimal_Complete_Actions, (1 => (Shift, 31, 52)));
             Add_Action (Table.States (22), 31, 53);
             Add_Error (Table.States (22));
-            Set_Minimal_Action (Table.States (22).Minimal_Complete_Actions, (1 => (Shift, 31, 53)));
             Add_Action (Table.States (23), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 8), 1, null, null);
-            Set_Minimal_Action (Table.States (23).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (24), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 4), 1, null, null);
-            Set_Minimal_Action (Table.States (24).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (25), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (25).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (26), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 2), 1, null, null);
-            Set_Minimal_Action (Table.States (26).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (27), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 5), 1, null, null);
-            Set_Minimal_Action (Table.States (27).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (28), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 3), 1, null, null);
-            Set_Minimal_Action (Table.States (28).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (29), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 1), 1, null, null);
-            Set_Minimal_Action (Table.States (29).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (30), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 6), 1, null, null);
-            Set_Minimal_Action (Table.States (30).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (31), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (40, 7), 1, null, null);
-            Set_Minimal_Action (Table.States (31).Minimal_Complete_Actions, (1 => (Reduce, 40, 1)));
             Add_Action (Table.States (32), 8, 23);
             Add_Action (Table.States (32), 10, 24);
             Add_Action (Table.States (32), 14, 25);
@@ -189,9 +157,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (32), 34, Reduce, (36, 2), 3, declaration_2'Access, null);
             Add_Error (Table.States (32));
             Add_Goto (Table.States (32), 40, 54);
-            Set_Minimal_Action (Table.States (32).Minimal_Complete_Actions, (1 => (Reduce, 36, 3)));
             Add_Action (Table.States (33), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (39, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (33).Minimal_Complete_Actions, (1 => (Reduce, 39, 1)));
             Add_Action (Table.States (34), 8, 23);
             Add_Action (Table.States (34), 10, 24);
             Add_Action (Table.States (34), 14, 25);
@@ -204,7 +170,6 @@ package body Wisitoken_Grammar_Main is
             Add_Error (Table.States (34));
             Add_Goto (Table.States (34), 39, 55);
             Add_Goto (Table.States (34), 40, 33);
-            Set_Minimal_Action (Table.States (34).Minimal_Complete_Actions, (1 => (Shift, 8, 23)));
             Add_Action (Table.States (35), 17, 35);
             Add_Action (Table.States (35), 18, 36);
             Add_Action (Table.States (35), 19, 37);
@@ -218,7 +183,6 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (35), 48, 47);
             Add_Goto (Table.States (35), 49, 48);
             Add_Goto (Table.States (35), 50, 57);
-            Set_Minimal_Action (Table.States (35).Minimal_Complete_Actions, (1 => (Shift, 33, 41)));
             Add_Action (Table.States (36), 17, 35);
             Add_Action (Table.States (36), 18, 36);
             Add_Action (Table.States (36), 19, 37);
@@ -232,7 +196,6 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (36), 48, 47);
             Add_Goto (Table.States (36), 49, 48);
             Add_Goto (Table.States (36), 50, 58);
-            Set_Minimal_Action (Table.States (36).Minimal_Complete_Actions, (1 => (Shift, 33, 41)));
             Add_Action (Table.States (37), 17, 35);
             Add_Action (Table.States (37), 18, 36);
             Add_Action (Table.States (37), 19, 37);
@@ -246,14 +209,11 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (37), 48, 47);
             Add_Goto (Table.States (37), 49, 48);
             Add_Goto (Table.States (37), 50, 59);
-            Set_Minimal_Action (Table.States (37).Minimal_Complete_Actions, (1 => (Shift, 33, 41)));
             Add_Action (Table.States (38), 31, 60);
             Add_Error (Table.States (38));
-            Set_Minimal_Action (Table.States (38).Minimal_Complete_Actions, (1 => (Shift, 31, 60)));
             Add_Action (Table.States (39), 4, 61);
             Add_Action (Table.States (39), 5, 62);
             Add_Error (Table.States (39));
-            Set_Minimal_Action (Table.States (39).Minimal_Complete_Actions, ((Shift, 4, 61), (Shift, 5, 62)));
             Add_Action (Table.States (40), 11, Reduce, (46, 2), 1, null, null);
             Add_Action (Table.States (40), 12, Reduce, (46, 2), 1, null, null);
             Add_Action (Table.States (40), 15, 63);
@@ -270,10 +230,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (40), 33, Reduce, (46, 2), 1, null, null);
             Add_Action (Table.States (40), 34, Reduce, (46, 2), 1, null, null);
             Add_Error (Table.States (40));
-            Set_Minimal_Action (Table.States (40).Minimal_Complete_Actions, (1 => (Reduce, 46, 1)));
             Add_Action (Table.States (41), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (46, 3), 1, null,
             null);
-            Set_Minimal_Action (Table.States (41).Minimal_Complete_Actions, (1 => (Reduce, 46, 1)));
             Add_Action (Table.States (42), 12, 64);
             Add_Action (Table.States (42), 21, Reduce, (42, 1), 0, null, null);
             Add_Action (Table.States (42), 27, 65);
@@ -281,9 +239,7 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (42), 34, Reduce, (42, 1), 0, null, null);
             Add_Error (Table.States (42));
             Add_Goto (Table.States (42), 42, 66);
-            Set_Minimal_Action (Table.States (42).Minimal_Complete_Actions, (1 => (Reduce, 42, 0)));
             Add_Action (Table.States (43), (12, 21, 27, 31, 34), (43, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (43).Minimal_Complete_Actions, (1 => (Reduce, 43, 1)));
             Add_Action (Table.States (44), 11, 67);
             Add_Action (Table.States (44), 12, Reduce, (44, 1), 1, null, null);
             Add_Action (Table.States (44), 17, 35);
@@ -300,34 +256,23 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (44), 47, 46);
             Add_Goto (Table.States (44), 48, 47);
             Add_Goto (Table.States (44), 49, 48);
-            Set_Minimal_Action (Table.States (44).Minimal_Complete_Actions, (1 => (Reduce, 44, 1)));
             Add_Action (Table.States (45), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (45, 0), 1, null,
             null);
-            Set_Minimal_Action (Table.States (45).Minimal_Complete_Actions, (1 => (Reduce, 45, 1)));
             Add_Action (Table.States (46), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (46, 6), 1,
             rhs_item_6'Access, null);
-            Set_Minimal_Action (Table.States (46).Minimal_Complete_Actions, (1 => (Reduce, 46, 1)));
             Add_Action (Table.States (47), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (46, 4), 1,
             rhs_item_4'Access, null);
-            Set_Minimal_Action (Table.States (47).Minimal_Complete_Actions, (1 => (Reduce, 46, 1)));
             Add_Action (Table.States (48), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (46, 5), 1,
             rhs_item_5'Access, null);
-            Set_Minimal_Action (Table.States (48).Minimal_Complete_Actions, (1 => (Reduce, 46, 1)));
             Add_Action (Table.States (49), (21, 31, 34), (36, 1), 4, declaration_1'Access, null);
-            Set_Minimal_Action (Table.States (49).Minimal_Complete_Actions, (1 => (Reduce, 36, 4)));
             Add_Action (Table.States (50), (9, 31), (38, 1), 2, null, null);
-            Set_Minimal_Action (Table.States (50).Minimal_Complete_Actions, (1 => (Reduce, 38, 2)));
             Add_Action (Table.States (51), 31, 69);
             Add_Error (Table.States (51));
-            Set_Minimal_Action (Table.States (51).Minimal_Complete_Actions, (1 => (Shift, 31, 69)));
             Add_Action (Table.States (52), 16, 70);
             Add_Error (Table.States (52));
-            Set_Minimal_Action (Table.States (52).Minimal_Complete_Actions, (1 => (Shift, 16, 70)));
             Add_Action (Table.States (53), 16, 71);
             Add_Error (Table.States (53));
-            Set_Minimal_Action (Table.States (53).Minimal_Complete_Actions, (1 => (Shift, 16, 71)));
             Add_Action (Table.States (54), (8, 10, 14, 15, 21, 28, 30, 31, 32, 33, 34), (39, 1), 2, null, null);
-            Set_Minimal_Action (Table.States (54).Minimal_Complete_Actions, (1 => (Reduce, 39, 2)));
             Add_Action (Table.States (55), 8, 23);
             Add_Action (Table.States (55), 10, 24);
             Add_Action (Table.States (55), 14, 25);
@@ -341,7 +286,6 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (55), 34, Reduce, (36, 0), 4, declaration_0'Access, null);
             Add_Error (Table.States (55));
             Add_Goto (Table.States (55), 40, 54);
-            Set_Minimal_Action (Table.States (55).Minimal_Complete_Actions, (1 => (Reduce, 36, 4)));
             Add_Action (Table.States (56), 12, Reduce, (50, 0), 1, null, null);
             Add_Action (Table.States (56), 17, 35);
             Add_Action (Table.States (56), 18, 36);
@@ -357,31 +301,23 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (56), 47, 46);
             Add_Goto (Table.States (56), 48, 47);
             Add_Goto (Table.States (56), 49, 48);
-            Set_Minimal_Action (Table.States (56).Minimal_Complete_Actions, (1 => (Reduce, 50, 1)));
             Add_Action (Table.States (57), 12, 72);
             Add_Action (Table.States (57), 24, 73);
             Add_Error (Table.States (57));
-            Set_Minimal_Action (Table.States (57).Minimal_Complete_Actions, (1 => (Shift, 24, 73)));
             Add_Action (Table.States (58), 12, 72);
             Add_Action (Table.States (58), 25, 74);
             Add_Error (Table.States (58));
-            Set_Minimal_Action (Table.States (58).Minimal_Complete_Actions, (1 => (Shift, 25, 74)));
             Add_Action (Table.States (59), 12, 72);
             Add_Action (Table.States (59), 26, 75);
             Add_Error (Table.States (59));
-            Set_Minimal_Action (Table.States (59).Minimal_Complete_Actions, (1 => (Shift, 26, 75)));
             Add_Action (Table.States (60), 15, 76);
             Add_Error (Table.States (60));
-            Set_Minimal_Action (Table.States (60).Minimal_Complete_Actions, (1 => (Shift, 15, 76)));
             Add_Action (Table.States (61), 5, 77);
             Add_Error (Table.States (61));
-            Set_Minimal_Action (Table.States (61).Minimal_Complete_Actions, (1 => (Shift, 5, 77)));
             Add_Action (Table.States (62), 31, 78);
             Add_Error (Table.States (62));
-            Set_Minimal_Action (Table.States (62).Minimal_Complete_Actions, (1 => (Shift, 31, 78)));
             Add_Action (Table.States (63), 31, 79);
             Add_Error (Table.States (63));
-            Set_Minimal_Action (Table.States (63).Minimal_Complete_Actions, (1 => (Shift, 31, 79)));
             Add_Action (Table.States (64), 12, Reduce, (44, 0), 0, null, null);
             Add_Action (Table.States (64), 17, 35);
             Add_Action (Table.States (64), 18, 36);
@@ -399,11 +335,8 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (64), 47, 46);
             Add_Goto (Table.States (64), 48, 47);
             Add_Goto (Table.States (64), 49, 48);
-            Set_Minimal_Action (Table.States (64).Minimal_Complete_Actions, (1 => (Reduce, 44, 0)));
             Add_Action (Table.States (65), (21, 31, 34), (42, 0), 1, null, null);
-            Set_Minimal_Action (Table.States (65).Minimal_Complete_Actions, (1 => (Reduce, 42, 1)));
             Add_Action (Table.States (66), (21, 31, 34), (41, 0), 4, nonterminal_0'Access, null);
-            Set_Minimal_Action (Table.States (66).Minimal_Complete_Actions, (1 => (Reduce, 41, 4)));
             Add_Action (Table.States (67), 11, 81);
             Add_Action (Table.States (67), 12, Reduce, (44, 2), 2, null, null);
             Add_Action (Table.States (67), 21, Reduce, (44, 2), 2, null, null);
@@ -411,16 +344,11 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (67), 31, Reduce, (44, 2), 2, null, null);
             Add_Action (Table.States (67), 34, Reduce, (44, 2), 2, null, null);
             Add_Error (Table.States (67));
-            Set_Minimal_Action (Table.States (67).Minimal_Complete_Actions, (1 => (Reduce, 44, 2)));
             Add_Action (Table.States (68), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (45, 1), 2, null,
             null);
-            Set_Minimal_Action (Table.States (68).Minimal_Complete_Actions, (1 => (Reduce, 45, 2)));
             Add_Action (Table.States (69), (21, 31, 34), (36, 4), 5, declaration_4'Access, null);
-            Set_Minimal_Action (Table.States (69).Minimal_Complete_Actions, (1 => (Reduce, 36, 5)));
             Add_Action (Table.States (70), (1 =>  31), (37, 1), 4, null, null);
-            Set_Minimal_Action (Table.States (70).Minimal_Complete_Actions, (1 => (Reduce, 37, 4)));
             Add_Action (Table.States (71), (1 =>  31), (37, 2), 4, null, null);
-            Set_Minimal_Action (Table.States (71).Minimal_Complete_Actions, (1 => (Reduce, 37, 4)));
             Add_Action (Table.States (72), 17, 35);
             Add_Action (Table.States (72), 18, 36);
             Add_Action (Table.States (72), 19, 37);
@@ -433,13 +361,10 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (72), 47, 46);
             Add_Goto (Table.States (72), 48, 47);
             Add_Goto (Table.States (72), 49, 48);
-            Set_Minimal_Action (Table.States (72).Minimal_Complete_Actions, (1 => (Shift, 33, 41)));
             Add_Action (Table.States (73), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (49, 0), 3, null,
             null);
-            Set_Minimal_Action (Table.States (73).Minimal_Complete_Actions, (1 => (Reduce, 49, 3)));
             Add_Action (Table.States (74), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (48, 0), 3, null,
             null);
-            Set_Minimal_Action (Table.States (74).Minimal_Complete_Actions, (1 => (Reduce, 48, 3)));
             Add_Action (Table.States (75), 11, Reduce, (47, 0), 3, null, null);
             Add_Action (Table.States (75), 12, Reduce, (47, 0), 3, null, null);
             Add_Action (Table.States (75), 17, Reduce, (47, 0), 3, null, null);
@@ -458,23 +383,15 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (75), 33, Reduce, (47, 0), 3, null, null);
             Add_Action (Table.States (75), 34, Reduce, (47, 0), 3, null, null);
             Add_Error (Table.States (75));
-            Set_Minimal_Action (Table.States (75).Minimal_Complete_Actions, ((Shift, 22, 83), (Shift, 23, 84), (Shift,
-            29, 85), (Reduce, 47, 3)));
             Add_Action (Table.States (76), 31, 86);
             Add_Error (Table.States (76));
-            Set_Minimal_Action (Table.States (76).Minimal_Complete_Actions, (1 => (Shift, 31, 86)));
             Add_Action (Table.States (77), (12, 21, 27, 31, 34), (44, 5), 3, null, null);
-            Set_Minimal_Action (Table.States (77).Minimal_Complete_Actions, (1 => (Reduce, 44, 3)));
             Add_Action (Table.States (78), 15, 87);
             Add_Error (Table.States (78));
-            Set_Minimal_Action (Table.States (78).Minimal_Complete_Actions, (1 => (Shift, 15, 87)));
             Add_Action (Table.States (79), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (46, 0), 3, null,
             null);
-            Set_Minimal_Action (Table.States (79).Minimal_Complete_Actions, (1 => (Reduce, 46, 3)));
             Add_Action (Table.States (80), (12, 21, 27, 31, 34), (43, 1), 3, null, null);
-            Set_Minimal_Action (Table.States (80).Minimal_Complete_Actions, (1 => (Reduce, 43, 3)));
             Add_Action (Table.States (81), (12, 21, 27, 31, 34), (44, 3), 3, null, null);
-            Set_Minimal_Action (Table.States (81).Minimal_Complete_Actions, (1 => (Reduce, 44, 3)));
             Add_Action (Table.States (82), 12, Reduce, (50, 1), 3, null, null);
             Add_Action (Table.States (82), 17, 35);
             Add_Action (Table.States (82), 18, 36);
@@ -490,27 +407,19 @@ package body Wisitoken_Grammar_Main is
             Add_Goto (Table.States (82), 47, 46);
             Add_Goto (Table.States (82), 48, 47);
             Add_Goto (Table.States (82), 49, 48);
-            Set_Minimal_Action (Table.States (82).Minimal_Complete_Actions, (1 => (Reduce, 50, 3)));
             Add_Action (Table.States (83), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (49, 1), 4, null,
             null);
-            Set_Minimal_Action (Table.States (83).Minimal_Complete_Actions, (1 => (Reduce, 49, 4)));
             Add_Action (Table.States (84), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (48, 1), 4, null,
             null);
-            Set_Minimal_Action (Table.States (84).Minimal_Complete_Actions, (1 => (Reduce, 48, 4)));
             Add_Action (Table.States (85), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (49, 2), 4, null,
             null);
-            Set_Minimal_Action (Table.States (85).Minimal_Complete_Actions, (1 => (Reduce, 49, 4)));
             Add_Action (Table.States (86), 16, 88);
             Add_Error (Table.States (86));
-            Set_Minimal_Action (Table.States (86).Minimal_Complete_Actions, (1 => (Shift, 16, 88)));
             Add_Action (Table.States (87), 31, 89);
             Add_Error (Table.States (87));
-            Set_Minimal_Action (Table.States (87).Minimal_Complete_Actions, (1 => (Shift, 31, 89)));
             Add_Action (Table.States (88), (11, 12, 17, 18, 19, 20, 21, 24, 25, 26, 27, 31, 33, 34), (46, 1), 5, null,
             null);
-            Set_Minimal_Action (Table.States (88).Minimal_Complete_Actions, (1 => (Reduce, 46, 5)));
             Add_Action (Table.States (89), (12, 21, 27, 31, 34), (44, 4), 5, null, null);
-            Set_Minimal_Action (Table.States (89).Minimal_Complete_Actions, (1 => (Reduce, 44, 5)));
          end Subr_1;
       begin
          Subr_1;

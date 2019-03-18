@@ -9,7 +9,7 @@ org.wisitoken.stephe-2 - add EBNF syntax to .wy parser
 '((xmtn . "/Projects/org.stephe_leake.makerules")
   (xmtn . "/Projects/org.stephe_leake.aunit_ext")
   (xmtn . "/Projects/org.stephe_leake.sal.stephe-1")
-  (xmtn . "/Projects/org.wisitoken.stephe-1")))
+  (xmtn . "/Projects/org.wisitoken.stephe-2")))
 
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal" . "../org.stephe_leake.sal.stephe-1")
@@ -21,22 +21,28 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
-test_mckenzie use lr-parser-gen_aunit
-
 add EBNF
     make one
-        print translated source; diff against known good
-        need rhs_group_item_ID
+        build/ada_lite_bnf.wy
+
+        fix "not translated"
+            rhs_multiple_item_ID
+            process_node changes tree struture; screws up loop in Process_Node 'when others'
+            record list of ebnf nodes in Check_EBNF during phase one
 
     ada-lite-ebnf.wy
         pure EBNF for nonterms first
             after translate to bnf with new nonterms, substitute new nonterms into grammar, compare to ada-lite.wy
         replace %keywords with literals
 
+    lots of [expression], each generate new nonterm => lots of conflicts?
+        unify them
 
     add ANTLR syntax for java
 
     add ? syntax for Python
+
+test_mckenzie use lr-parser-gen_aunit
 
 recover still hanging on exception in worker_task
     but get no output in *Ada_wisi_parse*, not even parse command
