@@ -311,6 +311,9 @@ begin
          Grammar_Parser.Execute_Actions; --  Does phase 0; meta declarations (ie meta_syntax)
 
          case Input_Data.Meta_Syntax is
+         when Unknown =>
+            Input_Data.Meta_Syntax := BNF_Syntax;
+
          when BNF_Syntax =>
             null;
 
@@ -323,6 +326,7 @@ begin
                   if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line ("EBNF tree:");
                      Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
+                     Ada.Text_IO.New_Line;
                   end if;
                   WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF (Tree, Input_Data);
                   if Trace_Generate > Detail then

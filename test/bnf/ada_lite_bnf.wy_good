@@ -1,23 +1,284 @@
-$nonterminal_005_opt
+nonterminal_058_list
+  : nonterminal_059
+  | nonterminal_058_list nonterminal_059
+  ;
+
+nonterminal_059
+  : multiplying_operator factor
+  ;
+
+nonterminal_057_opt
+  : name
+  | ;; empty
+  ;
+
+nonterminal_056_opt
+  : aspect_specification
+  | ;; empty
+  ;
+
+nonterminal_055_opt
   : expression
   | ;; empty
   ;
-$nonterminal_004
-  : IDENTIFIER EQUAL_GREATER $nonterminal_005_opt
+
+nonterminal_053_list
+  : nonterminal_054
+  | nonterminal_053_list nonterminal_054
   ;
-$nonterminal_003_opt
-  : $nonterminal_004
+
+nonterminal_054
+  : binary_adding_operator term
+  ;
+
+nonterminal_052_opt
+  : unary_adding_operator
+  | ;; empty
+  ;
+
+nonterminal_050_list
+  : nonterminal_051
+  | nonterminal_050_list nonterminal_051
+  ;
+
+nonterminal_051
+  : statement
+  ;
+
+nonterminal_049_opt
+  : relational_operator simple_expression
+  | ;; empty
+  ;
+
+nonterminal_048_opt
+  : formal_part
+  | ;; empty
+  ;
+
+nonterminal_047_opt
+  : expression
+  | ;; empty
+  ;
+
+nonterminal_046_opt
+  : COLON_EQUAL nonterminal_045_opt
+  | ;; empty
+  ;
+
+nonterminal_045_opt
+  : expression
+  | ;; empty
+  ;
+
+nonterminal_044_opt
+  : name
+  | ;; empty
+  ;
+
+nonterminal_043_opt
+  : BEGIN handled_sequence_of_statements
+  | ;; empty
+  ;
+
+nonterminal_042_opt
+  : aspect_specification
+  | ;; empty
+  ;
+
+nonterminal_041_opt
+  : COLON_EQUAL nonterminal_040_opt
+  | ;; empty
+  ;
+
+nonterminal_040_opt
+  : expression
+  | ;; empty
+  ;
+
+nonterminal_039_opt
+  : IDENTIFIER
+  | ;; empty
+  ;
+
+nonterminal_038_opt
+  : IDENTIFIER
+  | ;; empty
+  ;
+
+nonterminal_037_opt
+  : ELSE sequence_of_statements
+  | ;; empty
+  ;
+
+nonterminal_035_list
+  : nonterminal_036
+  | nonterminal_035_list nonterminal_036
+  ;
+
+nonterminal_036
+  : ELSIF nonterminal_034_opt THEN sequence_of_statements
+  ;
+
+nonterminal_034_opt
+  : expression
+  | ;; empty
+  ;
+
+nonterminal_033_opt
+  : expression
+  | ;; empty
+  ;
+
+nonterminal_032_opt
+  : EXCEPTION nonterminal_030_list
+  | ;; empty
+  ;
+
+nonterminal_030_list
+  : nonterminal_031
+  | nonterminal_030_list nonterminal_031
+  ;
+
+nonterminal_031
+  : exception_handler
+  ;
+
+nonterminal_028_list
+  : nonterminal_029
+  | nonterminal_028_list nonterminal_029
+  ;
+
+nonterminal_029
+  : SEMICOLON parameter_specification
+  ;
+
+nonterminal_027_opt
+  : parameter_specification
+  | ;; empty
+  ;
+
+nonterminal_025_list
+  : nonterminal_026
+  | nonterminal_025_list nonterminal_026
+  ;
+
+nonterminal_026
+  : XOR relation
+  ;
+
+nonterminal_023_list
+  : nonterminal_024
+  | nonterminal_023_list nonterminal_024
+  ;
+
+nonterminal_024
+  : OR relation
+  ;
+
+nonterminal_021_list
+  : nonterminal_022
+  | nonterminal_021_list nonterminal_022
+  ;
+
+nonterminal_022
+  : AND relation
+  ;
+
+nonterminal_020_opt
+  : WHEN nonterminal_019_opt
+  | ;; empty
+  ;
+
+nonterminal_019_opt
+  : expression
+  | ;; empty
+  ;
+
+nonterminal_018_opt
+  : IDENTIFIER
+  | ;; empty
+  ;
+
+nonterminal_016_list
+  : nonterminal_017
+  | nonterminal_016_list nonterminal_017
+  ;
+
+nonterminal_017
+  : COMMA IDENTIFIER
+  ;
+
+nonterminal_014_list
+  : nonterminal_015
+  | nonterminal_014_list nonterminal_015
+  ;
+
+nonterminal_015
+  : declaration
+  ;
+
+nonterminal_012_list
+  : nonterminal_013
+  | nonterminal_012_list nonterminal_013
+  ;
+
+nonterminal_013
+  : compilation_unit
+  ;
+
+nonterminal_010_list
+  : nonterminal_011
+  | nonterminal_010_list nonterminal_011
+  ;
+
+nonterminal_011
+  : case_statement_alternative
+  ;
+
+nonterminal_009_opt
+  : expression
+  | ;; empty
+  ;
+
+nonterminal_008_opt
+  : IDENTIFIER
+  | ;; empty
+  ;
+
+nonterminal_007_opt
+  : IDENTIFIER
+  | ;; empty
+  ;
+
+nonterminal_005_list
+  : nonterminal_006
+  | nonterminal_005_list nonterminal_006
+  ;
+
+nonterminal_006
+  : COMMA association
+  ;
+
+nonterminal_004_opt
+  : nonterminal_003
   | expression
   | ;; empty
   ;
-$nonterminal_002_opt
+
+nonterminal_003
+  : IDENTIFIER EQUAL_GREATER nonterminal_002_opt
+  ;
+
+nonterminal_002_opt
   : expression
   | ;; empty
   ;
-$nonterminal_001_opt
-  : WITH association_list
+
+nonterminal_001_opt
+  : expression
   | ;; empty
   ;
+
 %code copyright_license %{
 ;;  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
 ;;
@@ -40,15 +301,14 @@ $nonterminal_001_opt
 }%
 %code actions spec context %{with WisiToken.Text_IO_Trace;}%
 %code actions spec post %{
-Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
-End_Name_Optional : Boolean := True;
+   End_Name_Optional : Boolean := True;
 
-Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
+   Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 }%
-
 %generate LALR Ada re2c
-%meta_syntax EBNF
+%meta_syntax BNF
 %keyword AND "and"
 %keyword BEGIN "begin"
 %keyword BODY "body"
@@ -80,7 +340,6 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %keyword WHEN "when"
 %keyword WITH "with"
 %keyword XOR "xor"
-
 %token <punctuation> AMPERSAND "&"
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
@@ -102,84 +361,85 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %token <string-double> STRING_LITERAL  %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %token <number> NUMERIC_LITERAL  %[ [0-9]+ ]%
 %token <symbol> IDENTIFIER  %[ [a-zA-Z][0-9a-zA-Z_]* ]%
-
 %non_grammar <non-reporting> WHITESPACE  %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE  %[ [\n] ]%
 %non_grammar <comment> COMMENT  %[ "--"[^\n]*[\n] ]%
 %start compilation_unit_list
-
-%conflict REDUCE / REDUCE in state actual_parameter_part , actual_parameter_part on token RIGHT_PAREN
 %conflict REDUCE / REDUCE in state discrete_subtype_definition , range_list on token RIGHT_PAREN
-%conflict REDUCE / REDUCE in state primary , subtype_indication on token RIGHT_PAREN
+%conflict SHIFT / REDUCE in state nonterminal_006 , nonterminal_006 on token IDENTIFIER
+%conflict SHIFT / REDUCE in state actual_parameter_part , actual_parameter_part on token IDENTIFIER
+%conflict SHIFT / REDUCE in state aspect_specification , aspect_specification on token IDENTIFIER
+%conflict SHIFT / REDUCE in state extended_return_statement , extended_return_statement on token IDENTIFIER
 %conflict SHIFT / REDUCE in state generic_instantiation , generic_instantiation on token IS
-%conflict SHIFT / REDUCE in state simple_return_statement , simple_return_statement on token SEMICOLON
+%conflict SHIFT / REDUCE in state iteration_scheme , iteration_scheme on token IDENTIFIER
 %conflict SHIFT / REDUCE in state subprogram_body , subprogram_body on token IS
-
 actual_parameter_part
   : LEFT_PAREN association_list RIGHT_PAREN
   ;
-aspect_specification
-  : $nonterminal_001_opt
-  ;
-assignment_statement
-  : name COLON_EQUAL $nonterminal_002_opt SEMICOLON
-  ;
-association
-  : $nonterminal_003_opt
-  ;
-association_list
-  : association
- ;; not translated: (rhs_multiple_item, (4134 . 4152))
 
+aspect_specification
+  : WITH association_list
   ;
+
+assignment_statement
+  : name COLON_EQUAL nonterminal_001_opt SEMICOLON
+  ;
+
+association
+  : nonterminal_004_opt
+  ;
+
+association_list
+  : association nonterminal_005_list
+  ;
+
 binary_adding_operator
   : PLUS
   | MINUS
   | AMPERSAND
   ;
+
 block_label_opt
   : IDENTIFIER COLON    %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+
   | ;; empty
   ;
+
 block_statement
-  : block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END
- ;; not translated: (rhs_optional_item, (4679 . 4690))
- SEMICOLON    %()%
+  : block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END nonterminal_007_opt SEMICOLON    %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, 1, 7, End_Name_Optional);)%
-  | block_label_opt BEGIN handled_sequence_of_statements END
- ;; not translated: (rhs_optional_item, (4854 . 4865))
- SEMICOLON    %()%
+
+  | block_label_opt BEGIN handled_sequence_of_statements END nonterminal_008_opt SEMICOLON    %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, 1, 5, End_Name_Optional);)%
+
   ;
+
 body_g
   : proper_body
   | body_stub
   ;
+
 body_stub
   : subprogram_body_stub
   ;
+
 case_statement
-  : CASE
- ;; not translated: (rhs_optional_item, (5078 . 5089))
- IS case_statement_alternative_list END CASE SEMICOLON
+  : CASE nonterminal_009_opt IS nonterminal_010_list END CASE SEMICOLON
   ;
+
 case_statement_alternative
   : WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements
   ;
-case_statement_alternative_list
-  :
- ;; not translated: (rhs_multiple_item, (5388 . 5415))
 
-  ;
 compilation_unit
   : library_item
   ;
-compilation_unit_list
-  :
- ;; not translated: (rhs_multiple_item, (5487 . 5504))
 
+compilation_unit_list
+  : nonterminal_012_list
   ;
+
 compound_statement
   : if_statement
   | case_statement
@@ -187,186 +447,184 @@ compound_statement
   | block_statement
   | extended_return_statement
   ;
+
 constraint
   : RANGE range_g
   | index_constraint
   ;
+
 declaration
   : body_g
   | object_declaration
   | subprogram_declaration
   | type_declaration
   ;
-declarative_part
-  :
- ;; not translated: (rhs_multiple_item, (5815 . 5827))
 
+declarative_part
+  : nonterminal_014_list
   ;
+
 discrete_subtype_definition
   : subtype_indication
   | range_g
   ;
+
 enumeration_type_definition
-  : LEFT_PAREN IDENTIFIER
- ;; not translated: (rhs_multiple_item, (5950 . 5967))
- RIGHT_PAREN
+  : LEFT_PAREN IDENTIFIER nonterminal_016_list RIGHT_PAREN
   ;
+
 exception_choice
   : name
   ;
+
 exception_handler
   : WHEN exception_choice EQUAL_GREATER sequence_of_statements
   ;
+
 exit_statement
-  : EXIT
- ;; not translated: (rhs_optional_item, (6123 . 6134))
-
- ;; not translated: (rhs_optional_item, (6136 . 6154))
- SEMICOLON
+  : EXIT nonterminal_018_opt nonterminal_020_opt SEMICOLON
   ;
+
 expression
-  : relation
- ;; not translated: (rhs_multiple_item, (6195 . 6208))
-
-  | relation
- ;; not translated: (rhs_multiple_item, (6223 . 6235))
-
-  | relation
- ;; not translated: (rhs_multiple_item, (6250 . 6263))
-
+  : relation nonterminal_021_list
+  | relation nonterminal_023_list
+  | relation nonterminal_025_list
   ;
+
 extended_return_object_declaration
   : IDENTIFIER COLON subtype_indication
   ;
+
 extended_return_statement
   : RETURN extended_return_object_declaration SEMICOLON
   ;
+
 factor
   : primary
   | NOT primary
   ;
-formal_part
-  : LEFT_PAREN
- ;; not translated: (rhs_optional_item, (6749 . 6773))
 
- ;; not translated: (rhs_multiple_item, (6775 . 6809))
- RIGHT_PAREN
+formal_part
+  : LEFT_PAREN nonterminal_027_opt nonterminal_028_list RIGHT_PAREN
   ;
+
 full_type_declaration
   : TYPE IDENTIFIER IS type_definition SEMICOLON
   ;
+
 function_specification
   : FUNCTION name parameter_and_result_profile    %()%
     %(return Propagate_Name (Nonterm, Tokens, 2);)%
+
   ;
+
 generic_instantiation
   : PACKAGE name IS NEW name SEMICOLON
   | PROCEDURE name IS NEW name SEMICOLON
   ;
+
 handled_sequence_of_statements
-  : sequence_of_statements
- ;; not translated: (rhs_optional_item, (7205 . 7235))
-
+  : sequence_of_statements nonterminal_032_opt
   ;
+
 if_statement
-  : IF
- ;; not translated: (rhs_optional_item, (7262 . 7273))
- THEN sequence_of_statements
- ;; not translated: (rhs_multiple_item, (7303 . 7350))
-
- ;; not translated: (rhs_optional_item, (7352 . 7380))
- END IF SEMICOLON
+  : IF nonterminal_033_opt THEN sequence_of_statements nonterminal_035_list nonterminal_037_opt END IF SEMICOLON
   ;
+
 index_constraint
   : LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
   ;
+
 iteration_scheme
   : FOR IDENTIFIER IN discrete_subtype_definition
   ;
+
 library_item
   : package_body
   | subprogram_declaration
   | subprogram_body
   | generic_instantiation
   ;
+
 loop_statement
-  : iteration_scheme LOOP sequence_of_statements END LOOP
- ;; not translated: (rhs_optional_item, (7734 . 7745))
- SEMICOLON
-  | LOOP sequence_of_statements END LOOP
- ;; not translated: (rhs_optional_item, (7798 . 7809))
- SEMICOLON
+  : iteration_scheme LOOP sequence_of_statements END LOOP nonterminal_038_opt SEMICOLON
+  | LOOP sequence_of_statements END LOOP nonterminal_039_opt SEMICOLON
   ;
+
 multiplying_operator
   : STAR
   | SLASH
   ;
+
 name
   : name LEFT_PAREN range_list RIGHT_PAREN
   | name actual_parameter_part
   | IDENTIFIER    %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+
   | selected_component    %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+
   ;
+
 object_declaration
-  : IDENTIFIER COLON subtype_indication
- ;; not translated: (rhs_optional_item, (8225 . 8250))
- SEMICOLON
+  : IDENTIFIER COLON subtype_indication nonterminal_041_opt SEMICOLON
   ;
+
 package_body
-  : PACKAGE BODY name aspect_specification_opt IS declarative_part
- ;; not translated: (rhs_optional_item, (8347 . 8384))
- END
- ;; not translated: (rhs_optional_item, (8390 . 8395))
- SEMICOLON    %()%
+  : PACKAGE BODY name nonterminal_042_opt IS declarative_part nonterminal_043_opt END nonterminal_044_opt SEMICOLON    %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, 3, 10, End_Name_Optional);)%
+
   ;
+
 parameter_and_result_profile
   : formal_part RETURN IDENTIFIER
   | RETURN IDENTIFIER
   ;
-parameter_specification
-  : IDENTIFIER COLON IDENTIFIER
- ;; not translated: (rhs_optional_item, (8906 . 8931))
 
+parameter_specification
+  : IDENTIFIER COLON IDENTIFIER nonterminal_046_opt
   ;
+
 paren_expression
-  : LEFT_PAREN
- ;; not translated: (rhs_optional_item, (8970 . 8981))
- RIGHT_PAREN
+  : LEFT_PAREN nonterminal_047_opt RIGHT_PAREN
   ;
+
 primary
   : NUMERIC_LITERAL
   | STRING_LITERAL
   | name
   | paren_expression
   ;
+
 procedure_call_statement
   : name SEMICOLON
   ;
+
 procedure_specification
-  : PROCEDURE name
- ;; not translated: (rhs_optional_item, (9174 . 9192))
-    %()%
+  : PROCEDURE name nonterminal_048_opt    %()%
     %(return Propagate_Name (Nonterm, Tokens, 2);)%
+
   ;
+
 proper_body
   : package_body
   | subprogram_body
   ;
+
 range_g
   : simple_expression DOT_DOT simple_expression
   ;
+
 range_list
   : range_list COMMA range_g
   | range_g
   ;
-relation
-  : simple_expression
- ;; not translated: (rhs_optional_item, (9463 . 9501))
 
+relation
+  : simple_expression nonterminal_049_opt
   ;
+
 relational_operator
   : EQUAL
   | SLASH_EQUAL
@@ -375,71 +633,79 @@ relational_operator
   | GREATER
   | GREATER_EQUAL
   ;
+
 selected_component
   : name DOT IDENTIFIER    %()%
     %(return Merge_Names (Nonterm, Tokens, 1, 3);)%
+
   ;
+
 sequence_of_statements
-  :
- ;; not translated: (rhs_multiple_item, (9794 . 9804))
-
+  : nonterminal_050_list
   ;
+
 simple_expression
-  :
- ;; not translated: (rhs_optional_item, (9833 . 9855))
-
- ;; not translated: (rhs_multiple_item, (9857 . 9885))
-
+  : nonterminal_052_opt term nonterminal_053_list
   ;
+
 simple_return_statement
-  : RETURN
- ;; not translated: (rhs_optional_item, (9927 . 9938))
- SEMICOLON
+  : RETURN nonterminal_055_opt SEMICOLON
   ;
+
 simple_statement
   : assignment_statement
   | exit_statement
   | procedure_call_statement
   | simple_return_statement
   ;
+
 statement
   : simple_statement
   | compound_statement
   ;
+
 subprogram_body
-  : subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END
- ;; not translated: (rhs_optional_item, (10272 . 10277))
- SEMICOLON    %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
+  : subprogram_specification nonterminal_056_opt IS declarative_part BEGIN handled_sequence_of_statements END nonterminal_057_opt SEMICOLON    %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
     %(return Match_Names (Lexer, Descriptor, Tokens, 1, 8, End_Name_Optional);)%
+
   ;
+
 subprogram_body_stub
   : subprogram_specification IS SEPARATE SEMICOLON
   ;
+
 subprogram_declaration
   : subprogram_specification SEMICOLON
   ;
+
 subprogram_specification
   : procedure_specification    %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+
   | function_specification    %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+
   ;
+
 subtype_indication
   : name constraint
   | name
   ;
-term
-  : factor
- ;; not translated: (rhs_multiple_item, (10881 . 10909))
 
+term
+  : factor nonterminal_058_list
   ;
+
 type_declaration
   : full_type_declaration
   ;
+
 type_definition
   : enumeration_type_definition
   ;
+
 unary_adding_operator
   : PLUS
   | MINUS
   ;
+

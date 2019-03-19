@@ -71,7 +71,8 @@ package body WisiToken.Generate is
             Put_Error
               (Error_Message
                  (Source_File_Name, Line_Number_Type'First,
-                  "Grammar (" & Image (Nonterm, Descriptor) & ").LHS /= " &
+                  "Grammar (" & Image (Nonterm, Descriptor) & ").LHS = " &
+                    Image (Grammar (Nonterm).LHS, Descriptor) & " /= " &
                     Image (Nonterm, Descriptor)));
          end if;
       end loop;

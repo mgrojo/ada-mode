@@ -4,6 +4,7 @@
 ^Docs/wisi-user_guide\.info$
 ^Docs/wisitoken-user_guide\.html$
 ^Docs/wisitoken-user_guide\.info$
+^Test/bnf/ada_lite_bnf\.wy$
 ^build/.*\-elisp.el$
 ^build/.*\-process.el$
 ^build/.*\.ada$

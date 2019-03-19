@@ -186,6 +186,7 @@ aspect_specification_opt
   : WITH association_list
   | ;; empty
   ;
+
 assignment_statement
   : name COLON_EQUAL expression_opt SEMICOLON
   ;
@@ -203,8 +204,8 @@ association_list
   | association_opt
   ;
 
-binary_adding_operator :
-    PLUS
+binary_adding_operator
+  : PLUS
   | MINUS
   | AMPERSAND
   ;
@@ -370,7 +371,6 @@ factor
   | NOT primary
   ;
 
-
 formal_part
   : LEFT_PAREN parameter_specification_list RIGHT_PAREN
   ;
@@ -533,8 +533,9 @@ relation
   ;
 
 relational_operator
-  : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
+  : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL
   ;;  =   | /=          | <    |  <=        | >       | >=
+  ;
 
 selected_component
   : name DOT IDENTIFIER

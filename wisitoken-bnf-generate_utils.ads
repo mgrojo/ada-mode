@@ -34,9 +34,10 @@ package WisiToken.BNF.Generate_Utils is
    WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
    type Generate_Data is limited record
-      Tokens     : access constant WisiToken.BNF.Tokens;
-      Descriptor : access WisiToken.Descriptor;
-      Grammar    : WisiToken.Productions.Prod_Arrays.Vector;
+      Meta_Syntax : WisiToken_Grammar_Runtime.Meta_Syntax;
+      Tokens      : access constant WisiToken.BNF.Tokens;
+      Descriptor  : access WisiToken.Descriptor;
+      Grammar     : WisiToken.Productions.Prod_Arrays.Vector;
 
       Action_Names : access Names_Array_Array;
       Check_Names  : access Names_Array_Array;
@@ -172,7 +173,7 @@ private
       Token_Item            : String_Pair_Lists.Cursor;
       Keyword               : String_Pair_Lists.Cursor;
       Nonterminal           : Rule_Lists.Cursor;
-      Virtual_Nonterm_Index : Base_Token_Index;
+      Virtual_Nonterm_Index : Base_Identifier_Index;
    end record;
 
 end WisiToken.BNF.Generate_Utils;

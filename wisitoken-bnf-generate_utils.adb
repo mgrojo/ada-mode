@@ -141,8 +141,8 @@ package body WisiToken.BNF.Generate_Utils is
             LHS              : Token_ID; -- not initialized for exception handler
             Action_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
             Action_All_Empty : Boolean := True;
-            Check_Names     : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Check_All_Empty : Boolean := True;
+            Check_Names      : Names_Array (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Check_All_Empty  : Boolean := True;
          begin
             LHS := Find_Token_ID (Data, -Rule.Left_Hand_Side);
 
@@ -217,13 +217,15 @@ package body WisiToken.BNF.Generate_Utils is
    function Initialize (Input_Data : aliased in WisiToken_Grammar_Runtime.User_Data_Type) return Generate_Data
    is
       use all type Ada.Containers.Count_Type;
+      use all type WisiToken_Grammar_Runtime.Meta_Syntax;
 
       EOI_ID : constant Token_ID := Token_ID
         (Count (Input_Data.Tokens.Non_Grammar) + Count (Input_Data.Tokens.Tokens)) + Token_ID
           (Input_Data.Tokens.Keywords.Length) + Token_ID'First;
    begin
       return Result : aliased Generate_Data :=
-        (Tokens => Input_Data.Tokens'Access,
+        (Meta_Syntax => Input_Data.Meta_Syntax,
+         Tokens      => Input_Data.Tokens'Access,
 
          Descriptor => new WisiToken.Descriptor
            (First_Terminal    =>
@@ -235,7 +237,10 @@ package body WisiToken.BNF.Generate_Utils is
             Accept_ID         => EOI_ID + 1,
             First_Nonterminal => EOI_ID + 1,
             Last_Nonterminal  => EOI_ID + 1 + Token_ID
-              (Input_Data.Tokens.Rules.Length + Input_Data.Tokens.Virtual_Nonterminals.Length)),
+              (Input_Data.Tokens.Rules.Length +
+                 (if Input_Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax
+                  then Input_Data.Tokens.Virtual_Nonterminals.Length
+                  else 0))),
 
          others => <>)
       do
@@ -396,6 +401,7 @@ package body WisiToken.BNF.Generate_Utils is
      return Boolean
    is
       use all type Ada.Containers.Count_Type;
+      use all type WisiToken_Grammar_Runtime.Meta_Syntax;
    begin
       --  Advance Cursor to the next kind; return True if any of that
       --  kind exist, or kind is Done; False otherwise.
@@ -410,7 +416,7 @@ package body WisiToken.BNF.Generate_Utils is
             Token_Item            => String_Pair_Lists.No_Element,
             Keyword               => Cursor.Data.Tokens.Keywords.First,
             Nonterminal           => Rule_Lists.No_Element,
-            Virtual_Nonterm_Index => Invalid_Token_Index);
+            Virtual_Nonterm_Index => Invalid_Identifier_Index);
 
          return String_Pair_Lists.Has_Element (Cursor.Keyword);
 
@@ -424,7 +430,7 @@ package body WisiToken.BNF.Generate_Utils is
             Token_Item            => String_Pair_Lists.No_Element,
             Keyword               => String_Pair_Lists.No_Element,
             Nonterminal           => Rule_Lists.No_Element,
-            Virtual_Nonterm_Index => Invalid_Token_Index);
+            Virtual_Nonterm_Index => Invalid_Identifier_Index);
 
          if WisiToken.BNF.Token_Lists.Has_Element (Cursor.Token_Kind) then
             Cursor.Token_Item := Cursor.Data.Tokens.Tokens (Cursor.Token_Kind).Tokens.First;
@@ -443,7 +449,7 @@ package body WisiToken.BNF.Generate_Utils is
             Token_Item            => String_Pair_Lists.No_Element,
             Keyword               => String_Pair_Lists.No_Element,
             Nonterminal           => Rule_Lists.No_Element,
-            Virtual_Nonterm_Index => Invalid_Token_Index);
+            Virtual_Nonterm_Index => Invalid_Identifier_Index);
 
          return True;
 
@@ -458,7 +464,7 @@ package body WisiToken.BNF.Generate_Utils is
                   Token_Item            => String_Pair_Lists.No_Element,
                   Keyword               => String_Pair_Lists.No_Element,
                   Nonterminal           => Rule_Lists.No_Element,
-                  Virtual_Nonterm_Index => Invalid_Token_Index);
+                  Virtual_Nonterm_Index => Invalid_Identifier_Index);
             else
                Cursor.Kind := Done;
             end if;
@@ -478,13 +484,15 @@ package body WisiToken.BNF.Generate_Utils is
             Token_Item            => String_Pair_Lists.No_Element,
             Keyword               => String_Pair_Lists.No_Element,
             Nonterminal           => Cursor.Data.Tokens.Rules.First,
-            Virtual_Nonterm_Index => Invalid_Token_Index);
+            Virtual_Nonterm_Index => Invalid_Identifier_Index);
 
          --  Can't get here with no rules
          return True;
 
       when Nonterminal =>
-         if Cursor.Data.Tokens.Virtual_Nonterminals.Length > 0 then
+         if Cursor.Data.Meta_Syntax = WisiToken_Grammar_Runtime.EBNF_Syntax and
+           Cursor.Data.Tokens.Virtual_Nonterminals.Length > 0
+         then
             Cursor :=
               (Data                  => Cursor.Data,
                Kind                  => Virtual_Nonterminal,
@@ -522,7 +530,7 @@ package body WisiToken.BNF.Generate_Utils is
          Token_Item            => String_Pair_Lists.No_Element,
          Keyword               => String_Pair_Lists.No_Element,
          Nonterminal           => Rule_Lists.No_Element,
-         Virtual_Nonterm_Index => Invalid_Token_Index);
+         Virtual_Nonterm_Index => Invalid_Identifier_Index);
    begin
       if Non_Grammar then
          if WisiToken.BNF.Token_Lists.Has_Element (Cursor.Token_Kind) then
@@ -624,7 +632,7 @@ package body WisiToken.BNF.Generate_Utils is
 
       when Virtual_Nonterminal =>
          if Cursor.Virtual_Nonterm_Index = Cursor.Data.Tokens.Virtual_Nonterminals.Last_Index then
-            Cursor.Virtual_Nonterm_Index := Invalid_Token_Index;
+            Cursor.Virtual_Nonterm_Index := Invalid_Identifier_Index;
             Cursor.Kind := Done;
          else
             Cursor.Virtual_Nonterm_Index := Cursor.Virtual_Nonterm_Index + 1;

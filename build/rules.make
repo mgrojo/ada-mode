@@ -12,7 +12,6 @@ VPATH += ../Test
 VPATH += ../Test/bnf
 
 vpath %.texinfo ../Docs
-vpath %.wy ../wisi/test
 
 # Variables for library creation
 export GPRBUILD_TARGET := $(shell gcc -dumpmachine)
@@ -100,6 +99,9 @@ wisitoken-bnf-generate.exe : force
 
 test-executables : force
 	gprbuild -p --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
+
+%_bnf.wy : %_ebnf.wy
+	./wisitoken-bnf-generate.exe --output_bnf $@ --generate LALR Ada re2c $<
 
 %.out : %.exe
 	./$*.exe $(RUN_ARGS) > $*.out

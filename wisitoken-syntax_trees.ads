@@ -176,7 +176,7 @@ package WisiToken.Syntax_Trees is
    function Add_Identifier
      (Tree       : in out Syntax_Trees.Tree;
       ID         : in     Token_ID;
-      Identifier : in     Token_Index)
+      Identifier : in     Identifier_Index)
      return Valid_Node_Index
    with Pre => Tree.Flushed and (not Tree.Traversing);
    --  Add a new Virtual_Identifier node with no parent. Result points to
@@ -211,7 +211,7 @@ package WisiToken.Syntax_Trees is
      (Tree       : in Syntax_Trees.Tree;
       Node       : in Valid_Node_Index;
       ID         : in Token_ID;
-      Identifier : in Token_Index)
+      Identifier : in Identifier_Index)
    with Pre => Tree.Flushed and
                Tree.Is_Nonterm (Node);
    --  Change Node to a Virtual_Identifier.
@@ -368,7 +368,7 @@ package WisiToken.Syntax_Trees is
    --  Traverse Tree in depth-first order, calling Process_Node on each
    --  node, starting at Tree.Root.
 
-   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Identifier_Index
    with Pre => Tree.Is_Virtual_Identifier (Node);
 
    function Terminal (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
@@ -381,6 +381,7 @@ package WisiToken.Syntax_Trees is
    --  or a nonterm is empty.
 
    function Get_Terminals (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array;
+   --  "Terminals" can be Shared_Terminal, Virtual_Terminal, Virtual_Identifier.
 
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
 
@@ -437,7 +438,7 @@ private
          null;
 
       when Virtual_Identifier =>
-         Identifier : Token_Index; -- into user data
+         Identifier : Identifier_Index; -- into user data
 
       when Nonterm =>
          Virtual : Boolean := False;

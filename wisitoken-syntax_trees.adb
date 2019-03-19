@@ -83,7 +83,7 @@ package body WisiToken.Syntax_Trees is
    function Add_Identifier
      (Tree       : in out Syntax_Trees.Tree;
       ID         : in     Token_ID;
-      Identifier : in     Token_Index)
+      Identifier : in     Identifier_Index)
      return Valid_Node_Index
    is begin
       Tree.Shared_Tree.Nodes.Append
@@ -643,7 +643,7 @@ package body WisiToken.Syntax_Trees is
          else Tree.Branched_Nodes (Node).ID);
    end ID;
 
-   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Token_Index
+   function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Identifier_Index
    is begin
       return
         (if Node <= Tree.Last_Shared_Node
@@ -689,7 +689,7 @@ package body WisiToken.Syntax_Trees is
          Result := Result & (+Token_Index'Image (N.Terminal)) & ":";
 
       when Virtual_Identifier =>
-         Result := Result & (+Token_Index'Image (N.Identifier)) & ";";
+         Result := Result & (+Identifier_Index'Image (N.Identifier)) & ";";
 
       when others =>
          null;
@@ -1055,7 +1055,7 @@ package body WisiToken.Syntax_Trees is
      (Tree       : in Syntax_Trees.Tree;
       Node       : in Valid_Node_Index;
       ID         : in Token_ID;
-      Identifier : in Token_Index)
+      Identifier : in Identifier_Index)
    is
       Current : constant Syntax_Trees.Node := Tree.Shared_Tree.Nodes (Node);
    begin

@@ -6,7 +6,7 @@
 ;; See ada_lite_bnf.wy for translation to BNF for parser generator.
 
 %code copyright_license %{
-;;  Copyright (C) 2017, 2018, 2019 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -29,11 +29,14 @@
 %code actions spec context %{with WisiToken.Text_IO_Trace;}%
 
 %code actions spec post %{
-Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
 
-End_Name_Optional : Boolean := True;
+   End_Name_Optional : Boolean := True;
 
-Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
+   Partial_Parse_Active    : Boolean := False;
+   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+
+   Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 }%
 
 ;; We only need one LR variant to test LR EBNF
@@ -95,19 +98,23 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 %token <string-double> STRING_LITERAL %[ (["][\x20-\x21\x23-\U0010FFFF]*["])+ ]%
 %token <number> NUMERIC_LITERAL %[ [0-9]+ ]%
-%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_]* ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n]*[\n] ]%
+%non_grammar <comment> COMMENT %[ "--"[^\n\x04]*[\n\x04] ]%
 
 %start compilation_unit_list
 
-%conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part on token RIGHT_PAREN
+;;; no Mckenzie for now
+
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state nonterminal_006, nonterminal_006 on token IDENTIFIER
+%conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part on token IDENTIFIER
+%conflict SHIFT/REDUCE in state aspect_specification, aspect_specification on token IDENTIFIER
+%conflict SHIFT/REDUCE in state extended_return_statement, extended_return_statement on token IDENTIFIER
 %conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS
-%conflict SHIFT/REDUCE in state simple_return_statement, simple_return_statement on token SEMICOLON
+%conflict SHIFT/REDUCE in state iteration_scheme, iteration_scheme on token IDENTIFIER
 %conflict SHIFT/REDUCE in state subprogram_body, subprogram_body on token IS
 
 ;;;; grammar rules
@@ -121,21 +128,16 @@ aspect_specification
   ;
 
 assignment_statement
-  : name COLON_EQUAL [expression] SEMICOLON
+  : name COLON_EQUAL expression SEMICOLON
   ;
 
 association
-  : [(IDENTIFIER EQUAL_GREATER [expression]) | expression]
+  : [(IDENTIFIER EQUAL_GREATER expression) | expression]
   ;
 
 association_list
   : association {COMMA association}
   ;
-;; rewrittten to:
-;; association_list
-;;   : association
-;;   : association_list COMMA association
-;;   ;
 
 binary_adding_operator
   : PLUS
@@ -143,56 +145,60 @@ binary_adding_operator
   | AMPERSAND
   ;
 
-block_label_opt
-  : IDENTIFIER COLON
-    %()%
-    %(return Propagate_Name (Nonterm, Tokens, 1);)%
-  | ;; empty; specified explicitly because action is different
-  ;
-
-;; Must use 'identifier_opt' for token numbering in actions. FIXME:
-;; this code should generate an error: move to test for errors.
+;; FIXME: this code should generate an error on token numbers: move to
+;; test for errors.
 block_statement
-  : block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END [IDENTIFIER] SEMICOLON
+  : [IDENTIFIER COLON] [DECLARE declarative_part] BEGIN handled_sequence_of_statements END [IDENTIFIER] SEMICOLON
     %()%
-    %(return Match_Names (Lexer, Descriptor, Tokens, 1, 7, End_Name_Optional);)%
-
-  | block_label_opt BEGIN handled_sequence_of_statements END [IDENTIFIER] SEMICOLON
-    %()%
-    %(return Match_Names (Lexer, Descriptor, Tokens, 1, 5, End_Name_Optional);)%
+    %(return Match_Names (Lexer, Descriptor, Tokens, 1, 8, End_Name_Optional);)%
   ;
 
 body_g :
-  proper_body
+    proper_body
   | body_stub
   ;
 
 body_stub :
-  subprogram_body_stub
+    subprogram_body_stub
   ;
 
 case_statement
-  : CASE [expression] IS {case_statement_alternative} END CASE SEMICOLON
+  : CASE expression IS case_statement_alternative {case_statement_alternative} END CASE SEMICOLON
   ;
 
 case_statement_alternative
   : WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements
   ;
 
+;; Support partial parse test
+;;
+;; We don't allow an empty compilation unit; that causes too many
+;; ambiguities.
 compilation_unit
-  : library_item
+  : package_body
+  | subprogram_declaration
+  | subprogram_body
+  | generic_instantiation
+  | statement
   ;
 
 compilation_unit_list
   : {compilation_unit}
+    %( )%
+    %(return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
   ;
 
 compound_statement
   : if_statement
+    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | case_statement
+    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | loop_statement
+    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | block_statement
+    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   | extended_return_statement
+    %(Action_Count (+compound_statement_ID) := Action_Count (+compound_statement_ID) + 1;)%
   ;
 
 constraint
@@ -209,6 +215,7 @@ declaration
 
 declarative_part
   : {declaration}
+  | ;; empty
   ;
 
 discrete_subtype_definition : subtype_indication | range_g ;
@@ -224,26 +231,16 @@ exception_handler
   ;
 
 exit_statement
-  : EXIT [IDENTIFIER] [WHEN [expression]] SEMICOLON
+  : EXIT [IDENTIFIER] [WHEN expression] SEMICOLON
   ;
 
 expression
+  : relation
   : relation {AND relation}
   | relation {OR relation}
   | relation {XOR relation}
+  | ;; empty for user friendly
   ;
-;; rewritten to:
-;; _nonterm_001_list
-;;   : relation
-;;   | _nonterm_001_list AND relation
-;;   ;
-;; _nonterm_002_list OR
-;; _nonterm_003_list XOR
-;; expression
-;;   : _nonterm_001_list
-;;   | _nonterm_002_list
-;;   | _nonterm_003_list
-;;   ;
 
 extended_return_object_declaration
   : IDENTIFIER COLON subtype_indication
@@ -258,9 +255,8 @@ factor
   | NOT primary
   ;
 
-
 formal_part
-  : LEFT_PAREN [parameter_specification] {SEMICOLON parameter_specification} RIGHT_PAREN
+  : LEFT_PAREN parameter_specification {SEMICOLON parameter_specification} RIGHT_PAREN
   ;
 
 full_type_declaration
@@ -283,7 +279,7 @@ handled_sequence_of_statements
   ;
 
 if_statement
-  : IF [expression] THEN sequence_of_statements {ELSIF [expression] THEN sequence_of_statements} [ELSE sequence_of_statements] END IF SEMICOLON
+  : IF expression THEN sequence_of_statements {ELSIF expression THEN sequence_of_statements} [ELSE sequence_of_statements] END IF SEMICOLON
   ;
 
 index_constraint
@@ -294,16 +290,8 @@ iteration_scheme
   : FOR IDENTIFIER IN discrete_subtype_definition
   ;
 
-library_item
-  : package_body
-  | subprogram_declaration
-  | subprogram_body
-  | generic_instantiation
-  ;
-
 loop_statement
-  : iteration_scheme LOOP sequence_of_statements END LOOP [IDENTIFIER] SEMICOLON
-  | LOOP sequence_of_statements END LOOP [IDENTIFIER] SEMICOLON
+  : [iteration_scheme] LOOP sequence_of_statements END LOOP [IDENTIFIER] SEMICOLON
   ;
 
 multiplying_operator : STAR | SLASH ;
@@ -317,20 +305,18 @@ name
   | selected_component
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
+  | ;; empty for user friendly
   ;
 
 object_declaration
-  : IDENTIFIER COLON subtype_indication [COLON_EQUAL [expression]] SEMICOLON
+  : IDENTIFIER COLON subtype_indication [COLON_EQUAL expression] SEMICOLON
   ;
 
 package_body
-  : PACKAGE BODY name aspect_specification_opt IS declarative_part [BEGIN handled_sequence_of_statements] END [name] SEMICOLON
+  : PACKAGE BODY name [aspect_specification] IS declarative_part [BEGIN handled_sequence_of_statements] END [name] SEMICOLON
     %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, 3, 10, End_Name_Optional);)%
  ;;  FIXME: token indices match missing tokens? use labels like ANTLR?
- ;; | PACKAGE BODY name aspect_specification_opt IS declarative_part END name_opt SEMICOLON
- ;;   %()%
- ;;   %(return Match_Names (Lexer, Descriptor, Tokens, 3, 8, End_Name_Optional);)%
   ;
 
 parameter_and_result_profile
@@ -338,12 +324,16 @@ parameter_and_result_profile
   | RETURN IDENTIFIER
   ;
 
+parameter_profile
+  : [formal_part]
+  ;
+
 parameter_specification
-  : IDENTIFIER COLON IDENTIFIER [COLON_EQUAL [expression]]
+  : IDENTIFIER COLON IDENTIFIER [COLON_EQUAL expression]
   ;
 
 paren_expression
-  : LEFT_PAREN [expression] RIGHT_PAREN
+  : LEFT_PAREN expression RIGHT_PAREN
   ;
 
 primary
@@ -358,7 +348,7 @@ procedure_call_statement
   ;
 
 procedure_specification
-  : PROCEDURE name [parameter_profile]
+  : PROCEDURE name parameter_profile
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 2);)%
   ;
@@ -382,8 +372,9 @@ relation
   ;
 
 relational_operator
-  : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
-;;  =   | /=          | <    |  <=        | >       | >=
+  : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL
+  ;;  =   | /=          | <    |  <=        | >       | >=
+  ;
 
 selected_component
   : name DOT IDENTIFIER
@@ -396,27 +387,33 @@ sequence_of_statements
   ;
 
 simple_expression
-  : [unary_adding_operator] {binary_adding_operator term}
+  : [unary_adding_operator] term {binary_adding_operator term}
   ;
 
 simple_return_statement
-  : RETURN [expression] SEMICOLON
+  : RETURN expression SEMICOLON
   ;
 
 simple_statement
   : assignment_statement
+    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   | exit_statement
+    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   | procedure_call_statement
+    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   | simple_return_statement
+    %(Action_Count (+simple_statement_ID) := Action_Count (+simple_statement_ID) + 1;)%
   ;
 
 statement
   : simple_statement
+    %(Action_Count (+statement_ID) := Action_Count (+statement_ID) + 1;)%
   | compound_statement
+    %(Action_Count (+statement_ID) := Action_Count (+statement_ID) + 1;)%
   ;
 
 subprogram_body
-  : subprogram_specification aspect_specification_opt IS declarative_part BEGIN
+  : subprogram_specification [aspect_specification] IS declarative_part BEGIN
     handled_sequence_of_statements END [name] SEMICOLON
     %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
     %(return Match_Names (Lexer, Descriptor, Tokens, 1, 8, End_Name_Optional);)%
@@ -428,6 +425,7 @@ subprogram_body_stub
 
 subprogram_declaration
   : subprogram_specification SEMICOLON
+    %(Action_Count (+subprogram_declaration_ID) := Action_Count (+subprogram_declaration_ID) + 1;)%
   ;
 
 subprogram_specification

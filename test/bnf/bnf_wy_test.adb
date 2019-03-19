@@ -211,13 +211,19 @@ package body BNF_WY_Test is
          Args (Last) := new String'("1");
       end if;
 
-      Last := Last + 1;
-      Args (Last) := new String'("../Test/bnf/" & Root_Name & ".input");
+      declare
+         Default_Input_Name : constant String := "../Test/bnf/" & Root_Name & ".input";
+      begin
+         if Exists (Default_Input_Name) then
+            Last := Last + 1;
+            Args (Last) := new String'("../Test/bnf/" & Root_Name & ".input");
 
-      Spawn (Exe, Args (1 .. Last), Output);
-      Dos2unix (Output);
+            Spawn (Exe, Args (1 .. Last), Output);
+            Dos2unix (Output);
 
-      AUnit.Checks.Text_IO.Check_Files ("", Output, "../Test/bnf/" & Output & "_good");
+            AUnit.Checks.Text_IO.Check_Files ("", Output, "../Test/bnf/" & Output & "_good");
+         end if;
+      end;
 
       if Input_Name'Length > 0 then
          declare
@@ -280,7 +286,9 @@ package body BNF_WY_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("bnf_wy_test.adb " & T.Root_Name.all);
+      return new String'
+        ("bnf_wy_test.adb " & T.Root_Name.all &
+           (if T.Input_Name = null then "" else " " & T.Input_Name.all));
    end Name;
 
 end BNF_WY_Test;

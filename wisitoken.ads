@@ -372,6 +372,12 @@ package WisiToken is
 
    function Image is new Recover_Token_Arrays.Gen_Image_Aux (WisiToken.Descriptor, Image);
 
+   type Base_Identifier_Index is range 0 .. Integer'Last;
+   subtype Identifier_Index is Base_Identifier_Index range 1 .. Base_Identifier_Index'Last;
+   --  For virtual identifiers created during syntax tree rewrite.
+
+   Invalid_Identifier_Index : constant Base_Identifier_Index := Base_Identifier_Index'First;
+
    ----------
    --  Trace, debug
 
