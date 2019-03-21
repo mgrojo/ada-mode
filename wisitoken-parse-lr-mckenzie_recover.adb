@@ -851,9 +851,10 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
    begin
       loop
          exit when Matching_Index = Config.Stack.Depth; -- Depth has Invalid_Token_ID
-         exit when ID_Set (Config.Stack (Matching_Index).Token.ID) and
-           (Config.Stack (Matching_Index).Tree_Index /= Invalid_Node_Index and then
-              Tree.Find_Descendant (Config.Stack (Matching_Index).Tree_Index, ID) /= Invalid_Node_Index);
+         exit when Config.Stack (Matching_Index).Token.ID in ID_Set'Range and then
+           (ID_Set (Config.Stack (Matching_Index).Token.ID) and
+              (Config.Stack (Matching_Index).Tree_Index /= Invalid_Node_Index and then
+                 Tree.Find_Descendant (Config.Stack (Matching_Index).Tree_Index, ID) /= Invalid_Node_Index));
 
          Matching_Index := Matching_Index + 1;
       end loop;

@@ -251,12 +251,12 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       end Check_Error;
 
    begin
-      --  The user must call Lexer.Reset_* to set the input text.
-      Shared_Parser.Lex_All;
-
       if Shared_Parser.User_Data /= null then
          Shared_Parser.User_Data.Reset;
       end if;
+
+      Shared_Parser.Lex_All;
+
       Shared_Parser.Shared_Tree.Clear;
 
       Shared_Parser.Parsers := Parser_Lists.New_List
@@ -411,6 +411,7 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
    overriding procedure Execute_Actions (Parser : in out LR.Parser_No_Recover.Parser)
    is
+      use all type SAL.Base_Peek_Type;
       use all type Syntax_Trees.User_Data_Access;
 
       procedure Process_Node
@@ -437,9 +438,15 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
 
    begin
       if Parser.User_Data /= null then
-         for Parser_State of Parser.Parsers loop
+         if Parser.Parsers.Count > 1 then
+            raise Syntax_Error with "ambiguous parse; can't execute actions";
+         end if;
+
+         declare
+            Parser_State : Parser_Lists.Parser_State renames Parser.Parsers.First_State_Ref.Element.all;
+         begin
             Parser_State.Tree.Process_Tree (Process_Node'Access);
-         end loop;
+         end;
       end if;
    end Execute_Actions;
 

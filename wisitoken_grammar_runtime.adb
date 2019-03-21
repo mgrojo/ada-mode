@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with SAL;
 with WisiToken.Generate;   use WisiToken.Generate;
@@ -37,13 +36,11 @@ package body WisiToken_Grammar_Runtime is
 
       function Strip_Delimiters (Tree_Index : in Syntax_Trees.Valid_Node_Index) return String
       is
-         use Ada.Strings;
-         use Ada.Strings.Fixed;
          Region : Buffer_Region renames Data.Terminals.all (Tree.Terminal (Tree_Index)).Byte_Region;
       begin
          if -Tree.ID (Tree_Index) in RAW_CODE_ID | REGEXP_ID | ACTION_ID then
-            --  strip delimiters, leading/trailing spaces.
-            return Trim (Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2)), Both);
+            --  Strip delimiters. We don't strip leading/trailing spaces to preserve indent.
+            return Data.Grammar_Lexer.Buffer_Text ((Region.First + 2, Region.Last - 2));
 
          elsif -Tree.ID (Tree_Index) in STRING_LITERAL_ID | STRING_LITERAL_CASE_INS_ID and Strip_Quotes then
             return Data.Grammar_Lexer.Buffer_Text ((Region.First + 1, Region.Last - 1));
@@ -143,7 +140,7 @@ package body WisiToken_Grammar_Runtime is
                declare
                   Text : constant String := Get_Text (Data, Tree, Tokens (2));
                begin
-                  if Text'Length > 0 then
+                  if Text'Length > 0 and (for some C of Text => C /= ' ') then
                      RHS.Action := +Text;
                      Data.Action_Count := Data.Action_Count + 1;
                   end if;

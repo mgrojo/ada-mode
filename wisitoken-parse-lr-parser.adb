@@ -911,11 +911,11 @@ package body WisiToken.Parse.LR.Parser is
                            Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
                         begin
                            Trace.Put_Line
-                             (Integer'Image (Current_Parser.Label) & ": spawn" &
-                                Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
-                                Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active), " &
-                                Image (Parser_State.Tree.Min_Terminal_Index (Parser_State.Current_Token),
-                                       Shared_Parser.Terminals, Trace.Descriptor.all));
+                             (Integer'Image (Current_Parser.Label) & ": " &
+                                Trimmed_Image (Parser_State.Stack.Peek.State) & ": " &
+                                Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
+                                "spawn" & Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
+                                Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
                         end;
                      end if;
 

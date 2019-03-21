@@ -21,6 +21,8 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+re2c now has --location-format <gnu | msvc>
+
 c:/eurocontrol/query_display-flight_operations.adb
     errors cause huge slowdown in parse speed
         due to parallel parse, delete_dup?
