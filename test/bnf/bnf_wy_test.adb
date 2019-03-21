@@ -189,19 +189,16 @@ package body BNF_WY_Test is
 
       Exe : constant String := "./" & Root_Name & "_" & To_Lower (Generate_Algorithm'Image (Generate_Alg)) & "_run.exe";
 
-      Output : constant String := Root_Name & "_" &
-        To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
+      Args : GNAT.OS_Lib.String_List (1 .. 7) :=
+        (1      => new String'("-v"),
+         2      => new String'("2"),
+         others => null);
 
-      Args : GNAT.OS_Lib.String_List (1 .. 7);
-      Last : Integer := Args'First - 1;
+      Last : Integer := 2;
    begin
       if WisiToken.Trace_Action > WisiToken.Outline then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "parse " & Exe);
       end if;
-
-      Args (1) := new String'("-v");
-      Args (2) := new String'("2");
-      Last     := 2;
 
       if Generate_Alg in LR_Generate_Algorithm and McKenzie_Recover then
          --  one task in McKenzie_Recover for repeatable results.
@@ -211,11 +208,15 @@ package body BNF_WY_Test is
          Args (Last) := new String'("1");
       end if;
 
+      Last := Last + 1; -- For input file name
+
       declare
          Default_Input_Name : constant String := "../Test/bnf/" & Root_Name & ".input";
+
+         Output : constant String := Root_Name & "_" &
+           To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
       begin
-         if Exists (Default_Input_Name) then
-            Last := Last + 1;
+         if Ada.Directories.Exists (Default_Input_Name) then
             Args (Last) := new String'("../Test/bnf/" & Root_Name & ".input");
 
             Spawn (Exe, Args (1 .. Last), Output);
@@ -227,8 +228,8 @@ package body BNF_WY_Test is
 
       if Input_Name'Length > 0 then
          declare
-            Output : constant String := Input_Name & "_" &
-              To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
+            Output : constant String := Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Generate_Alg)) &
+              "-" & Input_Name & ".parse";
          begin
             Args (Last) := new String'("../Test/bnf/" & Input_Name & ".input");
             Spawn (Exe, Args (1 .. Last), Output);

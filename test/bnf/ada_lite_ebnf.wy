@@ -108,14 +108,14 @@
 
 ;;; no Mckenzie for now
 
-%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state nonterminal_006, nonterminal_006 on token IDENTIFIER
-%conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part on token IDENTIFIER
-%conflict SHIFT/REDUCE in state aspect_specification, aspect_specification on token IDENTIFIER
-%conflict SHIFT/REDUCE in state extended_return_statement, extended_return_statement on token IDENTIFIER
-%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS
-%conflict SHIFT/REDUCE in state iteration_scheme, iteration_scheme on token IDENTIFIER
-%conflict SHIFT/REDUCE in state subprogram_body, subprogram_body on token IS
+%conflict SHIFT/REDUCE in state extended_return_statement, extended_return_statement on token IDENTIFIER ( 9)
+%conflict SHIFT/REDUCE in state subprogram_body, subprogram_body on token IS ( 88)
+%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS ( 97)
+%conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part on token IDENTIFIER ( 105)
+%conflict SHIFT/REDUCE in state aspect_specification, aspect_specification on token IDENTIFIER ( 110)
+%conflict SHIFT/REDUCE in state iteration_scheme, iteration_scheme on token IDENTIFIER ( 141)
+%conflict SHIFT/REDUCE in state nonterminal_004, nonterminal_004 on token IDENTIFIER ( 163)
+%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN ( 267)
 
 ;;;; grammar rules
 
@@ -124,7 +124,7 @@ actual_parameter_part
   ;
 
 aspect_specification
-  : [WITH association_list]
+  : WITH association_list
   ;
 
 assignment_statement
@@ -132,7 +132,7 @@ assignment_statement
   ;
 
 association
-  : [(IDENTIFIER EQUAL_GREATER expression) | expression]
+  : (IDENTIFIER EQUAL_GREATER expression) | expression
   ;
 
 association_list
@@ -163,7 +163,7 @@ body_stub :
   ;
 
 case_statement
-  : CASE expression IS case_statement_alternative {case_statement_alternative} END CASE SEMICOLON
+  : CASE expression IS {case_statement_alternative}- END CASE SEMICOLON
   ;
 
 case_statement_alternative
@@ -183,7 +183,7 @@ compilation_unit
   ;
 
 compilation_unit_list
-  : {compilation_unit}
+  : {compilation_unit}-
     %( )%
     %(return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
   ;
@@ -215,7 +215,6 @@ declaration
 
 declarative_part
   : {declaration}
-  | ;; empty
   ;
 
 discrete_subtype_definition : subtype_indication | range_g ;
@@ -236,10 +235,9 @@ exit_statement
 
 expression
   : relation
-  : relation {AND relation}
-  | relation {OR relation}
-  | relation {XOR relation}
-  | ;; empty for user friendly
+  | relation {AND relation}-
+  | relation {OR relation}-
+  | relation {XOR relation}-
   ;
 
 extended_return_object_declaration
@@ -305,7 +303,6 @@ name
   | selected_component
     %()%
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
-  | ;; empty for user friendly
   ;
 
 object_declaration

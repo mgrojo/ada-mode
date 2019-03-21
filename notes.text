@@ -22,17 +22,16 @@ update-wisi_grammar
 
  current work
 add EBNF
-    build/ada_lite_bnf.wy
-        never count virtual_nonterminals in last_nonterminal?
-        {} = 0 or more times; include ";; empty" in translation
-
-   run ada_lite tests; t_one
-
-
     ada-lite-ebnf.wy
-        pure EBNF for nonterms first
-            after translate to bnf with new nonterms, substitute new nonterms into grammar, compare to ada-lite.wy
-        replace %keywords with literals
+    test/bnf/ada_lite_bnf.wy
+        lost semantic checks and actions
+
+    %conflict has too many tokens after 'on'
+
+    run ada_lite tests; t_one
+
+
+    replace %keywords with literals
 
     add ANTLR syntax for java
 

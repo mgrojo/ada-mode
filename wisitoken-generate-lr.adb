@@ -233,7 +233,7 @@ package body WisiToken.Generate.LR is
    is
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
-      if Trace_Generate > Outline then
+      if Trace_Generate > Detail then
          Ada.Text_IO.Put (Image (Symbol, Descriptor) & " => ");
          Put (Descriptor, Action);
          Ada.Text_IO.New_Line;
@@ -243,7 +243,7 @@ package body WisiToken.Generate.LR is
          if Equal (Matching_Action.Action.Item, Action) then
             --  Matching_Action is identical to Action, so there is no
             --  conflict; just don't add it again.
-            if Trace_Generate > Outline then
+            if Trace_Generate > Detail then
                Ada.Text_IO.Put_Line (" - already present");
             end if;
             return;
@@ -274,11 +274,11 @@ package body WisiToken.Generate.LR is
                   --  item set. Only add it to conflicts once.
                   Conflicts.Append (New_Conflict);
 
-                  if Trace_Generate > Outline then
+                  if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line (" - conflict added: " & Image (New_Conflict, Descriptor));
                   end if;
                else
-                  if Trace_Generate > Outline then
+                  if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line (" - conflict duplicate: " & Image (New_Conflict, Descriptor));
                   end if;
                end if;
@@ -289,7 +289,7 @@ package body WisiToken.Generate.LR is
                --  the excess conflict.
                if Matching_Action.Action.Next /= null then
                   if Matching_Action.Action.Item = Action or Matching_Action.Action.Next.Item = Action then
-                     if Trace_Generate > Outline then
+                     if Trace_Generate > Detail then
                         Ada.Text_IO.Put_Line (" - conflict duplicate");
                      end if;
                   else
@@ -324,7 +324,7 @@ package body WisiToken.Generate.LR is
 
       State : constant State_Index := Closure.State;
    begin
-      if Trace_Generate > Outline then
+      if Trace_Generate > Detail then
          Ada.Text_IO.Put_Line ("adding actions for state" & State_Index'Image (State));
       end if;
 
@@ -372,7 +372,7 @@ package body WisiToken.Generate.LR is
             end;
          else
             --  Dot is before a non-terminal token; no action.
-            if Trace_Generate > Outline then
+            if Trace_Generate > Detail then
                Ada.Text_IO.Put_Line (Image (Element (Item.Dot), Descriptor) & " => no action");
             end if;
          end if;
@@ -445,7 +445,7 @@ package body WisiToken.Generate.LR is
       RHS    : Productions.Right_Hand_Side renames Prod.RHSs (Item.Prod.RHS);
       Action : constant Parse_Action_Rec := (Reduce, Item.Prod, RHS.Action, RHS.Check, RHS.Tokens.Length);
    begin
-      if Trace_Generate > Outline then
+      if Trace_Generate > Detail then
          Ada.Text_IO.Put_Line ("processing lookaheads");
       end if;
 

@@ -328,7 +328,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       Spontaneous_Count : Integer := 0;
    begin
-      if Trace_Generate > Outline then
+      if Trace_Generate > Detail then
          Ada.Text_IO.Put_Line ("  closure_item: ");
          LR1_Items.Put (Grammar, Descriptor, Closure_Item);
          Ada.Text_IO.New_Line;
@@ -355,7 +355,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          end if;
 
          if Has_Element (To_Item) then
-            if Trace_Generate > Outline then
+            if Trace_Generate > Detail then
                Spontaneous_Count := Spontaneous_Count + 1;
                Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Closure_Item.Lookaheads.all, Descriptor));
             end if;
@@ -420,7 +420,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
    begin
       for Kernel of Kernels loop
-         if Trace_Generate > Outline then
+         if Trace_Generate > Detail then
             Ada.Text_IO.Put ("Adding lookaheads for ");
             LR1_Items.Put (Grammar, Descriptor, Kernel);
          end if;
@@ -439,7 +439,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          end loop;
       end loop;
 
-      if Trace_Generate > Outline then
+      if Trace_Generate > Detail then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Propagations:");
          Put (Grammar, Descriptor, Propagation_List);

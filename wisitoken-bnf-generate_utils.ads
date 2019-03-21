@@ -34,10 +34,9 @@ package WisiToken.BNF.Generate_Utils is
    WisiToken_Accept_Name : constant String := "wisitoken_accept";
 
    type Generate_Data is limited record
-      Meta_Syntax : WisiToken_Grammar_Runtime.Meta_Syntax;
-      Tokens      : access constant WisiToken.BNF.Tokens;
-      Descriptor  : access WisiToken.Descriptor;
-      Grammar     : WisiToken.Productions.Prod_Arrays.Vector;
+      Tokens     : access constant WisiToken.BNF.Tokens;
+      Descriptor : access WisiToken.Descriptor;
+      Grammar    : WisiToken.Productions.Prod_Arrays.Vector;
 
       Action_Names : access Names_Array_Array;
       Check_Names  : access Names_Array_Array;
@@ -162,18 +161,16 @@ package WisiToken.BNF.Generate_Utils is
 private
 
    type Token_Cursor_Kind is
-     (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal,
-      Virtual_Nonterminal, Done);
+     (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
 
    type Token_Cursor is record
-      Data                  : not null access constant Generate_Data;
-      Kind                  : Token_Cursor_Kind;
-      ID                    : Token_ID;
-      Token_Kind            : WisiToken.BNF.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
-      Token_Item            : String_Pair_Lists.Cursor;
-      Keyword               : String_Pair_Lists.Cursor;
-      Nonterminal           : Rule_Lists.Cursor;
-      Virtual_Nonterm_Index : Base_Identifier_Index;
+      Data        : not null access constant Generate_Data;
+      Kind        : Token_Cursor_Kind;
+      ID          : Token_ID;
+      Token_Kind  : WisiToken.BNF.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
+      Token_Item  : String_Pair_Lists.Cursor;
+      Keyword     : String_Pair_Lists.Cursor;
+      Nonterminal : Rule_Lists.Cursor;
    end record;
 
 end WisiToken.BNF.Generate_Utils;

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015, 2017, 2018 Stephe Leake
+--  Copyright (C) 2015, 2017 - 2019 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -30,8 +30,17 @@ with WisiToken.Text_IO_Trace;
 procedure Gen_LR_Parser_No_Recover_Run
 is
    procedure Put_Usage
-   is begin
-      Put_Line ("usage: *_run [-v <integer>] filename");
+   is
+      use Ada.Command_Line;
+   begin
+      Put (Command_Name);
+      for I in 1 .. Argument_Count loop
+         Put (' ' & Argument (I));
+      end loop;
+      New_Line;
+
+      Put_Line (" usage: [-v <integer>] filename");
+      Put_Line (Ada.Command_Line.Command_Name & " usage: [-v <integer>] filename");
       Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
    end Put_Usage;

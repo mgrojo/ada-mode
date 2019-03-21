@@ -22,8 +22,10 @@ with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
 package WisiToken_Grammar_Runtime is
 
-   type Meta_Syntax is (BNF_Syntax, EBNF_Syntax);
+   type Meta_Syntax is (Unknown, BNF_Syntax, EBNF_Syntax);
    --  Syntax used in grammar file.
+
+   type Action_Phase is (Meta, Other);
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
@@ -40,18 +42,18 @@ package WisiToken_Grammar_Runtime is
       Generate_Set : WisiToken.BNF.Generate_Set_Access;
       --  As specified by %generate directives or command line.
 
-      Phase : Natural := 0;
+      Phase : Action_Phase := Meta;
       --  Determines which actions Execute_Actions executes:
-      --  0 - meta declarations, like %meta_syntax, %if
-      --  1 - everything.
+      --  Meta  - meta declarations, like %meta_syntax, %generate
+      --  Other - everything else
 
-      Meta_Syntax         : WisiToken_Grammar_Runtime.Meta_Syntax := BNF_Syntax;
-      Terminals           : WisiToken.Base_Token_Array_Access;
-      Raw_Code            : WisiToken.BNF.Raw_Code;
-      Language_Params     : WisiToken.BNF.Language_Param_Type;
-      Tokens              : aliased WisiToken.BNF.Tokens;
-      Conflicts           : WisiToken.BNF.Conflict_Lists.List;
-      McKenzie_Recover    : WisiToken.BNF.McKenzie_Recover_Param_Type;
+      Meta_Syntax      : WisiToken_Grammar_Runtime.Meta_Syntax := Unknown;
+      Terminals        : WisiToken.Base_Token_Array_Access;
+      Raw_Code         : WisiToken.BNF.Raw_Code;
+      Language_Params  : WisiToken.BNF.Language_Param_Type;
+      Tokens           : aliased WisiToken.BNF.Tokens;
+      Conflicts        : WisiToken.BNF.Conflict_Lists.List;
+      McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
 
       Rule_Count      : Integer := 0;
       Action_Count    : Integer := 0;

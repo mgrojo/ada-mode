@@ -26,18 +26,18 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal                => 3,
-      Last_Terminal                 => 34,
-      First_Nonterminal             => 35,
-      Last_Nonterminal              => 52,
-      EOI_ID                        => 34,
-      Accept_ID                     => 35,
+      Last_Terminal                 => 35,
+      First_Nonterminal             => 36,
+      Last_Nonterminal              => 53,
+      EOI_ID                        => 35,
+      Accept_ID                     => 36,
       Case_Insensitive              => False,
       New_Line_ID                   => 1,
       Comment_ID                    => 2,
       Left_Paren_ID                 => 2147483647,
       Right_Paren_ID                => 2147483647,
-      String_1_ID                   => 33,
-      String_2_ID                   => 32,
+      String_1_ID                   => 34,
+      String_2_ID                   => 33,
       Embedded_Quote_Escape_Doubled => False,
       Image                         =>
         (new String'("WHITESPACE"),
@@ -61,6 +61,7 @@ package Wisitoken_Grammar_Actions is
          new String'("LEFT_BRACKET"),
          new String'("LEFT_PAREN"),
          new String'("LESS"),
+         new String'("MINUS"),
          new String'("PERCENT"),
          new String'("PLUS"),
          new String'("QUESTION"),
@@ -95,7 +96,7 @@ package Wisitoken_Grammar_Actions is
          new String'("compilation_unit_list")),
       Terminal_Image_Width => 16,
       Image_Width          => 25,
-      Last_Lookahead       => 35);
+      Last_Lookahead       => 36);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -119,6 +120,7 @@ package Wisitoken_Grammar_Actions is
       LEFT_BRACKET_ID,
       LEFT_PAREN_ID,
       LESS_ID,
+      MINUS_ID,
       PERCENT_ID,
       PLUS_ID,
       QUESTION_ID,

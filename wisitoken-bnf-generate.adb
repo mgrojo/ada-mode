@@ -46,8 +46,6 @@ with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 procedure WisiToken.BNF.Generate
 is
-   use all type Ada.Containers.Count_Type;
-
    procedure Put_Usage
    is
       use Ada.Text_IO;
@@ -296,8 +294,13 @@ begin
       --  cache results in those cases; they only happen in test grammars,
       --  which are small.
 
-      procedure Parse_Check (Lexer : in Lexer_Type; Parser : in Generate_Algorithm)
+      procedure Parse_Check
+        (Lexer  : in Lexer_Type;
+         Parser : in Generate_Algorithm;
+         Phase  : in WisiToken_Grammar_Runtime.Action_Phase)
       is
+         use all type Ada.Containers.Count_Type;
+         use all type WisiToken_Grammar_Runtime.Action_Phase;
          use all type WisiToken_Grammar_Runtime.Meta_Syntax;
       begin
          Input_Data.User_Parser := Parser;
@@ -305,64 +308,61 @@ begin
          --  Specifying the parser and lexer can change the parsed grammar, due
          --  to %if {parser | lexer}.
 
-         Input_Data.Reset;
+         Input_Data.Reset; -- only resets Other data
 
-         Input_Data.Phase := 0;
-         Grammar_Parser.Execute_Actions; --  Does phase 0; meta declarations (ie meta_syntax)
+         Input_Data.Phase := Phase;
+         Grammar_Parser.Execute_Actions;
 
-         case Input_Data.Meta_Syntax is
-         when Unknown =>
-            Input_Data.Meta_Syntax := BNF_Syntax;
+         case Phase is
+         when Meta =>
+            case Input_Data.Meta_Syntax is
+            when Unknown =>
+               Input_Data.Meta_Syntax := BNF_Syntax;
 
-         when BNF_Syntax =>
-            null;
+            when BNF_Syntax =>
+               null;
 
-         when EBNF_Syntax =>
-            case Parser is
-            when LR_Generate_Algorithm =>
+            when EBNF_Syntax =>
                declare
-                  Tree : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+                  Tree  : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
                begin
+
+                  if Trace_Generate > Outline then
+                     Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
+                  end if;
+
                   if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line ("EBNF tree:");
                      Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
                      Ada.Text_IO.New_Line;
                   end if;
+
                   WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF (Tree, Input_Data);
+
                   if Trace_Generate > Detail then
                      Ada.Text_IO.New_Line;
                      Ada.Text_IO.Put_Line ("BNF tree:");
                      Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor);
                   end if;
+
                   if Output_BNF then
                      WisiToken_Grammar_Runtime.Print_Source (-BNF_File_Name, Tree, Input_Data);
                   end if;
                end;
-
-            when Packrat_Generate_Algorithm =>
-               --  FIXME: need to save EBNF tree for packrat
-               raise SAL.Not_Implemented;
-
-            when None | External =>
-               null;
-
             end case;
+
+         when Other =>
+            if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
+               raise WisiToken.Grammar_Error with "no rules";
+            end if;
          end case;
-
-         Input_Data.Phase := 1;
-         Grammar_Parser.Execute_Actions; -- Does all actions
-
-         if Input_Data.Rule_Count = 0 or Input_Data.Tokens.Rules.Length = 0 then
-            raise WisiToken.Grammar_Error with "no rules";
-         end if;
-
       end Parse_Check;
 
    begin
-      if Command_Generate_Set = null then
-         --  Get the first quad from the input file
-         Parse_Check (None, None);
+      --  Get the the input file quads, translate EBNF
+      Parse_Check (None, None, WisiToken_Grammar_Runtime.Meta);
 
+      if Command_Generate_Set = null then
          if Input_Data.Generate_Set = null then
             raise User_Error with
               WisiToken.Generate.Error_Message
@@ -370,10 +370,7 @@ begin
                  "generate algorithm, output_language, lexer, interface not specified");
          end if;
 
-         --  Input_Data.Generate_Set will be free'd and regenerated if
-         --  Parse_Check is called, but the content won't change. So make a
-         --  copy.
-         Generate_Set := new WisiToken.BNF.Generate_Set'(Input_Data.Generate_Set.all);
+         Generate_Set := Input_Data.Generate_Set;
       else
          Generate_Set := Command_Generate_Set;
       end if;
@@ -381,11 +378,10 @@ begin
       Multiple_Tuples := Generate_Set'Length > 1;
 
       for Tuple of Generate_Set.all loop
-
-         Input_Data.User_Parser := Tuple.Gen_Alg;
-         Input_Data.User_Lexer  := Tuple.Lexer;
-
-         Parse_Check (Input_Data.User_Lexer, Input_Data.User_Parser);
+         Parse_Check
+           (Lexer  => Tuple.Lexer,
+            Parser => Tuple.Gen_Alg,
+            Phase  => WisiToken_Grammar_Runtime.Other);
 
          declare
             use Ada.Real_Time;
