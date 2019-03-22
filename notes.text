@@ -1536,7 +1536,7 @@ Emacs 25.3, current gnat
     restart Emacs to set load-path
 
     build/Makefile compile-ada-test autoloads test-clean
-    build/Makefile test ADA_MODE_DIR="-f package-initialize"
+    build/Makefile test TEST_DIR=elpa
 
     build/Makefile uninstall-elpa
     (gpr-query-kill-all-sessions)
@@ -1550,7 +1550,7 @@ sync for Debian:
     (dvc-sync-review ".")
 
 Debian stable is 9.6 jessie as of 18 Nov 2018
-    emacs  24.5  - no longer supported by ada-mode
+    emacs  25.1
     gnat   6.3.0 - fails on wisitoken
 
     emacs-stable.sh ;; for dvc and testing
@@ -1562,52 +1562,64 @@ Debian stable is 9.6 jessie as of 18 Nov 2018
         http://libre.adacore.com
         ada-mode.texi
 
+    (dvc-pull "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
+
     /Projects/org.emacs.ada-mode/build/Makefile
-        pub
+        # no ada-ref-man on Debian
+        docs pub-ada pub-wisi pub-ada-ref-man build-elpa uninstall-elpa
         install-elpa
+            # byte-compile errors show in *compile-log*
 
-    cd ~/.emacs.d/elpa/ada-mode-6.0.0
+    check for bogus execute permissions in elpa
+        $ cd /Projects/elpa/
+        $ ls -R -l packages/ada-mode | grep -- -rwx
+        $ ls -R -l packages/wisi | grep -- -rwx
+        $ chmod -x *.el *.adb
+        # keep execute on *.sh
+
+    cd ~/.emacs.d/elpa/ada-mode-6.1.0
     ./build.sh
-    cd ../wisi-2.0.0/
+    cd ../wisi-2.1.0/
     ./build-wisitoken-bnf-generate.sh
-
 
     build/Makefile
         compile-ada-test
-        test ADA_MODE_DIR="-f package-initialize" WISITOKEN_GENERATE="~/.emacs.d/elpa/wisi-2.0.0/wisitoken-bnf-generate.exe"
+        test-clean test TEST_DIR=elpa
 
-    emacs.sh ;; current for dvc
+    commit elpa:
+    (dvc-state-one "/Projects/elpa")
+        add, stage, commit ada-mode, wisi
+
+    (dvc-push "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
+
     (dvc-status)
     (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
     (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
 
-on Debian, check file permissions (ie exe bit) in elpa
+    $ mtn_sync_ada_france.sh
 
+On Windows
 $ mtn_sync_ada_france.sh
 (dvc-sync-review ".")
 
-commit elpa:
+commit elpa ada-ref-man:
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
 
-    build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
+    build/Makefile pub-ada-ref-man
 
     (dvc-state-one "/Projects/elpa")
-        add, stage, commit ada-mode, ada-ref-man, wisi
+        add, stage, commit ada-ref-man
 
     (dvc-push "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
+
     # 24 hrs for web repository to update
 
 after Gnu ELPA updated, test install from GNU ELPA
     5.1.8 crashed emacs for me
-
-check for bogus execute permissions in elpa
-    on Debian
-    (dvc-pull "elpa")
-    $ ls -r -l | grep rwx
-    $ chmod -x *.el *.adb
-    # keep execute on build.sh
 
 (dvc-state-one ".")
 mtn tag h:org.emacs.ada-mode org.emacs.ada-mode-<version>
