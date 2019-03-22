@@ -547,6 +547,15 @@ Send BEGIN thru SEND-END to external parser."
 		    (cond
 		     ((equal '(parse_error) response)
 		      ;; Parser detected a syntax error, and recovery failed, so signal it.
+
+		      (when (> wisi-debug 0)
+			;; Save a copy of parser output; may be overwritten by subsequent parse face attempts.
+			(set-buffer response-buffer)
+			(let ((content (buffer-substring-no-properties (point-min) (point-max)))
+			      (buf-name (concat (buffer-name) "-save-error")))
+			  (set-buffer (get-buffer-create buf-name))
+			  (insert content)))
+
 		      (if (wisi-parser-parse-errors parser)
 			  (signal 'wisi-parse-error
 				  (wisi--parse-error-message (car (wisi-parser-parse-errors parser))))

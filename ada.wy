@@ -252,12 +252,15 @@
 ;; delete identifier the same cost as insert, since deleting
 ;; identifiers in other cases is not as helpful.
 ;;
-;; Similarly, we often have an extra 'end;', or 'end loop;' etc.
+;; Similarly, we often have an extra 'end;', or 'end loop;' etc. But
+;; when partial parsing, we prefer inserting the corresponding 'begin'
+;; over deleting 'end', because a dangling 'end' is likely not a
+;; mistake.
 %mckenzie_cost_delete BEGIN 1
 %mckenzie_cost_delete CASE 2
 %mckenzie_cost_delete DECLARE 1
 %mckenzie_cost_delete ELSE 1
-%mckenzie_cost_delete END 1
+%mckenzie_cost_delete END 2
 %mckenzie_cost_delete IDENTIFIER 2
 %mckenzie_cost_delete IF 2
 %mckenzie_cost_delete IS 2
@@ -1394,7 +1397,7 @@ handled_sequence_of_statements
     %((progn
       (wisi-statement-action [2 motion])
       (wisi-indent-action [[0 0]
-                           [(- ada-indent) (- ada-indent)]
+                           (- ada-indent)
                            [(- ada-indent-when ada-indent) (- ada-indent-when ada-indent)]])))%
   | sequence_of_statements_opt
   ;

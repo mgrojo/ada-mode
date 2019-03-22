@@ -840,7 +840,9 @@
        ((sequence_of_statements_opt EXCEPTION exception_handler_list_opt )
         (progn
       (wisi-statement-action [2 motion])
-      (wisi-indent-action [[0 0] (- ada-indent) (- ada-indent-when ada-indent)])))
+      (wisi-indent-action [[0 0]
+                           (- ada-indent)
+                           [(- ada-indent-when ada-indent) (- ada-indent-when ada-indent)]])))
        ((sequence_of_statements_opt )))
       (identifier_list
        ((identifier_list COMMA IDENTIFIER )

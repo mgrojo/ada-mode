@@ -27,7 +27,7 @@ package Gpr_Process_Actions is
       Last_Terminal                 => 37,
       First_Nonterminal             => 38,
       Last_Nonterminal              => 71,
-      EOF_ID                        => 37,
+      EOI_ID                        => 37,
       Accept_ID                     => 38,
       Case_Insensitive              => True,
       New_Line_ID                   => 1,

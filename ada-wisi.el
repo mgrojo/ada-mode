@@ -158,6 +158,8 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-post-parse-fail ()
   "For `wisi-post-parse-fail-hook'."
+  ;; Parse indent succeeded, so we assume parse navigate will as well
+  (wisi-validate-cache (point-min) (line-end-position) nil 'navigate)
   (save-excursion
     (let ((start-cache (wisi-goto-start (or (wisi-get-cache (point)) (wisi-backward-cache)))))
       (when start-cache
@@ -730,15 +732,38 @@ TOKEN-TEXT; move point to just past token."
   (concat ada-wisi-partial-begin-regexp
 	  "\\|;"))
 
+(defun ada-wisi-search-backward-no-string-comment (regexp)
+  (let ((maybe-found-p (search-backward-regexp regexp nil t)))
+    (while (and maybe-found-p
+		(ada-in-string-or-comment-p)
+		(setq maybe-found-p (search-backward-regexp regexp nil t))))
+    maybe-found-p))
+
 (defun ada-wisi-find-begin ()
   "Starting at current point, search backward for a parse start point."
-  (cond
-   ((looking-at (concat "\\s-*\\(" ada-wisi-named-begin-regexp "\\)"))
-    (match-beginning 1))
 
-   ((search-backward-regexp ada-wisi-partial-begin-regexp nil t)
-    (while (and (ada-in-string-or-comment-p)
-		(search-backward-regexp ada-wisi-partial-begin-regexp nil t)))
+  ;; There is a trade-off in deciding where to start parsing for indent. If we have:
+  ;;
+  ;; procedure ...
+  ;; is
+  ;;
+  ;; and are inserting a new line after 'is', we need to include
+  ;; 'is' in the parse to see the indent. On the other hand, if we
+  ;; have:
+  ;;
+  ;;    ...
+  ;;    end;
+  ;; begin
+  ;;    Foo;
+  ;;
+  ;; Inserting new line after 'Foo;'; if we include 'begin', there
+  ;; is no error (begin starts a statement), and the indent is
+  ;; computed incorrectly.
+  ;;
+  ;; This is handled by the set of keywords in
+  ;; ada-wisi-partial-begin-regexp.
+  (cond
+   ((ada-wisi-search-backward-no-string-comment ada-wisi-partial-begin-regexp)
     (let ((found (match-string 0))
 	  cache)
       (cond
@@ -775,9 +800,12 @@ TOKEN-TEXT; move point to just past token."
 	    (setq match t)
 	    (setq end-cand (point)))
 
-	;; no reasonable end point found; return start for minimal parse
+	;; No reasonable end point found (maybe a missing right
+	;; paren); return line after start for minimal parse, compute
+	;; indent for line containing start.
 	(setq match nil)
-	(setq end-cand start))
+	(goto-char start)
+	(setq end-cand (line-end-position 2)))
       )
 
     (when (and match
@@ -827,7 +855,6 @@ Point must have been set by `ada-wisi-find-begin'."
 	    (goto-char end)
 	    (setq result (cons begin-cand (ada-wisi-find-end))))
 
-	;; Else search for a matching name; avoids error recovery.
 	(setq end-cand (ada-wisi-find-matching-end))
 	(if (and end-cand
 		 (>= end-cand end))
@@ -835,8 +862,8 @@ Point must have been set by `ada-wisi-find-begin'."
 	  (goto-char end)
 	  (setq result (cons begin-cand (ada-wisi-find-end))))
 
-	result))
-    ))
+	))
+    result))
 
 (defun ada-wisi-show-expanded-region ()
   "For debugging. Expand currently selected region."
@@ -849,7 +876,8 @@ Point must have been set by `ada-wisi-find-begin'."
 
 (cl-defmethod wisi-parse-adjust-indent ((_parser ada-wisi-parser) indent repair)
   (cond
-   ((wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
+   ((or (wisi-list-memq (wisi--parse-error-repair-inserted repair) '(BEGIN IF LOOP))
+	(wisi-list-memq (wisi--parse-error-repair-deleted repair) '(END)))
     ;; Error token terminates the block containing the start token
     (- indent ada-indent))
 

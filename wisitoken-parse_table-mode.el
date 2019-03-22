@@ -1,6 +1,6 @@
 ;; wisitoken-parse_table-mode.el --- For navigating in a parse table as output by wisitoken-bnf-generate. -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2017, 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2017 - 2019  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
@@ -33,22 +33,50 @@
   nil)
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql wisitoken-parse_table)))
-  ;; assume we are on one of:
+  ;; if we are on one of:
   ;; - ’goto state nnn’ in a state action
-  ;; - ’=> State nnn’ in the debug kernels list
-  ;; - ’( nnn)’ in the unknown conflicts list
+  ;; => return nnn state
+  ;;
+  ;; or
+  ;; - foo <= bar baz
+  ;; => return nonterminal name at point
+  ;;
+  ;; - 'reduce n tokens to <nonterminal> <prod_id>'
+  ;; => return 'prod_id: name'
   (save-excursion
-    (end-of-line)
-    (when (or (looking-back "[Ss]tate \\([0-9]+\\)\\( ([0-9.]+)\\)?" (line-beginning-position))
-	      (looking-back "( \\([0-9]+\\))" (line-beginning-position)))
-      (match-string 1))))
+    (cond
+     ((save-excursion
+	(end-of-line)
+	(or (looking-back "goto state \\([0-9]+\\),?" (line-beginning-position))
+	    (looking-back "( \\([0-9]+\\))" (line-beginning-position))))
+      (match-string 1))
+
+     ((save-excursion
+	(back-to-indentation)
+	(looking-at "[a-zA-Z_]+ + => reduce [0-9]+ tokens to \\([a-z0-9_]+\\) \\([0-9.]+\\)"))
+      (concat (match-string 2) ": " (match-string 1)))
+
+     (t
+      (thing-at-point 'symbol)))))
 
 (cl-defgeneric xref-backend-definitions ((_backend (eql wisitoken-parse_table)) identifier)
-  ;; state tables are self-contained; IDENTIFIER must be a state number
-  (save-excursion
-    (goto-char (point-min))
-    (search-forward-regexp (concat "^State " identifier ":$"))
-    (list (xref-make identifier (xref-make-buffer-location (current-buffer) (match-beginning 0))))))
+  ;; IDENTIFIER is from xref-back-identifier-at-point; a state number or a nonterminal
+  (let ((state-p (string-match "\\`[0-9]+\\'" identifier))
+	(prod_id-p (string-match "\\`[0-9.]+: " identifier)))
+    (save-excursion
+      (goto-char (point-min))
+      (cond
+       (state-p
+	(search-forward-regexp (concat "^State " identifier ":$")))
+
+       (prod_id-p
+	(search-forward-regexp (concat identifier " <=")))
+
+       (t
+	(search-forward-regexp (concat "^[0-9.]+: " identifier " <=")))
+       )
+      (list (xref-make identifier (xref-make-buffer-location (current-buffer) (match-beginning 0))))
+      )))
 
 ;;;###autoload
 (define-minor-mode wisitoken-parse_table-mode

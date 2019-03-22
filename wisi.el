@@ -282,7 +282,7 @@ Truncate any region that overlaps POS."
 
 (defun wisi--delete-face-cache (after)
   (with-silent-modifications
-    (remove-text-properties after (point-max) '(wisi-face nil 'font-lock-face nil))
+    (remove-text-properties after (point-max) '(font-lock-face nil))
     )
   (wisi-cache-delete-regions-after 'face after))
 
@@ -435,24 +435,35 @@ Used to ignore whitespace changes in before/after change hooks.")
   "For `after-change-functions'"
   ;; begin . end is range of text being inserted (empty if equal);
   ;; length is the size of the deleted text.
-  ;;
-  ;; This change might be changing to/from a keyword; trigger
-  ;; font-lock. See test/ada_mode-interactive_common.adb Obj_1.
-  ;; Also delete navigate, indent caches.
-  (unless wisi-indenting-p
+
+  ;; Remove caches on inserted text, which could have caches from
+  ;; anywhere, and are in any case invalid.
+
+  ;; If the insertion changes a word that has wisi fontification,
+  ;; remove fontification from the entire word, so it is all
+  ;; refontified consistently.
+
+  (let (word-begin word-end)
     (save-excursion
-      (let (word-end)
-	(goto-char end)
-	(skip-syntax-forward "w_")
-	(setq word-end (point))
-	(goto-char begin)
-	(skip-syntax-backward "w_")
+      (goto-char end)
+      (skip-syntax-forward "w_")
+      (setq word-end (point))
+      (goto-char begin)
+      (skip-syntax-backward "w_")
+      (setq word-begin (point)))
+    (if (get-text-property word-begin 'font-lock-face)
 	(with-silent-modifications
 	  (remove-text-properties
-	   (point) word-end
-	   '(font-lock-face nil fontified nil wisi-cache nil wisi-indent nil)))
-	)
-      )))
+	   word-begin word-end
+	   '(font-lock-face nil wisi-cache nil wisi-indent nil fontified nil)))
+
+      ;; No point in removing
+      ;; 'fontified here; that's already handled by jit-lock.
+      (with-silent-modifications
+	(remove-text-properties
+	 begin end
+	 '(font-lock-face nil wisi-cache nil wisi-indent nil))))
+    ))
 
 (defun wisi--post-change (begin end)
   "Update wisi text properties for changes in region BEG END."
@@ -460,14 +471,6 @@ Used to ignore whitespace changes in before/after change hooks.")
 
   ;; see comments above on syntax-propertize
   (when (< emacs-major-version 25) (syntax-propertize end))
-
-  ;; Remove caches on inserted text, which could have caches from
-  ;; before the failed parse (or another buffer), and are in any case
-  ;; invalid. No point in removing 'fontified; that's handled by
-  ;; jit-lock.
-
-  (with-silent-modifications
-    (remove-text-properties begin end '(wisi-cache nil font-lock-face nil)))
 
   (save-excursion
     (let ((need-invalidate t)
@@ -665,16 +668,17 @@ Usefull if the parser appears to be hung."
     (wisi-invalidate-cache parse-action (point-min)))
   )
 
-(defun wisi--partial-parse-p (begin end)
-  (if (and (= begin (point-min)) (= end (point-max)))
-    nil
-    (>= (point-max) wisi-partial-parse-threshold)))
+(defun wisi-partial-parse-p (begin end)
+  (and (wisi-process--parser-p wisi--parser)
+       (not (and (= begin (point-min))
+		 (= end (point-max))))
+       (>= (point-max) wisi-partial-parse-threshold)))
 
 (defun wisi--run-parse (begin parse-end)
   "Run the parser, on at least region BEGIN PARSE-END."
   (unless (or (buffer-narrowed-p)
 	      (= (point-min) (point-max))) ;; some parsers can’t handle an empty buffer.
-    (let* ((partial-parse-p (wisi--partial-parse-p begin parse-end))
+    (let* ((partial-parse-p (wisi-partial-parse-p begin parse-end))
 	   (msg (when (> wisi-debug 0)
 		  (format "wisi: %sparsing %s %s:%d %d %d ..."
 			  (if partial-parse-p "partial " "")
@@ -1124,7 +1128,7 @@ for parse errors. BEGIN, END is the parsed region."
   (let ((indent (get-text-property (1- (point)) 'wisi-indent)))
     (unless indent
       (error "nil indent for line %d" (line-number-at-pos (point))))
-    (when (and (wisi--partial-parse-p begin end)
+    (when (and (wisi-partial-parse-p begin end)
 	       (< 0 (length (wisi-parser-parse-errors wisi--parser))))
       (dolist (err (wisi-parser-parse-errors wisi--parser))
 	(dolist (repair (wisi--parse-error-repair err))
@@ -1147,8 +1151,6 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 
   (let ((wisi--parse-action 'indent)
 	(parse-required nil)
-	parse-begin
-	parse-end
 	(end-mark (copy-marker end))
 	(prev-indent-failed wisi-indent-failed))
 
@@ -1167,27 +1169,6 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 	(unless (get-text-property (1- (point)) 'wisi-indent)
 	  (setq parse-required t))
 	(forward-line))
-
-      ;; There is a trade-off in deciding where to start parsing. If we have:
-      ;;
-      ;; procedure ...
-      ;; is
-      ;;
-      ;; and are inserting a new line after 'is', we need to include
-      ;; 'is' in the parse to see the indent. On the other hand, if we
-      ;; have:
-      ;;
-      ;;    ...
-      ;; end;
-      ;;
-      ;; and are inserting a new line after 'end;', we want to exclude
-      ;; 'end;', because error correction will probably delete it,
-      ;; losing the dedent.
-      ;;
-      ;; For now, we assume the former case, and will try to improve
-      ;; error correction.
-      (setq parse-begin (progn (goto-char begin) (line-beginning-position 0)))
-      (setq parse-end (progn (goto-char end) (line-end-position 2)))
       )
 
     ;; A parse either succeeds and sets the indent cache on all
@@ -1199,13 +1180,13 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 
       (wisi-set-parse-try nil)
 
-      (wisi--run-parse parse-begin parse-end)
+      (wisi--run-parse begin end)
 
       ;; If there were errors corrected, the indentation is
       ;; potentially ambiguous; see
       ;; test/ada_mode-interactive_2.adb. Or it was a partial parse,
       ;; where errors producing bad indent are pretty much expected.
-      (unless (wisi--partial-parse-p parse-begin parse-end)
+      (unless (wisi-partial-parse-p begin end)
 	(setq wisi-indent-failed (< 0 (+ (length (wisi-parser-lexer-errors wisi--parser))
 					 (length (wisi-parser-parse-errors wisi--parser))))))
       )
@@ -1228,7 +1209,7 @@ If INDENT-BLANK-LINES is non-nil, also indent blank lines (for use as
 			  (< (point) end-mark))) ;; end-mark is exclusive
 	    (when (or indent-blank-lines (not (eolp)))
 	      ;; ’indent-region’ doesn’t indent an empty line; ’indent-line’ does
-	      (let ((indent (if (bobp) 0 (wisi--get-cached-indent parse-begin parse-end))))
+	      (let ((indent (if (bobp) 0 (wisi--get-cached-indent begin end))))
 		    (indent-line-to indent))
 	      )
 	    (forward-line 1))
@@ -1465,11 +1446,10 @@ If non-nil, only repair errors in BEG END region."
   (message "%s" (get-text-property (1- (line-beginning-position)) 'wisi-indent)))
 
 (defun wisi-show-cache ()
-  "Show navigation and face caches, and applied faces, at point."
+  "Show navigation cache, and applied faces, at point."
   (interactive)
-  (message "%s:%s:%s:%s"
+  (message "%s:%s:%s"
 	   (wisi-get-cache (point))
-	   (get-text-property (point) 'wisi-face)
 	   (get-text-property (point) 'face)
 	   (get-text-property (point) 'font-lock-face)
 	   ))

@@ -88,17 +88,17 @@ test-wisi :: range_conflict.wisi-test
 summarize :
 	cat test.log
 
-#ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
-ONE_TEST_FILES ?= ada_mode-partial_parse.adb
-one : build_ada_executables
-one : byte-compile
-one : one-clean
-one-clean: force
+ONE_TEST_FILES ?= $(shell cd ../test; ls ada_mode-recover*.ad[sb])
+#ONE_TEST_FILES ?= ada_mode-partial_parse.adb
+one :: build_ada_executables
+one :: byte-compile
+one :: one-clean
+one-clean :: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-one : RUNTEST := run-indent-test-lalr-process-gpr_query.el
-#one : RUNTEST := run-indent-test-elisp-gpr_query.el
-one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
-#one : $(addsuffix .diff, $(ONE_TEST_FILES))
+one :: RUNTEST := run-indent-test-lalr-process-gpr_query.el
+#one :: RUNTEST := run-indent-test-elisp-gpr_query.el
+#one :: $(addsuffix .diff-run, $(ONE_TEST_FILES))
+one :: $(addsuffix .diff, $(ONE_TEST_FILES))
 
 # With DOS line endings, use (1- (+ (position-bytes (point)) (line-number-at-pos (point))))
 # to get begin, end pos.
@@ -106,7 +106,8 @@ one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 two : RUN_ARGS ?= ../gen_emacs_wisi_lr_parse.adb Face 1481 2415 2365 1481 41 66 3 --verbosity 1 1 0
 RUN_ARGS ?= c:/eurocontrol/query_display-flight_operations.adb Face --repeat_count 2
 two : build_ada_executables
-	../run_ada_lalr_parse.exe $(RUN_ARGS)
+#	../run_ada_lalr_parse.exe $(RUN_ARGS)
+	../run_ada_lr1_parse.exe $(RUN_ARGS)
 
 two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables

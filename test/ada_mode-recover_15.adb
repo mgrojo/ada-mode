@@ -12,35 +12,35 @@ package body Wisitoken.Lr.Parser is
    Main_Loop :
       loop
          loop
-            if Current_Parser.Verb = Error then
-               Current_Parser.Next;
+               if Current_Parser.Verb = Error then
+                  Current_Parser.Next;
 
-            elsif Current_Parser.Verb = Current_Verb then
-               if Action.Next /= null then
+               elsif Current_Parser.Verb = Current_Verb then
+                  if Action.Next /= null then
 
-                  if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
-                     declare
-                        Max_Parser       : Parser_Lists.Cursor;
-                        Cur              : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
-                     begin
+                     if Shared_Parser.Parsers.Count = Shared_Parser.Max_Parallel then
+                        declare
+                           Max_Parser       : Parser_Lists.Cursor;
+                           Cur              : Parser_Lists.Cursor := Shared_Parser.Parsers.First;
+                        begin
 
-                        if Max_Recover_Cost > 0 then
-                           if Max_Parser = Current_Parser then
-                              Parsers.Terminate_Parser (Current_Parser, "too many parsers; max cost");
-                           else
-                              Parsers.Terminate_Parser (Max_Parser, "too many parsers; max cost");
+                           if Max_Recover_Cost > 0 then
+                              if Max_Parser = Current_Parser then
+                                 Parsers.Terminate_Parser (Current_Parser, "too many parsers; max cost");
+                              else
+                                 Parsers.Terminate_Parser (Max_Parser, "too many parsers; max cost");
+                              end if;
                            end if;
-                        end if;
-                     end;
+                        end;
 
-                  end if; -- Inserted "end if;", intending to add "if ... then"
+                     end if; -- Inserted "end if;", intending to add "if ... then"
 
-               else
-                  Check_Error (Temp);
+                  else
+                     Check_Error (Temp);
+                  end if;
                end if;
-            end if;
 
-         end if; --  recover deletes 'if ; end'
+            end if; --  recover inserts matching 'if then'
          end loop;
       end loop Main_Loop;
 

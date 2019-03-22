@@ -164,6 +164,7 @@
 (require 'cl-lib)
 (require 'compile)
 (require 'find-file)
+(require 'wisi) ;; FIXME: rewrite to assume wisi
 
 (defun ada-mode-version ()
   "Return Ada mode version."
@@ -556,8 +557,14 @@ button was clicked."
   ;; point may be in the middle of a word, so insert newline first,
   ;; then go back and indent.
   (insert "\n")
-  (forward-char -1)
-  (funcall indent-line-function)
+  (unless (and (wisi-partial-parse-p (line-beginning-position) (line-end-position))
+	       (save-excursion (progn (forward-char -1)(looking-back "begin\\|else" (line-beginning-position)))))
+    ;; Partial parse may think 'begin' is just the start of a
+    ;; statement, when it's actually part of a larger declaration. So
+    ;; don't indent 'begin'. Similarly for 'else'; error recovery will
+    ;; probaly insert 'if then' immediately before it
+    (forward-char -1)
+    (funcall indent-line-function))
   (forward-char 1)
   (funcall indent-line-function))
 
@@ -2979,10 +2986,8 @@ The paragraph is indented on the first line."
 
 (defun ada-mode-post-local-vars ()
   ;; These are run after ada-mode-hook and file local variables
-  ;; because users or other ada-* files might set the relevant
-  ;; variable inside the hook or file local variables (file local
-  ;; variables are processed after the mode is set, and thus after
-  ;; ada-mode is run).
+  ;; because users or *.ad? files might set the relevant
+  ;; variable inside the hook or file local variables.
 
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)

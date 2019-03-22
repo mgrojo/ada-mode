@@ -27,7 +27,7 @@ package Ada_Process_Actions is
       Last_Terminal                 => 107,
       First_Nonterminal             => 108,
       Last_Nonterminal              => 332,
-      EOF_ID                        => 107,
+      EOI_ID                        => 107,
       Accept_ID                     => 108,
       Case_Insensitive              => True,
       New_Line_ID                   => 1,

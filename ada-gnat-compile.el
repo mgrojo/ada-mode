@@ -231,25 +231,26 @@ Prompt user if more than one."
 	     ;; the lines after that may contain alternate matches;
 	     ;; collect all, let user choose.
 	     (forward-line 1)
-	     (unless (looking-at ".* multiple use clauses cause hiding")
-	       (while (not done)
-		 (let ((limit (1- (line-end-position))))
-		   ;; 1- because next compilation error is at next line beginning
-		   (setq done (not
-			       (and
-				(equal file-line-struct (ada-get-compilation-message))
-				(setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
-				(< pos limit))))
-		   (when (not done)
-		     (let* ((item (get-text-property pos 'ada-secondary-error))
-			    (unit-file (nth 0 item))
-                            (choice (ada-ada-name-from-file-name unit-file)))
-                       (unless (member choice choices) (push choice choices))
-		       (goto-char (1+ pos))
-		       (goto-char (1+ (next-single-property-change (point) 'ada-secondary-error nil limit)))
-		       (when (eolp) (forward-line 1))
-		       ))
-		   )));; unless while let
+	     (when (looking-at ".* multiple use clauses cause hiding")
+	       (forward-line 1))
+	     (while (not done)
+	       (let ((limit (1- (line-end-position))))
+		 ;; 1- because next compilation error is at next line beginning
+		 (setq done (not
+			     (and
+			      (equal file-line-struct (ada-get-compilation-message))
+			      (setq pos (next-single-property-change (point) 'ada-secondary-error nil limit))
+			      (< pos limit))))
+		 (when (not done)
+		   (let* ((item (get-text-property pos 'ada-secondary-error))
+			  (unit-file (nth 0 item))
+			  (choice (ada-ada-name-from-file-name unit-file)))
+		     (unless (member choice choices) (push choice choices))
+		     (goto-char (1+ pos))
+		     (goto-char (1+ (next-single-property-change (point) 'ada-secondary-error nil limit)))
+		     (when (eolp) (forward-line 1))
+		     ))
+		 ))
 
 	     (setq unit-name
 		   (cond
@@ -564,7 +565,8 @@ Prompt user if more than one."
 	   t)
 
 ;;;; style errors
-	  ((looking-at "(style) \".*\" in wrong column")
+	  ((or (looking-at "(style) \".*\" in wrong column")
+	       (looking-at "(style) this token should be in column"))
 	   (set-buffer source-buffer)
 	   (funcall indent-line-function)
 	   t)

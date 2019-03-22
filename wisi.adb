@@ -636,6 +636,25 @@ package body Wisi is
    begin
       if Lexer.First then
          Data.Line_Begin_Pos (Token.Line) := Token.Char_Region.First;
+
+         if Token.Line > Data.Line_Begin_Pos.First_Index and then
+           Data.Line_Begin_Pos (Token.Line - 1) = Invalid_Buffer_Pos
+         then
+            --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
+            declare
+               First_Unset_Line : Line_Number_Type;
+            begin
+               for Line in reverse Data.Line_Begin_Pos.First_Index .. Token.Line - 1 loop
+                  if Data.Line_Begin_Pos (Line) /= Invalid_Buffer_Pos then
+                     First_Unset_Line := Line;
+                     exit;
+                  end if;
+               end loop;
+               for Line in First_Unset_Line .. Token.Line - 1 loop
+                  Data.Line_Begin_Pos (Line) := Data.Line_Begin_Pos (First_Unset_Line); -- good enough
+               end loop;
+            end;
+         end if;
       end if;
 
       if Token.ID < Data.Descriptor.First_Terminal then
@@ -832,19 +851,17 @@ package body Wisi is
 
                   Aug_Nonterm.First := Aug_Nonterm.First or Aug_Token.First;
 
-                  if Aug_Token.First then
-                     if Aug_Token.First_Indent_Line /= Invalid_Line_Number then
-                        Aug_Nonterm.First_Indent_Line := Aug_Token.First_Indent_Line;
-                     elsif Trailing_Comment_Done and Aug_Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
-                        Aug_Nonterm.First_Indent_Line := Aug_Token.First_Trailing_Comment_Line;
-                     end if;
+                  if Aug_Token.First_Indent_Line /= Invalid_Line_Number then
+                     Aug_Nonterm.First_Indent_Line := Aug_Token.First_Indent_Line;
+                  elsif Trailing_Comment_Done and Aug_Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
+                     Aug_Nonterm.First_Indent_Line := Aug_Token.First_Trailing_Comment_Line;
+                  end if;
 
-                     if Aug_Nonterm.Last_Indent_Line = Invalid_Line_Number then
-                        if Trailing_Comment_Done and Aug_Token.Last_Trailing_Comment_Line /= Invalid_Line_Number then
-                           Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Trailing_Comment_Line;
-                        elsif Aug_Token.Last_Indent_Line /= Invalid_Line_Number then
-                           Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Indent_Line;
-                        end if;
+                  if Aug_Nonterm.Last_Indent_Line = Invalid_Line_Number then
+                     if Trailing_Comment_Done and Aug_Token.Last_Trailing_Comment_Line /= Invalid_Line_Number then
+                        Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Trailing_Comment_Line;
+                     elsif Aug_Token.Last_Indent_Line /= Invalid_Line_Number then
+                        Aug_Nonterm.Last_Indent_Line := Aug_Token.Last_Indent_Line;
                      end if;
                   end if;
 

@@ -1988,7 +1988,8 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Simple, (Int, 0)), (Simple, (Int, 0))), (False,
-         (Simple, (Int, -Ada_Indent))), (False, (Simple, (Int, Ada_Indent_When - Ada_Indent)))));
+         (Simple, (Int, -Ada_Indent))), (True, (Simple, (Int, Ada_Indent_When - Ada_Indent)), (Simple, (Int,
+         Ada_Indent_When - Ada_Indent)))));
       end case;
    end handled_sequence_of_statements_0;
 
