@@ -8,13 +8,26 @@
 	     (fboundp 'ada-deselect-prj) ;; in 6.0.0
 	     )))
   ;; just define WISITOKEN, GPR_PROJECT_PATH so Makefile works
-  (setenv "WISITOKEN" "/Projects/org.wisitoken")
-  (setenv "GPR_PROJECT_PATH"
-	  (concat
-	   (getenv "WISITOKEN") "/build"
-	  ":" "/Projects/org.stephe_leake.aunit_ext/build"
-	  ":" "/Projects/org.stephe_leake.sal/build"
-	  ":" "/Projects/org.stephe_leake.makerules"))
+  (cl-ecase system-type
+    (gnu/linux
+     (setenv "WISITOKEN" "/Projects/org.wisitoken")
+     (setenv "GPR_PROJECT_PATH"
+	     (concat
+	      (getenv "WISITOKEN") "/build"
+	      ":" "/Projects/org.stephe_leake.aunit_ext/build"
+	      ":" "/Projects/org.stephe_leake.sal/build"
+	      ":" "/Projects/org.stephe_leake.makerules"))
+     )
+    (windows-nt
+     (setenv "WISITOKEN" "c:/Projects/org.wisitoken")
+     (setenv "GPR_PROJECT_PATH"
+	     (concat
+	      (getenv "WISITOKEN") "/build"
+	      ";" "/Projects/org.stephe_leake.aunit_ext/build"
+	      ";" "/Projects/org.stephe_leake.sal/build"
+	      ";" "/Projects/org.stephe_leake.makerules"))
+     )
+    )
   )
 
  (t
@@ -22,14 +35,6 @@
 (require 'project-menu)
 (require 'xref-ada)
 (require 'wisi)
-
-(cl-ecase system-type
-  (gnu/linux
-   (setq-default wisi-size-threshold 900000)
-   ;; libadalang files are really large.
-   ;; FIXME: do this in the project
-   )
-  (windows-nt nil))
 
 (add-to-list 'project-find-functions 'project-menu-prj)
 

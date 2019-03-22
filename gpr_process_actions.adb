@@ -159,7 +159,7 @@ package body Gpr_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
-         (False, (Simple, (Int, 0)))));
+         (True, (Simple, (Int, 0)), (Simple, (Int, 0)))));
       end case;
    end compilation_unit_0;
 

@@ -18,15 +18,23 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 6.0.1
-export ADA_REF_MAN_VERSION := 2012.4
-export WISI_VERSION        := 2.0.1
+export ADA_MODE_VERSION    := 6.1.0
+export ADA_REF_MAN_VERSION := 2012.5
+export WISI_VERSION        := 2.1.0
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
-# test with mtn controlled source:  (setenv "ADA_MODE_DIR" "-L .. -l autoloads.el")
-# test with installed elpa package: (setenv "ADA_MODE_DIR" "-f package-initialize")
-ADA_MODE_DIR ?= -L .. -l autoloads.el
+TEST_DIR ?= source
+ifeq ($(TEST_DIR),source)
+# test with mtn controlled source
+ADA_MODE_DIR := -L .. -l autoloads.el
+WISITOKEN_GENERATE := $(WISITOKEN)/build/wisitoken-bnf-generate.exe
+
+else
+# test with installed elpa package
+ADA_MODE_DIR := -f package-initialize
+WISITOKEN_GENERATE := ~/.emacs.d/elpa/wisi-2.1.0/wisitoken-bnf-generate.exe
+endif
 
 # compile with debug to get assertions for testing new code
 # export Standard_Common_Build := Debug
@@ -65,11 +73,12 @@ byte-compile-clean :
 
 # IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
+ifeq ($(TEST_DIR),source)
 test : build_ada_executables
 test : ada_unit_tests
+endif
 test : test-ada-elisp-gpr_query.stamp
 test : test-ada-lalr-process-gpr_query.stamp
-#test : test-ada-packrat-process-gpr_query.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr-elisp.stamp
 test : test-gpr-lalr-process.stamp
@@ -140,9 +149,6 @@ export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
 endif
-
-# this can be overridden by the installed elpa package
-WISITOKEN_GENERATE ?= $(WISITOKEN)/build/wisitoken-bnf-generate.exe
 
 include rules.make
 
@@ -292,6 +298,7 @@ pub-wisi : force
 	cp $(WISITOKEN)/build/wisitoken-elpa.gpr  $(ELPA_ROOT)/packages/wisi/wisitoken.gpr
 	cp ../../org.stephe_leake.makerules/standard_common.gpr $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/long_float_elementary_functions.ads $(ELPA_ROOT)/packages/wisi
+	cp ../../org.stephe_leake.sal/source/sal-gen_array_image.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_sorted.ad? $(ELPA_ROOT)/packages/wisi
 	cp ../../org.stephe_leake.sal/source/sal-gen_bounded_definite_vectors-gen_image*.ad? $(ELPA_ROOT)/packages/wisi

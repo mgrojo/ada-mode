@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2017  2019 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -467,7 +467,7 @@ package body Wisi is
 
    procedure Resolve_Anchors (Data : in out Parse_Data_Type)
    is
-      Begin_Indent : Integer renames Data.Begin_Indent;
+      Begin_Indent  : Integer renames Data.Begin_Indent;
       Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
    begin
       if Trace_Action > Outline then

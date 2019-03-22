@@ -61,6 +61,8 @@ test/ada_mode-recover_partial_19.adb : error during resume
 
 separate partial-parse threshold for face
 
+check Protocol_Version in wisi-process-parse
+
 using o.e.a-m
         (progn
          (setq wisi-debug 1)
@@ -1439,21 +1441,22 @@ compare:
     build stuff to compare with previous release in elpa:
         build/Makefile pub
 
-    (list-packages) install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
+    (list-packages)
+        install previous ada-mode, wisi, ada-ref-man from public ELPA for diffs
         change versions in compares below to match installed versions.
 
-    (ediff-directories "~/.emacs.d/elpa/wisi-2.0.0" "/Projects/elpa/packages/wisi" nil)
+    (ediff-directories "~/.emacs.d/elpa/wisi-2.0.1" "/Projects/elpa/packages/wisi" nil)
         NEWS-wisi.text
             copyright date
             add release date
             add new features
 
-    (ediff-directories "~/.emacs.d/elpa/ada-mode-6.0.0" "/Projects/elpa/packages/ada-mode" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-mode-6.0.1" "/Projects/elpa/packages/ada-mode" nil)
         NEWS-ada-mode.text
             add release date
             add new features
 
-    (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.4" "/Projects/elpa/packages/ada-ref-man" nil)
+    (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.5" "/Projects/elpa/packages/ada-ref-man" nil)
         /Projects/org.adaic.arm_form/NEWS
             add release date, new features
 
@@ -1495,7 +1498,8 @@ bump versions
         first line
 
     emacs_wisi_common_parse.ads
-        Version
+        Protocol_Version ; integer; bump if wisi-process-parse would break with old version
+        Version          ; ?
 
     build/Makefile
         run uninstall-elpa with old values before changing!
@@ -1519,23 +1523,29 @@ prep for elpa tests:
     # pushes to elpa workspace, builds archive
 
 Check copyright on files in published in elpa
+    elpa/GNUMakefile check_copyrights
     change to FSF
 
 Emacs 25.3, current gnat
     ~/bin/emacs-25.sh
     (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
     build/Makefile install-elpa
-    cd ~/.emacs.d/elpa/ada-mode-6.0.1; ./build.sh
-    cd ~/.emacs.d/elpa/wisi-2.0.1; ./build-wisitoken-bnf-generate.sh
+    cd ~/.emacs.d/elpa/ada-mode-6.1.0; ./build.sh
+    cd ~/.emacs.d/elpa/wisi-2.1.0; ./build-wisitoken-bnf-generate.sh
+
+    restart Emacs to set load-path
+
     build/Makefile compile-ada-test autoloads test-clean
-    build/Makefile test WISITOKEN_GENERATE="~/.emacs.d/elpa/wisi-2.0.0/wisitoken-bnf-generate.exe"
+    build/Makefile test ADA_MODE_DIR="-f package-initialize"
+
     build/Makefile uninstall-elpa
     (gpr-query-kill-all-sessions)
-    build/Makefile recursive-clean clean # changing compilers
+    build/Makefile recursive-clean clean # if changing compilers
 
 sync for Debian:
     current Emacs for dvc
     # dvc-state-multiple above
+    # not elpa; commit elpa on Debian for file permissions
     $ mtn_sync_ada_france.sh
     (dvc-sync-review ".")
 
@@ -1570,6 +1580,8 @@ Debian stable is 9.6 jessie as of 18 Nov 2018
     (dvc-status)
     (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
     (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
+
+on Debian, check file permissions (ie exe bit) in elpa
 
 $ mtn_sync_ada_france.sh
 (dvc-sync-review ".")
