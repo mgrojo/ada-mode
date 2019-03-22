@@ -2,7 +2,7 @@
 #
 # Top level rules here for visibility; lower level rules in rules.make
 
-ZIP_VERSION := 1.0.1
+ZIP_VERSION := 1.1.0
 #w-$(shell date +%Y-%m-%d)
 
 all : test-clean tests doc

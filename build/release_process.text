@@ -1,9 +1,9 @@
 do sal release ../../org.stephe_leake.sal/notes.text
 
-(dvc-state-one ".")
-
 Makefile
     update-wisitoken_grammar
+
+(dvc-state-one ".")
 
 review Debian bugs
     (no Debian package yet)
@@ -20,7 +20,7 @@ review todo list
 
 doc changes since last release
     ../Docs/wisitoken.html
-        add to history
+        add to history (no NEWS.text)
     $ cd org.wisitoken
     # review mtn log since last release date
     $ mtn log --to d:yyyy-mm-dd > release.log
@@ -29,7 +29,7 @@ doc changes since last release
 bump version
     ../Docs/wisitoken.html
         current version
-        wisitoken-*.tar.gz
+        wisitoken-*.tar.bz2
 
     Makefile
         ZIP_VERSION

@@ -45,13 +45,13 @@ projects.
 for recursive-descent, adding syntax error correction in the parser,
 and adding support for simple Packrat parsers.
 
-<h1>current version: 1.0.1</h1>
+<h1>current version: 1.1.0</h1>
 
 <p><a href="http://www.nongnu.org/ada-mode/wisitoken-user_guide.html">User guide</a>
 
 <p>WisiToken may be obtained in two ways:
 <ul>
-  <li><a href="wisitoken-1.0,1.tar.bz2">source Gnu tar bzip2 wisitoken-1.0.1.tar.bz2</a>
+  <li><a href="wisitoken-1.10.tar.bz2">source Gnu tar bzip2 wisitoken-1.10.tar.bz2</a>
   <li><a href="/ada-france-access.html">monotone server www.ada-france.org</a>, branch org.wisitoken. The ada-france server is maintained by <a href="mailto:ludovic@ludovic-brenta.org">Ludovic Brenta</a>
 </ul>
 <p>It relies on external libraries:
@@ -72,6 +72,17 @@ the <a href="https://lists.nongnu.org/mailman/listinfo/ada-mode-users">Emacs
 Ada mode mailing list</a>.
 
 <h2><a name="History"></a> History</h2>
+
+<h3>Version 1.1.0 </h3>
+<ul>
+  <li>21 Mar 2019
+  <li>Partial parse supported; the lexer accepts begin, end arguments,
+    the parser exits on a parse-time action.
+  <li>Improved error recovery; insert minimimal tokens to complete a
+  statement/declaration before or after the error point.
+  <li>Add pragma Inline in many places for speed.
+  <li>Several bug fixes.
+</ul>
 
 <h3>Version 1.0.1 </h3>
 <ul>
@@ -98,6 +109,6 @@ Ada mode mailing list</a>.
 <p><script src="/common/footer.js"></script>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Sat Dec  8 09:40:05 Pacific Standard Time 2018 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Thu Mar 21 17:12:05 Pacific Daylight Time 2019 <!-- hhmts end -->
 </body>
 </html>
