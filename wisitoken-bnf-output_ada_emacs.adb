@@ -50,7 +50,7 @@ procedure WisiToken.BNF.Output_Ada_Emacs
 is
    use all type Ada.Containers.Count_Type;
 
-   Language_Runtime_Package : constant String := "Wisi." & Language_Name;
+   Default_Language_Runtime_Package : constant String := "Wisi." & Language_Name;
 
    Blank_Set : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ");
 
@@ -990,9 +990,16 @@ is
       New_Line;
 
       Put_Line ("with Wisi; use Wisi;");
-      if Input_Data.Language_Params.Language_Runtime then
-         Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
-         --  For language-specific names in actions, checks.
+      if Input_Data.Language_Params.Use_Language_Runtime then
+         declare
+            Pkg : constant String :=
+              (if -Input_Data.Language_Params.Language_Runtime_Name = ""
+               then Default_Language_Runtime_Package
+               else -Input_Data.Language_Params.Language_Runtime_Name);
+         begin
+            --  For language-specific names in actions, checks.
+            Put_Line ("with " & Pkg & "; use " & Pkg & ";");
+         end;
       end if;
 
       case Common_Data.Interface_Kind is

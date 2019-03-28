@@ -22,9 +22,8 @@ update-wisi_grammar
 
  current work
 add EBNF
-    ada-lite-ebnf.wy
-    test/bnf/ada_lite_bnf.wy
-        lost semantic checks and actions
+    make t_one
+        ada_lite.input:CONSTRAINT_ERROR: wisitoken-parse-lr-parser.adb:152 invalid data
 
     %conflict has too many tokens after 'on'
 

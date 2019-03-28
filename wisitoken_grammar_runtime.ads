@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.BNF;
 with WisiToken.Lexer;
 with WisiToken.Syntax_Trees;
@@ -26,6 +27,10 @@ package WisiToken_Grammar_Runtime is
    --  Syntax used in grammar file.
 
    type Action_Phase is (Meta, Other);
+
+   package Base_Token_Array_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
+     (WisiToken.Base_Token_Index, WisiToken.Base_Token_Arrays.Vector,
+      Default_Element => WisiToken.Base_Token_Arrays.Empty_Vector);
 
    type User_Data_Type is new WisiToken.Syntax_Trees.User_Data_Type with
    record
@@ -55,6 +60,11 @@ package WisiToken_Grammar_Runtime is
       Conflicts        : WisiToken.BNF.Conflict_Lists.List;
       McKenzie_Recover : WisiToken.BNF.McKenzie_Recover_Param_Type;
 
+      Non_Grammar : Base_Token_Array_Arrays.Vector;
+      --  Non_Grammar (0) contains leading blank lines and comments;
+      --  Non_Grammar (I) contains blank lines and comments following
+      --  Terminals (I). Only used in Print_Source.
+
       Rule_Count      : Integer := 0;
       Action_Count    : Integer := 0;
       Check_Count     : Integer := 0;
@@ -66,7 +76,7 @@ package WisiToken_Grammar_Runtime is
       --  Set True by %if statements in Execute_Actions.
 
       Ignore_Lines : Boolean := False;
-      --  An '%if' specified a different lexer, during Excute_Actions
+      --  An '%if' specified a different lexer, during Execute_Actions
    end record;
 
    overriding
@@ -81,6 +91,12 @@ package WisiToken_Grammar_Runtime is
    procedure Initialize_Actions
      (Data : in out User_Data_Type;
       Tree : in WisiToken.Syntax_Trees.Tree'Class);
+
+   overriding
+   procedure Lexer_To_Augmented
+     (Data  : in out          User_Data_Type;
+      Token : in              WisiToken.Base_Token;
+      Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;

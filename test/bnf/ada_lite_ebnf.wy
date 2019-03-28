@@ -4,6 +4,7 @@
 ;; use EBNF syntax, getting closer to Ada LRM Annex P.
 ;;
 ;; See ada_lite_bnf.wy for translation to BNF for parser generator.
+;; (ediff "ada_lite_ebnf.wy" "ada_lite_bnf.wy")
 
 %code copyright_license %{
 ;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
@@ -106,7 +107,69 @@
 
 %start compilation_unit_list
 
-;;; no Mckenzie for now
+;; Set costs to take advantage of syntax to get to solution faster.
+
+%mckenzie_cost_limit 10
+%mckenzie_check_limit 3
+
+;; Default cost for insert terminal, delete terminal, push back, ignore check fail.
+;;
+;; 'ignore check fail' cost is not zero here, so we can more easily
+;; test other strategies. Real languages may want 'ignore check fail'
+;; cost to be zero, to allow parse to succeed while changing a
+;; subprogram name
+%mckenzie_cost_default 4 4 4 4
+
+;; Prefer inserting keywords over identifiers and operators to take
+;; advantage of empty expressions.
+;;
+;; LEFT_PAREN is _not_ here, because inserting that turns a missing
+;; 'then' into a function call; not a likely error.
+;;
+;; IDENTIFIER is here, so if we are inserting an expression, it is
+;; prefered over "null".
+%mckenzie_cost_insert BEGIN 3
+%mckenzie_cost_insert CASE 3
+%mckenzie_cost_insert DECLARE 3
+%mckenzie_cost_insert ELSE 3
+%mckenzie_cost_insert ELSIF 3
+%mckenzie_cost_insert EXIT 3
+%mckenzie_cost_insert FUNCTION 3
+%mckenzie_cost_insert IS 3
+%mckenzie_cost_insert IDENTIFIER 3
+%mckenzie_cost_insert NEW 3
+%mckenzie_cost_insert PROCEDURE 3
+%mckenzie_cost_insert RETURN 3
+%mckenzie_cost_insert RIGHT_PAREN 3
+%mckenzie_cost_insert THEN 3
+%mckenzie_cost_insert WHEN 3
+
+;; These can follow 'end', or start new statements
+%mckenzie_cost_insert IF 2
+%mckenzie_cost_insert LOOP 2
+
+;; We often have an extra 'begin' while moving stuff around. Deleting
+;; that requires popping it and the corresponding nonterm off the
+;; parse stack. Similarly, we often have an extra 'end'; deleting that
+;; is simple.
+%mckenzie_cost_push_back BEGIN 1
+%mckenzie_cost_delete BEGIN 1
+%mckenzie_cost_push_back declarative_part 1
+%mckenzie_cost_push_back END 1
+%mckenzie_cost_delete END 1
+%mckenzie_cost_delete SEMICOLON 2
+
+;; Recovering from a missing quote yields a STRING_LITERAL, but the
+;; editing that lead to the missing quote may also lead to a grammar
+;; syntax error where part of the best solution is to delete that
+;; STRING_LITERAL, so make that cheaper than inserting operators and
+;; keywords.
+%mckenzie_cost_delete STRING_LITERAL 2
+
+;; Prefer insert these over everything; lets us finish a
+;; statement.
+%mckenzie_cost_insert END 1
+%mckenzie_cost_insert SEMICOLON 1
 
 %conflict SHIFT/REDUCE in state extended_return_statement, extended_return_statement on token IDENTIFIER ( 9)
 %conflict SHIFT/REDUCE in state subprogram_body, subprogram_body on token IS ( 88)
@@ -145,21 +208,28 @@ binary_adding_operator
   | AMPERSAND
   ;
 
-;; FIXME: this code should generate an error on token numbers: move to
-;; test for errors.
-block_statement
-  : [IDENTIFIER COLON] [DECLARE declarative_part] BEGIN handled_sequence_of_statements END [IDENTIFIER] SEMICOLON
+;; Explicit _opt for check
+block_label_opt
+  : IDENTIFIER COLON
     %()%
-    %(return Match_Names (Lexer, Descriptor, Tokens, 1, 8, End_Name_Optional);)%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+  | ;; empty
   ;
 
-body_g :
-    proper_body
+;; Token indices in actions count groups as one token.
+block_statement
+  : block_label_opt [DECLARE declarative_part] BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+    %()%
+    %(return Match_Names (Lexer, Descriptor, Tokens, 1, 6, End_Name_Optional);)%
+  ;
+
+body_g
+  : proper_body
   | body_stub
   ;
 
-body_stub :
-    subprogram_body_stub
+body_stub
+  : subprogram_body_stub
   ;
 
 case_statement
@@ -217,13 +287,18 @@ declarative_part
   : {declaration}
   ;
 
-discrete_subtype_definition : subtype_indication | range_g ;
+discrete_subtype_definition
+  : subtype_indication
+  | range_g
+  ;
 
 enumeration_type_definition
   : LEFT_PAREN IDENTIFIER {COMMA IDENTIFIER} RIGHT_PAREN
   ;
 
-exception_choice : name ;
+exception_choice
+  : name
+  ;
 
 exception_handler
   : WHEN exception_choice EQUAL_GREATER sequence_of_statements
@@ -276,6 +351,14 @@ handled_sequence_of_statements
   : sequence_of_statements [EXCEPTION {exception_handler}]
   ;
 
+;; explicit _opt for action, error recover language fixes.
+identifier_opt
+  : IDENTIFIER
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+  | ;; empty
+  ;
+
 if_statement
   : IF expression THEN sequence_of_statements {ELSIF expression THEN sequence_of_statements} [ELSE sequence_of_statements] END IF SEMICOLON
   ;
@@ -289,10 +372,12 @@ iteration_scheme
   ;
 
 loop_statement
-  : [iteration_scheme] LOOP sequence_of_statements END LOOP [IDENTIFIER] SEMICOLON
+  : [iteration_scheme] LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
   ;
 
-multiplying_operator : STAR | SLASH ;
+multiplying_operator
+  : STAR
+  | SLASH;
 
 name
   : name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
@@ -305,15 +390,22 @@ name
     %(return Propagate_Name (Nonterm, Tokens, 1);)%
   ;
 
+;; Explicit _opt for action, error recover language fixes
+name_opt
+  : name
+    %()%
+    %(return Propagate_Name (Nonterm, Tokens, 1);)%
+  | ;; empty
+  ;
+
 object_declaration
   : IDENTIFIER COLON subtype_indication [COLON_EQUAL expression] SEMICOLON
   ;
 
 package_body
-  : PACKAGE BODY name [aspect_specification] IS declarative_part [BEGIN handled_sequence_of_statements] END [name] SEMICOLON
+  : PACKAGE BODY name [aspect_specification] IS declarative_part [BEGIN handled_sequence_of_statements] END name_opt SEMICOLON
     %()%
-    %(return Match_Names (Lexer, Descriptor, Tokens, 3, 10, End_Name_Optional);)%
- ;;  FIXME: token indices match missing tokens? use labels like ANTLR?
+    %(return Match_Names (Lexer, Descriptor, Tokens, 3, 9, End_Name_Optional);)%
   ;
 
 parameter_and_result_profile
@@ -411,7 +503,7 @@ statement
 
 subprogram_body
   : subprogram_specification [aspect_specification] IS declarative_part BEGIN
-    handled_sequence_of_statements END [name] SEMICOLON
+    handled_sequence_of_statements END name_opt SEMICOLON
     %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
     %(return Match_Names (Lexer, Descriptor, Tokens, 1, 8, End_Name_Optional);)%
   ;

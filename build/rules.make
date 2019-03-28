@@ -30,6 +30,10 @@ tests :: gen
 tests :: test_all_harness.diff
 
 # generated code used by test_wisi_suite.adb and others.
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.adb
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.ads
 gen :: ada_lite_re2c.c
 gen :: body_instantiation_conflict_re2c.c
 gen :: case_expression_re2c.c
@@ -100,8 +104,15 @@ wisitoken-bnf-generate.exe : force
 test-executables : force
 	gprbuild -p --autoconf=obj/auto.cpgr -P wisitoken_test.gpr
 
+wisitoken-parse-lr-mckenzie_recover-ada_lite.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
+	gnatprep -b -r -T -DADA_LITE=Ada_Lite $^ $@
+
+wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
+	gnatprep -b -r -T -DADA_LITE="Ada_Lite_Bnf" $^ $@
+
 %_bnf.wy : %_ebnf.wy
 	./wisitoken-bnf-generate.exe --output_bnf $@ --generate LALR Ada re2c $<
+	dos2unix $@
 
 %.out : %.exe
 	./$*.exe $(RUN_ARGS) > $*.out

@@ -18,13 +18,22 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
+#if ADA_LITE = "Ada_Lite" then
 with Ada_Lite_Actions;
-package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
+#else
+with Ada_Lite_Bnf_Actions;
+#end if;
+package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
+#if ADA_LITE = "Ada_Lite" then
+   package Actions renames Ada_Lite_Actions;
+#else
+   package Actions renames Ada_Lite_Bnf_Actions;
+#end if;
 
-   use all type Standard.Ada_Lite_Actions.Token_Enum_ID; -- token names
+   use all type Actions.Token_Enum_ID; -- token names
    use all type Semantic_Checks.Check_Status_Label;
 
-   Descriptor : WisiToken.Descriptor renames Standard.Ada_Lite_Actions.Descriptor;
+   Descriptor : WisiToken.Descriptor renames Actions.Descriptor;
 
    subtype Grammar_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal);
    subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
@@ -229,7 +238,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          --
          --  0a. "<begin_name_token> ... <end_name_token> ;"
          --
-         --  0b. "<begin_named_token> is declarative_part_opt end <end_name_token> ;"
+         --  0b. "<begin_named_token> is declarative_part end <end_name_token> ;"
          --
          --  where <end_name_token> is empty, because the user is changing it.
          --  0a looks like a subprogram or named block; 0b looks like a package
@@ -299,7 +308,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
                Undo_Reduce_Check
                  (New_Config, Tree,
                   (+handled_sequence_of_statements_ID,
-                   +sequence_of_statements_opt_ID));
+                   +sequence_of_statements_ID));
 
                Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_ID);
 
@@ -487,7 +496,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          Put (Message, Trace, Parser_Label, Terminals, Config);
       end Put;
    begin
-      if Ada_Lite_Actions.Token_Enum_ID'(-Config.Error_Token.ID) = DOT_ID then
+      if Actions.Token_Enum_ID'(-Config.Error_Token.ID) = DOT_ID then
          --  We've encountered a Selected_Component when we were expecting a
          --  simple IDENTIFIER or a name. If the name is preceded by 'end', then
          --  this similar to a semantic check Extra_Name_Error, and the
@@ -533,7 +542,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
 
                Push_Back_Check (New_Config_1, (+IDENTIFIER_ID, +END_ID));
 
-               case Ada_Lite_Actions.Token_Enum_ID'(-New_Config_1.Stack (3).Token.ID) is
+               case Actions.Token_Enum_ID'(-New_Config_1.Stack (3).Token.ID) is
                when block_label_opt_ID =>
                   --  no 'declare'; either case 1 or 2
 
@@ -552,7 +561,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
                   Push_Back_Check (New_Config_1, (+handled_sequence_of_statements_ID, +BEGIN_ID, +block_label_opt_ID));
                   Insert (New_Config_1, (+END_ID, +SEMICOLON_ID));
 
-               when declarative_part_opt_ID =>
+               when declarative_part_ID =>
                   --  case 2
                   Insert (New_Config_1, (+END_ID, +SEMICOLON_ID));
 
@@ -640,7 +649,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          --
          --     where the matching keyword is missing. The solution is to
          --     insert a matching <begin_keyword> before the '...'
-         --     sequence_of_statements_opt.
+         --     sequence_of_statements.
          --
          --  c. 'end <keyword>;' could be in the wrong place;
          --
@@ -660,9 +669,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
 
             if Matching_Index = Config.Stack.Depth then
                --  matching keyword not found; case b
-               case Ada_Lite_Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
-               when sequence_of_statements_opt_ID =>
-                  Push_Back_Check (New_Config, +sequence_of_statements_opt_ID);
+               case Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
+               when sequence_of_statements_ID =>
+                  Push_Back_Check (New_Config, +sequence_of_statements_ID);
 
                when handled_sequence_of_statements_ID =>
                   Push_Back_Check (New_Config, +handled_sequence_of_statements_ID);
@@ -729,7 +738,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
             null;
          end;
 
-      elsif Ada_Lite_Actions.Token_Enum_ID'(-Config.Error_Token.ID) in ELSE_ID | ELSIF_ID then
+      elsif Actions.Token_Enum_ID'(-Config.Error_Token.ID) in ELSE_ID | ELSIF_ID then
          declare
             Label          : constant String := "missing 'if then' ";
             New_Config     : Configuration;
@@ -745,9 +754,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
                New_Config.Error_Token.ID := Invalid_Token_ID;
 
                if New_Config.Stack (1).Token.ID /= Invalid_Token_ID then
-                  case Ada_Lite_Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
-                  when sequence_of_statements_opt_ID =>
-                     Push_Back_Check (New_Config, +sequence_of_statements_opt_ID);
+                  case Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
+                  when sequence_of_statements_ID =>
+                     Push_Back_Check (New_Config, +sequence_of_statements_ID);
                      if -New_Config.Stack (1).Token.ID = +block_label_opt_ID then
                         Push_Back_Check (New_Config, +block_label_opt_ID);
                      end if;
@@ -825,7 +834,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          Matching_Begin_Token := +IDENTIFIER_ID;
 
       else
-         case Ada_Lite_Actions.Token_Enum_ID'(-Current_Token) is
+         case Actions.Token_Enum_ID'(-Current_Token) is
          when END_ID | EXCEPTION_ID | SEMICOLON_ID | Wisi_EOI_ID =>
             Use_Complete := True;
 
@@ -834,12 +843,12 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          end case;
       end if;
 
-      case Ada_Lite_Actions.Token_Enum_ID'(-Current_Token) is
+      case Actions.Token_Enum_ID'(-Current_Token) is
       when END_ID =>
          if Next_Token = Invalid_Token_ID then
             Matching_Begin_Token := +BEGIN_ID;
          else
-            case Ada_Lite_Actions.Token_Enum_ID'(-Next_Token) is
+            case Actions.Token_Enum_ID'(-Next_Token) is
             when IF_ID =>
                Matching_Begin_Token := +IF_ID;
 
@@ -886,11 +895,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
          Result (+primary_ID) := True;
          Result (+factor_ID) := True;
          Result (+term_ID) := True;
+#if ADA_LITE = "Ada_Lite" then
          Result (+term_list_ID) := True;
+#end if;
          Result (+simple_expression_ID) := True;
          Result (+relation_ID) := True;
          Result (+expression_ID) := True;
       end return;
    end String_ID_Set;
 
-end WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
+end WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE;

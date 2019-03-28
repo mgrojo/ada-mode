@@ -351,7 +351,7 @@ is
       Unit_Name : constant String := File_Name_To_Ada (Output_File_Name_Root) &
         "_" & Generate_Algorithm'Image (Common_Data.Generate_Algorithm) & "_Run";
 
-      Language_Package_Name : constant String := "WisiToken.Parse.LR.McKenzie_Recover." & File_Name_To_Ada
+      Default_Language_Runtime_Package : constant String := "WisiToken.Parse.LR.McKenzie_Recover." & File_Name_To_Ada
         (Output_File_Name_Root);
 
       File_Name : constant String := To_Lower (Unit_Name) & ".ads";
@@ -369,8 +369,18 @@ is
       Put_Line ("with " & Generic_Package_Name & ";");
       Put_Line ("with " & Actions_Package_Name & ";");
       Put_Line ("with " & Main_Package_Name & ";");
-      if Input_Data.Language_Params.Error_Recover then
-         Put_Line ("with " & Language_Package_Name & "; use " & Language_Package_Name & ";");
+      if Input_Data.Language_Params.Error_Recover and
+        Input_Data.Language_Params.Use_Language_Runtime
+      then
+         declare
+            Pkg : constant String :=
+              (if -Input_Data.Language_Params.Language_Runtime_Name = ""
+               then Default_Language_Runtime_Package
+               else -Input_Data.Language_Params.Language_Runtime_Name);
+         begin
+            --  For language-specific names in actions, checks.
+            Put_Line ("with " & Pkg & "; use " & Pkg & ";");
+         end;
       end if;
 
       Put_Line ("procedure " & Unit_Name & " is new " & Generic_Package_Name);

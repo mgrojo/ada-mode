@@ -120,7 +120,8 @@ package WisiToken.BNF is
       Case_Insensitive              : Boolean := False;
       Embedded_Quote_Escape_Doubled : Boolean := False;
       End_Names_Optional_Option     : Ada.Strings.Unbounded.Unbounded_String;
-      Language_Runtime              : Boolean := True;
+      Use_Language_Runtime          : Boolean := True;
+      Language_Runtime_Name         : Ada.Strings.Unbounded.Unbounded_String;
       Declare_Enums                 : Boolean := True;
       Error_Recover                 : Boolean := False;
       Start_Token                   : Ada.Strings.Unbounded.Unbounded_String;

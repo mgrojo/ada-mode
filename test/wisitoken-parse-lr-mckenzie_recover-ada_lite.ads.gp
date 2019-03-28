@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
+package WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
    procedure Fixes
      (Trace             : in out WisiToken.Trace'Class;
@@ -41,4 +41,4 @@ package WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite is
       String_Literal_ID : in Token_ID)
      return Token_ID_Set;
 
-end WisiToken.Parse.LR.McKenzie_Recover.Ada_Lite;
+end WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE;

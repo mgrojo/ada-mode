@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -247,6 +248,7 @@ package body WisiToken_Grammar_Runtime is
       --  Preserve Meta_Syntax
       --  Preserve Phase
       --  Preserve Terminals
+      --  Preserve Non_Grammar
       --  EBNF_Nodes handled in Initialize_Actions
       Data.Raw_Code          := (others => <>);
       Data.Language_Params   := (others => <>);
@@ -270,6 +272,30 @@ package body WisiToken_Grammar_Runtime is
       Data.EBNF_Nodes.Clear;
       Data.EBNF_Nodes.Set_First_Last (Tree.First_Index, Tree.Last_Index);
    end Initialize_Actions;
+
+   overriding
+   procedure Lexer_To_Augmented
+     (Data  : in out          User_Data_Type;
+      Token : in              WisiToken.Base_Token;
+      Lexer : not null access WisiToken.Lexer.Instance'Class)
+   is
+      pragma Unreferenced (Lexer);
+      use all type Ada.Containers.Count_Type;
+   begin
+      if Token.ID < Wisitoken_Grammar_Actions.Descriptor.First_Terminal then
+         --  Non-grammar token
+         if Data.Non_Grammar.Length = 0 then
+            Data.Non_Grammar.Set_First_Last (0, 0);
+         end if;
+
+         if Data.Terminals.Length = 0 then
+            Data.Non_Grammar (0).Append (Token);
+         else
+            Data.Non_Grammar.Set_Last (Data.Terminals.Last_Index);
+            Data.Non_Grammar (Data.Terminals.Last_Index).Append (Token);
+         end if;
+      end if;
+   end Lexer_To_Augmented;
 
    procedure Start_If
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
@@ -568,6 +594,10 @@ package body WisiToken_Grammar_Runtime is
                   --  Not in Other phase
                   null;
 
+               elsif Kind = "language_runtime" then
+                  Data.Language_Params.Language_Runtime_Name :=
+                    +Get_Text (Data, Tree, Tokens (3), Strip_Quotes => True);
+
                elsif Kind = "mckenzie_check_limit" then
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Check_Limit := Token_Index'Value (Get_Text (Data, Tree, Tokens (3)));
@@ -628,7 +658,7 @@ package body WisiToken_Grammar_Runtime is
                   null;
 
                elsif Kind = "no_language_runtime" then
-                  Data.Language_Params.Language_Runtime := False;
+                  Data.Language_Params.Use_Language_Runtime := False;
 
                elsif Kind = "no_enum" then
                   Data.Language_Params.Declare_Enums := False;
@@ -1178,7 +1208,6 @@ package body WisiToken_Grammar_Runtime is
          end if;
       end loop;
 
-      --  Error messages about nodes not translated output in Process_Nodes
       Data.Meta_Syntax := BNF_Syntax;
 
    exception
@@ -1196,21 +1225,34 @@ package body WisiToken_Grammar_Runtime is
       use WisiToken.Syntax_Trees;
       File : File_Type;
 
+      procedure Put_Comments (Node : in Valid_Node_Index)
+      is
+         Token : constant Base_Token_Index := Tree.Max_Terminal_Index (Node);
+      begin
+         --  Not all tokens have trailing non_grammar, so Data.Non_Grammar may
+         --  have entries for every token.
+         if Token /= Invalid_Token_Index and then
+           Token in Data.Non_Grammar.First_Index .. Data.Non_Grammar.Last_Index
+         then
+            declare
+               Tokens : Base_Token_Arrays.Vector renames Data.Non_Grammar (Token);
+            begin
+               for Token of Tokens loop
+                  Put (File, Data.Grammar_Lexer.Buffer_Text (Token.Byte_Region));
+               end loop;
+            end;
+         end if;
+      end Put_Comments;
+
       procedure Put_Declaration_Item (Node : in Valid_Node_Index)
       is
          Children : constant Valid_Node_Index_Array := Tree.Children (Node);
       begin
          case To_Token_Enum (Tree.ID (Children (1))) is
-         when IDENTIFIER_ID | STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
-            Put (File, Get_Text (Data, Tree, Children (1)));
-         when COMMA_ID =>
-            Put (File, ',');
+         when IDENTIFIER_ID | NUMERIC_LITERAL_ID | STRING_LITERAL_1_ID | STRING_LITERAL_2_ID =>
+            Put (File, ' ' & Get_Text (Data, Tree, Children (1)));
          when REGEXP_ID =>
             Put (File, " %[" & Get_Text (Data, Tree, Children (1)) & "]%");
-         when SLASH_ID =>
-            Put (File, '/');
-         when Wisitoken_Grammar_Actions.TOKEN_ID =>
-            Put (File, "token");
          when others =>
             Put (File, Image (Tree.ID (Children (1)), Wisitoken_Grammar_Actions.Descriptor));
          end case;
@@ -1224,7 +1266,6 @@ package body WisiToken_Grammar_Runtime is
             Put_Declaration_Item (Children (1));
          else
             Put_Declaration_Item_List (Children (1));
-            Put (File, ' ');
             Put_Declaration_Item (Children (2));
          end if;
       end Put_Declaration_Item_List;
@@ -1282,64 +1323,75 @@ package body WisiToken_Grammar_Runtime is
          end if;
       end Put_RHS_Item_List;
 
-      procedure Put_RHS (Node : in Valid_Node_Index; First : in Boolean)
+      procedure Put_RHS
+        (Node    : in Valid_Node_Index;
+         First   : in Boolean;
+         Virtual : in Boolean)
       is
          Children : constant Valid_Node_Index_Array := Tree.Children (Node);
       begin
          Put (File, (if First then "  : " else "  | "));
-         if Children'Length = 0 then
-            Put (File, ";; empty");
-         else
-            case To_Token_Enum (Tree.ID (Children (1))) is
-            when rhs_item_list_ID =>
-               case Children'Length is
-               when 1 =>
-                  Put_RHS_Item_List (Children (1));
+         case Tree.RHS_Index (Node) is
+         when 0 =>
+            if Virtual then
+               Put_Line (File, ";; empty");
+            else
+               Put_Comments (Tree.Parent (Node));
+            end if;
 
-               when 2 =>
-                  Put_RHS_Item_List (Children (1));
+         when 1 .. 3 =>
+            Put_RHS_Item_List (Children (1));
+            if Virtual then
+               New_Line (File);
+            else
+               Put_Comments (Children (1));
+            end if;
+
+            if Tree.RHS_Index (Node) > 1 then
+               Put (File, "    %(" & Get_Text (Data, Tree, Children (2)) & ")%"); -- action
+               if Virtual then
                   New_Line (File);
-                  Put_Line (File, "    %(" & Get_Text (Data, Tree, Children (2)) & ")%"); -- action
+               else
+                  Put_Comments (Children (2));
+               end if;
+               if Tree.RHS_Index (Node) > 2 then
+                  Put (File, "    %(" & Get_Text (Data, Tree, Children (3)) & ")%"); -- check
+                  if Virtual then
+                     New_Line (File);
+                  else
+                     Put_Comments (Children (3));
+                  end if;
+               end if;
+            end if;
 
-               when 3 =>
-                  Put_RHS_Item_List (Children (1));
-                  New_Line (File);
-                  Put_Line (File, "    %(" & Get_Text (Data, Tree, Children (2)) & ")%"); -- action
-                  Put_Line (File, "    %(" & Get_Text (Data, Tree, Children (3)) & ")%"); -- check
+         when 4 =>
+            Put
+              (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text (Data, Tree, Children (4)));
+            Put_Comments (Node);
 
-               when others =>
-                  raise SAL.Programmer_Error;
-               end case;
+         when 5 =>
+            Put (File, "%end if");
+            Put_Comments (Node);
 
-            when PERCENT_ID =>
-               case To_Token_Enum (Tree.ID (Children (2))) is
-               when IF_ID =>
-                  Put_Line
-                    (File, "%if " & Get_Text (Data, Tree, Children (3)) & " = " & Get_Text (Data, Tree, Children (4)));
-               when END_ID =>
-                  Put_Line (File, "%end if");
-               when others =>
-                  raise SAL.Programmer_Error;
-               end case;
-
-            when others =>
-               Raise_Programmer_Error ("Put_RHS", Tree, Node);
-            end case;
-         end if;
-         New_Line (File);
+         when others =>
+            Raise_Programmer_Error ("Put_RHS", Tree, Node);
+         end case;
       end Put_RHS;
 
-      procedure Put_RHS_List (Node : in Valid_Node_Index; First : in out Boolean)
+      procedure Put_RHS_List
+        (Node    : in     Valid_Node_Index;
+         First   : in out Boolean;
+         Virtual : in     Boolean)
       is
          Children : constant Valid_Node_Index_Array := Tree.Children (Node);
       begin
          case Children'Length is
          when 1 =>
-            Put_RHS (Children (1), First);
+            Put_RHS (Children (1), First, Virtual);
             First := False;
          when 3 =>
-            Put_RHS_List (Children (1), First);
-            Put_RHS (Children (3), First => False);
+            Put_RHS_List (Children (1), First, Virtual);
+            Put_RHS (Children (3), First => False, Virtual => Virtual);
          when others =>
             Raise_Programmer_Error ("Put_RHS_List", Tree, Node);
          end case;
@@ -1384,29 +1436,41 @@ package body WisiToken_Grammar_Runtime is
                      raise SAL.Programmer_Error;
                   end case;
 
-                  Put (File, " " & Get_Text (Data, Tree, Children (3)) & " ");
+                  Put (File, " " & Get_Text (Data, Tree, Children (3)));
                   Put_Declaration_Item_List (Children (4));
-                  New_Line (File);
+                  Put_Comments (Children (4));
 
                when 1 =>
                   Put (File, "%code ");
                   Put_Identifier_List (Children (3));
-                  Put_Line (File, " %{" & Get_Text (Data, Tree, Children (4)) & "}%"); -- RAW_CODE
+                  Put (File, " %{" & Get_Text (Data, Tree, Children (4)) & "}%"); -- RAW_CODE
+                  Put_Comments (Node);
 
                when 2 =>
-                  Put (File, "%" & Get_Text (Data, Tree, Children (2)) & ' ');
-                  Put_Declaration_Item_List (Children (3));
-                  New_Line (File);
+                  declare
+                     Key : constant String := Get_Text (Data, Tree, Children (2));
+                  begin
+                     if Key = "conflict" then
+                        Put (File, Data.Grammar_Lexer.Buffer_Text (Tree.Byte_Region (Node)));
+                     else
+                        Put (File, "%" & Key);
+                        Put_Declaration_Item_List (Children (3));
+                     end if;
+                  end;
+                  Put_Comments (Children (3));
 
                when 3 =>
-                  Put_Line (File, "%" & Get_Text (Data, Tree, Children (2)));
+                  Put (File, "%" & Get_Text (Data, Tree, Children (2)));
+                  Put_Comments (Children (2));
 
                when 4 =>
-                  Put_Line
+                  Put
                     (File, "%if" & Get_Text (Data, Tree, Children (2)) & " = " & Get_Text (Data, Tree, Children (4)));
+                  Put_Comments (Node);
 
                when 5 =>
-                  Put_Line (File, "%end if");
+                  Put (File, "%end if");
+                  Put_Comments (Node);
 
                when others =>
                   raise SAL.Programmer_Error;
@@ -1416,13 +1480,29 @@ package body WisiToken_Grammar_Runtime is
          when nonterminal_ID =>
             declare
                Children : constant Valid_Node_Index_Array := Tree.Children (Node);
-               First    : Boolean                         := True;
+               Virtual  : constant Boolean                := Tree.Label (Children (1)) = Virtual_Identifier;
+
+               First : Boolean := True;
+
             begin
-               Put_Line (File, Get_Text (Data, Tree, Children (1)));
-               Put_RHS_List (Children (3), First);
-               if Tree.Children (Children (4))'Length > 0 then
-                  Put_Line (File, "  ;");
+               Put (File, Get_Text (Data, Tree, Children (1)));
+               if Virtual then
                   New_Line (File);
+               else
+                  Put_Comments (Children (1));
+               end if;
+
+               Put_RHS_List (Children (3), First, Virtual);
+
+               if Tree.Children (Children (4))'Length > 0 then
+                  if Virtual then
+                     Put_Line (File, "  ;");
+                  else
+                     Put (File, "  ;");
+                     Put_Comments (Children (4));
+                  end if;
+               else
+                  Put_Comments (Children (3));
                end if;
             end;
 
@@ -1435,6 +1515,16 @@ package body WisiToken_Grammar_Runtime is
       end Process_Node;
    begin
       Create (File, Out_File, File_Name);
+      Put_Line (File, ";;; generated from " & Data.Grammar_Lexer.File_Name);
+      Put_Line (File, ";;;");
+
+      declare
+         Tokens : Base_Token_Arrays.Vector renames Data.Non_Grammar (0);
+      begin
+         for Token of Tokens loop
+            Put (File, Data.Grammar_Lexer.Buffer_Text (Token.Byte_Region));
+         end loop;
+      end;
 
       Process_Node (Tree.Root);
    exception

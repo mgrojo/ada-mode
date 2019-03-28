@@ -21,7 +21,6 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
-with GNAT.Traceback.Symbolic;
 with System.Multiprocessors;
 with WisiToken.Parse.LR.McKenzie_Recover.Base;
 with WisiToken.Parse.LR.McKenzie_Recover.Explore;
@@ -502,7 +501,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                            Item : constant Parser_Lists.Parser_Stack_Item := Parser_State.Stack.Pop;
                         begin
                            case Tree.Label (Item.Token) is
-                           when Syntax_Trees.Shared_Terminal | Syntax_Trees.Virtual_Terminal =>
+                           when Syntax_Trees.Shared_Terminal |
+                             Syntax_Trees.Virtual_Identifier |
+                             Syntax_Trees.Virtual_Terminal =>
                               raise Bad_Config;
 
                            when Syntax_Trees.Nonterm =>
