@@ -136,17 +136,16 @@ package body WisiToken.Generate.LR.LALR_Generate is
                                   Dot        => Next (Dot_2),
                                   Lookaheads => Null_Lookahead (Descriptor)));
 
-                              if Trace_Generate > Detail then
-                                 Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 2 " & Image (Symbol, Descriptor));
-                                 Put (Grammar, Descriptor, Goto_Set);
-                              end if;
-
                               --  else already in goto set
                            end if;
                         end if;
                      end;
                   end loop;
                end loop;
+               if Trace_Generate > Detail then
+                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 2 " & Image (Symbol, Descriptor));
+                  Put (Grammar, Descriptor, Goto_Set);
+               end if;
             end if;
          end if; -- item.dot /= null
       end loop;
@@ -216,6 +215,11 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
                   if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
+
+                     Ada.Text_IO.Put_Line
+                       ("  state" & Unknown_State_Index'Image (Checking_State) &
+                          " adding goto on " & Image (Symbol, Descriptor) & " to state" &
+                          Unknown_State_Index'Image (Kernels.Last_Index));
                   end if;
 
                   Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));

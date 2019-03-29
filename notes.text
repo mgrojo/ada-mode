@@ -22,8 +22,85 @@ update-wisi_grammar
 
  current work
 lalr generator bug
-    lalr_generator_bug_01.wy
-    trace generate
+    added to compare_goto_transitions; lots of mismatch
+
+    try just using filter (lr1_goto_transitions), time it; o.w.s-1
+
+    short term fix; catch bad state, change action to error
+
+    long term fix; reimplement lalr using modern algorithm
+
+    lalr_generator_bug_01.wy => error
+        parser 0 looking for 19.0:association <= identifier => expression
+         0: 10:  7:(IDENTIFIER, (38 . 38)) : shift and goto state 18
+         0: 18:  8:(RIGHT_PAREN, (39 . 39)) : reduce 1 tokens to name ...   (state 10) goto state 22
+         0: 22:  8:(RIGHT_PAREN, (39 . 39)) : reduce 1 tokens to primary... (state 10) goto state -1
+
+        state 10 missing goto for primary, because that's an error;
+        the only choice would be goto state 36, but there's no
+        unary_adding_operator_opt on the stack.
+
+        state 22 should not have both 23.0 and 25.0
+            but lalr_goto_transitions clearly does that
+            compare to bison lalr_generator_bug_01.bison_table
+            parse .input using bison table
+            bison state 36 is the same
+
+ 0: 0:  1:(PROCEDURE, (1 . 9)) : shift and goto state 1
+ [1 : PROCEDURE]
+ 0: 1:  2:(IDENTIFIER, (11 . 16)) : shift and goto state 5
+ [5 : IDENTIFIER, 1 : PROCEDURE]
+ 0: 5:  3:(IS, (18 . 19)) : reduce 1 tokens to name
+ [6 : name, 1 : PROCEDURE]
+ 0: 6:  3:(IS, (18 . 19)) : shift and goto state 10
+ [10 : IS, 6 : name, 1 : PROCEDURE]
+ 0: 10:  4:(BEGIN, (21 . 25)) : shift and goto state 16
+ [16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+ 0: 16:  5:(IDENTIFIER, (30 . 35)) : shift and goto state 5
+ [5 : IDENTIFIER, 16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+ 0: 5:  6:(LEFT_PAREN, (37 . 37)) : reduce 1 tokens to name
+ [30 : name, 16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+ 0: 30:  6:(LEFT_PAREN, (37 . 37)) : shift and goto state 11
+ [11 : LEFT_PAREN, 30 : name, 16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+ 0: 11:  7:(IDENTIFIER, (38 . 38)) : spawn 1, (2 active)
+
+ 1: 11:  7:(IDENTIFIER, (38 . 38)) : reduce 0 tokens to unary_adding_operator_opt
+ [26 : unary_adding_operator_opt, 11 : LEFT_PAREN, 30 : name, 16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+ 1: 26:  7:(IDENTIFIER, (38 . 38)) : shift and goto state 5
+ [5 : IDENTIFIER, 26 : unary_adding_operator_opt, 11 : LEFT_PAREN, 30 : name, 16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+ 1: 5:  8:(RIGHT_PAREN, (39 . 39)) : reduce 1 tokens to name
+ [36 : name, 26 : unary_adding_operator_opt, 11 : LEFT_PAREN, 30 : name, 16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+
+ 0: 10:  7:(IDENTIFIER, (38 . 38)) : shift and goto state 19
+ [19 : IDENTIFIER, 11 : LEFT_PAREN, 30 : name, 16 : BEGIN, 10 : IS, 6 : name, 1 : PROCEDURE]
+ 0: 19:  8:(RIGHT_PAREN, (39 . 39)) : error
+
+
+        State 18:
+             19.0:association <= IDENTIFIER ^ EQUAL_GREATER expression, RIGHT_PAREN
+             23.1:name <= IDENTIFIER ^, LEFT_PAREN/RIGHT_PAREN
+
+        bison does not have this state
+
+        State 22:
+         23.0:name <= name ^ actual_parameter_part, LEFT_PAREN/RIGHT_PAREN
+         25.0:primary <= name ^, RIGHT_PAREN
+
+    lalr_generator_bug_02.wy => no error
+        parser 0 looking for         19.0:association <= identifier => expression
+         0: 10:  7:(IDENTIFIER, (38 . 38)) : shift and goto state 18
+         0: 18:  8:(RIGHT_PAREN, (39 . 39)) : reduce 1 tokens to name ... (state 10) goto state 22
+         0: 22:  8:(RIGHT_PAREN, (39 . 39)) : ERROR
+
+        State 18:
+             19.0:association <= IDENTIFIER ^ EQUAL_GREATER expression, RIGHT_PAREN
+             23.1:name <= IDENTIFIER ^, LEFT_PAREN/RIGHT_PAREN
+
+        State 22:
+             23.0:name <= name ^ actual_parameter_part,
+
+
+    generator not chasing production chain far enough
 
 re2c now has --location-format <gnu | msvc>
 

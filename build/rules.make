@@ -30,7 +30,8 @@ tests :: wisitoken-bnf-generate.exe
 tests :: gen
 tests :: test_all_harness.diff
 
-# generated code used by test_wisi_suite.adb and others.
+# generated code used by test_bnf_suite.adb and others.
+# If add to this, add to wisitoken_test.gpr
 gen :: ada_lite_re2c.c
 gen :: body_instantiation_conflict_re2c.c
 gen :: case_expression_re2c.c
@@ -46,6 +47,7 @@ gen :: empty_production_6_re2c.c
 gen :: empty_production_7_re2c.c
 gen :: empty_production_8_re2c.c
 gen :: identifier_list_name_conflict_re2c.c
+gen :: lalr_generator_bug_01_re2c.c
 gen :: range_conflict_re2c.c
 gen :: skip_to_grammar_re2c.c
 gen :: subprograms_re2c.c

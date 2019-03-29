@@ -133,6 +133,8 @@ nonterminal
 rhs_list
   : rhs
   | rhs_list BAR rhs
+  | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | rhs_list PERCENT END IF
   ;
 
 rhs
@@ -140,8 +142,6 @@ rhs
   | token_list
   | token_list ACTION
   | token_list ACTION ACTION
-  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-  | PERCENT END IF
   ;
 
 token_list

@@ -86,10 +86,6 @@ expression
   : relation
   ;
 
-factor
-  : primary
-  ;
-
 name
   : name actual_parameter_part
   | IDENTIFIER
@@ -123,16 +119,12 @@ sequence_of_statements
   ;
 
 simple_expression
-  : unary_adding_operator_opt term
+  : unary_adding_operator_opt primary
   ;
 
 subtype_indication
   : name LEFT_PAREN subtype_indication RIGHT_PAREN
   | name
-  ;
-
-term
-  : factor
   ;
 
 unary_adding_operator  : PLUS  | MINUS  ;
