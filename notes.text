@@ -21,6 +21,10 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+lalr generator bug
+    lalr_generator_bug_01.wy
+    trace generate
+
 re2c now has --location-format <gnu | msvc>
 
 c:/eurocontrol/query_display-flight_operations.adb

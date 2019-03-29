@@ -1,7 +1,7 @@
 ;;; WisiToken grammar for WisiToken grammar, for wisitoken-bnf-generate.
 
 %code copyright_license %{
-;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -20,6 +20,9 @@
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
+
+%generate LALR Ada re2c
+%start compilation_unit_list
 
 %code actions body context %{
 with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
@@ -41,13 +44,15 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
+%token <punctuation> LEFT_PAREN "("
 %token <punctuation> LESS "<"
 %token <punctuation> PERCENT "%"
+%token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
 
 %token <number> NUMERIC_LITERAL %[ [0-9][0-9_]* ]%
-%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
 ;; 0x22 = "
 ;; 0x27 = '
@@ -65,10 +70,8 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %elisp_face font-lock-type-face
 %elisp_face nil
 
-%generate LALR Ada re2c
-%start compilation_unit_list
-
-;; No error recovery, so wisi-generate is independent of
+;; No error recovery, because this grammar is not intended for
+;; interactive use, and to keep wisitoken-bnf-generate independent of
 ;; mckenzie_recover, to simplify working on mckenzie_recover.
 
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
@@ -111,13 +114,15 @@ declaration_item
   : COMMA
   | IDENTIFIER
   | EQUAL
+  | LEFT_PAREN
   | NUMERIC_LITERAL
   | REGEXP
+  | RIGHT_PAREN
   | SLASH
   | STRING_LITERAL
   | STRING_LITERAL_CASE_INS
   | TOKEN
-  ;; ",", "token", "/" appear in %conflict declarations
+  ;; ",", "token", "/", "(", ")" appear in %conflict declarations
   ;
 
 nonterminal
@@ -128,8 +133,6 @@ nonterminal
 rhs_list
   : rhs
   | rhs_list BAR rhs
-  | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-  | rhs_list PERCENT END IF
   ;
 
 rhs
@@ -137,6 +140,8 @@ rhs
   | token_list
   | token_list ACTION
   | token_list ACTION ACTION
+  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | PERCENT END IF
   ;
 
 token_list

@@ -1,0 +1,146 @@
+;;; demonstrating a bug in the LALR generator
+%code copyright_license %{
+;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
+;;
+;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;;
+;;  This file is part of WisiToken.
+;;
+;;  WisiToken is free software: you can redistribute it and/or modify
+;;  it under the terms of the GNU General Public License as published by
+;;  the Free Software Foundation, either version 3 of the License, or
+;;  (at your option) any later version.
+;;
+;;  WisiToken is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;  GNU General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%code actions spec context %{with WisiToken.Text_IO_Trace;}%
+
+%code actions spec post %{
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+
+   End_Name_Optional : Boolean := True;
+
+   Partial_Parse_Active    : Boolean := False;
+   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+}%
+
+;; We only need one LR variant to test LR EBNF
+%generate LALR Ada re2c
+
+%keyword BEGIN "begin"
+%keyword END "end"
+%keyword IS "is"
+%keyword LEFT_PAREN "("
+%keyword PROCEDURE "procedure"
+%keyword RIGHT_PAREN ")"
+%keyword TYPE "type"
+
+;; all tokens that consist of characters with punctuation syntax
+%token <punctuation> COLON ":"
+%token <punctuation> EQUAL_GREATER "=>"
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> SEMICOLON ";"
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\n] ]%
+%non_grammar <comment> COMMENT %[ "--"[^\n\x04]*[\n\x04] ]%
+
+%start compilation_unit
+
+%no_language_runtime
+
+%conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part on token IDENTIFIER ( 105)
+
+;;;; grammar rules
+
+actual_parameter_part
+  : LEFT_PAREN association_list RIGHT_PAREN
+  ;
+
+association
+  : IDENTIFIER EQUAL_GREATER expression
+  | expression
+  ;
+
+association_list
+  : association
+  ;
+
+compilation_unit
+  : PROCEDURE name IS BEGIN sequence_of_statements END name_opt SEMICOLON
+  | IDENTIFIER COLON subtype_indication SEMICOLON
+  | TYPE IDENTIFIER IS SEMICOLON
+  ;
+
+expression
+  : relation
+  ;
+
+factor
+  : primary
+  ;
+
+name
+  : name actual_parameter_part
+  | IDENTIFIER
+  ;
+
+name_opt
+  : name
+  | ;; empty
+  ;
+
+primary
+  : name
+  ;
+
+procedure_call_statement
+  : name SEMICOLON
+  ;
+
+relation
+  : simple_expression
+  ;
+
+sequence_of_statements_list
+  : procedure_call_statement
+  | sequence_of_statements_list procedure_call_statement
+  ;
+
+sequence_of_statements
+  : ;; empty
+  | sequence_of_statements_list
+  ;
+
+simple_expression
+  : unary_adding_operator_opt term
+  ;
+
+subtype_indication
+  : name LEFT_PAREN subtype_indication RIGHT_PAREN
+  | name
+  ;
+
+term
+  : factor
+  ;
+
+unary_adding_operator  : PLUS  | MINUS  ;
+;; + | -
+
+unary_adding_operator_opt
+  : unary_adding_operator
+  | ;; empty
+  ;
+
+;;; end of file

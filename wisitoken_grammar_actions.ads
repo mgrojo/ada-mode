@@ -2,7 +2,7 @@
 --  command line: wisitoken-bnf-generate.exe  --generate LALR Ada re2c PROCESS wisitoken_grammar.wy
 --
 
---  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 --
 --  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 --
@@ -26,18 +26,18 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal                => 3,
-      Last_Terminal                 => 25,
-      First_Nonterminal             => 26,
-      Last_Nonterminal              => 37,
-      EOI_ID                        => 25,
-      Accept_ID                     => 26,
+      Last_Terminal                 => 27,
+      First_Nonterminal             => 28,
+      Last_Nonterminal              => 39,
+      EOI_ID                        => 27,
+      Accept_ID                     => 28,
       Case_Insensitive              => False,
       New_Line_ID                   => 1,
       Comment_ID                    => 2,
       Left_Paren_ID                 => 2147483647,
       Right_Paren_ID                => 2147483647,
-      String_1_ID                   => 24,
-      String_2_ID                   => 23,
+      String_1_ID                   => 26,
+      String_2_ID                   => 25,
       Embedded_Quote_Escape_Doubled => False,
       Image                         =>
         (new String'("WHITESPACE"),
@@ -57,8 +57,10 @@ package Wisitoken_Grammar_Actions is
          new String'("COMMA"),
          new String'("EQUAL"),
          new String'("GREATER"),
+         new String'("LEFT_PAREN"),
          new String'("LESS"),
          new String'("PERCENT"),
+         new String'("RIGHT_PAREN"),
          new String'("SEMICOLON"),
          new String'("SLASH"),
          new String'("NUMERIC_LITERAL"),
@@ -80,7 +82,7 @@ package Wisitoken_Grammar_Actions is
          new String'("compilation_unit_list")),
       Terminal_Image_Width => 23,
       Image_Width          => 25,
-      Last_Lookahead       => 26);
+      Last_Lookahead       => 28);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -100,8 +102,10 @@ package Wisitoken_Grammar_Actions is
       COMMA_ID,
       EQUAL_ID,
       GREATER_ID,
+      LEFT_PAREN_ID,
       LESS_ID,
       PERCENT_ID,
+      RIGHT_PAREN_ID,
       SEMICOLON_ID,
       SLASH_ID,
       NUMERIC_LITERAL_ID,

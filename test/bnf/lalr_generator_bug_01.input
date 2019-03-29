@@ -1,0 +1,4 @@
+procedure Proc_3
+is begin
+   do_1_3 (A);
+end;
