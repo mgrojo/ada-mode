@@ -117,10 +117,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
             then
                --  Find the production(s) that create Dot_ID with first token Symbol
                --  and put them in.
-               --
-               --  This is equivalent to Filter (LR1_Items.Closure, In_Kernel), but
-               --  more efficient, because it does not generate non-kernel items. See
-               --  Test/compare_goto_transitions.adb.
                for Prod of Grammar loop
                   for RHS_2_I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                      declare

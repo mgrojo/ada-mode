@@ -26,7 +26,6 @@ with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Command_Line;
 with Ada.Text_IO;
 with Association_Grammar_Test;
-with Compare_Goto_Transitions;
 with Dragon_4_43_LR1_Test;
 with Dragon_4_45_LALR_Test;
 with Dragon_4_43_Packrat_Gen;
@@ -111,7 +110,6 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, new Association_Grammar_Test.Test_Case);
-   Add_Test (Suite, new Compare_Goto_Transitions.Test_Case);
    Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case);
    Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case);
    Add_Test (Suite, new Dragon_4_43_Packrat_Gen.Test_Case);
