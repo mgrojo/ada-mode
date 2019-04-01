@@ -42,12 +42,6 @@ gmon.out : exec_pro/wisitoken-bnf-generate.exe
 generate_ada_lite_lr1.gprof : gmon.out
 	gprof exec_pro/wisitoken-bnf-generate.exe > generate_ada_lite_lr1.gprof
 
-two : wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe -v 2 --generate LALR Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lalr_generate.log
-
-
-.PHONY : t_one_1 t_one_2
-
 doc :: ../Docs/wisitoken-user_guide.info
 doc :: ../Docs/wisitoken-user_guide.html
 doc :: create-dir

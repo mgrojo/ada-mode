@@ -22,13 +22,9 @@ update-wisi_grammar
 
  current work
 lalr generator bug
-    added to compare_goto_transitions; lots of mismatch
+    short term fix; catch bad state, change action to error; o.w.s-1
 
-    try just using filter (lr1_goto_transitions), time it; o.w.s-1
-
-    short term fix; catch bad state, change action to error
-
-    long term fix; reimplement lalr using modern algorithm
+    long term fix; reimplement lalr using deremer, penello 1982
 
     lalr_generator_bug_01.wy => error
         parser 0 looking for 19.0:association <= identifier => expression
