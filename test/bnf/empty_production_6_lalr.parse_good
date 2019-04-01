@@ -1,6 +1,6 @@
  10 tokens lexed
  0: 0:  1:(BEGIN, (1 . 5)) : shift and goto state 1
-spawn parser from 0 (2 active)
+ 0: 1:  2:(IDENTIFIER, (10 . 14)) : spawn 1, (2 active)
  1: 1:  2:(IDENTIFIER, (10 . 14)) : reduce 0 tokens to label_opt
 label_opt_1: (label_opt) <= ()
  ... goto state 6

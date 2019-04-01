@@ -113,7 +113,7 @@
     (forward-word 2)) ;; an AUnit test failed
   )
 
-(define-key compilation-mode-map "e" 'wisitoken-ediff-good)
+(define-key compilation-mode-map "e" #'wisitoken-ediff-good)
 (define-key compilation-mode-map "n" #'wisitoken-compilation-next)
 (define-key compilation-mode-map "g" #'wisitoken-goto-aunit-fail)
 ;; end of file

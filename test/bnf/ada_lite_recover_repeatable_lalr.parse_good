@@ -5,7 +5,7 @@
 name_2: (name, (180 . 185)) <= ( 2:(IDENTIFIER, (180 . 185)))
 semantic check OK
  ... goto state 67
- 0: spawn 1, (2 active),  3:(IS, (187 . 188))
+ 0: 67:  3:(IS, (187 . 188)) : spawn 1, (2 active)
  1: 67:  3:(IS, (187 . 188)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -139,7 +139,7 @@ semantic check OK
 name_2: (name, (231 . 234)) <= ( 15:(IDENTIFIER, (231 . 234)))
 semantic check OK
  ... goto state 67
- 1: spawn 2, (2 active),  16:(IS, (236 . 237))
+ 1: 67:  16:(IS, (236 . 237)) : spawn 2, (2 active)
  2: 67:  16:(IS, (236 . 237)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -331,7 +331,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 308)) <= ((compilation_u
 name_2: (name, (321 . 325)) <= ( 38:(IDENTIFIER, (321 . 325)))
 semantic check OK
  ... goto state 67
- 2: spawn 3, (2 active),  39:(IS, (327 . 328))
+ 2: 67:  39:(IS, (327 . 328)) : spawn 3, (2 active)
  3: 67:  39:(IS, (327 . 328)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -616,7 +616,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 415)) <= ((compilation_u
 name_2: (name, (428 . 432)) <= ( 67:(IDENTIFIER, (428 . 432)))
 semantic check OK
  ... goto state 67
- 3: spawn 4, (2 active),  68:(IS, (434 . 435))
+ 3: 67:  68:(IS, (434 . 435)) : spawn 4, (2 active)
  4: 67:  68:(IS, (434 . 435)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -698,7 +698,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 444)) <= ((compilation_u
 name_2: (name, (457 . 461)) <= ( 73:(IDENTIFIER, (457 . 461)))
 semantic check OK
  ... goto state 67
- 4: spawn 5, (2 active),  74:(IS, (463 . 464))
+ 4: 67:  74:(IS, (463 . 464)) : spawn 5, (2 active)
  5: 67:  74:(IS, (463 . 464)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -748,7 +748,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (472 . 491)) <= ((procedure_specification, (472 . 491)))
 semantic check OK
  ... goto state 144
- 5: spawn 6, (2 active),  78:(IS, (493 . 494))
+ 5: 144:  78:(IS, (493 . 494)) : spawn 6, (2 active)
  6: 144:  78:(IS, (493 . 494)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -832,7 +832,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 533)) <= ((compilation_u
 name_2: (name, (546 . 552)) <= ( 88:(IDENTIFIER, (546 . 552)))
 semantic check OK
  ... goto state 67
- 6: spawn 7, (2 active),  89:(IS, (554 . 555))
+ 6: 67:  89:(IS, (554 . 555)) : spawn 7, (2 active)
  7: 67:  89:(IS, (554 . 555)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -1041,7 +1041,7 @@ simple_expression_1: (simple_expression, (648 . 660)) <= ((term_list, (648 . 660
  6: 240:  109:(RIGHT_PAREN, (661 . 661)) : reduce 3 tokens to range_g
 range_g_0: (range_g, (643 . 660)) <= ((simple_expression, (643 . 643)),  107:(DOT_DOT, (645 . 646)), (simple_expression, (648 . 660)))
  ... goto state 245
- 6: spawn 8, (3 active),  109:(RIGHT_PAREN, (661 . 661))
+ 6: 245:  109:(RIGHT_PAREN, (661 . 661)) : spawn 8, (3 active)
  8: 245:  109:(RIGHT_PAREN, (661 . 661)) : reduce 1 tokens to range_list
 range_list_1: (range_list, (643 . 660)) <= ((range_g, (643 . 660)))
  ... goto state 152
@@ -1094,7 +1094,7 @@ range_g_0: (range_g, (643 . 660)) <= ((simple_expression, (643 . 643)),  107:(DO
  ... goto state 245
  6: zombie
  8: zombie
- 7: spawn 9, (4 active),  109:(RIGHT_PAREN, (661 . 661))
+ 7: 245:  109:(RIGHT_PAREN, (661 . 661)) : spawn 9, (4 active)
  9: 245:  109:(RIGHT_PAREN, (661 . 661)) : reduce 1 tokens to range_list
 range_list_1: (range_list, (643 . 660)) <= ((range_g, (643 . 660)))
  ... goto state 152
@@ -1347,7 +1347,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 676)) <= ((compilation_u
 name_2: (name, (689 . 704)) <= ( 114:(IDENTIFIER, (689 . 704)))
 semantic check OK
  ... goto state 67
- 9: spawn 10, (2 active),  115:(IS, (706 . 707))
+ 9: 67:  115:(IS, (706 . 707)) : spawn 10, (2 active)
  10: 67:  115:(IS, (706 . 707)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -1412,7 +1412,7 @@ semantic check OK
 subprogram_specification_1: (subprogram_specification, (709 . 745)) <= ((function_specification, (709 . 745)))
 semantic check OK
  ... goto state 144
- 10: spawn 11, (2 active),  123:(IS, (747 . 748))
+ 10: 144:  123:(IS, (747 . 748)) : spawn 11, (2 active)
  11: 144:  123:(IS, (747 . 748)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -1490,7 +1490,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 776)) <= ((compilation_u
 name_2: (name, (789 . 791)) <= ( 132:(IDENTIFIER, (789 . 791)))
 semantic check OK
  ... goto state 67
- 11: spawn 12, (2 active),  133:(IS, (793 . 794))
+ 11: 67:  133:(IS, (793 . 794)) : spawn 12, (2 active)
  12: 67:  133:(IS, (793 . 794)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -1656,7 +1656,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 852)) <= ((compilation_u
 name_2: (name, (865 . 875)) <= ( 149:(IDENTIFIER, (865 . 875)))
 semantic check OK
  ... goto state 67
- 12: spawn 14, (2 active),  150:(IS, (877 . 878))
+ 12: 67:  150:(IS, (877 . 878)) : spawn 14, (2 active)
  14: 67:  150:(IS, (877 . 878)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -1796,7 +1796,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 912)) <= ((compilation_u
 name_2: (name, (925 . 935)) <= ( 163:(IDENTIFIER, (925 . 935)))
 semantic check OK
  ... goto state 67
- 14: spawn 15, (2 active),  164:(IS, (937 . 938))
+ 14: 67:  164:(IS, (937 . 938)) : spawn 15, (2 active)
  15: 67:  164:(IS, (937 . 938)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -1945,7 +1945,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 984)) <= ((compilation_u
 name_2: (name, (997 . 1003)) <= ( 178:(IDENTIFIER, (997 . 1003)))
 semantic check OK
  ... goto state 67
- 15: spawn 16, (2 active),  179:(IS, (1005 . 1006))
+ 15: 67:  179:(IS, (1005 . 1006)) : spawn 16, (2 active)
  16: 67:  179:(IS, (1005 . 1006)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -2076,7 +2076,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1030)) <= ((compilation_
 name_2: (name, (1043 . 1051)) <= ( 189:(IDENTIFIER, (1043 . 1051)))
 semantic check OK
  ... goto state 67
- 16: spawn 17, (2 active),  190:(IS, (1053 . 1054))
+ 16: 67:  190:(IS, (1053 . 1054)) : spawn 17, (2 active)
  17: 67:  190:(IS, (1053 . 1054)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -2199,7 +2199,7 @@ compilation_unit_list_0: (compilation_unit_list, (170 . 1084)) <= ((compilation_
 name_2: (name, (1097 . 1104)) <= ( 202:(IDENTIFIER, (1097 . 1104)))
 semantic check OK
  ... goto state 67
- 17: spawn 18, (2 active),  203:(IS, (1106 . 1107))
+ 17: 67:  203:(IS, (1106 . 1107)) : spawn 18, (2 active)
  18: 67:  203:(IS, (1106 . 1107)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -2416,7 +2416,7 @@ primary_2: (primary, (1156 . 1162)) <= ((name, (1156 . 1162)))
  20: 46:  211:(RIGHT_PAREN, (1163 . 1163)) : reduce 1 tokens to primary
 primary_2: (primary, (1156 . 1162)) <= ((name, (1156 . 1162)))
  ... goto state 48
- 19: spawn 22, (6 active),  211:(RIGHT_PAREN, (1163 . 1163))
+ 19: 173:  211:(RIGHT_PAREN, (1163 . 1163)) : spawn 22, (6 active)
  22: 173:  211:(RIGHT_PAREN, (1163 . 1163)) : reduce 1 tokens to subtype_indication
 subtype_indication_1: (subtype_indication, (1156 . 1162)) <= ((name, (1156 . 1162)))
  ... goto state 176
@@ -2709,7 +2709,7 @@ subprogram_specification_0: (subprogram_specification, (1167 . 1179)) <= ((proce
 semantic check OK
  ... goto state 144
  21: zombie
- 22: spawn 23, (4 active),  215:(IS, (1181 . 1182))
+ 22: 144:  215:(IS, (1181 . 1182)) : spawn 23, (4 active)
  23: 144:  215:(IS, (1181 . 1182)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -2730,7 +2730,7 @@ semantic check OK
  ... goto state 67
  23: 205:  216:(BEGIN, (1184 . 1188)) : shift and goto state 241
  22: zombie
- 17: spawn 24, (4 active),  215:(IS, (1181 . 1182))
+ 17: 67:  215:(IS, (1181 . 1182)) : spawn 24, (4 active)
  24: 67:  215:(IS, (1181 . 1182)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -2787,7 +2787,7 @@ recover: succeed, parser count 3
  17: resume_active: True, token goal 219
  24: 5: (IDENTIFIER) : shift and goto state 42
  23: 5: (IDENTIFIER) : shift and goto state 42
- 17: spawn 25, (4 active),  215:(IS, (1181 . 1182))
+ 17: 67:  215:(IS, (1181 . 1182)) : spawn 25, (4 active)
  25: 67:  215:(IS, (1181 . 1182)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -3170,7 +3170,7 @@ semantic check OK
  25: 33:  228:(PROCEDURE, (1222 . 1230)) : reduce 1 tokens to compilation_unit
 compilation_unit_2: (compilation_unit, (1167 . 1219)) <= ((subprogram_body, (1167 . 1219)))
  ... goto state 74
- 24: spawn 26, (4 active),  230:(IS, (1247 . 1248))
+ 24: 67:  230:(IS, (1247 . 1248)) : spawn 26, (4 active)
  26: 67:  230:(IS, (1247 . 1248)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -3201,7 +3201,7 @@ semantic check OK
  26: 35:  230:(IS, (1247 . 1248)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 23: spawn 27, (5 active),  230:(IS, (1247 . 1248))
+ 23: 144:  230:(IS, (1247 . 1248)) : spawn 27, (5 active)
  27: 144:  230:(IS, (1247 . 1248)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -3225,7 +3225,7 @@ semantic check OK
  ... goto state 67
  24: zombie
  23: zombie
- 25: spawn 28, (6 active),  230:(IS, (1247 . 1248))
+ 25: 67:  230:(IS, (1247 . 1248)) : spawn 28, (6 active)
  28: 67:  230:(IS, (1247 . 1248)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -3297,12 +3297,12 @@ semantic check OK
  25: zombie
  24: zombie
  23: zombie
- 27: spawn 29, (7 active),  233:(IS, (1278 . 1279))
+ 27: 144:  233:(IS, (1278 . 1279)) : spawn 29, (7 active)
  29: 144:  233:(IS, (1278 . 1279)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  27: 144:  233:(IS, (1278 . 1279)) : shift and goto state 196
- 26: spawn 30, (8 active),  233:(IS, (1278 . 1279))
+ 26: 144:  233:(IS, (1278 . 1279)) : spawn 30, (8 active)
  30: 144:  233:(IS, (1278 . 1279)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -3371,7 +3371,7 @@ semantic check OK
  27: zombie
  26: zombie
  25: zombie
- 28: spawn 31, (7 active),  233:(IS, (1278 . 1279))
+ 28: 144:  233:(IS, (1278 . 1279)) : spawn 31, (7 active)
  31: 144:  233:(IS, (1278 . 1279)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -3828,7 +3828,7 @@ semantic check OK
 name_2: (name, (1384 . 1389)) <= ( 252:(IDENTIFIER, (1384 . 1389)))
 semantic check OK
  ... goto state 191
- 31: spawn 33, (3 active),  253:(IS, (1391 . 1392))
+ 31: 67:  253:(IS, (1391 . 1392)) : spawn 33, (3 active)
  33: 67:  253:(IS, (1391 . 1392)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -3855,7 +3855,7 @@ semantic check OK
  33: 35:  253:(IS, (1391 . 1392)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 29: spawn 34, (4 active),  253:(IS, (1391 . 1392))
+ 29: 144:  253:(IS, (1391 . 1392)) : spawn 34, (4 active)
  34: 144:  253:(IS, (1391 . 1392)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -4306,7 +4306,7 @@ semantic check OK
  34: 191:  267:(IS, (1449 . 1450)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
- 33: spawn 37, (3 active),  267:(IS, (1449 . 1450))
+ 33: 67:  267:(IS, (1449 . 1450)) : spawn 37, (3 active)
  37: 67:  267:(IS, (1449 . 1450)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -4330,7 +4330,7 @@ semantic check OK
  37: 35:  267:(IS, (1449 . 1450)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 34: spawn 38, (4 active),  267:(IS, (1449 . 1450))
+ 34: 144:  267:(IS, (1449 . 1450)) : spawn 38, (4 active)
  38: 144:  267:(IS, (1449 . 1450)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -4705,12 +4705,12 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1515 . 1530)) <= ((procedure_specification, (1515 . 1530)))
 semantic check OK
  ... goto state 144
- 38: spawn 39, (3 active),  289:(IS, (1532 . 1533))
+ 38: 144:  289:(IS, (1532 . 1533)) : spawn 39, (3 active)
  39: 144:  289:(IS, (1532 . 1533)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  38: 144:  289:(IS, (1532 . 1533)) : shift and goto state 196
- 37: spawn 40, (4 active),  289:(IS, (1532 . 1533))
+ 37: 144:  289:(IS, (1532 . 1533)) : spawn 40, (4 active)
  40: 144:  289:(IS, (1532 . 1533)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -5063,12 +5063,12 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1603 . 1618)) <= ((procedure_specification, (1603 . 1618)))
 semantic check OK
  ... goto state 144
- 40: spawn 41, (3 active),  310:(IS, (1620 . 1621))
+ 40: 144:  310:(IS, (1620 . 1621)) : spawn 41, (3 active)
  41: 144:  310:(IS, (1620 . 1621)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  40: 144:  310:(IS, (1620 . 1621)) : shift and goto state 196
- 39: spawn 42, (4 active),  310:(IS, (1620 . 1621))
+ 39: 144:  310:(IS, (1620 . 1621)) : spawn 42, (4 active)
  42: 144:  310:(IS, (1620 . 1621)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -6132,7 +6132,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1711 . 1726)) <= ((procedure_specification, (1711 . 1726)))
 semantic check OK
  ... goto state 144
- 50: spawn 51, (4 active),  338:(IS, (1728 . 1729))
+ 50: 144:  338:(IS, (1728 . 1729)) : spawn 51, (4 active)
  51: 144:  338:(IS, (1728 . 1729)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -6184,12 +6184,12 @@ subprogram_specification_0: (subprogram_specification, (1711 . 1726)) <= ((proce
 semantic check OK
  ... goto state 144
  50: zombie
- 44: spawn 52, (5 active),  338:(IS, (1728 . 1729))
+ 44: 144:  338:(IS, (1728 . 1729)) : spawn 52, (5 active)
  52: 144:  338:(IS, (1728 . 1729)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  44: 144:  338:(IS, (1728 . 1729)) : shift and goto state 196
- 43: spawn 53, (6 active),  338:(IS, (1728 . 1729))
+ 43: 144:  338:(IS, (1728 . 1729)) : spawn 53, (6 active)
  53: 144:  338:(IS, (1728 . 1729)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -6996,7 +6996,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1851 . 1866)) <= ((procedure_specification, (1851 . 1866)))
 semantic check OK
  ... goto state 144
- 51: spawn 54, (4 active),  374:(IS, (1868 . 1869))
+ 51: 144:  374:(IS, (1868 . 1869)) : spawn 54, (4 active)
  54: 144:  374:(IS, (1868 . 1869)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -7021,7 +7021,7 @@ semantic check OK
  53: 191:  374:(IS, (1868 . 1869)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
- 52: spawn 55, (5 active),  374:(IS, (1868 . 1869))
+ 52: 67:  374:(IS, (1868 . 1869)) : spawn 55, (5 active)
  55: 67:  374:(IS, (1868 . 1869)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -7048,7 +7048,7 @@ semantic check OK
  55: 35:  374:(IS, (1868 . 1869)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 53: spawn 56, (6 active),  374:(IS, (1868 . 1869))
+ 53: 144:  374:(IS, (1868 . 1869)) : spawn 56, (6 active)
  56: 144:  374:(IS, (1868 . 1869)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -7090,7 +7090,7 @@ semantic check OK
  53: zombie
  52: zombie
  51: zombie
- 54: spawn 57, (7 active),  377:(IS, (1888 . 1889))
+ 54: 144:  377:(IS, (1888 . 1889)) : spawn 57, (7 active)
  57: 144:  377:(IS, (1888 . 1889)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -7160,12 +7160,12 @@ semantic check OK
  54: zombie
  53: zombie
  52: zombie
- 56: spawn 58, (7 active),  377:(IS, (1888 . 1889))
+ 56: 144:  377:(IS, (1888 . 1889)) : spawn 58, (7 active)
  58: 144:  377:(IS, (1888 . 1889)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  56: 144:  377:(IS, (1888 . 1889)) : shift and goto state 196
- 55: spawn 59, (8 active),  377:(IS, (1888 . 1889))
+ 55: 144:  377:(IS, (1888 . 1889)) : spawn 59, (8 active)
  59: 144:  377:(IS, (1888 . 1889)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -7564,7 +7564,7 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (1955 . 1974)) <= ((procedure_specification, (1955 . 1974)))
 semantic check OK
  ... goto state 144
- 57: spawn 60, (4 active),  395:(IS, (1976 . 1977))
+ 57: 144:  395:(IS, (1976 . 1977)) : spawn 60, (4 active)
  60: 144:  395:(IS, (1976 . 1977)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -7618,12 +7618,12 @@ subprogram_specification_0: (subprogram_specification, (1955 . 1974)) <= ((proce
 semantic check OK
  ... goto state 144
  57: zombie
- 59: spawn 61, (5 active),  395:(IS, (1976 . 1977))
+ 59: 144:  395:(IS, (1976 . 1977)) : spawn 61, (5 active)
  61: 144:  395:(IS, (1976 . 1977)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  59: 144:  395:(IS, (1976 . 1977)) : shift and goto state 196
- 58: spawn 62, (6 active),  395:(IS, (1976 . 1977))
+ 58: 144:  395:(IS, (1976 . 1977)) : spawn 62, (6 active)
  62: 144:  395:(IS, (1976 . 1977)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -8110,17 +8110,17 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (2036 . 2055)) <= ((procedure_specification, (2036 . 2055)))
 semantic check OK
  ... goto state 144
- 62: spawn 63, (4 active),  408:(IS, (2057 . 2058))
+ 62: 144:  408:(IS, (2057 . 2058)) : spawn 63, (4 active)
  63: 144:  408:(IS, (2057 . 2058)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  62: 144:  408:(IS, (2057 . 2058)) : shift and goto state 196
- 61: spawn 64, (5 active),  408:(IS, (2057 . 2058))
+ 61: 144:  408:(IS, (2057 . 2058)) : spawn 64, (5 active)
  64: 144:  408:(IS, (2057 . 2058)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  61: 144:  408:(IS, (2057 . 2058)) : shift and goto state 196
- 60: spawn 65, (6 active),  408:(IS, (2057 . 2058))
+ 60: 144:  408:(IS, (2057 . 2058)) : spawn 65, (6 active)
  65: 144:  408:(IS, (2057 . 2058)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -8343,12 +8343,12 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (2122 . 2132)) <= ((procedure_specification, (2122 . 2132)))
 semantic check OK
  ... goto state 144
- 65: spawn 66, (3 active),  423:(IS, (2134 . 2135))
+ 65: 144:  423:(IS, (2134 . 2135)) : spawn 66, (3 active)
  66: 144:  423:(IS, (2134 . 2135)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  65: 144:  423:(IS, (2134 . 2135)) : shift and goto state 196
- 64: spawn 67, (4 active),  423:(IS, (2134 . 2135))
+ 64: 144:  423:(IS, (2134 . 2135)) : spawn 67, (4 active)
  67: 144:  423:(IS, (2134 . 2135)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -8609,7 +8609,7 @@ semantic check OK
  65: 191:  429:(IS, (2174 . 2175)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
- 64: spawn 68, (3 active),  429:(IS, (2174 . 2175))
+ 64: 67:  429:(IS, (2174 . 2175)) : spawn 68, (3 active)
  68: 67:  429:(IS, (2174 . 2175)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -8633,7 +8633,7 @@ semantic check OK
  68: 35:  429:(IS, (2174 . 2175)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 65: spawn 69, (4 active),  429:(IS, (2174 . 2175))
+ 65: 144:  429:(IS, (2174 . 2175)) : spawn 69, (4 active)
  69: 144:  429:(IS, (2174 . 2175)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -8690,12 +8690,12 @@ semantic check OK
  ... goto state 144
  65: zombie
  64: zombie
- 69: spawn 70, (5 active),  432:(IS, (2204 . 2205))
+ 69: 144:  432:(IS, (2204 . 2205)) : spawn 70, (5 active)
  70: 144:  432:(IS, (2204 . 2205)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  69: 144:  432:(IS, (2204 . 2205)) : shift and goto state 196
- 68: spawn 71, (6 active),  432:(IS, (2204 . 2205))
+ 68: 144:  432:(IS, (2204 . 2205)) : spawn 71, (6 active)
  71: 144:  432:(IS, (2204 . 2205)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -8758,12 +8758,12 @@ semantic check OK
  ... goto state 144
  69: zombie
  68: zombie
- 71: spawn 72, (5 active),  435:(IS, (2226 . 2227))
+ 71: 144:  435:(IS, (2226 . 2227)) : spawn 72, (5 active)
  72: 144:  435:(IS, (2226 . 2227)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  71: 144:  435:(IS, (2226 . 2227)) : shift and goto state 196
- 70: spawn 73, (6 active),  435:(IS, (2226 . 2227))
+ 70: 144:  435:(IS, (2226 . 2227)) : spawn 73, (6 active)
  73: 144:  435:(IS, (2226 . 2227)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -9067,7 +9067,7 @@ semantic check OK
  73: 191:  447:(IS, (2315 . 2316)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
- 72: spawn 74, (3 active),  447:(IS, (2315 . 2316))
+ 72: 67:  447:(IS, (2315 . 2316)) : spawn 74, (3 active)
  74: 67:  447:(IS, (2315 . 2316)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -9091,7 +9091,7 @@ semantic check OK
  74: 35:  447:(IS, (2315 . 2316)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 73: spawn 75, (4 active),  447:(IS, (2315 . 2316))
+ 73: 144:  447:(IS, (2315 . 2316)) : spawn 75, (4 active)
  75: 144:  447:(IS, (2315 . 2316)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -9148,12 +9148,12 @@ semantic check OK
  ... goto state 144
  73: zombie
  72: zombie
- 75: spawn 76, (5 active),  450:(IS, (2345 . 2346))
+ 75: 144:  450:(IS, (2345 . 2346)) : spawn 76, (5 active)
  76: 144:  450:(IS, (2345 . 2346)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  75: 144:  450:(IS, (2345 . 2346)) : shift and goto state 196
- 74: spawn 77, (6 active),  450:(IS, (2345 . 2346))
+ 74: 144:  450:(IS, (2345 . 2346)) : spawn 77, (6 active)
  77: 144:  450:(IS, (2345 . 2346)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -9216,12 +9216,12 @@ semantic check OK
  ... goto state 144
  75: zombie
  74: zombie
- 77: spawn 78, (5 active),  453:(IS, (2367 . 2368))
+ 77: 144:  453:(IS, (2367 . 2368)) : spawn 78, (5 active)
  78: 144:  453:(IS, (2367 . 2368)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  77: 144:  453:(IS, (2367 . 2368)) : shift and goto state 196
- 76: spawn 79, (6 active),  453:(IS, (2367 . 2368))
+ 76: 144:  453:(IS, (2367 . 2368)) : spawn 79, (6 active)
  79: 144:  453:(IS, (2367 . 2368)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -9284,12 +9284,12 @@ semantic check OK
  ... goto state 144
  77: zombie
  76: zombie
- 79: spawn 80, (5 active),  456:(IS, (2382 . 2383))
+ 79: 144:  456:(IS, (2382 . 2383)) : spawn 80, (5 active)
  80: 144:  456:(IS, (2382 . 2383)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  79: 144:  456:(IS, (2382 . 2383)) : shift and goto state 196
- 78: spawn 81, (6 active),  456:(IS, (2382 . 2383))
+ 78: 144:  456:(IS, (2382 . 2383)) : spawn 81, (6 active)
  81: 144:  456:(IS, (2382 . 2383)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -9652,7 +9652,7 @@ semantic check OK
 name_2: (name, (2456 . 2469)) <= ( 467:(IDENTIFIER, (2456 . 2469)))
 semantic check OK
  ... goto state 191
- 81: spawn 82, (3 active),  468:(IS, (2471 . 2472))
+ 81: 67:  468:(IS, (2471 . 2472)) : spawn 82, (3 active)
  82: 67:  468:(IS, (2471 . 2472)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -9679,7 +9679,7 @@ semantic check OK
  82: 35:  468:(IS, (2471 . 2472)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 80: spawn 83, (4 active),  468:(IS, (2471 . 2472))
+ 80: 144:  468:(IS, (2471 . 2472)) : spawn 83, (4 active)
  83: 144:  468:(IS, (2471 . 2472)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -9736,12 +9736,12 @@ semantic check OK
  ... goto state 144
  81: zombie
  80: zombie
- 83: spawn 84, (5 active),  471:(IS, (2501 . 2502))
+ 83: 144:  471:(IS, (2501 . 2502)) : spawn 84, (5 active)
  84: 144:  471:(IS, (2501 . 2502)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  83: 144:  471:(IS, (2501 . 2502)) : shift and goto state 196
- 82: spawn 85, (6 active),  471:(IS, (2501 . 2502))
+ 82: 144:  471:(IS, (2501 . 2502)) : spawn 85, (6 active)
  85: 144:  471:(IS, (2501 . 2502)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -10060,12 +10060,12 @@ semantic check OK
 subprogram_specification_0: (subprogram_specification, (2588 . 2603)) <= ((procedure_specification, (2588 . 2603)))
 semantic check OK
  ... goto state 144
- 85: spawn 86, (3 active),  487:(IS, (2605 . 2606))
+ 85: 144:  487:(IS, (2605 . 2606)) : spawn 86, (3 active)
  86: 144:  487:(IS, (2605 . 2606)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  85: 144:  487:(IS, (2605 . 2606)) : shift and goto state 196
- 84: spawn 87, (4 active),  487:(IS, (2605 . 2606))
+ 84: 144:  487:(IS, (2605 . 2606)) : spawn 87, (4 active)
  87: 144:  487:(IS, (2605 . 2606)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -10122,12 +10122,12 @@ semantic check OK
  ... goto state 144
  85: zombie
  84: zombie
- 87: spawn 88, (5 active),  490:(IS, (2625 . 2626))
+ 87: 144:  490:(IS, (2625 . 2626)) : spawn 88, (5 active)
  88: 144:  490:(IS, (2625 . 2626)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  87: 144:  490:(IS, (2625 . 2626)) : shift and goto state 196
- 86: spawn 89, (6 active),  490:(IS, (2625 . 2626))
+ 86: 144:  490:(IS, (2625 . 2626)) : spawn 89, (6 active)
  89: 144:  490:(IS, (2625 . 2626)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -10580,7 +10580,7 @@ semantic check OK
 name_3: (name, (2698 . 2719)) <= ((selected_component, (2698 . 2719)))
 semantic check OK
  ... goto state 191
- 89: spawn 90, (3 active),  511:(IS, (2721 . 2722))
+ 89: 67:  511:(IS, (2721 . 2722)) : spawn 90, (3 active)
  90: 67:  511:(IS, (2721 . 2722)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -10607,7 +10607,7 @@ semantic check OK
  90: 35:  511:(IS, (2721 . 2722)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 88: spawn 91, (4 active),  511:(IS, (2721 . 2722))
+ 88: 144:  511:(IS, (2721 . 2722)) : spawn 91, (4 active)
  91: 144:  511:(IS, (2721 . 2722)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -10664,12 +10664,12 @@ semantic check OK
  ... goto state 144
  89: zombie
  88: zombie
- 91: spawn 92, (5 active),  514:(IS, (2741 . 2742))
+ 91: 144:  514:(IS, (2741 . 2742)) : spawn 92, (5 active)
  92: 144:  514:(IS, (2741 . 2742)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  91: 144:  514:(IS, (2741 . 2742)) : shift and goto state 196
- 90: spawn 93, (6 active),  514:(IS, (2741 . 2742))
+ 90: 144:  514:(IS, (2741 . 2742)) : spawn 93, (6 active)
  93: 144:  514:(IS, (2741 . 2742)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -11028,7 +11028,7 @@ semantic check OK
 name_3: (name, (2807 . 2824)) <= ((selected_component, (2807 . 2824)))
 semantic check OK
  ... goto state 191
- 93: spawn 94, (3 active),  530:(IS, (2826 . 2827))
+ 93: 67:  530:(IS, (2826 . 2827)) : spawn 94, (3 active)
  94: 67:  530:(IS, (2826 . 2827)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -11055,7 +11055,7 @@ semantic check OK
  94: 35:  530:(IS, (2826 . 2827)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 92: spawn 95, (4 active),  530:(IS, (2826 . 2827))
+ 92: 144:  530:(IS, (2826 . 2827)) : spawn 95, (4 active)
  95: 144:  530:(IS, (2826 . 2827)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -11341,7 +11341,7 @@ semantic check OK
  95: 191:  547:(IS, (2917 . 2918)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
- 94: spawn 96, (3 active),  547:(IS, (2917 . 2918))
+ 94: 67:  547:(IS, (2917 . 2918)) : spawn 96, (3 active)
  96: 67:  547:(IS, (2917 . 2918)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -11365,7 +11365,7 @@ semantic check OK
  96: 35:  547:(IS, (2917 . 2918)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 95: spawn 97, (4 active),  547:(IS, (2917 . 2918))
+ 95: 144:  547:(IS, (2917 . 2918)) : spawn 97, (4 active)
  97: 144:  547:(IS, (2917 . 2918)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -12078,12 +12078,12 @@ semantic check OK
 subprogram_specification_1: (subprogram_specification, (2998 . 3054)) <= ((function_specification, (2998 . 3054)))
 semantic check OK
  ... goto state 144
- 99: spawn 100, (3 active),  573:(IS, (3056 . 3057))
+ 99: 144:  573:(IS, (3056 . 3057)) : spawn 100, (3 active)
  100: 144:  573:(IS, (3056 . 3057)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  99: 144:  573:(IS, (3056 . 3057)) : shift and goto state 196
- 98: spawn 101, (4 active),  573:(IS, (3056 . 3057))
+ 98: 144:  573:(IS, (3056 . 3057)) : spawn 101, (4 active)
  101: 144:  573:(IS, (3056 . 3057)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -12144,13 +12144,13 @@ recover: succeed, parser count 8
  99: resume_active: True, token goal 578
  98: Current_Token (SEPARATE) Shared_Token  574:(BEGIN, (3059 . 3063))
  98: resume_active: True, token goal 578
- 105: spawn 106, (9 active),  573:(IS, (3056 . 3057))
+ 105: 144:  573:(IS, (3056 . 3057)) : spawn 106, (9 active)
  106: 144:  573:(IS, (3056 . 3057)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
  105: 144:  573:(IS, (3056 . 3057)) : shift and goto state 196
  104: 144: (SEMICOLON) : shift and goto state 82
- 103: spawn 107, (10 active),  573:(IS, (3056 . 3057))
+ 103: 144:  573:(IS, (3056 . 3057)) : spawn 107, (10 active)
  107: 144:  573:(IS, (3056 . 3057)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -12619,7 +12619,7 @@ semantic check OK
  104: 191:  588:(IS, (3138 . 3139)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
- 102: spawn 108, (5 active),  588:(IS, (3138 . 3139))
+ 102: 67:  588:(IS, (3138 . 3139)) : spawn 108, (5 active)
  108: 67:  588:(IS, (3138 . 3139)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -12649,7 +12649,7 @@ semantic check OK
  108: 35:  588:(IS, (3138 . 3139)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 104: spawn 109, (6 active),  588:(IS, (3138 . 3139))
+ 104: 144:  588:(IS, (3138 . 3139)) : spawn 109, (6 active)
  109: 144:  588:(IS, (3138 . 3139)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -13180,7 +13180,7 @@ semantic check OK
 name_2: (name, (3267 . 3279)) <= ( 617:(IDENTIFIER, (3267 . 3279)))
 semantic check OK
  ... goto state 191
- 111: spawn 112, (3 active),  618:(IS, (3281 . 3282))
+ 111: 67:  618:(IS, (3281 . 3282)) : spawn 112, (3 active)
  112: 67:  618:(IS, (3281 . 3282)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -13207,7 +13207,7 @@ semantic check OK
  112: 35:  618:(IS, (3281 . 3282)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 110: spawn 113, (4 active),  618:(IS, (3281 . 3282))
+ 110: 144:  618:(IS, (3281 . 3282)) : spawn 113, (4 active)
  113: 144:  618:(IS, (3281 . 3282)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -13695,7 +13695,7 @@ semantic check OK
  113: 191:  655:(IS, (3423 . 3424)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
- 112: spawn 114, (3 active),  655:(IS, (3423 . 3424))
+ 112: 67:  655:(IS, (3423 . 3424)) : spawn 114, (3 active)
  114: 67:  655:(IS, (3423 . 3424)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -13719,7 +13719,7 @@ semantic check OK
  114: 35:  655:(IS, (3423 . 3424)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 113: spawn 115, (4 active),  655:(IS, (3423 . 3424))
+ 113: 144:  655:(IS, (3423 . 3424)) : spawn 115, (4 active)
  115: 144:  655:(IS, (3423 . 3424)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
@@ -14300,7 +14300,7 @@ semantic check OK
 name_2: (name, (3556 . 3568)) <= ( 689:(IDENTIFIER, (3556 . 3568)))
 semantic check OK
  ... goto state 191
- 117: spawn 118, (3 active),  690:(IS, (3570 . 3571))
+ 117: 67:  690:(IS, (3570 . 3571)) : spawn 118, (3 active)
  118: 67:  690:(IS, (3570 . 3571)) : reduce 0 tokens to parameter_profile_opt
 parameter_profile_opt_1: (parameter_profile_opt) <= ()
  ... goto state 122
@@ -14327,7 +14327,7 @@ semantic check OK
  118: 35:  690:(IS, (3570 . 3571)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83
- 116: spawn 119, (4 active),  690:(IS, (3570 . 3571))
+ 116: 144:  690:(IS, (3570 . 3571)) : spawn 119, (4 active)
  119: 144:  690:(IS, (3570 . 3571)) : reduce 0 tokens to aspect_specification_opt
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 83

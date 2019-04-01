@@ -138,31 +138,45 @@ package body WisiToken.Parse.LR.Parser is
          Parser_State.Tree.Set_State (Parser_State.Current_Token, Action.State);
 
       when Reduce =>
-         Status := Reduce_Stack_1 (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace);
+         declare
+            use all type SAL.Base_Peek_Type;
 
-         --  Even when Reduce_Stack_1 returns Error, it did reduce the stack, so
-         --  push Nonterm.
-         Parser_State.Stack.Push
-           ((State    => Goto_For
-               (Table => Shared_Parser.Table.all,
-                State => Parser_State.Stack (1).State,
-                ID    => Action.Production.LHS),
-             Token    => Nonterm));
+            New_State : constant Unknown_State_Index := Goto_For
+              (Table => Shared_Parser.Table.all,
+               State => Parser_State.Stack (SAL.Base_Peek_Type (Action.Token_Count) + 1).State,
+               ID    => Action.Production.LHS);
+         begin
+            if New_State = Unknown_State then
+               --  This is due to a bug in the LALR parser generator (see
+               --  lalr_generator_bug_01.wy); we treat it as a syntax error.
+               Current_Parser.Set_Verb (Error);
+               if Trace_Parse > Detail then
+                  Trace.Put_Line (" ... error");
+               end if;
 
-         Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);
+            else
+               Status := Reduce_Stack_1 (Current_Parser, Action, Nonterm, Shared_Parser.Lexer, Trace);
 
-         case Status is
-         when Ok =>
-            Current_Parser.Set_Verb (Reduce);
+               --  Even when Reduce_Stack_1 returns Error, it did reduce the stack, so
+               --  push Nonterm.
+               Parser_State.Stack.Push ((New_State, Nonterm));
 
-            if Trace_Parse > Detail then
-               Trace.Put_Line (" ... goto state " & Trimmed_Image (Parser_State.Stack.Peek.State));
+               Parser_State.Tree.Set_State (Nonterm, New_State);
+
+               case Status is
+               when Ok =>
+                  Current_Parser.Set_Verb (Reduce);
+
+                  if Trace_Parse > Detail then
+                     Trace.Put_Line (" ... goto state " & Trimmed_Image (New_State));
+                  end if;
+
+               when Semantic_Checks.Error =>
+                  Current_Parser.Set_Verb (Error);
+                  Parser_State.Zombie_Token_Count := 1;
+               end case;
             end if;
-
-         when Semantic_Checks.Error =>
-            Current_Parser.Set_Verb (Error);
-            Parser_State.Zombie_Token_Count := 1;
-         end case;
+         end;
 
       when Accept_It =>
          case Reduce_Stack_1

@@ -698,6 +698,9 @@ package body WisiToken.Generate.LR is
             end if;
             Last_Count := This_Count;
          end loop;
+         if Trace_Generate > Outline then
+            Ada.Text_IO.New_Line;
+         end if;
       end return;
    end Compute_Minimal_Terminal_Sequences;
 

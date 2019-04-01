@@ -2,12 +2,12 @@
 #
 # Top level rules here for visibility; lower level rules in rules.make
 
-ZIP_VERSION := 1.0.1
+ZIP_VERSION := 1.1.0
 #w-$(shell date +%Y-%m-%d)
 
 all : test-clean tests doc
 
-export Standard_Common_Build := Debug
+#export Standard_Common_Build := Debug
 
 # test_one_harness.adb
 # test_all_harness.adb
@@ -26,9 +26,8 @@ one-clean :
 	rm -rf ada_lite*
 
 # one :: one-clean
-one :: ../wisitoken_grammar_re2c.c
 one :: wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe -v 2 --output_bnf ada_lite_bnf.wy --generate LALR Ada re2c ../Test/bnf/ada_lite_ebnf.wy > debug.log
+	./wisitoken-bnf-generate.exe -v 2 --generate LR1 Ada re2c ../wisi/test/ada_lite.wy > ada_lite_lr1_generate.log
 
 #c:/Projects/org.emacs.ada-mode.stephe-4/ada.wy
 
@@ -42,12 +41,6 @@ gmon.out : exec_pro/wisitoken-bnf-generate.exe
 
 generate_ada_lite_lr1.gprof : gmon.out
 	gprof exec_pro/wisitoken-bnf-generate.exe > generate_ada_lite_lr1.gprof
-
-two : wisitoken-bnf-generate.exe
-	./wisitoken-bnf-generate.exe -v 2 --output_bnf debug_bnf.wy --generate LALR Ada re2c ../test/bnf/debug.wy > debug.log
-
-
-.PHONY : t_one_1 t_one_2
 
 doc :: ../Docs/wisitoken-user_guide.info
 doc :: ../Docs/wisitoken-user_guide.html

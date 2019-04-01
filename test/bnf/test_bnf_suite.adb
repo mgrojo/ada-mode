@@ -61,6 +61,7 @@ begin
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"empty_production_7", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"empty_production_8", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"identifier_list_name_conflict", null));
+   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"range_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"skip_to_grammar", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"subprograms", null));

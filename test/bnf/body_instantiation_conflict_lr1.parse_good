@@ -23,7 +23,7 @@ library_item_0: (library_item, (1 . 38)) <= ((subprogram_body, (1 . 38)))
  ... goto state 3
  0: 3:  11:(PROCEDURE, (43 . 51)) : shift and goto state 8
  0: 8:  12:(IDENTIFIER, (53 . 55)) : shift and goto state 17
-spawn parser from 0 (2 active)
+ 0: 17:  13:(IS, (57 . 58)) : spawn 1, (2 active)
  1: 17:  13:(IS, (57 . 58)) : reduce 0 tokens to parameter_list
 parameter_list_1: (parameter_list) <= ()
  ... goto state 16

@@ -1,4 +1,4 @@
---  Copyright (c) 2009, 2010, 2018 Stephen Leake <stephen_leake@stephe-leake.org>
+--  Copyright (c) 2009, 2010, 2018, 2019 Stephen Leake <stephen_leake@stephe-leake.org>
 --
 --  This program is free software; you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ project WisiToken_Test is
       "identifier_list_name_conflict_lalr_run.ads",
       "identifier_list_name_conflict_packrat_gen_run.ads",
       "identifier_list_name_conflict_packrat_proc_run.ads",
+      "lalr_generator_bug_01_lalr_run.ads",
       "range_conflict_lalr_run.ads",
       "range_conflict_packrat_gen_run.ads",
       "range_conflict_packrat_proc_run.ads",

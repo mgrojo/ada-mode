@@ -175,6 +175,8 @@ semicolon_opt :
 rhs_list
   : rhs
   | rhs_list BAR rhs
+  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | PERCENT END IF
   ;
 
 rhs
@@ -182,8 +184,6 @@ rhs
   | rhs_item_list
   | rhs_item_list ACTION
   | rhs_item_list ACTION ACTION
-  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-  | PERCENT END IF
   ;
 
 rhs_item_list

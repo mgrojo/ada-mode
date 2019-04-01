@@ -16,12 +16,12 @@ OK bnf_wy_test.adb empty_production_6 : Run_Test
 OK bnf_wy_test.adb empty_production_7 : Run_Test
 OK bnf_wy_test.adb empty_production_8 : Run_Test
 OK bnf_wy_test.adb identifier_list_name_conflict : Run_Test
+OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb range_conflict : Run_Test
 OK bnf_wy_test.adb skip_to_grammar : Run_Test
 OK bnf_wy_test.adb subprograms : Run_Test
 OK bnf_wy_test.adb warth_left_recurse_expr_1 : Run_Test
 OK association_grammar_test.adb : Nominal
-OK compare_goto_transitions.adb : Subprograms
 OK dragon_4_43_lr1_test.adb : Test_First_Follow
 OK dragon_4_43_lr1_test.adb : Test_LR1_Items
 OK dragon_4_43_lr1_test.adb : Parser_Table

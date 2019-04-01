@@ -14,7 +14,7 @@ object_declaration_0: (object_declaration, (1 . 8)) <= ( 1:(IDENTIFIER, (1 . 7))
 object_declaration_list_1: (object_declaration_list, (1 . 8)) <= ((object_declaration, (1 . 8)))
  ... goto state 2
  0: 2:  3:(IDENTIFIER, (10 . 16)) : shift and goto state 1
-spawn parser from 0 (2 active)
+ 0: 1:  4:(CONSTANT, (18 . 25)) : spawn 1, (2 active)
  1: 1:  4:(CONSTANT, (18 . 25)) : reduce 0 tokens to aliased_opt
 aliased_opt_1: (aliased_opt) <= ()
  ... goto state 6
@@ -80,7 +80,7 @@ object_declaration_1: (object_declaration, (71 . 82)) <= ( 13:(IDENTIFIER, (71 .
 object_declaration_list_0: (object_declaration_list, (1 . 82)) <= ((object_declaration_list, (1 . 69)), (object_declaration, (71 . 82)))
  ... goto state 2
  1: 2:  16:(IDENTIFIER, (84 . 90)) : shift and goto state 1
-spawn parser from 1 (2 active)
+ 1: 1:  17:(CONSTANT, (92 . 99)) : spawn 2, (2 active)
  2: 1:  17:(CONSTANT, (92 . 99)) : reduce 0 tokens to aliased_opt
 aliased_opt_1: (aliased_opt) <= ()
  ... goto state 6

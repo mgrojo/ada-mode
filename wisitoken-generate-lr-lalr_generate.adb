@@ -117,10 +117,6 @@ package body WisiToken.Generate.LR.LALR_Generate is
             then
                --  Find the production(s) that create Dot_ID with first token Symbol
                --  and put them in.
-               --
-               --  This is equivalent to Filter (LR1_Items.Closure, In_Kernel), but
-               --  more efficient, because it does not generate non-kernel items. See
-               --  Test/compare_goto_transitions.adb.
                for Prod of Grammar loop
                   for RHS_2_I in Prod.RHSs.First_Index .. Prod.RHSs.Last_Index loop
                      declare
@@ -136,17 +132,16 @@ package body WisiToken.Generate.LR.LALR_Generate is
                                   Dot        => Next (Dot_2),
                                   Lookaheads => Null_Lookahead (Descriptor)));
 
-                              if Trace_Generate > Detail then
-                                 Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 2 " & Image (Symbol, Descriptor));
-                                 Put (Grammar, Descriptor, Goto_Set);
-                              end if;
-
                               --  else already in goto set
                            end if;
                         end if;
                      end;
                   end loop;
                end loop;
+               if Trace_Generate > Detail then
+                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions 2 " & Image (Symbol, Descriptor));
+                  Put (Grammar, Descriptor, Goto_Set);
+               end if;
             end if;
          end if; -- item.dot /= null
       end loop;
@@ -216,6 +211,11 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
                   if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (Kernels.Last_Index));
+
+                     Ada.Text_IO.Put_Line
+                       ("  state" & Unknown_State_Index'Image (Checking_State) &
+                          " adding goto on " & Image (Symbol, Descriptor) & " to state" &
+                          Unknown_State_Index'Image (Kernels.Last_Index));
                   end if;
 
                   Kernels (Checking_State).Goto_List.Insert ((Symbol, Kernels.Last_Index));
@@ -328,7 +328,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       Spontaneous_Count : Integer := 0;
    begin
-      if Trace_Generate > Detail then
+      if Trace_Generate > Outline then
          Ada.Text_IO.Put_Line ("  closure_item: ");
          LR1_Items.Put (Grammar, Descriptor, Closure_Item);
          Ada.Text_IO.New_Line;
@@ -355,7 +355,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          end if;
 
          if Has_Element (To_Item) then
-            if Trace_Generate > Detail then
+            if Trace_Generate > Outline then
                Spontaneous_Count := Spontaneous_Count + 1;
                Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Closure_Item.Lookaheads.all, Descriptor));
             end if;
@@ -420,7 +420,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
    begin
       for Kernel of Kernels loop
-         if Trace_Generate > Detail then
+         if Trace_Generate > Outline then
             Ada.Text_IO.Put ("Adding lookaheads for ");
             LR1_Items.Put (Grammar, Descriptor, Kernel);
          end if;
@@ -439,7 +439,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
          end loop;
       end loop;
 
-      if Trace_Generate > Detail then
+      if Trace_Generate > Outline then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Propagations:");
          Put (Grammar, Descriptor, Propagation_List);

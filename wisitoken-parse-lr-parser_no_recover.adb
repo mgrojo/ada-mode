@@ -81,20 +81,31 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
       when Reduce =>
          Current_Parser.Set_Verb (Reduce);
 
-         Reduce_Stack_1 (Current_Parser, Action, Nonterm, Trace);
+         declare
+            use all type SAL.Base_Peek_Type;
 
-         Parser_State.Stack.Push
-           ((State    => Goto_For
-               (Table => Shared_Parser.Table.all,
-                State => Parser_State.Stack (1).State,
-                ID    => Action.Production.LHS),
-             Token    => Nonterm));
+            New_State : constant Unknown_State_Index := Goto_For
+              (Table => Shared_Parser.Table.all,
+               State => Parser_State.Stack (SAL.Base_Peek_Type (Action.Token_Count) + 1).State,
+               ID    => Action.Production.LHS);
+         begin
+            if New_State = Unknown_State then
+               --  This is due to a bug in the LALR parser generator (see
+               --  lalr_generator_bug_01.wy); we treat it as a syntax error.
+               Current_Parser.Set_Verb (Error);
+               if Trace_Parse > Detail then
+                  Trace.Put_Line (" ... error");
+               end if;
+            else
+               Reduce_Stack_1 (Current_Parser, Action, Nonterm, Trace);
+               Parser_State.Stack.Push ((New_State, Nonterm));
+               Parser_State.Tree.Set_State (Nonterm, New_State);
 
-         Parser_State.Tree.Set_State (Nonterm, Parser_State.Stack (1).State);
-
-         if Trace_Parse > Detail then
-            Trace.Put_Line (" ... goto state " & Trimmed_Image (Parser_State.Stack.Peek.State));
-         end if;
+               if Trace_Parse > Detail then
+                  Trace.Put_Line (" ... goto state " & Trimmed_Image (New_State));
+               end if;
+            end if;
+         end;
 
       when Accept_It =>
          Current_Parser.Set_Verb (Accept_It);
@@ -378,9 +389,16 @@ package body WisiToken.Parse.LR.Parser_No_Recover is
                      end;
                   else
                      if Trace_Parse > Outline then
-                        Trace.Put_Line
-                          ("spawn parser from " & Trimmed_Image (Current_Parser.Label) &
-                             " (" & Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                        declare
+                           Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref;
+                        begin
+                           Trace.Put_Line
+                             (Integer'Image (Current_Parser.Label) & ": " &
+                                Trimmed_Image (Parser_State.Stack.Peek.State) & ": " &
+                                Parser_State.Tree.Image (Parser_State.Current_Token, Trace.Descriptor.all) & " : " &
+                                "spawn" & Integer'Image (Shared_Parser.Parsers.Last_Label + 1) & ", (" &
+                                Trimmed_Image (1 + Integer (Shared_Parser.Parsers.Count)) & " active)");
+                        end;
                      end if;
 
                      Shared_Parser.Parsers.Prepend_Copy (Current_Parser);

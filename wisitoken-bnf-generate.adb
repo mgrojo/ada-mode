@@ -53,7 +53,7 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line (Standard_Error, "version 1.0.1");
+      Put_Line (Standard_Error, "version 1.1.0");
       Put_Line (Standard_Error, "wisi-generate [options] {wisi grammar file}");
       Put_Line (Standard_Error, "Generate source code implementing a parser for the grammar.");
       New_Line (Standard_Error);
