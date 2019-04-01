@@ -21,9 +21,17 @@ update-wisi_grammar
    ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
 
  current work
+propagate from main
+
 add EBNF
+    insert virtual nonterminals at root of tree so they show up at end of _bnf.wy
+
+    don't output %meta_syntax EBNF!
+
     make t_one
         ada_lite.input:CONSTRAINT_ERROR: wisitoken-parse-lr-parser.adb:152 invalid data
+            bad lalr parse table
+            reproduce in org.wisitoken main, fix there.
 
     %conflict has too many tokens after 'on'
 
