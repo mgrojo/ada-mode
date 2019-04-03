@@ -825,8 +825,29 @@ package body WisiToken_Grammar_Runtime is
       end Tree_Add_Nonterminal;
 
       function First_List_Element (Root : in Valid_Node_Index; Element_ID : in WisiToken.Token_ID) return Node_Index
-      is begin
-         return Tree.Find_Descendant (Root, Element_ID);
+      is
+         List_ID : constant WisiToken.Token_ID := Tree.ID (Root);
+
+         --  Return the first child with Element_ID in list of List_IDs. This
+         --  is not the same as Find_Descendant, because we check the children
+         --  first, and only the first child.
+         Node : Node_Index := Root;
+      begin
+         loop
+            declare
+               Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+            begin
+               if Tree.ID (Children (1)) = List_ID then
+                  Node := Children (1);
+               elsif Tree.ID (Children (1)) = Element_ID then
+                  Node := Children (1);
+                  exit;
+               else
+                  Raise_Programmer_Error ("first_list_element", Tree, Root);
+               end if;
+            end;
+         end loop;
+         return Node;
       end First_List_Element;
 
       function Last_List_Element (Root : in Valid_Node_Index) return Node_Index
@@ -852,30 +873,33 @@ package body WisiToken_Grammar_Runtime is
         (Element : in Valid_Node_Index;
          List_ID : in WisiToken.Token_ID)
         return Node_Index
-      with Pre => Tree.Parent (Element, 3) /= Invalid_Node_Index and then
+      with Pre => Tree.Parent (Element, 2) /= Invalid_Node_Index and then
                   Tree.ID (Tree.Parent (Element)) = List_ID
       is
+         use all type SAL.Base_Peek_Type;
          --  Tree is one of:
          --
-         --  case a: odd number element, no next
+         --  case a: first element, no next
          --  rhs
          --  | rhs_item_list
          --  | | rhs_item: Element
+         --  | action
          --
-         --  case b: odd number element, next
+         --  case b: first element, next
          --  rhs_item_list
          --  | rhs_item_list
          --  | | rhs_item: Element
          --  | rhs_item: next element
          --
-         --  case c: even number element, no next
+         --  case c: non-first element, no next
          --  rhs
          --  | rhs_item_list
          --  | | rhs_item_list
          --  | | | rhs_item:
          --  | | rhs_item: Element
+         --  | action
          --
-         --  case d: even number element, next
+         --  case d: non-first element, next
          --  rhs_item_list
          --  | rhs_item_list
          --  | | rhs_item_list
@@ -883,20 +907,14 @@ package body WisiToken_Grammar_Runtime is
          --  | | rhs_item: Element
          --  | rhs_item: next element
 
-         Parent       : constant Valid_Node_Index       := Tree.Parent (Element);
-         Grand_Parent : constant Valid_Node_Index       := Tree.Parent (Parent);
-         Children     : constant Valid_Node_Index_Array := Tree.Children (Parent);
+         Grand_Parent : constant Valid_Node_Index       := Tree.Parent (Element, 2);
+         Aunts        : constant Valid_Node_Index_Array := Tree.Children (Grand_Parent);
       begin
-         if Tree.ID (Grand_Parent) /= List_ID then
+         if Aunts'Last = 1 then
             --  No next
             return Invalid_Node_Index;
-
          else
-            if Element = Children (1) then
-               return Tree.Children (Tree.Parent (Grand_Parent))(2);
-            else
-               return Tree.Children (Grand_Parent)(2);
-            end if;
+            return Aunts (2);
          end if;
       end Next_List_Element;
 
@@ -1071,6 +1089,11 @@ package body WisiToken_Grammar_Runtime is
             (+compilation_unit_list_ID, 1),
             (1 => Comp_Unit_List_Tail,
              2 => Tree.Children (Old_Comp_Unit_List_Tail)(1)));
+
+         if Trace_Generate > Extra then
+            Ada.Text_IO.New_Line;
+            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Comp_Unit_List_Tail);
+         end if;
       end Add_Compilation_Unit;
 
       procedure Convert_RHS_Alternative (RHS_Alt_Node : in Valid_Node_Index)
@@ -1148,8 +1171,8 @@ package body WisiToken_Grammar_Runtime is
               ((+semicolon_opt_ID, 0),
                (1     => Tree.Add_Terminal (+SEMICOLON_ID))));
       begin
-         Add_Compilation_Unit (New_Nonterm);
          Convert_RHS_Alternative (RHS_Alt_Node);
+         Add_Compilation_Unit (New_Nonterm);
       end New_Nonterminal;
 
       procedure New_Nonterminal_Opt
@@ -1323,7 +1346,7 @@ package body WisiToken_Grammar_Runtime is
                Plus_Minus_Star  : constant Node_Index       := Child (Node, 4);
                Allow_Empty      : constant Boolean          := Plus_Minus_Star = Invalid_Node_Index or else
                  Tree.ID (Plus_Minus_Star) in +STAR_ID;
-               Parent_RHS_Item  : constant Valid_Node_Index := Parent (Node, 1);
+               Parent_RHS_Item  : constant Valid_Node_Index := Tree.Parent (Node);
                List_Nonterm     : constant Identifier_Index := Next_Nonterm_Name ("_list");
                List_Opt_Nonterm : constant Base_Identifier_Index :=
                  (if Allow_Empty then Next_Nonterm_Name ("_list_opt") else Invalid_Identifier_Index);
@@ -1339,11 +1362,16 @@ package body WisiToken_Grammar_Runtime is
 
                Tree.Set_Children
                  (Parent_RHS_Item,
-                  (+rhs_item_list_ID, 0),
+                  (+rhs_item_ID, 2),
                   (1 => Tree.Add_Identifier
                      (+IDENTIFIER_ID, (if Allow_Empty then List_Opt_Nonterm else List_Nonterm))));
 
                Data.EBNF_Nodes (Node) := False;
+
+               if Trace_Generate > Extra then
+                  Ada.Text_IO.New_Line;
+                  Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Parent_RHS_Item);
+               end if;
             end;
 
          when rhs_optional_item_ID =>
@@ -1396,7 +1424,8 @@ package body WisiToken_Grammar_Runtime is
                Orig_RHS_List        : constant Valid_Node_Index := Tree.Parent (Orig_RHS);
                Orig_RHS_Item_C_Head : constant Node_Index       := Next_List_Element
                  (Tree.Parent (Node), +rhs_item_list_ID);
-               Orig_RHS_Item_A_Head : constant Valid_Node_Index := Tree.Find_Descendant (Orig_RHS, +rhs_item_ID);
+               Orig_RHS_Item_A_Head : constant Valid_Node_Index := First_List_Element
+                 (Tree.Children (Orig_RHS)(1), +rhs_item_ID);
                Orig_RHS_Item_A_Root : constant Node_Index       := Tree.Children (Tree.Parent (Node, 2))(1);
                New_RHS_Item_List_A  : Node_Index                := Invalid_Node_Index;
                New_RHS_Item_List_C  : Node_Index                := Invalid_Node_Index;
@@ -1443,6 +1472,13 @@ package body WisiToken_Grammar_Runtime is
                   end if;
                end if;
                Append_RHS (Orig_RHS_List, New_RHS_AC);
+
+               if Trace_Generate > Extra then
+                  Ada.Text_IO.New_Line;
+                  Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Orig_RHS);
+                  Ada.Text_IO.New_Line;
+                  Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, New_RHS_AC);
+               end if;
             end;
 
          when others =>

@@ -177,7 +177,7 @@
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part on token IDENTIFIER ( 105)
 %conflict SHIFT/REDUCE in state aspect_specification, aspect_specification on token IDENTIFIER ( 110)
 %conflict SHIFT/REDUCE in state iteration_scheme, iteration_scheme on token IDENTIFIER ( 141)
-%conflict SHIFT/REDUCE in state nonterminal_004, nonterminal_004 on token IDENTIFIER ( 163)
+%conflict SHIFT/REDUCE in state nonterminal_003, nonterminal_003 on token IDENTIFIER ( 164)
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN ( 267)
 
 ;;;; grammar rules
@@ -195,7 +195,7 @@ assignment_statement
   ;
 
 association
-  : (IDENTIFIER EQUAL_GREATER expression) | expression
+  : [IDENTIFIER EQUAL_GREATER] expression
   ;
 
 association_list
@@ -543,6 +543,9 @@ type_definition
   : enumeration_type_definition
   ;
 
-unary_adding_operator : PLUS | MINUS ; ;; + | -
+unary_adding_operator
+  : PLUS
+  | MINUS
+  ;
 
 ;;; end of file

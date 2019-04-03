@@ -419,9 +419,13 @@ package WisiToken.Syntax_Trees is
      return String;
    --  Simple list of numbers, for debugging
 
-   procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
+   procedure Print_Tree
+     (Tree       : in Syntax_Trees.Tree;
+      Descriptor : in WisiToken.Descriptor;
+      Root       : in Node_Index := Invalid_Node_Index)
    with Pre => Tree.Flushed;
-   --  To Text_IO.Current_Output, for debugging.
+   --  Print tree rooted at Root (default Tree.Root) to
+   --  Text_IO.Current_Output, for debugging.
 
 private
 

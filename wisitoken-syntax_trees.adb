@@ -1022,7 +1022,10 @@ package body WisiToken.Syntax_Trees is
       return Result;
    end Parent;
 
-   procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
+   procedure Print_Tree
+     (Tree       : in Syntax_Trees.Tree;
+      Descriptor : in WisiToken.Descriptor;
+      Root       : in Node_Index := Invalid_Node_Index)
    is
       use Ada.Text_IO;
 
@@ -1057,7 +1060,7 @@ package body WisiToken.Syntax_Trees is
 
    begin
       Node_Printed.Set_First_Last (Tree.First_Index, Tree.Last_Index);
-      Print_Node (Tree.Root, 0);
+      Print_Node ((if Root = Invalid_Node_Index then Tree.Root else Root), 0);
    end Print_Tree;
 
    function Process_Tree
