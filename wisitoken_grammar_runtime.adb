@@ -824,6 +824,228 @@ package body WisiToken_Grammar_Runtime is
             Action     => Wisitoken_Grammar_Actions.nonterminal_0'Access);
       end Tree_Add_Nonterminal;
 
+      function First_List_Element (Root : in Valid_Node_Index; Element_ID : in WisiToken.Token_ID) return Node_Index
+      is begin
+         return Tree.Find_Descendant (Root, Element_ID);
+      end First_List_Element;
+
+      function Last_List_Element (Root : in Valid_Node_Index) return Node_Index
+      is
+         --  Tree is one of:
+         --
+         --  case a: odd number element
+         --  element_list : root
+         --  | element_list
+         --  | | element: Last
+         --
+         --  case c: even number element, no next
+         --  element_list: root
+         --  | element_list
+         --  | | element:
+         --  | element: Last
+         Children : constant Valid_Node_Index_Array := Tree.Children (Root);
+      begin
+         return Children (Children'Last);
+      end Last_List_Element;
+
+      function Next_List_Element
+        (Element : in Valid_Node_Index;
+         List_ID : in WisiToken.Token_ID)
+        return Node_Index
+      with Pre => Tree.Parent (Element, 3) /= Invalid_Node_Index and then
+                  Tree.ID (Tree.Parent (Element)) = List_ID
+      is
+         --  Tree is one of:
+         --
+         --  case a: odd number element, no next
+         --  rhs
+         --  | rhs_item_list
+         --  | | rhs_item: Element
+         --
+         --  case b: odd number element, next
+         --  rhs_item_list
+         --  | rhs_item_list
+         --  | | rhs_item: Element
+         --  | rhs_item: next element
+         --
+         --  case c: even number element, no next
+         --  rhs
+         --  | rhs_item_list
+         --  | | rhs_item_list
+         --  | | | rhs_item:
+         --  | | rhs_item: Element
+         --
+         --  case d: even number element, next
+         --  rhs_item_list
+         --  | rhs_item_list
+         --  | | rhs_item_list
+         --  | | | rhs_item:
+         --  | | rhs_item: Element
+         --  | rhs_item: next element
+
+         Parent       : constant Valid_Node_Index       := Tree.Parent (Element);
+         Grand_Parent : constant Valid_Node_Index       := Tree.Parent (Parent);
+         Children     : constant Valid_Node_Index_Array := Tree.Children (Parent);
+      begin
+         if Tree.ID (Grand_Parent) /= List_ID then
+            --  No next
+            return Invalid_Node_Index;
+
+         else
+            if Element = Children (1) then
+               return Tree.Children (Tree.Parent (Grand_Parent))(2);
+            else
+               return Tree.Children (Grand_Parent)(2);
+            end if;
+         end if;
+      end Next_List_Element;
+
+      function Prev_List_Element
+        (Element : in Valid_Node_Index;
+         List_ID : in WisiToken.Token_ID)
+        return Node_Index
+      with Pre => Tree.Parent (Element) /= Invalid_Node_Index and then
+                  Tree.ID (Tree.Parent (Element)) = List_ID
+      is
+         --  Tree is one of:
+         --
+         --  case a: odd number element, no prev
+         --  ?
+         --  | rhs_item_list
+         --  | | rhs_item: Element
+         --
+         --  case b: even number element, prev
+         --  ?
+         --  | rhs_item_list
+         --  | | rhs_item: prev item
+         --  | rhs_item: Element
+         --
+         --  case c: odd number element, prev
+         --  ?
+         --  | rhs_item_list
+         --  | | rhs_item_list
+         --  | | | rhs_item:
+         --  | | rhs_item: prev element
+         --  | rhs_item: Element
+
+         Parent   : constant Valid_Node_Index       := Tree.Parent (Element);
+         Children : constant Valid_Node_Index_Array := Tree.Children (Parent);
+      begin
+         if Element = Children (1) then
+            --  No prev
+            return Invalid_Node_Index;
+
+         else
+            return Tree.Children (Parent)(Children'Last);
+         end if;
+      end Prev_List_Element;
+      pragma Unreferenced (Prev_List_Element); --  FIXME: delete if still unused.
+
+      procedure Append_RHS
+        (Tail_RHS_List : in Valid_Node_Index; New_RHS : in Valid_Node_Index)
+      with Pre => Tree.ID (Tail_RHS_List) = +rhs_list_ID and
+                  Tree.ID (New_RHS) = +rhs_ID
+      is
+         --  Current tree is one of:
+         --
+         --  case a:
+         --  rhs_list: Tail_RHS_List
+         --  | rhs: Orig_RHS_1
+         --
+         --  case b:
+         --  rhs_list: Tail_RHS_List
+         --  | rhs_list: Orig_RHS_List_1
+         --  | | rhs: Orig_RHS_1
+         --  | BAR
+         --  | rhs: Orig_RHS_2
+
+         --  New tree:
+         --
+         --  case a:
+         --  rhs_list: keep Tail_RHS_List
+         --  | rhs_list: new
+         --  | | rhs: keep; Orig_RHS_1
+         --  | BAR
+         --  | rhs: New_RHS
+         --
+         --  case b:
+         --  rhs_list: keep Tail_RHS_List
+         --  | rhs_list: new;
+         --  | | rhs_list: keep Orig_RHS_List_1
+         --  | | | rhs: keep Orig_RHS_1
+         --  | | BAR: keep
+         --  | | rhs: keep Orig_RHS_2
+         --  | BAR: new
+         --  | rhs: New_RHS
+         Children : constant Valid_Node_Index_Array := Tree.Children (Tail_RHS_List);
+      begin
+         Tree.Set_Children
+           (Tail_RHS_List,
+            (+rhs_list_ID, 1),
+            (1 => Tree.Add_Nonterm
+               ((+rhs_list_ID, (if Children'Length = 1 then 0 else 1)), Children),
+             2 => Tree.Add_Terminal (+BAR_ID),
+             3 => New_RHS));
+      end Append_RHS;
+
+      procedure Append_List
+        (Tail_Element_A : in Valid_Node_Index;
+         Head_Element_B : in Valid_Node_Index;
+         Separator_ID   : in WisiToken.Token_ID := Invalid_Token_ID)
+      is
+         --  Current tree is one of:
+         --
+         --  list A:
+         --  case a: odd number list
+         --  element_list:
+         --  | element: Tail_Element_A
+         --
+         --  case b: even number list
+         --  element_list:
+         --  | element_list:
+         --  | | element: prev_element_A
+         --  | [separator]
+         --  | element: Tail_Element_A
+         --
+         --  list B:
+         --  element_list: parent_B
+         --  | element: Head_Element_B
+
+         --  New tree:
+         --
+         --  case a:
+         --  element_list: keep parent_b
+         --  | element_list: keep parent_a
+         --  ..|
+         --  | | Tail_Element_A
+         --  | element: keep; Head_Element_B
+         --  ...
+         --  | [separator] ; new
+         --  | element:
+         --
+         --  case b:
+         --  element_list:
+         --  | element_list: keep parent_a
+         --  | | element_list: new
+         --  | | | element_list: keep parent_b
+         --  | | | | element: keep head_element_b
+         --  ...
+         --  | | [separator]: keep
+         --  | | element: keep prev_element_a
+         --  | [separator]: new
+         --  | element: Tail_Element_A
+
+         Parent_A : constant Valid_Node_Index   := Tree.Parent (Tail_Element_A);
+         List_ID  : constant WisiToken.Token_ID := Tree.ID (Parent_A);
+         Parent_B : constant Valid_Node_Index   := Tree.Parent (Head_Element_B);
+      begin
+         if Separator_ID = Invalid_Token_ID then
+            Tree.Set_Children (Parent_B, (List_ID, 1), (Parent_A, Head_Element_B));
+         else
+            Tree.Set_Children (Parent_B, (List_ID, 1), (Parent_A, Tree.Add_Terminal (Separator_ID), Head_Element_B));
+         end if;
+      end Append_List;
+
       procedure Add_Compilation_Unit (Unit : in Valid_Node_Index)
       is
          --  Unit is a declaration_ID or nonterminal_ID
@@ -929,33 +1151,6 @@ package body WisiToken_Grammar_Runtime is
          Add_Compilation_Unit (New_Nonterm);
          Convert_RHS_Alternative (RHS_Alt_Node);
       end New_Nonterminal;
-
-      procedure New_Nonterminal_Opt
-        (New_Identifier : in Identifier_Index;
-         RHS_Alt_Node   : in Valid_Node_Index)
-      is
-         --  Convert subtree rooted at RHS_Alt_Node from an
-         --  rhs_alternative_list to an rhs_list contained by a new nonterm
-         --  named New_Identifier, with a sibling empty rhs.
-
-         Bar_Node : constant Valid_Node_Index := Tree.Add_Terminal (+BAR_ID);
-         RHS_Node : constant Valid_Node_Index := Tree.Add_Nonterm ((+rhs_ID, 0), (1 .. 0 => Invalid_Node_Index));
-
-         New_Nonterm : constant Valid_Node_Index := Tree_Add_Nonterminal
-           (Child_1   => Tree.Add_Identifier (+IDENTIFIER_ID, New_Identifier),
-            Child_2   => Tree.Add_Terminal (+COLON_ID),
-            Child_3   => Tree.Add_Nonterm
-              ((+rhs_list_ID, 1),
-               (1     => RHS_Alt_Node,
-                2     => Bar_Node,
-                3     => RHS_Node)),
-            Child_4   => Tree.Add_Nonterm
-              ((+semicolon_opt_ID, 0),
-               (1     => Tree.Add_Terminal (+SEMICOLON_ID))));
-      begin
-         Add_Compilation_Unit (New_Nonterm);
-         Convert_RHS_Alternative (RHS_Alt_Node);
-      end New_Nonterminal_Opt;
 
       procedure New_Nonterminal_Opt
         (Nonterm : in Identifier_Index;
@@ -1152,44 +1347,102 @@ package body WisiToken_Grammar_Runtime is
             end;
 
          when rhs_optional_item_ID =>
-            --  ada_lite_ebnf.wy aspect_specification
+            --  Source looks like:
+            --
+            --  | a [b] c
+            --
+            --  where 'a', 'b', 'c' are token sequences. Translate to:
+            --
+            --  | a nonterm_b c
+            --  | a c
+            --
+            --  where 'nonterm_b' is a new nonterminal containing b.
             --
             --  current tree:
-            --  compilation_unit_list
-            --  ...
-            --  | | | | rhs_item: Parent (Node, 1)
-            --  | | | | | rhs_optional_item: Node
-            --  | | | | | | LEFT_BRACKET: Node.Children (1)
-            --  | | | | | | rhs_alternative_item_list: Node.Children (2)
-            --  | | | | | | RIGHT_BRACKET: Node.Children (3)
-            --  | <next rhs_item, semicolon_opt>
+            --
+            --  | rhs_list: Orig_RHS_List
+            --  | | rhs
+            --  | | | rhs_item_list
+            --  | | | | rhs_item_list
+            --  | | | ...
+            --  | | | | | | rhs_item: contains a tail
+            --  | | | | | rhs_item: contains b
+            --  | | | | | | rhs_optional_item: Node
+            --  | | | | | | | LEFT_BRACKET: Node.Children (1)
+            --  | | | | | | | rhs_alternative_item_list: Node.Children (2) b
+            --  | | | | | | | RIGHT_BRACKET: Node.Children (3)
+            --  | | | | rhs_item: head of c
 
             --  new tree:
-            --  compilation_unit_list
-            --  | nonterminal: new
-            --  | | identifier: new New_Identifier "$nonterminal_nnn_opt"
-            --  | | colon: new
-            --  | | rhs_list: new
-            --  | | | rhs_list: new
-            --  | | | | rhs: new
-            --  | | | | | rhs_item: new
-            --  | | | | | | rhs_alternative_item_list : Node.Children (2)
-            --  | | | BAR: new
-            --  | | | rhs: new, empty
-            --  | | semicolon_opt
+            --
+            --  Nonterm_B
             --  ...
-            --  | | | | | rhs_item: Parent (Node, 1)
-            --  | | | | | | IDENTIFIER: Node New_Identifier
-            --  | <next rhs, semicolon_opt>
+            --  | rhs_list: keep Orig_RHS_List
+            --  | | rhs: keep Orig_RHS
+            --  ...
+            --  | | | | rhs_item: keep; tail of a
+            --  | | | | | rhs_item: head of b
+            --  | | | | | ... more b
+            --  | BAR
+            --  | rhs: new; copy of a c
+            --  | | rhs_item_list; new
+            --  | | | rhs_item_list; new
+            --  ...
+            --  | | | | | rhs_item: new; head of a
+
             declare
-               New_Identifier : constant Identifier_Index := Next_Nonterm_Name ("_opt");
+               Nonterm_B            : constant Identifier_Index := Next_Nonterm_Name ("");
+               Orig_RHS             : constant Valid_Node_Index := Tree.Find_Ancestor (Node, +rhs_ID);
+               Orig_RHS_List        : constant Valid_Node_Index := Tree.Parent (Orig_RHS);
+               Orig_RHS_Item_C_Head : constant Node_Index       := Next_List_Element
+                 (Tree.Parent (Node), +rhs_item_list_ID);
+               Orig_RHS_Item_A_Head : constant Valid_Node_Index := Tree.Find_Descendant (Orig_RHS, +rhs_item_ID);
+               Orig_RHS_Item_A_Root : constant Node_Index       := Tree.Children (Tree.Parent (Node, 2))(1);
+               New_RHS_Item_List_A  : Node_Index                := Invalid_Node_Index;
+               New_RHS_Item_List_C  : Node_Index                := Invalid_Node_Index;
+               New_RHS_AC           : Valid_Node_Index;
             begin
-               New_Nonterminal_Opt (New_Identifier, Child (Node, 2));
-
-               Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Identifier);
+               New_Nonterminal (Nonterm_B, Child (Node, 2));
+               Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Nonterm_B);
                Data.EBNF_Nodes (Node) := False;
-
                Tree.Set_Children (Parent (Node, 1), (+rhs_item_ID, 2), (1 => Node));
+
+               if Orig_RHS_Item_A_Head /= Tree.Parent (Node) then
+                  --  a is not empty
+                  New_RHS_Item_List_A := Tree.Copy_Subtree
+                    (Last => Orig_RHS_Item_A_Head,
+                     Root => Orig_RHS_Item_A_Root);
+               end if;
+               if Orig_RHS_Item_C_Head /= Invalid_Node_Index then
+                  --  c is not empty
+                  New_RHS_Item_List_C := Tree.Copy_Subtree
+                    (Last => Orig_RHS_Item_C_Head,
+                     Root => Tree.Children (Orig_RHS)(1));
+               end if;
+
+               if New_RHS_Item_List_C = Invalid_Node_Index then
+                  if New_RHS_Item_List_A = Invalid_Node_Index then
+                     --  a c is empty
+                     New_RHS_AC := Tree.Add_Nonterm ((+rhs_ID, 0), (1 .. 0 => Invalid_Node_Index));
+                  else
+                     --  c is empty
+                     New_RHS_AC := Tree.Add_Nonterm ((+rhs_ID, 1), (1 => New_RHS_Item_List_A));
+                  end if;
+               else
+                  --  c is not empty
+                  if New_RHS_Item_List_A = Invalid_Node_Index then
+                     --  a is empty
+                     New_RHS_AC := Tree.Add_Nonterm ((+rhs_ID, 1), (1 => New_RHS_Item_List_C));
+                  else
+                     Append_List
+                       (Tail_Element_A => Last_List_Element (New_RHS_Item_List_A),
+                        Head_Element_B => First_List_Element (New_RHS_Item_List_C, +rhs_item_ID));
+
+                     New_RHS_AC := Tree.Add_Nonterm ((+rhs_ID, 1), (1 => New_RHS_Item_List_C));
+                     --  FIXME: copy actions
+                  end if;
+               end if;
+               Append_RHS (Orig_RHS_List, New_RHS_AC);
             end;
 
          when others =>
@@ -1284,6 +1537,7 @@ package body WisiToken_Grammar_Runtime is
       end Put_Identifier_List;
 
       procedure Put_RHS_Item (Node : in Valid_Node_Index)
+      with Pre => Tree.ID (Node) = +rhs_item_ID
       is
          Children : constant Valid_Node_Index_Array := Tree.Children (Node);
       begin

@@ -39,9 +39,6 @@ package WisiToken.Syntax_Trees is
    overriding procedure Finalize (Tree : in out Base_Tree);
    --  Free any allocated storage.
 
-   overriding procedure Adjust (Tree : in out Base_Tree);
-   --  Copy any allocated storage.
-
    type Tree is tagged private;
 
    procedure Initialize
@@ -141,6 +138,17 @@ package WisiToken.Syntax_Trees is
 
    function Flushed (Tree : in Syntax_Trees.Tree) return Boolean;
 
+   function Copy_Subtree
+     (Tree : in out Syntax_Trees.Tree;
+      Root : in     Valid_Node_Index;
+      Last : in     Valid_Node_Index)
+     return Valid_Node_Index
+   with Pre => Tree.Flushed;
+   --  Deep copy (into Tree) subtree of Tree rooted at Root. Stop copying
+   --  after children of Last are copied. Return root of new subtree.
+   --
+   --  References to objects external to tree are shallow copied.
+
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
       Production      : in     Production_ID;
@@ -148,10 +156,7 @@ package WisiToken.Syntax_Trees is
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
      return Valid_Node_Index
-   with
-     Pre  => not Tree.Traversing,
-     Post => Tree.Is_Empty (Add_Nonterm'Result) or
-             Tree.Min_Terminal_Index (Add_Nonterm'Result) /= Invalid_Token_Index;
+   with Pre  => not Tree.Traversing;
    --  Add a new Nonterm node, which can be empty. Result points to the
    --  added node. If Children'Length = 0, set Nonterm.Virtual :=
    --  Default_Virtual.
@@ -239,7 +244,12 @@ package WisiToken.Syntax_Trees is
    function Is_Virtual_Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Boolean;
    function Traversing (Tree : in Syntax_Trees.Tree) return Boolean;
 
-   function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index;
+   function Parent
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Index;
+      Count : in Positive := 1)
+     return Node_Index;
+   --  Return Count parent of Node.
 
    procedure Set_Name_Region
      (Tree   : in out Syntax_Trees.Tree;

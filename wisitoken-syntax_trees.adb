@@ -195,14 +195,6 @@ package body WisiToken.Syntax_Trees is
       end if;
    end Add_Terminal;
 
-   overriding procedure Adjust (Tree : in out Base_Tree)
-   is begin
-      if Tree.Augmented_Present then
-         --  Augmented is only set after parsing is complete; trees are never copied then.
-         raise SAL.Not_Implemented;
-      end if;
-   end Adjust;
-
    function Augmented
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
@@ -268,6 +260,105 @@ package body WisiToken.Syntax_Trees is
       Tree.Last_Shared_Node := Invalid_Node_Index;
       Tree.Branched_Nodes.Clear;
    end Clear;
+
+   function Copy_Subtree
+     (Tree : in out Syntax_Trees.Tree;
+      Root : in     Valid_Node_Index;
+      Last : in     Valid_Node_Index)
+     return Valid_Node_Index
+   is
+      function Copy_Node
+        (Tree   : in out Syntax_Trees.Tree;
+         Index  : in     Valid_Node_Index;
+         Parent : in     Node_Index)
+        return Valid_Node_Index
+      is
+         Node : Syntax_Trees.Node renames Tree.Shared_Tree.Nodes (Index);
+      begin
+         case Node.Label is
+         when Shared_Terminal =>
+            Tree.Shared_Tree.Nodes.Append
+              ((Label         => Shared_Terminal,
+                ID            => Node.ID,
+                Byte_Region   => Node.Byte_Region,
+                Parent        => Parent,
+                State         => Unknown_State,
+                Terminal      => Node.Terminal));
+
+         when Virtual_Terminal =>
+            Tree.Shared_Tree.Nodes.Append
+              ((Label          => Virtual_Terminal,
+                ID             => Node.ID,
+                Byte_Region    => Node.Byte_Region,
+                Parent         => Parent,
+                State          => Unknown_State));
+
+         when Virtual_Identifier =>
+            Tree.Shared_Tree.Nodes.Append
+              ((Label            => Virtual_Identifier,
+                ID               => Node.ID,
+                Byte_Region      => Node.Byte_Region,
+                Parent           => Parent,
+                State            => Unknown_State,
+                Identifier       => Node.Identifier));
+
+         when Nonterm =>
+            declare
+               Children : constant Valid_Node_Index_Array := Tree.Children (Index);
+            begin
+               Tree.Shared_Tree.Nodes.Append
+                 ((Label              => Nonterm,
+                   ID                 => Node.ID,
+                   Byte_Region        => Node.Byte_Region,
+                   Parent             => Parent,
+                   State              => Unknown_State,
+                   Virtual            => Node.Virtual,
+                   RHS_Index          => Node.RHS_Index,
+                   Action             => Node.Action,
+                   Name               => Node.Name,
+                   Children           => <>,
+                   Min_Terminal_Index => Node.Min_Terminal_Index,
+                   Max_Terminal_Index => Node.Max_Terminal_Index,
+                   Augmented          => Node.Augmented));
+
+               Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
+
+               if Children'Length > 0 then
+                  declare
+                     use all type SAL.Base_Peek_Type;
+                     Parent       : constant Valid_Node_Index := Tree.Shared_Tree.Nodes.Last_Index;
+                     New_Children : Valid_Node_Index_Arrays.Vector;
+                     Last_Index   : SAL.Base_Peek_Type        := SAL.Base_Peek_Type'Last;
+                  begin
+                     for I in Children'Range loop
+                        if Children (I) = Last then
+                           Last_Index := I;
+                        end if;
+                     end loop;
+
+                     if Last_Index = SAL.Base_Peek_Type'Last then
+                        New_Children.Set_Length (Children'Length);
+                        for I in Children'Range loop
+                           New_Children (I) := Copy_Node (Tree, Children (I), Parent);
+                        end loop;
+                     else
+                        for I in Last_Index .. Children'Last loop
+                           New_Children.Append (Copy_Node (Tree, Children (I), Parent));
+                        end loop;
+                     end if;
+                     Tree.Shared_Tree.Nodes (Parent).Children := New_Children;
+                     return Parent;
+                  end;
+               end if;
+            end;
+         end case;
+         Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
+         return Tree.Last_Shared_Node;
+      end Copy_Node;
+
+   begin
+      return Copy_Node (Tree, Root, Invalid_Node_Index);
+   end Copy_Subtree;
 
    function Count_Terminals
      (Tree   : in     Syntax_Trees.Tree;
@@ -910,13 +1001,25 @@ package body WisiToken.Syntax_Trees is
       Tree.Last_Shared_Node := Required_Node - 1;
    end Move_Branch_Point;
 
-   function Parent (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Index
-   is begin
-      if Node <= Tree.Last_Shared_Node then
-         return Tree.Shared_Tree.Nodes (Node).Parent;
-      else
-         return Tree.Branched_Nodes (Node).Parent;
-      end if;
+   function Parent
+     (Tree  : in Syntax_Trees.Tree;
+      Node  : in Valid_Node_Index;
+      Count : in Positive := 1)
+     return Node_Index
+   is
+      Result : Node_Index := Node;
+      N      : Natural    := 0;
+   begin
+      loop
+         if Result <= Tree.Last_Shared_Node then
+            Result := Tree.Shared_Tree.Nodes (Result).Parent;
+         else
+            Result := Tree.Branched_Nodes (Result).Parent;
+         end if;
+         N := N + 1;
+         exit when N = Count or Result = Invalid_Node_Index;
+      end loop;
+      return Result;
    end Parent;
 
    procedure Print_Tree (Tree : in Syntax_Trees.Tree; Descriptor : in WisiToken.Descriptor)
@@ -1139,7 +1242,7 @@ package body WisiToken.Syntax_Trees is
       for I in Children'Range loop
          N.Children (J) := Children (I);
          declare
-            K : Syntax_Trees.Node renames Nodes (Children (I));
+            K : Node renames Nodes (Children (I));
          begin
             K.Parent := Parent;
 
