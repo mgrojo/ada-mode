@@ -337,7 +337,7 @@ begin
                      Ada.Text_IO.New_Line;
                   end if;
 
-                  WisiToken_Grammar_Runtime.Rewrite_EBNF_To_BNF (Tree, Input_Data);
+                  WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
 
                   if Trace_Generate > Detail then
                      Ada.Text_IO.New_Line;

@@ -171,14 +171,9 @@
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
-%conflict SHIFT/REDUCE in state extended_return_statement, extended_return_statement on token IDENTIFIER ( 9)
-%conflict SHIFT/REDUCE in state subprogram_body, subprogram_body on token IS ( 88)
-%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS ( 97)
-%conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part on token IDENTIFIER ( 105)
-%conflict SHIFT/REDUCE in state aspect_specification, aspect_specification on token IDENTIFIER ( 110)
-%conflict SHIFT/REDUCE in state iteration_scheme, iteration_scheme on token IDENTIFIER ( 141)
-%conflict SHIFT/REDUCE in state nonterminal_003, nonterminal_003 on token IDENTIFIER ( 164)
-%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN ( 267)
+%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS
 
 ;;;; grammar rules
 
@@ -216,11 +211,11 @@ block_label_opt
   | ;; empty
   ;
 
-;; Token indices in actions count groups as one token.
+;; FIXME: need token labels for actions
 block_statement
   : block_label_opt [DECLARE declarative_part] BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     %()%
-    %(return Match_Names (Lexer, Descriptor, Tokens, 1, 6, End_Name_Optional);)%
+    %(return Match_Names (Lexer, Descriptor, Tokens, T1, T7, End_Name_Optional);)%
   ;
 
 body_g
@@ -377,7 +372,8 @@ loop_statement
 
 multiplying_operator
   : STAR
-  | SLASH;
+  | SLASH
+  ;
 
 name
   : name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
@@ -405,7 +401,7 @@ object_declaration
 package_body
   : PACKAGE BODY name [aspect_specification] IS declarative_part [BEGIN handled_sequence_of_statements] END name_opt SEMICOLON
     %()%
-    %(return Match_Names (Lexer, Descriptor, Tokens, 3, 9, End_Name_Optional);)%
+    %(return Match_Names (Lexer, Descriptor, Tokens, T3, T10, End_Name_Optional);)%
   ;
 
 parameter_and_result_profile
@@ -505,7 +501,7 @@ subprogram_body
   : subprogram_specification [aspect_specification] IS declarative_part BEGIN
     handled_sequence_of_statements END name_opt SEMICOLON
     %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
-    %(return Match_Names (Lexer, Descriptor, Tokens, 1, 8, End_Name_Optional);)%
+    %(return Match_Names (Lexer, Descriptor, Tokens, T1, T8, End_Name_Optional);)%
   ;
 
 subprogram_body_stub

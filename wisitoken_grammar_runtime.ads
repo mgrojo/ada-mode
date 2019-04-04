@@ -120,7 +120,7 @@ package WisiToken_Grammar_Runtime is
       Tree      : in     WisiToken.Syntax_Trees.Tree;
       Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
 
-   procedure Rewrite_EBNF_To_BNF
+   procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Data : in out User_Data_Type);
    --  Process EBNF nonterms, adding new nonterms as needed, resulting in

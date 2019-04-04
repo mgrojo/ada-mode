@@ -102,6 +102,39 @@ package body Wisitoken_Grammar_Actions is
       Add_Nonterminal (User_Data, Tree, Tokens);
    end nonterminal_0;
 
+   procedure rhs_item_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      Check_EBNF (User_Data, Tree, Tokens);
+   end rhs_item_0;
+
+   procedure rhs_item_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      Check_EBNF (User_Data, Tree, Tokens);
+   end rhs_item_1;
+
+   procedure rhs_item_3
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      Check_EBNF (User_Data, Tree, Tokens);
+   end rhs_item_3;
+
    procedure rhs_item_4
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;

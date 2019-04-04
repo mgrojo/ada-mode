@@ -374,9 +374,10 @@ package WisiToken.Syntax_Trees is
      (Tree         : in out Syntax_Trees.Tree;
       Process_Node : access procedure
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index));
-   --  Traverse Tree in depth-first order, calling Process_Node on each
-   --  node, starting at Tree.Root.
+         Node : in     Valid_Node_Index);
+      Root         : in     Node_Index := Invalid_Node_Index);
+   --  Traverse subtree of Tree rooted at Root (default Tree.Root) in
+   --  depth-first order, calling Process_Node on each node.
 
    function Identifier (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Base_Identifier_Index
    with Pre => Tree.Is_Virtual_Identifier (Node);

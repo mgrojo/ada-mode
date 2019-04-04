@@ -757,14 +757,21 @@ package body WisiToken_Grammar_Runtime is
       end if;
    end Check_EBNF;
 
-   procedure Rewrite_EBNF_To_BNF
+   procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;
       Data : in out User_Data_Type)
    is
       use WisiToken.Syntax_Trees;
 
-      Comp_Unit_List_Tail : Valid_Node_Index := Tree.Parent
-        (Tree.Find_Descendant (Tree.Root, +compilation_unit_ID));
+      Copied_EBNF_Nodes : WisiToken.Syntax_Trees.Valid_Node_Index_Arrays.Vector;
+
+      procedure Clear_EBNF_Node (Node : in Valid_Node_Index)
+      is begin
+         if Node in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index then
+            Data.EBNF_Nodes (Node) := False;
+            --  else in Copied_EBNF_Nodes; don't need to delete from there.
+         end if;
+      end Clear_EBNF_Node;
 
       function Parent (Node : in Valid_Node_Index; Count : in Positive) return Valid_Node_Index
       is
@@ -800,7 +807,7 @@ package body WisiToken_Grammar_Runtime is
 
          if ID > 999 then
             --  We assume 3 digits below
-            raise SAL.Programmer_Error with "more than 3 digits needed for virtual identifiers in EBNF rewrite";
+            raise SAL.Programmer_Error with "more than 3 digits needed for virtual identifiers in EBNF translate";
          end if;
 
          Data.Tokens.Virtual_Nonterminals.Append (+("nonterminal_" & Image (ID, Width => 3) & Suffix));
@@ -959,52 +966,57 @@ package body WisiToken_Grammar_Runtime is
       end Prev_List_Element;
       pragma Unreferenced (Prev_List_Element); --  FIXME: delete if still unused.
 
-      procedure Append_RHS
-        (Tail_RHS_List : in Valid_Node_Index; New_RHS : in Valid_Node_Index)
-      with Pre => Tree.ID (Tail_RHS_List) = +rhs_list_ID and
-                  Tree.ID (New_RHS) = +rhs_ID
+      procedure Append_Element
+        (Tail_List    : in Valid_Node_Index;
+         New_Element  : in Valid_Node_Index;
+         Separator_ID : in WisiToken.Token_ID := Invalid_Token_ID)
       is
+         --  Tail_List is preserved.
+
          --  Current tree is one of:
          --
          --  case a:
-         --  rhs_list: Tail_RHS_List
-         --  | rhs: Orig_RHS_1
+         --  rhs_list: Tail_List
+         --  | rhs: Orig_Element_1
          --
          --  case b:
-         --  rhs_list: Tail_RHS_List
-         --  | rhs_list: Orig_RHS_List_1
-         --  | | rhs: Orig_RHS_1
+         --  rhs_list: Tail_List
+         --  | rhs_list: Orig_List_1
+         --  | | rhs: Orig_Element_1
          --  | BAR
-         --  | rhs: Orig_RHS_2
+         --  | rhs: Orig_Element_2
 
          --  New tree:
          --
          --  case a:
-         --  rhs_list: keep Tail_RHS_List
+         --  rhs_list: keep Tail_List
          --  | rhs_list: new
-         --  | | rhs: keep; Orig_RHS_1
+         --  | | rhs: keep; Orig_Element_1
          --  | BAR
-         --  | rhs: New_RHS
+         --  | rhs: New_Element
          --
          --  case b:
-         --  rhs_list: keep Tail_RHS_List
+         --  rhs_list: keep Tail_List
          --  | rhs_list: new;
-         --  | | rhs_list: keep Orig_RHS_List_1
-         --  | | | rhs: keep Orig_RHS_1
+         --  | | rhs_list: keep Orig_List_1
+         --  | | | rhs: keep Orig_Element_1
          --  | | BAR: keep
-         --  | | rhs: keep Orig_RHS_2
+         --  | | rhs: keep Orig_Element_2
          --  | BAR: new
-         --  | rhs: New_RHS
-         Children : constant Valid_Node_Index_Array := Tree.Children (Tail_RHS_List);
+         --  | rhs: New_Element
+
+         List_ID       : constant WisiToken.Token_ID     := Tree.ID (Tail_List);
+         Children      : constant Valid_Node_Index_Array := Tree.Children (Tail_List);
+         New_List_Item : constant Valid_Node_Index       := Tree.Add_Nonterm
+           ((List_ID, (if Children'Length = 1 then 0 else 1)), Children);
       begin
-         Tree.Set_Children
-           (Tail_RHS_List,
-            (+rhs_list_ID, 1),
-            (1 => Tree.Add_Nonterm
-               ((+rhs_list_ID, (if Children'Length = 1 then 0 else 1)), Children),
-             2 => Tree.Add_Terminal (+BAR_ID),
-             3 => New_RHS));
-      end Append_RHS;
+         if Separator_ID = Invalid_Token_ID then
+            Tree.Set_Children (Tail_List, (List_ID, 1), (New_List_Item, New_Element));
+         else
+            Tree.Set_Children
+              (Tail_List, (List_ID, 1), (New_List_Item, Tree.Add_Terminal (Separator_ID), New_Element));
+         end if;
+      end Append_Element;
 
       procedure Append_List
         (Tail_Element_A : in Valid_Node_Index;
@@ -1064,35 +1076,15 @@ package body WisiToken_Grammar_Runtime is
          end if;
       end Append_List;
 
+      Compilation_Unit_List_Tail : constant Valid_Node_Index := Tree.Children (Tree.Root)(1);
+
       procedure Add_Compilation_Unit (Unit : in Valid_Node_Index)
-      is
-         --  Unit is a declaration_ID or nonterminal_ID
-
-         Old_Comp_Unit_List_Tail : constant Valid_Node_Index := Comp_Unit_List_Tail;
-      begin
-         --  current tree:
-         --  compilation_unit_list: Comp_Unit_List_Tail
-         --  | compilation_unit: Comp_Unit_List_Tail.children (1)
-
-         --  new tree:
-         --  compilation_unit_list: old Comp_Unit_List_Tail
-         --  | compilation_unit_list: new, new Comp_Unit_List_Tail
-         --  | | compilation_unit: Unit
-         --  | compilation_unit: Comp_Unit_List_Tail.children (1)
-
-         Comp_Unit_List_Tail := Tree.Add_Nonterm
-           ((+compilation_unit_list_ID, 0),
-            (1 => Tree.Add_Nonterm ((+compilation_unit_ID, 1), (1 => Unit))));
-
-         Tree.Set_Children
-           (Old_Comp_Unit_List_Tail,
-            (+compilation_unit_list_ID, 1),
-            (1 => Comp_Unit_List_Tail,
-             2 => Tree.Children (Old_Comp_Unit_List_Tail)(1)));
+      is begin
+         Append_Element (Compilation_Unit_List_Tail, Tree.Add_Nonterm ((+compilation_unit_ID, 1), (1 => Unit)));
 
          if Trace_Generate > Extra then
             Ada.Text_IO.New_Line;
-            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Comp_Unit_List_Tail);
+            Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, Unit);
          end if;
       end Add_Compilation_Unit;
 
@@ -1153,7 +1145,7 @@ package body WisiToken_Grammar_Runtime is
                (1 => Tree.Add_Nonterm ((+rhs_ID, 1), (1 => RHS_Alt_Children (1)))));
          end if;
 
-         Data.EBNF_Nodes (RHS_Alt_Node) := False;
+         Clear_EBNF_Node (RHS_Alt_Node);
       end Convert_RHS_Alternative;
 
       procedure New_Nonterminal
@@ -1311,7 +1303,7 @@ package body WisiToken_Grammar_Runtime is
 
                Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Identifier);
                Tree.Set_Children (Parent (Node, 1), (+rhs_item_ID, 1), (1 => Node));
-               Data.EBNF_Nodes (Node) := False;
+               Clear_EBNF_Node (Node);
             end;
 
          when rhs_multiple_item_ID =>
@@ -1366,7 +1358,7 @@ package body WisiToken_Grammar_Runtime is
                   (1 => Tree.Add_Identifier
                      (+IDENTIFIER_ID, (if Allow_Empty then List_Opt_Nonterm else List_Nonterm))));
 
-               Data.EBNF_Nodes (Node) := False;
+               Clear_EBNF_Node (Node);
 
                if Trace_Generate > Extra then
                   Ada.Text_IO.New_Line;
@@ -1433,7 +1425,7 @@ package body WisiToken_Grammar_Runtime is
             begin
                New_Nonterminal (Nonterm_B, Child (Node, 2));
                Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Nonterm_B);
-               Data.EBNF_Nodes (Node) := False;
+               Clear_EBNF_Node (Node);
                Tree.Set_Children (Parent (Node, 1), (+rhs_item_ID, 2), (1 => Node));
 
                if Orig_RHS_Item_A_Head /= Tree.Parent (Node) then
@@ -1471,7 +1463,29 @@ package body WisiToken_Grammar_Runtime is
                      --  FIXME: copy actions
                   end if;
                end if;
-               Append_RHS (Orig_RHS_List, New_RHS_AC);
+
+               --  Record copied EBNF nodes
+               declare
+                  procedure Record_Copied_Node
+                    (Tree : in out WisiToken.Syntax_Trees.Tree;
+                     Node : in WisiToken.Syntax_Trees.Valid_Node_Index)
+                  is begin
+                     if To_Token_Enum (Tree.ID (Node)) in
+                       rhs_optional_item_ID |
+                       rhs_multiple_item_ID |
+                       rhs_group_item_ID |
+                       labeled_rhs_identifier_ID |
+                       rhs_attribute_ID |
+                       STRING_LITERAL_2_ID
+                     then
+                        Copied_EBNF_Nodes.Append (Node);
+                     end if;
+                  end Record_Copied_Node;
+               begin
+                  Tree.Process_Tree (Record_Copied_Node'Access, New_RHS_AC);
+               end;
+
+               Append_Element (Orig_RHS_List, New_RHS_AC, +BAR_ID);
 
                if Trace_Generate > Extra then
                   Ada.Text_IO.New_Line;
@@ -1487,14 +1501,31 @@ package body WisiToken_Grammar_Runtime is
       end Process_Node;
 
    begin
-      --  We can't use Process_Tree because we are editing the tree.
+      --  Translate all multiple_item nodes first, to avoid duplication if
+      --  they are copied by an optional_item.
       for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
-         if Data.EBNF_Nodes (I) then
+         if Data.EBNF_Nodes (I) and then Tree.ID (I) = +rhs_multiple_item_ID then
             if Trace_Generate > Detail then
-               Ada.Text_IO.Put_Line ("rewrite node" & Node_Index'Image (I));
+               Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (I));
             end if;
             Process_Node (I);
          end if;
+      end loop;
+
+      for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
+         if Data.EBNF_Nodes (I) then
+            if Trace_Generate > Detail then
+               Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (I));
+            end if;
+            Process_Node (I);
+         end if;
+      end loop;
+
+      for I of Copied_EBNF_Nodes loop
+         if Trace_Generate > Detail then
+            Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (I));
+         end if;
+         Process_Node (I);
       end loop;
 
       Data.Meta_Syntax := BNF_Syntax;
@@ -1502,8 +1533,8 @@ package body WisiToken_Grammar_Runtime is
    exception
    when E : SAL.Not_Implemented =>
       Ada.Text_IO.Put_Line
-        (Ada.Text_IO.Standard_Error, "Rewrite_EBNF_To_BNF not implemented: " & Ada.Exceptions.Exception_Message (E));
-   end Rewrite_EBNF_To_BNF;
+        (Ada.Text_IO.Standard_Error, "Translate_EBNF_To_BNF not implemented: " & Ada.Exceptions.Exception_Message (E));
+   end Translate_EBNF_To_BNF;
 
    procedure Print_Source
      (File_Name : in String;
@@ -1690,7 +1721,7 @@ package body WisiToken_Grammar_Runtime is
       procedure Process_Node (Node : in Valid_Node_Index)
       is begin
          case To_Token_Enum (Tree.ID (Node)) is
-         --  Token_ID alphabetical order
+         --  Enum_Token_ID alphabetical order
          when compilation_unit_ID =>
             Process_Node (Tree.Children (Node)(1));
 

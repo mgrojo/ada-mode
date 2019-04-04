@@ -112,7 +112,6 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token PERCENT
 %conflict SHIFT/REDUCE in state rhs_item_list, rhs  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token PERCENT
 
 ;;;; grammar rules, no particular order
 
@@ -162,6 +161,9 @@ declaration_item
   ;; ",", "token", "/", "(", ")" appear in %conflict declarations
   ;
 
+labeled_rhs_identifier
+  : IDENTIFIER EQUAL IDENTIFIER
+  ;
 nonterminal
   : IDENTIFIER COLON rhs_list semicolon_opt
     %(Add_Nonterminal (User_Data, Tree, Tokens);)%
@@ -186,16 +188,23 @@ rhs
   | rhs_item_list ACTION ACTION
   ;
 
+rhs_attribute
+  : LESS IDENTIFIER EQUAL IDENTIFIER GREATER
+  ;
+
 rhs_item_list
   : rhs_item
   | rhs_item_list rhs_item
   ;
 
 rhs_item
-  : IDENTIFIER EQUAL IDENTIFIER ;; ANTLR label
-  | LESS IDENTIFIER EQUAL IDENTIFIER GREATER ;; ANTLR attribute
+  : labeled_rhs_identifier ;; ANTLR label
+    %(Check_EBNF (User_Data, Tree, Tokens);)%
+  | rhs_attribute ;; ANTLR attribute
+    %(Check_EBNF (User_Data, Tree, Tokens);)%
   | IDENTIFIER
   | STRING_LITERAL_2
+    %(Check_EBNF (User_Data, Tree, Tokens);)%
   | rhs_optional_item
     %(Check_EBNF (User_Data, Tree, Tokens);)%
   | rhs_multiple_item

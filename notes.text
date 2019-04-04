@@ -22,27 +22,13 @@ update-wisi_grammar
 
  current work
 add EBNF
-    | "a [b] c"
-    should translate to
-    | "a c"
-    | "a b c"
-    not nonterm_nnn_opt; causes conflicts
-
-    insert virtual nonterminals at root of tree so they show up at end of _bnf.wy
-
+    print ";; empty" in optional_item
+    copy actions, newline in optional_item
     don't output %meta_syntax EBNF!
 
-    make t_one
-        ada_lite.input:CONSTRAINT_ERROR: wisitoken-parse-lr-parser.adb:152 invalid data
-            bad lalr parse table
-            reproduce in org.wisitoken main, fix there.
+    implement labeled_rhs_items for actions
 
-    %conflict has too many tokens after 'on'
-
-    run ada_lite tests; t_one
-
-
-    replace %keywords with literals
+    replace %keywords with string literals
 
     add ANTLR syntax for java
 

@@ -1040,7 +1040,7 @@ package body WisiToken.Syntax_Trees is
          if Node_Printed (Node) then
             --  This does not catch all possible tree edit errors, but it does
             --  catch circles.
-            raise SAL.Programmer_Error with "invalid tree" & Node_Index'Image (Node);
+            raise SAL.Programmer_Error with "Print_Tree: invalid tree" & Node_Index'Image (Node);
          else
             Node_Printed (Node) := True;
          end if;
@@ -1132,13 +1132,14 @@ package body WisiToken.Syntax_Trees is
      (Tree         : in out Syntax_Trees.Tree;
       Process_Node : access procedure
         (Tree : in out Syntax_Trees.Tree;
-         Node : in     Valid_Node_Index))
+         Node : in     Valid_Node_Index);
+      Root         : in     Node_Index := Invalid_Node_Index)
    is begin
-      if Tree.Root = Invalid_Node_Index then
+      if Root = Invalid_Node_Index and Tree.Root = Invalid_Node_Index then
          raise SAL.Programmer_Error with "Tree.Root not set";
       end if;
       Tree.Shared_Tree.Traversing := True;
-      Process_Tree (Tree, Tree.Root, Process_Node);
+      Process_Tree (Tree, (if Root = Invalid_Node_Index then Tree.Root else Root), Process_Node);
       Tree.Shared_Tree.Traversing := False;
    exception
    when others =>

@@ -41,9 +41,11 @@ declaration_ID
 declaration_item_ID
 declaration_item_list_ID
 identifier_list_ID
+labeled_rhs_identifier_ID
 nonterminal_ID
 rhs_ID
 rhs_alternative_list_ID
+rhs_attribute_ID
 rhs_group_item_ID
 rhs_item_ID
 rhs_item_list_ID
