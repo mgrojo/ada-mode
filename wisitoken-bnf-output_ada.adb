@@ -111,6 +111,23 @@ is
                     Slice (Action, 1, 5) = "wisi-");
             end Is_Elisp;
 
+            procedure Put_Labels (RHS : in RHS_Type; Line : in String)
+            is begin
+               for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
+                  if Length (RHS.Tokens (I).Label) > 0 then
+                     declare
+                        Label : constant String := -RHS.Tokens (I).Label;
+                     begin
+                        if Match (Line, Compile (Symbol_Regexp (Label), Case_Sensitive => False)) then
+                           Indent_Line
+                             (Label & " : constant WisiToken.Positive_Index_Type :=" &
+                                Positive_Index_Type'Image (I) & ";");
+                        end if;
+                     end;
+                  end if;
+               end loop;
+            end Put_Labels;
+
          begin
             for RHS of Rule.Right_Hand_Sides loop
                if Length (RHS.Action) > 0 and then not Is_Elisp (RHS.Action) then
@@ -141,7 +158,6 @@ is
                            Unref_Tokens := False;
                         end if;
                      end Check_Unref;
-
                   begin
                      Check_Unref (Line);
                      Indent_Line ("procedure " & Name);
@@ -151,11 +167,12 @@ is
                      Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
                      Indent_Line ("is");
 
+                     Indent := Indent + 3;
                      if Unref_User_Data or Unref_Tree or Unref_Nonterm or Unref_Tokens then
-                        Indent_Start ("   pragma Unreferenced (");
+                        Indent_Start ("pragma Unreferenced (");
 
                         if Unref_User_Data then
-                           Put ((if Need_Comma then ", " else "") & "User_Data");
+                           Put ("User_Data");
                            Need_Comma := True;
                         end if;
                         if Unref_Tree then
@@ -173,6 +190,8 @@ is
                         Put_Line (");");
                      end if;
 
+                     Put_Labels (RHS, Line);
+                     Indent := Indent - 3;
                      Indent_Line ("begin");
                      Indent := Indent + 3;
 
@@ -192,6 +211,7 @@ is
                      Unref_Nonterm : constant Boolean := 0 = Index (Line, "Nonterm");
                      Unref_Tokens  : constant Boolean := 0 = Index (Line, "Tokens");
                      Unref_Recover : constant Boolean := 0 = Index (Line, "Recover_Active");
+                     Need_Comma    : Boolean          := False;
                   begin
                      Indent_Line ("function " & Name);
                      Indent_Line (" (Lexer          : access constant WisiToken.Lexer.Instance'Class;");
@@ -201,18 +221,31 @@ is
                      Indent_Line (" return WisiToken.Semantic_Checks.Check_Status");
                      Indent_Line ("is");
 
-                     if Unref_Lexer then
-                        Indent_Line ("   pragma Unreferenced (Lexer);");
+                     Indent := Indent + 3;
+                     if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
+                        Indent_Start ("pragma Unreferenced (");
+
+                        if Unref_Lexer then
+                           Put ("Lexer");
+                           Need_Comma := True;
+                        end if;
+                        if Unref_Nonterm then
+                           Put ((if Need_Comma then ", " else "") & "Nonterm");
+                           Need_Comma := True;
+                        end if;
+                        if Unref_Tokens then
+                           Put ((if Need_Comma then ", " else "") & "Tokens");
+                           Need_Comma := True;
+                        end if;
+                        if Unref_Recover then
+                           Put ((if Need_Comma then ", " else "") & "Recover_Active");
+                           Need_Comma := True;
+                        end if;
+                        Put_Line (");");
                      end if;
-                     if Unref_Nonterm then
-                        Indent_Line ("   pragma Unreferenced (Nonterm);");
-                     end if;
-                     if Unref_Tokens then
-                        Indent_Line ("   pragma Unreferenced (Tokens);");
-                     end if;
-                     if Unref_Recover then
-                        Indent_Line ("   pragma Unreferenced (Recover_Active);");
-                     end if;
+
+                     Put_Labels (RHS, Line);
+                     Indent := Indent - 3;
 
                      Indent_Line ("begin");
                      Indent := Indent + 3;

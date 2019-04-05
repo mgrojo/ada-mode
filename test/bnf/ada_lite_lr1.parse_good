@@ -116,8 +116,8 @@ declaration_1: (declaration, (205 . 226)) <= ((object_declaration, (205 . 226)))
  1: 292:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to declarations
 declarations_1: (declarations, (205 . 226)) <= ((declaration, (205 . 226)))
  ... goto state 293
- 1: 293:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to declarative_part_opt
-declarative_part_opt_0: (declarative_part_opt, (205 . 226)) <= ((declarations, (205 . 226)))
+ 1: 293:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to declarative_part
+declarative_part_0: (declarative_part, (205 . 226)) <= ((declarations, (205 . 226)))
  ... goto state 716
  1: 716:  15:(BEGIN, (228 . 232)) : shift and goto state 1166
  1: 1166:  16:(IDENTIFIER, (237 . 237)) : shift and goto state 10
@@ -179,14 +179,14 @@ simple_statement_0: (simple_statement, (237 . 247)) <= ((assignment_statement, (
  1: 284:  22:(END, (249 . 251)) : reduce 1 tokens to statement
 statement_0: (statement, (237 . 247)) <= ((simple_statement, (237 . 247)))
  ... goto state 285
- 1: 285:  22:(END, (249 . 251)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (237 . 247)) <= ((statement, (237 . 247)))
+ 1: 285:  22:(END, (249 . 251)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (237 . 247)) <= ((statement, (237 . 247)))
  ... goto state 281
- 1: 281:  22:(END, (249 . 251)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (237 . 247)) <= ((sequence_of_statements, (237 . 247)))
+ 1: 281:  22:(END, (249 . 251)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (237 . 247)) <= ((sequence_of_statements_list, (237 . 247)))
  ... goto state 282
  1: 282:  22:(END, (249 . 251)) : reduce 1 tokens to handled_sequence_of_statements
-handled_sequence_of_statements_1: (handled_sequence_of_statements, (237 . 247)) <= ((sequence_of_statements_opt, (237 . 247)))
+handled_sequence_of_statements_1: (handled_sequence_of_statements, (237 . 247)) <= ((sequence_of_statements, (237 . 247)))
  ... goto state 1614
  1: 1614:  22:(END, (249 . 251)) : shift and goto state 2030
  1: 2030:  23:(SEMICOLON, (252 . 252)) : reduce 0 tokens to name_opt
@@ -194,7 +194,7 @@ name_opt_1: (name_opt) <= ()
  ... goto state 2298
  1: 2298:  23:(SEMICOLON, (252 . 252)) : shift and goto state 2461
  1: 2461:  24:(FUNCTION, (255 . 262)) : reduce 9 tokens to subprogram_body
-subprogram_body_0: (subprogram_body, (181 . 252)) <= ((subprogram_specification, (181 . 197)), (aspect_specification_opt),  6:(IS, (199 . 200)), (declarative_part_opt, (205 . 226)),  15:(BEGIN, (228 . 232)), (handled_sequence_of_statements, (237 . 247)),  22:(END, (249 . 251)), (name_opt),  23:(SEMICOLON, (252 . 252)))
+subprogram_body_0: (subprogram_body, (181 . 252)) <= ((subprogram_specification, (181 . 197)), (aspect_specification_opt),  6:(IS, (199 . 200)), (declarative_part, (205 . 226)),  15:(BEGIN, (228 . 232)), (handled_sequence_of_statements, (237 . 247)),  22:(END, (249 . 251)), (name_opt),  23:(SEMICOLON, (252 . 252)))
 semantic check OK
  ... goto state 33
  1: 33:  24:(FUNCTION, (255 . 262)) : reduce 1 tokens to compilation_unit
@@ -303,8 +303,8 @@ semantic check OK
 aspect_specification_opt_1: (aspect_specification_opt) <= ()
  ... goto state 146
  1: 146:  51:(IS, (386 . 387)) : shift and goto state 351
- 1: 351:  52:(BEGIN, (389 . 393)) : reduce 0 tokens to declarative_part_opt
-declarative_part_opt_1: (declarative_part_opt) <= ()
+ 1: 351:  52:(BEGIN, (389 . 393)) : reduce 0 tokens to declarative_part
+declarative_part_1: (declarative_part) <= ()
  ... goto state 716
  1: 716:  52:(BEGIN, (389 . 393)) : shift and goto state 1166
  1: 1166:  53:(RETURN, (398 . 403)) : shift and goto state 267
@@ -414,14 +414,14 @@ simple_statement_3: (simple_statement, (398 . 423)) <= ((simple_return_statement
  1: 284:  62:(END, (425 . 427)) : reduce 1 tokens to statement
 statement_0: (statement, (398 . 423)) <= ((simple_statement, (398 . 423)))
  ... goto state 285
- 1: 285:  62:(END, (425 . 427)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (398 . 423)) <= ((statement, (398 . 423)))
+ 1: 285:  62:(END, (425 . 427)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (398 . 423)) <= ((statement, (398 . 423)))
  ... goto state 281
- 1: 281:  62:(END, (425 . 427)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (398 . 423)) <= ((sequence_of_statements, (398 . 423)))
+ 1: 281:  62:(END, (425 . 427)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (398 . 423)) <= ((sequence_of_statements_list, (398 . 423)))
  ... goto state 282
  1: 282:  62:(END, (425 . 427)) : reduce 1 tokens to handled_sequence_of_statements
-handled_sequence_of_statements_1: (handled_sequence_of_statements, (398 . 423)) <= ((sequence_of_statements_opt, (398 . 423)))
+handled_sequence_of_statements_1: (handled_sequence_of_statements, (398 . 423)) <= ((sequence_of_statements, (398 . 423)))
  ... goto state 1614
  1: 1614:  62:(END, (425 . 427)) : shift and goto state 2030
  1: 2030:  63:(IDENTIFIER, (429 . 434)) : shift and goto state 915
@@ -435,7 +435,7 @@ semantic check OK
  ... goto state 2298
  1: 2298:  64:(SEMICOLON, (435 . 435)) : shift and goto state 2461
  1: 2461:  65:(PROCEDURE, (438 . 446)) : reduce 9 tokens to subprogram_body
-subprogram_body_0: (subprogram_body, (321 . 435)) <= ((subprogram_specification, (321 . 384)), (aspect_specification_opt),  51:(IS, (386 . 387)), (declarative_part_opt),  52:(BEGIN, (389 . 393)), (handled_sequence_of_statements, (398 . 423)),  62:(END, (425 . 427)), (name_opt, (429 . 434)),  64:(SEMICOLON, (435 . 435)))
+subprogram_body_0: (subprogram_body, (321 . 435)) <= ((subprogram_specification, (321 . 384)), (aspect_specification_opt),  51:(IS, (386 . 387)), (declarative_part),  52:(BEGIN, (389 . 393)), (handled_sequence_of_statements, (398 . 423)),  62:(END, (425 . 427)), (name_opt, (429 . 434)),  64:(SEMICOLON, (435 . 435)))
 semantic check OK
  ... goto state 33
  1: 33:  65:(PROCEDURE, (438 . 446)) : reduce 1 tokens to compilation_unit
@@ -513,8 +513,8 @@ declaration_1: (declaration, (477 . 488)) <= ((object_declaration, (477 . 488)))
  2: 669:  76:(BEGIN, (490 . 494)) : reduce 2 tokens to declarations
 declarations_0: (declarations, (461 . 488)) <= ((declarations, (461 . 472)), (declaration, (477 . 488)))
  ... goto state 293
- 2: 293:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to declarative_part_opt
-declarative_part_opt_0: (declarative_part_opt, (461 . 488)) <= ((declarations, (461 . 488)))
+ 2: 293:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to declarative_part
+declarative_part_0: (declarative_part, (461 . 488)) <= ((declarations, (461 . 488)))
  ... goto state 716
  2: 716:  76:(BEGIN, (490 . 494)) : shift and goto state 1166
  2: 1166:  77:(LOOP, (499 . 502)) : shift and goto state 266
@@ -582,8 +582,8 @@ simple_statement_1: (simple_statement, (507 . 522)) <= ((exit_statement, (507 . 
  2: 104:  84:(IF, (530 . 531)) : reduce 1 tokens to statement
 statement_0: (statement, (507 . 522)) <= ((simple_statement, (507 . 522)))
  ... goto state 105
- 2: 105:  84:(IF, (530 . 531)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (507 . 522)) <= ((statement, (507 . 522)))
+ 2: 105:  84:(IF, (530 . 531)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (507 . 522)) <= ((statement, (507 . 522)))
  ... goto state 101
  2: 101:  84:(IF, (530 . 531)) : shift and goto state 86
  2: 86:  85:(IDENTIFIER, (533 . 533)) : shift and goto state 68
@@ -636,8 +636,8 @@ expression_0: (expression, (533 . 537)) <= ((relation, (533 . 537)))
 expression_opt_0: (expression_opt, (533 . 537)) <= ((expression, (533 . 537)))
  ... goto state 220
  2: 220:  88:(THEN, (539 . 542)) : shift and goto state 557
- 2: 557:  89:(ELSIF, (550 . 554)) : reduce 0 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
+ 2: 557:  89:(ELSIF, (550 . 554)) : reduce 0 tokens to sequence_of_statements
+sequence_of_statements_1: (sequence_of_statements) <= ()
  ... goto state 903
  2: 903:  89:(ELSIF, (550 . 554)) : shift and goto state 860
  2: 860:  90:(IDENTIFIER, (556 . 556)) : shift and goto state 68
@@ -690,11 +690,11 @@ expression_0: (expression, (556 . 560)) <= ((relation, (556 . 560)))
 expression_opt_0: (expression_opt, (556 . 560)) <= ((expression, (556 . 560)))
  ... goto state 1317
  2: 1317:  93:(THEN, (562 . 565)) : shift and goto state 1766
- 2: 1766:  94:(ELSE, (573 . 576)) : reduce 0 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_1: (sequence_of_statements_opt) <= ()
+ 2: 1766:  94:(ELSE, (573 . 576)) : reduce 0 tokens to sequence_of_statements
+sequence_of_statements_1: (sequence_of_statements) <= ()
  ... goto state 2137
  2: 2137:  94:(ELSE, (573 . 576)) : reduce 4 tokens to elsif_statement_item
-elsif_statement_item_0: (elsif_statement_item, (550 . 565)) <= ( 89:(ELSIF, (550 . 554)), (expression_opt, (556 . 560)),  93:(THEN, (562 . 565)), (sequence_of_statements_opt))
+elsif_statement_item_0: (elsif_statement_item, (550 . 565)) <= ( 89:(ELSIF, (550 . 554)), (expression_opt, (556 . 560)),  93:(THEN, (562 . 565)), (sequence_of_statements))
  ... goto state 862
  2: 862:  94:(ELSE, (573 . 576)) : reduce 1 tokens to elsif_statement_list
 elsif_statement_list_1: (elsif_statement_list, (550 . 565)) <= ((elsif_statement_item, (550 . 565)))
@@ -741,17 +741,17 @@ simple_statement_0: (simple_statement, (587 . 593)) <= ((assignment_statement, (
  2: 104:  99:(END, (601 . 603)) : reduce 1 tokens to statement
 statement_0: (statement, (587 . 593)) <= ((simple_statement, (587 . 593)))
  ... goto state 105
- 2: 105:  99:(END, (601 . 603)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (587 . 593)) <= ((statement, (587 . 593)))
+ 2: 105:  99:(END, (601 . 603)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (587 . 593)) <= ((statement, (587 . 593)))
  ... goto state 101
- 2: 101:  99:(END, (601 . 603)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (587 . 593)) <= ((sequence_of_statements, (587 . 593)))
+ 2: 101:  99:(END, (601 . 603)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (587 . 593)) <= ((sequence_of_statements_list, (587 . 593)))
  ... goto state 2161
  2: 2161:  99:(END, (601 . 603)) : shift and goto state 2373
  2: 2373:  100:(IF, (605 . 606)) : shift and goto state 2567
  2: 2567:  101:(SEMICOLON, (607 . 607)) : shift and goto state 2664
  2: 2664:  102:(END, (612 . 614)) : reduce 10 tokens to if_statement
-if_statement_0: (if_statement, (530 . 607)) <= ( 84:(IF, (530 . 531)), (expression_opt, (533 . 537)),  88:(THEN, (539 . 542)), (sequence_of_statements_opt), (elsif_statement_list, (550 . 565)),  94:(ELSE, (573 . 576)), (sequence_of_statements_opt, (587 . 593)),  99:(END, (601 . 603)),  100:(IF, (605 . 606)),  101:(SEMICOLON, (607 . 607)))
+if_statement_0: (if_statement, (530 . 607)) <= ( 84:(IF, (530 . 531)), (expression_opt, (533 . 537)),  88:(THEN, (539 . 542)), (sequence_of_statements), (elsif_statement_list, (550 . 565)),  94:(ELSE, (573 . 576)), (sequence_of_statements, (587 . 593)),  99:(END, (601 . 603)),  100:(IF, (605 . 606)),  101:(SEMICOLON, (607 . 607)))
  ... goto state 96
  2: 96:  102:(END, (612 . 614)) : reduce 1 tokens to compound_statement
 compound_statement_0: (compound_statement, (530 . 607)) <= ((if_statement, (530 . 607)))
@@ -759,11 +759,11 @@ compound_statement_0: (compound_statement, (530 . 607)) <= ((if_statement, (530 
  2: 93:  102:(END, (612 . 614)) : reduce 1 tokens to statement
 statement_1: (statement, (530 . 607)) <= ((compound_statement, (530 . 607)))
  ... goto state 229
- 2: 229:  102:(END, (612 . 614)) : reduce 2 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (507 . 607)) <= ((sequence_of_statements, (507 . 522)), (statement, (530 . 607)))
+ 2: 229:  102:(END, (612 . 614)) : reduce 2 tokens to sequence_of_statements_list
+sequence_of_statements_list_0: (sequence_of_statements_list, (507 . 607)) <= ((sequence_of_statements_list, (507 . 522)), (statement, (530 . 607)))
  ... goto state 101
- 2: 101:  102:(END, (612 . 614)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (507 . 607)) <= ((sequence_of_statements, (507 . 607)))
+ 2: 101:  102:(END, (612 . 614)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (507 . 607)) <= ((sequence_of_statements_list, (507 . 607)))
  ... goto state 654
  2: 654:  102:(END, (612 . 614)) : shift and goto state 971
  2: 971:  103:(LOOP, (616 . 619)) : shift and goto state 1497
@@ -772,7 +772,7 @@ identifier_opt_1: (identifier_opt) <= ()
  ... goto state 1864
  2: 1864:  104:(SEMICOLON, (620 . 620)) : shift and goto state 2212
  2: 2212:  105:(END, (622 . 624)) : reduce 6 tokens to loop_statement
-loop_statement_1: (loop_statement, (499 . 620)) <= ( 77:(LOOP, (499 . 502)), (sequence_of_statements_opt, (507 . 607)),  102:(END, (612 . 614)),  103:(LOOP, (616 . 619)), (identifier_opt),  104:(SEMICOLON, (620 . 620)))
+loop_statement_1: (loop_statement, (499 . 620)) <= ( 77:(LOOP, (499 . 502)), (sequence_of_statements, (507 . 607)),  102:(END, (612 . 614)),  103:(LOOP, (616 . 619)), (identifier_opt),  104:(SEMICOLON, (620 . 620)))
  ... goto state 278
  2: 278:  105:(END, (622 . 624)) : reduce 1 tokens to compound_statement
 compound_statement_2: (compound_statement, (499 . 620)) <= ((loop_statement, (499 . 620)))
@@ -780,14 +780,14 @@ compound_statement_2: (compound_statement, (499 . 620)) <= ((loop_statement, (49
  2: 272:  105:(END, (622 . 624)) : reduce 1 tokens to statement
 statement_1: (statement, (499 . 620)) <= ((compound_statement, (499 . 620)))
  ... goto state 285
- 2: 285:  105:(END, (622 . 624)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (499 . 620)) <= ((statement, (499 . 620)))
+ 2: 285:  105:(END, (622 . 624)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (499 . 620)) <= ((statement, (499 . 620)))
  ... goto state 281
- 2: 281:  105:(END, (622 . 624)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (499 . 620)) <= ((sequence_of_statements, (499 . 620)))
+ 2: 281:  105:(END, (622 . 624)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (499 . 620)) <= ((sequence_of_statements_list, (499 . 620)))
  ... goto state 282
  2: 282:  105:(END, (622 . 624)) : reduce 1 tokens to handled_sequence_of_statements
-handled_sequence_of_statements_1: (handled_sequence_of_statements, (499 . 620)) <= ((sequence_of_statements_opt, (499 . 620)))
+handled_sequence_of_statements_1: (handled_sequence_of_statements, (499 . 620)) <= ((sequence_of_statements, (499 . 620)))
  ... goto state 1614
  2: 1614:  105:(END, (622 . 624)) : shift and goto state 2030
  2: 2030:  106:(SEMICOLON, (625 . 625)) : reduce 0 tokens to name_opt
@@ -795,7 +795,7 @@ name_opt_1: (name_opt) <= ()
  ... goto state 2298
  2: 2298:  106:(SEMICOLON, (625 . 625)) : shift and goto state 2461
  2: 2461:  107:(PROCEDURE, (628 . 636)) : reduce 9 tokens to subprogram_body
-subprogram_body_0: (subprogram_body, (438 . 625)) <= ((subprogram_specification, (438 . 453)), (aspect_specification_opt),  67:(IS, (455 . 456)), (declarative_part_opt, (461 . 488)),  76:(BEGIN, (490 . 494)), (handled_sequence_of_statements, (499 . 620)),  105:(END, (622 . 624)), (name_opt),  106:(SEMICOLON, (625 . 625)))
+subprogram_body_0: (subprogram_body, (438 . 625)) <= ((subprogram_specification, (438 . 453)), (aspect_specification_opt),  67:(IS, (455 . 456)), (declarative_part, (461 . 488)),  76:(BEGIN, (490 . 494)), (handled_sequence_of_statements, (499 . 620)),  105:(END, (622 . 624)), (name_opt),  106:(SEMICOLON, (625 . 625)))
 semantic check OK
  ... goto state 33
  2: 33:  107:(PROCEDURE, (628 . 636)) : reduce 1 tokens to compilation_unit
@@ -873,8 +873,8 @@ declaration_1: (declaration, (667 . 678)) <= ((object_declaration, (667 . 678)))
  3: 669:  118:(BEGIN, (680 . 684)) : reduce 2 tokens to declarations
 declarations_0: (declarations, (651 . 678)) <= ((declarations, (651 . 662)), (declaration, (667 . 678)))
  ... goto state 293
- 3: 293:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to declarative_part_opt
-declarative_part_opt_0: (declarative_part_opt, (651 . 678)) <= ((declarations, (651 . 678)))
+ 3: 293:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to declarative_part
+declarative_part_0: (declarative_part, (651 . 678)) <= ((declarations, (651 . 678)))
  ... goto state 716
  3: 716:  118:(BEGIN, (680 . 684)) : shift and goto state 1166
  3: 1166:  119:(CASE, (689 . 692)) : shift and goto state 263
@@ -960,14 +960,14 @@ simple_statement_2: (simple_statement, (754 . 760)) <= ((procedure_call_statemen
  3: 1701:  133:(WHEN, (768 . 771)) : reduce 1 tokens to statement
 statement_0: (statement, (754 . 760)) <= ((simple_statement, (754 . 760)))
  ... goto state 1702
- 3: 1702:  133:(WHEN, (768 . 771)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (754 . 760)) <= ((statement, (754 . 760)))
+ 3: 1702:  133:(WHEN, (768 . 771)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (754 . 760)) <= ((statement, (754 . 760)))
  ... goto state 1698
- 3: 1698:  133:(WHEN, (768 . 771)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (754 . 760)) <= ((sequence_of_statements, (754 . 760)))
+ 3: 1698:  133:(WHEN, (768 . 771)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (754 . 760)) <= ((sequence_of_statements_list, (754 . 760)))
  ... goto state 1699
  3: 1699:  133:(WHEN, (768 . 771)) : reduce 4 tokens to case_statement_alternative
-case_statement_alternative_0: (case_statement_alternative, (735 . 760)) <= ( 128:(WHEN, (735 . 738)),  129:(NUMERIC_LITERAL, (740 . 740)),  130:(EQUAL_GREATER, (742 . 743)), (sequence_of_statements_opt, (754 . 760)))
+case_statement_alternative_0: (case_statement_alternative, (735 . 760)) <= ( 128:(WHEN, (735 . 738)),  129:(NUMERIC_LITERAL, (740 . 740)),  130:(EQUAL_GREATER, (742 . 743)), (sequence_of_statements, (754 . 760)))
  ... goto state 369
  3: 369:  133:(WHEN, (768 . 771)) : reduce 1 tokens to case_statement_alternative_list
 case_statement_alternative_list_1: (case_statement_alternative_list, (735 . 760)) <= ((case_statement_alternative, (735 . 760)))
@@ -1063,14 +1063,14 @@ simple_statement_2: (simple_statement, (787 . 800)) <= ((procedure_call_statemen
  3: 1701:  143:(END, (808 . 810)) : reduce 1 tokens to statement
 statement_0: (statement, (787 . 800)) <= ((simple_statement, (787 . 800)))
  ... goto state 1702
- 3: 1702:  143:(END, (808 . 810)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (787 . 800)) <= ((statement, (787 . 800)))
+ 3: 1702:  143:(END, (808 . 810)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (787 . 800)) <= ((statement, (787 . 800)))
  ... goto state 1698
- 3: 1698:  143:(END, (808 . 810)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (787 . 800)) <= ((sequence_of_statements, (787 . 800)))
+ 3: 1698:  143:(END, (808 . 810)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (787 . 800)) <= ((sequence_of_statements_list, (787 . 800)))
  ... goto state 1699
  3: 1699:  143:(END, (808 . 810)) : reduce 4 tokens to case_statement_alternative
-case_statement_alternative_0: (case_statement_alternative, (768 . 800)) <= ( 133:(WHEN, (768 . 771)),  134:(NUMERIC_LITERAL, (773 . 773)),  135:(EQUAL_GREATER, (775 . 776)), (sequence_of_statements_opt, (787 . 800)))
+case_statement_alternative_0: (case_statement_alternative, (768 . 800)) <= ( 133:(WHEN, (768 . 771)),  134:(NUMERIC_LITERAL, (773 . 773)),  135:(EQUAL_GREATER, (775 . 776)), (sequence_of_statements, (787 . 800)))
  ... goto state 787
  3: 787:  143:(END, (808 . 810)) : reduce 2 tokens to case_statement_alternative_list
 case_statement_alternative_list_0: (case_statement_alternative_list, (735 . 800)) <= ((case_statement_alternative_list, (735 . 760)), (case_statement_alternative, (768 . 800)))
@@ -1087,14 +1087,14 @@ compound_statement_1: (compound_statement, (719 . 816)) <= ((case_statement, (71
  3: 1690:  146:(WHEN, (821 . 824)) : reduce 1 tokens to statement
 statement_1: (statement, (719 . 816)) <= ((compound_statement, (719 . 816)))
  ... goto state 1702
- 3: 1702:  146:(WHEN, (821 . 824)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (719 . 816)) <= ((statement, (719 . 816)))
+ 3: 1702:  146:(WHEN, (821 . 824)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (719 . 816)) <= ((statement, (719 . 816)))
  ... goto state 1698
- 3: 1698:  146:(WHEN, (821 . 824)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (719 . 816)) <= ((sequence_of_statements, (719 . 816)))
+ 3: 1698:  146:(WHEN, (821 . 824)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (719 . 816)) <= ((sequence_of_statements_list, (719 . 816)))
  ... goto state 1699
  3: 1699:  146:(WHEN, (821 . 824)) : reduce 4 tokens to case_statement_alternative
-case_statement_alternative_0: (case_statement_alternative, (702 . 816)) <= ( 122:(WHEN, (702 . 705)),  123:(NUMERIC_LITERAL, (707 . 707)),  124:(EQUAL_GREATER, (709 . 710)), (sequence_of_statements_opt, (719 . 816)))
+case_statement_alternative_0: (case_statement_alternative, (702 . 816)) <= ( 122:(WHEN, (702 . 705)),  123:(NUMERIC_LITERAL, (707 . 707)),  124:(EQUAL_GREATER, (709 . 710)), (sequence_of_statements, (719 . 816)))
  ... goto state 369
  3: 369:  146:(WHEN, (821 . 824)) : reduce 1 tokens to case_statement_alternative_list
 case_statement_alternative_list_1: (case_statement_alternative_list, (702 . 816)) <= ((case_statement_alternative, (702 . 816)))
@@ -1117,14 +1117,14 @@ simple_statement_2: (simple_statement, (837 . 844)) <= ((procedure_call_statemen
  3: 1701:  151:(END, (849 . 851)) : reduce 1 tokens to statement
 statement_0: (statement, (837 . 844)) <= ((simple_statement, (837 . 844)))
  ... goto state 1702
- 3: 1702:  151:(END, (849 . 851)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (837 . 844)) <= ((statement, (837 . 844)))
+ 3: 1702:  151:(END, (849 . 851)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (837 . 844)) <= ((statement, (837 . 844)))
  ... goto state 1698
- 3: 1698:  151:(END, (849 . 851)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (837 . 844)) <= ((sequence_of_statements, (837 . 844)))
+ 3: 1698:  151:(END, (849 . 851)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (837 . 844)) <= ((sequence_of_statements_list, (837 . 844)))
  ... goto state 1699
  3: 1699:  151:(END, (849 . 851)) : reduce 4 tokens to case_statement_alternative
-case_statement_alternative_0: (case_statement_alternative, (821 . 844)) <= ( 146:(WHEN, (821 . 824)),  147:(NUMERIC_LITERAL, (826 . 826)),  148:(EQUAL_GREATER, (828 . 829)), (sequence_of_statements_opt, (837 . 844)))
+case_statement_alternative_0: (case_statement_alternative, (821 . 844)) <= ( 146:(WHEN, (821 . 824)),  147:(NUMERIC_LITERAL, (826 . 826)),  148:(EQUAL_GREATER, (828 . 829)), (sequence_of_statements, (837 . 844)))
  ... goto state 787
  3: 787:  151:(END, (849 . 851)) : reduce 2 tokens to case_statement_alternative_list
 case_statement_alternative_list_0: (case_statement_alternative_list, (702 . 844)) <= ((case_statement_alternative_list, (702 . 816)), (case_statement_alternative, (821 . 844)))
@@ -1141,14 +1141,14 @@ compound_statement_1: (compound_statement, (689 . 857)) <= ((case_statement, (68
  3: 272:  154:(END, (859 . 861)) : reduce 1 tokens to statement
 statement_1: (statement, (689 . 857)) <= ((compound_statement, (689 . 857)))
  ... goto state 285
- 3: 285:  154:(END, (859 . 861)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_1: (sequence_of_statements, (689 . 857)) <= ((statement, (689 . 857)))
+ 3: 285:  154:(END, (859 . 861)) : reduce 1 tokens to sequence_of_statements_list
+sequence_of_statements_list_1: (sequence_of_statements_list, (689 . 857)) <= ((statement, (689 . 857)))
  ... goto state 281
- 3: 281:  154:(END, (859 . 861)) : reduce 1 tokens to sequence_of_statements_opt
-sequence_of_statements_opt_0: (sequence_of_statements_opt, (689 . 857)) <= ((sequence_of_statements, (689 . 857)))
+ 3: 281:  154:(END, (859 . 861)) : reduce 1 tokens to sequence_of_statements
+sequence_of_statements_0: (sequence_of_statements, (689 . 857)) <= ((sequence_of_statements_list, (689 . 857)))
  ... goto state 282
  3: 282:  154:(END, (859 . 861)) : reduce 1 tokens to handled_sequence_of_statements
-handled_sequence_of_statements_1: (handled_sequence_of_statements, (689 . 857)) <= ((sequence_of_statements_opt, (689 . 857)))
+handled_sequence_of_statements_1: (handled_sequence_of_statements, (689 . 857)) <= ((sequence_of_statements, (689 . 857)))
  ... goto state 1614
  3: 1614:  154:(END, (859 . 861)) : shift and goto state 2030
  3: 2030:  155:(SEMICOLON, (862 . 862)) : reduce 0 tokens to name_opt
@@ -1156,7 +1156,7 @@ name_opt_1: (name_opt) <= ()
  ... goto state 2298
  3: 2298:  155:(SEMICOLON, (862 . 862)) : shift and goto state 2461
  3: 2461:  156:(Wisi_EOI, (863 . 862)) : reduce 9 tokens to subprogram_body
-subprogram_body_0: (subprogram_body, (628 . 862)) <= ((subprogram_specification, (628 . 643)), (aspect_specification_opt),  109:(IS, (645 . 646)), (declarative_part_opt, (651 . 678)),  118:(BEGIN, (680 . 684)), (handled_sequence_of_statements, (689 . 857)),  154:(END, (859 . 861)), (name_opt),  155:(SEMICOLON, (862 . 862)))
+subprogram_body_0: (subprogram_body, (628 . 862)) <= ((subprogram_specification, (628 . 643)), (aspect_specification_opt),  109:(IS, (645 . 646)), (declarative_part, (651 . 678)),  118:(BEGIN, (680 . 684)), (handled_sequence_of_statements, (689 . 857)),  154:(END, (859 . 861)), (name_opt),  155:(SEMICOLON, (862 . 862)))
 semantic check OK
  ... goto state 33
  3: 33:  156:(Wisi_EOI, (863 . 862)) : reduce 1 tokens to compilation_unit

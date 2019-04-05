@@ -39,13 +39,16 @@ package WisiToken.Syntax_Trees is
    overriding procedure Finalize (Tree : in out Base_Tree);
    --  Free any allocated storage.
 
-   type Tree is tagged private;
+   type Tree is new Ada.Finalization.Controlled with private;
 
    procedure Initialize
      (Branched_Tree : in out Tree;
       Shared_Tree   : in     Base_Tree_Access;
       Flush         : in     Boolean);
    --  Set Branched_Tree to refer to Shared_Tree.
+
+   overriding procedure Finalize (Tree : in out Syntax_Trees.Tree);
+   --  Free any allocated storage.
 
    type Node_Index is range 0 .. Integer'Last;
    subtype Valid_Node_Index is Node_Index range 1 .. Node_Index'Last;
@@ -88,13 +91,12 @@ package WisiToken.Syntax_Trees is
    --  Called by Execute_Actions, before processing the tree.
 
    procedure Lexer_To_Augmented
-     (User_Data  : in out          User_Data_Type;
-      Token      : in              Base_Token;
-      Lexer      : not null access WisiToken.Lexer.Instance'Class)
+     (User_Data : in out          User_Data_Type;
+      Token     : in              Base_Token;
+      Lexer     : not null access WisiToken.Lexer.Instance'Class)
      is null;
-   --  Read auxiliary data from Lexer, create an Augmented_Token, store
-   --  it in User_Data. Called before parsing, once for each token in the
-   --  input stream.
+   --  Read auxiliary data from Lexer, do something useful with it.
+   --  Called before parsing, once for each token in the input stream.
 
    procedure Delete_Token
      (User_Data   : in out User_Data_Type;
@@ -233,6 +235,13 @@ package WisiToken.Syntax_Trees is
    function Label (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Node_Label;
 
    function Children (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Valid_Node_Index_Array
+   with Pre => Tree.Is_Nonterm (Node);
+
+   function Child
+     (Tree        : in Syntax_Trees.Tree;
+      Node        : in Valid_Node_Index;
+      Child_Index : in Positive_Index_Type)
+     return Node_Index
    with Pre => Tree.Is_Nonterm (Node);
 
    function Has_Branched_Nodes (Tree : in Syntax_Trees.Tree) return Boolean;
@@ -398,6 +407,13 @@ package WisiToken.Syntax_Trees is
 
    function Get_Terminal_IDs (Tree : in Syntax_Trees.Tree; Node : in Valid_Node_Index) return Token_ID_Array;
 
+   function Get_IDs
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      ID   : in Token_ID)
+     return Valid_Node_Index_Array;
+   --  Return all descendants of Node matching ID.
+
    function Image
      (Tree             : in Syntax_Trees.Tree;
       Node             : in Valid_Node_Index;
@@ -499,8 +515,9 @@ private
       --  tree is read but not modified.
 
       Augmented_Present : Boolean := False;
-      --  True if Set_Augmented has been called on any node.
-      --  Declared in Base_Tree because used by Base_Tree.Adjust.
+      --  True if Set_Augmented has been called on any node. Declared in
+      --  Base_Tree so it can be checked by Finalize (Base_Tree) and
+      --  Finalize (Tree).
 
       Traversing : Boolean := False;
       --  True while traversing tree in Process_Tree.
@@ -508,7 +525,7 @@ private
 
    end record;
 
-   type Tree is tagged record
+   type Tree is new Ada.Finalization.Controlled with record
       Shared_Tree : Base_Tree_Access;
       --  If we need to set anything (ie parent) in Shared_Tree, we move the
       --  branch point instead, unless Flush = True.

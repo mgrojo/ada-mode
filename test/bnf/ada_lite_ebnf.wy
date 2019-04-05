@@ -211,9 +211,8 @@ block_label_opt
   | ;; empty
   ;
 
-;; FIXME: need token labels for actions
 block_statement
-  : block_label_opt [DECLARE declarative_part] BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+  : T1=block_label_opt [DECLARE declarative_part] BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
     %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, T1, T7, End_Name_Optional);)%
   ;
@@ -399,9 +398,9 @@ object_declaration
   ;
 
 package_body
-  : PACKAGE BODY name [aspect_specification] IS declarative_part [BEGIN handled_sequence_of_statements] END name_opt SEMICOLON
+  : PACKAGE BODY name_1=name [aspect_specification] IS declarative_part [BEGIN handled_sequence_of_statements] END name_2=name_opt SEMICOLON
     %()%
-    %(return Match_Names (Lexer, Descriptor, Tokens, T3, T10, End_Name_Optional);)%
+    %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
   ;
 
 parameter_and_result_profile
@@ -498,10 +497,10 @@ statement
   ;
 
 subprogram_body
-  : subprogram_specification [aspect_specification] IS declarative_part BEGIN
-    handled_sequence_of_statements END name_opt SEMICOLON
+  : Name_1=subprogram_specification [aspect_specification] IS declarative_part BEGIN
+    handled_sequence_of_statements END Name_2=name_opt SEMICOLON
     %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
-    %(return Match_Names (Lexer, Descriptor, Tokens, T1, T8, End_Name_Optional);)%
+    %(return Match_Names (Lexer, Descriptor, Tokens, Name_1, Name_2, End_Name_Optional);)%
   ;
 
 subprogram_body_stub

@@ -32,6 +32,7 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 with WisiToken;
@@ -236,8 +237,17 @@ package WisiToken.BNF is
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
 
+   type Labeled_Token is record
+      Label      : Ada.Strings.Unbounded.Unbounded_String;
+      Identifier : Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+   package Labeled_Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Labeled_Token);
+   --  Index matches Syntax_Trees.Valid_Node_Index_Array, used for Tokens
+   --  in call to post parse grammar action.
+
    type RHS_Type is record
-      Tokens      : String_Lists.List;
+      Tokens      : Labeled_Token_Arrays.Vector;
       Action      : Ada.Strings.Unbounded.Unbounded_String;
       Check       : Ada.Strings.Unbounded.Unbounded_String;
       Source_Line : WisiToken.Line_Number_Type := WisiToken.Invalid_Line_Number;

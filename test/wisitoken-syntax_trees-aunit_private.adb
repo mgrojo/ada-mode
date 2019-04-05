@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 Stephen Leake All Rights Reserved.
+--  Copyright (C) 2018 - 2019 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -37,7 +37,7 @@ package body WisiToken.Syntax_Trees.AUnit_Private is
       case Computed.Label is
       when Shared_Terminal =>
          Check (Label & ".terminal", Computed.Terminal, Expected.Terminal);
-      when Virtual_Terminal =>
+      when Virtual_Terminal | Virtual_Identifier =>
          null;
       when Nonterm =>
          Check (Label & ".children", Computed.Children, Expected.Children);

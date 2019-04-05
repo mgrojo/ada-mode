@@ -28,7 +28,7 @@ package Wisitoken_Grammar_Actions is
      (First_Terminal                => 3,
       Last_Terminal                 => 35,
       First_Nonterminal             => 36,
-      Last_Nonterminal              => 55,
+      Last_Nonterminal              => 54,
       EOI_ID                        => 35,
       Accept_ID                     => 36,
       Case_Insensitive              => False,
@@ -82,7 +82,6 @@ package Wisitoken_Grammar_Actions is
          new String'("identifier_list"),
          new String'("declaration_item_list"),
          new String'("declaration_item"),
-         new String'("labeled_rhs_identifier"),
          new String'("nonterminal"),
          new String'("semicolon_opt"),
          new String'("rhs_list"),
@@ -143,7 +142,6 @@ package Wisitoken_Grammar_Actions is
       identifier_list_ID,
       declaration_item_list_ID,
       declaration_item_ID,
-      labeled_rhs_identifier_ID,
       nonterminal_ID,
       semicolon_opt_ID,
       rhs_list_ID,
@@ -201,12 +199,7 @@ package Wisitoken_Grammar_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
-   procedure rhs_item_0
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
-   procedure rhs_item_1
+   procedure rhs_item_2
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;

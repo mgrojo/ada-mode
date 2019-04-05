@@ -310,7 +310,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   (+handled_sequence_of_statements_ID,
                    +sequence_of_statements_ID));
 
-               Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_ID);
+#if ADA_LITE = "Ada_Lite" then
+               Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_list_ID);
+#else
+               Check (New_Config.Stack (1).Token.ID, +nonterminal_029_list_ID);
+#end if;
 
                Check (+END_ID, Terminals (End_Item.Token.Min_Terminal_Index).ID);
                Ops.Append ((Delete, +END_ID, Token_Index => End_Item.Token.Min_Terminal_Index));

@@ -22,7 +22,7 @@ update-wisi_grammar
 
  current work
 add EBNF
-    implement labeled_rhs_items for actions
+    handle deeply nested ebnf nodes; see FIXME
 
     replace %keywords with string literals
 

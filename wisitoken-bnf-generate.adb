@@ -326,7 +326,6 @@ begin
                declare
                   Tree  : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
                begin
-
                   if Trace_Generate > Outline then
                      Ada.Text_IO.Put_Line ("Translate EBNF tree to BNF");
                   end if;

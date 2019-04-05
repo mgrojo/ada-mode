@@ -75,7 +75,7 @@ Tokens:
  73 => constraint
  74 => declaration
  75 => declarations
- 76 => declarative_part_opt
+ 76 => declarative_part
  77 => discrete_subtype_definition
  78 => elsif_statement_item
  79 => elsif_statement_list
@@ -123,8 +123,8 @@ Tokens:
  121 => relation
  122 => relational_operator
  123 => selected_component
- 124 => sequence_of_statements
- 125 => sequence_of_statements_opt
+ 124 => sequence_of_statements_list
+ 125 => sequence_of_statements
  126 => simple_expression
  127 => simple_return_statement
  128 => simple_statement
@@ -156,13 +156,13 @@ Productions:
 62.2: binary_adding_operator <= AMPERSAND
 63.0: block_label_opt <= IDENTIFIER COLON
 63.1: block_label_opt <=
-64.0: block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+64.0: block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
 64.1: block_statement <= block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
 65.0: body_g <= proper_body
 65.1: body_g <= body_stub
 66.0: body_stub <= subprogram_body_stub
 67.0: case_statement <= CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON
-68.0: case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements_opt
+68.0: case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements
 69.0: case_statement_alternative_list <= case_statement_alternative_list case_statement_alternative
 69.1: case_statement_alternative_list <= case_statement_alternative
 70.0: compilation_unit <= package_body
@@ -185,18 +185,18 @@ Productions:
 74.3: declaration <= type_declaration
 75.0: declarations <= declarations declaration
 75.1: declarations <= declaration
-76.0: declarative_part_opt <= declarations
-76.1: declarative_part_opt <=
+76.0: declarative_part <= declarations
+76.1: declarative_part <=
 77.0: discrete_subtype_definition <= subtype_indication
 77.1: discrete_subtype_definition <= range_g
-78.0: elsif_statement_item <= ELSIF expression_opt THEN sequence_of_statements_opt
+78.0: elsif_statement_item <= ELSIF expression_opt THEN sequence_of_statements
 79.0: elsif_statement_list <= elsif_statement_list elsif_statement_item
 79.1: elsif_statement_list <= elsif_statement_item
 80.0: enumeration_literal_list <= enumeration_literal_list COMMA IDENTIFIER
 80.1: enumeration_literal_list <= IDENTIFIER
 81.0: enumeration_type_definition <= LEFT_PAREN enumeration_literal_list RIGHT_PAREN
 82.0: exception_choice <= name
-83.0: exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements_opt
+83.0: exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements
 84.0: exception_handler_list <= exception_handler_list exception_handler
 84.1: exception_handler_list <= exception_handler
 85.0: exception_handler_list_opt <= exception_handler_list
@@ -218,18 +218,18 @@ Productions:
 94.0: function_specification <= FUNCTION name parameter_and_result_profile
 95.0: generic_instantiation <= PACKAGE name IS NEW name SEMICOLON
 95.1: generic_instantiation <= PROCEDURE name IS NEW name SEMICOLON
-96.0: handled_sequence_of_statements <= sequence_of_statements_opt EXCEPTION exception_handler_list_opt
-96.1: handled_sequence_of_statements <= sequence_of_statements_opt
+96.0: handled_sequence_of_statements <= sequence_of_statements EXCEPTION exception_handler_list_opt
+96.1: handled_sequence_of_statements <= sequence_of_statements
 97.0: identifier_opt <= IDENTIFIER
 97.1: identifier_opt <=
-98.0: if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
-98.1: if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
-98.2: if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
-98.3: if_statement <= IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON
+98.0: if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON
+98.1: if_statement <= IF expression_opt THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON
+98.2: if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list END IF SEMICOLON
+98.3: if_statement <= IF expression_opt THEN sequence_of_statements END IF SEMICOLON
 99.0: index_constraint <= LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
 100.0: iteration_scheme <= FOR IDENTIFIER IN discrete_subtype_definition
-101.0: loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
-101.1: loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
+101.0: loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
+101.1: loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
 102.0: multiplying_operator <= STAR
 102.1: multiplying_operator <= SLASH
 103.0: name <= name LEFT_PAREN range_list RIGHT_PAREN
@@ -240,8 +240,8 @@ Productions:
 104.1: name_opt <=
 105.0: object_declaration <= IDENTIFIER COLON subtype_indication COLON_EQUAL expression_opt SEMICOLON
 105.1: object_declaration <= IDENTIFIER COLON subtype_indication SEMICOLON
-106.0: package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON
-106.1: package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON
+106.0: package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
+106.1: package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part END name_opt SEMICOLON
 107.0: parameter_and_result_profile <= formal_part RETURN IDENTIFIER
 107.1: parameter_and_result_profile <= RETURN IDENTIFIER
 108.0: parameter_profile_opt <= formal_part
@@ -278,10 +278,10 @@ Productions:
 122.4: relational_operator <= GREATER
 122.5: relational_operator <= GREATER_EQUAL
 123.0: selected_component <= name DOT IDENTIFIER
-124.0: sequence_of_statements <= sequence_of_statements statement
-124.1: sequence_of_statements <= statement
-125.0: sequence_of_statements_opt <= sequence_of_statements
-125.1: sequence_of_statements_opt <=
+124.0: sequence_of_statements_list <= sequence_of_statements_list statement
+124.1: sequence_of_statements_list <= statement
+125.0: sequence_of_statements <= sequence_of_statements_list
+125.1: sequence_of_statements <=
 126.0: simple_expression <= unary_adding_operator term_list
 126.1: simple_expression <= term_list
 127.0: simple_return_statement <= RETURN expression_opt SEMICOLON
@@ -291,7 +291,7 @@ Productions:
 128.3: simple_statement <= simple_return_statement
 129.0: statement <= simple_statement
 129.1: statement <= compound_statement
-130.0: subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON
+130.0: subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON
 131.0: subprogram_body_stub <= subprogram_specification IS SEPARATE SEMICOLON
 132.0: subprogram_declaration <= subprogram_specification SEMICOLON
 133.0: subprogram_specification <= procedure_specification
@@ -587,10 +587,10 @@ State 4:
    Minimal_Complete_Action => (IDENTIFIER)
 
 State 5:
-     98.0:if_statement <= IF ^ expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.1:if_statement <= IF ^ expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.2:if_statement <= IF ^ expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.3:if_statement <= IF ^ expression_opt THEN sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF ^ expression_opt THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF ^ expression_opt THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF ^ expression_opt THEN sequence_of_statements elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.3:if_statement <= IF ^ expression_opt THEN sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
@@ -621,12 +621,12 @@ State 5:
    Minimal_Complete_Action => (expression_opt)
 
 State 6:
-    101.1:loop_statement <= LOOP ^ sequence_of_statements_opt END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.1:loop_statement <= LOOP ^ sequence_of_statements END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
@@ -648,18 +648,18 @@ State 6:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 63
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 63
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 7:
      95.0:generic_instantiation <= PACKAGE ^ name IS NEW name SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
-    106.0:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
-    106.1:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part END name_opt SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    BODY                               => shift and goto state 65
    IDENTIFIER                         => shift and goto state 42
@@ -754,7 +754,7 @@ State 11:
    Minimal_Complete_Action => (simple_statement)
 
 State 12:
-     64.0:block_statement <= block_label_opt ^ DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt ^ DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
      64.1:block_statement <= block_label_opt ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => shift and goto state 72
@@ -1010,7 +1010,7 @@ State 22:
    Minimal_Complete_Action => (compound_statement)
 
 State 23:
-    101.0:loop_statement <= iteration_scheme ^ LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.0:loop_statement <= iteration_scheme ^ LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    LOOP                               => shift and goto state 75
    default                            => ERROR
@@ -1260,7 +1260,7 @@ State 34:
    Minimal_Complete_Action => (compilation_unit)
 
 State 35:
-    130.0:subprogram_body <= subprogram_specification ^ aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification ^ aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
     132.0:subprogram_declaration <= subprogram_specification ^ SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
 
    IS                                 => reduce 0 tokens to aspect_specification_opt 58.1
@@ -1790,10 +1790,10 @@ State 60:
    Minimal_Complete_Action => (RETURN)
 
 State 61:
-     98.0:if_statement <= IF expression_opt ^ THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.1:if_statement <= IF expression_opt ^ THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.2:if_statement <= IF expression_opt ^ THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.3:if_statement <= IF expression_opt ^ THEN sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt ^ THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt ^ THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF expression_opt ^ THEN sequence_of_statements elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.3:if_statement <= IF expression_opt ^ THEN sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    THEN                               => shift and goto state 115
    default                            => ERROR
@@ -1801,22 +1801,22 @@ State 61:
    Minimal_Complete_Action => (THEN)
 
 State 62:
-    124.0:sequence_of_statements <= sequence_of_statements ^ statement, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
-    125.0:sequence_of_statements_opt <= sequence_of_statements ^, ELSE/ELSIF/END/EXCEPTION/WHEN
+    124.0:sequence_of_statements_list <= sequence_of_statements_list ^ statement, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
+    125.0:sequence_of_statements <= sequence_of_statements_list ^, ELSE/ELSIF/END/EXCEPTION/WHEN
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   ELSE                               => reduce 1 tokens to sequence_of_statements_opt 125.0
-   ELSIF                              => reduce 1 tokens to sequence_of_statements_opt 125.0
-   END                                => reduce 1 tokens to sequence_of_statements_opt 125.0
+   ELSE                               => reduce 1 tokens to sequence_of_statements 125.0
+   ELSIF                              => reduce 1 tokens to sequence_of_statements 125.0
+   END                                => reduce 1 tokens to sequence_of_statements 125.0
    EXIT                               => shift and goto state 2
-   EXCEPTION                          => reduce 1 tokens to sequence_of_statements_opt 125.0
+   EXCEPTION                          => reduce 1 tokens to sequence_of_statements 125.0
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
    LOOP                               => shift and goto state 6
    RETURN                             => shift and goto state 9
-   WHEN                               => reduce 1 tokens to sequence_of_statements_opt 125.0
+   WHEN                               => reduce 1 tokens to sequence_of_statements 125.0
    IDENTIFIER                         => shift and goto state 10
    default                            => ERROR
 
@@ -1837,10 +1837,10 @@ State 62:
    simple_statement                   goto state 31
    statement                          goto state 116
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 63:
-    101.1:loop_statement <= LOOP sequence_of_statements_opt ^ END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.1:loop_statement <= LOOP sequence_of_statements ^ END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    END                                => shift and goto state 117
    default                            => ERROR
@@ -1848,29 +1848,29 @@ State 63:
    Minimal_Complete_Action => (END)
 
 State 64:
-    124.1:sequence_of_statements <= statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
+    124.1:sequence_of_statements_list <= statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
 
-   BEGIN                              => reduce 1 tokens to sequence_of_statements 124.1
-   CASE                               => reduce 1 tokens to sequence_of_statements 124.1
-   DECLARE                            => reduce 1 tokens to sequence_of_statements 124.1
-   ELSE                               => reduce 1 tokens to sequence_of_statements 124.1
-   ELSIF                              => reduce 1 tokens to sequence_of_statements 124.1
-   END                                => reduce 1 tokens to sequence_of_statements 124.1
-   EXIT                               => reduce 1 tokens to sequence_of_statements 124.1
-   EXCEPTION                          => reduce 1 tokens to sequence_of_statements 124.1
-   FOR                                => reduce 1 tokens to sequence_of_statements 124.1
-   IF                                 => reduce 1 tokens to sequence_of_statements 124.1
-   LOOP                               => reduce 1 tokens to sequence_of_statements 124.1
-   RETURN                             => reduce 1 tokens to sequence_of_statements 124.1
-   WHEN                               => reduce 1 tokens to sequence_of_statements 124.1
-   IDENTIFIER                         => reduce 1 tokens to sequence_of_statements 124.1
+   BEGIN                              => reduce 1 tokens to sequence_of_statements_list 124.1
+   CASE                               => reduce 1 tokens to sequence_of_statements_list 124.1
+   DECLARE                            => reduce 1 tokens to sequence_of_statements_list 124.1
+   ELSE                               => reduce 1 tokens to sequence_of_statements_list 124.1
+   ELSIF                              => reduce 1 tokens to sequence_of_statements_list 124.1
+   END                                => reduce 1 tokens to sequence_of_statements_list 124.1
+   EXIT                               => reduce 1 tokens to sequence_of_statements_list 124.1
+   EXCEPTION                          => reduce 1 tokens to sequence_of_statements_list 124.1
+   FOR                                => reduce 1 tokens to sequence_of_statements_list 124.1
+   IF                                 => reduce 1 tokens to sequence_of_statements_list 124.1
+   LOOP                               => reduce 1 tokens to sequence_of_statements_list 124.1
+   RETURN                             => reduce 1 tokens to sequence_of_statements_list 124.1
+   WHEN                               => reduce 1 tokens to sequence_of_statements_list 124.1
+   IDENTIFIER                         => reduce 1 tokens to sequence_of_statements_list 124.1
    default                            => ERROR
 
-   Minimal_Complete_Action => (sequence_of_statements)
+   Minimal_Complete_Action => (sequence_of_statements_list)
 
 State 65:
-    106.0:package_body <= PACKAGE BODY ^ name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
-    106.1:package_body <= PACKAGE BODY ^ name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY ^ name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY ^ name aspect_specification_opt IS declarative_part END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
@@ -1973,9 +1973,9 @@ State 72:
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
-   EXCEPTION                          => reduce 0 tokens to sequence_of_statements_opt 125.1
+   EXCEPTION                          => reduce 0 tokens to sequence_of_statements 125.1
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
    LOOP                               => shift and goto state 6
@@ -1997,8 +1997,8 @@ State 72:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 127
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
@@ -2006,9 +2006,9 @@ State 72:
    Minimal_Complete_Action => (handled_sequence_of_statements)
 
 State 73:
-     64.0:block_statement <= block_label_opt DECLARE ^ declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt DECLARE ^ declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
-   BEGIN                              => reduce 0 tokens to declarative_part_opt 76.1
+   BEGIN                              => reduce 0 tokens to declarative_part 76.1
    FUNCTION                           => shift and goto state 4
    PACKAGE                            => shift and goto state 128
    PROCEDURE                          => shift and goto state 129
@@ -2020,7 +2020,7 @@ State 73:
    body_stub                          goto state 133
    declaration                        goto state 134
    declarations                       goto state 135
-   declarative_part_opt               goto state 136
+   declarative_part                   goto state 136
    full_type_declaration              goto state 137
    function_specification             goto state 20
    object_declaration                 goto state 138
@@ -2033,7 +2033,7 @@ State 73:
    subprogram_specification           goto state 144
    type_declaration                   goto state 145
 
-   Minimal_Complete_Action => (declarative_part_opt)
+   Minimal_Complete_Action => (declarative_part)
 
 State 74:
      71.0:compilation_unit_list <= compilation_unit_list compilation_unit ^, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
@@ -2056,12 +2056,12 @@ State 74:
    Minimal_Complete_Action => (compilation_unit_list)
 
 State 75:
-    101.0:loop_statement <= iteration_scheme LOOP ^ sequence_of_statements_opt END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.0:loop_statement <= iteration_scheme LOOP ^ sequence_of_statements END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
@@ -2083,13 +2083,13 @@ State 75:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 146
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 146
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 76:
      57.0:actual_parameter_part <= LEFT_PAREN ^ association_list RIGHT_PAREN, AND/IS/LEFT_PAREN/LOOP/OR/RIGHT_PAREN/THEN/WITH/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT/DOT_DOT/EQUAL/EQUAL_GREATER/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -2282,7 +2282,7 @@ State 82:
    Minimal_Complete_Action => (subprogram_declaration)
 
 State 83:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt ^ IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    IS                                 => shift and goto state 157
    default                            => ERROR
@@ -2873,17 +2873,17 @@ State 114:
    Minimal_Complete_Action => (function_specification)
 
 State 115:
-     98.0:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.1:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.2:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.3:if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN ^ sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt THEN ^ sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF expression_opt THEN ^ sequence_of_statements elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.3:if_statement <= IF expression_opt THEN ^ sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   ELSE                               => reduce 0 tokens to sequence_of_statements_opt 125.1
-   ELSIF                              => reduce 0 tokens to sequence_of_statements_opt 125.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   ELSE                               => reduce 0 tokens to sequence_of_statements 125.1
+   ELSIF                              => reduce 0 tokens to sequence_of_statements 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
@@ -2905,37 +2905,37 @@ State 115:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 182
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 182
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
-
-State 116:
-    124.0:sequence_of_statements <= sequence_of_statements statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
-
-   BEGIN                              => reduce 2 tokens to sequence_of_statements 124.0
-   CASE                               => reduce 2 tokens to sequence_of_statements 124.0
-   DECLARE                            => reduce 2 tokens to sequence_of_statements 124.0
-   ELSE                               => reduce 2 tokens to sequence_of_statements 124.0
-   ELSIF                              => reduce 2 tokens to sequence_of_statements 124.0
-   END                                => reduce 2 tokens to sequence_of_statements 124.0
-   EXIT                               => reduce 2 tokens to sequence_of_statements 124.0
-   EXCEPTION                          => reduce 2 tokens to sequence_of_statements 124.0
-   FOR                                => reduce 2 tokens to sequence_of_statements 124.0
-   IF                                 => reduce 2 tokens to sequence_of_statements 124.0
-   LOOP                               => reduce 2 tokens to sequence_of_statements 124.0
-   RETURN                             => reduce 2 tokens to sequence_of_statements 124.0
-   WHEN                               => reduce 2 tokens to sequence_of_statements 124.0
-   IDENTIFIER                         => reduce 2 tokens to sequence_of_statements 124.0
-   default                            => ERROR
-
    Minimal_Complete_Action => (sequence_of_statements)
 
+State 116:
+    124.0:sequence_of_statements_list <= sequence_of_statements_list statement ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/IF/LOOP/RETURN/WHEN/IDENTIFIER
+
+   BEGIN                              => reduce 2 tokens to sequence_of_statements_list 124.0
+   CASE                               => reduce 2 tokens to sequence_of_statements_list 124.0
+   DECLARE                            => reduce 2 tokens to sequence_of_statements_list 124.0
+   ELSE                               => reduce 2 tokens to sequence_of_statements_list 124.0
+   ELSIF                              => reduce 2 tokens to sequence_of_statements_list 124.0
+   END                                => reduce 2 tokens to sequence_of_statements_list 124.0
+   EXIT                               => reduce 2 tokens to sequence_of_statements_list 124.0
+   EXCEPTION                          => reduce 2 tokens to sequence_of_statements_list 124.0
+   FOR                                => reduce 2 tokens to sequence_of_statements_list 124.0
+   IF                                 => reduce 2 tokens to sequence_of_statements_list 124.0
+   LOOP                               => reduce 2 tokens to sequence_of_statements_list 124.0
+   RETURN                             => reduce 2 tokens to sequence_of_statements_list 124.0
+   WHEN                               => reduce 2 tokens to sequence_of_statements_list 124.0
+   IDENTIFIER                         => reduce 2 tokens to sequence_of_statements_list 124.0
+   default                            => ERROR
+
+   Minimal_Complete_Action => (sequence_of_statements_list)
+
 State 117:
-    101.1:loop_statement <= LOOP sequence_of_statements_opt END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.1:loop_statement <= LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    LOOP                               => shift and goto state 183
    default                            => ERROR
@@ -2945,8 +2945,8 @@ State 117:
 State 118:
     103.0:name <= name ^ LEFT_PAREN range_list RIGHT_PAREN, IS/LEFT_PAREN/WITH/DOT
     103.1:name <= name ^ actual_parameter_part, IS/LEFT_PAREN/WITH/DOT
-    106.0:package_body <= PACKAGE BODY name ^ aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
-    106.1:package_body <= PACKAGE BODY name ^ aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name ^ aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY name ^ aspect_specification_opt IS declarative_part END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
     123.0:selected_component <= name ^ DOT IDENTIFIER, IS/LEFT_PAREN/WITH/DOT
 
    IS                                 => reduce 0 tokens to aspect_specification_opt 58.1
@@ -3067,8 +3067,8 @@ State 126:
    Minimal_Complete_Action => (END)
 
 State 127:
-     96.0:handled_sequence_of_statements <= sequence_of_statements_opt ^ EXCEPTION exception_handler_list_opt, END
-     96.1:handled_sequence_of_statements <= sequence_of_statements_opt ^, END
+     96.0:handled_sequence_of_statements <= sequence_of_statements ^ EXCEPTION exception_handler_list_opt, END
+     96.1:handled_sequence_of_statements <= sequence_of_statements ^, END
 
    END                                => reduce 1 tokens to handled_sequence_of_statements 96.1
    EXCEPTION                          => shift and goto state 190
@@ -3077,8 +3077,8 @@ State 127:
    Minimal_Complete_Action => (handled_sequence_of_statements)
 
 State 128:
-    106.0:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
-    106.1:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
+    106.0:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
+    106.1:package_body <= PACKAGE ^ BODY name aspect_specification_opt IS declarative_part END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
    BODY                               => shift and goto state 65
    default                            => ERROR
@@ -3157,10 +3157,10 @@ State 134:
 
 State 135:
      75.0:declarations <= declarations ^ declaration, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
-     76.0:declarative_part_opt <= declarations ^, BEGIN/END
+     76.0:declarative_part <= declarations ^, BEGIN/END
 
-   BEGIN                              => reduce 1 tokens to declarative_part_opt 76.0
-   END                                => reduce 1 tokens to declarative_part_opt 76.0
+   BEGIN                              => reduce 1 tokens to declarative_part 76.0
+   END                                => reduce 1 tokens to declarative_part 76.0
    FUNCTION                           => shift and goto state 4
    PACKAGE                            => shift and goto state 128
    PROCEDURE                          => shift and goto state 129
@@ -3183,10 +3183,10 @@ State 135:
    subprogram_specification           goto state 144
    type_declaration                   goto state 145
 
-   Minimal_Complete_Action => (declarative_part_opt)
+   Minimal_Complete_Action => (declarative_part)
 
 State 136:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt DECLARE declarative_part ^ BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => shift and goto state 195
    default                            => ERROR
@@ -3292,7 +3292,7 @@ State 143:
    Minimal_Complete_Action => (declaration)
 
 State 144:
-    130.0:subprogram_body <= subprogram_specification ^ aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
+    130.0:subprogram_body <= subprogram_specification ^ aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     131.0:subprogram_body_stub <= subprogram_specification ^ IS SEPARATE SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
     132.0:subprogram_declaration <= subprogram_specification ^ SEMICOLON, BEGIN/END/FUNCTION/PACKAGE/PROCEDURE/TYPE/IDENTIFIER
 
@@ -3321,7 +3321,7 @@ State 145:
    Minimal_Complete_Action => (declaration)
 
 State 146:
-    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt ^ END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements ^ END LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    END                                => shift and goto state 197
    default                            => ERROR
@@ -3484,9 +3484,9 @@ State 156:
    Minimal_Complete_Action => (aspect_specification_opt)
 
 State 157:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS ^ declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   BEGIN                              => reduce 0 tokens to declarative_part_opt 76.1
+   BEGIN                              => reduce 0 tokens to declarative_part 76.1
    FUNCTION                           => shift and goto state 4
    PACKAGE                            => shift and goto state 128
    PROCEDURE                          => shift and goto state 129
@@ -3498,7 +3498,7 @@ State 157:
    body_stub                          goto state 133
    declaration                        goto state 134
    declarations                       goto state 135
-   declarative_part_opt               goto state 205
+   declarative_part                   goto state 205
    full_type_declaration              goto state 137
    function_specification             goto state 20
    object_declaration                 goto state 138
@@ -3511,7 +3511,7 @@ State 157:
    subprogram_specification           goto state 144
    type_declaration                   goto state 145
 
-   Minimal_Complete_Action => (declarative_part_opt)
+   Minimal_Complete_Action => (declarative_part)
 
 State 158:
     111.0:paren_expression <= LEFT_PAREN expression_opt RIGHT_PAREN ^, AND/IS/LOOP/OR/RIGHT_PAREN/THEN/XOR/AMPERSAND/COLON_EQUAL/COMMA/DOT_DOT/EQUAL/GREATER/GREATER_EQUAL/LESS/LESS_EQUAL/MINUS/PLUS/SEMICOLON/SLASH/SLASH_EQUAL/STAR
@@ -3543,7 +3543,7 @@ State 158:
    Minimal_Complete_Action => (paren_expression)
 
 State 159:
-     68.0:case_statement_alternative <= WHEN ^ NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements_opt, END/WHEN
+     68.0:case_statement_alternative <= WHEN ^ NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements, END/WHEN
 
    NUMERIC_LITERAL                    => shift and goto state 206
    default                            => ERROR
@@ -3873,10 +3873,10 @@ State 181:
    Minimal_Complete_Action => (IDENTIFIER)
 
 State 182:
-     98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN sequence_of_statements ^ elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt THEN sequence_of_statements ^ ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF expression_opt THEN sequence_of_statements ^ elsif_statement_list END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.3:if_statement <= IF expression_opt THEN sequence_of_statements ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    ELSE                               => shift and goto state 218
    ELSIF                              => shift and goto state 219
@@ -3889,7 +3889,7 @@ State 182:
    Minimal_Complete_Action => (END)
 
 State 183:
-    101.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.1:loop_statement <= LOOP sequence_of_statements END LOOP ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 97.1
    IDENTIFIER                         => shift and goto state 57
@@ -3900,8 +3900,8 @@ State 183:
    Minimal_Complete_Action => (identifier_opt)
 
 State 184:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt ^ IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
-    106.1:package_body <= PACKAGE BODY name aspect_specification_opt ^ IS declarative_part_opt END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt ^ IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY name aspect_specification_opt ^ IS declarative_part END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    IS                                 => shift and goto state 224
    default                            => ERROR
@@ -3970,7 +3970,7 @@ State 189:
    Minimal_Complete_Action => (identifier_opt)
 
 State 190:
-     96.0:handled_sequence_of_statements <= sequence_of_statements_opt EXCEPTION ^ exception_handler_list_opt, END
+     96.0:handled_sequence_of_statements <= sequence_of_statements EXCEPTION ^ exception_handler_list_opt, END
 
    END                                => reduce 0 tokens to exception_handler_list_opt 85.1
    WHEN                               => shift and goto state 228
@@ -4037,14 +4037,14 @@ State 194:
    Minimal_Complete_Action => (declarations)
 
 State 195:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN ^ handled_sequence_of_statements END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
-   EXCEPTION                          => reduce 0 tokens to sequence_of_statements_opt 125.1
+   EXCEPTION                          => reduce 0 tokens to sequence_of_statements 125.1
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
    LOOP                               => shift and goto state 6
@@ -4066,8 +4066,8 @@ State 195:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 127
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
@@ -4083,7 +4083,7 @@ State 196:
    Minimal_Complete_Action => (SEPARATE)
 
 State 197:
-    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END ^ LOOP identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    LOOP                               => shift and goto state 236
    default                            => ERROR
@@ -4301,7 +4301,7 @@ State 204:
    Minimal_Complete_Action => (assignment_statement)
 
 State 205:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => shift and goto state 241
    default                            => ERROR
@@ -4309,7 +4309,7 @@ State 205:
    Minimal_Complete_Action => (BEGIN)
 
 State 206:
-     68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL ^ EQUAL_GREATER sequence_of_statements_opt, END/WHEN
+     68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL ^ EQUAL_GREATER sequence_of_statements, END/WHEN
 
    EQUAL_GREATER                      => shift and goto state 242
    default                            => ERROR
@@ -4487,12 +4487,12 @@ State 217:
    Minimal_Complete_Action => (parameter_and_result_profile)
 
 State 218:
-     98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE ^ sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt THEN sequence_of_statements ELSE ^ sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
@@ -4514,16 +4514,16 @@ State 218:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 250
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 250
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 219:
-     78.0:elsif_statement_item <= ELSIF ^ expression_opt THEN sequence_of_statements_opt, ELSE/ELSIF/END
+     78.0:elsif_statement_item <= ELSIF ^ expression_opt THEN sequence_of_statements, ELSE/ELSIF/END
 
    LEFT_PAREN                         => shift and goto state 36
    NOT                                => shift and goto state 37
@@ -4554,7 +4554,7 @@ State 219:
    Minimal_Complete_Action => (expression_opt)
 
 State 220:
-     98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.3:if_statement <= IF expression_opt THEN sequence_of_statements END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    IF                                 => shift and goto state 252
    default                            => ERROR
@@ -4573,8 +4573,8 @@ State 221:
 
 State 222:
      79.0:elsif_statement_list <= elsif_statement_list ^ elsif_statement_item, ELSE/ELSIF/END
-     98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ^ ELSE sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
-     98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ^ ELSE sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    ELSE                               => shift and goto state 253
    ELSIF                              => shift and goto state 219
@@ -4586,7 +4586,7 @@ State 222:
    Minimal_Complete_Action => (END)
 
 State 223:
-    101.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.1:loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 256
    default                            => ERROR
@@ -4594,11 +4594,11 @@ State 223:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 224:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
-    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part_opt END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS ^ declarative_part END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
-   BEGIN                              => reduce 0 tokens to declarative_part_opt 76.1
-   END                                => reduce 0 tokens to declarative_part_opt 76.1
+   BEGIN                              => reduce 0 tokens to declarative_part 76.1
+   END                                => reduce 0 tokens to declarative_part 76.1
    FUNCTION                           => shift and goto state 4
    PACKAGE                            => shift and goto state 128
    PROCEDURE                          => shift and goto state 129
@@ -4610,7 +4610,7 @@ State 224:
    body_stub                          goto state 133
    declaration                        goto state 134
    declarations                       goto state 135
-   declarative_part_opt               goto state 257
+   declarative_part                   goto state 257
    full_type_declaration              goto state 137
    function_specification             goto state 20
    object_declaration                 goto state 138
@@ -4623,7 +4623,7 @@ State 224:
    subprogram_specification           goto state 144
    type_declaration                   goto state 145
 
-   Minimal_Complete_Action => (declarative_part_opt)
+   Minimal_Complete_Action => (declarative_part)
 
 State 225:
      95.0:generic_instantiation <= PACKAGE name IS NEW name ^ SEMICOLON, BEGIN/CASE/DECLARE/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/IDENTIFIER/Wisi_EOI
@@ -4664,7 +4664,7 @@ State 227:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 228:
-     83.0:exception_handler <= WHEN ^ exception_choice EQUAL_GREATER sequence_of_statements_opt, END/WHEN
+     83.0:exception_handler <= WHEN ^ exception_choice EQUAL_GREATER sequence_of_statements, END/WHEN
 
    IDENTIFIER                         => shift and goto state 42
    default                            => ERROR
@@ -4697,7 +4697,7 @@ State 230:
    Minimal_Complete_Action => (exception_handler_list_opt)
 
 State 231:
-     96.0:handled_sequence_of_statements <= sequence_of_statements_opt EXCEPTION exception_handler_list_opt ^, END
+     96.0:handled_sequence_of_statements <= sequence_of_statements EXCEPTION exception_handler_list_opt ^, END
 
    END                                => reduce 3 tokens to handled_sequence_of_statements 96.0
    default                            => ERROR
@@ -4726,7 +4726,7 @@ State 233:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 234:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements ^ END identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    END                                => shift and goto state 269
    default                            => ERROR
@@ -4742,7 +4742,7 @@ State 235:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 236:
-    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END LOOP ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 97.1
    IDENTIFIER                         => shift and goto state 57
@@ -4794,14 +4794,14 @@ State 240:
    Minimal_Complete_Action => (range_g)
 
 State 241:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
-   EXCEPTION                          => reduce 0 tokens to sequence_of_statements_opt 125.1
+   EXCEPTION                          => reduce 0 tokens to sequence_of_statements 125.1
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
    LOOP                               => shift and goto state 6
@@ -4823,8 +4823,8 @@ State 241:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 127
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
@@ -4832,18 +4832,18 @@ State 241:
    Minimal_Complete_Action => (handled_sequence_of_statements)
 
 State 242:
-     68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER ^ sequence_of_statements_opt, END/WHEN
+     68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER ^ sequence_of_statements, END/WHEN
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
    LOOP                               => shift and goto state 6
    RETURN                             => shift and goto state 9
-   WHEN                               => reduce 0 tokens to sequence_of_statements_opt 125.1
+   WHEN                               => reduce 0 tokens to sequence_of_statements 125.1
    IDENTIFIER                         => shift and goto state 10
    default                            => ERROR
 
@@ -4860,13 +4860,13 @@ State 242:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 273
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 273
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 243:
      67.0:case_statement <= CASE expression_opt IS case_statement_alternative_list END CASE ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
@@ -4936,7 +4936,7 @@ State 249:
    Minimal_Complete_Action => (parameter_specification_list)
 
 State 250:
-     98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt THEN sequence_of_statements ELSE sequence_of_statements ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    END                                => shift and goto state 277
    default                            => ERROR
@@ -4944,7 +4944,7 @@ State 250:
    Minimal_Complete_Action => (END)
 
 State 251:
-     78.0:elsif_statement_item <= ELSIF expression_opt ^ THEN sequence_of_statements_opt, ELSE/ELSIF/END
+     78.0:elsif_statement_item <= ELSIF expression_opt ^ THEN sequence_of_statements, ELSE/ELSIF/END
 
    THEN                               => shift and goto state 278
    default                            => ERROR
@@ -4952,7 +4952,7 @@ State 251:
    Minimal_Complete_Action => (THEN)
 
 State 252:
-     98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.3:if_statement <= IF expression_opt THEN sequence_of_statements END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 279
    default                            => ERROR
@@ -4960,12 +4960,12 @@ State 252:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 253:
-     98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE ^ sequence_of_statements_opt END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ELSE ^ sequence_of_statements END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
@@ -4987,16 +4987,16 @@ State 253:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 280
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 280
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 254:
-     98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    IF                                 => shift and goto state 281
    default                            => ERROR
@@ -5014,7 +5014,7 @@ State 255:
    Minimal_Complete_Action => (elsif_statement_list)
 
 State 256:
-    101.1:loop_statement <= LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.1:loop_statement <= LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 6 tokens to loop_statement 101.1
    CASE                               => reduce 6 tokens to loop_statement 101.1
@@ -5039,8 +5039,8 @@ State 256:
    Minimal_Complete_Action => (loop_statement)
 
 State 257:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
-    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part ^ BEGIN handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => shift and goto state 282
    END                                => shift and goto state 283
@@ -5114,7 +5114,7 @@ State 260:
    Minimal_Complete_Action => (block_statement)
 
 State 261:
-     83.0:exception_handler <= WHEN exception_choice ^ EQUAL_GREATER sequence_of_statements_opt, END/WHEN
+     83.0:exception_handler <= WHEN exception_choice ^ EQUAL_GREATER sequence_of_statements, END/WHEN
 
    EQUAL_GREATER                      => shift and goto state 284
    default                            => ERROR
@@ -5217,7 +5217,7 @@ State 268:
    Minimal_Complete_Action => (object_declaration)
 
 State 269:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END ^ identifier_opt SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to identifier_opt 97.1
    IDENTIFIER                         => shift and goto state 57
@@ -5242,7 +5242,7 @@ State 270:
    Minimal_Complete_Action => (subprogram_body_stub)
 
 State 271:
-    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 290
    default                            => ERROR
@@ -5250,7 +5250,7 @@ State 271:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 272:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    END                                => shift and goto state 291
    default                            => ERROR
@@ -5258,7 +5258,7 @@ State 272:
    Minimal_Complete_Action => (END)
 
 State 273:
-     68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements_opt ^, END/WHEN
+     68.0:case_statement_alternative <= WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements ^, END/WHEN
 
    END                                => reduce 4 tokens to case_statement_alternative 68.0
    WHEN                               => reduce 4 tokens to case_statement_alternative 68.0
@@ -5335,7 +5335,7 @@ State 276:
    Minimal_Complete_Action => (expression_opt)
 
 State 277:
-     98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt THEN sequence_of_statements ELSE sequence_of_statements END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    IF                                 => shift and goto state 293
    default                            => ERROR
@@ -5343,14 +5343,14 @@ State 277:
    Minimal_Complete_Action => (IF)
 
 State 278:
-     78.0:elsif_statement_item <= ELSIF expression_opt THEN ^ sequence_of_statements_opt, ELSE/ELSIF/END
+     78.0:elsif_statement_item <= ELSIF expression_opt THEN ^ sequence_of_statements, ELSE/ELSIF/END
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   ELSE                               => reduce 0 tokens to sequence_of_statements_opt 125.1
-   ELSIF                              => reduce 0 tokens to sequence_of_statements_opt 125.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   ELSE                               => reduce 0 tokens to sequence_of_statements 125.1
+   ELSIF                              => reduce 0 tokens to sequence_of_statements 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
@@ -5372,16 +5372,16 @@ State 278:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 294
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 294
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 279:
-     98.3:if_statement <= IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.3:if_statement <= IF expression_opt THEN sequence_of_statements END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 7 tokens to if_statement 98.3
    CASE                               => reduce 7 tokens to if_statement 98.3
@@ -5406,7 +5406,7 @@ State 279:
    Minimal_Complete_Action => (if_statement)
 
 State 280:
-     98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements ^ END IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    END                                => shift and goto state 295
    default                            => ERROR
@@ -5414,7 +5414,7 @@ State 280:
    Minimal_Complete_Action => (END)
 
 State 281:
-     98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 296
    default                            => ERROR
@@ -5422,14 +5422,14 @@ State 281:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 282:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part BEGIN ^ handled_sequence_of_statements END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
-   EXCEPTION                          => reduce 0 tokens to sequence_of_statements_opt 125.1
+   EXCEPTION                          => reduce 0 tokens to sequence_of_statements 125.1
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
    LOOP                               => shift and goto state 6
@@ -5451,8 +5451,8 @@ State 282:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 127
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 127
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
@@ -5460,7 +5460,7 @@ State 282:
    Minimal_Complete_Action => (handled_sequence_of_statements)
 
 State 283:
-    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to name_opt 104.1
    IDENTIFIER                         => shift and goto state 42
@@ -5473,18 +5473,18 @@ State 283:
    Minimal_Complete_Action => (name_opt)
 
 State 284:
-     83.0:exception_handler <= WHEN exception_choice EQUAL_GREATER ^ sequence_of_statements_opt, END/WHEN
+     83.0:exception_handler <= WHEN exception_choice EQUAL_GREATER ^ sequence_of_statements, END/WHEN
 
    BEGIN                              => reduce 0 tokens to block_label_opt 63.1
    CASE                               => shift and goto state 1
    DECLARE                            => reduce 0 tokens to block_label_opt 63.1
-   END                                => reduce 0 tokens to sequence_of_statements_opt 125.1
+   END                                => reduce 0 tokens to sequence_of_statements 125.1
    EXIT                               => shift and goto state 2
    FOR                                => shift and goto state 3
    IF                                 => shift and goto state 5
    LOOP                               => shift and goto state 6
    RETURN                             => shift and goto state 9
-   WHEN                               => reduce 0 tokens to sequence_of_statements_opt 125.1
+   WHEN                               => reduce 0 tokens to sequence_of_statements 125.1
    IDENTIFIER                         => shift and goto state 10
    default                            => ERROR
 
@@ -5501,13 +5501,13 @@ State 284:
    name                               goto state 25
    procedure_call_statement           goto state 27
    selected_component                 goto state 29
-   sequence_of_statements             goto state 62
-   sequence_of_statements_opt         goto state 300
+   sequence_of_statements_list        goto state 62
+   sequence_of_statements             goto state 300
    simple_return_statement            goto state 30
    simple_statement                   goto state 31
    statement                          goto state 64
 
-   Minimal_Complete_Action => (sequence_of_statements_opt)
+   Minimal_Complete_Action => (sequence_of_statements)
 
 State 285:
      80.1:enumeration_literal_list <= IDENTIFIER ^, RIGHT_PAREN/COMMA
@@ -5551,7 +5551,7 @@ State 288:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 289:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 304
    default                            => ERROR
@@ -5559,7 +5559,7 @@ State 289:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 290:
-    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+    101.0:loop_statement <= iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 7 tokens to loop_statement 101.0
    CASE                               => reduce 7 tokens to loop_statement 101.0
@@ -5584,7 +5584,7 @@ State 290:
    Minimal_Complete_Action => (loop_statement)
 
 State 291:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to name_opt 104.1
    IDENTIFIER                         => shift and goto state 42
@@ -5606,7 +5606,7 @@ State 292:
    Minimal_Complete_Action => (parameter_specification)
 
 State 293:
-     98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt THEN sequence_of_statements ELSE sequence_of_statements END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 306
    default                            => ERROR
@@ -5614,7 +5614,7 @@ State 293:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 294:
-     78.0:elsif_statement_item <= ELSIF expression_opt THEN sequence_of_statements_opt ^, ELSE/ELSIF/END
+     78.0:elsif_statement_item <= ELSIF expression_opt THEN sequence_of_statements ^, ELSE/ELSIF/END
 
    ELSE                               => reduce 4 tokens to elsif_statement_item 78.0
    ELSIF                              => reduce 4 tokens to elsif_statement_item 78.0
@@ -5624,7 +5624,7 @@ State 294:
    Minimal_Complete_Action => (elsif_statement_item)
 
 State 295:
-     98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END ^ IF SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    IF                                 => shift and goto state 307
    default                            => ERROR
@@ -5632,7 +5632,7 @@ State 295:
    Minimal_Complete_Action => (IF)
 
 State 296:
-     98.2:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.2:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 8 tokens to if_statement 98.2
    CASE                               => reduce 8 tokens to if_statement 98.2
@@ -5657,7 +5657,7 @@ State 296:
    Minimal_Complete_Action => (if_statement)
 
 State 297:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements ^ END name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    END                                => shift and goto state 308
    default                            => ERROR
@@ -5680,7 +5680,7 @@ State 298:
    Minimal_Complete_Action => (name_opt)
 
 State 299:
-    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 309
    default                            => ERROR
@@ -5688,7 +5688,7 @@ State 299:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 300:
-     83.0:exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements_opt ^, END/WHEN
+     83.0:exception_handler <= WHEN exception_choice EQUAL_GREATER sequence_of_statements ^, END/WHEN
 
    END                                => reduce 4 tokens to exception_handler 83.0
    WHEN                               => reduce 4 tokens to exception_handler 83.0
@@ -5727,7 +5727,7 @@ State 303:
    Minimal_Complete_Action => (object_declaration)
 
 State 304:
-     64.0:block_statement <= block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     64.0:block_statement <= block_label_opt DECLARE declarative_part BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 8 tokens to block_statement 64.0
    CASE                               => reduce 8 tokens to block_statement 64.0
@@ -5752,7 +5752,7 @@ State 304:
    Minimal_Complete_Action => (block_statement)
 
 State 305:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 311
    default                            => ERROR
@@ -5760,7 +5760,7 @@ State 305:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 306:
-     98.1:if_statement <= IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.1:if_statement <= IF expression_opt THEN sequence_of_statements ELSE sequence_of_statements END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 9 tokens to if_statement 98.1
    CASE                               => reduce 9 tokens to if_statement 98.1
@@ -5785,7 +5785,7 @@ State 306:
    Minimal_Complete_Action => (if_statement)
 
 State 307:
-     98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF ^ SEMICOLON, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 312
    default                            => ERROR
@@ -5793,7 +5793,7 @@ State 307:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 308:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END ^ name_opt SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => reduce 0 tokens to name_opt 104.1
    IDENTIFIER                         => shift and goto state 42
@@ -5806,7 +5806,7 @@ State 308:
    Minimal_Complete_Action => (name_opt)
 
 State 309:
-    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.1:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 9 tokens to package_body 106.1
    CASE                               => reduce 9 tokens to package_body 106.1
@@ -5837,7 +5837,7 @@ State 310:
    Minimal_Complete_Action => (enumeration_literal_list)
 
 State 311:
-    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    130.0:subprogram_body <= subprogram_specification aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 9 tokens to subprogram_body 130.0
    CASE                               => reduce 9 tokens to subprogram_body 130.0
@@ -5859,7 +5859,7 @@ State 311:
    Minimal_Complete_Action => (subprogram_body)
 
 State 312:
-     98.0:if_statement <= IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
+     98.0:if_statement <= IF expression_opt THEN sequence_of_statements elsif_statement_list ELSE sequence_of_statements END IF SEMICOLON ^, BEGIN/CASE/DECLARE/ELSE/ELSIF/END/EXIT/EXCEPTION/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/WHEN/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 10 tokens to if_statement 98.0
    CASE                               => reduce 10 tokens to if_statement 98.0
@@ -5884,7 +5884,7 @@ State 312:
    Minimal_Complete_Action => (if_statement)
 
 State 313:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt ^ SEMICOLON, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    SEMICOLON                          => shift and goto state 314
    default                            => ERROR
@@ -5892,7 +5892,7 @@ State 313:
    Minimal_Complete_Action => (SEMICOLON)
 
 State 314:
-    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
+    106.0:package_body <= PACKAGE BODY name aspect_specification_opt IS declarative_part BEGIN handled_sequence_of_statements END name_opt SEMICOLON ^, BEGIN/CASE/DECLARE/END/EXIT/FOR/FUNCTION/IF/LOOP/PACKAGE/PROCEDURE/RETURN/TYPE/IDENTIFIER/Wisi_EOI
 
    BEGIN                              => reduce 11 tokens to package_body 106.0
    CASE                               => reduce 11 tokens to package_body 106.0

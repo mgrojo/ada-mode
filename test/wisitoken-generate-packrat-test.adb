@@ -50,6 +50,9 @@ package body WisiToken.Generate.Packrat.Test is
       Grammar_Parser.Lexer.Reset_With_File (Grammar_File_Name);
       Grammar_Parser.Parse;
       Grammar_Parse_Data.User_Parser := WisiToken.BNF.Packrat_Gen;
+      Grammar_Parse_Data.Phase := WisiToken_Grammar_Runtime.Meta;
+      Grammar_Parser.Execute_Actions;
+      Grammar_Parse_Data.Phase := WisiToken_Grammar_Runtime.Other;
       Grammar_Parser.Execute_Actions;
 
       declare

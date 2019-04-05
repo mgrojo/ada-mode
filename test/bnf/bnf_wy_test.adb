@@ -115,6 +115,9 @@ package body BNF_WY_Test is
 
       Grammar_Parser.Lexer.Reset_With_File ("../Test/bnf/" & Root_Name & ".wy");
       Grammar_Parser.Parse;
+      Input_Data.Phase := WisiToken_Grammar_Runtime.Meta;
+      Grammar_Parser.Execute_Actions;
+      Input_Data.Phase := WisiToken_Grammar_Runtime.Other;
       Grammar_Parser.Execute_Actions;
 
       Generate_Set     := Input_Data.Generate_Set;

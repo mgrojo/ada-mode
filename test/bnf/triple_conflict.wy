@@ -7,7 +7,7 @@
 %token <punctuation> RIGHT_SQUARE_BRACKET "]"
 %token <punctuation> SEMICOLON ";"
 
-%token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
 %start ClassDeclaration
 

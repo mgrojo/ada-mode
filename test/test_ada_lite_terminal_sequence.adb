@@ -273,6 +273,9 @@ package body Test_Ada_Lite_Terminal_Sequence is
       Grammar_Parser.Lexer.Reset_With_File (Input_File_Name);
       Grammar_Parser.Parse;
       Input_Data.User_Parser := WisiToken.BNF.LALR;
+      Input_Data.Phase := WisiToken_Grammar_Runtime.Meta;
+      Grammar_Parser.Execute_Actions;
+      Input_Data.Phase := WisiToken_Grammar_Runtime.Other;
       Grammar_Parser.Execute_Actions;
       Generate_Data := new WisiToken.BNF.Generate_Utils.Generate_Data'
         (WisiToken.BNF.Generate_Utils.Initialize (Input_Data));

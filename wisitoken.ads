@@ -160,6 +160,7 @@ package WisiToken is
    --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
 
    type Token_ID_Array is array (Positive range <>) of Token_ID;
+   --  Index is not Positive_Index_Type, mostly for historical reasons.
 
    package Token_ID_Arrays is new SAL.Gen_Unbounded_Definite_Vectors
      (Positive, Token_ID, Default_Element => Invalid_Token_ID);
@@ -296,7 +297,6 @@ package WisiToken is
    end record;
 
    type Base_Token_Class_Access is access all Base_Token'Class;
-   type Base_Token_Class_Access_Array is array (Positive_Index_Type range <>) of Base_Token_Class_Access;
 
    function Image
      (Item       : in Base_Token;

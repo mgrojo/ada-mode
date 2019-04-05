@@ -146,15 +146,15 @@ package body WisiToken_Grammar_Runtime is
      return WisiToken.BNF.RHS_Type
    is
       use all type SAL.Base_Peek_Type;
-      Tokens : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Token);
+      Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Children (Token);
    begin
       pragma Assert (-Tree.ID (Token) = rhs_ID);
 
       return RHS : WisiToken.BNF.RHS_Type do
          if Tree.Min_Terminal_Index (Token) = Invalid_Token_Index then
-            --  Tokens is empty or all virtual_identifiers; parent is a possibly
-            --  empty rhs_list; grandparent may be a non-empty rhs_list or
-            --  nonterminal.
+            --  Find a source line. RHS is empty or all virtual_identifiers;
+            --  parent is a possibly empty rhs_list; grandparent may be a
+            --  non-empty rhs_list or nonterminal.
             declare
                Tok : constant Base_Token_Index := Tree.Min_Terminal_Index (Tree.Parent (Tree.Parent (Token)));
             begin
@@ -169,14 +169,29 @@ package body WisiToken_Grammar_Runtime is
             RHS.Source_Line := Data.Terminals.all (Tree.Min_Terminal_Index (Token)).Line;
          end if;
 
-         if Tokens'Length > 0 then
-            for I of Tree.Get_Terminals (Tokens (1)) loop
-               RHS.Tokens.Append (Get_Text (Data, Tree, I));
+         if Children'Length > 0 then
+            for I of Tree.Get_IDs (Children (1), +rhs_item_ID) loop
+               case Tree.RHS_Index (I) is
+               when 0 =>
+                  --  plain identifier
+                  RHS.Tokens.Append
+                    ((Label      => +"",
+                      Identifier => +Get_Text (Data, Tree, Tree.Child (I, 1))));
+
+               when 1 =>
+                  --  labeled identifier
+                  RHS.Tokens.Append
+                    ((Label      => +Get_Text (Data, Tree, Tree.Child (I, 1)),
+                      Identifier => +Get_Text (Data, Tree, Tree.Child (I, 3))));
+
+               when others =>
+                  Raise_Programmer_Error ("Get_RHS; untranslated token", Tree, I);
+               end case;
             end loop;
 
-            if Tokens'Last >= 2 then
+            if Children'Last >= 2 then
                declare
-                  Text : constant String := Get_Text (Data, Tree, Tokens (2));
+                  Text : constant String := Get_Text (Data, Tree, Children (2));
                begin
                   if Text'Length > 0 and (for some C of Text => C /= ' ') then
                      RHS.Action := +Text;
@@ -185,12 +200,21 @@ package body WisiToken_Grammar_Runtime is
                end;
             end if;
 
-            if Tokens'Last >= 3 then
-               RHS.Check := +Get_Text (Data, Tree, Tokens (3));
+            if Children'Last >= 3 then
+               RHS.Check := +Get_Text (Data, Tree, Children (3));
                Data.Check_Count := Data.Check_Count + 1;
             end if;
          end if;
       end return;
+   exception
+   when SAL.Programmer_Error =>
+      raise;
+   when E : others =>
+      declare
+         use Ada.Exceptions;
+      begin
+         Raise_Programmer_Error ("Get_RHS: " & Exception_Name (E) & ": " & Exception_Message (E), Tree, Token);
+      end;
    end Get_RHS;
 
    procedure Get_Right_Hand_Sides
@@ -203,20 +227,30 @@ package body WisiToken_Grammar_Runtime is
    begin
       pragma Assert (-Tree.ID (Token) = rhs_list_ID);
 
-      if Data.Ignore_Lines then
-         return;
-      end if;
-
-      case Tokens'Length is
-      when 1 =>
+      case Tree.RHS_Index (Token) is
+      when 0 =>
          --  | rhs
-         Right_Hand_Sides.Append (Get_RHS (Data, Tree, Tokens (1)));
+         if not Data.Ignore_Lines then
+            Right_Hand_Sides.Append (Get_RHS (Data, Tree, Tokens (1)));
+         end if;
 
-      when 3 =>
+      when 1 =>
          --  | rhs_list BAR rhs
          Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Tokens (1));
 
-         Right_Hand_Sides.Append (Get_RHS (Data, Tree, Tokens (3)));
+         if not Data.Ignore_Lines then
+            Right_Hand_Sides.Append (Get_RHS (Data, Tree, Tokens (3)));
+         end if;
+
+      when 2 =>
+         --  | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+         Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Tokens (1));
+         Start_If_1 (Data, Tree, Tokens (4), Tokens (6));
+
+      when  3 =>
+         --  | rhs_list PERCENT END IF
+         Get_Right_Hand_Sides (Data, Tree, Right_Hand_Sides, Tokens (1));
+         Data.Ignore_Lines := False;
 
       when others =>
          Raise_Programmer_Error ("Get_Right_Hand_Sides", Tree, Token);
@@ -1211,7 +1245,7 @@ package body WisiToken_Grammar_Runtime is
          --  | | SEMICOLON:
 
          RHS_Item_1 : constant Valid_Node_Index := Tree.Add_Nonterm
-           ((+rhs_item_ID, 2), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, Content, Byte_Region)));
+           ((+rhs_item_ID, 0), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, Content, Byte_Region)));
 
          RHS_Item_List_1 : constant Valid_Node_Index := Tree.Add_Nonterm ((+rhs_item_list_ID, 0), (1 => RHS_Item_1));
 
@@ -1263,13 +1297,13 @@ package body WisiToken_Grammar_Runtime is
          --  | | SEMICOLON:
 
          RHS_Item_1 : constant Valid_Node_Index := Tree.Add_Nonterm
-           ((+rhs_item_ID, 2), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, List_Element, Byte_Region)));
+           ((+rhs_item_ID, 0), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, List_Element, Byte_Region)));
 
          RHS_Item_2 : constant Valid_Node_Index := Tree.Add_Nonterm
-           ((+rhs_item_ID, 2), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, List_Nonterm, Byte_Region)));
+           ((+rhs_item_ID, 0), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, List_Nonterm, Byte_Region)));
 
          RHS_Item_3 : constant Valid_Node_Index := Tree.Add_Nonterm
-           ((+rhs_item_ID, 2), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, List_Element, Byte_Region)));
+           ((+rhs_item_ID, 0), (1 => Tree.Add_Identifier (+IDENTIFIER_ID, List_Element, Byte_Region)));
 
          RHS_Item_List_1 : constant Valid_Node_Index := Tree.Add_Nonterm ((+rhs_item_list_ID, 0), (1 => RHS_Item_1));
 
@@ -1302,6 +1336,10 @@ package body WisiToken_Grammar_Runtime is
 
       procedure Process_Node (Node : in Valid_Node_Index)
       is begin
+         if Trace_Generate > Detail then
+            Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (Node));
+         end if;
+
          case To_Token_Enum (Tree.ID (Node)) is
          --  Token_Enum_ID alphabetical order
          when declaration_ID =>
@@ -1334,7 +1372,7 @@ package body WisiToken_Grammar_Runtime is
                New_Nonterminal (New_Identifier, Child (Node, 2));
 
                Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, New_Identifier);
-               Tree.Set_Children (Parent (Node, 1), (+rhs_item_ID, 1), (1 => Node));
+               Tree.Set_Children (Parent (Node, 1), (+rhs_item_ID, 0), (1 => Node));
                Clear_EBNF_Node (Node);
             end;
 
@@ -1386,7 +1424,7 @@ package body WisiToken_Grammar_Runtime is
 
                Tree.Set_Children
                  (Parent_RHS_Item,
-                  (+rhs_item_ID, 2),
+                  (+rhs_item_ID, 0),
                   (1 => Tree.Add_Identifier
                      (+IDENTIFIER_ID,
                       (if Allow_Empty then List_Opt_Nonterm else List_Nonterm),
@@ -1491,7 +1529,7 @@ package body WisiToken_Grammar_Runtime is
                New_Nonterminal (Nonterm_B, Child (Node, 2));
                Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Nonterm_B);
                Clear_EBNF_Node (Node);
-               Tree.Set_Children (Parent (Node, 1), (+rhs_item_ID, 2), (1 => Node));
+               Tree.Set_Children (Parent (Node, 1), (+rhs_item_ID, 0), (1 => Node));
 
                if Orig_RHS_Item_A_Head /= Tree.Parent (Node) then
                   --  a is not empty
@@ -1538,7 +1576,6 @@ package body WisiToken_Grammar_Runtime is
                        rhs_optional_item_ID |
                        rhs_multiple_item_ID |
                        rhs_group_item_ID |
-                       labeled_rhs_identifier_ID |
                        rhs_attribute_ID |
                        STRING_LITERAL_2_ID
                      then
@@ -1560,7 +1597,7 @@ package body WisiToken_Grammar_Runtime is
             end;
 
          when others =>
-            Raise_Programmer_Error ("not an EBNF node", Tree, Node);
+            Raise_Programmer_Error ("unimplemented EBNF node", Tree, Node);
          end case;
       end Process_Node;
 
@@ -1569,26 +1606,20 @@ package body WisiToken_Grammar_Runtime is
       --  they are copied by an optional_item.
       for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
          if Data.EBNF_Nodes (I) and then Tree.ID (I) = +rhs_multiple_item_ID then
-            if Trace_Generate > Detail then
-               Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (I));
-            end if;
             Process_Node (I);
          end if;
       end loop;
 
       for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
          if Data.EBNF_Nodes (I) then
-            if Trace_Generate > Detail then
-               Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (I));
-            end if;
             Process_Node (I);
          end if;
       end loop;
 
+      --  FIXME: if any EBNF nodes are nested more than two deep, this
+      --  fails. Make a copy of Copied_EBNF_Nodes, empty it, repeat till it
+      --  stops growing. Need test case. Add iterator lock in SAL.
       for I of Copied_EBNF_Nodes loop
-         if Trace_Generate > Detail then
-            Ada.Text_IO.Put_Line ("translate node" & Node_Index'Image (I));
-         end if;
          Process_Node (I);
       end loop;
 
@@ -1669,28 +1700,25 @@ package body WisiToken_Grammar_Runtime is
 
       procedure Put_RHS_Item (Node : in Valid_Node_Index)
       with Pre => Tree.ID (Node) = +rhs_item_ID
-      is
-         Children : constant Valid_Node_Index_Array := Tree.Children (Node);
-      begin
+      is begin
          --  We don't raise an exception for errors here; it's easier to debug from the
          --  mangled source listing.
 
-         case To_Token_Enum (Tree.ID (Children (1))) is
-         when IDENTIFIER_ID =>
-            if Children'Length = 1 then
-               Put (File, Get_Text (Data, Tree, Children (1)));
-            else
-               New_Line (File);
-               Put (File, " ;; not translated: " & Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor));
-            end if;
+         case Tree.RHS_Index (Node) is
+         when 0 =>
+            Put (File, Get_Text (Data, Tree, Node));
 
-         when LESS_ID | STRING_LITERAL_2_ID | rhs_optional_item_ID | rhs_multiple_item_ID | rhs_group_item_ID =>
-            New_Line (File);
-            Put (File, " ;; not translated: " & Tree.Image (Children (1), Wisitoken_Grammar_Actions.Descriptor));
+         when 1 =>
+            --  Output no spaces around "="
+            declare
+               Children : constant Valid_Node_Index_Array := Tree.Children (Node);
+            begin
+               Put (File, Get_Text (Data, Tree, Children (1)) & "=" & Get_Text (Data, Tree, Children (3)));
+            end;
 
          when others =>
             New_Line (File);
-            Put (File, " ;; bad translation: " & Node_Index'Image (Node) & ":" &
+            Put (File, " ;; not translated: " & Node_Index'Image (Node) & ":" &
               Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor, Include_Children => True));
          end case;
       end Put_RHS_Item;

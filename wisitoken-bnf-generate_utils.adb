@@ -128,7 +128,8 @@ package body WisiToken.BNF.Generate_Utils is
       when Not_Found =>
          Put_Error
            (Error_Message
-              (Source_File_Name, 1, "start token '" & (Start_Token) & "' not found; need %start?"));
+              (Source_File_Name, 1,
+               "start token '" & (Start_Token) & "' not found; need %start?"));
       end;
 
       for Rule of Data.Tokens.Rules loop
@@ -161,7 +162,7 @@ package body WisiToken.BNF.Generate_Utils is
                      Tokens.Set_First (I);
                      Tokens.Set_Last (Integer (Right_Hand_Side.Tokens.Length));
                      for Token of Right_Hand_Side.Tokens loop
-                        Tokens (I) := Find_Token_ID (Data, Token);
+                        Tokens (I) := Find_Token_ID (Data, -Token.Identifier);
                         I := I + 1;
                      end loop;
                   end if;

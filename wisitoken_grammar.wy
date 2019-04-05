@@ -109,7 +109,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token PERCENT
+%conflict SHIFT/REDUCE in state rhs_list, nonterminal  on token PERCENT
 %conflict SHIFT/REDUCE in state rhs_item_list, rhs  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token IDENTIFIER
 
@@ -161,9 +161,6 @@ declaration_item
   ;; ",", "token", "/", "(", ")" appear in %conflict declarations
   ;
 
-labeled_rhs_identifier
-  : IDENTIFIER EQUAL IDENTIFIER
-  ;
 nonterminal
   : IDENTIFIER COLON rhs_list semicolon_opt
     %(Add_Nonterminal (User_Data, Tree, Tokens);)%
@@ -177,8 +174,8 @@ semicolon_opt :
 rhs_list
   : rhs
   | rhs_list BAR rhs
-  | PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-  | PERCENT END IF
+  | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
+  | rhs_list PERCENT END IF
   ;
 
 rhs
@@ -198,12 +195,11 @@ rhs_item_list
   ;
 
 rhs_item
-  : labeled_rhs_identifier ;; ANTLR label
+  : IDENTIFIER
+  | IDENTIFIER EQUAL IDENTIFIER ;; token label for actions; allowed in WisiToken BNF files
+  | STRING_LITERAL_2   ;; value of token
     %(Check_EBNF (User_Data, Tree, Tokens);)%
   | rhs_attribute ;; ANTLR attribute
-    %(Check_EBNF (User_Data, Tree, Tokens);)%
-  | IDENTIFIER
-  | STRING_LITERAL_2
     %(Check_EBNF (User_Data, Tree, Tokens);)%
   | rhs_optional_item
     %(Check_EBNF (User_Data, Tree, Tokens);)%

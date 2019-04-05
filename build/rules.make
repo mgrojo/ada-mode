@@ -36,6 +36,7 @@ gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.adb
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.ads
 gen :: ada_lite_re2c.c
+gen :: ada_lite_bnf_re2c.c
 gen :: body_instantiation_conflict_re2c.c
 gen :: case_expression_re2c.c
 gen :: character_literal_re2c.c

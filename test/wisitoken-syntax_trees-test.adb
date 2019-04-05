@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2018 Stephen Leake
+--  Copyright (C) 2018 - 2019 Stephen Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -122,7 +122,8 @@ package body WisiToken.Syntax_Trees.Test is
       Check
         ("branched tree",
          Branched_Tree,
-         ((Shared_Tree      => Shared_Tree'Unchecked_Access,
+         ((Ada.Finalization.Controlled with
+           Shared_Tree      => Shared_Tree'Unchecked_Access,
            Last_Shared_Node => 1,
            Branched_Nodes   => Expected_Branched_Nodes,
            Flush            => False,

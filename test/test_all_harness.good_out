@@ -1,7 +1,9 @@
 
 OK test_generate_errors.adb ../Test/bnf/unused_tokens : Run_Test
 OK test_generate_errors.adb ../Test/bnf/triple_conflict : Run_Test
-OK bnf_wy_test.adb ada_lite : Run_Test
+OK bnf_wy_test.adb ada_lite ada_lite_recover_repeatable : Run_Test
+OK bnf_wy_test.adb ada_lite_bnf ada_lite : Run_Test
+OK bnf_wy_test.adb ada_lite_bnf ada_lite_recover_repeatable : Run_Test
 OK bnf_wy_test.adb body_instantiation_conflict : Run_Test
 OK bnf_wy_test.adb case_expression : Run_Test
 OK bnf_wy_test.adb character_literal : Run_Test
@@ -98,7 +100,7 @@ OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   98
-Successful Tests:  98
+Total Tests Run:   100
+Successful Tests:  100
 Failed Assertions: 0
 Unexpected Errors: 0
