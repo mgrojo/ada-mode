@@ -22,10 +22,6 @@ update-wisi_grammar
 
  current work
 add EBNF
-    print ";; empty" in optional_item
-    copy actions, newline in optional_item
-    don't output %meta_syntax EBNF!
-
     implement labeled_rhs_items for actions
 
     replace %keywords with string literals

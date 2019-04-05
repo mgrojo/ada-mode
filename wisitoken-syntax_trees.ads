@@ -179,13 +179,15 @@ package WisiToken.Syntax_Trees is
    --  the added node.
 
    function Add_Identifier
-     (Tree       : in out Syntax_Trees.Tree;
-      ID         : in     Token_ID;
-      Identifier : in     Identifier_Index)
+     (Tree        : in out Syntax_Trees.Tree;
+      ID          : in     Token_ID;
+      Identifier  : in     Identifier_Index;
+      Byte_Region : in     WisiToken.Buffer_Region)
      return Valid_Node_Index
    with Pre => Tree.Flushed and (not Tree.Traversing);
-   --  Add a new Virtual_Identifier node with no parent. Result points to
-   --  the added node.
+   --  Add a new Virtual_Identifier node with no parent. Byte_Region
+   --  should point to an area in the source buffer related to the new
+   --  identifier, to aid debugging. Result points to the added node.
 
    procedure Add_Child
      (Tree   : in out Syntax_Trees.Tree;

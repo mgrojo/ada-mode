@@ -81,16 +81,18 @@ package body WisiToken.Syntax_Trees is
    end Add_Child;
 
    function Add_Identifier
-     (Tree       : in out Syntax_Trees.Tree;
-      ID         : in     Token_ID;
-      Identifier : in     Identifier_Index)
+     (Tree        : in out Syntax_Trees.Tree;
+      ID          : in     Token_ID;
+      Identifier  : in     Identifier_Index;
+      Byte_Region : in     WisiToken.Buffer_Region)
      return Valid_Node_Index
    is begin
       Tree.Shared_Tree.Nodes.Append
-        ((Label      => Virtual_Identifier,
-          ID         => ID,
-          Identifier => Identifier,
-          others     => <>));
+        ((Label       => Virtual_Identifier,
+          Byte_Region => Byte_Region,
+          ID          => ID,
+          Identifier  => Identifier,
+          others      => <>));
       Tree.Last_Shared_Node := Tree.Shared_Tree.Nodes.Last_Index;
       return Tree.Last_Shared_Node;
    end Add_Identifier;
