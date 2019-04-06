@@ -20,14 +20,18 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 #if ADA_LITE = "Ada_Lite" then
 with Ada_Lite_Actions;
-#else
+#elsif ADA_LITE = "Ada_Lite_Bnf" then
 with Ada_Lite_Bnf_Actions;
+#elsif ADA_LITE = "Ada_Lite_Ebnf" then
+with Ada_Lite_Ebnf_Actions;
 #end if;
 package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 #if ADA_LITE = "Ada_Lite" then
    package Actions renames Ada_Lite_Actions;
-#else
+#elsif ADA_LITE = "Ada_Lite_Bnf" then
    package Actions renames Ada_Lite_Bnf_Actions;
+#elsif ADA_LITE = "Ada_Lite_Ebnf" then
+   package Actions renames Ada_Lite_Ebnf_Actions;
 #end if;
 
    use all type Actions.Token_Enum_ID; -- token names
@@ -312,7 +316,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
 #if ADA_LITE = "Ada_Lite" then
                Check (New_Config.Stack (1).Token.ID, +sequence_of_statements_list_ID);
-#else
+#elsif ADA_LITE = "Ada_Lite_Bnf" or ADA_LITE = "Ada_Lite_Bnf" then
                Check (New_Config.Stack (1).Token.ID, +nonterminal_029_list_ID);
 #end if;
 
@@ -901,6 +905,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
          Result (+term_ID) := True;
 #if ADA_LITE = "Ada_Lite" then
          Result (+term_list_ID) := True;
+#elsif ADA_LITE = "Ada_Lite_Bnf" or ADA_LITE = "Ada_Lite_Ebnf" then
+         Result (+nonterminal_035_list_ID) := True;
 #end if;
          Result (+simple_expression_ID) := True;
          Result (+relation_ID) := True;

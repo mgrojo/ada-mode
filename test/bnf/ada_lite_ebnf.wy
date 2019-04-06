@@ -172,6 +172,7 @@
 %mckenzie_cost_insert SEMICOLON 1
 
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state nonterminal_044, nonterminal_054 on token IS
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS
 

@@ -47,8 +47,8 @@ begin
    --  generate succeeds; grammar file name order
 
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite", +"ada_lite_recover_repeatable"));
-   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite_bnf", +"ada_lite"));
-   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite_bnf", +"ada_lite_recover_repeatable"));
+   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite"));
+   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"ada_lite_ebnf", +"ada_lite_recover_repeatable"));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"body_instantiation_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"case_expression", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"character_literal", null));
@@ -64,6 +64,7 @@ begin
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"empty_production_8", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"identifier_list_name_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"lalr_generator_bug_01", null));
+   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"nested_ebnf_optional", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"range_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"skip_to_grammar", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"subprograms", null));

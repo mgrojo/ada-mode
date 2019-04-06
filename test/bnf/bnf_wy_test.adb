@@ -27,11 +27,14 @@ with Ada.Text_IO;
 with GNAT.OS_Lib;
 with WisiToken.BNF;
 with WisiToken.Parse.LR.Parser_No_Recover;
+with WisiToken.Syntax_Trees;
 with WisiToken.Text_IO_Trace;
 with WisiToken_Grammar_Runtime;
 with Wisitoken_Grammar_Actions;
 with Wisitoken_Grammar_Main;
 package body BNF_WY_Test is
+
+   function BNF_File_Name (Root_Name : in String) return String is (Root_Name & "_bnf.wy");
 
    procedure Spawn
      (Program     : in String;
@@ -101,9 +104,12 @@ package body BNF_WY_Test is
      (Root_Name        : in     String;
       Generate_Set     :    out WisiToken.BNF.Generate_Set_Access;
       If_Lexer_Present :    out Boolean;
-      McKenzie_Recover :    out Boolean)
+      McKenzie_Recover :    out Boolean;
+      Meta_Syntax      :    out WisiToken_Grammar_Runtime.Meta_Syntax)
    is
       use all type WisiToken.Line_Number_Type;
+      use all type WisiToken_Grammar_Runtime.Meta_Syntax;
+
       Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
@@ -117,11 +123,29 @@ package body BNF_WY_Test is
       Grammar_Parser.Parse;
       Input_Data.Phase := WisiToken_Grammar_Runtime.Meta;
       Grammar_Parser.Execute_Actions;
-      Input_Data.Phase := WisiToken_Grammar_Runtime.Other;
-      Grammar_Parser.Execute_Actions;
 
       Generate_Set     := Input_Data.Generate_Set;
       If_Lexer_Present := Input_Data.If_Lexer_Present;
+      Meta_Syntax      := Input_Data.Meta_Syntax;
+
+      case Input_Data.Meta_Syntax is
+      when Unknown | BNF_Syntax =>
+         null;
+
+      when EBNF_Syntax =>
+         declare
+            Tree : WisiToken.Syntax_Trees.Tree renames Grammar_Parser.Parsers.First_State_Ref.Tree;
+            BNF_Name : constant String := BNF_File_Name (Root_Name);
+         begin
+            WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
+            WisiToken_Grammar_Runtime.Print_Source (BNF_Name, Tree, Input_Data);
+            Dos2unix (BNF_Name);
+         end;
+      end case;
+
+      Input_Data.Phase := WisiToken_Grammar_Runtime.Other;
+      Grammar_Parser.Execute_Actions;
+
       McKenzie_Recover := Input_Data.McKenzie_Recover.Source_Line /= WisiToken.Invalid_Line_Number;
    exception
    when WisiToken.Syntax_Error =>
@@ -132,9 +156,11 @@ package body BNF_WY_Test is
    procedure Diff_Gen
      (Root_Name        : in String;
       Tuple            : in WisiToken.BNF.Generate_Tuple;
-      If_Lexer_Present : in Boolean)
+      If_Lexer_Present : in Boolean;
+      Meta_Syntax      : in WisiToken_Grammar_Runtime.Meta_Syntax)
    is
       use WisiToken.BNF;
+      use all type WisiToken_Grammar_Runtime.Meta_Syntax;
 
       Gen_Alg  : constant String := "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg));
       Int_Kind : constant String := "_" & To_Lower (Interface_Type'Image (Tuple.Interface_Kind));
@@ -147,6 +173,10 @@ package body BNF_WY_Test is
       end Diff_One;
 
    begin
+      if Meta_Syntax = EBNF_Syntax then
+         Diff_One (BNF_File_Name (Root_Name));
+      end if;
+
       case Tuple.Gen_Alg is
       when LR_Generate_Algorithm =>
          Diff_One
@@ -220,7 +250,7 @@ package body BNF_WY_Test is
            To_Lower (Generate_Algorithm'Image (Generate_Alg)) & ".parse";
       begin
          if Ada.Directories.Exists (Default_Input_Name) then
-            Args (Last) := new String'("../Test/bnf/" & Root_Name & ".input");
+            Args (Last) := new String'(Default_Input_Name);
 
             Spawn (Exe, Args (1 .. Last), Output);
             Dos2unix (Output);
@@ -254,11 +284,12 @@ package body BNF_WY_Test is
       Gen_Set          : WisiToken.BNF.Generate_Set_Access;
       If_Lexer_Present : Boolean;
       McKenzie_Recover : Boolean;
+      Meta_Syntax      : WisiToken_Grammar_Runtime.Meta_Syntax;
    begin
       --  wisi-generate, re2c, gprbuild are run from the Makefile, since
       --  some of the generated files are shared with other tests.
 
-      Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover);
+      Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
 
       for Tuple of Gen_Set.all loop
          case Tuple.Out_Lang is
@@ -274,7 +305,7 @@ package body BNF_WY_Test is
 
          --  Do Diff_Gen after compile and execute, so we know the code is
          --  correct before we update _good.
-         Diff_Gen (Simple_Name, Tuple, If_Lexer_Present);
+         Diff_Gen (Simple_Name, Tuple, If_Lexer_Present, Meta_Syntax);
       end loop;
    end Run_Test;
 

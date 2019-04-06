@@ -1,0 +1,62 @@
+;;; generated from nested_ebnf_optional.wy
+;;;
+;; Test nested EBNF optional items
+
+%code copyright_license %{
+--  Copyright (C) 2013, 2015, 2017, 2018 Stephen Leake.  All Rights Reserved.
+--
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+}%
+
+%meta_syntax BNF
+
+%generate LALR Ada re2c
+%no_language_runtime
+
+%start if_statement
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\n] ]%
+
+%keyword ELSE "else"
+%keyword ELSIF "elsif"
+%keyword END "end"
+%keyword GOTO "goto"
+%keyword IF "if"
+%keyword THEN "then"
+%keyword TRUE "true"
+%keyword SEMICOLON ";"
+
+if_statement
+  : IF expression THEN statement nonterminal_001 END IF SEMICOLON
+  | IF expression THEN statement END IF SEMICOLON
+  ;
+statement
+  : GOTO SEMICOLON
+  ;
+
+expression
+  : TRUE
+  ;
+nonterminal_001
+  : ELSIF statement nonterminal_002
+  | ELSIF statement
+  ;
+nonterminal_002
+  : ELSIF statement nonterminal_003
+  | ELSIF statement
+  ;
+nonterminal_003
+  : ELSE statement
+  ;

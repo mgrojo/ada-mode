@@ -1450,6 +1450,9 @@ package body WisiToken_Grammar_Runtime is
             --
             --  where 'nonterm_b' is a new nonterminal containing b.
             --
+            --  See nested_ebnf_optional.wy for an example of nested optional
+            --  items.
+            --
             --  current tree:
             --
             --  | rhs_list: Orig_RHS_List
@@ -1490,8 +1493,8 @@ package body WisiToken_Grammar_Runtime is
                Orig_RHS_Item_C_Head : constant Node_Index             := Next_List_Element
                  (Tree.Parent (Node), +rhs_item_list_ID);
                Orig_RHS_Item_A_Head : constant Valid_Node_Index       := First_List_Element
-                 (Tree.Children (Orig_RHS)(1), +rhs_item_ID);
-               Orig_RHS_Item_A_Root : constant Node_Index             := Tree.Children (Tree.Parent (Node, 2))(1);
+                 (Tree.Child (Orig_RHS, 1), +rhs_item_ID);
+               Orig_RHS_Item_A_Root : constant Node_Index             := Tree.Child (Tree.Parent (Node, 2), 1);
                New_RHS_Item_List_A  : Node_Index                      := Invalid_Node_Index;
                New_RHS_Item_List_C  : Node_Index                      := Invalid_Node_Index;
                New_RHS_AC           : Valid_Node_Index;
@@ -1610,18 +1613,27 @@ package body WisiToken_Grammar_Runtime is
          end if;
       end loop;
 
-      for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
+      --  Process the remaining nodes in node decreasing order, so
+      --  containing optional items are translated first, to avoid
+      --  duplication of nested optional items, and to simplify translating
+      --  them.
+      for I in reverse Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
          if Data.EBNF_Nodes (I) then
             Process_Node (I);
          end if;
       end loop;
 
-      --  FIXME: if any EBNF nodes are nested more than two deep, this
-      --  fails. Make a copy of Copied_EBNF_Nodes, empty it, repeat till it
-      --  stops growing. Need test case. Add iterator lock in SAL.
-      for I of Copied_EBNF_Nodes loop
-         Process_Node (I);
-      end loop;
+      --  The processing order above guarantees that this will produce no
+      --  more copied nodes. But let's enforce that.
+      declare
+         use all type Ada.Containers.Count_Type;
+         Copied_Length : constant Ada.Containers.Count_Type := Copied_EBNF_Nodes.Length;
+      begin
+         for I of Copied_EBNF_Nodes loop
+            Process_Node (I);
+         end loop;
+         pragma Assert (Copied_Length = Copied_EBNF_Nodes.Length);
+      end;
 
       Data.Meta_Syntax := BNF_Syntax;
 
@@ -1962,8 +1974,11 @@ package body WisiToken_Grammar_Runtime is
       end;
 
       Process_Node (Tree.Root);
+
+      Close (File);
    exception
    when E : SAL.Not_Implemented =>
+      Close (File);
       Ada.Text_IO.Put_Line
         (Ada.Text_IO.Standard_Error, "Print_Source not implemented: " & Ada.Exceptions.Exception_Message (E));
    end Print_Source;

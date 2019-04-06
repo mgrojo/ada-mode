@@ -33,10 +33,10 @@ tests :: test_all_harness.diff
 # If add to this, add to wisitoken_test.gpr
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.adb
 gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite.ads
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.adb
-gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.ads
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.adb
+gen :: wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.ads
+gen :: ada_lite_ebnf_re2c.c
 gen :: ada_lite_re2c.c
-gen :: ada_lite_bnf_re2c.c
 gen :: body_instantiation_conflict_re2c.c
 gen :: case_expression_re2c.c
 gen :: character_literal_re2c.c
@@ -52,6 +52,7 @@ gen :: empty_production_7_re2c.c
 gen :: empty_production_8_re2c.c
 gen :: identifier_list_name_conflict_re2c.c
 gen :: lalr_generator_bug_01_re2c.c
+gen :: nested_ebnf_optional_re2c.c
 gen :: range_conflict_re2c.c
 gen :: skip_to_grammar_re2c.c
 gen :: subprograms_re2c.c
@@ -110,12 +111,8 @@ test-executables : force
 wisitoken-parse-lr-mckenzie_recover-ada_lite.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
 	gnatprep -b -r -T -DADA_LITE=Ada_Lite $^ $@
 
-wisitoken-parse-lr-mckenzie_recover-ada_lite_bnf.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
-	gnatprep -b -r -T -DADA_LITE="Ada_Lite_Bnf" $^ $@
-
-%_bnf.wy : %_ebnf.wy
-	./wisitoken-bnf-generate.exe --output_bnf $@ --generate LALR Ada re2c $<
-	dos2unix $@
+wisitoken-parse-lr-mckenzie_recover-ada_lite_ebnf.% : wisitoken-parse-lr-mckenzie_recover-ada_lite.%.gp
+	gnatprep -b -r -T -DADA_LITE="Ada_Lite_Ebnf" $^ $@
 
 %.out : %.exe
 	./$*.exe $(RUN_ARGS) > $*.out

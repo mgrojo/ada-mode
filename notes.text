@@ -22,13 +22,11 @@ update-wisi_grammar
 
  current work
 add EBNF
-    handle deeply nested ebnf nodes; see FIXME
-
     replace %keywords with string literals
 
-    add ANTLR syntax for java
+    run on java
 
-    add ? syntax for Python
+    run on Python
 
 lalr generator bug
     long term fix; reimplement lalr using deremer, penello 1982
