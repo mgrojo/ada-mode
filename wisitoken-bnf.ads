@@ -272,8 +272,9 @@ package WisiToken.BNF is
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
 
-      Virtual_Nonterminals : String_Arrays.Vector;
-      --  Nonterminals introduced by tree editing.
+      Virtual_Identifiers : String_Arrays.Vector;
+      --  Nonterminals and terminals introduced by translating from EBNF to
+      --  BNF.
 
       --  The following are specified in grammar file declarations and used
       --  in other declarations or actions. Faces, Indents only used if .wy

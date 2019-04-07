@@ -22,8 +22,6 @@ update-wisi_grammar
 
  current work
 add EBNF
-    replace %keywords with string literals
-
     run on java
 
     run on Python

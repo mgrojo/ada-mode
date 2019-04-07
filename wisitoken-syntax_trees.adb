@@ -100,7 +100,7 @@ package body WisiToken.Syntax_Trees is
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;
-      Production      : in     Production_ID;
+      Production      : in     WisiToken.Production_ID;
       Children        : in     Valid_Node_Index_Array;
       Action          : in     Semantic_Action := null;
       Default_Virtual : in     Boolean         := False)
@@ -1270,6 +1270,17 @@ package body WisiToken.Syntax_Trees is
       Tree.Shared_Tree.Traversing := False;
       raise;
    end Process_Tree;
+
+   function Production_ID
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return WisiToken.Production_ID
+   is begin
+      return
+        (if Node <= Tree.Last_Shared_Node
+         then (Tree.Shared_Tree.Nodes (Node).ID, Tree.Shared_Tree.Nodes (Node).RHS_Index)
+         else (Tree.Branched_Nodes (Node).ID, Tree.Branched_Nodes (Node).RHS_Index));
+   end Production_ID;
 
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;

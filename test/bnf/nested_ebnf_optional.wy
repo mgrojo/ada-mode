@@ -18,6 +18,7 @@
 }%
 
 %meta_syntax EBNF
+%case_insensitive
 
 %generate LALR Ada re2c
 %no_language_runtime
@@ -27,22 +28,13 @@
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
 
-%keyword ELSE "else"
-%keyword ELSIF "elsif"
-%keyword END "end"
-%keyword GOTO "goto"
-%keyword IF "if"
-%keyword THEN "then"
-%keyword TRUE "true"
-%keyword SEMICOLON ";"
-
 if_statement
-  : IF expression THEN statement [ELSIF statement [ELSIF statement [ELSE statement]]] END IF SEMICOLON
+  : 'if' expression 'then' statement ['elsif' statement ['elsif' statement ['else' statement]]] 'end' 'if' ';'
   ;
 statement
-  : GOTO SEMICOLON
+  : 'goto' ';'
   ;
 
 expression
-  : TRUE
+  : 'True'
   ;

@@ -273,6 +273,12 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index)
      return WisiToken.Token_ID;
 
+   function Production_ID
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index)
+     return WisiToken.Production_ID
+   with Pre => Tree.Is_Nonterm (Node);
+
    function Byte_Region
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
@@ -281,7 +287,8 @@ package WisiToken.Syntax_Trees is
    function RHS_Index
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index)
-     return Natural;
+     return Natural
+   with Pre => Tree.Is_Nonterm (Node);
 
    function Same_Token
      (Tree_1  : in Syntax_Trees.Tree'Class;

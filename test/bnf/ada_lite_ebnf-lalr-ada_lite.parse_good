@@ -23,11 +23,11 @@ subprogram_declaration_0: (subprogram_declaration, (161 . 178)) <= ((subprogram_
  0: 35:  4:(PROCEDURE, (181 . 189)) : reduce 1 tokens to compilation_unit
 compilation_unit_1: (compilation_unit, (161 . 178)) <= ((subprogram_declaration, (161 . 178)))
  ... goto state 16
- 0: 16:  4:(PROCEDURE, (181 . 189)) : reduce 1 tokens to nonterminal_007
-nonterminal_007_0: (nonterminal_007, (161 . 178)) <= ((compilation_unit, (161 . 178)))
+ 0: 16:  4:(PROCEDURE, (181 . 189)) : reduce 1 tokens to nonterminal_013
+nonterminal_013_0: (nonterminal_013, (161 . 178)) <= ((compilation_unit, (161 . 178)))
  ... goto state 37
- 0: 37:  4:(PROCEDURE, (181 . 189)) : reduce 1 tokens to nonterminal_006_list
-nonterminal_006_list_0: (nonterminal_006_list, (161 . 178)) <= ((nonterminal_007, (161 . 178)))
+ 0: 37:  4:(PROCEDURE, (181 . 189)) : reduce 1 tokens to nonterminal_012_list
+nonterminal_012_list_0: (nonterminal_012_list, (161 . 178)) <= ((nonterminal_013, (161 . 178)))
  ... goto state 38
  0: 38:  4:(PROCEDURE, (181 . 189)) : shift and goto state 9
  0: 9:  5:(IDENTIFIER, (191 . 197)) : shift and goto state 46
@@ -84,23 +84,23 @@ primary_0: (primary, (225 . 225)) <= ( 13:(NUMERIC_LITERAL, (225 . 225)))
  1: 51:  14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to factor
 factor_0: (factor, (225 . 225)) <= ((primary, (225 . 225)))
  ... goto state 195
- 1: 195:  14:(SEMICOLON, (226 . 226)) : reduce 2 tokens to nonterminal_037
-nonterminal_037_0: (nonterminal_037, (223 . 225)) <= ((multiplying_operator, (223 . 223)), (factor, (225 . 225)))
+ 1: 195:  14:(SEMICOLON, (226 . 226)) : reduce 2 tokens to nonterminal_043
+nonterminal_043_0: (nonterminal_043, (223 . 225)) <= ((multiplying_operator, (223 . 223)), (factor, (225 . 225)))
  ... goto state 118
- 1: 118:  14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to nonterminal_035_list
-nonterminal_035_list_0: (nonterminal_035_list, (223 . 225)) <= ((nonterminal_037, (223 . 225)))
+ 1: 118:  14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to nonterminal_041_list
+nonterminal_041_list_0: (nonterminal_041_list, (223 . 225)) <= ((nonterminal_043, (223 . 225)))
  ... goto state 120
- 1: 120:  14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (223 . 225)) <= ((nonterminal_035_list, (223 . 225)))
+ 1: 120:  14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_1: (nonterminal_042_list_opt, (223 . 225)) <= ((nonterminal_041_list, (223 . 225)))
  ... goto state 119
  1: 119:  14:(SEMICOLON, (226 . 226)) : reduce 2 tokens to term
-term_0: (term, (220 . 225)) <= ((factor, (220 . 221)), (nonterminal_036_list_opt, (223 . 225)))
+term_0: (term, (220 . 225)) <= ((factor, (220 . 221)), (nonterminal_042_list_opt, (223 . 225)))
  ... goto state 54
- 1: 54:  14:(SEMICOLON, (226 . 226)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 1: 54:  14:(SEMICOLON, (226 . 226)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  1: 143:  14:(SEMICOLON, (226 . 226)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (220 . 225)) <= ((term, (220 . 225)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (220 . 225)) <= ((term, (220 . 225)), (nonterminal_039_list_opt))
  ... goto state 53
  1: 53:  14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to relation
 relation_1: (relation, (220 . 225)) <= ((simple_expression, (220 . 225)))
@@ -108,27 +108,27 @@ relation_1: (relation, (220 . 225)) <= ((simple_expression, (220 . 225)))
  1: 52:  14:(SEMICOLON, (226 . 226)) : reduce 1 tokens to expression
 expression_0: (expression, (220 . 225)) <= ((relation, (220 . 225)))
  ... goto state 302
- 1: 302:  14:(SEMICOLON, (226 . 226)) : reduce 2 tokens to nonterminal_045
-nonterminal_045_0: (nonterminal_045, (217 . 225)) <= ( 10:(COLON_EQUAL, (217 . 218)), (expression, (220 . 225)))
+ 1: 302:  14:(SEMICOLON, (226 . 226)) : reduce 2 tokens to nonterminal_051
+nonterminal_051_0: (nonterminal_051, (217 . 225)) <= ( 10:(COLON_EQUAL, (217 . 218)), (expression, (220 . 225)))
  ... goto state 264
  1: 264:  14:(SEMICOLON, (226 . 226)) : shift and goto state 303
  1: 303:  15:(BEGIN, (228 . 232)) : reduce 5 tokens to object_declaration
-object_declaration_0: (object_declaration, (205 . 226)) <= ( 7:(IDENTIFIER, (205 . 205)),  8:(COLON, (207 . 207)), (subtype_indication, (209 . 215)), (nonterminal_045, (217 . 225)),  14:(SEMICOLON, (226 . 226)))
+object_declaration_0: (object_declaration, (205 . 226)) <= ( 7:(IDENTIFIER, (205 . 205)),  8:(COLON, (207 . 207)), (subtype_indication, (209 . 215)), (nonterminal_051, (217 . 225)),  14:(SEMICOLON, (226 . 226)))
  ... goto state 66
  1: 66:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to declaration
 declaration_1: (declaration, (205 . 226)) <= ((object_declaration, (205 . 226)))
  ... goto state 63
- 1: 63:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to nonterminal_010
-nonterminal_010_0: (nonterminal_010, (205 . 226)) <= ((declaration, (205 . 226)))
+ 1: 63:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to nonterminal_016
+nonterminal_016_0: (nonterminal_016, (205 . 226)) <= ((declaration, (205 . 226)))
  ... goto state 74
- 1: 74:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to nonterminal_008_list
-nonterminal_008_list_0: (nonterminal_008_list, (205 . 226)) <= ((nonterminal_010, (205 . 226)))
+ 1: 74:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to nonterminal_014_list
+nonterminal_014_list_0: (nonterminal_014_list, (205 . 226)) <= ((nonterminal_016, (205 . 226)))
  ... goto state 76
- 1: 76:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to nonterminal_009_list_opt
-nonterminal_009_list_opt_1: (nonterminal_009_list_opt, (205 . 226)) <= ((nonterminal_008_list, (205 . 226)))
+ 1: 76:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to nonterminal_015_list_opt
+nonterminal_015_list_opt_1: (nonterminal_015_list_opt, (205 . 226)) <= ((nonterminal_014_list, (205 . 226)))
  ... goto state 75
  1: 75:  15:(BEGIN, (228 . 232)) : reduce 1 tokens to declarative_part
-declarative_part_0: (declarative_part, (205 . 226)) <= ((nonterminal_009_list_opt, (205 . 226)))
+declarative_part_0: (declarative_part, (205 . 226)) <= ((nonterminal_015_list_opt, (205 . 226)))
  ... goto state 186
  1: 186:  15:(BEGIN, (228 . 232)) : shift and goto state 249
  1: 249:  16:(IDENTIFIER, (237 . 237)) : shift and goto state 11
@@ -159,23 +159,23 @@ primary_0: (primary, (246 . 246)) <= ( 20:(NUMERIC_LITERAL, (246 . 246)))
  1: 51:  21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to factor
 factor_0: (factor, (246 . 246)) <= ((primary, (246 . 246)))
  ... goto state 195
- 1: 195:  21:(SEMICOLON, (247 . 247)) : reduce 2 tokens to nonterminal_037
-nonterminal_037_0: (nonterminal_037, (244 . 246)) <= ((multiplying_operator, (244 . 244)), (factor, (246 . 246)))
+ 1: 195:  21:(SEMICOLON, (247 . 247)) : reduce 2 tokens to nonterminal_043
+nonterminal_043_0: (nonterminal_043, (244 . 246)) <= ((multiplying_operator, (244 . 244)), (factor, (246 . 246)))
  ... goto state 118
- 1: 118:  21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to nonterminal_035_list
-nonterminal_035_list_0: (nonterminal_035_list, (244 . 246)) <= ((nonterminal_037, (244 . 246)))
+ 1: 118:  21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to nonterminal_041_list
+nonterminal_041_list_0: (nonterminal_041_list, (244 . 246)) <= ((nonterminal_043, (244 . 246)))
  ... goto state 120
- 1: 120:  21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (244 . 246)) <= ((nonterminal_035_list, (244 . 246)))
+ 1: 120:  21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_1: (nonterminal_042_list_opt, (244 . 246)) <= ((nonterminal_041_list, (244 . 246)))
  ... goto state 119
  1: 119:  21:(SEMICOLON, (247 . 247)) : reduce 2 tokens to term
-term_0: (term, (242 . 246)) <= ((factor, (242 . 242)), (nonterminal_036_list_opt, (244 . 246)))
+term_0: (term, (242 . 246)) <= ((factor, (242 . 242)), (nonterminal_042_list_opt, (244 . 246)))
  ... goto state 54
- 1: 54:  21:(SEMICOLON, (247 . 247)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 1: 54:  21:(SEMICOLON, (247 . 247)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  1: 143:  21:(SEMICOLON, (247 . 247)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (242 . 246)) <= ((term, (242 . 246)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (242 . 246)) <= ((term, (242 . 246)), (nonterminal_039_list_opt))
  ... goto state 53
  1: 53:  21:(SEMICOLON, (247 . 247)) : reduce 1 tokens to relation
 relation_1: (relation, (242 . 246)) <= ((simple_expression, (242 . 246)))
@@ -193,17 +193,17 @@ simple_statement_0: (simple_statement, (237 . 247)) <= ((assignment_statement, (
  1: 32:  22:(END, (249 . 251)) : reduce 1 tokens to statement
 statement_0: (statement, (237 . 247)) <= ((simple_statement, (237 . 247)))
  ... goto state 87
- 1: 87:  22:(END, (249 . 251)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (237 . 247)) <= ((statement, (237 . 247)))
+ 1: 87:  22:(END, (249 . 251)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (237 . 247)) <= ((statement, (237 . 247)))
  ... goto state 88
- 1: 88:  22:(END, (249 . 251)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (237 . 247)) <= ((nonterminal_031, (237 . 247)))
+ 1: 88:  22:(END, (249 . 251)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (237 . 247)) <= ((nonterminal_037, (237 . 247)))
  ... goto state 90
- 1: 90:  22:(END, (249 . 251)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (237 . 247)) <= ((nonterminal_029_list, (237 . 247)))
+ 1: 90:  22:(END, (249 . 251)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (237 . 247)) <= ((nonterminal_035_list, (237 . 247)))
  ... goto state 89
  1: 89:  22:(END, (249 . 251)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (237 . 247)) <= ((nonterminal_030_list_opt, (237 . 247)))
+sequence_of_statements_0: (sequence_of_statements, (237 . 247)) <= ((nonterminal_036_list_opt, (237 . 247)))
  ... goto state 174
  1: 174:  22:(END, (249 . 251)) : reduce 1 tokens to handled_sequence_of_statements
 handled_sequence_of_statements_1: (handled_sequence_of_statements, (237 . 247)) <= ((sequence_of_statements, (237 . 247)))
@@ -220,11 +220,11 @@ semantic check OK
  1: 34:  24:(FUNCTION, (255 . 262)) : reduce 1 tokens to compilation_unit
 compilation_unit_2: (compilation_unit, (181 . 252)) <= ((subprogram_body, (181 . 252)))
  ... goto state 16
- 1: 16:  24:(FUNCTION, (255 . 262)) : reduce 1 tokens to nonterminal_007
-nonterminal_007_0: (nonterminal_007, (181 . 252)) <= ((compilation_unit, (181 . 252)))
+ 1: 16:  24:(FUNCTION, (255 . 262)) : reduce 1 tokens to nonterminal_013
+nonterminal_013_0: (nonterminal_013, (181 . 252)) <= ((compilation_unit, (181 . 252)))
  ... goto state 110
- 1: 110:  24:(FUNCTION, (255 . 262)) : reduce 2 tokens to nonterminal_006_list
-nonterminal_006_list_1: (nonterminal_006_list, (161 . 252)) <= ((nonterminal_006_list, (161 . 178)), (nonterminal_007, (181 . 252)))
+ 1: 110:  24:(FUNCTION, (255 . 262)) : reduce 2 tokens to nonterminal_012_list
+nonterminal_012_list_1: (nonterminal_012_list, (161 . 252)) <= ((nonterminal_012_list, (161 . 178)), (nonterminal_013, (181 . 252)))
  ... goto state 38
  1: 38:  24:(FUNCTION, (255 . 262)) : shift and goto state 5
  1: 5:  25:(IDENTIFIER, (264 . 269)) : shift and goto state 46
@@ -246,18 +246,18 @@ parameter_specification_1: (parameter_specification, (272 . 285)) <= ( 27:(IDENT
  1: 304:  34:(RIGHT_PAREN, (303 . 303)) : reduce 3 tokens to parameter_specification
 parameter_specification_1: (parameter_specification, (288 . 302)) <= ( 31:(IDENTIFIER, (288 . 292)),  32:(COLON, (294 . 294)),  33:(IDENTIFIER, (296 . 302)))
  ... goto state 306
- 1: 306:  34:(RIGHT_PAREN, (303 . 303)) : reduce 2 tokens to nonterminal_022
-nonterminal_022_0: (nonterminal_022, (286 . 302)) <= ( 30:(SEMICOLON, (286 . 286)), (parameter_specification, (288 . 302)))
+ 1: 306:  34:(RIGHT_PAREN, (303 . 303)) : reduce 2 tokens to nonterminal_028
+nonterminal_028_0: (nonterminal_028, (286 . 302)) <= ( 30:(SEMICOLON, (286 . 286)), (parameter_specification, (288 . 302)))
  ... goto state 268
- 1: 268:  34:(RIGHT_PAREN, (303 . 303)) : reduce 1 tokens to nonterminal_020_list
-nonterminal_020_list_0: (nonterminal_020_list, (286 . 302)) <= ((nonterminal_022, (286 . 302)))
+ 1: 268:  34:(RIGHT_PAREN, (303 . 303)) : reduce 1 tokens to nonterminal_026_list
+nonterminal_026_list_0: (nonterminal_026_list, (286 . 302)) <= ((nonterminal_028, (286 . 302)))
  ... goto state 270
- 1: 270:  34:(RIGHT_PAREN, (303 . 303)) : reduce 1 tokens to nonterminal_021_list_opt
-nonterminal_021_list_opt_1: (nonterminal_021_list_opt, (286 . 302)) <= ((nonterminal_020_list, (286 . 302)))
+ 1: 270:  34:(RIGHT_PAREN, (303 . 303)) : reduce 1 tokens to nonterminal_027_list_opt
+nonterminal_027_list_opt_1: (nonterminal_027_list_opt, (286 . 302)) <= ((nonterminal_026_list, (286 . 302)))
  ... goto state 269
  1: 269:  34:(RIGHT_PAREN, (303 . 303)) : shift and goto state 307
  1: 307:  35:(RETURN, (305 . 310)) : reduce 4 tokens to formal_part
-formal_part_0: (formal_part, (271 . 303)) <= ( 26:(LEFT_PAREN, (271 . 271)), (parameter_specification, (272 . 285)), (nonterminal_021_list_opt, (286 . 302)),  34:(RIGHT_PAREN, (303 . 303)))
+formal_part_0: (formal_part, (271 . 303)) <= ( 26:(LEFT_PAREN, (271 . 271)), (parameter_specification, (272 . 285)), (nonterminal_027_list_opt, (286 . 302)),  34:(RIGHT_PAREN, (303 . 303)))
  ... goto state 158
  1: 158:  35:(RETURN, (305 . 310)) : shift and goto state 220
  1: 220:  36:(IDENTIFIER, (312 . 318)) : shift and goto state 271
@@ -279,11 +279,11 @@ subprogram_declaration_0: (subprogram_declaration, (255 . 319)) <= ((subprogram_
  1: 35:  38:(FUNCTION, (321 . 328)) : reduce 1 tokens to compilation_unit
 compilation_unit_1: (compilation_unit, (255 . 319)) <= ((subprogram_declaration, (255 . 319)))
  ... goto state 16
- 1: 16:  38:(FUNCTION, (321 . 328)) : reduce 1 tokens to nonterminal_007
-nonterminal_007_0: (nonterminal_007, (255 . 319)) <= ((compilation_unit, (255 . 319)))
+ 1: 16:  38:(FUNCTION, (321 . 328)) : reduce 1 tokens to nonterminal_013
+nonterminal_013_0: (nonterminal_013, (255 . 319)) <= ((compilation_unit, (255 . 319)))
  ... goto state 110
- 1: 110:  38:(FUNCTION, (321 . 328)) : reduce 2 tokens to nonterminal_006_list
-nonterminal_006_list_1: (nonterminal_006_list, (161 . 319)) <= ((nonterminal_006_list, (161 . 252)), (nonterminal_007, (255 . 319)))
+ 1: 110:  38:(FUNCTION, (321 . 328)) : reduce 2 tokens to nonterminal_012_list
+nonterminal_012_list_1: (nonterminal_012_list, (161 . 319)) <= ((nonterminal_012_list, (161 . 252)), (nonterminal_013, (255 . 319)))
  ... goto state 38
  1: 38:  38:(FUNCTION, (321 . 328)) : shift and goto state 5
  1: 5:  39:(IDENTIFIER, (330 . 335)) : shift and goto state 46
@@ -305,18 +305,18 @@ parameter_specification_1: (parameter_specification, (338 . 351)) <= ( 41:(IDENT
  1: 304:  48:(RIGHT_PAREN, (369 . 369)) : reduce 3 tokens to parameter_specification
 parameter_specification_1: (parameter_specification, (354 . 368)) <= ( 45:(IDENTIFIER, (354 . 358)),  46:(COLON, (360 . 360)),  47:(IDENTIFIER, (362 . 368)))
  ... goto state 306
- 1: 306:  48:(RIGHT_PAREN, (369 . 369)) : reduce 2 tokens to nonterminal_022
-nonterminal_022_0: (nonterminal_022, (352 . 368)) <= ( 44:(SEMICOLON, (352 . 352)), (parameter_specification, (354 . 368)))
+ 1: 306:  48:(RIGHT_PAREN, (369 . 369)) : reduce 2 tokens to nonterminal_028
+nonterminal_028_0: (nonterminal_028, (352 . 368)) <= ( 44:(SEMICOLON, (352 . 352)), (parameter_specification, (354 . 368)))
  ... goto state 268
- 1: 268:  48:(RIGHT_PAREN, (369 . 369)) : reduce 1 tokens to nonterminal_020_list
-nonterminal_020_list_0: (nonterminal_020_list, (352 . 368)) <= ((nonterminal_022, (352 . 368)))
+ 1: 268:  48:(RIGHT_PAREN, (369 . 369)) : reduce 1 tokens to nonterminal_026_list
+nonterminal_026_list_0: (nonterminal_026_list, (352 . 368)) <= ((nonterminal_028, (352 . 368)))
  ... goto state 270
- 1: 270:  48:(RIGHT_PAREN, (369 . 369)) : reduce 1 tokens to nonterminal_021_list_opt
-nonterminal_021_list_opt_1: (nonterminal_021_list_opt, (352 . 368)) <= ((nonterminal_020_list, (352 . 368)))
+ 1: 270:  48:(RIGHT_PAREN, (369 . 369)) : reduce 1 tokens to nonterminal_027_list_opt
+nonterminal_027_list_opt_1: (nonterminal_027_list_opt, (352 . 368)) <= ((nonterminal_026_list, (352 . 368)))
  ... goto state 269
  1: 269:  48:(RIGHT_PAREN, (369 . 369)) : shift and goto state 307
  1: 307:  49:(RETURN, (371 . 376)) : reduce 4 tokens to formal_part
-formal_part_0: (formal_part, (337 . 369)) <= ( 40:(LEFT_PAREN, (337 . 337)), (parameter_specification, (338 . 351)), (nonterminal_021_list_opt, (352 . 368)),  48:(RIGHT_PAREN, (369 . 369)))
+formal_part_0: (formal_part, (337 . 369)) <= ( 40:(LEFT_PAREN, (337 . 337)), (parameter_specification, (338 . 351)), (nonterminal_027_list_opt, (352 . 368)),  48:(RIGHT_PAREN, (369 . 369)))
  ... goto state 158
  1: 158:  49:(RETURN, (371 . 376)) : shift and goto state 220
  1: 220:  50:(IDENTIFIER, (378 . 384)) : shift and goto state 271
@@ -332,11 +332,11 @@ subprogram_specification_1: (subprogram_specification, (321 . 384)) <= ((functio
 semantic check OK
  ... goto state 36
  1: 36:  51:(IS, (386 . 387)) : shift and goto state 105
- 1: 105:  52:(BEGIN, (389 . 393)) : reduce 0 tokens to nonterminal_009_list_opt
-nonterminal_009_list_opt_0: (nonterminal_009_list_opt) <= ()
+ 1: 105:  52:(BEGIN, (389 . 393)) : reduce 0 tokens to nonterminal_015_list_opt
+nonterminal_015_list_opt_0: (nonterminal_015_list_opt) <= ()
  ... goto state 75
  1: 75:  52:(BEGIN, (389 . 393)) : reduce 1 tokens to declarative_part
-declarative_part_0: (declarative_part) <= ((nonterminal_009_list_opt))
+declarative_part_0: (declarative_part) <= ((nonterminal_015_list_opt))
  ... goto state 186
  1: 186:  52:(BEGIN, (389 . 393)) : shift and goto state 249
  1: 249:  53:(RETURN, (398 . 403)) : shift and goto state 10
@@ -351,11 +351,11 @@ primary_2: (primary, (405 . 408)) <= ((name, (405 . 408)))
  1: 51:  55:(PLUS, (410 . 410)) : reduce 1 tokens to factor
 factor_0: (factor, (405 . 408)) <= ((primary, (405 . 408)))
  ... goto state 48
- 1: 48:  55:(PLUS, (410 . 410)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 1: 48:  55:(PLUS, (410 . 410)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  1: 119:  55:(PLUS, (410 . 410)) : reduce 2 tokens to term
-term_0: (term, (405 . 408)) <= ((factor, (405 . 408)), (nonterminal_036_list_opt))
+term_0: (term, (405 . 408)) <= ((factor, (405 . 408)), (nonterminal_042_list_opt))
  ... goto state 54
  1: 54:  55:(PLUS, (410 . 410)) : shift and goto state 140
  1: 140:  56:(LEFT_PAREN, (412 . 412)) : reduce 1 tokens to binary_adding_operator
@@ -373,11 +373,11 @@ primary_2: (primary, (413 . 417)) <= ((name, (413 . 417)))
  1: 51:  58:(MINUS, (419 . 419)) : reduce 1 tokens to factor
 factor_0: (factor, (413 . 417)) <= ((primary, (413 . 417)))
  ... goto state 48
- 1: 48:  58:(MINUS, (419 . 419)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 1: 48:  58:(MINUS, (419 . 419)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  1: 119:  58:(MINUS, (419 . 419)) : reduce 2 tokens to term
-term_0: (term, (413 . 417)) <= ((factor, (413 . 417)), (nonterminal_036_list_opt))
+term_0: (term, (413 . 417)) <= ((factor, (413 . 417)), (nonterminal_042_list_opt))
  ... goto state 54
  1: 54:  58:(MINUS, (419 . 419)) : shift and goto state 139
  1: 139:  59:(NUMERIC_LITERAL, (421 . 421)) : reduce 1 tokens to binary_adding_operator
@@ -390,23 +390,23 @@ primary_0: (primary, (421 . 421)) <= ( 59:(NUMERIC_LITERAL, (421 . 421)))
  1: 51:  60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to factor
 factor_0: (factor, (421 . 421)) <= ((primary, (421 . 421)))
  ... goto state 48
- 1: 48:  60:(RIGHT_PAREN, (422 . 422)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 1: 48:  60:(RIGHT_PAREN, (422 . 422)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  1: 119:  60:(RIGHT_PAREN, (422 . 422)) : reduce 2 tokens to term
-term_0: (term, (421 . 421)) <= ((factor, (421 . 421)), (nonterminal_036_list_opt))
+term_0: (term, (421 . 421)) <= ((factor, (421 . 421)), (nonterminal_042_list_opt))
  ... goto state 204
- 1: 204:  60:(RIGHT_PAREN, (422 . 422)) : reduce 2 tokens to nonterminal_034
-nonterminal_034_0: (nonterminal_034, (419 . 421)) <= ((binary_adding_operator, (419 . 419)), (term, (421 . 421)))
+ 1: 204:  60:(RIGHT_PAREN, (422 . 422)) : reduce 2 tokens to nonterminal_040
+nonterminal_040_0: (nonterminal_040, (419 . 421)) <= ((binary_adding_operator, (419 . 419)), (term, (421 . 421)))
  ... goto state 142
- 1: 142:  60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to nonterminal_032_list
-nonterminal_032_list_0: (nonterminal_032_list, (419 . 421)) <= ((nonterminal_034, (419 . 421)))
+ 1: 142:  60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to nonterminal_038_list
+nonterminal_038_list_0: (nonterminal_038_list, (419 . 421)) <= ((nonterminal_040, (419 . 421)))
  ... goto state 144
- 1: 144:  60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_1: (nonterminal_033_list_opt, (419 . 421)) <= ((nonterminal_032_list, (419 . 421)))
+ 1: 144:  60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_1: (nonterminal_039_list_opt, (419 . 421)) <= ((nonterminal_038_list, (419 . 421)))
  ... goto state 143
  1: 143:  60:(RIGHT_PAREN, (422 . 422)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (413 . 421)) <= ((term, (413 . 417)), (nonterminal_033_list_opt, (419 . 421)))
+simple_expression_1: (simple_expression, (413 . 421)) <= ((term, (413 . 417)), (nonterminal_039_list_opt, (419 . 421)))
  ... goto state 53
  1: 53:  60:(RIGHT_PAREN, (422 . 422)) : reduce 1 tokens to relation
 relation_1: (relation, (413 . 421)) <= ((simple_expression, (413 . 421)))
@@ -424,23 +424,23 @@ primary_3: (primary, (412 . 422)) <= ((paren_expression, (412 . 422)))
  1: 51:  61:(SEMICOLON, (423 . 423)) : reduce 1 tokens to factor
 factor_0: (factor, (412 . 422)) <= ((primary, (412 . 422)))
  ... goto state 48
- 1: 48:  61:(SEMICOLON, (423 . 423)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 1: 48:  61:(SEMICOLON, (423 . 423)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  1: 119:  61:(SEMICOLON, (423 . 423)) : reduce 2 tokens to term
-term_0: (term, (412 . 422)) <= ((factor, (412 . 422)), (nonterminal_036_list_opt))
+term_0: (term, (412 . 422)) <= ((factor, (412 . 422)), (nonterminal_042_list_opt))
  ... goto state 204
- 1: 204:  61:(SEMICOLON, (423 . 423)) : reduce 2 tokens to nonterminal_034
-nonterminal_034_0: (nonterminal_034, (410 . 422)) <= ((binary_adding_operator, (410 . 410)), (term, (412 . 422)))
+ 1: 204:  61:(SEMICOLON, (423 . 423)) : reduce 2 tokens to nonterminal_040
+nonterminal_040_0: (nonterminal_040, (410 . 422)) <= ((binary_adding_operator, (410 . 410)), (term, (412 . 422)))
  ... goto state 142
- 1: 142:  61:(SEMICOLON, (423 . 423)) : reduce 1 tokens to nonterminal_032_list
-nonterminal_032_list_0: (nonterminal_032_list, (410 . 422)) <= ((nonterminal_034, (410 . 422)))
+ 1: 142:  61:(SEMICOLON, (423 . 423)) : reduce 1 tokens to nonterminal_038_list
+nonterminal_038_list_0: (nonterminal_038_list, (410 . 422)) <= ((nonterminal_040, (410 . 422)))
  ... goto state 144
- 1: 144:  61:(SEMICOLON, (423 . 423)) : reduce 1 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_1: (nonterminal_033_list_opt, (410 . 422)) <= ((nonterminal_032_list, (410 . 422)))
+ 1: 144:  61:(SEMICOLON, (423 . 423)) : reduce 1 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_1: (nonterminal_039_list_opt, (410 . 422)) <= ((nonterminal_038_list, (410 . 422)))
  ... goto state 143
  1: 143:  61:(SEMICOLON, (423 . 423)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (405 . 422)) <= ((term, (405 . 408)), (nonterminal_033_list_opt, (410 . 422)))
+simple_expression_1: (simple_expression, (405 . 422)) <= ((term, (405 . 408)), (nonterminal_039_list_opt, (410 . 422)))
  ... goto state 53
  1: 53:  61:(SEMICOLON, (423 . 423)) : reduce 1 tokens to relation
 relation_1: (relation, (405 . 422)) <= ((simple_expression, (405 . 422)))
@@ -458,17 +458,17 @@ simple_statement_3: (simple_statement, (398 . 423)) <= ((simple_return_statement
  1: 32:  62:(END, (425 . 427)) : reduce 1 tokens to statement
 statement_0: (statement, (398 . 423)) <= ((simple_statement, (398 . 423)))
  ... goto state 87
- 1: 87:  62:(END, (425 . 427)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (398 . 423)) <= ((statement, (398 . 423)))
+ 1: 87:  62:(END, (425 . 427)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (398 . 423)) <= ((statement, (398 . 423)))
  ... goto state 88
- 1: 88:  62:(END, (425 . 427)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (398 . 423)) <= ((nonterminal_031, (398 . 423)))
+ 1: 88:  62:(END, (425 . 427)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (398 . 423)) <= ((nonterminal_037, (398 . 423)))
  ... goto state 90
- 1: 90:  62:(END, (425 . 427)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (398 . 423)) <= ((nonterminal_029_list, (398 . 423)))
+ 1: 90:  62:(END, (425 . 427)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (398 . 423)) <= ((nonterminal_035_list, (398 . 423)))
  ... goto state 89
  1: 89:  62:(END, (425 . 427)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (398 . 423)) <= ((nonterminal_030_list_opt, (398 . 423)))
+sequence_of_statements_0: (sequence_of_statements, (398 . 423)) <= ((nonterminal_036_list_opt, (398 . 423)))
  ... goto state 174
  1: 174:  62:(END, (425 . 427)) : reduce 1 tokens to handled_sequence_of_statements
 handled_sequence_of_statements_1: (handled_sequence_of_statements, (398 . 423)) <= ((sequence_of_statements, (398 . 423)))
@@ -491,11 +491,11 @@ semantic check OK
  1: 34:  65:(PROCEDURE, (438 . 446)) : reduce 1 tokens to compilation_unit
 compilation_unit_2: (compilation_unit, (321 . 435)) <= ((subprogram_body, (321 . 435)))
  ... goto state 16
- 1: 16:  65:(PROCEDURE, (438 . 446)) : reduce 1 tokens to nonterminal_007
-nonterminal_007_0: (nonterminal_007, (321 . 435)) <= ((compilation_unit, (321 . 435)))
+ 1: 16:  65:(PROCEDURE, (438 . 446)) : reduce 1 tokens to nonterminal_013
+nonterminal_013_0: (nonterminal_013, (321 . 435)) <= ((compilation_unit, (321 . 435)))
  ... goto state 110
- 1: 110:  65:(PROCEDURE, (438 . 446)) : reduce 2 tokens to nonterminal_006_list
-nonterminal_006_list_1: (nonterminal_006_list, (161 . 435)) <= ((nonterminal_006_list, (161 . 319)), (nonterminal_007, (321 . 435)))
+ 1: 110:  65:(PROCEDURE, (438 . 446)) : reduce 2 tokens to nonterminal_012_list
+nonterminal_012_list_1: (nonterminal_012_list, (161 . 435)) <= ((nonterminal_012_list, (161 . 319)), (nonterminal_013, (321 . 435)))
  ... goto state 38
  1: 38:  65:(PROCEDURE, (438 . 446)) : shift and goto state 9
  1: 9:  66:(IDENTIFIER, (448 . 453)) : shift and goto state 46
@@ -540,11 +540,11 @@ object_declaration_1: (object_declaration, (461 . 472)) <= ( 68:(IDENTIFIER, (46
  2: 66:  72:(IDENTIFIER, (477 . 477)) : reduce 1 tokens to declaration
 declaration_1: (declaration, (461 . 472)) <= ((object_declaration, (461 . 472)))
  ... goto state 63
- 2: 63:  72:(IDENTIFIER, (477 . 477)) : reduce 1 tokens to nonterminal_010
-nonterminal_010_0: (nonterminal_010, (461 . 472)) <= ((declaration, (461 . 472)))
+ 2: 63:  72:(IDENTIFIER, (477 . 477)) : reduce 1 tokens to nonterminal_016
+nonterminal_016_0: (nonterminal_016, (461 . 472)) <= ((declaration, (461 . 472)))
  ... goto state 74
- 2: 74:  72:(IDENTIFIER, (477 . 477)) : reduce 1 tokens to nonterminal_008_list
-nonterminal_008_list_0: (nonterminal_008_list, (461 . 472)) <= ((nonterminal_010, (461 . 472)))
+ 2: 74:  72:(IDENTIFIER, (477 . 477)) : reduce 1 tokens to nonterminal_014_list
+nonterminal_014_list_0: (nonterminal_014_list, (461 . 472)) <= ((nonterminal_016, (461 . 472)))
  ... goto state 76
  2: 76:  72:(IDENTIFIER, (477 . 477)) : shift and goto state 60
  2: 60:  73:(COLON, (479 . 479)) : shift and goto state 148
@@ -563,17 +563,17 @@ object_declaration_1: (object_declaration, (477 . 488)) <= ( 72:(IDENTIFIER, (47
  2: 66:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to declaration
 declaration_1: (declaration, (477 . 488)) <= ((object_declaration, (477 . 488)))
  ... goto state 63
- 2: 63:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to nonterminal_010
-nonterminal_010_0: (nonterminal_010, (477 . 488)) <= ((declaration, (477 . 488)))
+ 2: 63:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to nonterminal_016
+nonterminal_016_0: (nonterminal_016, (477 . 488)) <= ((declaration, (477 . 488)))
  ... goto state 150
- 2: 150:  76:(BEGIN, (490 . 494)) : reduce 2 tokens to nonterminal_008_list
-nonterminal_008_list_1: (nonterminal_008_list, (461 . 488)) <= ((nonterminal_008_list, (461 . 472)), (nonterminal_010, (477 . 488)))
+ 2: 150:  76:(BEGIN, (490 . 494)) : reduce 2 tokens to nonterminal_014_list
+nonterminal_014_list_1: (nonterminal_014_list, (461 . 488)) <= ((nonterminal_014_list, (461 . 472)), (nonterminal_016, (477 . 488)))
  ... goto state 76
- 2: 76:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to nonterminal_009_list_opt
-nonterminal_009_list_opt_1: (nonterminal_009_list_opt, (461 . 488)) <= ((nonterminal_008_list, (461 . 488)))
+ 2: 76:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to nonterminal_015_list_opt
+nonterminal_015_list_opt_1: (nonterminal_015_list_opt, (461 . 488)) <= ((nonterminal_014_list, (461 . 488)))
  ... goto state 75
  2: 75:  76:(BEGIN, (490 . 494)) : reduce 1 tokens to declarative_part
-declarative_part_0: (declarative_part, (461 . 488)) <= ((nonterminal_009_list_opt, (461 . 488)))
+declarative_part_0: (declarative_part, (461 . 488)) <= ((nonterminal_015_list_opt, (461 . 488)))
  ... goto state 186
  2: 186:  76:(BEGIN, (490 . 494)) : shift and goto state 249
  2: 249:  77:(LOOP, (499 . 502)) : shift and goto state 7
@@ -590,17 +590,17 @@ primary_2: (primary, (517 . 517)) <= ((name, (517 . 517)))
  2: 51:  81:(EQUAL, (519 . 519)) : reduce 1 tokens to factor
 factor_0: (factor, (517 . 517)) <= ((primary, (517 . 517)))
  ... goto state 48
- 2: 48:  81:(EQUAL, (519 . 519)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 2: 48:  81:(EQUAL, (519 . 519)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  2: 119:  81:(EQUAL, (519 . 519)) : reduce 2 tokens to term
-term_0: (term, (517 . 517)) <= ((factor, (517 . 517)), (nonterminal_036_list_opt))
+term_0: (term, (517 . 517)) <= ((factor, (517 . 517)), (nonterminal_042_list_opt))
  ... goto state 54
- 2: 54:  81:(EQUAL, (519 . 519)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 2: 54:  81:(EQUAL, (519 . 519)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  2: 143:  81:(EQUAL, (519 . 519)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (517 . 517)) <= ((term, (517 . 517)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (517 . 517)) <= ((term, (517 . 517)), (nonterminal_039_list_opt))
  ... goto state 53
  2: 53:  81:(EQUAL, (519 . 519)) : shift and goto state 130
  2: 130:  82:(NUMERIC_LITERAL, (521 . 521)) : reduce 1 tokens to relational_operator
@@ -613,33 +613,33 @@ primary_0: (primary, (521 . 521)) <= ( 82:(NUMERIC_LITERAL, (521 . 521)))
  2: 51:  83:(SEMICOLON, (522 . 522)) : reduce 1 tokens to factor
 factor_0: (factor, (521 . 521)) <= ((primary, (521 . 521)))
  ... goto state 48
- 2: 48:  83:(SEMICOLON, (522 . 522)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 2: 48:  83:(SEMICOLON, (522 . 522)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  2: 119:  83:(SEMICOLON, (522 . 522)) : reduce 2 tokens to term
-term_0: (term, (521 . 521)) <= ((factor, (521 . 521)), (nonterminal_036_list_opt))
+term_0: (term, (521 . 521)) <= ((factor, (521 . 521)), (nonterminal_042_list_opt))
  ... goto state 54
- 2: 54:  83:(SEMICOLON, (522 . 522)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 2: 54:  83:(SEMICOLON, (522 . 522)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  2: 143:  83:(SEMICOLON, (522 . 522)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (521 . 521)) <= ((term, (521 . 521)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (521 . 521)) <= ((term, (521 . 521)), (nonterminal_039_list_opt))
  ... goto state 203
- 2: 203:  83:(SEMICOLON, (522 . 522)) : reduce 2 tokens to nonterminal_040
-nonterminal_040_0: (nonterminal_040, (519 . 521)) <= ((relational_operator, (519 . 519)), (simple_expression, (521 . 521)))
+ 2: 203:  83:(SEMICOLON, (522 . 522)) : reduce 2 tokens to nonterminal_046
+nonterminal_046_0: (nonterminal_046, (519 . 521)) <= ((relational_operator, (519 . 519)), (simple_expression, (521 . 521)))
  ... goto state 137
  2: 137:  83:(SEMICOLON, (522 . 522)) : reduce 2 tokens to relation
-relation_0: (relation, (517 . 521)) <= ((simple_expression, (517 . 517)), (nonterminal_040, (519 . 521)))
+relation_0: (relation, (517 . 521)) <= ((simple_expression, (517 . 517)), (nonterminal_046, (519 . 521)))
  ... goto state 52
  2: 52:  83:(SEMICOLON, (522 . 522)) : reduce 1 tokens to expression
 expression_0: (expression, (517 . 521)) <= ((relation, (517 . 521)))
  ... goto state 151
- 2: 151:  83:(SEMICOLON, (522 . 522)) : reduce 2 tokens to nonterminal_049
-nonterminal_049_0: (nonterminal_049, (512 . 521)) <= ( 79:(WHEN, (512 . 515)), (expression, (517 . 521)))
+ 2: 151:  83:(SEMICOLON, (522 . 522)) : reduce 2 tokens to nonterminal_055
+nonterminal_055_0: (nonterminal_055, (512 . 521)) <= ( 79:(WHEN, (512 . 515)), (expression, (517 . 521)))
  ... goto state 80
  2: 80:  83:(SEMICOLON, (522 . 522)) : shift and goto state 152
  2: 152:  84:(IF, (530 . 531)) : reduce 3 tokens to exit_statement
-exit_statement_1: (exit_statement, (507 . 522)) <= ( 78:(EXIT, (507 . 510)), (nonterminal_049, (512 . 521)),  83:(SEMICOLON, (522 . 522)))
+exit_statement_1: (exit_statement, (507 . 522)) <= ( 78:(EXIT, (507 . 510)), (nonterminal_055, (512 . 521)),  83:(SEMICOLON, (522 . 522)))
  ... goto state 19
  2: 19:  84:(IF, (530 . 531)) : reduce 1 tokens to simple_statement
 simple_statement_1: (simple_statement, (507 . 522)) <= ((exit_statement, (507 . 522)))
@@ -647,11 +647,11 @@ simple_statement_1: (simple_statement, (507 . 522)) <= ((exit_statement, (507 . 
  2: 32:  84:(IF, (530 . 531)) : reduce 1 tokens to statement
 statement_0: (statement, (507 . 522)) <= ((simple_statement, (507 . 522)))
  ... goto state 87
- 2: 87:  84:(IF, (530 . 531)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (507 . 522)) <= ((statement, (507 . 522)))
+ 2: 87:  84:(IF, (530 . 531)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (507 . 522)) <= ((statement, (507 . 522)))
  ... goto state 88
- 2: 88:  84:(IF, (530 . 531)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (507 . 522)) <= ((nonterminal_031, (507 . 522)))
+ 2: 88:  84:(IF, (530 . 531)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (507 . 522)) <= ((nonterminal_037, (507 . 522)))
  ... goto state 90
  2: 90:  84:(IF, (530 . 531)) : shift and goto state 6
  2: 6:  85:(IDENTIFIER, (533 . 533)) : shift and goto state 46
@@ -665,17 +665,17 @@ primary_2: (primary, (533 . 533)) <= ((name, (533 . 533)))
  2: 51:  86:(GREATER, (535 . 535)) : reduce 1 tokens to factor
 factor_0: (factor, (533 . 533)) <= ((primary, (533 . 533)))
  ... goto state 48
- 2: 48:  86:(GREATER, (535 . 535)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 2: 48:  86:(GREATER, (535 . 535)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  2: 119:  86:(GREATER, (535 . 535)) : reduce 2 tokens to term
-term_0: (term, (533 . 533)) <= ((factor, (533 . 533)), (nonterminal_036_list_opt))
+term_0: (term, (533 . 533)) <= ((factor, (533 . 533)), (nonterminal_042_list_opt))
  ... goto state 54
- 2: 54:  86:(GREATER, (535 . 535)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 2: 54:  86:(GREATER, (535 . 535)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  2: 143:  86:(GREATER, (535 . 535)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (533 . 533)) <= ((term, (533 . 533)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (533 . 533)) <= ((term, (533 . 533)), (nonterminal_039_list_opt))
  ... goto state 53
  2: 53:  86:(GREATER, (535 . 535)) : shift and goto state 131
  2: 131:  87:(NUMERIC_LITERAL, (537 . 537)) : reduce 1 tokens to relational_operator
@@ -688,33 +688,33 @@ primary_0: (primary, (537 . 537)) <= ( 87:(NUMERIC_LITERAL, (537 . 537)))
  2: 51:  88:(THEN, (539 . 542)) : reduce 1 tokens to factor
 factor_0: (factor, (537 . 537)) <= ((primary, (537 . 537)))
  ... goto state 48
- 2: 48:  88:(THEN, (539 . 542)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 2: 48:  88:(THEN, (539 . 542)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  2: 119:  88:(THEN, (539 . 542)) : reduce 2 tokens to term
-term_0: (term, (537 . 537)) <= ((factor, (537 . 537)), (nonterminal_036_list_opt))
+term_0: (term, (537 . 537)) <= ((factor, (537 . 537)), (nonterminal_042_list_opt))
  ... goto state 54
- 2: 54:  88:(THEN, (539 . 542)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 2: 54:  88:(THEN, (539 . 542)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  2: 143:  88:(THEN, (539 . 542)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (537 . 537)) <= ((term, (537 . 537)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (537 . 537)) <= ((term, (537 . 537)), (nonterminal_039_list_opt))
  ... goto state 203
- 2: 203:  88:(THEN, (539 . 542)) : reduce 2 tokens to nonterminal_040
-nonterminal_040_0: (nonterminal_040, (535 . 537)) <= ((relational_operator, (535 . 535)), (simple_expression, (537 . 537)))
+ 2: 203:  88:(THEN, (539 . 542)) : reduce 2 tokens to nonterminal_046
+nonterminal_046_0: (nonterminal_046, (535 . 537)) <= ((relational_operator, (535 . 535)), (simple_expression, (537 . 537)))
  ... goto state 137
  2: 137:  88:(THEN, (539 . 542)) : reduce 2 tokens to relation
-relation_0: (relation, (533 . 537)) <= ((simple_expression, (533 . 533)), (nonterminal_040, (535 . 537)))
+relation_0: (relation, (533 . 537)) <= ((simple_expression, (533 . 533)), (nonterminal_046, (535 . 537)))
  ... goto state 52
  2: 52:  88:(THEN, (539 . 542)) : reduce 1 tokens to expression
 expression_0: (expression, (533 . 537)) <= ((relation, (533 . 537)))
  ... goto state 85
  2: 85:  88:(THEN, (539 . 542)) : shift and goto state 160
- 2: 160:  89:(ELSIF, (550 . 554)) : reduce 0 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_0: (nonterminal_030_list_opt) <= ()
+ 2: 160:  89:(ELSIF, (550 . 554)) : reduce 0 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
  ... goto state 89
  2: 89:  89:(ELSIF, (550 . 554)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements) <= ((nonterminal_030_list_opt))
+sequence_of_statements_0: (sequence_of_statements) <= ((nonterminal_036_list_opt))
  ... goto state 221
  2: 221:  89:(ELSIF, (550 . 554)) : shift and goto state 272
  2: 272:  90:(IDENTIFIER, (556 . 556)) : shift and goto state 46
@@ -728,17 +728,17 @@ primary_2: (primary, (556 . 556)) <= ((name, (556 . 556)))
  2: 51:  91:(LESS, (558 . 558)) : reduce 1 tokens to factor
 factor_0: (factor, (556 . 556)) <= ((primary, (556 . 556)))
  ... goto state 48
- 2: 48:  91:(LESS, (558 . 558)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 2: 48:  91:(LESS, (558 . 558)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  2: 119:  91:(LESS, (558 . 558)) : reduce 2 tokens to term
-term_0: (term, (556 . 556)) <= ((factor, (556 . 556)), (nonterminal_036_list_opt))
+term_0: (term, (556 . 556)) <= ((factor, (556 . 556)), (nonterminal_042_list_opt))
  ... goto state 54
- 2: 54:  91:(LESS, (558 . 558)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 2: 54:  91:(LESS, (558 . 558)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  2: 143:  91:(LESS, (558 . 558)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (556 . 556)) <= ((term, (556 . 556)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (556 . 556)) <= ((term, (556 . 556)), (nonterminal_039_list_opt))
  ... goto state 53
  2: 53:  91:(LESS, (558 . 558)) : shift and goto state 133
  2: 133:  92:(NUMERIC_LITERAL, (560 . 560)) : reduce 1 tokens to relational_operator
@@ -751,42 +751,42 @@ primary_0: (primary, (560 . 560)) <= ( 92:(NUMERIC_LITERAL, (560 . 560)))
  2: 51:  93:(THEN, (562 . 565)) : reduce 1 tokens to factor
 factor_0: (factor, (560 . 560)) <= ((primary, (560 . 560)))
  ... goto state 48
- 2: 48:  93:(THEN, (562 . 565)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 2: 48:  93:(THEN, (562 . 565)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  2: 119:  93:(THEN, (562 . 565)) : reduce 2 tokens to term
-term_0: (term, (560 . 560)) <= ((factor, (560 . 560)), (nonterminal_036_list_opt))
+term_0: (term, (560 . 560)) <= ((factor, (560 . 560)), (nonterminal_042_list_opt))
  ... goto state 54
- 2: 54:  93:(THEN, (562 . 565)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 2: 54:  93:(THEN, (562 . 565)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  2: 143:  93:(THEN, (562 . 565)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (560 . 560)) <= ((term, (560 . 560)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (560 . 560)) <= ((term, (560 . 560)), (nonterminal_039_list_opt))
  ... goto state 203
- 2: 203:  93:(THEN, (562 . 565)) : reduce 2 tokens to nonterminal_040
-nonterminal_040_0: (nonterminal_040, (558 . 560)) <= ((relational_operator, (558 . 558)), (simple_expression, (560 . 560)))
+ 2: 203:  93:(THEN, (562 . 565)) : reduce 2 tokens to nonterminal_046
+nonterminal_046_0: (nonterminal_046, (558 . 560)) <= ((relational_operator, (558 . 558)), (simple_expression, (560 . 560)))
  ... goto state 137
  2: 137:  93:(THEN, (562 . 565)) : reduce 2 tokens to relation
-relation_0: (relation, (556 . 560)) <= ((simple_expression, (556 . 556)), (nonterminal_040, (558 . 560)))
+relation_0: (relation, (556 . 560)) <= ((simple_expression, (556 . 556)), (nonterminal_046, (558 . 560)))
  ... goto state 52
  2: 52:  93:(THEN, (562 . 565)) : reduce 1 tokens to expression
 expression_0: (expression, (556 . 560)) <= ((relation, (556 . 560)))
  ... goto state 309
  2: 309:  93:(THEN, (562 . 565)) : shift and goto state 337
- 2: 337:  94:(ELSE, (573 . 576)) : reduce 0 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_0: (nonterminal_030_list_opt) <= ()
+ 2: 337:  94:(ELSE, (573 . 576)) : reduce 0 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
  ... goto state 89
  2: 89:  94:(ELSE, (573 . 576)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements) <= ((nonterminal_030_list_opt))
+sequence_of_statements_0: (sequence_of_statements) <= ((nonterminal_036_list_opt))
  ... goto state 356
- 2: 356:  94:(ELSE, (573 . 576)) : reduce 4 tokens to nonterminal_028
-nonterminal_028_0: (nonterminal_028, (550 . 565)) <= ( 89:(ELSIF, (550 . 554)), (expression, (556 . 560)),  93:(THEN, (562 . 565)), (sequence_of_statements))
+ 2: 356:  94:(ELSE, (573 . 576)) : reduce 4 tokens to nonterminal_034
+nonterminal_034_0: (nonterminal_034, (550 . 565)) <= ( 89:(ELSIF, (550 . 554)), (expression, (556 . 560)),  93:(THEN, (562 . 565)), (sequence_of_statements))
  ... goto state 273
- 2: 273:  94:(ELSE, (573 . 576)) : reduce 1 tokens to nonterminal_026_list
-nonterminal_026_list_0: (nonterminal_026_list, (550 . 565)) <= ((nonterminal_028, (550 . 565)))
+ 2: 273:  94:(ELSE, (573 . 576)) : reduce 1 tokens to nonterminal_032_list
+nonterminal_032_list_0: (nonterminal_032_list, (550 . 565)) <= ((nonterminal_034, (550 . 565)))
  ... goto state 275
- 2: 275:  94:(ELSE, (573 . 576)) : reduce 1 tokens to nonterminal_027_list_opt
-nonterminal_027_list_opt_1: (nonterminal_027_list_opt, (550 . 565)) <= ((nonterminal_026_list, (550 . 565)))
+ 2: 275:  94:(ELSE, (573 . 576)) : reduce 1 tokens to nonterminal_033_list_opt
+nonterminal_033_list_opt_1: (nonterminal_033_list_opt, (550 . 565)) <= ((nonterminal_032_list, (550 . 565)))
  ... goto state 274
  2: 274:  94:(ELSE, (573 . 576)) : shift and goto state 310
  2: 310:  95:(IDENTIFIER, (587 . 587)) : shift and goto state 11
@@ -802,17 +802,17 @@ primary_0: (primary, (592 . 592)) <= ( 97:(NUMERIC_LITERAL, (592 . 592)))
  2: 51:  98:(SEMICOLON, (593 . 593)) : reduce 1 tokens to factor
 factor_0: (factor, (592 . 592)) <= ((primary, (592 . 592)))
  ... goto state 48
- 2: 48:  98:(SEMICOLON, (593 . 593)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 2: 48:  98:(SEMICOLON, (593 . 593)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  2: 119:  98:(SEMICOLON, (593 . 593)) : reduce 2 tokens to term
-term_0: (term, (592 . 592)) <= ((factor, (592 . 592)), (nonterminal_036_list_opt))
+term_0: (term, (592 . 592)) <= ((factor, (592 . 592)), (nonterminal_042_list_opt))
  ... goto state 54
- 2: 54:  98:(SEMICOLON, (593 . 593)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 2: 54:  98:(SEMICOLON, (593 . 593)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  2: 143:  98:(SEMICOLON, (593 . 593)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (592 . 592)) <= ((term, (592 . 592)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (592 . 592)) <= ((term, (592 . 592)), (nonterminal_039_list_opt))
  ... goto state 53
  2: 53:  98:(SEMICOLON, (593 . 593)) : reduce 1 tokens to relation
 relation_1: (relation, (592 . 592)) <= ((simple_expression, (592 . 592)))
@@ -830,26 +830,26 @@ simple_statement_0: (simple_statement, (587 . 593)) <= ((assignment_statement, (
  2: 32:  99:(END, (601 . 603)) : reduce 1 tokens to statement
 statement_0: (statement, (587 . 593)) <= ((simple_statement, (587 . 593)))
  ... goto state 87
- 2: 87:  99:(END, (601 . 603)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (587 . 593)) <= ((statement, (587 . 593)))
+ 2: 87:  99:(END, (601 . 603)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (587 . 593)) <= ((statement, (587 . 593)))
  ... goto state 88
- 2: 88:  99:(END, (601 . 603)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (587 . 593)) <= ((nonterminal_031, (587 . 593)))
+ 2: 88:  99:(END, (601 . 603)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (587 . 593)) <= ((nonterminal_037, (587 . 593)))
  ... goto state 90
- 2: 90:  99:(END, (601 . 603)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (587 . 593)) <= ((nonterminal_029_list, (587 . 593)))
+ 2: 90:  99:(END, (601 . 603)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (587 . 593)) <= ((nonterminal_035_list, (587 . 593)))
  ... goto state 89
  2: 89:  99:(END, (601 . 603)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (587 . 593)) <= ((nonterminal_030_list_opt, (587 . 593)))
+sequence_of_statements_0: (sequence_of_statements, (587 . 593)) <= ((nonterminal_036_list_opt, (587 . 593)))
  ... goto state 338
- 2: 338:  99:(END, (601 . 603)) : reduce 2 tokens to nonterminal_047
-nonterminal_047_0: (nonterminal_047, (573 . 593)) <= ( 94:(ELSE, (573 . 576)), (sequence_of_statements, (587 . 593)))
+ 2: 338:  99:(END, (601 . 603)) : reduce 2 tokens to nonterminal_053
+nonterminal_053_0: (nonterminal_053, (573 . 593)) <= ( 94:(ELSE, (573 . 576)), (sequence_of_statements, (587 . 593)))
  ... goto state 312
  2: 312:  99:(END, (601 . 603)) : shift and goto state 340
  2: 340:  100:(IF, (605 . 606)) : shift and goto state 358
  2: 358:  101:(SEMICOLON, (607 . 607)) : shift and goto state 365
  2: 365:  102:(END, (612 . 614)) : reduce 9 tokens to if_statement
-if_statement_0: (if_statement, (530 . 607)) <= ( 84:(IF, (530 . 531)), (expression, (533 . 537)),  88:(THEN, (539 . 542)), (sequence_of_statements), (nonterminal_027_list_opt, (550 . 565)), (nonterminal_047, (573 . 593)),  99:(END, (601 . 603)),  100:(IF, (605 . 606)),  101:(SEMICOLON, (607 . 607)))
+if_statement_0: (if_statement, (530 . 607)) <= ( 84:(IF, (530 . 531)), (expression, (533 . 537)),  88:(THEN, (539 . 542)), (sequence_of_statements), (nonterminal_033_list_opt, (550 . 565)), (nonterminal_053, (573 . 593)),  99:(END, (601 . 603)),  100:(IF, (605 . 606)),  101:(SEMICOLON, (607 . 607)))
  ... goto state 23
  2: 23:  102:(END, (612 . 614)) : reduce 1 tokens to compound_statement
 compound_statement_0: (compound_statement, (530 . 607)) <= ((if_statement, (530 . 607)))
@@ -857,17 +857,17 @@ compound_statement_0: (compound_statement, (530 . 607)) <= ((if_statement, (530 
  2: 18:  102:(END, (612 . 614)) : reduce 1 tokens to statement
 statement_1: (statement, (530 . 607)) <= ((compound_statement, (530 . 607)))
  ... goto state 87
- 2: 87:  102:(END, (612 . 614)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (530 . 607)) <= ((statement, (530 . 607)))
+ 2: 87:  102:(END, (612 . 614)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (530 . 607)) <= ((statement, (530 . 607)))
  ... goto state 162
- 2: 162:  102:(END, (612 . 614)) : reduce 2 tokens to nonterminal_029_list
-nonterminal_029_list_1: (nonterminal_029_list, (507 . 607)) <= ((nonterminal_029_list, (507 . 522)), (nonterminal_031, (530 . 607)))
+ 2: 162:  102:(END, (612 . 614)) : reduce 2 tokens to nonterminal_035_list
+nonterminal_035_list_1: (nonterminal_035_list, (507 . 607)) <= ((nonterminal_035_list, (507 . 522)), (nonterminal_037, (530 . 607)))
  ... goto state 90
- 2: 90:  102:(END, (612 . 614)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (507 . 607)) <= ((nonterminal_029_list, (507 . 607)))
+ 2: 90:  102:(END, (612 . 614)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (507 . 607)) <= ((nonterminal_035_list, (507 . 607)))
  ... goto state 89
  2: 89:  102:(END, (612 . 614)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (507 . 607)) <= ((nonterminal_030_list_opt, (507 . 607)))
+sequence_of_statements_0: (sequence_of_statements, (507 . 607)) <= ((nonterminal_036_list_opt, (507 . 607)))
  ... goto state 86
  2: 86:  102:(END, (612 . 614)) : shift and goto state 161
  2: 161:  103:(LOOP, (616 . 619)) : shift and goto state 222
@@ -884,17 +884,17 @@ compound_statement_2: (compound_statement, (499 . 620)) <= ((loop_statement, (49
  2: 18:  105:(END, (622 . 624)) : reduce 1 tokens to statement
 statement_1: (statement, (499 . 620)) <= ((compound_statement, (499 . 620)))
  ... goto state 87
- 2: 87:  105:(END, (622 . 624)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (499 . 620)) <= ((statement, (499 . 620)))
+ 2: 87:  105:(END, (622 . 624)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (499 . 620)) <= ((statement, (499 . 620)))
  ... goto state 88
- 2: 88:  105:(END, (622 . 624)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (499 . 620)) <= ((nonterminal_031, (499 . 620)))
+ 2: 88:  105:(END, (622 . 624)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (499 . 620)) <= ((nonterminal_037, (499 . 620)))
  ... goto state 90
- 2: 90:  105:(END, (622 . 624)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (499 . 620)) <= ((nonterminal_029_list, (499 . 620)))
+ 2: 90:  105:(END, (622 . 624)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (499 . 620)) <= ((nonterminal_035_list, (499 . 620)))
  ... goto state 89
  2: 89:  105:(END, (622 . 624)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (499 . 620)) <= ((nonterminal_030_list_opt, (499 . 620)))
+sequence_of_statements_0: (sequence_of_statements, (499 . 620)) <= ((nonterminal_036_list_opt, (499 . 620)))
  ... goto state 174
  2: 174:  105:(END, (622 . 624)) : reduce 1 tokens to handled_sequence_of_statements
 handled_sequence_of_statements_1: (handled_sequence_of_statements, (499 . 620)) <= ((sequence_of_statements, (499 . 620)))
@@ -911,11 +911,11 @@ semantic check OK
  2: 34:  107:(PROCEDURE, (628 . 636)) : reduce 1 tokens to compilation_unit
 compilation_unit_2: (compilation_unit, (438 . 625)) <= ((subprogram_body, (438 . 625)))
  ... goto state 16
- 2: 16:  107:(PROCEDURE, (628 . 636)) : reduce 1 tokens to nonterminal_007
-nonterminal_007_0: (nonterminal_007, (438 . 625)) <= ((compilation_unit, (438 . 625)))
+ 2: 16:  107:(PROCEDURE, (628 . 636)) : reduce 1 tokens to nonterminal_013
+nonterminal_013_0: (nonterminal_013, (438 . 625)) <= ((compilation_unit, (438 . 625)))
  ... goto state 110
- 2: 110:  107:(PROCEDURE, (628 . 636)) : reduce 2 tokens to nonterminal_006_list
-nonterminal_006_list_1: (nonterminal_006_list, (161 . 625)) <= ((nonterminal_006_list, (161 . 435)), (nonterminal_007, (438 . 625)))
+ 2: 110:  107:(PROCEDURE, (628 . 636)) : reduce 2 tokens to nonterminal_012_list
+nonterminal_012_list_1: (nonterminal_012_list, (161 . 625)) <= ((nonterminal_012_list, (161 . 435)), (nonterminal_013, (438 . 625)))
  ... goto state 38
  2: 38:  107:(PROCEDURE, (628 . 636)) : shift and goto state 9
  2: 9:  108:(IDENTIFIER, (638 . 643)) : shift and goto state 46
@@ -960,11 +960,11 @@ object_declaration_1: (object_declaration, (651 . 662)) <= ( 110:(IDENTIFIER, (6
  3: 66:  114:(IDENTIFIER, (667 . 667)) : reduce 1 tokens to declaration
 declaration_1: (declaration, (651 . 662)) <= ((object_declaration, (651 . 662)))
  ... goto state 63
- 3: 63:  114:(IDENTIFIER, (667 . 667)) : reduce 1 tokens to nonterminal_010
-nonterminal_010_0: (nonterminal_010, (651 . 662)) <= ((declaration, (651 . 662)))
+ 3: 63:  114:(IDENTIFIER, (667 . 667)) : reduce 1 tokens to nonterminal_016
+nonterminal_016_0: (nonterminal_016, (651 . 662)) <= ((declaration, (651 . 662)))
  ... goto state 74
- 3: 74:  114:(IDENTIFIER, (667 . 667)) : reduce 1 tokens to nonterminal_008_list
-nonterminal_008_list_0: (nonterminal_008_list, (651 . 662)) <= ((nonterminal_010, (651 . 662)))
+ 3: 74:  114:(IDENTIFIER, (667 . 667)) : reduce 1 tokens to nonterminal_014_list
+nonterminal_014_list_0: (nonterminal_014_list, (651 . 662)) <= ((nonterminal_016, (651 . 662)))
  ... goto state 76
  3: 76:  114:(IDENTIFIER, (667 . 667)) : shift and goto state 60
  3: 60:  115:(COLON, (669 . 669)) : shift and goto state 148
@@ -983,17 +983,17 @@ object_declaration_1: (object_declaration, (667 . 678)) <= ( 114:(IDENTIFIER, (6
  3: 66:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to declaration
 declaration_1: (declaration, (667 . 678)) <= ((object_declaration, (667 . 678)))
  ... goto state 63
- 3: 63:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to nonterminal_010
-nonterminal_010_0: (nonterminal_010, (667 . 678)) <= ((declaration, (667 . 678)))
+ 3: 63:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to nonterminal_016
+nonterminal_016_0: (nonterminal_016, (667 . 678)) <= ((declaration, (667 . 678)))
  ... goto state 150
- 3: 150:  118:(BEGIN, (680 . 684)) : reduce 2 tokens to nonterminal_008_list
-nonterminal_008_list_1: (nonterminal_008_list, (651 . 678)) <= ((nonterminal_008_list, (651 . 662)), (nonterminal_010, (667 . 678)))
+ 3: 150:  118:(BEGIN, (680 . 684)) : reduce 2 tokens to nonterminal_014_list
+nonterminal_014_list_1: (nonterminal_014_list, (651 . 678)) <= ((nonterminal_014_list, (651 . 662)), (nonterminal_016, (667 . 678)))
  ... goto state 76
- 3: 76:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to nonterminal_009_list_opt
-nonterminal_009_list_opt_1: (nonterminal_009_list_opt, (651 . 678)) <= ((nonterminal_008_list, (651 . 678)))
+ 3: 76:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to nonterminal_015_list_opt
+nonterminal_015_list_opt_1: (nonterminal_015_list_opt, (651 . 678)) <= ((nonterminal_014_list, (651 . 678)))
  ... goto state 75
  3: 75:  118:(BEGIN, (680 . 684)) : reduce 1 tokens to declarative_part
-declarative_part_0: (declarative_part, (651 . 678)) <= ((nonterminal_009_list_opt, (651 . 678)))
+declarative_part_0: (declarative_part, (651 . 678)) <= ((nonterminal_015_list_opt, (651 . 678)))
  ... goto state 186
  3: 186:  118:(BEGIN, (680 . 684)) : shift and goto state 249
  3: 249:  119:(CASE, (689 . 692)) : shift and goto state 1
@@ -1008,17 +1008,17 @@ primary_2: (primary, (694 . 694)) <= ((name, (694 . 694)))
  3: 51:  121:(IS, (696 . 697)) : reduce 1 tokens to factor
 factor_0: (factor, (694 . 694)) <= ((primary, (694 . 694)))
  ... goto state 48
- 3: 48:  121:(IS, (696 . 697)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 3: 48:  121:(IS, (696 . 697)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  3: 119:  121:(IS, (696 . 697)) : reduce 2 tokens to term
-term_0: (term, (694 . 694)) <= ((factor, (694 . 694)), (nonterminal_036_list_opt))
+term_0: (term, (694 . 694)) <= ((factor, (694 . 694)), (nonterminal_042_list_opt))
  ... goto state 54
- 3: 54:  121:(IS, (696 . 697)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 3: 54:  121:(IS, (696 . 697)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  3: 143:  121:(IS, (696 . 697)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (694 . 694)) <= ((term, (694 . 694)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (694 . 694)) <= ((term, (694 . 694)), (nonterminal_039_list_opt))
  ... goto state 53
  3: 53:  121:(IS, (696 . 697)) : reduce 1 tokens to relation
 relation_1: (relation, (694 . 694)) <= ((simple_expression, (694 . 694)))
@@ -1042,17 +1042,17 @@ primary_2: (primary, (724 . 724)) <= ((name, (724 . 724)))
  3: 51:  127:(IS, (726 . 727)) : reduce 1 tokens to factor
 factor_0: (factor, (724 . 724)) <= ((primary, (724 . 724)))
  ... goto state 48
- 3: 48:  127:(IS, (726 . 727)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 3: 48:  127:(IS, (726 . 727)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  3: 119:  127:(IS, (726 . 727)) : reduce 2 tokens to term
-term_0: (term, (724 . 724)) <= ((factor, (724 . 724)), (nonterminal_036_list_opt))
+term_0: (term, (724 . 724)) <= ((factor, (724 . 724)), (nonterminal_042_list_opt))
  ... goto state 54
- 3: 54:  127:(IS, (726 . 727)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 3: 54:  127:(IS, (726 . 727)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  3: 143:  127:(IS, (726 . 727)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (724 . 724)) <= ((term, (724 . 724)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (724 . 724)) <= ((term, (724 . 724)), (nonterminal_039_list_opt))
  ... goto state 53
  3: 53:  127:(IS, (726 . 727)) : reduce 1 tokens to relation
 relation_1: (relation, (724 . 724)) <= ((simple_expression, (724 . 724)))
@@ -1079,26 +1079,26 @@ simple_statement_2: (simple_statement, (754 . 760)) <= ((procedure_call_statemen
  3: 32:  133:(WHEN, (768 . 771)) : reduce 1 tokens to statement
 statement_0: (statement, (754 . 760)) <= ((simple_statement, (754 . 760)))
  ... goto state 87
- 3: 87:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (754 . 760)) <= ((statement, (754 . 760)))
+ 3: 87:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (754 . 760)) <= ((statement, (754 . 760)))
  ... goto state 88
- 3: 88:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (754 . 760)) <= ((nonterminal_031, (754 . 760)))
+ 3: 88:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (754 . 760)) <= ((nonterminal_037, (754 . 760)))
  ... goto state 90
- 3: 90:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (754 . 760)) <= ((nonterminal_029_list, (754 . 760)))
+ 3: 90:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (754 . 760)) <= ((nonterminal_035_list, (754 . 760)))
  ... goto state 89
  3: 89:  133:(WHEN, (768 . 771)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (754 . 760)) <= ((nonterminal_030_list_opt, (754 . 760)))
+sequence_of_statements_0: (sequence_of_statements, (754 . 760)) <= ((nonterminal_036_list_opt, (754 . 760)))
  ... goto state 328
  3: 328:  133:(WHEN, (768 . 771)) : reduce 4 tokens to case_statement_alternative
 case_statement_alternative_0: (case_statement_alternative, (735 . 760)) <= ( 128:(WHEN, (735 . 738)),  129:(NUMERIC_LITERAL, (740 . 740)),  130:(EQUAL_GREATER, (742 . 743)), (sequence_of_statements, (754 . 760)))
  ... goto state 192
- 3: 192:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_005
-nonterminal_005_0: (nonterminal_005, (735 . 760)) <= ((case_statement_alternative, (735 . 760)))
+ 3: 192:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_011
+nonterminal_011_0: (nonterminal_011, (735 . 760)) <= ((case_statement_alternative, (735 . 760)))
  ... goto state 193
- 3: 193:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_004_list
-nonterminal_004_list_0: (nonterminal_004_list, (735 . 760)) <= ((nonterminal_005, (735 . 760)))
+ 3: 193:  133:(WHEN, (768 . 771)) : reduce 1 tokens to nonterminal_010_list
+nonterminal_010_list_0: (nonterminal_010_list, (735 . 760)) <= ((nonterminal_011, (735 . 760)))
  ... goto state 194
  3: 194:  133:(WHEN, (768 . 771)) : shift and goto state 191
  3: 191:  134:(NUMERIC_LITERAL, (773 . 773)) : shift and goto state 252
@@ -1120,17 +1120,17 @@ primary_2: (primary, (795 . 795)) <= ((name, (795 . 795)))
  3: 51:  139:(COMMA, (796 . 796)) : reduce 1 tokens to factor
 factor_0: (factor, (795 . 795)) <= ((primary, (795 . 795)))
  ... goto state 48
- 3: 48:  139:(COMMA, (796 . 796)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 3: 48:  139:(COMMA, (796 . 796)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  3: 119:  139:(COMMA, (796 . 796)) : reduce 2 tokens to term
-term_0: (term, (795 . 795)) <= ((factor, (795 . 795)), (nonterminal_036_list_opt))
+term_0: (term, (795 . 795)) <= ((factor, (795 . 795)), (nonterminal_042_list_opt))
  ... goto state 54
- 3: 54:  139:(COMMA, (796 . 796)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 3: 54:  139:(COMMA, (796 . 796)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  3: 143:  139:(COMMA, (796 . 796)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (795 . 795)) <= ((term, (795 . 795)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (795 . 795)) <= ((term, (795 . 795)), (nonterminal_039_list_opt))
  ... goto state 182
  3: 182:  139:(COMMA, (796 . 796)) : reduce 1 tokens to relation
 relation_1: (relation, (795 . 795)) <= ((simple_expression, (795 . 795)))
@@ -1153,17 +1153,17 @@ primary_2: (primary, (798 . 798)) <= ((name, (798 . 798)))
  3: 51:  141:(RIGHT_PAREN, (799 . 799)) : reduce 1 tokens to factor
 factor_0: (factor, (798 . 798)) <= ((primary, (798 . 798)))
  ... goto state 48
- 3: 48:  141:(RIGHT_PAREN, (799 . 799)) : reduce 0 tokens to nonterminal_036_list_opt
-nonterminal_036_list_opt_0: (nonterminal_036_list_opt) <= ()
+ 3: 48:  141:(RIGHT_PAREN, (799 . 799)) : reduce 0 tokens to nonterminal_042_list_opt
+nonterminal_042_list_opt_0: (nonterminal_042_list_opt) <= ()
  ... goto state 119
  3: 119:  141:(RIGHT_PAREN, (799 . 799)) : reduce 2 tokens to term
-term_0: (term, (798 . 798)) <= ((factor, (798 . 798)), (nonterminal_036_list_opt))
+term_0: (term, (798 . 798)) <= ((factor, (798 . 798)), (nonterminal_042_list_opt))
  ... goto state 54
- 3: 54:  141:(RIGHT_PAREN, (799 . 799)) : reduce 0 tokens to nonterminal_033_list_opt
-nonterminal_033_list_opt_0: (nonterminal_033_list_opt) <= ()
+ 3: 54:  141:(RIGHT_PAREN, (799 . 799)) : reduce 0 tokens to nonterminal_039_list_opt
+nonterminal_039_list_opt_0: (nonterminal_039_list_opt) <= ()
  ... goto state 143
  3: 143:  141:(RIGHT_PAREN, (799 . 799)) : reduce 2 tokens to simple_expression
-simple_expression_1: (simple_expression, (798 . 798)) <= ((term, (798 . 798)), (nonterminal_033_list_opt))
+simple_expression_1: (simple_expression, (798 . 798)) <= ((term, (798 . 798)), (nonterminal_039_list_opt))
  ... goto state 53
  3: 53:  141:(RIGHT_PAREN, (799 . 799)) : reduce 1 tokens to relation
 relation_1: (relation, (798 . 798)) <= ((simple_expression, (798 . 798)))
@@ -1174,17 +1174,17 @@ expression_0: (expression, (798 . 798)) <= ((relation, (798 . 798)))
  3: 179:  141:(RIGHT_PAREN, (799 . 799)) : reduce 1 tokens to association
 association_1: (association, (798 . 798)) <= ((expression, (798 . 798)))
  ... goto state 288
- 3: 288:  141:(RIGHT_PAREN, (799 . 799)) : reduce 2 tokens to nonterminal_003
-nonterminal_003_0: (nonterminal_003, (796 . 798)) <= ( 139:(COMMA, (796 . 796)), (association, (798 . 798)))
+ 3: 288:  141:(RIGHT_PAREN, (799 . 799)) : reduce 2 tokens to nonterminal_009
+nonterminal_009_0: (nonterminal_009, (796 . 798)) <= ( 139:(COMMA, (796 . 796)), (association, (798 . 798)))
  ... goto state 240
- 3: 240:  141:(RIGHT_PAREN, (799 . 799)) : reduce 1 tokens to nonterminal_001_list
-nonterminal_001_list_0: (nonterminal_001_list, (796 . 798)) <= ((nonterminal_003, (796 . 798)))
+ 3: 240:  141:(RIGHT_PAREN, (799 . 799)) : reduce 1 tokens to nonterminal_007_list
+nonterminal_007_list_0: (nonterminal_007_list, (796 . 798)) <= ((nonterminal_009, (796 . 798)))
  ... goto state 242
- 3: 242:  141:(RIGHT_PAREN, (799 . 799)) : reduce 1 tokens to nonterminal_002_list_opt
-nonterminal_002_list_opt_1: (nonterminal_002_list_opt, (796 . 798)) <= ((nonterminal_001_list, (796 . 798)))
+ 3: 242:  141:(RIGHT_PAREN, (799 . 799)) : reduce 1 tokens to nonterminal_008_list_opt
+nonterminal_008_list_opt_1: (nonterminal_008_list_opt, (796 . 798)) <= ((nonterminal_007_list, (796 . 798)))
  ... goto state 241
  3: 241:  141:(RIGHT_PAREN, (799 . 799)) : reduce 2 tokens to association_list
-association_list_0: (association_list, (795 . 798)) <= ((association, (795 . 795)), (nonterminal_002_list_opt, (796 . 798)))
+association_list_0: (association_list, (795 . 798)) <= ((association, (795 . 795)), (nonterminal_008_list_opt, (796 . 798)))
  ... goto state 178
  3: 178:  141:(RIGHT_PAREN, (799 . 799)) : shift and goto state 243
  3: 243:  142:(SEMICOLON, (800 . 800)) : reduce 3 tokens to actual_parameter_part
@@ -1203,32 +1203,32 @@ simple_statement_2: (simple_statement, (787 . 800)) <= ((procedure_call_statemen
  3: 32:  143:(END, (808 . 810)) : reduce 1 tokens to statement
 statement_0: (statement, (787 . 800)) <= ((simple_statement, (787 . 800)))
  ... goto state 87
- 3: 87:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (787 . 800)) <= ((statement, (787 . 800)))
+ 3: 87:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (787 . 800)) <= ((statement, (787 . 800)))
  ... goto state 88
- 3: 88:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (787 . 800)) <= ((nonterminal_031, (787 . 800)))
+ 3: 88:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (787 . 800)) <= ((nonterminal_037, (787 . 800)))
  ... goto state 90
- 3: 90:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (787 . 800)) <= ((nonterminal_029_list, (787 . 800)))
+ 3: 90:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (787 . 800)) <= ((nonterminal_035_list, (787 . 800)))
  ... goto state 89
  3: 89:  143:(END, (808 . 810)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (787 . 800)) <= ((nonterminal_030_list_opt, (787 . 800)))
+sequence_of_statements_0: (sequence_of_statements, (787 . 800)) <= ((nonterminal_036_list_opt, (787 . 800)))
  ... goto state 328
  3: 328:  143:(END, (808 . 810)) : reduce 4 tokens to case_statement_alternative
 case_statement_alternative_0: (case_statement_alternative, (768 . 800)) <= ( 133:(WHEN, (768 . 771)),  134:(NUMERIC_LITERAL, (773 . 773)),  135:(EQUAL_GREATER, (775 . 776)), (sequence_of_statements, (787 . 800)))
  ... goto state 192
- 3: 192:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_005
-nonterminal_005_0: (nonterminal_005, (768 . 800)) <= ((case_statement_alternative, (768 . 800)))
+ 3: 192:  143:(END, (808 . 810)) : reduce 1 tokens to nonterminal_011
+nonterminal_011_0: (nonterminal_011, (768 . 800)) <= ((case_statement_alternative, (768 . 800)))
  ... goto state 254
- 3: 254:  143:(END, (808 . 810)) : reduce 2 tokens to nonterminal_004_list
-nonterminal_004_list_1: (nonterminal_004_list, (735 . 800)) <= ((nonterminal_004_list, (735 . 760)), (nonterminal_005, (768 . 800)))
+ 3: 254:  143:(END, (808 . 810)) : reduce 2 tokens to nonterminal_010_list
+nonterminal_010_list_1: (nonterminal_010_list, (735 . 800)) <= ((nonterminal_010_list, (735 . 760)), (nonterminal_011, (768 . 800)))
  ... goto state 194
  3: 194:  143:(END, (808 . 810)) : shift and goto state 253
  3: 253:  144:(CASE, (812 . 815)) : shift and goto state 296
  3: 296:  145:(SEMICOLON, (816 . 816)) : shift and goto state 329
  3: 329:  146:(WHEN, (821 . 824)) : reduce 7 tokens to case_statement
-case_statement_0: (case_statement, (719 . 816)) <= ( 125:(CASE, (719 . 722)), (expression, (724 . 724)),  127:(IS, (726 . 727)), (nonterminal_004_list, (735 . 800)),  143:(END, (808 . 810)),  144:(CASE, (812 . 815)),  145:(SEMICOLON, (816 . 816)))
+case_statement_0: (case_statement, (719 . 816)) <= ( 125:(CASE, (719 . 722)), (expression, (724 . 724)),  127:(IS, (726 . 727)), (nonterminal_010_list, (735 . 800)),  143:(END, (808 . 810)),  144:(CASE, (812 . 815)),  145:(SEMICOLON, (816 . 816)))
  ... goto state 15
  3: 15:  146:(WHEN, (821 . 824)) : reduce 1 tokens to compound_statement
 compound_statement_1: (compound_statement, (719 . 816)) <= ((case_statement, (719 . 816)))
@@ -1236,26 +1236,26 @@ compound_statement_1: (compound_statement, (719 . 816)) <= ((case_statement, (71
  3: 18:  146:(WHEN, (821 . 824)) : reduce 1 tokens to statement
 statement_1: (statement, (719 . 816)) <= ((compound_statement, (719 . 816)))
  ... goto state 87
- 3: 87:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (719 . 816)) <= ((statement, (719 . 816)))
+ 3: 87:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (719 . 816)) <= ((statement, (719 . 816)))
  ... goto state 88
- 3: 88:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (719 . 816)) <= ((nonterminal_031, (719 . 816)))
+ 3: 88:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (719 . 816)) <= ((nonterminal_037, (719 . 816)))
  ... goto state 90
- 3: 90:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (719 . 816)) <= ((nonterminal_029_list, (719 . 816)))
+ 3: 90:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (719 . 816)) <= ((nonterminal_035_list, (719 . 816)))
  ... goto state 89
  3: 89:  146:(WHEN, (821 . 824)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (719 . 816)) <= ((nonterminal_030_list_opt, (719 . 816)))
+sequence_of_statements_0: (sequence_of_statements, (719 . 816)) <= ((nonterminal_036_list_opt, (719 . 816)))
  ... goto state 328
  3: 328:  146:(WHEN, (821 . 824)) : reduce 4 tokens to case_statement_alternative
 case_statement_alternative_0: (case_statement_alternative, (702 . 816)) <= ( 122:(WHEN, (702 . 705)),  123:(NUMERIC_LITERAL, (707 . 707)),  124:(EQUAL_GREATER, (709 . 710)), (sequence_of_statements, (719 . 816)))
  ... goto state 192
- 3: 192:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_005
-nonterminal_005_0: (nonterminal_005, (702 . 816)) <= ((case_statement_alternative, (702 . 816)))
+ 3: 192:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_011
+nonterminal_011_0: (nonterminal_011, (702 . 816)) <= ((case_statement_alternative, (702 . 816)))
  ... goto state 193
- 3: 193:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_004_list
-nonterminal_004_list_0: (nonterminal_004_list, (702 . 816)) <= ((nonterminal_005, (702 . 816)))
+ 3: 193:  146:(WHEN, (821 . 824)) : reduce 1 tokens to nonterminal_010_list
+nonterminal_010_list_0: (nonterminal_010_list, (702 . 816)) <= ((nonterminal_011, (702 . 816)))
  ... goto state 194
  3: 194:  146:(WHEN, (821 . 824)) : shift and goto state 191
  3: 191:  147:(NUMERIC_LITERAL, (826 . 826)) : shift and goto state 252
@@ -1275,32 +1275,32 @@ simple_statement_2: (simple_statement, (837 . 844)) <= ((procedure_call_statemen
  3: 32:  151:(END, (849 . 851)) : reduce 1 tokens to statement
 statement_0: (statement, (837 . 844)) <= ((simple_statement, (837 . 844)))
  ... goto state 87
- 3: 87:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (837 . 844)) <= ((statement, (837 . 844)))
+ 3: 87:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (837 . 844)) <= ((statement, (837 . 844)))
  ... goto state 88
- 3: 88:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (837 . 844)) <= ((nonterminal_031, (837 . 844)))
+ 3: 88:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (837 . 844)) <= ((nonterminal_037, (837 . 844)))
  ... goto state 90
- 3: 90:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (837 . 844)) <= ((nonterminal_029_list, (837 . 844)))
+ 3: 90:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (837 . 844)) <= ((nonterminal_035_list, (837 . 844)))
  ... goto state 89
  3: 89:  151:(END, (849 . 851)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (837 . 844)) <= ((nonterminal_030_list_opt, (837 . 844)))
+sequence_of_statements_0: (sequence_of_statements, (837 . 844)) <= ((nonterminal_036_list_opt, (837 . 844)))
  ... goto state 328
  3: 328:  151:(END, (849 . 851)) : reduce 4 tokens to case_statement_alternative
 case_statement_alternative_0: (case_statement_alternative, (821 . 844)) <= ( 146:(WHEN, (821 . 824)),  147:(NUMERIC_LITERAL, (826 . 826)),  148:(EQUAL_GREATER, (828 . 829)), (sequence_of_statements, (837 . 844)))
  ... goto state 192
- 3: 192:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_005
-nonterminal_005_0: (nonterminal_005, (821 . 844)) <= ((case_statement_alternative, (821 . 844)))
+ 3: 192:  151:(END, (849 . 851)) : reduce 1 tokens to nonterminal_011
+nonterminal_011_0: (nonterminal_011, (821 . 844)) <= ((case_statement_alternative, (821 . 844)))
  ... goto state 254
- 3: 254:  151:(END, (849 . 851)) : reduce 2 tokens to nonterminal_004_list
-nonterminal_004_list_1: (nonterminal_004_list, (702 . 844)) <= ((nonterminal_004_list, (702 . 816)), (nonterminal_005, (821 . 844)))
+ 3: 254:  151:(END, (849 . 851)) : reduce 2 tokens to nonterminal_010_list
+nonterminal_010_list_1: (nonterminal_010_list, (702 . 844)) <= ((nonterminal_010_list, (702 . 816)), (nonterminal_011, (821 . 844)))
  ... goto state 194
  3: 194:  151:(END, (849 . 851)) : shift and goto state 253
  3: 253:  152:(CASE, (853 . 856)) : shift and goto state 296
  3: 296:  153:(SEMICOLON, (857 . 857)) : shift and goto state 329
  3: 329:  154:(END, (859 . 861)) : reduce 7 tokens to case_statement
-case_statement_0: (case_statement, (689 . 857)) <= ( 119:(CASE, (689 . 692)), (expression, (694 . 694)),  121:(IS, (696 . 697)), (nonterminal_004_list, (702 . 844)),  151:(END, (849 . 851)),  152:(CASE, (853 . 856)),  153:(SEMICOLON, (857 . 857)))
+case_statement_0: (case_statement, (689 . 857)) <= ( 119:(CASE, (689 . 692)), (expression, (694 . 694)),  121:(IS, (696 . 697)), (nonterminal_010_list, (702 . 844)),  151:(END, (849 . 851)),  152:(CASE, (853 . 856)),  153:(SEMICOLON, (857 . 857)))
  ... goto state 15
  3: 15:  154:(END, (859 . 861)) : reduce 1 tokens to compound_statement
 compound_statement_1: (compound_statement, (689 . 857)) <= ((case_statement, (689 . 857)))
@@ -1308,17 +1308,17 @@ compound_statement_1: (compound_statement, (689 . 857)) <= ((case_statement, (68
  3: 18:  154:(END, (859 . 861)) : reduce 1 tokens to statement
 statement_1: (statement, (689 . 857)) <= ((compound_statement, (689 . 857)))
  ... goto state 87
- 3: 87:  154:(END, (859 . 861)) : reduce 1 tokens to nonterminal_031
-nonterminal_031_0: (nonterminal_031, (689 . 857)) <= ((statement, (689 . 857)))
+ 3: 87:  154:(END, (859 . 861)) : reduce 1 tokens to nonterminal_037
+nonterminal_037_0: (nonterminal_037, (689 . 857)) <= ((statement, (689 . 857)))
  ... goto state 88
- 3: 88:  154:(END, (859 . 861)) : reduce 1 tokens to nonterminal_029_list
-nonterminal_029_list_0: (nonterminal_029_list, (689 . 857)) <= ((nonterminal_031, (689 . 857)))
+ 3: 88:  154:(END, (859 . 861)) : reduce 1 tokens to nonterminal_035_list
+nonterminal_035_list_0: (nonterminal_035_list, (689 . 857)) <= ((nonterminal_037, (689 . 857)))
  ... goto state 90
- 3: 90:  154:(END, (859 . 861)) : reduce 1 tokens to nonterminal_030_list_opt
-nonterminal_030_list_opt_1: (nonterminal_030_list_opt, (689 . 857)) <= ((nonterminal_029_list, (689 . 857)))
+ 3: 90:  154:(END, (859 . 861)) : reduce 1 tokens to nonterminal_036_list_opt
+nonterminal_036_list_opt_1: (nonterminal_036_list_opt, (689 . 857)) <= ((nonterminal_035_list, (689 . 857)))
  ... goto state 89
  3: 89:  154:(END, (859 . 861)) : reduce 1 tokens to sequence_of_statements
-sequence_of_statements_0: (sequence_of_statements, (689 . 857)) <= ((nonterminal_030_list_opt, (689 . 857)))
+sequence_of_statements_0: (sequence_of_statements, (689 . 857)) <= ((nonterminal_036_list_opt, (689 . 857)))
  ... goto state 174
  3: 174:  154:(END, (859 . 861)) : reduce 1 tokens to handled_sequence_of_statements
 handled_sequence_of_statements_1: (handled_sequence_of_statements, (689 . 857)) <= ((sequence_of_statements, (689 . 857)))
@@ -1335,14 +1335,14 @@ semantic check OK
  3: 34:  156:(Wisi_EOI, (863 . 862)) : reduce 1 tokens to compilation_unit
 compilation_unit_2: (compilation_unit, (628 . 862)) <= ((subprogram_body, (628 . 862)))
  ... goto state 16
- 3: 16:  156:(Wisi_EOI, (863 . 862)) : reduce 1 tokens to nonterminal_007
-nonterminal_007_0: (nonterminal_007, (628 . 862)) <= ((compilation_unit, (628 . 862)))
+ 3: 16:  156:(Wisi_EOI, (863 . 862)) : reduce 1 tokens to nonterminal_013
+nonterminal_013_0: (nonterminal_013, (628 . 862)) <= ((compilation_unit, (628 . 862)))
  ... goto state 110
- 3: 110:  156:(Wisi_EOI, (863 . 862)) : reduce 2 tokens to nonterminal_006_list
-nonterminal_006_list_1: (nonterminal_006_list, (161 . 862)) <= ((nonterminal_006_list, (161 . 625)), (nonterminal_007, (628 . 862)))
+ 3: 110:  156:(Wisi_EOI, (863 . 862)) : reduce 2 tokens to nonterminal_012_list
+nonterminal_012_list_1: (nonterminal_012_list, (161 . 862)) <= ((nonterminal_012_list, (161 . 625)), (nonterminal_013, (628 . 862)))
  ... goto state 38
  3: 38:  156:(Wisi_EOI, (863 . 862)) : reduce 1 tokens to compilation_unit_list
-compilation_unit_list_0: (compilation_unit_list, (161 . 862)) <= ((nonterminal_006_list, (161 . 862)))
+compilation_unit_list_0: (compilation_unit_list, (161 . 862)) <= ((nonterminal_012_list, (161 . 862)))
 semantic check OK
  ... goto state 17
  3: 17:  156:(Wisi_EOI, (863 . 862)) : accept it
