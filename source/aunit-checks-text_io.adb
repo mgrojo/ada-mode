@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2008, 2015 - 2018 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2008, 2015 - 2019 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -91,7 +91,8 @@ package body AUnit.Checks.Text_IO is
       when E : others =>
          Assert
            (False,
-            Label & " file '" & Computed_Name & "' cannot be opened: " & Ada.Exceptions.Exception_Name (E));
+            Label & " file '" & Computed_Name & "' cannot be opened: " & Ada.Exceptions.Exception_Name (E) &
+              "; current dir '" & Ada.Directories.Current_Directory & "'");
       end;
 
       begin
