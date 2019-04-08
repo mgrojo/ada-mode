@@ -1,0 +1,154 @@
+;;; generated from java_ebnf.wy
+;;;
+;; Examples of EBNF syntax used in the Java grammar file
+;; https://github.com/antlr/grammars-v4/tree/master/java
+;;
+;; Note that the only *.*_good file is java_ebnf_bnf.wy_good
+
+%meta_syntax BNF
+
+%token <punctuation> LEFT_BRACE "{"
+%token <punctuation> COMMA ","
+%token <punctuation> RIGHT_BRACE "}"
+%start compilationUnit
+
+;; IDENTIFIER QUESTION | IDENTIFIER STAR
+compilationUnit
+  : nonterminal_033 nonterminal_008_list_opt nonterminal_011_list_opt EOF
+  | nonterminal_008_list_opt nonterminal_011_list_opt EOF
+  ;
+
+statement
+  : blockLabel=block
+  | TRY block nonterminal_031
+  | SWITCH parExpression LEFT_BRACE nonterminal_016_list_opt nonterminal_019_list_opt RIGHT_BRACE
+  ;
+
+;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
+enumDeclaration
+  : ENUM IDENTIFIER nonterminal_028 LEFT_BRACE nonterminal_025 nonterminal_024 nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE nonterminal_025 nonterminal_024 nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE nonterminal_024 nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE nonterminal_024 nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_038 LEFT_BRACE nonterminal_039 nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_038 LEFT_BRACE nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE nonterminal_044 nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE nonterminal_021 RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE nonterminal_036 nonterminal_037 RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE nonterminal_036 RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE nonterminal_043 RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE nonterminal_041 nonterminal_042 RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE nonterminal_041 RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE nonterminal_045 RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE RIGHT_BRACE
+  ;
+
+;; end of file
+nonterminal_009
+  : importDeclaration
+  ;
+nonterminal_008_list_opt
+  : ;; empty
+  | nonterminal_007_list
+  ;
+nonterminal_007_list
+  : nonterminal_009
+  | nonterminal_007_list nonterminal_009
+  ;
+nonterminal_012
+  : typeDeclaration
+  ;
+nonterminal_011_list_opt
+  : ;; empty
+  | nonterminal_010_list
+  ;
+nonterminal_010_list
+  : nonterminal_012
+  | nonterminal_010_list nonterminal_012
+  ;
+nonterminal_014
+  : catchClause
+  ;
+nonterminal_013_list
+  : nonterminal_014
+  | nonterminal_013_list nonterminal_014
+  ;
+nonterminal_017
+  : switchBlockStatementGroup
+  ;
+nonterminal_016_list_opt
+  : ;; empty
+  | nonterminal_015_list
+  ;
+nonterminal_015_list
+  : nonterminal_017
+  | nonterminal_015_list nonterminal_017
+  ;
+nonterminal_020
+  : switchLabel
+  ;
+nonterminal_019_list_opt
+  : ;; empty
+  | nonterminal_018_list
+  ;
+nonterminal_018_list
+  : nonterminal_020
+  | nonterminal_018_list nonterminal_020
+  ;
+nonterminal_021
+  : enumBodyDeclarations
+  ;
+nonterminal_024
+  : COMMA
+  ;
+nonterminal_025
+  : enumConstants
+  ;
+nonterminal_028
+  : IMPLEMENTS typeList
+  ;
+nonterminal_031
+  : nonterminal_013_list nonterminal_032
+  | nonterminal_013_list
+  | finallyBlock
+  ;
+nonterminal_032
+  : finallyBlock
+  ;
+nonterminal_033
+  : packageDeclaration
+  ;
+nonterminal_035
+  : IMPLEMENTS typeList
+  ;
+nonterminal_036
+  : enumConstants
+  ;
+nonterminal_037
+  : COMMA
+  ;
+nonterminal_038
+  : IMPLEMENTS typeList
+  ;
+nonterminal_039
+  : enumConstants
+  ;
+nonterminal_040
+  : IMPLEMENTS typeList
+  ;
+nonterminal_041
+  : enumConstants
+  ;
+nonterminal_042
+  : COMMA
+  ;
+nonterminal_043
+  : COMMA
+  ;
+nonterminal_044
+  : enumConstants
+  ;
+nonterminal_045
+  : COMMA
+  ;

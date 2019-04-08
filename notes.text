@@ -23,6 +23,8 @@ update-wisi_grammar
  current work
 add EBNF
     run on java
+        c:/Projects/org.emacs.java-wisi/notes.text
+        need forUpdate=expressionList?
 
     run on Python
 
@@ -40,6 +42,7 @@ lalr generator bug
 
         state 22 should not have both 23.0 and 25.0
             but lalr_goto_transitions clearly does that
+                could include sequence of empty nonterms in first_nonterm_set, return two goto_sets
             compare to bison lalr_generator_bug_01.bison_table
             parse .input using bison table
             bison state 36 is the same

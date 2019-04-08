@@ -216,6 +216,10 @@ rhs_group_item
 rhs_optional_item
   : LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
+  | IDENTIFIER QUESTION
+  | STRING_LITERAL_2 QUESTION
+    %(Check_EBNF (User_Data, Tree, Tokens);)%
+  ;; not supporting 'labeled_rhs_item QUESTION' yet
   ;
 
 rhs_multiple_item
@@ -223,6 +227,8 @@ rhs_multiple_item
   | LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR
+  | IDENTIFIER PLUS
+  | IDENTIFIER STAR
   ;
 
 rhs_alternative_list

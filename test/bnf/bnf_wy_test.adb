@@ -153,30 +153,24 @@ package body BNF_WY_Test is
       raise;
    end Get_Gen_Set;
 
+   procedure Diff_One
+     (Computed : in String;
+      Skip     : in AUnit.Checks.Text_IO.Line_Number_Array_Type := (1 .. 0 => 1))
+   is begin
+      AUnit.Checks.Text_IO.Check_Files ("", Computed, "../Test/bnf/" & Computed & "_good", Skip);
+   end Diff_One;
+
    procedure Diff_Gen
      (Root_Name        : in String;
       Tuple            : in WisiToken.BNF.Generate_Tuple;
-      If_Lexer_Present : in Boolean;
-      Meta_Syntax      : in WisiToken_Grammar_Runtime.Meta_Syntax)
+      If_Lexer_Present : in Boolean)
    is
       use WisiToken.BNF;
-      use all type WisiToken_Grammar_Runtime.Meta_Syntax;
 
       Gen_Alg  : constant String := "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg));
       Int_Kind : constant String := "_" & To_Lower (Interface_Type'Image (Tuple.Interface_Kind));
 
-      procedure Diff_One
-        (Computed : in String;
-         Skip     : in AUnit.Checks.Text_IO.Line_Number_Array_Type := (1 .. 0 => 1))
-      is begin
-         AUnit.Checks.Text_IO.Check_Files ("", Computed, "../Test/bnf/" & Computed & "_good", Skip);
-      end Diff_One;
-
    begin
-      if Meta_Syntax = EBNF_Syntax then
-         Diff_One (BNF_File_Name (Root_Name));
-      end if;
-
       case Tuple.Gen_Alg is
       when LR_Generate_Algorithm =>
          Diff_One
@@ -278,6 +272,9 @@ package body BNF_WY_Test is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      use all type WisiToken.BNF.Generate_Set_Access;
+      use all type WisiToken_Grammar_Runtime.Meta_Syntax;
+
       Test : Test_Case renames Test_Case (T);
 
       Simple_Name      : constant String := Ada.Directories.Simple_Name (Test.Root_Name.all);
@@ -291,22 +288,28 @@ package body BNF_WY_Test is
 
       Get_Gen_Set (Simple_Name, Gen_Set, If_Lexer_Present, McKenzie_Recover, Meta_Syntax);
 
-      for Tuple of Gen_Set.all loop
-         case Tuple.Out_Lang is
-         when WisiToken.BNF.Ada_Lang =>
-            Execute_Parse
-              (Simple_Name,
-               (if Test.Input_Name = null then "" else Test.Input_Name.all),
-               Tuple.Gen_Alg, McKenzie_Recover);
+      if Gen_Set /= null then
+         for Tuple of Gen_Set.all loop
+            case Tuple.Out_Lang is
+            when WisiToken.BNF.Ada_Lang =>
+               Execute_Parse
+                 (Simple_Name,
+                  (if Test.Input_Name = null then "" else Test.Input_Name.all),
+                  Tuple.Gen_Alg, McKenzie_Recover);
 
-         when WisiToken.BNF.Ada_Emacs_Lang | WisiToken.BNF.Elisp_Lang =>
-            null;
-         end case;
+            when WisiToken.BNF.Ada_Emacs_Lang | WisiToken.BNF.Elisp_Lang =>
+               null;
+            end case;
 
-         --  Do Diff_Gen after compile and execute, so we know the code is
-         --  correct before we update _good.
-         Diff_Gen (Simple_Name, Tuple, If_Lexer_Present, Meta_Syntax);
-      end loop;
+            --  Do Diff_Gen after compile and execute, so we know the code is
+            --  correct before we update _good.
+            Diff_Gen (Simple_Name, Tuple, If_Lexer_Present);
+         end loop;
+      end if;
+
+      if Meta_Syntax = EBNF_Syntax then
+         Diff_One (BNF_File_Name (Simple_Name));
+      end if;
    end Run_Test;
 
    ----------

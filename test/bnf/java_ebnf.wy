@@ -1,0 +1,28 @@
+;; Examples of EBNF syntax used in the Java grammar file
+;; https://github.com/antlr/grammars-v4/tree/master/java
+;;
+;; Note that the only *.*_good file is java_ebnf_bnf.wy_good, and that
+;; this file does not declare all used tokens; we are only testing the
+;; translation from EBNF to BNF.
+
+%meta_syntax EBNF
+
+%start compilationUnit
+
+;; IDENTIFIER QUESTION | IDENTIFIER STAR
+compilationUnit
+    : packageDeclaration? importDeclaration* typeDeclaration* EOF
+    ;
+
+statement
+    : blockLabel=block
+    | TRY block (catchClause+ finallyBlock? | finallyBlock)
+    | SWITCH parExpression '{' switchBlockStatementGroup* switchLabel* '}'
+    ;
+
+;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
+enumDeclaration
+    : ENUM IDENTIFIER (IMPLEMENTS typeList)? '{' enumConstants? ','? enumBodyDeclarations? '}'
+    ;
+
+;; end of file

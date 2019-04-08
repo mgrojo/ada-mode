@@ -18,6 +18,7 @@ OK bnf_wy_test.adb empty_production_6 : Run_Test
 OK bnf_wy_test.adb empty_production_7 : Run_Test
 OK bnf_wy_test.adb empty_production_8 : Run_Test
 OK bnf_wy_test.adb identifier_list_name_conflict : Run_Test
+OK bnf_wy_test.adb java_ebnf : Run_Test
 OK bnf_wy_test.adb lalr_generator_bug_01 : Run_Test
 OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
 OK bnf_wy_test.adb range_conflict : Run_Test
@@ -101,7 +102,7 @@ OK warth_left_recurse_expr_1.adb : Test_Parse_Proc
 OK wisitoken-syntax_trees-test.adb : Test_Move_Branch_Point
 OK wisitoken-generate-packrat-test.adb : Ada_Lite_Involved
 
-Total Tests Run:   101
-Successful Tests:  101
+Total Tests Run:   102
+Successful Tests:  102
 Failed Assertions: 0
 Unexpected Errors: 0
