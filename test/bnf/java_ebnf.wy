@@ -8,6 +8,15 @@
 %meta_syntax EBNF
 
 %start compilationUnit
+%generate None
+
+%token <punctuation> LBRACE             '{'
+%token <punctuation> RBRACE             '}'
+%token <punctuation> INC                '++'
+%token <punctuation> DEC                '--'
+%token <punctuation> DOT                '.'
+%token <punctuation> COMMA              ','
+%token <punctuation> SEMI               ';'
 
 ;; IDENTIFIER QUESTION | IDENTIFIER STAR
 compilationUnit

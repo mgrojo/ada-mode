@@ -9,144 +9,146 @@
 
 %meta_syntax BNF
 
-%token <punctuation> LEFT_BRACE "{"
-%token <punctuation> COMMA ","
-%token <punctuation> RIGHT_BRACE "}"
-%token <punctuation> SEMICOLON ";"
-%token <punctuation> DOT "."
-%token <punctuation> PLUS_PLUS "++"
-%token <punctuation> MINUS_MINUS "--"
 %start compilationUnit
+%generate None
+
+%token <punctuation> LBRACE '{'
+%token <punctuation> RBRACE '}'
+%token <punctuation> INC '++'
+%token <punctuation> DEC '--'
+%token <punctuation> DOT '.'
+%token <punctuation> COMMA ','
+%token <punctuation> SEMI ';'
 
 ;; IDENTIFIER QUESTION | IDENTIFIER STAR
 compilationUnit
-  : packageDeclaration nonterminal_008_list_opt nonterminal_011_list_opt EOF
-  | nonterminal_008_list_opt nonterminal_011_list_opt EOF
+  : packageDeclaration nonterminal_004_list_opt nonterminal_007_list_opt EOF
+  | nonterminal_004_list_opt nonterminal_007_list_opt EOF
   ;
 
 statement
   : blockLabel=block
-  | TRY block nonterminal_038
-  | SWITCH parExpression LEFT_BRACE nonterminal_016_list_opt nonterminal_019_list_opt RIGHT_BRACE
+  | TRY block nonterminal_030
+  | SWITCH parExpression LBRACE nonterminal_012_list_opt nonterminal_015_list_opt RBRACE
   ;
 
 ;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
 enumDeclaration
-  : ENUM IDENTIFIER nonterminal_035 LEFT_BRACE enumConstants COMMA enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE enumConstants COMMA enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_042 LEFT_BRACE COMMA enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE COMMA enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_041 LEFT_BRACE enumConstants enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_041 LEFT_BRACE enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE enumConstants enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE enumBodyDeclarations RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE enumConstants COMMA RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE enumConstants RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE COMMA RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE enumConstants COMMA RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE enumConstants RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE COMMA RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE RIGHT_BRACE
+  : ENUM IDENTIFIER nonterminal_026 LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER nonterminal_043 LBRACE COMMA enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER LBRACE COMMA enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER nonterminal_041 LBRACE enumConstants enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER nonterminal_041 LBRACE enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER LBRACE enumConstants enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER LBRACE enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER nonterminal_037 LBRACE enumConstants COMMA RBRACE
+  | ENUM IDENTIFIER nonterminal_037 LBRACE enumConstants RBRACE
+  | ENUM IDENTIFIER nonterminal_037 LBRACE COMMA RBRACE
+  | ENUM IDENTIFIER nonterminal_037 LBRACE RBRACE
+  | ENUM IDENTIFIER LBRACE enumConstants COMMA RBRACE
+  | ENUM IDENTIFIER LBRACE enumConstants RBRACE
+  | ENUM IDENTIFIER LBRACE COMMA RBRACE
+  | ENUM IDENTIFIER LBRACE RBRACE
   ;
 
 ;; labeled rhs_optional_item
 forControl
   : enhancedForControl
-  | forInit SEMICOLON expression SEMICOLON forUpdate=expressionList
-  | SEMICOLON expression SEMICOLON forUpdate=expressionList
-  | forInit SEMICOLON SEMICOLON forUpdate=expressionList
-  | SEMICOLON SEMICOLON forUpdate=expressionList
-  | forInit SEMICOLON expression SEMICOLON
-  | forInit SEMICOLON SEMICOLON
-  | SEMICOLON expression SEMICOLON
-  | SEMICOLON SEMICOLON
+  | forInit SEMI expression SEMI forUpdate=expressionList
+  | SEMI expression SEMI forUpdate=expressionList
+  | forInit SEMI SEMI forUpdate=expressionList
+  | SEMI SEMI forUpdate=expressionList
+  | forInit SEMI expression SEMI
+  | forInit SEMI SEMI
+  | SEMI expression SEMI
+  | SEMI SEMI
   ;
 
 ;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item
 expression
   : primary
-  | expression bop=DOT nonterminal_026
-  | expression postfix=nonterminal_021
+  | expression bop=DOT nonterminal_020
+  | expression postfix=nonterminal_017
   ;
 
 ;; end of file
-nonterminal_009
+nonterminal_005
   : importDeclaration
   ;
-nonterminal_008_list_opt
+nonterminal_004_list_opt
   : ;; empty
-  | nonterminal_007_list
+  | nonterminal_003_list
   ;
-nonterminal_007_list
-  : nonterminal_009
-  | nonterminal_007_list nonterminal_009
+nonterminal_003_list
+  : nonterminal_005
+  | nonterminal_003_list nonterminal_005
   ;
-nonterminal_012
+nonterminal_008
   : typeDeclaration
   ;
-nonterminal_011_list_opt
+nonterminal_007_list_opt
   : ;; empty
-  | nonterminal_010_list
+  | nonterminal_006_list
   ;
-nonterminal_010_list
-  : nonterminal_012
-  | nonterminal_010_list nonterminal_012
+nonterminal_006_list
+  : nonterminal_008
+  | nonterminal_006_list nonterminal_008
   ;
-nonterminal_014
+nonterminal_010
   : catchClause
   ;
-nonterminal_013_list
-  : nonterminal_014
-  | nonterminal_013_list nonterminal_014
+nonterminal_009_list
+  : nonterminal_010
+  | nonterminal_009_list nonterminal_010
   ;
-nonterminal_017
+nonterminal_013
   : switchBlockStatementGroup
   ;
-nonterminal_016_list_opt
+nonterminal_012_list_opt
   : ;; empty
-  | nonterminal_015_list
+  | nonterminal_011_list
   ;
-nonterminal_015_list
-  : nonterminal_017
-  | nonterminal_015_list nonterminal_017
+nonterminal_011_list
+  : nonterminal_013
+  | nonterminal_011_list nonterminal_013
   ;
-nonterminal_020
+nonterminal_016
   : switchLabel
   ;
-nonterminal_019_list_opt
+nonterminal_015_list_opt
   : ;; empty
-  | nonterminal_018_list
+  | nonterminal_014_list
   ;
-nonterminal_018_list
-  : nonterminal_020
-  | nonterminal_018_list nonterminal_020
+nonterminal_014_list
+  : nonterminal_016
+  | nonterminal_014_list nonterminal_016
   ;
-nonterminal_021
-  : PLUS_PLUS
-  | MINUS_MINUS
+nonterminal_017
+  : INC
+  | DEC
   ;
-nonterminal_026
+nonterminal_020
   : THIS
   | NEW nonWildcardTypeArguments innerCreator
   | NEW innerCreator
   | SUPER superSuffix
   | explicitGenericInvocation
   ;
-nonterminal_035
+nonterminal_026
   : IMPLEMENTS typeList
   ;
-nonterminal_038
-  : nonterminal_013_list finallyBlock
-  | nonterminal_013_list
+nonterminal_030
+  : nonterminal_009_list finallyBlock
+  | nonterminal_009_list
   | finallyBlock
   ;
-nonterminal_040
+nonterminal_037
   : IMPLEMENTS typeList
   ;
 nonterminal_041
   : IMPLEMENTS typeList
   ;
-nonterminal_042
+nonterminal_043
   : IMPLEMENTS typeList
   ;

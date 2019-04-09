@@ -48,6 +48,30 @@ package body WisiToken_Grammar_Runtime is
         ":" & Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor, Include_Children => True);
    end Raise_Programmer_Error;
 
+   function Get_Line
+     (Data : in User_Data_Type;
+      Tree : in Syntax_Trees.Tree;
+      Node : in WisiToken.Syntax_Trees.Valid_Node_Index)
+     return WisiToken.Line_Number_Type
+   is
+      --  Find a source line for Node.
+
+      use WisiToken.Syntax_Trees;
+
+      Temp : Node_Index := Node;
+   begin
+      loop
+         if Tree.Min_Terminal_Index (Temp) = Invalid_Token_Index then
+            --  Node is empty or all virtual_identifiers; try parents.
+            Temp := Tree.Parent (Temp);
+            exit when Temp = Invalid_Node_Index;
+         else
+            return Data.Terminals.all (Tree.Min_Terminal_Index (Temp)).Line;
+         end if;
+      end loop;
+      return Invalid_Line_Number;
+   end Get_Line;
+
    function Get_Text
      (Data         : in User_Data_Type;
       Tree         : in Syntax_Trees.Tree;
@@ -83,7 +107,15 @@ package body WisiToken_Grammar_Runtime is
          return Image (Tree.ID (Tree_Index), Wisitoken_Grammar_Actions.Descriptor);
 
       when Virtual_Identifier =>
-         return -Data.Tokens.Virtual_Identifiers (Tree.Identifier (Tree_Index));
+         if Strip_Quotes then
+            declare
+               Quoted : constant String := -Data.Tokens.Virtual_Identifiers (Tree.Identifier (Tree_Index));
+            begin
+               return Quoted (Quoted'First + 1 .. Quoted'Last - 1);
+            end;
+         else
+            return -Data.Tokens.Virtual_Identifiers (Tree.Identifier (Tree_Index));
+         end if;
 
       when Nonterm =>
          declare
@@ -155,23 +187,7 @@ package body WisiToken_Grammar_Runtime is
       pragma Assert (-Tree.ID (Token) = rhs_ID);
 
       return RHS : WisiToken.BNF.RHS_Type do
-         if Tree.Min_Terminal_Index (Token) = Invalid_Token_Index then
-            --  Find a source line. RHS is empty or all virtual_identifiers;
-            --  parent is a possibly empty rhs_list; grandparent may be a
-            --  non-empty rhs_list or nonterminal.
-            declare
-               Tok : constant Base_Token_Index := Tree.Min_Terminal_Index (Tree.Parent (Tree.Parent (Token)));
-            begin
-               if Tok = Invalid_Token_Index then
-                  --  grandparent is all virtual
-                  RHS.Source_Line := Invalid_Line_Number;
-               else
-                  RHS.Source_Line := Data.Terminals.all (Tok).Line;
-               end if;
-            end;
-         else
-            RHS.Source_Line := Data.Terminals.all (Tree.Min_Terminal_Index (Token)).Line;
-         end if;
+         RHS.Source_Line := Get_Line (Data, Tree, Token);
 
          if Children'Length > 0 then
             for I of Tree.Get_IDs (Children (1), +rhs_element_ID) loop
@@ -191,7 +207,7 @@ package body WisiToken_Grammar_Runtime is
                   --  IDENTIFIER = rhs_item
                   if Tree.ID (Tree.Child (Tree.Child (I, 3), 1)) = +IDENTIFIER_ID then
                      declare
-                        Label : constant String := Get_Text (Data, Tree, Tree.Child (Tree.Child (I, 3), 1));
+                        Label : constant String := Get_Text (Data, Tree, Tree.Child (I, 1));
                      begin
                         RHS.Tokens.Append
                           ((Label      => +Label,
@@ -414,11 +430,14 @@ package body WisiToken_Grammar_Runtime is
 
                   elsif Kind = "generate" then
                      declare
+                        use all type SAL.Base_Peek_Type;
                         Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Tokens (3));
-                        Tuple     : WisiToken.BNF.Generate_Tuple;
+                        Tuple    : WisiToken.BNF.Generate_Tuple;
                      begin
                         Tuple.Gen_Alg  := WisiToken.BNF.Generate_Algorithm'Value (Get_Text (Data, Tree, Children (1)));
-                        Tuple.Out_Lang := WisiToken.BNF.To_Output_Language (Get_Text (Data, Tree, Children (2)));
+                        if Children'Last >= 2 then
+                           Tuple.Out_Lang := WisiToken.BNF.To_Output_Language (Get_Text (Data, Tree, Children (2)));
+                        end if;
                         for I in 3 .. SAL.Base_Peek_Type (Children'Length) loop
                            declare
                               Text : constant String := Get_Text (Data, Tree, Children (I));
@@ -856,12 +875,8 @@ package body WisiToken_Grammar_Runtime is
          return ID;
       end New_Identifier;
 
-      Greater_Ident     : constant Identifier_Index := New_Identifier (">");
-      Keyword_Ident     : constant Identifier_Index := New_Identifier ("keyword");
-      Less_Ident        : constant Identifier_Index := New_Identifier ("<");
-      Percent_Ident     : constant Identifier_Index := New_Identifier ("percent");
-      Punctuation_Ident : constant Identifier_Index := New_Identifier ("punctuation");
-      Token_Ident       : constant Identifier_Index := New_Identifier ("token");
+      Keyword_Ident : constant Identifier_Index := New_Identifier ("keyword");
+      Percent_Ident : constant Identifier_Index := New_Identifier ("percent");
 
       function Next_Nonterm_Name (Suffix : in String := "") return Identifier_Index
       is
@@ -1650,24 +1665,10 @@ package body WisiToken_Grammar_Runtime is
          when STRING_LITERAL_2_ID =>
             declare
                Value      : constant String  := Get_Text (Data, Tree, Node, Strip_Quotes => True);
-               Keyword    : constant Boolean := GNAT.Regexp.Match (Value, Symbol_Regexp);
-               Name       : constant String  :=
-                 (if Keyword then Ada.Characters.Handling.To_Upper (Value)
-                  --  FIXME: look these up in declared tokens? or meta declared names?
-                  elsif Value = "," then "COMMA"
-                  elsif Value = "." then "DOT"
-                  elsif Value = "--" then "MINUS_MINUS"
-                  elsif Value = "++" then "PLUS_PLUS"
-                  elsif Value = ";" then "SEMICOLON"
-                  elsif Value = "{" then "LEFT_BRACE"
-                  elsif Value = "}" then "RIGHT_BRACE"
-                  else raise SAL.Programmer_Error with
-                    "string_literal to token; unrecognized punctuation '" & Value & "'");
                Name_Ident : Identifier_Index;
-               Found      : Boolean := False;
-               Kind       : Valid_Node_Index;
+               Found      : Boolean          := False;
             begin
-               --  See if Name is already declared
+               --  See if Value is already declared
                declare
                   Temp : Node_Index := First_List_Element (Tree.Child (Tree.Root, 1), +compilation_unit_ID);
                   Decl : Node_Index;
@@ -1677,27 +1678,25 @@ package body WisiToken_Grammar_Runtime is
 
                      if Tree.Production_ID (Tree.Child (Temp, 1)) = (+declaration_ID, 0) then
                         Decl := Tree.Child (Temp, 1);
-                        case Tree.Label (Tree.Child (Decl, 3)) is
-                        when Virtual_Identifier =>
-                           declare
-                              use all type Ada.Strings.Unbounded.Unbounded_String;
-                              ID : constant Identifier_Index := Tree.Identifier (Tree.Child (Decl, 3));
-                           begin
-                              if Data.Tokens.Virtual_Identifiers (ID) = Name then
-                                 Name_Ident := ID;
-                                 Found      := True;
-                              end if;
-                           end;
-
-                        when Shared_Terminal =>
-                           if Get_Text (Data, Tree, Tree.Child (Decl, 3)) = Name then
-                                 Name_Ident := New_Identifier (Name);
-                                 Found      := True;
+                        declare
+                           Value_Node : constant Valid_Node_Index := Tree.Child (Tree.Child (Decl, 4), 1);
+                        begin
+                           if Tree.ID (Value_Node) = +declaration_item_ID and then
+                             Tree.ID (Tree.Child (Value_Node, 1)) in
+                             +IDENTIFIER_ID | +STRING_LITERAL_1_ID | +STRING_LITERAL_2_ID and then
+                             Value = Get_Text (Data, Tree, Tree.Child (Value_Node, 1), Strip_Quotes => True)
+                           then
+                              Found := True;
+                              case Tree.Label (Tree.Child (Decl, 3)) is
+                              when Shared_Terminal =>
+                                 Name_Ident := New_Identifier (Get_Text (Data, Tree, Tree.Child (Decl, 3)));
+                              when Virtual_Identifier =>
+                                 Name_Ident := Tree.Identifier (Tree.Child (Decl, 3));
+                              when others =>
+                                 raise SAL.Programmer_Error;
+                              end case;
                            end if;
-
-                        when others =>
-                           Raise_Programmer_Error ("string_literal to declaration", Tree, Temp);
-                        end case;
+                        end;
                      end if;
 
                      Temp := Next_List_Element (Temp, +compilation_unit_list_ID);
@@ -1706,7 +1705,15 @@ package body WisiToken_Grammar_Runtime is
                end;
 
                if not Found then
-                  Name_Ident := New_Identifier (Name);
+                  if GNAT.Regexp.Match (Value, Symbol_Regexp) then
+                     Name_Ident := New_Identifier (Ada.Characters.Handling.To_Upper (Value));
+                  else
+                     Put_Error
+                       (Error_Message
+                          (Data.Grammar_Lexer.File_Name, Get_Line (Data, Tree, Node),
+                           "punctuation token '" & Value & "' not declared"));
+                     return;
+                  end if;
                end if;
 
                declare
@@ -1738,37 +1745,21 @@ package body WisiToken_Grammar_Runtime is
                Clear_EBNF_Node (Node);
                if Found then return; end if;
 
-               --  Declare token for string literal
-
-               if Keyword then
-                  declare
-                     Keyword : constant Valid_Node_Index := Tree.Add_Identifier
-                       (+KEYWORD_ID, Keyword_Ident, Tree.Byte_Region (Node));
-                  begin
-                     Kind := Tree.Add_Nonterm ((+token_keyword_non_grammar_ID, 0), (1 => Keyword));
-                  end;
-               else
-                  declare
-                     Token : constant Valid_Node_Index := Tree.Add_Identifier
-                       (+Wisitoken_Grammar_Actions.TOKEN_ID, Token_Ident, Tree.Byte_Region (Node));
-                     Less : constant Valid_Node_Index := Tree.Add_Identifier
-                       (+LESS_ID, Less_Ident, Tree.Byte_Region (Node));
-                     Punc : constant Valid_Node_Index := Tree.Add_Identifier
-                       (+IDENTIFIER_ID, Punctuation_Ident, Tree.Byte_Region (Node));
-                     Greater : constant Valid_Node_Index := Tree.Add_Identifier
-                       (+GREATER_ID, Greater_Ident, Tree.Byte_Region (Node));
-                  begin
-                     Kind := Tree.Add_Nonterm ((+token_keyword_non_grammar_ID, 2), (Token, Less, Punc, Greater));
-                  end;
-               end if;
-
+               --  Declare token for keyword string literal
                declare
+                  Keyword        : constant Valid_Node_Index := Tree.Add_Identifier
+                    (+KEYWORD_ID, Keyword_Ident, Tree.Byte_Region (Node));
+                  Kind           : constant Valid_Node_Index := Tree.Add_Nonterm
+                    ((+token_keyword_non_grammar_ID, 0),
+                     (1 => Keyword));
                   Value_Literal  : constant Valid_Node_Index := Tree.Add_Identifier
                     (+STRING_LITERAL_1_ID, New_Identifier ('"' & Value & '"'), Tree.Byte_Region (Node));
                   Decl_Item      : constant Valid_Node_Index := Tree.Add_Nonterm
-                    ((+declaration_item_ID, 1), (1      => Value_Literal));
+                    ((+declaration_item_ID, 1),
+                     (1 => Value_Literal));
                   Decl_Item_List : constant Valid_Node_Index := Tree.Add_Nonterm
-                    ((+declaration_item_list_ID, 0), (1 => Decl_Item));
+                    ((+declaration_item_list_ID, 0),
+                     (1 => Decl_Item));
 
                   Percent : constant Valid_Node_Index := Tree.Add_Identifier
                     (+PERCENT_ID, Percent_Ident, Tree.Byte_Region (Node));

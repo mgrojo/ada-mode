@@ -339,6 +339,10 @@ begin
 
                   WisiToken_Grammar_Runtime.Translate_EBNF_To_BNF (Tree, Input_Data);
 
+                  if WisiToken.Generate.Error then
+                     raise WisiToken.Grammar_Error with "errors during translating EBNF to BNF: aborting";
+                  end if;
+
                   if Trace_Generate > Detail then
                      Ada.Text_IO.New_Line;
                      Ada.Text_IO.Put_Line ("BNF tree:");
