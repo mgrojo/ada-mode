@@ -189,24 +189,28 @@ rhs_attribute
   : LESS IDENTIFIER EQUAL IDENTIFIER GREATER
   ;
 
-rhs_item_list
+rhs_element
   : rhs_item
-  | rhs_item_list rhs_item
+  | IDENTIFIER EQUAL rhs_item
+  ;
+
+rhs_item_list
+  : rhs_element
+  | rhs_item_list rhs_element
   ;
 
 rhs_item
   : IDENTIFIER
-  | IDENTIFIER EQUAL IDENTIFIER ;; token label for actions; allowed in WisiToken BNF files
   | STRING_LITERAL_2   ;; value of token
-    %(Check_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens, 1);)%
   | rhs_attribute ;; ANTLR attribute
-    %(Check_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens, 1);)%
   | rhs_optional_item
-    %(Check_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens, 1);)%
   | rhs_multiple_item
-    %(Check_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens, 1);)%
   | rhs_group_item
-    %(Check_EBNF (User_Data, Tree, Tokens);)%
+    %(Check_EBNF (User_Data, Tree, Tokens, 1);)%
   ;
 
 rhs_group_item
@@ -218,8 +222,7 @@ rhs_optional_item
   | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
   | IDENTIFIER QUESTION
   | STRING_LITERAL_2 QUESTION
-    %(Check_EBNF (User_Data, Tree, Tokens);)%
-  ;; not supporting 'labeled_rhs_item QUESTION' yet
+    %(Check_EBNF (User_Data, Tree, Tokens, 1);)%
   ;
 
 rhs_multiple_item

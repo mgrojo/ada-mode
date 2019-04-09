@@ -180,27 +180,29 @@ package body BNF_WY_Test is
                else "") &
               ".parse_table");
 
-      when Packrat_Generate_Algorithm | External =>
+      when None | Packrat_Generate_Algorithm | External =>
          null;
       end case;
 
-      case Tuple.Out_Lang is
-      when WisiToken.BNF.Ada_Lang =>
-         --  Not useful to diff the generated Ada source here; the fact that
-         --  the parse succeeds is enough.
-         null;
+      if Tuple.Gen_Alg /= None then
+         case Tuple.Out_Lang is
+         when WisiToken.BNF.Ada_Lang =>
+            --  Not useful to diff the generated Ada source here; the fact that
+            --  the parse succeeds is enough.
+            null;
 
-      when Ada_Emacs_Lang =>
-         Diff_One (Root_Name & Int_Kind & "_actions.adb", Skip => (1 => 2));
-         Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
-         Diff_One (Root_Name & "-process.el");
+         when Ada_Emacs_Lang =>
+            Diff_One (Root_Name & Int_Kind & "_actions.adb", Skip => (1 => 2));
+            Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
+            Diff_One (Root_Name & "-process.el");
 
-      when Elisp_Lang =>
-         Diff_One (Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "-elisp.el");
-      end case;
+         when Elisp_Lang =>
+            Diff_One (Root_Name & "-" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "-elisp.el");
+         end case;
 
-      if Tuple.Text_Rep then
-         Diff_One (Root_Name & "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "_parse_table.txt");
+         if Tuple.Text_Rep then
+            Diff_One (Root_Name & "_" & To_Lower (Generate_Algorithm'Image (Tuple.Gen_Alg)) & "_parse_table.txt");
+         end if;
       end if;
    end Diff_Gen;
 

@@ -24,7 +24,6 @@ update-wisi_grammar
 add EBNF
     run on java
         c:/Projects/org.emacs.java-wisi/notes.text
-        need forUpdate=expressionList?
 
     run on Python
 

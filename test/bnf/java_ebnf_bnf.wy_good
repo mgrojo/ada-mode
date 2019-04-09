@@ -3,45 +3,71 @@
 ;; Examples of EBNF syntax used in the Java grammar file
 ;; https://github.com/antlr/grammars-v4/tree/master/java
 ;;
-;; Note that the only *.*_good file is java_ebnf_bnf.wy_good
+;; Note that the only *.*_good file is java_ebnf_bnf.wy_good, and that
+;; this file does not declare all used tokens; we are only testing the
+;; translation from EBNF to BNF.
 
 %meta_syntax BNF
 
 %token <punctuation> LEFT_BRACE "{"
 %token <punctuation> COMMA ","
 %token <punctuation> RIGHT_BRACE "}"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> DOT "."
+%token <punctuation> PLUS_PLUS "++"
+%token <punctuation> MINUS_MINUS "--"
 %start compilationUnit
 
 ;; IDENTIFIER QUESTION | IDENTIFIER STAR
 compilationUnit
-  : nonterminal_033 nonterminal_008_list_opt nonterminal_011_list_opt EOF
+  : packageDeclaration nonterminal_008_list_opt nonterminal_011_list_opt EOF
   | nonterminal_008_list_opt nonterminal_011_list_opt EOF
   ;
 
 statement
   : blockLabel=block
-  | TRY block nonterminal_031
+  | TRY block nonterminal_038
   | SWITCH parExpression LEFT_BRACE nonterminal_016_list_opt nonterminal_019_list_opt RIGHT_BRACE
   ;
 
 ;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
 enumDeclaration
-  : ENUM IDENTIFIER nonterminal_028 LEFT_BRACE nonterminal_025 nonterminal_024 nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE nonterminal_025 nonterminal_024 nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE nonterminal_024 nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE nonterminal_024 nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_038 LEFT_BRACE nonterminal_039 nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_038 LEFT_BRACE nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE nonterminal_044 nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE nonterminal_021 RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE nonterminal_036 nonterminal_037 RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE nonterminal_036 RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE nonterminal_043 RIGHT_BRACE
-  | ENUM IDENTIFIER nonterminal_035 LEFT_BRACE RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE nonterminal_041 nonterminal_042 RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE nonterminal_041 RIGHT_BRACE
-  | ENUM IDENTIFIER LEFT_BRACE nonterminal_045 RIGHT_BRACE
+  : ENUM IDENTIFIER nonterminal_035 LEFT_BRACE enumConstants COMMA enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE enumConstants COMMA enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_042 LEFT_BRACE COMMA enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE COMMA enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_041 LEFT_BRACE enumConstants enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_041 LEFT_BRACE enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE enumConstants enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE enumBodyDeclarations RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE enumConstants COMMA RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE enumConstants RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE COMMA RIGHT_BRACE
+  | ENUM IDENTIFIER nonterminal_040 LEFT_BRACE RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE enumConstants COMMA RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE enumConstants RIGHT_BRACE
+  | ENUM IDENTIFIER LEFT_BRACE COMMA RIGHT_BRACE
   | ENUM IDENTIFIER LEFT_BRACE RIGHT_BRACE
+  ;
+
+;; labeled rhs_optional_item
+forControl
+  : enhancedForControl
+  | forInit SEMICOLON expression SEMICOLON forUpdate=expressionList
+  | SEMICOLON expression SEMICOLON forUpdate=expressionList
+  | forInit SEMICOLON SEMICOLON forUpdate=expressionList
+  | SEMICOLON SEMICOLON forUpdate=expressionList
+  | forInit SEMICOLON expression SEMICOLON
+  | forInit SEMICOLON SEMICOLON
+  | SEMICOLON expression SEMICOLON
+  | SEMICOLON SEMICOLON
+  ;
+
+;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item
+expression
+  : primary
+  | expression bop=DOT nonterminal_026
+  | expression postfix=nonterminal_021
   ;
 
 ;; end of file
@@ -97,58 +123,30 @@ nonterminal_018_list
   | nonterminal_018_list nonterminal_020
   ;
 nonterminal_021
-  : enumBodyDeclarations
+  : PLUS_PLUS
+  | MINUS_MINUS
   ;
-nonterminal_024
-  : COMMA
-  ;
-nonterminal_025
-  : enumConstants
-  ;
-nonterminal_028
-  : IMPLEMENTS typeList
-  ;
-nonterminal_031
-  : nonterminal_013_list nonterminal_032
-  | nonterminal_013_list
-  | finallyBlock
-  ;
-nonterminal_032
-  : finallyBlock
-  ;
-nonterminal_033
-  : packageDeclaration
+nonterminal_026
+  : THIS
+  | NEW nonWildcardTypeArguments innerCreator
+  | NEW innerCreator
+  | SUPER superSuffix
+  | explicitGenericInvocation
   ;
 nonterminal_035
   : IMPLEMENTS typeList
   ;
-nonterminal_036
-  : enumConstants
-  ;
-nonterminal_037
-  : COMMA
-  ;
 nonterminal_038
-  : IMPLEMENTS typeList
-  ;
-nonterminal_039
-  : enumConstants
+  : nonterminal_013_list finallyBlock
+  | nonterminal_013_list
+  | finallyBlock
   ;
 nonterminal_040
   : IMPLEMENTS typeList
   ;
 nonterminal_041
-  : enumConstants
+  : IMPLEMENTS typeList
   ;
 nonterminal_042
-  : COMMA
-  ;
-nonterminal_043
-  : COMMA
-  ;
-nonterminal_044
-  : enumConstants
-  ;
-nonterminal_045
-  : COMMA
+  : IMPLEMENTS typeList
   ;

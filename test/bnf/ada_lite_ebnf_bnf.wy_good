@@ -42,6 +42,17 @@
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 }%
 
+%code actions body pre %{
+   procedure Handle_Aspect
+      (Tokens : in WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+       Aspect : in SAL.Base_Peek_Type)
+   is
+      pragma Unreferenced (Tokens, Aspect);
+   begin
+      null;
+   end Handle_Aspect;
+}%
+
 ;; We only need one LR variant to test LR EBNF
 %generate LALR Ada re2c
 
@@ -174,7 +185,6 @@
 %mckenzie_cost_insert SEMICOLON 1
 
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state nonterminal_050, nonterminal_060 on token IS
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation on token IS
 
@@ -193,7 +203,7 @@ assignment_statement
   ;
 
 association
-  : nonterminal_058 expression
+  : nonterminal_052 expression
   | expression
   ;
 
@@ -216,7 +226,7 @@ block_label_opt
   ;
 
 block_statement
-  : T1=block_label_opt nonterminal_057 BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
+  : T1=block_label_opt nonterminal_051 BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
     %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, T1, T7, End_Name_Optional);)%
   | T1=block_label_opt BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
@@ -306,9 +316,9 @@ exception_handler
   ;
 
 exit_statement
-  : EXIT nonterminal_056 nonterminal_055 SEMICOLON
-  | EXIT nonterminal_055 SEMICOLON
-  | EXIT nonterminal_061 SEMICOLON
+  : EXIT IDENTIFIER nonterminal_050 SEMICOLON
+  | EXIT nonterminal_050 SEMICOLON
+  | EXIT IDENTIFIER SEMICOLON
   | EXIT SEMICOLON
   ;
 
@@ -352,7 +362,7 @@ generic_instantiation
   ;
 
 handled_sequence_of_statements
-  : sequence_of_statements nonterminal_054
+  : sequence_of_statements nonterminal_049
   | sequence_of_statements
   ;
 
@@ -365,7 +375,7 @@ identifier_opt
   ;
 
 if_statement
-  : IF expression THEN sequence_of_statements nonterminal_033_list_opt nonterminal_053 END IF SEMICOLON
+  : IF expression THEN sequence_of_statements nonterminal_033_list_opt nonterminal_048 END IF SEMICOLON
   | IF expression THEN sequence_of_statements nonterminal_033_list_opt END IF SEMICOLON
   ;
 
@@ -378,7 +388,7 @@ iteration_scheme
   ;
 
 loop_statement
-  : nonterminal_052 LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
+  : iteration_scheme LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
   | LOOP sequence_of_statements END LOOP identifier_opt SEMICOLON
   ;
 
@@ -407,22 +417,23 @@ name_opt
   ;
 
 object_declaration
-  : IDENTIFIER COLON subtype_indication nonterminal_051 SEMICOLON
+  : IDENTIFIER COLON subtype_indication nonterminal_047 SEMICOLON
   | IDENTIFIER COLON subtype_indication SEMICOLON
   ;
 
+;; Test optional item with label.
 package_body
-  : PACKAGE BODY name_1=name nonterminal_050 IS declarative_part nonterminal_049 END name_2=name_opt SEMICOLON
-    %()%
+  : PACKAGE BODY name_1=name aspect_1=aspect_specification IS declarative_part nonterminal_046 END name_2=name_opt SEMICOLON
+    %(Handle_Aspect (Tokens, aspect_1);)%
     %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
-  | PACKAGE BODY name_1=name IS declarative_part nonterminal_049 END name_2=name_opt SEMICOLON
-    %()%
+  | PACKAGE BODY name_1=name IS declarative_part nonterminal_046 END name_2=name_opt SEMICOLON
+    %(Handle_Aspect (Tokens, aspect_1);)%
     %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
-  | PACKAGE BODY name_1=name nonterminal_060 IS declarative_part END name_2=name_opt SEMICOLON
-    %()%
+  | PACKAGE BODY name_1=name aspect_1=aspect_specification IS declarative_part END name_2=name_opt SEMICOLON
+    %(Handle_Aspect (Tokens, aspect_1);)%
     %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
   | PACKAGE BODY name_1=name IS declarative_part END name_2=name_opt SEMICOLON
-    %()%
+    %(Handle_Aspect (Tokens, aspect_1);)%
     %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
   ;
 
@@ -432,12 +443,12 @@ parameter_and_result_profile
   ;
 
 parameter_profile
-  : nonterminal_048
+  : formal_part
   | ;; empty
   ;
 
 parameter_specification
-  : IDENTIFIER COLON IDENTIFIER nonterminal_047
+  : IDENTIFIER COLON IDENTIFIER nonterminal_045
   | IDENTIFIER COLON IDENTIFIER
   ;
 
@@ -477,7 +488,7 @@ range_list
   ;
 
 relation
-  : simple_expression nonterminal_046
+  : simple_expression nonterminal_044
   | simple_expression
   ;
 
@@ -497,7 +508,7 @@ sequence_of_statements
   ;
 
 simple_expression
-  : nonterminal_045 term nonterminal_039_list_opt
+  : unary_adding_operator term nonterminal_039_list_opt
   | term nonterminal_039_list_opt
   ;
 
@@ -524,7 +535,7 @@ statement
   ;
 
 subprogram_body
-  : Name_1=subprogram_specification nonterminal_044 IS declarative_part BEGIN handled_sequence_of_statements END Name_2=name_opt SEMICOLON
+  : Name_1=subprogram_specification aspect_specification IS declarative_part BEGIN handled_sequence_of_statements END Name_2=name_opt SEMICOLON
     %(Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)%
     %(return Match_Names (Lexer, Descriptor, Tokens, Name_1, Name_2, End_Name_Optional);)%
   | Name_1=subprogram_specification IS declarative_part BEGIN handled_sequence_of_statements END Name_2=name_opt SEMICOLON
@@ -708,53 +719,29 @@ nonterminal_041_list
   | nonterminal_041_list nonterminal_043
   ;
 nonterminal_044
-  : aspect_specification
+  : relational_operator simple_expression
   ;
 nonterminal_045
-  : unary_adding_operator
+  : COLON_EQUAL expression
   ;
 nonterminal_046
-  : relational_operator simple_expression
+  : BEGIN handled_sequence_of_statements
   ;
 nonterminal_047
   : COLON_EQUAL expression
   ;
 nonterminal_048
-  : formal_part
-  ;
-nonterminal_049
-  : BEGIN handled_sequence_of_statements
-  ;
-nonterminal_050
-  : aspect_specification
-  ;
-nonterminal_051
-  : COLON_EQUAL expression
-  ;
-nonterminal_052
-  : iteration_scheme
-  ;
-nonterminal_053
   : ELSE sequence_of_statements
   ;
-nonterminal_054
+nonterminal_049
   : EXCEPTION nonterminal_030_list_opt
   ;
-nonterminal_055
+nonterminal_050
   : WHEN expression
   ;
-nonterminal_056
-  : IDENTIFIER
-  ;
-nonterminal_057
+nonterminal_051
   : DECLARE declarative_part
   ;
-nonterminal_058
+nonterminal_052
   : IDENTIFIER EQUAL_GREATER
-  ;
-nonterminal_060
-  : aspect_specification
-  ;
-nonterminal_061
-  : IDENTIFIER
   ;

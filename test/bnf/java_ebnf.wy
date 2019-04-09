@@ -25,4 +25,22 @@ enumDeclaration
     : ENUM IDENTIFIER (IMPLEMENTS typeList)? '{' enumConstants? ','? enumBodyDeclarations? '}'
     ;
 
+;; labeled rhs_optional_item
+forControl
+    : enhancedForControl
+    | forInit? ';' expression? ';' forUpdate=expressionList?
+    ;
+
+;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item
+expression
+    : primary
+    | expression bop='.'
+      ( THIS
+      | NEW nonWildcardTypeArguments? innerCreator
+      | SUPER superSuffix
+      | explicitGenericInvocation
+      )
+    | expression postfix=('++' | '--')
+    ;
+
 ;; end of file

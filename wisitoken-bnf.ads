@@ -94,11 +94,11 @@ package WisiToken.BNF is
    subtype Valid_Interface is Interface_Type range Process .. Module;
 
    type Generate_Tuple is record
-      Gen_Alg        : Valid_Generate_Algorithm;
-      Out_Lang       : Output_Language;
-      Lexer          : Lexer_Type     := None;
-      Interface_Kind : Interface_Type := None;
-      Text_Rep       : Boolean        := False;
+      Gen_Alg        : Generate_Algorithm := None;
+      Out_Lang       : Output_Language    := Ada_Lang;
+      Lexer          : Lexer_Type         := None;
+      Interface_Kind : Interface_Type     := None;
+      Text_Rep       : Boolean            := False;
    end record;
 
    type Generate_Set is array (Natural range <>) of Generate_Tuple;
@@ -257,6 +257,7 @@ package WisiToken.BNF is
    type Rule_Type is record
       Left_Hand_Side   : aliased Ada.Strings.Unbounded.Unbounded_String;
       Right_Hand_Sides : RHS_Lists.List;
+      Labels           : String_Arrays.Vector;
       Source_Line      : WisiToken.Line_Number_Type;
    end record;
 

@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 with SAL.Gen_Unbounded_Definite_Vectors;
 with WisiToken.BNF;
 with WisiToken.Lexer;
@@ -65,9 +66,10 @@ package WisiToken_Grammar_Runtime is
       --  Non_Grammar (I) contains blank lines and comments following
       --  Terminals (I). Only used in Print_Source.
 
-      Rule_Count      : Integer := 0;
-      Action_Count    : Integer := 0;
-      Check_Count     : Integer := 0;
+      Rule_Count   : Integer                   := 0;
+      Action_Count : Integer                   := 0;
+      Check_Count  : Integer                   := 0;
+      Label_Count  : Ada.Containers.Count_Type := 0;
 
       EBNF_Nodes : WisiToken.Syntax_Trees.Node_Sets.Vector;
 
@@ -118,7 +120,8 @@ package WisiToken_Grammar_Runtime is
    procedure Check_EBNF
      (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
       Tree      : in     WisiToken.Syntax_Trees.Tree;
-      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Token     : in     WisiToken.Positive_Index_Type);
 
    procedure Translate_EBNF_To_BNF
      (Tree : in out WisiToken.Syntax_Trees.Tree;

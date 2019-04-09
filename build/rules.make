@@ -133,6 +133,9 @@ DIFF_OPT := -u -w
 	$(RE2C_HOME)/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 	dos2unix $*_re2c.c
 
+%_bnf.wy : %.wy wisitoken-bnf-generate.exe
+	./wisitoken-bnf-generate.exe --output_bnf $@ --generate None $<
+
 # clean rules
 source-clean ::
 	-find ../ -name "*~" -delete

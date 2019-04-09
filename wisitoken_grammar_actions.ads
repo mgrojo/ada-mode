@@ -28,7 +28,7 @@ package Wisitoken_Grammar_Actions is
      (First_Terminal                => 3,
       Last_Terminal                 => 35,
       First_Nonterminal             => 36,
-      Last_Nonterminal              => 54,
+      Last_Nonterminal              => 55,
       EOI_ID                        => 35,
       Accept_ID                     => 36,
       Case_Insensitive              => False,
@@ -87,6 +87,7 @@ package Wisitoken_Grammar_Actions is
          new String'("rhs_list"),
          new String'("rhs"),
          new String'("rhs_attribute"),
+         new String'("rhs_element"),
          new String'("rhs_item_list"),
          new String'("rhs_item"),
          new String'("rhs_group_item"),
@@ -147,6 +148,7 @@ package Wisitoken_Grammar_Actions is
       rhs_list_ID,
       rhs_ID,
       rhs_attribute_ID,
+      rhs_element_ID,
       rhs_item_list_ID,
       rhs_item_ID,
       rhs_group_item_ID,
@@ -199,6 +201,11 @@ package Wisitoken_Grammar_Actions is
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure rhs_item_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
    procedure rhs_item_2
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
@@ -215,11 +222,6 @@ package Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
    procedure rhs_item_5
-    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
-     Tree      : in out WisiToken.Syntax_Trees.Tree;
-     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
-     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
-   procedure rhs_item_6
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;

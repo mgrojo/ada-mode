@@ -58,8 +58,10 @@ is
    procedure Create_Ada_Actions_Body
      (Action_Names : not null access WisiToken.Names_Array_Array;
       Check_Names  : not null access WisiToken.Names_Array_Array;
+      Label_Count  : in              Ada.Containers.Count_Type;
       Package_Name : in              String)
    is
+      use all type Ada.Containers.Count_Type;
       use GNAT.Regexp;
       use Generate_Utils;
       use WisiToken.Generate;
@@ -81,6 +83,10 @@ is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Actions_Body_Context));
       New_Line;
+
+      if Label_Count > 0 then
+         Put_Line ("with SAL;");
+      end if;
 
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
@@ -112,7 +118,18 @@ is
             end Is_Elisp;
 
             procedure Put_Labels (RHS : in RHS_Type; Line : in String)
-            is begin
+            is
+               Output : array (Rule.Labels.First_Index .. Rule.Labels.Last_Index) of Boolean := (others => False);
+
+               procedure Update_Output (Label : in String)
+               is begin
+                  for I in Rule.Labels.First_Index .. Rule.Labels.Last_Index loop
+                     if Label = Rule.Labels (I) then
+                        Output (I) := True;
+                     end if;
+                  end loop;
+               end Update_Output;
+            begin
                for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
                   if Length (RHS.Tokens (I).Label) > 0 then
                      declare
@@ -120,10 +137,18 @@ is
                      begin
                         if Match (Line, Compile (Symbol_Regexp (Label), Case_Sensitive => False)) then
                            Indent_Line
-                             (Label & " : constant WisiToken.Positive_Index_Type :=" &
-                                Positive_Index_Type'Image (I) & ";");
+                             (Label & " : constant SAL.Peek_Type :=" & SAL.Peek_Type'Image (I) & ";");
+                           Update_Output (Label);
                         end if;
                      end;
+                  end if;
+               end loop;
+
+               for I in Rule.Labels.First_Index .. Rule.Labels.Last_Index loop
+                  if not Output (I) and
+                    Match (Line, Compile (Symbol_Regexp (-Rule.Labels (I)), Case_Sensitive => False))
+                  then
+                     Indent_Line (-Rule.Labels (I) & " : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type'First;");
                   end if;
                end loop;
             end Put_Labels;
@@ -457,7 +482,8 @@ begin
    begin
       if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
          --  Some WisiToken tests have no actions or checks.
-         Create_Ada_Actions_Body (Generate_Data.Action_Names, Generate_Data.Check_Names, Actions_Package_Name);
+         Create_Ada_Actions_Body
+           (Generate_Data.Action_Names, Generate_Data.Check_Names, Input_Data.Label_Count, Actions_Package_Name);
       end if;
 
       Create_Ada_Actions_Spec
