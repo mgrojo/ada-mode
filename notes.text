@@ -31,9 +31,8 @@ Makefile
    ("../org.wisitoken.grammar_mode.stephe-1" . "../org.wisitoken.grammar_mode")))
 
 
-indent failing; nil indent for line > 7
-    line_begin_pos not set for lines in %code
-    delimited_text token can contain newlines
+don't indent %code or action
+    or set Ada?
 
 create ELPA package, release
     ask on emacs-devel about :external vs :subtree
