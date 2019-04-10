@@ -40,14 +40,24 @@
    COMMA
    EQUAL
    GREATER
+   LEFT_BRACE
+   LEFT_BRACKET
+   LEFT_PAREN
    LESS
+   MINUS
    PERCENT
+   PLUS
+   QUESTION
+   RIGHT_BRACE
+   RIGHT_BRACKET
+   RIGHT_PAREN
    SEMICOLON
    SLASH
+   STAR
    NUMERIC_LITERAL
    IDENTIFIER
-   STRING_LITERAL
-   STRING_LITERAL_CASE_INS
+   STRING_LITERAL_1
+   STRING_LITERAL_2
    Wisi_EOI
    wisitoken_accept
    declaration
@@ -56,9 +66,17 @@
    declaration_item_list
    declaration_item
    nonterminal
+   semicolon_opt
    rhs_list
    rhs
-   token_list
+   rhs_attribute
+   rhs_element
+   rhs_item_list
+   rhs_item
+   rhs_group_item
+   rhs_optional_item
+   rhs_multiple_item
+   rhs_alternative_list
    compilation_unit
    compilation_unit_list
    ])
