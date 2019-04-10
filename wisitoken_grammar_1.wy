@@ -8,14 +8,20 @@
 ;;  https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
 ;;
 ;;  Differences from EBNF:
-;;  - ':' instead of '='
+;;  - ':' instead of '::='
 ;;
-;;  - Terminating ';' optional in nonterminals.
+;;  - no ',' between tokens, just space
 ;;
-;;  One requirement is to parse the Python grammar file given at
+;;  - Terminating ';' optional in nonterminals (for compatibility with
+;;    Python grammar syntax).
+;;
+;;  In addition, we support the Python grammar file given at
 ;;  https://docs.python.org/3.8/reference/grammar.html
 ;;  and the Java grammar file given at
 ;;  https://github.com/antlr/grammars-v4/tree/master/java
+;;
+;;  This file uses only plain BNF syntax, to simplify working on the
+;;  EBNF syntax.
 
 %code copyright_license %{
 ;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
@@ -39,8 +45,8 @@
 }%
 
 %code actions spec post %{
-Partial_Parse_Active    : Boolean := False;
-Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
+   Partial_Parse_Active    : Boolean := False;
+   Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 }%
 
 ;; LR1 for better error correction
@@ -69,15 +75,16 @@ Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 %token <punctuation> LEFT_BRACKET "["
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> LESS "<"
+%token <punctuation> MINUS "-" ;; for {}-
 %token <punctuation> PERCENT "%"
-%token <punctuation> PLUS "+"
-%token <punctuation> QUESTION "?"
+%token <punctuation> PLUS "+" ;; for ()+
+%token <punctuation> QUESTION "?" ;; for ()? same as []
 %token <punctuation> RIGHT_BRACE "}"
 %token <punctuation> RIGHT_BRACKET "]"
 %token <punctuation> RIGHT_PAREN ")"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> SLASH "/"
-%token <punctuation> STAR "*"
+%token <punctuation> STAR "*" ;; for ()* same as {}
 
 %if lexer = elisp
 %token <number> NUMERIC_LITERAL wisi-number-p
@@ -86,7 +93,7 @@ Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 %token <number> NUMERIC_LITERAL %[ [0-9][0-9_]* ]%
 %end if
 
-%token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
+%token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
 ;; In re2c regexps, '...' indicates a case-insensitive match.
 ;;
@@ -117,19 +124,13 @@ Partial_Parse_Byte_Goal : WisiToken.Buffer_Pos := WisiToken.Buffer_Pos'Last;
 
 %conflict SHIFT/REDUCE in state declaration, declaration  on token IDENTIFIER
 %conflict SHIFT/REDUCE in state declaration_item_list, declaration  on token IDENTIFIER
-%conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token IDENTIFIER ( 15)
-%conflict SHIFT/REDUCE in state rhs_list, nonterminal  on token PERCENT ( 43)
-%conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token IDENTIFIER ( 54)
-%conflict SHIFT/REDUCE in state token_list, rhs  on token IDENTIFIER ( 46)
+%conflict SHIFT/REDUCE in state nonterminal, nonterminal  on token IDENTIFIER
+%conflict SHIFT/REDUCE in state rhs_list, nonterminal  on token PERCENT
+%conflict SHIFT/REDUCE in state rhs_item_list, rhs  on token IDENTIFIER
+%conflict SHIFT/REDUCE in state rhs_list, rhs_list  on token IDENTIFIER
 
 ;;;; grammar rules, no particular order
 
-;;EMACSCMD:indent-line-function
-;;EMACSRESULT:'mmm-indent-line
-;;EMACSCMD:(progn (forward-line 8) (null (mmm-overlay-at (point))))
-;;EMACSRESULT:nil
-;;EMACSCMD:(progn (forward-line 6) (mmm-update-submode-region) (calculate-lisp-indent (lisp-ppss)))
-;;EMACSRESULT:9
 declaration
   : PERCENT token_keyword_non_grammar IDENTIFIER declaration_item_list
     %( (progn
@@ -139,6 +140,7 @@ declaration
              2 nil font-lock-keyword-face
              3 nil font-lock-function-name-face])) )%
   | PERCENT CODE identifier_list RAW_CODE
+    %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER declaration_item_list
     %( (wisi-face-apply-action [1 nil font-lock-constant-face 2 nil font-lock-keyword-face]) )%
   | PERCENT IDENTIFIER
@@ -156,7 +158,6 @@ token_keyword_non_grammar
     %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
   | TOKEN LESS IDENTIFIER GREATER
     %( (wisi-face-apply-action [3 nil font-lock-type-face]) )%
-  | TOKEN ;; default <punctuation>
   ;
 
 identifier_list
@@ -173,14 +174,16 @@ declaration_item
   : COMMA
   | IDENTIFIER
   | EQUAL
+  | LEFT_PAREN
   | NUMERIC_LITERAL
   | REGEXP
     %((wisi-face-apply-action [1 nil font-lock-string-face]))%
+  | RIGHT_PAREN
   | SLASH
   | STRING_LITERAL_1
   | STRING_LITERAL_2
   | TOKEN
-  ;; ",", "token", "/" appear in %conflict declarations
+  ;; ",", "token", "/", "(", ")" appear in %conflict declarations
   ;
 
 nonterminal
@@ -191,46 +194,73 @@ nonterminal
          (wisi-indent-action [0 [2 -1] 2 2])) )%
   ;
 
-semicolon_opt : SEMICOLON | ;
+semicolon_opt :
+;; Terminating semicolon optional for Python grammar syntax (see
+;; header comments).
+  SEMICOLON | ;
 
 rhs_list
   : rhs
   | rhs_list BAR rhs
   | rhs_list PERCENT IF IDENTIFIER EQUAL IDENTIFIER
-    %( (wisi-indent-action [0 -2 0 0 0 0]) )%
   | rhs_list PERCENT END IF
-    %( (wisi-indent-action [0 -2 0 0]) )%
   ;
 
 rhs
   : ;; empty
-  | token_list
-  | token_list ACTION
+  | rhs_item_list
+  | rhs_item_list ACTION
     %( (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1]]) )%
-  | token_list ACTION ACTION
+  | rhs_item_list ACTION ACTION
     %( (wisi-indent-action [[(wisi-hanging 0 2) -1] [2 -1] [2 -1]]) )%
   ;
 
-token_item
-  : EQUAL
-  | GREATER
-  | IDENTIFIER
-  | LEFT_BRACE
-  | LEFT_BRACKET
-  | LEFT_PAREN
-  | LESS
-  | PLUS
-  | QUESTION
-  | RIGHT_BRACE
-  | RIGHT_BRACKET
-  | RIGHT_PAREN
-  | STAR
-  | STRING_LITERAL_2
+rhs_attribute
+  : LESS IDENTIFIER EQUAL IDENTIFIER GREATER
   ;
 
-token_list
-  : token_item
-  | token_list token_item
+rhs_element
+  : rhs_item
+  | IDENTIFIER EQUAL rhs_item
+  ;
+
+rhs_item_list
+  : rhs_element
+  | rhs_item_list rhs_element
+  ;
+
+rhs_item
+  : IDENTIFIER
+  | STRING_LITERAL_2   ;; value of token
+  | rhs_attribute ;; ANTLR attribute
+  | rhs_optional_item
+  | rhs_multiple_item
+  | rhs_group_item
+  ;
+
+rhs_group_item
+  : LEFT_PAREN rhs_alternative_list RIGHT_PAREN
+  ;
+
+rhs_optional_item
+  : LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET
+  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
+  | IDENTIFIER QUESTION
+  | STRING_LITERAL_2 QUESTION
+  ;
+
+rhs_multiple_item
+  : LEFT_BRACE rhs_alternative_list RIGHT_BRACE
+  | LEFT_BRACE rhs_alternative_list RIGHT_BRACE MINUS
+  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN PLUS
+  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN STAR
+  | IDENTIFIER PLUS
+  | IDENTIFIER STAR
+  ;
+
+rhs_alternative_list
+  : rhs_item_list
+  | rhs_alternative_list BAR rhs_item_list
   ;
 
 ;; We don't enforce a complete order, nor require all parts, so

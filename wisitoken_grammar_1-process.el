@@ -1,7 +1,7 @@
 ;;; wisitoken_grammar_1-process.el --- Generated parser support file  -*- lexical-binding:t -*-
 ;;  command line: wisitoken-bnf-generate.exe  --generate LR1 Ada_Emacs re2c PROCESS wisitoken_grammar_1.wy
 
-;;  Copyright (C) 2017, 2018 Free Software Foundation, Inc.
+;;  Copyright (C) 2017 - 2019 Free Software Foundation, Inc.
 ;;
 ;;  Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
@@ -44,6 +44,7 @@
    LEFT_BRACKET
    LEFT_PAREN
    LESS
+   MINUS
    PERCENT
    PLUS
    QUESTION
@@ -68,8 +69,14 @@
    semicolon_opt
    rhs_list
    rhs
-   token_item
-   token_list
+   rhs_attribute
+   rhs_element
+   rhs_item_list
+   rhs_item
+   rhs_group_item
+   rhs_optional_item
+   rhs_multiple_item
+   rhs_alternative_list
    compilation_unit
    compilation_unit_list
    ])

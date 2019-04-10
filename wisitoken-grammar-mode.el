@@ -62,7 +62,7 @@
   )  "Local keymap used for wisitoken-grammar mode.")
 
 (defvar-local wisitoken-grammar-action-mode nil
-  "Emacs major mode used for actions, inferred from ’%generate’ declaration or file local variable.")
+  "Emacs major mode used for actions and code, inferred from ’%generate’ declaration or file local variable.")
 
 (cl-defstruct (wisitoken-wisi-parser (:include wisi-process--parser))
   ;; no new slots
@@ -251,7 +251,7 @@ Otherwise insert a plain new line."
 
   (wisitoken-grammar-set-action-mode)
 
-  (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend nil t)
+  (add-hook 'xref-backend-functions #'wisitoken-grammar--xref-backend t t)
   (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
   (add-hook 'before-save-hook 'copyright-update nil t)
 
