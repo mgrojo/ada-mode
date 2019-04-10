@@ -10,13 +10,25 @@
 %start compilationUnit
 %generate None
 
-%token <punctuation> LBRACE             '{'
-%token <punctuation> RBRACE             '}'
-%token <punctuation> INC                '++'
-%token <punctuation> DEC                '--'
-%token <punctuation> DOT                '.'
+%token <punctuation> ADD_ASSIGN         '+='
+%token <punctuation> AND_ASSIGN         '&='
+%token <punctuation> ASSIGN             '='
 %token <punctuation> COMMA              ','
+%token <punctuation> DEC                '--'
+%token <punctuation> DIV_ASSIGN         '/='
+%token <punctuation> DOT                '.'
+%token <punctuation> INC                '++'
+%token <punctuation> LBRACE             '{'
+%token <punctuation> LSHIFT_ASSIGN      '<<='
+%token <punctuation> MOD_ASSIGN         '%='
+%token <punctuation> MUL_ASSIGN         '*='
+%token <punctuation> OR_ASSIGN          '|='
+%token <punctuation> RBRACE             '}'
+%token <punctuation> RSHIFT_ASSIGN      '>>='
 %token <punctuation> SEMI               ';'
+%token <punctuation> SUB_ASSIGN         '-='
+%token <punctuation> URSHIFT_ASSIGN     '>>>='
+%token <punctuation> XOR_ASSIGN         '^='
 
 ;; IDENTIFIER QUESTION | IDENTIFIER STAR
 compilationUnit
@@ -40,7 +52,7 @@ forControl
     | forInit? ';' expression? ';' forUpdate=expressionList?
     ;
 
-;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item
+;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item, rhs_attribute
 expression
     : primary
     | expression bop='.'
@@ -50,6 +62,14 @@ expression
       | explicitGenericInvocation
       )
     | expression postfix=('++' | '--')
+
+    ;; attribute with more than one item following
+    | <assoc=right> expression
+      bop=('=' | '+=' | '-=' | '*=' | '/=' | '&=' | '|=' | '^=' | '>>=' | '>>>=' | '<<=' | '%=')
+      expression
+
+    ;; attribute with one item following
+    | <assoc=right> expression
     ;
 
 ;; end of file

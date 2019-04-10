@@ -12,13 +12,25 @@
 %start compilationUnit
 %generate None
 
-%token <punctuation> LBRACE '{'
-%token <punctuation> RBRACE '}'
-%token <punctuation> INC '++'
-%token <punctuation> DEC '--'
-%token <punctuation> DOT '.'
+%token <punctuation> ADD_ASSIGN '+='
+%token <punctuation> AND_ASSIGN '&='
+%token <punctuation> ASSIGN '='
 %token <punctuation> COMMA ','
+%token <punctuation> DEC '--'
+%token <punctuation> DIV_ASSIGN '/='
+%token <punctuation> DOT '.'
+%token <punctuation> INC '++'
+%token <punctuation> LBRACE '{'
+%token <punctuation> LSHIFT_ASSIGN '<<='
+%token <punctuation> MOD_ASSIGN '%='
+%token <punctuation> MUL_ASSIGN '*='
+%token <punctuation> OR_ASSIGN '|='
+%token <punctuation> RBRACE '}'
+%token <punctuation> RSHIFT_ASSIGN '>>='
 %token <punctuation> SEMI ';'
+%token <punctuation> SUB_ASSIGN '-='
+%token <punctuation> URSHIFT_ASSIGN '>>>='
+%token <punctuation> XOR_ASSIGN '^='
 
 ;; IDENTIFIER QUESTION | IDENTIFIER STAR
 compilationUnit
@@ -28,24 +40,24 @@ compilationUnit
 
 statement
   : blockLabel=block
-  | TRY block nonterminal_030
+  | TRY block nonterminal_043
   | SWITCH parExpression LBRACE nonterminal_012_list_opt nonterminal_015_list_opt RBRACE
   ;
 
 ;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
 enumDeclaration
-  : ENUM IDENTIFIER nonterminal_026 LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
+  : ENUM IDENTIFIER nonterminal_039 LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
   | ENUM IDENTIFIER LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_043 LBRACE COMMA enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER nonterminal_056 LBRACE COMMA enumBodyDeclarations RBRACE
   | ENUM IDENTIFIER LBRACE COMMA enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_041 LBRACE enumConstants enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_041 LBRACE enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER nonterminal_054 LBRACE enumConstants enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER nonterminal_054 LBRACE enumBodyDeclarations RBRACE
   | ENUM IDENTIFIER LBRACE enumConstants enumBodyDeclarations RBRACE
   | ENUM IDENTIFIER LBRACE enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_037 LBRACE enumConstants COMMA RBRACE
-  | ENUM IDENTIFIER nonterminal_037 LBRACE enumConstants RBRACE
-  | ENUM IDENTIFIER nonterminal_037 LBRACE COMMA RBRACE
-  | ENUM IDENTIFIER nonterminal_037 LBRACE RBRACE
+  | ENUM IDENTIFIER nonterminal_050 LBRACE enumConstants COMMA RBRACE
+  | ENUM IDENTIFIER nonterminal_050 LBRACE enumConstants RBRACE
+  | ENUM IDENTIFIER nonterminal_050 LBRACE COMMA RBRACE
+  | ENUM IDENTIFIER nonterminal_050 LBRACE RBRACE
   | ENUM IDENTIFIER LBRACE enumConstants COMMA RBRACE
   | ENUM IDENTIFIER LBRACE enumConstants RBRACE
   | ENUM IDENTIFIER LBRACE COMMA RBRACE
@@ -65,11 +77,17 @@ forControl
   | SEMI SEMI
   ;
 
-;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item
+;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item, rhs_attribute
 expression
   : primary
-  | expression bop=DOT nonterminal_020
-  | expression postfix=nonterminal_017
+  | expression bop=DOT nonterminal_033
+  | expression postfix=nonterminal_030
+
+;; attribute with more than one item following
+  | expression bop=nonterminal_017 expression
+
+;; attribute with one item following
+  | expression
   ;
 
 ;; end of file
@@ -125,30 +143,44 @@ nonterminal_014_list
   | nonterminal_014_list nonterminal_016
   ;
 nonterminal_017
+  : ASSIGN
+  | ADD_ASSIGN
+  | SUB_ASSIGN
+  | MUL_ASSIGN
+  | DIV_ASSIGN
+  | AND_ASSIGN
+  | OR_ASSIGN
+  | XOR_ASSIGN
+  | RSHIFT_ASSIGN
+  | URSHIFT_ASSIGN
+  | LSHIFT_ASSIGN
+  | MOD_ASSIGN
+  ;
+nonterminal_030
   : INC
   | DEC
   ;
-nonterminal_020
+nonterminal_033
   : THIS
   | NEW nonWildcardTypeArguments innerCreator
   | NEW innerCreator
   | SUPER superSuffix
   | explicitGenericInvocation
   ;
-nonterminal_026
+nonterminal_039
   : IMPLEMENTS typeList
   ;
-nonterminal_030
+nonterminal_043
   : nonterminal_009_list finallyBlock
   | nonterminal_009_list
   | finallyBlock
   ;
-nonterminal_037
+nonterminal_050
   : IMPLEMENTS typeList
   ;
-nonterminal_041
+nonterminal_054
   : IMPLEMENTS typeList
   ;
-nonterminal_043
+nonterminal_056
   : IMPLEMENTS typeList
   ;

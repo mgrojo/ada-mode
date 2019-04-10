@@ -18,14 +18,21 @@ org.wisitoken.stephe-2 - add EBNF syntax to .wy parser
 update-wisi_grammar
 (dvc-propagate-multiple
  '(("../org.stephe_leake.sal.stephe-1" . "../org.stephe_leake.sal")
-   ("../org.wisitoken.stephe-1"        . "../org.wisitoken")))
+   ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
 add EBNF
     run on java
         c:/Projects/org.emacs.java-wisi/notes.text
+        done with syntax
+        lots of states with more than two actions in a conflict; support that
+        or do packrat left recursion first
 
     run on Python
+        c:/Projects/org.emacs.python-wisi/python.wy
+        need INDENT, DEDENT in lexer
+        no other new syntax
+        only one state with more than two actions
 
 lalr generator bug
     long term fix; reimplement lalr using deremer, penello 1982

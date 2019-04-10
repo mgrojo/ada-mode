@@ -1376,6 +1376,44 @@ package body WisiToken_Grammar_Runtime is
             --  All handled by New_Nonterminal*
             raise SAL.Not_Implemented with Tree.Image (Node, Wisitoken_Grammar_Actions.Descriptor);
 
+         when rhs_attribute_ID =>
+            --  Just delete it
+            --
+            --  Current tree (so far, attributes are always the first item in an rhs):
+            --
+            --  rhs:
+            --  | ...
+            --  | rhs_item_list: RHS_Item_List.Parent 2
+            --  | | rhs_item_list: RHS_Item_List.Parent 1
+            --  | | | rhs_item_list: RHS_Item_List
+            --  | | | | rhs_element: Parent (Node, 2)
+            --  | | | | | rhs_item: Parent (Node, 1)
+            --  | | | | | | rhs_attribute: Node
+            --  | | | rhs_element: next_element 1
+            --  | | rhs_element: next_element 2
+            --
+            --  New tree:
+            --
+            --  rhs:
+            --  | ...
+            --  | rhs_item_list: keep RHS_Item_List.Parent
+            --  | | rhs_element: keep next_element 1
+            --  | rhs_element: kepp next_element 2
+            declare
+               RHS_Item_List : constant Valid_Node_Index   := Tree.Parent (Node, 3);
+               Parent        : constant Valid_Node_Index   := Tree.Parent (RHS_Item_List);
+            begin
+               if Tree.RHS_Index (RHS_Item_List) /= 0 then
+                  --  Not first
+                  Raise_Programmer_Error ("translate_ebnf_to_bnf rhs_attribute_id unimplemented", Tree, Node);
+               end if;
+
+               Tree.Set_Children
+                 (Parent,
+                  (+rhs_item_list_ID, 0),
+                  (1 => Tree.Child (Parent, 2)));
+            end;
+
          when rhs_group_item_ID =>
             --  Current tree:
             --
