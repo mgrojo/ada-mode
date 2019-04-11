@@ -679,14 +679,9 @@ package body WisiToken.BNF.Generate_Utils is
      return WisiToken.Generate.LR.Conflict_Lists.List
    is
       use WisiToken.Generate.LR;
-      use all type WisiToken.Parse.LR.Parse_Action_Verbs;
       Result   : WisiToken.Generate.LR.Conflict_Lists.List;
       Conflict : WisiToken.Generate.LR.Conflict;
    begin
-      Data.Accept_Reduce_Conflict_Count := 0;
-      Data.Shift_Reduce_Conflict_Count  := 0;
-      Data.Reduce_Reduce_Conflict_Count := 0;
-
       for Item of Conflicts loop
          begin
             Conflict :=
@@ -696,15 +691,6 @@ package body WisiToken.BNF.Generate_Utils is
                Find_Token_ID (Data, -Item.LHS_B),
                -1,
                Find_Token_ID (Data, -Item.On));
-
-            case Conflict.Action_A is
-            when Shift =>
-               Data.Shift_Reduce_Conflict_Count := Data.Shift_Reduce_Conflict_Count + 1;
-            when Reduce =>
-               Data.Reduce_Reduce_Conflict_Count := Data.Reduce_Reduce_Conflict_Count + 1;
-            when Accept_It =>
-               Data.Accept_Reduce_Conflict_Count := Data.Reduce_Reduce_Conflict_Count + 1;
-            end case;
 
             Result.Append (Conflict);
          exception
@@ -800,10 +786,6 @@ package body WisiToken.BNF.Generate_Utils is
            Integer'Image (Input_Data.Check_Count) & " checks," &
            WisiToken.State_Index'Image (Generate_Data.Parser_State_Count) & " states," &
            Integer'Image (Generate_Data.Table_Actions_Count) & " parse actions");
-      Put_Line
-        (Integer'Image (Generate_Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
-           Integer'Image (Generate_Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-           Integer'Image (Generate_Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
    end Put_Stats;
 
    function Actions_Length (State : in Parse.LR.Parse_State) return Integer

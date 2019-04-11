@@ -149,7 +149,8 @@ package WisiToken.Syntax_Trees is
    --  Deep copy (into Tree) subtree of Tree rooted at Root. Stop copying
    --  after children of Last are copied. Return root of new subtree.
    --
-   --  References to objects external to tree are shallow copied.
+   --  Node index order is preserved. References to objects external to
+   --  tree are shallow copied.
 
    function Add_Nonterm
      (Tree            : in out Syntax_Trees.Tree;

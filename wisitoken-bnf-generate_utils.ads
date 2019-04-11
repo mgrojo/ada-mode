@@ -53,9 +53,6 @@ package WisiToken.BNF.Generate_Utils is
       LR_Parse_Table               : WisiToken.Parse.LR.Parse_Table_Ptr;
       Table_Actions_Count          : Integer                       := -1; -- parse, not user, actions
       Parser_State_Count           : WisiToken.Unknown_State_Index := 0;
-      Accept_Reduce_Conflict_Count : Integer                       := 0;
-      Shift_Reduce_Conflict_Count  : Integer                       := 0;
-      Reduce_Reduce_Conflict_Count : Integer                       := 0;
    end record;
 
    function Initialize (Input_Data : aliased in WisiToken_Grammar_Runtime.User_Data_Type) return Generate_Data;

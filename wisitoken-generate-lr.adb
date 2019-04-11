@@ -1242,16 +1242,50 @@ package body WisiToken.Generate.LR is
       if Conflicts.Length > 0 then
          declare
             use Ada.Strings.Unbounded;
-            Last_State : Unknown_State_Index := Unknown_State;
-            Line : Unbounded_String := +"States with conflicts:";
+            Last_State    : Unknown_State_Index := Unknown_State;
+            Line          : Unbounded_String    := +"States with conflicts:";
+            Accept_Reduce : Integer             := 0;
+            Shift_Reduce  : Integer             := 0;
+            Reduce_Reduce : Integer             := 0;
          begin
             for Conflict of Conflicts loop
                if Conflict.State_Index /= Last_State then
                   Append (Line, State_Index'Image (Conflict.State_Index));
                   Last_State := Conflict.State_Index;
                end if;
+               case Conflict.Action_A is
+               when Shift =>
+                  case Conflict.Action_B is
+                  when Shift | Accept_It =>
+                     raise SAL.Programmer_Error;
+                  when Reduce =>
+                     Shift_Reduce := Shift_Reduce + 1;
+                  end case;
+               when Reduce =>
+                  case Conflict.Action_B is
+                  when Shift | Accept_It =>
+                     raise SAL.Programmer_Error;
+                  when Reduce =>
+                     Reduce_Reduce := Reduce_Reduce + 1;
+                  end case;
+               when Accept_It =>
+                  case Conflict.Action_B is
+                  when Shift | Accept_It =>
+                     raise SAL.Programmer_Error;
+                  when Reduce =>
+                     Accept_Reduce := Accept_Reduce + 1;
+                  end case;
+               end case;
             end loop;
+
+            New_Line;
             Indent_Wrap (-Line);
+
+            New_Line;
+            Put_Line
+              (Integer'Image (Accept_Reduce) & " accept/reduce conflicts," &
+                 Integer'Image (Shift_Reduce) & " shift/reduce conflicts," &
+                 Integer'Image (Reduce_Reduce) & " reduce/reduce conflicts");
          end;
       end if;
    end Put_Parse_Table;

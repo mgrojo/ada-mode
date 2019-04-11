@@ -19,11 +19,13 @@
 %token <punctuation> DOT                '.'
 %token <punctuation> INC                '++'
 %token <punctuation> LBRACE             '{'
+%token <punctuation> LBRACK             '['
 %token <punctuation> LSHIFT_ASSIGN      '<<='
 %token <punctuation> MOD_ASSIGN         '%='
 %token <punctuation> MUL_ASSIGN         '*='
 %token <punctuation> OR_ASSIGN          '|='
 %token <punctuation> RBRACE             '}'
+%token <punctuation> RBRACK             ']'
 %token <punctuation> RSHIFT_ASSIGN      '>>='
 %token <punctuation> SEMI               ';'
 %token <punctuation> SUB_ASSIGN         '-='
@@ -44,6 +46,14 @@ statement
 ;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
 enumDeclaration
     : ENUM IDENTIFIER (IMPLEMENTS typeList)? '{' enumConstants? ','? enumBodyDeclarations? '}'
+    ;
+
+;; Duplicate '(IMPLEMENTS typeList)?'
+classDeclaration
+    : CLASS IDENTIFIER typeParameters?
+      (EXTENDS typeType)?
+      (IMPLEMENTS typeList)?
+      classBody
     ;
 
 ;; labeled rhs_optional_item
@@ -72,4 +82,14 @@ expression
     | <assoc=right> expression
     ;
 
+;; non-trivial group item
+arrayCreatorRest
+    : '[' (']' ('[' ']')* arrayInitializer | expression ']' ('[' expression ']')* ('[' ']')*)
+    ;
+
+;; another non-trivial group item, and lots of copies
+interfaceMethodDeclaration
+    : interfaceMethodModifier* (typeTypeOrVoid | typeParameters annotation* typeTypeOrVoid)
+      IDENTIFIER formalParameters ('[' ']')* (THROWS qualifiedNameList)? methodBody
+    ;
 ;; end of file
