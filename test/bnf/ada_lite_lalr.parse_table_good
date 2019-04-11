@@ -5912,7 +5912,9 @@ State 314:
    default                            => ERROR
 
    Minimal_Complete_Action => (package_body)
+
 States with conflicts: 67 111 144 173 245
 
- 83 rules, 13 user actions, 16 checks, 315 states, 2525 parse actions
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 3 reduce/reduce conflicts
+
+ 83 rules, 13 user actions, 16 checks, 315 states, 2525 parse actions

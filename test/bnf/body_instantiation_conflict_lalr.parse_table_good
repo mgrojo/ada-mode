@@ -252,7 +252,9 @@ State 24:
    default                  => ERROR
 
    Minimal_Complete_Action => (generic_instantiation)
+
 States with conflicts: 7
 
- 6 rules, 0 user actions, 0 checks, 25 states, 55 parse actions
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 6 rules, 0 user actions, 0 checks, 25 states, 55 parse actions

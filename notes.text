@@ -26,28 +26,16 @@ add EBNF
         c:/Projects/org.emacs.java-wisi/notes.text
         done with syntax
         lots of states with more than two actions in a conflict; support that
+        reviewing conflicts
+            recognize canonical list:
+enumConstants
+    : enumConstant (',' enumConstant)*
+    ;
 
 debug.wy 'annotation*' in group
     screws up if don't process group first - could fix?
     duplicate nonterminal if process group first;
         when searching for previously declared, compares 'annotation*' to nonterminal_003_list
-
-      --  Process all single-element EBNF constructs first, so duplicate nonterminals
-      --  containing them can be found.
-      for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
-         if Data.EBNF_Nodes (I) and then
-           (case To_Token_Enum (Tree.ID (I)) is
-            when STRING_LITERAL_2_ID  => True,
-            when rhs_attribute_ID     => True,
-            when rhs_optional_item_ID => Tree.RHS_Index (I) in 2 | 3,
-            when rhs_multiple_item_ID => Tree.RHS_Index (I) in 4 | 5,
-            when rhs_group_item_ID    => False,
-            when declaration_ID       => False, --  %meta_syntax
-            when others               => raise SAL.Programmer_Error with "node" & Node_Index'Image (I))
-         then
-            Process_Node (I);
-         end if;
-      end loop;
 
     run on Python
         c:/Projects/org.emacs.python-wisi/python.wy

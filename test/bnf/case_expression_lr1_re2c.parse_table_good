@@ -232,5 +232,6 @@ State 21:
 
    Minimal_Complete_Action => (range_nt)
 
- 7 rules, 0 user actions, 0 checks, 22 states, 52 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 7 rules, 0 user actions, 0 checks, 22 states, 52 parse actions

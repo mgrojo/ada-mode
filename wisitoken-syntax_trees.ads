@@ -336,6 +336,11 @@ package WisiToken.Syntax_Trees is
       Node : in Valid_Node_Index;
       ID   : in Token_ID)
      return Node_Index;
+   function Find_Ancestor
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      IDs  : in Token_ID_Array)
+     return Node_Index;
    --  Return the ancestor of Node that contains ID, or Invalid_Node_Index if
    --  none match.
 

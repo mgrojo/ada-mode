@@ -19,13 +19,13 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%keyword THEN "then"
-%keyword ELSIF "elsif"
-%keyword ELSE "else"
-%keyword END "end"
-%keyword IF "if"
-%keyword GOTO "goto"
 %keyword TRUE "True"
+%keyword GOTO "goto"
+%keyword END "end"
+%keyword ELSE "else"
+%keyword ELSIF "elsif"
+%keyword THEN "then"
+%keyword IF "if"
 %meta_syntax BNF
 %case_insensitive
 
@@ -40,7 +40,7 @@
 %token <punctuation> SEMICOLON ";"
 
 if_statement
-  : IF expression THEN statement nonterminal_011 END IF SEMICOLON
+  : IF expression THEN statement nonterminal_016 END IF SEMICOLON
   | IF expression THEN statement END IF SEMICOLON
   ;
 statement
@@ -50,14 +50,14 @@ statement
 expression
   : TRUE
   ;
-nonterminal_011
-  : ELSIF statement nonterminal_014
-  | ELSIF statement
-  ;
-nonterminal_014
-  : ELSIF statement nonterminal_015
-  | ELSIF statement
-  ;
-nonterminal_015
+nonterminal_012
   : ELSE statement
+  ;
+nonterminal_013
+  : ELSIF statement nonterminal_012
+  | ELSIF statement
+  ;
+nonterminal_016
+  : ELSIF statement nonterminal_013
+  | ELSIF statement
   ;

@@ -544,7 +544,9 @@ State 46:
    default                     => ERROR
 
    Minimal_Complete_Action => (compilation_unit)
+
 States with conflicts: 10
 
- 16 rules, 0 user actions, 0 checks, 47 states, 126 parse actions
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 16 rules, 0 user actions, 0 checks, 47 states, 126 parse actions

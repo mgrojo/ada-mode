@@ -331,7 +331,9 @@ State 25:
    default          => ERROR
 
    Minimal_Complete_Action => (association)
+
 States with conflicts: 3
 
- 8 rules, 1 user actions, 0 checks, 26 states, 103 parse actions
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 5 reduce/reduce conflicts
+
+ 8 rules, 1 user actions, 0 checks, 26 states, 103 parse actions

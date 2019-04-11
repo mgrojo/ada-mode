@@ -293,7 +293,9 @@ State 22:
    default           => ERROR
 
    Minimal_Complete_Action => (range_g)
+
 States with conflicts: 17
 
- 5 rules, 0 user actions, 0 checks, 23 states, 99 parse actions
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 5 rules, 0 user actions, 0 checks, 23 states, 99 parse actions

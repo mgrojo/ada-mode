@@ -50327,7 +50327,9 @@ State 2853:
    default                            => ERROR
 
    Minimal_Complete_Action => (package_body)
+
 States with conflicts: 111 196 302 1279 1280
 
- 83 rules, 13 user actions, 16 checks, 2854 states, 24146 parse actions
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 3 reduce/reduce conflicts
+
+ 83 rules, 13 user actions, 16 checks, 2854 states, 24146 parse actions

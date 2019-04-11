@@ -1287,6 +1287,9 @@ package body WisiToken.Generate.LR is
                  Integer'Image (Shift_Reduce) & " shift/reduce conflicts," &
                  Integer'Image (Reduce_Reduce) & " reduce/reduce conflicts");
          end;
+      else
+         New_Line;
+         Put_Line (" 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts");
       end if;
    end Put_Parse_Table;
 

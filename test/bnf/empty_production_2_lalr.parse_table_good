@@ -124,7 +124,9 @@ State 8:
    default          => ERROR
 
    Minimal_Complete_Action => (body)
+
 States with conflicts: 0 1 3 5
 
- 3 rules, 1 user actions, 0 checks, 9 states, 30 parse actions
  1 accept/reduce conflicts, 4 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 3 rules, 1 user actions, 0 checks, 9 states, 30 parse actions

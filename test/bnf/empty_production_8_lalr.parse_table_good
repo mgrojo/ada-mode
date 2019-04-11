@@ -151,7 +151,9 @@ State 12:
    default                 => ERROR
 
    Minimal_Complete_Action => (object_declaration)
+
 States with conflicts: 1
 
- 4 rules, 0 user actions, 0 checks, 13 states, 37 parse actions
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 4 rules, 0 user actions, 0 checks, 13 states, 37 parse actions

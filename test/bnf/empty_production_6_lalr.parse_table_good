@@ -158,7 +158,9 @@ State 14:
    default                => ERROR
 
    Minimal_Complete_Action => (statement)
+
 States with conflicts: 1 5
 
- 4 rules, 0 user actions, 0 checks, 15 states, 34 parse actions
  0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts
+
+ 4 rules, 0 user actions, 0 checks, 15 states, 34 parse actions

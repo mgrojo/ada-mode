@@ -514,6 +514,30 @@ package body WisiToken.Syntax_Trees is
       return N;
    end Find_Ancestor;
 
+   function Find_Ancestor
+     (Tree : in Syntax_Trees.Tree;
+      Node : in Valid_Node_Index;
+      IDs  : in Token_ID_Array)
+     return Node_Index
+   is
+      N : Node_Index := Node;
+   begin
+      loop
+         N :=
+           (if N <= Tree.Last_Shared_Node
+            then Tree.Shared_Tree.Nodes (N).Parent
+            else Tree.Branched_Nodes (N).Parent);
+
+         exit when N = Invalid_Node_Index;
+         exit when
+           (for some ID of IDs => ID =
+              (if N <= Tree.Last_Shared_Node
+               then Tree.Shared_Tree.Nodes (N).ID
+               else Tree.Branched_Nodes (N).ID));
+      end loop;
+      return N;
+   end Find_Ancestor;
+
    function Find_Child
      (Tree : in Syntax_Trees.Tree;
       Node : in Valid_Node_Index;

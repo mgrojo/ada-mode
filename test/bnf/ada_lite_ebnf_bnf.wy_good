@@ -203,12 +203,13 @@ assignment_statement
   ;
 
 association
-  : nonterminal_048 expression
+  : nonterminal_004 expression
   | expression
   ;
 
 association_list
-  : association nonterminal_004_list_opt
+  : association nonterminal_005_list
+  | association
   ;
 
 binary_adding_operator
@@ -226,7 +227,7 @@ block_label_opt
   ;
 
 block_statement
-  : T1=block_label_opt nonterminal_047 BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
+  : T1=block_label_opt nonterminal_007 BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
     %()%
     %(return Match_Names (Lexer, Descriptor, Tokens, T1, T7, End_Name_Optional);)%
   | T1=block_label_opt BEGIN handled_sequence_of_statements END T7=identifier_opt SEMICOLON
@@ -244,7 +245,7 @@ body_stub
   ;
 
 case_statement
-  : CASE expression IS nonterminal_006_list END CASE SEMICOLON
+  : CASE expression IS nonterminal_008_list END CASE SEMICOLON
   ;
 
 case_statement_alternative
@@ -264,7 +265,7 @@ compilation_unit
   ;
 
 compilation_unit_list
-  : nonterminal_008_list
+  : nonterminal_010_list
     %( )%
     %(return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);)%
   ;
@@ -295,7 +296,8 @@ declaration
   ;
 
 declarative_part
-  : nonterminal_011_list_opt
+  : nonterminal_012_list
+  | ;; empty
   ;
 
 discrete_subtype_definition
@@ -304,7 +306,8 @@ discrete_subtype_definition
   ;
 
 enumeration_type_definition
-  : LEFT_PAREN IDENTIFIER nonterminal_014_list_opt RIGHT_PAREN
+  : LEFT_PAREN IDENTIFIER nonterminal_014_list RIGHT_PAREN
+  | LEFT_PAREN IDENTIFIER RIGHT_PAREN
   ;
 
 exception_choice
@@ -316,17 +319,17 @@ exception_handler
   ;
 
 exit_statement
-  : EXIT IDENTIFIER nonterminal_046 SEMICOLON
-  | EXIT nonterminal_046 SEMICOLON
+  : EXIT IDENTIFIER nonterminal_016 SEMICOLON
   | EXIT IDENTIFIER SEMICOLON
+  | EXIT nonterminal_016 SEMICOLON
   | EXIT SEMICOLON
   ;
 
 expression
   : relation
-  | relation nonterminal_016_list
-  | relation nonterminal_018_list
-  | relation nonterminal_020_list
+  | relation nonterminal_017_list
+  | relation nonterminal_019_list
+  | relation nonterminal_021_list
   ;
 
 extended_return_object_declaration
@@ -343,7 +346,8 @@ factor
   ;
 
 formal_part
-  : LEFT_PAREN parameter_specification nonterminal_023_list_opt RIGHT_PAREN
+  : LEFT_PAREN parameter_specification nonterminal_023_list RIGHT_PAREN
+  | LEFT_PAREN parameter_specification RIGHT_PAREN
   ;
 
 full_type_declaration
@@ -362,7 +366,7 @@ generic_instantiation
   ;
 
 handled_sequence_of_statements
-  : sequence_of_statements nonterminal_045
+  : sequence_of_statements nonterminal_026
   | sequence_of_statements
   ;
 
@@ -375,8 +379,10 @@ identifier_opt
   ;
 
 if_statement
-  : IF expression THEN sequence_of_statements nonterminal_029_list_opt nonterminal_044 END IF SEMICOLON
-  | IF expression THEN sequence_of_statements nonterminal_029_list_opt END IF SEMICOLON
+  : IF expression THEN sequence_of_statements nonterminal_027_list nonterminal_029 END IF SEMICOLON
+  | IF expression THEN sequence_of_statements nonterminal_027_list END IF SEMICOLON
+  | IF expression THEN sequence_of_statements nonterminal_029 END IF SEMICOLON
+  | IF expression THEN sequence_of_statements END IF SEMICOLON
   ;
 
 index_constraint
@@ -417,19 +423,19 @@ name_opt
   ;
 
 object_declaration
-  : IDENTIFIER COLON subtype_indication nonterminal_043 SEMICOLON
+  : IDENTIFIER COLON subtype_indication nonterminal_030 SEMICOLON
   | IDENTIFIER COLON subtype_indication SEMICOLON
   ;
 
 ;; Test optional item with label.
 package_body
-  : PACKAGE BODY name_1=name aspect_1=aspect_specification IS declarative_part nonterminal_042 END name_2=name_opt SEMICOLON
-    %(Handle_Aspect (Tokens, aspect_1);)%
-    %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
-  | PACKAGE BODY name_1=name IS declarative_part nonterminal_042 END name_2=name_opt SEMICOLON
+  : PACKAGE BODY name_1=name aspect_1=aspect_specification IS declarative_part nonterminal_031 END name_2=name_opt SEMICOLON
     %(Handle_Aspect (Tokens, aspect_1);)%
     %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
   | PACKAGE BODY name_1=name aspect_1=aspect_specification IS declarative_part END name_2=name_opt SEMICOLON
+    %(Handle_Aspect (Tokens, aspect_1);)%
+    %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
+  | PACKAGE BODY name_1=name IS declarative_part nonterminal_031 END name_2=name_opt SEMICOLON
     %(Handle_Aspect (Tokens, aspect_1);)%
     %(return Match_Names (Lexer, Descriptor, Tokens, name_1, name_2, End_Name_Optional);)%
   | PACKAGE BODY name_1=name IS declarative_part END name_2=name_opt SEMICOLON
@@ -448,7 +454,7 @@ parameter_profile
   ;
 
 parameter_specification
-  : IDENTIFIER COLON IDENTIFIER nonterminal_041
+  : IDENTIFIER COLON IDENTIFIER nonterminal_030
   | IDENTIFIER COLON IDENTIFIER
   ;
 
@@ -488,7 +494,7 @@ range_list
   ;
 
 relation
-  : simple_expression nonterminal_040
+  : simple_expression nonterminal_032
   | simple_expression
   ;
 
@@ -504,12 +510,15 @@ selected_component
   ;
 
 sequence_of_statements
-  : nonterminal_032_list_opt
+  : nonterminal_033_list
+  | ;; empty
   ;
 
 simple_expression
-  : unary_adding_operator term nonterminal_035_list_opt
-  | term nonterminal_035_list_opt
+  : unary_adding_operator term nonterminal_035_list
+  | unary_adding_operator term
+  | term nonterminal_035_list
+  | term
   ;
 
 simple_return_statement
@@ -567,7 +576,8 @@ subtype_indication
   ;
 
 term
-  : factor nonterminal_038_list_opt
+  : factor nonterminal_037_list
+  | factor
   ;
 
 type_declaration
@@ -584,164 +594,123 @@ unary_adding_operator
   ;
 
 ;;; end of file
-nonterminal_005
+nonterminal_004
+  : IDENTIFIER EQUAL_GREATER
+  ;
+nonterminal_006
   : COMMA association
   ;
-nonterminal_004_list_opt
-  : ;; empty
-  | nonterminal_003_list
-  ;
-nonterminal_003_list
-  : nonterminal_005
-  | nonterminal_003_list nonterminal_005
+nonterminal_005_list
+  : nonterminal_006
+  | nonterminal_005_list nonterminal_006
   ;
 nonterminal_007
-  : case_statement_alternative
-  ;
-nonterminal_006_list
-  : nonterminal_007
-  | nonterminal_006_list nonterminal_007
+  : DECLARE declarative_part
   ;
 nonterminal_009
-  : compilation_unit
+  : case_statement_alternative
   ;
 nonterminal_008_list
   : nonterminal_009
   | nonterminal_008_list nonterminal_009
   ;
-nonterminal_012
-  : declaration
-  ;
-nonterminal_011_list_opt
-  : ;; empty
-  | nonterminal_010_list
+nonterminal_011
+  : compilation_unit
   ;
 nonterminal_010_list
-  : nonterminal_012
-  | nonterminal_010_list nonterminal_012
+  : nonterminal_011
+  | nonterminal_010_list nonterminal_011
+  ;
+nonterminal_013
+  : declaration
+  ;
+nonterminal_012_list
+  : nonterminal_013
+  | nonterminal_012_list nonterminal_013
   ;
 nonterminal_015
   : COMMA IDENTIFIER
   ;
-nonterminal_014_list_opt
-  : ;; empty
-  | nonterminal_013_list
-  ;
-nonterminal_013_list
+nonterminal_014_list
   : nonterminal_015
-  | nonterminal_013_list nonterminal_015
+  | nonterminal_014_list nonterminal_015
   ;
-nonterminal_017
+nonterminal_016
+  : WHEN expression
+  ;
+nonterminal_018
   : AND relation
   ;
-nonterminal_016_list
-  : nonterminal_017
-  | nonterminal_016_list nonterminal_017
+nonterminal_017_list
+  : nonterminal_018
+  | nonterminal_017_list nonterminal_018
   ;
-nonterminal_019
+nonterminal_020
   : OR relation
   ;
-nonterminal_018_list
-  : nonterminal_019
-  | nonterminal_018_list nonterminal_019
+nonterminal_019_list
+  : nonterminal_020
+  | nonterminal_019_list nonterminal_020
   ;
-nonterminal_021
+nonterminal_022
   : XOR relation
   ;
-nonterminal_020_list
-  : nonterminal_021
-  | nonterminal_020_list nonterminal_021
+nonterminal_021_list
+  : nonterminal_022
+  | nonterminal_021_list nonterminal_022
   ;
 nonterminal_024
   : SEMICOLON parameter_specification
   ;
-nonterminal_023_list_opt
-  : ;; empty
-  | nonterminal_022_list
-  ;
-nonterminal_022_list
+nonterminal_023_list
   : nonterminal_024
-  | nonterminal_022_list nonterminal_024
-  ;
-nonterminal_027
-  : exception_handler
-  ;
-nonterminal_026_list_opt
-  : ;; empty
-  | nonterminal_025_list
+  | nonterminal_023_list nonterminal_024
   ;
 nonterminal_025_list
-  : nonterminal_027
-  | nonterminal_025_list nonterminal_027
+  : exception_handler
+  | nonterminal_025_list exception_handler
   ;
-nonterminal_030
+nonterminal_026
+  : EXCEPTION nonterminal_025_list
+  | EXCEPTION
+  ;
+nonterminal_028
   : ELSIF expression THEN sequence_of_statements
   ;
-nonterminal_029_list_opt
-  : ;; empty
-  | nonterminal_028_list
+nonterminal_027_list
+  : nonterminal_028
+  | nonterminal_027_list nonterminal_028
   ;
-nonterminal_028_list
-  : nonterminal_030
-  | nonterminal_028_list nonterminal_030
+nonterminal_029
+  : ELSE sequence_of_statements
   ;
-nonterminal_033
+nonterminal_030
+  : COLON_EQUAL expression
+  ;
+nonterminal_031
+  : BEGIN handled_sequence_of_statements
+  ;
+nonterminal_032
+  : relational_operator simple_expression
+  ;
+nonterminal_034
   : statement
   ;
-nonterminal_032_list_opt
-  : ;; empty
-  | nonterminal_031_list
-  ;
-nonterminal_031_list
-  : nonterminal_033
-  | nonterminal_031_list nonterminal_033
+nonterminal_033_list
+  : nonterminal_034
+  | nonterminal_033_list nonterminal_034
   ;
 nonterminal_036
   : binary_adding_operator term
   ;
-nonterminal_035_list_opt
-  : ;; empty
-  | nonterminal_034_list
-  ;
-nonterminal_034_list
+nonterminal_035_list
   : nonterminal_036
-  | nonterminal_034_list nonterminal_036
+  | nonterminal_035_list nonterminal_036
   ;
-nonterminal_039
+nonterminal_038
   : multiplying_operator factor
   ;
-nonterminal_038_list_opt
-  : ;; empty
-  | nonterminal_037_list
-  ;
 nonterminal_037_list
-  : nonterminal_039
-  | nonterminal_037_list nonterminal_039
-  ;
-nonterminal_040
-  : relational_operator simple_expression
-  ;
-nonterminal_041
-  : COLON_EQUAL expression
-  ;
-nonterminal_042
-  : BEGIN handled_sequence_of_statements
-  ;
-nonterminal_043
-  : COLON_EQUAL expression
-  ;
-nonterminal_044
-  : ELSE sequence_of_statements
-  ;
-nonterminal_045
-  : EXCEPTION nonterminal_026_list_opt
-  ;
-nonterminal_046
-  : WHEN expression
-  ;
-nonterminal_047
-  : DECLARE declarative_part
-  ;
-nonterminal_048
-  : IDENTIFIER EQUAL_GREATER
+  : nonterminal_038
+  | nonterminal_037_list nonterminal_038
   ;
