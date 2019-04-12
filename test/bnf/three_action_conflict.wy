@@ -1,0 +1,44 @@
+;;; Test more than two actions in a conflict
+
+%generate LALR Ada_Emacs re2c Process
+%start block
+%meta_syntax EBNF
+
+%token <punctuation> LPAREN             '('
+%token <punctuation> RPAREN             ')'
+%token <punctuation> LBRACE             '{'
+%token <punctuation> RBRACE             '}'
+%token <punctuation> SEMI               ';'
+
+%token <punctuation> ARROW              '->'
+
+%token <symbol> IDENTIFIER %[ [a-z][a-z0-9]* ]%
+
+;; Parser Grammar
+
+classOrInterfaceType
+    : IDENTIFIER
+    ;
+
+block
+    : '{' statement* '}'
+    ;
+
+statement
+    : expression ';'
+    ;
+
+expression
+    : '(' expression ')'
+    | IDENTIFIER
+    | '(' classOrInterfaceType ')' expression
+    | lambdaExpression
+    ;
+
+lambdaExpression
+    : lambdaParameters '->' block
+    ;
+
+lambdaParameters
+    : '(' IDENTIFIER  ')'
+    ;

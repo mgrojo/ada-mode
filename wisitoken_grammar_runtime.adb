@@ -1853,7 +1853,6 @@ package body WisiToken_Grammar_Runtime is
                   --  Element is a single IDENTIFIER; no List_Element Nonterminal. If
                   --  found, set List_Nonterm
                   Temp      : Node_Index := First_List_Element (Tree.Child (Tree.Root, 1), +compilation_unit_ID);
-                  Name_Node : Node_Index;
                begin
                   loop
                      pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
@@ -1861,12 +1860,18 @@ package body WisiToken_Grammar_Runtime is
                      if Tree.Production_ID (Tree.Child (Temp, 1)) = (+nonterminal_ID, 0) then
                            --  Target List_Nonterm is:
                            --
-                           --  compilation_unit_1
-                           --  | nonterminal_0
-                           --  | | IDENTIFIER
+                           --  compilation_unit
+                           --  | nonterminal
+                           --  | | IDENTIFIER : list_nonterm
                            --  | | COLON
-                           --  | | rhs_list_1
+                           --  | | rhs_list: rhs_list_1
+                           --  | | | rhs_list: rhs_list_2
+                           --  | | | | rhs
+                           --  | | | | | ... List_element
+                           --  | | | BAR
+                           --  | | | rhs: ... list_nonterm list_element
                         declare
+                           Name_Node  : constant Node_Index := Tree.Child (Tree.Child (Temp, 1), 1);
                            RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (Temp, 1), 3);
                            RHS_List_2 : constant Node_Index :=
                              (if RHS_List_1 = Invalid_Node_Index
@@ -1874,9 +1879,12 @@ package body WisiToken_Grammar_Runtime is
                               else Tree.Child (RHS_List_1, 1));
                         begin
                            if RHS_List_2 /= Invalid_Node_Index and then
-                             Element_Content = Get_Text (Data, Tree, RHS_List_2)
+                             (Element_Content = Get_Text (Data, Tree, RHS_List_2) and
+                                Tree.Child (RHS_List_2, 1) = Invalid_Node_Index and
+                                (Tree.Child (RHS_List_1, 3) /= Invalid_Node_Index and then
+                                   Get_Text (Data, Tree, Name_Node) & " " & Element_Content =
+                                   Get_Text (Data, Tree, Tree.Child (RHS_List_1, 3))))
                            then
-                              Name_Node := Tree.Child (Tree.Child (Temp, 1), 1);
                               case Tree.Label (Name_Node) is
                               when Virtual_Identifier =>
                                  List_Nonterm := Tree.Identifier (Name_Node);

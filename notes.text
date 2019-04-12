@@ -21,21 +21,36 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-add EBNF
-    run on java
-        c:/Projects/org.emacs.java-wisi/notes.text
-        done with syntax
-        lalr: 0 accept/reduce conflicts, 127 shift/reduce conflicts, 88 reduce/reduce conflicts
-            9 states with more than two actions in a conflict
-        lr1:  0 accept/reduce conflicts, 127 shift/reduce conflicts, 88 reduce/reduce conflicts
-            => no conflicts due to LALR
-        reviewing conflicts; all in language
+support more than 2 actions in conflict
+    need test case
+        Test/bnf/three_action_conflict.wy
+        copy stuff from java_antlr.wy
+        LALR states with > 2 actions in conflicts: 165 201 253 257 317 348 352 358 793
+            DOT in 201, 253, 358, 793 looks good
+            IDENTIFIER in 257
+            RPAREN in 348
 
-    run on Python
-        c:/Projects/org.emacs.python-wisi/python.wy
-        need INDENT, DEDENT in lexer
-        no other new syntax
-        only one state with more than two actions
+        build up from scratch: Test/bnf/three_action_conflict.wy
+        2 action conflict in 13, 3rd action in 2
+            don't see how to change it
+
+        cut down java_antlr.wy: java_lite.wy
+
+
+java
+    c:/Projects/org.emacs.java-wisi/source/java_antlr.wy
+    done with syntax
+    lalr: 0 accept/reduce conflicts, 127 shift/reduce conflicts, 88 reduce/reduce conflicts
+        9 states with more than two actions in a conflict
+    lr1:  0 accept/reduce conflicts, 127 shift/reduce conflicts, 88 reduce/reduce conflicts
+        => no conflicts due to LALR
+    reviewing conflicts; all in language
+
+Python
+    c:/Projects/org.emacs.python-wisi/python.wy
+    need INDENT, DEDENT in lexer
+    no other new syntax
+    only one state with more than two actions
 
 lalr generator bug
     long term fix; reimplement lalr using deremer, penello 1982
