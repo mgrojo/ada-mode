@@ -906,7 +906,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 #if ADA_LITE = "Ada_Lite" then
          Result (+term_list_ID) := True;
 #elsif ADA_LITE = "Ada_Lite_Bnf" or ADA_LITE = "Ada_Lite_Ebnf" then
-         Result (+nonterminal_037_list_ID) := True;
+         Result (+nonterminal_033_list_ID) := True;
 #end if;
          Result (+simple_expression_ID) := True;
          Result (+relation_ID) := True;

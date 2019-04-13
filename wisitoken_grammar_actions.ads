@@ -26,18 +26,18 @@ package Wisitoken_Grammar_Actions is
 
    Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal                => 3,
-      Last_Terminal                 => 35,
-      First_Nonterminal             => 36,
-      Last_Nonterminal              => 55,
-      EOI_ID                        => 35,
-      Accept_ID                     => 36,
+      Last_Terminal                 => 36,
+      First_Nonterminal             => 37,
+      Last_Nonterminal              => 56,
+      EOI_ID                        => 36,
+      Accept_ID                     => 37,
       Case_Insensitive              => False,
       New_Line_ID                   => 1,
       Comment_ID                    => 2,
       Left_Paren_ID                 => 2147483647,
       Right_Paren_ID                => 2147483647,
-      String_1_ID                   => 34,
-      String_2_ID                   => 33,
+      String_1_ID                   => 35,
+      String_2_ID                   => 34,
       Embedded_Quote_Escape_Doubled => False,
       Image                         =>
         (new String'("WHITESPACE"),
@@ -54,6 +54,7 @@ package Wisitoken_Grammar_Actions is
          new String'("ACTION"),
          new String'("BAR"),
          new String'("COLON"),
+         new String'("COLON_COLON_EQUAL"),
          new String'("COMMA"),
          new String'("EQUAL"),
          new String'("GREATER"),
@@ -96,9 +97,9 @@ package Wisitoken_Grammar_Actions is
          new String'("rhs_alternative_list"),
          new String'("compilation_unit"),
          new String'("compilation_unit_list")),
-      Terminal_Image_Width => 16,
+      Terminal_Image_Width => 17,
       Image_Width          => 25,
-      Last_Lookahead       => 36);
+      Last_Lookahead       => 37);
 
    type Token_Enum_ID is
      (WHITESPACE_ID,
@@ -115,6 +116,7 @@ package Wisitoken_Grammar_Actions is
       ACTION_ID,
       BAR_ID,
       COLON_ID,
+      COLON_COLON_EQUAL_ID,
       COMMA_ID,
       EQUAL_ID,
       GREATER_ID,
@@ -197,6 +199,11 @@ package Wisitoken_Grammar_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
    procedure nonterminal_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure nonterminal_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;

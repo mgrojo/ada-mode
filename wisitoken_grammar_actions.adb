@@ -102,6 +102,17 @@ package body Wisitoken_Grammar_Actions is
       Add_Nonterminal (User_Data, Tree, Tokens);
    end nonterminal_0;
 
+   procedure nonterminal_1
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)
+   is
+      pragma Unreferenced (Nonterm);
+   begin
+      Add_Nonterminal (User_Data, Tree, Tokens);
+   end nonterminal_1;
+
    procedure rhs_item_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;

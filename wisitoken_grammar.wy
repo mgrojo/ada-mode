@@ -1,19 +1,19 @@
 ;;; WisiToken grammar for WisiToken grammar, for wisitoken-bnf-generate.
-;;  The supported syntax is close to Extended Backus-Naur form, as defined by
+;;
+;;  The supported syntax is similar to several flavors of Extended
+;;  Backus-Naur form, as defined by
 ;;  https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
 ;;
-;;  Differences from EBNF:
-;;  - ':' instead of '::='
+;;  In particular, we support grammars for popular languages:
 ;;
-;;  - no ',' between tokens, just space
+;;  - the Python grammar file given at
+;;    https://docs.python.org/3.8/reference/grammar.html
 ;;
-;;  - Terminating ';' optional in nonterminals (for compatibility with
-;;    Python grammar syntax).
+;;  - the Java grammar file given at
+;;    https://github.com/antlr/grammars-v4/tree/master/java
 ;;
-;;  In addition, we support the Python grammar file given at
-;;  https://docs.python.org/3.8/reference/grammar.html
-;;  and the Java grammar file given at
-;;  https://github.com/antlr/grammars-v4/tree/master/java
+;;  - the Ada grammar given in the Ada Language Reference Manual Annex
+;;    P; see http://ada-auth.org/arm.html
 ;;
 ;;  This file uses only plain BNF syntax, to simplify working on the
 ;;  EBNF syntax.
@@ -59,6 +59,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 
 %token <punctuation> BAR "|"
 %token <punctuation> COLON ":"
+%token <punctuation> COLON_COLON_EQUAL "::="
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL "="
 %token <punctuation> GREATER ">"
@@ -163,6 +164,8 @@ declaration_item
 
 nonterminal
   : IDENTIFIER COLON rhs_list semicolon_opt
+    %(Add_Nonterminal (User_Data, Tree, Tokens);)%
+  | IDENTIFIER COLON_COLON_EQUAL rhs_list semicolon_opt
     %(Add_Nonterminal (User_Data, Tree, Tokens);)%
   ;
 

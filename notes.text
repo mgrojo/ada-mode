@@ -22,6 +22,8 @@ update-wisitoken_grammar
 
  current work
 add EBNF
+    ada annex P: 174 shift/reduce conflicts, 492 reduce/reduce conflicts
+
     run on java
         c:/Projects/org.emacs.java-wisi/notes.text
         done with syntax
