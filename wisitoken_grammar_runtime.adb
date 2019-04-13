@@ -425,7 +425,7 @@ package body WisiToken_Grammar_Runtime is
                         Children : constant Syntax_Trees.Valid_Node_Index_Array := Tree.Get_Terminals (Tokens (3));
                         Tuple    : WisiToken.BNF.Generate_Tuple;
                      begin
-                        Tuple.Gen_Alg  := WisiToken.BNF.Generate_Algorithm'Value (Get_Text (Data, Tree, Children (1)));
+                        Tuple.Gen_Alg  := WisiToken.BNF.To_Generate_Algorithm (Get_Text (Data, Tree, Children (1)));
                         if Children'Last >= 2 then
                            Tuple.Out_Lang := WisiToken.BNF.To_Output_Language (Get_Text (Data, Tree, Children (2)));
                         end if;
@@ -1858,18 +1858,22 @@ package body WisiToken_Grammar_Runtime is
                      pragma Assert (Tree.ID (Temp) = +compilation_unit_ID);
 
                      if Tree.Production_ID (Tree.Child (Temp, 1)) = (+nonterminal_ID, 0) then
-                           --  Target List_Nonterm is:
-                           --
-                           --  compilation_unit
-                           --  | nonterminal
-                           --  | | IDENTIFIER : list_nonterm
-                           --  | | COLON
-                           --  | | rhs_list: rhs_list_1
-                           --  | | | rhs_list: rhs_list_2
-                           --  | | | | rhs
-                           --  | | | | | ... List_element
-                           --  | | | BAR
-                           --  | | | rhs: ... list_nonterm list_element
+                        --  Target List_Nonterm is:
+                        --
+                        --  nonterminal_nnn_list
+                        --     : element
+                        --     | nonterminal_nnn_list element
+                        --
+                        --  compilation_unit
+                        --  | nonterminal
+                        --  | | IDENTIFIER : list_nonterm
+                        --  | | COLON
+                        --  | | rhs_list: rhs_list_1
+                        --  | | | rhs_list: rhs_list_2
+                        --  | | | | rhs
+                        --  | | | | | ... List_element
+                        --  | | | BAR
+                        --  | | | rhs: ... list_nonterm list_element
                         declare
                            Name_Node  : constant Node_Index := Tree.Child (Tree.Child (Temp, 1), 1);
                            RHS_List_1 : constant Node_Index := Tree.Child (Tree.Child (Temp, 1), 3);
@@ -1878,21 +1882,27 @@ package body WisiToken_Grammar_Runtime is
                               then Invalid_Node_Index
                               else Tree.Child (RHS_List_1, 1));
                         begin
-                           if RHS_List_2 /= Invalid_Node_Index and then
-                             (Element_Content = Get_Text (Data, Tree, RHS_List_2) and
-                                Tree.Child (RHS_List_2, 1) = Invalid_Node_Index and
-                                (Tree.Child (RHS_List_1, 3) /= Invalid_Node_Index and then
-                                   Get_Text (Data, Tree, Name_Node) & " " & Element_Content =
-                                   Get_Text (Data, Tree, Tree.Child (RHS_List_1, 3))))
+                           if RHS_List_2 /= Invalid_Node_Index and
+                             Tree.Child (RHS_List_1, 3) /= Invalid_Node_Index and -- second rhs present
+                             Tree.Child (RHS_List_2, 3) = Invalid_Node_Index -- no third rhs
                            then
-                              case Tree.Label (Name_Node) is
-                              when Virtual_Identifier =>
-                                 List_Nonterm := Tree.Identifier (Name_Node);
-                              when others =>
-                                 raise SAL.Programmer_Error;
-                              end case;
+                              declare
+                                 RHS_1 : constant String := Get_Text (Data, Tree, RHS_List_2);
+                                 RHS_2 : constant String := Get_Text (Data, Tree, Tree.Child (RHS_List_1, 3));
+                                 Expected_RHS_2 : constant String := Get_Text (Data, Tree, Name_Node) & " " &
+                                   Element_Content;
+                              begin
+                                 if Element_Content = RHS_1 and RHS_2 = Expected_RHS_2 then
+                                    case Tree.Label (Name_Node) is
+                                    when Virtual_Identifier =>
+                                       List_Nonterm := Tree.Identifier (Name_Node);
+                                    when others =>
+                                       raise SAL.Programmer_Error;
+                                    end case;
 
-                              exit;
+                                    exit;
+                                 end if;
+                              end;
                            end if;
                         end;
                      end if;
@@ -2172,7 +2182,7 @@ package body WisiToken_Grammar_Runtime is
       end Process_Node;
 
    begin
-      --  Process nodes in node decreasing order, so contained items are
+      --  Process nodes in node increasing order, so contained items are
       --  translated first, so duplicates of the containing item can be found
       for I in Data.EBNF_Nodes.First_Index .. Data.EBNF_Nodes.Last_Index loop
          if Data.EBNF_Nodes (I) then

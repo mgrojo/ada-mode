@@ -48,13 +48,17 @@ package WisiToken.BNF is
    subtype LR_Generate_Algorithm is Generate_Algorithm range LALR .. LR1;
    subtype Packrat_Generate_Algorithm is Generate_Algorithm range Packrat_Gen .. Packrat_Proc;
 
-   Generate_Algorithm_Image : constant array (Valid_Generate_Algorithm) of access constant String :=
-     (LALR         => new String'("LALR"),
+   Generate_Algorithm_Image : constant array (Generate_Algorithm) of access constant String :=
+     (None         => new String'("None"),
+      LALR         => new String'("LALR"),
       LR1          => new String'("LR1"),
       Packrat_Gen  => new String'("Packrat_Gen"),
       Packrat_Proc => new String'("Packrat_Proc"),
       External     => new String'("External"));
    --  Suitable for Ada package names.
+
+   function To_Generate_Algorithm (Item : in String) return Generate_Algorithm;
+   --  Raises User_Error for invalid Item
 
    type Generate_Algorithm_Set is array (Generate_Algorithm) of Boolean;
    type Generate_Algorithm_Set_Access is access Generate_Algorithm_Set;

@@ -98,7 +98,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (13), 27, 28);
             Add_Action (Table.States (13), 29, 29);
             Add_Action (Table.States (13), 31, 30);
-            Add_Action (Table.States (13), 32, 31, (37, 3), 2, declaration_3'Access, null);
+            Add_Action (Table.States (13), 32, 31);
+            Add_Conflict (Table.States (13), 32, (37, 3), 2, declaration_3'Access, null);
             Add_Action (Table.States (13), 33, 32);
             Add_Action (Table.States (13), 34, 33);
             Add_Action (Table.States (13), 35, Reduce, (37, 3), 2, declaration_3'Access, null);
@@ -114,7 +115,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (15), 20, 40);
             Add_Action (Table.States (15), 22, Reduce, (45, 0), 0, null, null);
             Add_Action (Table.States (15), 28, Reduce, (45, 0), 0, null, null);
-            Add_Action (Table.States (15), 32, 41, (45, 0), 0, null, null);
+            Add_Action (Table.States (15), 32, 41);
+            Add_Conflict (Table.States (15), 32, (45, 0), 0, null, null);
             Add_Action (Table.States (15), 34, 42);
             Add_Action (Table.States (15), 35, Reduce, (45, 0), 0, null, null);
             Add_Error (Table.States (15));
@@ -170,7 +172,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (34), 27, 28);
             Add_Action (Table.States (34), 29, 29);
             Add_Action (Table.States (34), 31, 30);
-            Add_Action (Table.States (34), 32, 31, (37, 2), 3, declaration_2'Access, null);
+            Add_Action (Table.States (34), 32, 31);
+            Add_Conflict (Table.States (34), 32, (37, 2), 3, declaration_2'Access, null);
             Add_Action (Table.States (34), 33, 32);
             Add_Action (Table.States (34), 34, 33);
             Add_Action (Table.States (34), 35, Reduce, (37, 2), 3, declaration_2'Access, null);
@@ -275,7 +278,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (42), 35, Reduce, (49, 1), 1, rhs_item_1'Access, null);
             Add_Error (Table.States (42));
             Add_Action (Table.States (43), 12, 69);
-            Add_Action (Table.States (43), 22, 70, (43, 1), 0, null, null);
+            Add_Action (Table.States (43), 22, 70);
+            Add_Conflict (Table.States (43), 22, (43, 1), 0, null, null);
             Add_Action (Table.States (43), 28, 71);
             Add_Action (Table.States (43), 32, Reduce, (43, 1), 0, null, null);
             Add_Action (Table.States (43), 35, Reduce, (43, 1), 0, null, null);
@@ -294,7 +298,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (47), 20, 40);
             Add_Action (Table.States (47), 22, Reduce, (45, 1), 1, null, null);
             Add_Action (Table.States (47), 28, Reduce, (45, 1), 1, null, null);
-            Add_Action (Table.States (47), 32, 41, (45, 1), 1, null, null);
+            Add_Action (Table.States (47), 32, 41);
+            Add_Conflict (Table.States (47), 32, (45, 1), 1, null, null);
             Add_Action (Table.States (47), 34, 42);
             Add_Action (Table.States (47), 35, Reduce, (45, 1), 1, null, null);
             Add_Error (Table.States (47));
@@ -331,7 +336,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (58), 27, 28);
             Add_Action (Table.States (58), 29, 29);
             Add_Action (Table.States (58), 31, 30);
-            Add_Action (Table.States (58), 32, 31, (37, 0), 4, declaration_0'Access, null);
+            Add_Action (Table.States (58), 32, 31);
+            Add_Conflict (Table.States (58), 32, (37, 0), 4, declaration_0'Access, null);
             Add_Action (Table.States (58), 33, 32);
             Add_Action (Table.States (58), 34, 33);
             Add_Action (Table.States (58), 35, Reduce, (37, 0), 4, declaration_0'Access, null);
@@ -392,7 +398,8 @@ package body Wisitoken_Grammar_Main is
             Add_Action (Table.States (69), 20, 40);
             Add_Action (Table.States (69), 22, Reduce, (45, 0), 0, null, null);
             Add_Action (Table.States (69), 28, Reduce, (45, 0), 0, null, null);
-            Add_Action (Table.States (69), 32, 41, (45, 0), 0, null, null);
+            Add_Action (Table.States (69), 32, 41);
+            Add_Conflict (Table.States (69), 32, (45, 0), 0, null, null);
             Add_Action (Table.States (69), 34, 42);
             Add_Action (Table.States (69), 35, Reduce, (45, 0), 0, null, null);
             Add_Error (Table.States (69));

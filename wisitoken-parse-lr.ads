@@ -93,6 +93,9 @@ package WisiToken.Parse.LR is
    end record;
    procedure Free is new Ada.Unchecked_Deallocation (Parse_Action_Node, Parse_Action_Node_Ptr);
 
+   function Is_In (Item : in Parse_Action_Rec; List : in Parse_Action_Node_Ptr) return Boolean;
+   --  True if Item is Equal to any element of List.
+
    type Action_Node;
    type Action_Node_Ptr is access Action_Node;
 
@@ -102,6 +105,11 @@ package WisiToken.Parse.LR is
       Next   : Action_Node_Ptr;
    end record;
    procedure Free is new Ada.Unchecked_Deallocation (Action_Node, Action_Node_Ptr);
+
+   function Find
+     (Symbol      : in Token_ID;
+      Action_List : in Action_Node_Ptr)
+     return Action_Node_Ptr;
 
    procedure Add
      (List   : in out Action_Node_Ptr;
@@ -185,29 +193,14 @@ package WisiToken.Parse.LR is
    --  Add duplicate Reduce actions, and final Error action, to tail of
    --  State action list.
 
-   procedure Add_Action
+   procedure Add_Conflict
      (State             : in out Parse_State;
       Symbol            : in     Token_ID;
-      State_Index       : in     WisiToken.State_Index;
       Reduce_Production : in     Production_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     WisiToken.Semantic_Checks.Semantic_Check);
-   --  Add a Shift/Reduce conflict to State.
-
-   procedure Add_Action
-     (State             : in out Parse_State;
-      Symbol            : in     Token_ID;
-      Verb              : in     Parse_Action_Verbs;
-      Production_1      : in     Production_ID;
-      RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Semantic_Action_1 : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check_1  : in     WisiToken.Semantic_Checks.Semantic_Check;
-      Production_2      : in     Production_ID;
-      RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Semantic_Action_2 : in     WisiToken.Syntax_Trees.Semantic_Action;
-      Semantic_Check_2  : in     WisiToken.Semantic_Checks.Semantic_Check);
-   --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
+   --  Add a Reduce conflict to State.
 
    procedure Add_Error (State  : in out Parse_State);
    --  Add an Error action to State, at tail of action list.

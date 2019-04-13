@@ -108,7 +108,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       --  We return Boolean, not Check_Status, because Abandon and Continue
       --  are up to the caller.
       --
-      --  If any actions have a conflict, append the conflict config and action to
+      --  If any actions have conflicts, append the conflict configs and actions to
       --  Parse_Items.
 
       use all type Ada.Containers.Count_Type;
@@ -122,6 +122,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Item   : Parse_Item renames Parse_Items (Parse_Item_Index);
       Config : Configuration renames Item.Config;
       Action : Parse_Action_Node_Ptr renames Item.Action;
+
+      Conflict : Parse_Action_Node_Ptr;
 
       Restore_Terminals_Current : Base_Token_Index;
       Current_Token             : Base_Token := McKenzie_Recover.Current_Token
@@ -151,7 +153,9 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       end if;
 
       loop
-         if Action.Next /= null then
+         Conflict := Action.Next;
+         loop
+            exit when Conflict = null;
             if Parse_Items.Is_Full then
                if Trace_McKenzie > Outline then
                   Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": too many conflicts; abandoning");
@@ -161,12 +165,13 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
                   Put_Line
                     (Trace, Super.Label (Parser_Index), Trace_Prefix & ":" & State_Index'Image
                        (Config.Stack.Peek.State) & ": add conflict " &
-                       Image (Action.Next.Item, Descriptor));
+                       Image (Conflict.Item, Descriptor));
                end if;
 
-               Parse_Items.Append ((Config, Action.Next, Parsed => False, Shift_Count => 0));
+               Parse_Items.Append ((Config, Conflict, Parsed => False, Shift_Count => 0));
             end if;
-         end if;
+            Conflict := Conflict.Next;
+         end loop;
 
          if Trace_McKenzie > Extra then
             Put_Line

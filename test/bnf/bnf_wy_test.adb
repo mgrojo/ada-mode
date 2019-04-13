@@ -25,6 +25,7 @@ with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
+with WisiToken.Generate;
 with WisiToken.BNF;
 with WisiToken.Parse.LR.Parser_No_Recover;
 with WisiToken.Syntax_Trees;
@@ -109,11 +110,16 @@ package body BNF_WY_Test is
    is
       use all type WisiToken.Line_Number_Type;
       use all type WisiToken_Grammar_Runtime.Meta_Syntax;
+      use AUnit.Checks;
 
       Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
       Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
       Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
+
+      Save_Trace_Parse : constant Integer := WisiToken.Trace_Parse;
    begin
+      WisiToken.Trace_Parse := 0; --  user does not want to see a trace of the grammar parser.
+
       Wisitoken_Grammar_Main.Create_Parser
         (Parser    => Grammar_Parser,
          Trace     => Trace'Unchecked_Access,
@@ -123,6 +129,8 @@ package body BNF_WY_Test is
       Grammar_Parser.Parse;
       Input_Data.Phase := WisiToken_Grammar_Runtime.Meta;
       Grammar_Parser.Execute_Actions;
+
+      Check ("grammar parse meta error", WisiToken.Generate.Error, False);
 
       Generate_Set     := Input_Data.Generate_Set;
       If_Lexer_Present := Input_Data.If_Lexer_Present;
@@ -146,9 +154,18 @@ package body BNF_WY_Test is
       Input_Data.Phase := WisiToken_Grammar_Runtime.Other;
       Grammar_Parser.Execute_Actions;
 
+      Check ("grammar parse other error", WisiToken.Generate.Error, False);
+
       McKenzie_Recover := Input_Data.McKenzie_Recover.Source_Line /= WisiToken.Invalid_Line_Number;
+
+      WisiToken.Trace_Parse := Save_Trace_Parse;
    exception
+   when AUnit.Assertions.Assertion_Error =>
+      WisiToken.Trace_Parse := Save_Trace_Parse;
+      raise;
+
    when WisiToken.Syntax_Error =>
+      WisiToken.Trace_Parse := Save_Trace_Parse;
       Grammar_Parser.Put_Errors;
       raise;
    end Get_Gen_Set;

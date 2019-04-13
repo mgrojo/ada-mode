@@ -41,8 +41,6 @@ begin
    --  test error handling when generate fails
    Add_Test (Suite, new Test_Generate_Errors.Test_Case
                (+"../Test/bnf/unused_tokens", +(LR1 | LALR => True, others => False)));
-   Add_Test (Suite, new Test_Generate_Errors.Test_Case
-               (+"../Test/bnf/triple_conflict", +(LALR => True, others => False)));
 
    --  generate succeeds; grammar file name order
 
@@ -69,6 +67,7 @@ begin
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"range_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"skip_to_grammar", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"subprograms", null));
+   Add_Test (Suite, new BNF_WY_Test.Test_Case (+"three_action_conflict", null));
    Add_Test (Suite, new BNF_WY_Test.Test_Case (+"warth_left_recurse_expr_1", null));
 
    --  other *.wy files in ../wisi/test are used in Ada parser

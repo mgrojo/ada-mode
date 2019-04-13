@@ -3,7 +3,7 @@ build/Makefile
 branches:
 org.wisitoken          - main, used by o.e.a
 org.wisitoken.stephe-1 - misc devel for o.w, o.e.a.s-*
-org.wisitoken.stephe-2 - add EBNF syntax to .wy parser
+org.wisitoken.stephe-2 - available
 
 (dvc-state-multiple
 '((xmtn . "/Projects/org.stephe_leake.makerules")
@@ -21,22 +21,6 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-support more than 2 actions in conflict
-    need test case
-        Test/bnf/three_action_conflict.wy
-        copy stuff from java_antlr.wy
-        LALR states with > 2 actions in conflicts: 165 201 253 257 317 348 352 358 793
-            DOT in 201, 253, 358, 793 looks good
-            IDENTIFIER in 257
-            RPAREN in 348
-
-        build up from scratch: Test/bnf/three_action_conflict.wy
-        2 action conflict in 13, 3rd action in 2
-            don't see how to change it
-
-        cut down java_antlr.wy: java_lite.wy
-
-
 java
     c:/Projects/org.emacs.java-wisi/source/java_antlr.wy
     done with syntax

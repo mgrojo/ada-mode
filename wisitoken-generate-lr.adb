@@ -31,23 +31,6 @@ package body WisiToken.Generate.LR is
    ----------
    --  Body subprograms, alphabetical
 
-   function Find
-     (Symbol      : in Token_ID;
-      Action_List : in Action_Node_Ptr)
-     return Action_Node_Ptr
-   is
-      Action_Node : Action_Node_Ptr := Action_List;
-   begin
-      while Action_Node /= null loop
-         if Action_Node.Symbol = Symbol then
-            return Action_Node;
-         end if;
-         Action_Node := Action_Node.Next;
-      end loop;
-
-      return null;
-   end Find;
-
    function Min
      (Item    : in RHS_Sequence_Arrays.Vector;
       RHS_Set : in LR.RHS_Set.Vector)
@@ -240,19 +223,20 @@ package body WisiToken.Generate.LR is
       end if;
 
       if Matching_Action /= null then
-         if Equal (Matching_Action.Action.Item, Action) then
-            --  Matching_Action is identical to Action, so there is no
-            --  conflict; just don't add it again.
+         if Is_In (Action, Matching_Action.Action) then
+            --  Action is already in the list.
             if Trace_Generate > Detail then
                Ada.Text_IO.Put_Line (" - already present");
             end if;
             return;
          else
             --  There is a conflict. Report it and add it, so the
-            --  generalized parser can follow both paths
+            --  generalized parser can follow all paths
             declare
-               --  Enforce canonical Shift/Reduce or Accept/Reduce
-               --  order, to simplify searching and code generation.
+               --  Enforce canonical Shift/Reduce or Accept/Reduce order, to simplify
+               --  searching and code generation. There can be only one Shift in the
+               --  list of conflicting actions, so we keep it the first item in the
+               --  list; no order in the rest of the list.
                Action_A : constant Parse_Action_Rec :=
                  (if Action.Verb in Shift | Accept_It then Action else Matching_Action.Action.Item);
 
@@ -280,22 +264,6 @@ package body WisiToken.Generate.LR is
                else
                   if Trace_Generate > Detail then
                      Ada.Text_IO.Put_Line (" - conflict duplicate: " & Image (New_Conflict, Descriptor));
-                  end if;
-               end if;
-
-               --  More than two actions can occur; see triple_conflict.wy. We make
-               --  that an error, since the grammar will be better off without them.
-               --  But keep going; the full parse table output will be needed to fix
-               --  the excess conflict.
-               if Matching_Action.Action.Next /= null then
-                  if Matching_Action.Action.Item = Action or Matching_Action.Action.Next.Item = Action then
-                     if Trace_Generate > Detail then
-                        Ada.Text_IO.Put_Line (" - conflict duplicate");
-                     end if;
-                  else
-                     WisiToken.Generate.Put_Error
-                       ("More than two actions on " & Image (Symbol, Descriptor) &
-                          " in state" & State_Index'Image (Closure.State));
                   end if;
                end if;
 
