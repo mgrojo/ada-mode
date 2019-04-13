@@ -622,6 +622,7 @@ package body WisiToken.BNF.Output_Ada_Common is
                           Trimmed_Image (Node.Symbol);
                         Append (", ");
                         Append (Trimmed_Image (Action_Node.Item.State));
+                        Append (");");
 
                      when Reduce | Accept_It =>
                         Line := +"Add_Action (Table.States (" & Trimmed_Image (State_Index) & "), " &
@@ -651,18 +652,23 @@ package body WisiToken.BNF.Output_Ada_Common is
                             else Generate_Data.Check_Names
                               (Action_Node.Item.Production.LHS)(Action_Node.Item.Production.RHS).all &
                                "'Access"));
+                        Append (");");
 
                      when Parse.LR.Error =>
-                        Line := +"Add_Error (Table.States (" & Trimmed_Image (State_Index) & ")";
+                        Line := +"Add_Error (Table.States (" & Trimmed_Image (State_Index) & "));";
                      end case;
+                     Indent_Wrap (-Line);
+                     Line_Count := Line_Count + 1;
 
-                     Action_Node := Action_Node.Next;
-                     if Action_Node /= null then
+                     loop
+                        Action_Node := Action_Node.Next;
+                        exit when Action_Node = null;
                         --  There is a conflict; must be Shift/{Reduce|Accept} or Reduce/{Reduce|Accept}.
                         --  The added parameters are the same in either case.
                         case Action_Node.Item.Verb is
                         when Reduce | Accept_It =>
-                           Append (", ");
+                           Line := +"Add_Conflict (Table.States (" & Trimmed_Image (State_Index) & "), " &
+                             Trimmed_Image (Node.Symbol) & ", ";
                            Append (Image (Action_Node.Item.Production) & ",");
                            Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                            Append
@@ -682,17 +688,17 @@ package body WisiToken.BNF.Output_Ada_Common is
                                else Generate_Data.Check_Names
                                  (Action_Node.Item.Production.LHS)(Action_Node.Item.Production.RHS).all &
                                   "'Access"));
+                           Indent_Wrap (-Line & ");");
+                           Line_Count := Line_Count + 1;
 
                         when others =>
-                           raise SAL.Programmer_Error with "conflict second action verb: " &
+                           raise SAL.Programmer_Error with "invalid conflict action verb: " &
                              Parse.LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                         end case;
-                     end if;
+                     end loop;
                   end;
-                  Indent_Wrap (-Line & ");");
-                  Line_Count := Line_Count + 1;
-                  Indent     := Base_Indent;
-                  Node       := Node.Next;
+                  Indent := Base_Indent;
+                  Node   := Node.Next;
                end loop;
             end if;
          end Actions;

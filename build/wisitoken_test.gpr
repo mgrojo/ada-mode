@@ -82,6 +82,7 @@ project WisiToken_Test is
       "range_conflict_packrat_proc_run.ads",
       "skip_to_grammar_lalr_run.ads",
       "skip_to_grammar_lr1_run.ads",
+      "three_action_conflict_lalr_run.ads",
       "warth_left_recurse_expr_1_lalr_run.ads",
       "warth_left_recurse_expr_1_packrat_gen_run.ads",
       "warth_left_recurse_expr_1_packrat_proc_run.ads"

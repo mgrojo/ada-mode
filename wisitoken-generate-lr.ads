@@ -95,11 +95,6 @@ package WisiToken.Generate.LR is
    --  Delete Known_Conflicts from Conflicts.
 
    function Find
-     (Symbol      : in Token_ID;
-      Action_List : in Action_Node_Ptr)
-     return Action_Node_Ptr;
-
-   function Find
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;

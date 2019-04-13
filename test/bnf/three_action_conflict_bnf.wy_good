@@ -1,0 +1,61 @@
+;;; generated from three_action_conflict.wy
+;;;
+;;; Test more than two actions in a conflict
+
+%generate LALR Ada re2c
+%start block
+%meta_syntax BNF
+
+%mckenzie_cost_limit 10
+%mckenzie_check_limit 3
+%mckenzie_cost_default 4 4 4 4
+%no_language_runtime
+
+%conflict REDUCE/REDUCE in state classOrInterfaceType, expression on token RPAREN
+%conflict SHIFT/REDUCE in state lambdaParameters, classOrInterfaceType on token RPAREN
+
+%token <punctuation> LPAREN '('
+%token <punctuation> RPAREN ')'
+%token <punctuation> LBRACE '{'
+%token <punctuation> RBRACE '}'
+%token <punctuation> SEMI ';'
+
+%token <punctuation> ARROW '->'
+
+%token <symbol> IDENTIFIER %[ [a-zA-Z][a-zA-Z0-9]* ]%
+
+%non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
+%non_grammar <new-line> NEW_LINE %[ [\n] ]%
+%non_grammar <comment> COMMENT %[ "--"[^\n\x04]*[\n\x04] ]%
+
+classOrInterfaceType
+  : IDENTIFIER
+  ;
+
+block
+  : LBRACE nonterminal_006_list RBRACE
+  | LBRACE RBRACE
+  ;
+
+statement
+  : expression SEMI
+  ;
+
+expression
+  : LPAREN expression RPAREN
+  | IDENTIFIER
+  | LPAREN classOrInterfaceType RPAREN expression
+  | lambdaExpression
+  ;
+
+lambdaExpression
+  : lambdaParameters ARROW block
+  ;
+
+lambdaParameters
+  : LPAREN IDENTIFIER RPAREN
+  ;
+nonterminal_006_list
+  : statement
+  | nonterminal_006_list statement
+  ;

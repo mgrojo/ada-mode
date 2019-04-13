@@ -95,6 +95,37 @@ package body WisiToken.Parse.LR is
       end if;
    end Equal;
 
+   function Is_In (Item : in Parse_Action_Rec; List : in Parse_Action_Node_Ptr) return Boolean
+   is
+      Node : Parse_Action_Node_Ptr := List;
+   begin
+      loop
+         exit when Node = null;
+         if Equal (Item, Node.Item) then
+            return True;
+         end if;
+         Node := Node.Next;
+      end loop;
+      return False;
+   end Is_In;
+
+   function Find
+     (Symbol      : in Token_ID;
+      Action_List : in Action_Node_Ptr)
+     return Action_Node_Ptr
+   is
+      Action_Node : Action_Node_Ptr := Action_List;
+   begin
+      while Action_Node /= null loop
+         if Action_Node.Symbol = Symbol then
+            return Action_Node;
+         end if;
+         Action_Node := Action_Node.Next;
+      end loop;
+
+      return null;
+   end Find;
+
    procedure Add
      (List   : in out Action_Node_Ptr;
       Symbol : in     Token_ID;
@@ -271,50 +302,24 @@ package body WisiToken.Parse.LR is
       Add_Error (State);
    end Add_Action;
 
-   procedure Add_Action
+   procedure Add_Conflict
      (State             : in out LR.Parse_State;
       Symbol            : in     Token_ID;
-      State_Index       : in     WisiToken.State_Index;
       Reduce_Production : in     Production_ID;
       RHS_Token_Count   : in     Ada.Containers.Count_Type;
       Semantic_Action   : in     WisiToken.Syntax_Trees.Semantic_Action;
       Semantic_Check    : in     Semantic_Checks.Semantic_Check)
    is
-      Action_1 : constant Parse_Action_Rec := (Shift, State_Index);
-      Action_2 : constant Parse_Action_Rec :=
+      Conflict : constant Parse_Action_Rec :=
         (Reduce, Reduce_Production, Semantic_Action, Semantic_Check, RHS_Token_Count);
+      Node : Parse_Action_Node_Ptr := Find (Symbol, State.Action_List).Action;
    begin
-      State.Action_List := new Action_Node'
-        (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
-   end Add_Action;
-
-   procedure Add_Action
-     (State             : in out LR.Parse_State;
-      Symbol            : in     Token_ID;
-      Verb              : in     LR.Parse_Action_Verbs;
-      Production_1      : in     Production_ID;
-      RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Semantic_Action_1 : in     Syntax_Trees.Semantic_Action;
-      Semantic_Check_1  : in     Semantic_Checks.Semantic_Check;
-      Production_2      : in     Production_ID;
-      RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Semantic_Action_2 : in     Syntax_Trees.Semantic_Action;
-      Semantic_Check_2  : in     Semantic_Checks.Semantic_Check)
-   is
-      Action_1 : constant Parse_Action_Rec :=
-        (case Verb is
-         when Reduce    =>
-           (Reduce, Production_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1),
-         when Accept_It =>
-           (Accept_It, Production_1, Semantic_Action_1, Semantic_Check_1, RHS_Token_Count_1),
-         when others => raise SAL.Programmer_Error);
-
-      Action_2 : constant Parse_Action_Rec :=
-        (Reduce, Production_2, Semantic_Action_2, Semantic_Check_2, RHS_Token_Count_2);
-   begin
-      State.Action_List := new Action_Node'
-        (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
-   end Add_Action;
+      loop
+         exit when Node.Next = null;
+         Node := Node.Next;
+      end loop;
+      Node.Next := new Parse_Action_Node'(Conflict, null);
+   end Add_Conflict;
 
    procedure Add_Error (State  : in out LR.Parse_State)
    is

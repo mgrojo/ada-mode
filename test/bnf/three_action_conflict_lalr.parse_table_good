@@ -1,0 +1,314 @@
+Tokens:
+ 0 => WHITESPACE
+ 1 => NEW_LINE
+ 2 => COMMENT
+ 3 => LPAREN
+ 4 => RPAREN
+ 5 => LBRACE
+ 6 => RBRACE
+ 7 => SEMI
+ 8 => ARROW
+ 9 => IDENTIFIER
+ 10 => Wisi_EOI
+ 11 => wisitoken_accept
+ 12 => classOrInterfaceType
+ 13 => block
+ 14 => statement
+ 15 => expression
+ 16 => lambdaExpression
+ 17 => lambdaParameters
+ 18 => nonterminal_006_list
+
+Productions:
+11.0: wisitoken_accept <= block Wisi_EOI
+12.0: classOrInterfaceType <= IDENTIFIER
+13.0: block <= LBRACE nonterminal_006_list RBRACE
+13.1: block <= LBRACE RBRACE
+14.0: statement <= expression SEMI
+15.0: expression <= LPAREN expression RPAREN
+15.1: expression <= IDENTIFIER
+15.2: expression <= LPAREN classOrInterfaceType RPAREN expression
+15.3: expression <= lambdaExpression
+16.0: lambdaExpression <= lambdaParameters ARROW block
+17.0: lambdaParameters <= LPAREN IDENTIFIER RPAREN
+18.0: nonterminal_006_list <= statement
+18.1: nonterminal_006_list <= nonterminal_006_list statement
+
+McKenzie:
+(Insert =>
+ LPAREN     => 4,
+ RPAREN     => 4,
+ LBRACE     => 4,
+ RBRACE     => 4,
+ SEMI       => 4,
+ ARROW      => 4,
+ IDENTIFIER => 4,
+ Wisi_EOI   => 4)
+(Delete =>
+ LPAREN     => 4,
+ RPAREN     => 4,
+ LBRACE     => 4,
+ RBRACE     => 4,
+ SEMI       => 4,
+ ARROW      => 4,
+ IDENTIFIER => 4,
+ Wisi_EOI   => 4)
+(Push_Back =>
+ LPAREN     => 4,
+ RPAREN     => 4,
+ LBRACE     => 4,
+ RBRACE     => 4,
+ SEMI       => 4,
+ ARROW      => 4,
+ IDENTIFIER => 4,
+ Wisi_EOI   => 4)
+Ignore_Check_Fail => 4
+Task_Count        => 0
+Cost_Limit        => 10
+Check_Limit       => 3
+Check_Delta_Limit => 2147483647
+Enqueue_Limit     => 2147483647
+
+LALR Parse Table:
+State 0:
+     11.0:wisitoken_accept <= ^ block Wisi_EOI, 
+
+   LBRACE               => shift and goto state 1
+   default              => ERROR
+
+   block                goto state 2
+
+   Minimal_Complete_Action => (LBRACE)
+
+State 1:
+     13.0:block <= LBRACE ^ nonterminal_006_list RBRACE, RPAREN/SEMI/Wisi_EOI
+     13.1:block <= LBRACE ^ RBRACE, RPAREN/SEMI/Wisi_EOI
+
+   LPAREN               => shift and goto state 3
+   RBRACE               => shift and goto state 4
+   IDENTIFIER           => shift and goto state 5
+   default              => ERROR
+
+   statement            goto state 6
+   expression           goto state 7
+   lambdaExpression     goto state 8
+   lambdaParameters     goto state 9
+   nonterminal_006_list goto state 10
+
+   Minimal_Complete_Action => (RBRACE)
+
+State 2:
+     11.0:wisitoken_accept <= block ^ Wisi_EOI, 
+
+   Wisi_EOI             => accept it 11.0
+   default              => ERROR
+
+   Minimal_Complete_Action => ()
+
+State 3:
+     15.0:expression <= LPAREN ^ expression RPAREN, RPAREN/SEMI
+     15.2:expression <= LPAREN ^ classOrInterfaceType RPAREN expression, RPAREN/SEMI
+     17.0:lambdaParameters <= LPAREN ^ IDENTIFIER RPAREN, ARROW
+
+   LPAREN               => shift and goto state 3
+   IDENTIFIER           => shift and goto state 11
+   default              => ERROR
+
+   classOrInterfaceType goto state 12
+   expression           goto state 13
+   lambdaExpression     goto state 8
+   lambdaParameters     goto state 9
+
+   Minimal_Complete_Action => (IDENTIFIER)
+
+State 4:
+     13.1:block <= LBRACE RBRACE ^, RPAREN/SEMI/Wisi_EOI
+
+   RPAREN               => reduce 2 tokens to block 13.1
+   SEMI                 => reduce 2 tokens to block 13.1
+   Wisi_EOI             => reduce 2 tokens to block 13.1
+   default              => ERROR
+
+   Minimal_Complete_Action => (block)
+
+State 5:
+     15.1:expression <= IDENTIFIER ^, RPAREN/SEMI
+
+   RPAREN               => reduce 1 tokens to expression 15.1
+   SEMI                 => reduce 1 tokens to expression 15.1
+   default              => ERROR
+
+   Minimal_Complete_Action => (expression)
+
+State 6:
+     18.0:nonterminal_006_list <= statement ^, LPAREN/RBRACE/IDENTIFIER
+
+   LPAREN               => reduce 1 tokens to nonterminal_006_list 18.0
+   RBRACE               => reduce 1 tokens to nonterminal_006_list 18.0
+   IDENTIFIER           => reduce 1 tokens to nonterminal_006_list 18.0
+   default              => ERROR
+
+   Minimal_Complete_Action => (nonterminal_006_list)
+
+State 7:
+     14.0:statement <= expression ^ SEMI, LPAREN/RBRACE/IDENTIFIER
+
+   SEMI                 => shift and goto state 14
+   default              => ERROR
+
+   Minimal_Complete_Action => (SEMI)
+
+State 8:
+     15.3:expression <= lambdaExpression ^, RPAREN/SEMI
+
+   RPAREN               => reduce 1 tokens to expression 15.3
+   SEMI                 => reduce 1 tokens to expression 15.3
+   default              => ERROR
+
+   Minimal_Complete_Action => (expression)
+
+State 9:
+     16.0:lambdaExpression <= lambdaParameters ^ ARROW block, RPAREN/SEMI
+
+   ARROW                => shift and goto state 15
+   default              => ERROR
+
+   Minimal_Complete_Action => (ARROW)
+
+State 10:
+     13.0:block <= LBRACE nonterminal_006_list ^ RBRACE, RPAREN/SEMI/Wisi_EOI
+     18.1:nonterminal_006_list <= nonterminal_006_list ^ statement, LPAREN/RBRACE/IDENTIFIER
+
+   LPAREN               => shift and goto state 3
+   RBRACE               => shift and goto state 16
+   IDENTIFIER           => shift and goto state 5
+   default              => ERROR
+
+   statement            goto state 17
+   expression           goto state 7
+   lambdaExpression     goto state 8
+   lambdaParameters     goto state 9
+
+   Minimal_Complete_Action => (RBRACE)
+
+State 11:
+     12.0:classOrInterfaceType <= IDENTIFIER ^, RPAREN
+     15.1:expression <= IDENTIFIER ^, RPAREN
+     17.0:lambdaParameters <= LPAREN IDENTIFIER ^ RPAREN, ARROW
+
+   RPAREN               => shift and goto state 18,
+                           reduce 1 tokens to classOrInterfaceType 12.0,
+                           reduce 1 tokens to expression 15.1
+   default              => ERROR
+
+   Minimal_Complete_Action => (classOrInterfaceType)
+
+State 12:
+     15.2:expression <= LPAREN classOrInterfaceType ^ RPAREN expression, RPAREN/SEMI
+
+   RPAREN               => shift and goto state 19
+   default              => ERROR
+
+   Minimal_Complete_Action => (RPAREN)
+
+State 13:
+     15.0:expression <= LPAREN expression ^ RPAREN, RPAREN/SEMI
+
+   RPAREN               => shift and goto state 20
+   default              => ERROR
+
+   Minimal_Complete_Action => (RPAREN)
+
+State 14:
+     14.0:statement <= expression SEMI ^, LPAREN/RBRACE/IDENTIFIER
+
+   LPAREN               => reduce 2 tokens to statement 14.0
+   RBRACE               => reduce 2 tokens to statement 14.0
+   IDENTIFIER           => reduce 2 tokens to statement 14.0
+   default              => ERROR
+
+   Minimal_Complete_Action => (statement)
+
+State 15:
+     16.0:lambdaExpression <= lambdaParameters ARROW ^ block, RPAREN/SEMI
+
+   LBRACE               => shift and goto state 1
+   default              => ERROR
+
+   block                goto state 21
+
+   Minimal_Complete_Action => (LBRACE)
+
+State 16:
+     13.0:block <= LBRACE nonterminal_006_list RBRACE ^, RPAREN/SEMI/Wisi_EOI
+
+   RPAREN               => reduce 3 tokens to block 13.0
+   SEMI                 => reduce 3 tokens to block 13.0
+   Wisi_EOI             => reduce 3 tokens to block 13.0
+   default              => ERROR
+
+   Minimal_Complete_Action => (block)
+
+State 17:
+     18.1:nonterminal_006_list <= nonterminal_006_list statement ^, LPAREN/RBRACE/IDENTIFIER
+
+   LPAREN               => reduce 2 tokens to nonterminal_006_list 18.1
+   RBRACE               => reduce 2 tokens to nonterminal_006_list 18.1
+   IDENTIFIER           => reduce 2 tokens to nonterminal_006_list 18.1
+   default              => ERROR
+
+   Minimal_Complete_Action => (nonterminal_006_list)
+
+State 18:
+     17.0:lambdaParameters <= LPAREN IDENTIFIER RPAREN ^, ARROW
+
+   ARROW                => reduce 3 tokens to lambdaParameters 17.0
+   default              => ERROR
+
+   Minimal_Complete_Action => (lambdaParameters)
+
+State 19:
+     15.2:expression <= LPAREN classOrInterfaceType RPAREN ^ expression, RPAREN/SEMI
+
+   LPAREN               => shift and goto state 3
+   IDENTIFIER           => shift and goto state 5
+   default              => ERROR
+
+   expression           goto state 22
+   lambdaExpression     goto state 8
+   lambdaParameters     goto state 9
+
+   Minimal_Complete_Action => (IDENTIFIER)
+
+State 20:
+     15.0:expression <= LPAREN expression RPAREN ^, RPAREN/SEMI
+
+   RPAREN               => reduce 3 tokens to expression 15.0
+   SEMI                 => reduce 3 tokens to expression 15.0
+   default              => ERROR
+
+   Minimal_Complete_Action => (expression)
+
+State 21:
+     16.0:lambdaExpression <= lambdaParameters ARROW block ^, RPAREN/SEMI
+
+   RPAREN               => reduce 3 tokens to lambdaExpression 16.0
+   SEMI                 => reduce 3 tokens to lambdaExpression 16.0
+   default              => ERROR
+
+   Minimal_Complete_Action => (lambdaExpression)
+
+State 22:
+     15.2:expression <= LPAREN classOrInterfaceType RPAREN expression ^, RPAREN/SEMI
+
+   RPAREN               => reduce 4 tokens to expression 15.2
+   SEMI                 => reduce 4 tokens to expression 15.2
+   default              => ERROR
+
+   Minimal_Complete_Action => (expression)
+
+States with conflicts: 11
+
+ 0 accept/reduce conflicts, 1 shift/reduce conflicts, 1 reduce/reduce conflicts
+
+ 7 rules, 0 user actions, 0 checks, 23 states, 67 parse actions

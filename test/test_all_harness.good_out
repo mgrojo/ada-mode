@@ -1,6 +1,5 @@
 
 OK test_generate_errors.adb ../Test/bnf/unused_tokens : Run_Test
-OK test_generate_errors.adb ../Test/bnf/triple_conflict : Run_Test
 OK bnf_wy_test.adb ada_lite ada_lite_recover_repeatable : Run_Test
 OK bnf_wy_test.adb ada_lite_ebnf ada_lite : Run_Test
 OK bnf_wy_test.adb ada_lite_ebnf ada_lite_recover_repeatable : Run_Test
@@ -24,6 +23,7 @@ OK bnf_wy_test.adb nested_ebnf_optional : Run_Test
 OK bnf_wy_test.adb range_conflict : Run_Test
 OK bnf_wy_test.adb skip_to_grammar : Run_Test
 OK bnf_wy_test.adb subprograms : Run_Test
+OK bnf_wy_test.adb three_action_conflict : Run_Test
 OK bnf_wy_test.adb warth_left_recurse_expr_1 : Run_Test
 OK association_grammar_test.adb : Nominal
 OK dragon_4_43_lr1_test.adb : Test_First_Follow

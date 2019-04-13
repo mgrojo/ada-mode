@@ -56,6 +56,7 @@ gen :: nested_ebnf_optional_re2c.c
 gen :: range_conflict_re2c.c
 gen :: skip_to_grammar_re2c.c
 gen :: subprograms_re2c.c
+gen :: three_action_conflict_re2c.c
 gen :: warth_left_recurse_expr_1_re2c.c
 
 test_all_harness.out : test_all_harness.exe wisitoken-bnf-generate.exe gen test-executables

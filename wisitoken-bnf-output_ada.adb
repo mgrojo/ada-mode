@@ -449,7 +449,11 @@ is
                      "_parse_table.txt"",");
       end if;
       if Input_Data.Language_Params.Error_Recover then
-         Put_Line ("Fixes'Access, Use_Minimal_Complete_Actions'Access, String_ID_Set'Access,");
+         if Input_Data.Language_Params.Use_Language_Runtime then
+            Put_Line ("Fixes'Access, Use_Minimal_Complete_Actions'Access, String_ID_Set'Access,");
+         else
+            Put_Line ("null, null, null,");
+         end if;
       end if;
       Put_Line (Main_Package_Name & ".Create_Parser);");
       Close (File);

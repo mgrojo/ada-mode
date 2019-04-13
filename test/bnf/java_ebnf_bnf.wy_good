@@ -204,8 +204,7 @@ nonterminal_050
   : RBRACK nonterminal_041_list arrayInitializer
   | RBRACK arrayInitializer
   | expression RBRACK nonterminal_046_list nonterminal_041_list
-  | expression RBRACK nonterminal_046_list expression RBRACK nonterminal_046_list nonterminal_041_list
-  | expression RBRACK nonterminal_046_list expression RBRACK nonterminal_046_list
+  | expression RBRACK nonterminal_046_list
   | expression RBRACK nonterminal_041_list
   | expression RBRACK
   ;

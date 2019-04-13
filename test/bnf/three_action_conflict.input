@@ -1,0 +1,11 @@
+{
+Fee;
+
+-- Normal parse handles triple conflict in these two statements
+(fie) Foo;
+(Fum)->{foo;};
+
+-- Error recovery handles triple conflict
+(Fum)-> foo;};
+
+}
