@@ -17,8 +17,10 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Exceptions;
 with Ada.Strings.Bounded;
 with Ada.Text_IO;
+with SAL;
 with WisiToken.Semantic_Checks;
 package body Wisi is
    use WisiToken;
@@ -589,6 +591,10 @@ package body Wisi is
       end case;
 
       Data.Reset;
+   exception
+   when E : others =>
+      raise SAL.Programmer_Error with "wisi.initialize: " & Ada.Exceptions.Exception_Name (E) & ": " &
+        Ada.Exceptions.Exception_Message (E);
    end Initialize;
 
    overriding procedure Reset (Data : in out Parse_Data_Type)
@@ -1553,7 +1559,11 @@ package body Wisi is
       is begin
          for I in Data.Line_Begin_Pos.First_Index .. Data.Line_Begin_Pos.Last_Index loop
             if Data.Line_Begin_Pos (I) > Last_Char_Pos then
-               return I - 1;
+               if I > Line_Number_Type'First then
+                  return I - 1;
+               else
+                  return I;
+               end if;
             end if;
          end loop;
          return Data.Line_Begin_Pos.Last_Index;
@@ -1792,6 +1802,7 @@ package body Wisi is
         (case Tree.Label (Tree_Index) is
          when Shared_Terminal => Data.Terminals.Variable_Ref (Tree.Terminal (Tree_Index)),
          when Virtual_Terminal => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual terminal",
+         when Virtual_Identifier => raise SAL.Programmer_Error with "wisi_runtime.get_aug_token virtual identifier",
          when Nonterm => (Element => Augmented_Token_Access (Tree.Augmented (Tree_Index))));
    end Get_Aug_Token;
 

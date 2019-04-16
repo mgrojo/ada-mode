@@ -126,7 +126,7 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
       (setf (wisi-process--parser-busy parser) nil)
 
-      ;; IMPROVEME: check protocol and version numbers
+      ;; FIXME: check protocol and version numbers
       (wisi-process-parse--wait parser)
       )))
 
@@ -172,7 +172,7 @@ not wait for command to complete. PARSE-END is end of desired
 parse region."
   ;; Must match "parse" command arguments read by
   ;; emacs_wisi_common_parse,adb Get_Parse_Params.
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -193,10 +193,11 @@ parse region."
 		      wisi-trace-mckenzie
 		      wisi-trace-action
 		      (if wisi-mckenzie-disable 1 0)
-		      (if wisi-mckenzie-task-count wisi-mckenzie-task-count -1)
-		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
-		      (if wisi-mckenzie-check-limit wisi-mckenzie-check-limit -1)
-		      (if wisi-mckenzie-enqueue-limit wisi-mckenzie-enqueue-limit -1)
+		      (or wisi-mckenzie-task-count -1)
+		      (or wisi-mckenzie-cost-limit -1)
+		      (or wisi-mckenzie-check-limit -1)
+		      (or wisi-mckenzie-enqueue-limit -1)
+		      (or wisi-parse-max-parallel -1)
 		      (- (position-bytes send-end) (position-bytes begin)) ;; send-end is after last byte
 		      (wisi-parse-format-language-options parser)
 		      ))

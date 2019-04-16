@@ -323,7 +323,7 @@ slower to load on first use, but gives better error recovery."
   :group 'ada-indentation)
 
 (defcustom ada-process-parse-exec-opts nil
-  "List of process start options for ’ada-process-parse-exec’."
+  "List of process start options for `ada-process-parse-exec'."
   :type 'string
   :group 'ada-indentation)
 
@@ -564,8 +564,8 @@ button was clicked."
     ;; don't indent 'begin'. Similarly for 'else'; error recovery will
     ;; probaly insert 'if then' immediately before it
     (forward-char -1)
-    (funcall indent-line-function))
-  (forward-char 1)
+    (funcall indent-line-function)
+    (forward-char 1))
   (funcall indent-line-function))
 
 (defvar ada-indent-statement nil
@@ -2239,10 +2239,7 @@ set."
   corresponding specification.
 
 - If point is in a subprogram body or specification, position point
-  on the corresponding specification or body.
-
-If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
-buffer in another window."
+  on the corresponding specification or body."
 
   ;; ff-get-file, ff-find-other file first process
   ;; ff-special-constructs, then run the following hooks:
@@ -2382,7 +2379,7 @@ LINE, COLUMN are Emacs origin."
     (cond
      ((bufferp buffer)
       ;; use pop-to-buffer, so package other-frame-window works.
-      (pop-to-buffer buffer (list #'display-buffer-same-window) nil))
+      (pop-to-buffer buffer (list #'display-buffer-same-window)))
 
      ((file-exists-p file)
       (find-file file))

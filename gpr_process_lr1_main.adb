@@ -152,7 +152,8 @@ package body Gpr_Process_LR1_Main is
             Add_Action (Table.States (8), 10, 33);
             Add_Action (Table.States (8), 13, 34);
             Add_Action (Table.States (8), 18, 9);
-            Add_Action (Table.States (8), 20, 35, (56, 0), 0, null, null);
+            Add_Action (Table.States (8), 20, 35);
+            Add_Conflict (Table.States (8), 20, (56, 0), 0, null, null);
             Add_Action (Table.States (8), 26, Reduce, (56, 0), 0, null, null);
             Add_Action (Table.States (8), 29, Reduce, (56, 0), 0, null, null);
             Add_Action (Table.States (8), 30, Reduce, (56, 0), 0, null, null);
@@ -295,7 +296,8 @@ package body Gpr_Process_LR1_Main is
             Add_Action (Table.States (34), 10, 33);
             Add_Action (Table.States (34), 13, 34);
             Add_Action (Table.States (34), 18, 9);
-            Add_Action (Table.States (34), 20, 61, (56, 0), 0, null, null);
+            Add_Action (Table.States (34), 20, 61);
+            Add_Conflict (Table.States (34), 20, (56, 0), 0, null, null);
             Add_Action (Table.States (34), 26, Reduce, (56, 0), 0, null, null);
             Add_Action (Table.States (34), 29, Reduce, (56, 0), 0, null, null);
             Add_Action (Table.States (34), 30, Reduce, (56, 0), 0, null, null);
@@ -741,14 +743,14 @@ package body Gpr_Process_LR1_Main is
             Table.States (106).Productions := WisiToken.To_Vector ((1 => (57, 0)));
             Add_Action (Table.States (106), (12, 30), (57, 0), 1, null, null);
             Table.States (106).Minimal_Complete_Action := (Reduce, 57, 1);
+         end Subr_1;
+         procedure Subr_2
+         is begin
             Table.States (107).Productions := WisiToken.To_Vector (((43, 0), (57, 1)));
             Add_Action (Table.States (107), 12, 120);
             Add_Action (Table.States (107), 30, 121);
             Add_Error (Table.States (107));
             Table.States (107).Minimal_Complete_Action := (Shift, 12, 120);
-         end Subr_1;
-         procedure Subr_2
-         is begin
             Table.States (108).Productions := WisiToken.To_Vector ((1 => (40, 2)));
             Add_Action (Table.States (108), 13, 122);
             Add_Error (Table.States (108));
@@ -819,7 +821,8 @@ package body Gpr_Process_LR1_Main is
             Table.States (119).Minimal_Complete_Action := (Shift, 7, 146);
             Table.States (120).Productions := WisiToken.To_Vector ((1 => (43, 0)));
             Add_Action (Table.States (120), 7, Reduce, (45, 0), 0, null, null);
-            Add_Action (Table.States (120), 24, 147, (45, 0), 0, null, null);
+            Add_Action (Table.States (120), 24, 147);
+            Add_Conflict (Table.States (120), 24, (45, 0), 0, null, null);
             Add_Error (Table.States (120));
             Add_Goto (Table.States (120), 44, 148);
             Add_Goto (Table.States (120), 45, 149);
@@ -922,7 +925,8 @@ package body Gpr_Process_LR1_Main is
             Add_Action (Table.States (132), 10, 33);
             Add_Action (Table.States (132), 13, 34);
             Add_Action (Table.States (132), 18, 9);
-            Add_Action (Table.States (132), 20, 167, (56, 0), 0, null, null);
+            Add_Action (Table.States (132), 20, 167);
+            Add_Conflict (Table.States (132), 20, (56, 0), 0, null, null);
             Add_Action (Table.States (132), 26, Reduce, (56, 0), 0, null, null);
             Add_Action (Table.States (132), 29, Reduce, (56, 0), 0, null, null);
             Add_Action (Table.States (132), 30, Reduce, (56, 0), 0, null, null);
@@ -1420,6 +1424,9 @@ package body Gpr_Process_LR1_Main is
             Table.States (213).Productions := WisiToken.To_Vector ((1 => (65, 2)));
             Add_Action (Table.States (213), (5, 7, 11, 15, 17, 22, 24, 35), (65, 2), 1, null, null);
             Table.States (213).Minimal_Complete_Action := (Reduce, 65, 1);
+         end Subr_2;
+         procedure Subr_3
+         is begin
             Table.States (214).Productions := WisiToken.To_Vector ((1 => (65, 3)));
             Add_Action (Table.States (214), (5, 7, 11, 15, 17, 22, 24, 35), (65, 3), 1, null, null);
             Table.States (214).Minimal_Complete_Action := (Reduce, 65, 1);
@@ -1446,9 +1453,6 @@ package body Gpr_Process_LR1_Main is
             Add_Goto (Table.States (216), 65, 222);
             Add_Goto (Table.States (216), 70, 223);
             Table.States (216).Minimal_Complete_Action := (Reduce, 51, 1);
-         end Subr_2;
-         procedure Subr_3
-         is begin
             Table.States (217).Productions := WisiToken.To_Vector ((1 => (44, 0)));
             Add_Action (Table.States (217), (7, 24), (44, 0), 4, case_item_0'Access, null);
             Table.States (217).Minimal_Complete_Action := (Reduce, 44, 4);
@@ -1574,7 +1578,8 @@ package body Gpr_Process_LR1_Main is
             Table.States (243).Minimal_Complete_Action := (Reduce, 42, 6);
             Table.States (244).Productions := WisiToken.To_Vector ((1 => (43, 0)));
             Add_Action (Table.States (244), 7, Reduce, (45, 0), 0, null, null);
-            Add_Action (Table.States (244), 24, 147, (45, 0), 0, null, null);
+            Add_Action (Table.States (244), 24, 147);
+            Add_Conflict (Table.States (244), 24, (45, 0), 0, null, null);
             Add_Error (Table.States (244));
             Add_Goto (Table.States (244), 44, 148);
             Add_Goto (Table.States (244), 45, 255);

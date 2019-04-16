@@ -224,13 +224,12 @@ not available in FSF GCC.
 must be built. Its source code is in the @code{ada-mode} Gnu ELPA package.
 
 @file{gpr_query} requires the @code{GNATCOLL} library provided by
-AdaCore, distributed with GNAT GPL 2016 or later, and also available at
-Github (@url{https://github.com/AdaCore/gnatcoll}). (The
-@code{GNATCOLL} distributed with GNAT GPL 2015 does not compile
-cleanly). The notes below assume that the compiler is installed at
-@file{$prefix}, e.g. @file{/usr/local/gnat-2017}, and that
-@file{$prefix/bin} is first on the @code{PATH}. If you are running
-Windows, use Cygwin or mingw64 @code{bash} to run these commands.
+AdaCore, distributed with GNAT GPL 2017 or later, and also available
+at Github (@url{https://github.com/AdaCore/gnatcoll}). The notes below
+assume that the compiler is installed at @file{$prefix},
+e.g. @file{/usr/local/gnat-2017}, and that @file{$prefix/bin} is first
+on the @code{PATH}. If you are running Windows, use Cygwin or mingw64
+@code{bash} to run these commands.
 
 In general, @file{gpr_query} should be compiled with the compiler
 version that is used to generate the user project @file{.ali} files;
@@ -348,7 +347,8 @@ Then unpack, build, and install the required components. On Debian, we
 need to tell the linker where to find @code{iconv} via
 @code{GNATCOLL_ICONV_OPT}, which sets a the variable @var{Iconv_Opt}
 in the gpr file. On Suse, @var{Iconv_Opt} must be empty, which can
-only be achieved by editing the gpr file.
+only be achieved by editing the gpr file. Fedora works with the
+default configuration.
 
 @example
 tar xf ~/Downloads/gnatcoll-core-gpl-2018-20180524-src.tar.gz
@@ -1928,7 +1928,8 @@ Other keys and menu entries are defined:
 @item C-c C-w
 @findex ada-case-adjust-at-point
 Adjust case of the word at point. With prefix arg, adjust case even if
-in comment. Normally, comments are not affected by case adjust.
+in a comment or string. Normally, comments and strings are not
+affected by case adjust.
 
 @item Ada | Casing | Adjust case region
 Adjust case in the active region.
@@ -2041,7 +2042,7 @@ Show all references to the identifier surrounding point.
 @item C-c C-w
 @xref{Automatic casing}.
 Adjust case of the word at point. With prefix arg, adjust case even if
-in comment.
+in comment or string.
 
 @item C-c C-x
 @xref{Moving Through Ada Code}.

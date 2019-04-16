@@ -3,7 +3,7 @@ GNU Emacs Ada mode NEWS -- history of user-visible changes.
 Copyright (C) 2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
+Please send ada-mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
@@ -90,7 +90,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 ** new user command: ada-refresh-prj-file. Useful when the project
    file has been edited.
 
-** Implement an xref backend for Ada, using gpr-query. See (info "(emacs) Xref").
+** Implement an xref backend for Ada, using gpr-query. See (info
+   "(emacs) Xref").
 
 ** The various "find other file" commands assume the use of the Gnu
    ELPA package other-frame-window; they no longer provide "other
@@ -146,7 +147,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
    lines relative to start of expression. Otherwise, indent relative
    to previous line. Default nil.
 
-** xref-ada allows entering an identifier to search for without
+** xref-ada allows entering an identifier to search for with
    completion. The search is only in the current file.
 
 ** ada-show-references, ada-show-local-references now take an 'append'

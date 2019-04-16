@@ -732,10 +732,10 @@ TOKEN-TEXT; move point to just past token."
   (concat ada-wisi-partial-begin-regexp
 	  "\\|;"))
 
-(defun ada-wisi-search-backward-no-string-comment (regexp)
+(defun ada-wisi-search-backward-skip (regexp skip-p)
   (let ((maybe-found-p (search-backward-regexp regexp nil t)))
     (while (and maybe-found-p
-		(ada-in-string-or-comment-p)
+		(funcall skip-p)
 		(setq maybe-found-p (search-backward-regexp regexp nil t))))
     maybe-found-p))
 
@@ -763,7 +763,12 @@ TOKEN-TEXT; move point to just past token."
   ;; This is handled by the set of keywords in
   ;; ada-wisi-partial-begin-regexp.
   (cond
-   ((ada-wisi-search-backward-no-string-comment ada-wisi-partial-begin-regexp)
+   ((ada-wisi-search-backward-skip
+     ada-wisi-partial-begin-regexp
+     (lambda ()
+       (or (ada-in-string-or-comment-p)
+	   (eq 'ACCESS (wisi-tok-token (save-excursion (wisi-backward-token)))))))
+
     (let ((found (match-string 0))
 	  cache)
       (cond

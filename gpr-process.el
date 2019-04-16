@@ -99,4 +99,53 @@
    nil
    ])
 
+
+(defconst gpr-elisp-keyword-table-raw
+  '(
+   ("abstract" . ABSTRACT)
+   ("aggregate" . AGGREGATE)
+   ("case" . CASE)
+   ("configuration" . CONFIGURATION)
+   ("end" . END)
+   ("extends" . EXTENDS)
+   ("external" . EXTERNAL)
+   ("external_as_list" . EXTERNAL_AS_LIST)
+   ("for" . FOR)
+   ("is" . IS)
+   ("(" . LEFT_PAREN)
+   ("library" . LIBRARY)
+   ("null" . NULL)
+   ("others" . OTHERS)
+   ("package" . PACKAGE)
+   ("project" . PROJECT)
+   ("renames" . RENAMES)
+   (")" . RIGHT_PAREN)
+   ("standard" . STANDARD)
+   ("type" . TYPE)
+   ("use" . USE)
+   ("when" . WHEN)
+   ("with" . WITH)
+   ))
+
+(defconst gpr-elisp-token-table-raw
+  '(
+   ("punctuation"
+    (AMPERSAND . "&")
+    (COLON . ":")
+    (COLON_EQUALS . ":=")
+    (COMMA . ",")
+    (DOT . ".")
+    (EQUAL_GREATER . "=>")
+    (QUOTE . "'")
+    (SEMICOLON . ";")
+    (VERTICAL_BAR . "|")
+    )
+   ("symbol"
+    (IDENTIFIER . "")
+    )
+   ("string-double"
+    (STRING_LITERAL . "")
+    )
+   ))
+
 (provide 'gpr-process)

@@ -91,6 +91,7 @@ package Emacs_Wisi_Common_Parse is
       Cost_Limit           : Integer;
       Check_Limit          : Integer;
       Enqueue_Limit        : Integer;
+      Max_Parallel         : Integer;
       Byte_Count           : Integer;
       --  Count of bytes of source file sent.
    end record;

@@ -165,6 +165,7 @@ package body Emacs_Wisi_Common_Parse is
    begin
       return Result : Parse_Params do
          --  We don't use an aggregate, to enforce execution order.
+         --  Match wisi-process-parse.el wisi-process--send-parse
 
          Result.Post_Parse_Action    := Wisi.Post_Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
          Result.Source_File_Name     := +Get_String (Command_Line, Last);
@@ -188,6 +189,7 @@ package body Emacs_Wisi_Common_Parse is
          Result.Cost_Limit           := Get_Integer (Command_Line, Last);
          Result.Check_Limit          := Get_Integer (Command_Line, Last);
          Result.Enqueue_Limit        := Get_Integer (Command_Line, Last);
+         Result.Max_Parallel         := Get_Integer (Command_Line, Last);
          Result.Byte_Count           := Get_Integer (Command_Line, Last);
       end return;
    end Get_Parse_Params;
@@ -276,9 +278,6 @@ package body Emacs_Wisi_Common_Parse is
                   end Clean_Up;
 
                begin
-                  --  Computing Line_Count in elisp allows parsing in parallel with
-                  --  sending source text.
-
                   Trace_Parse    := Params.Parse_Verbosity;
                   Trace_McKenzie := Params.McKenzie_Verbosity;
                   Trace_Action   := Params.Action_Verbosity;
@@ -313,6 +312,10 @@ package body Emacs_Wisi_Common_Parse is
                   end if;
                   if Params.Enqueue_Limit > 0 then
                      Parser.Table.McKenzie_Param.Enqueue_Limit := Params.Enqueue_Limit;
+                  end if;
+
+                  if Params.Max_Parallel > 0 then
+                     Parser.Max_Parallel := SAL.Base_Peek_Type (Params.Max_Parallel);
                   end if;
 
                   Buffer := new String (Params.Begin_Byte_Pos .. Params.End_Byte_Pos);

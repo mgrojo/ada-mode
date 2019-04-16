@@ -21,6 +21,7 @@
 
 (require 'ada-mode)
 (require 'env-project)
+(require 'path-iterator)
 (require 'uniquify-files)
 
 (cl-defstruct (ada-project
@@ -53,12 +54,32 @@
 
 (cl-defmethod project-file-completion-table ((_prj ada-project) _dirs)
   ;; (ada-prj-get 'src_dir) is more accurate than project-*roots
-  (let ((iter (make-path-iterator
-	       :user-path-non-recursive (ada-prj-get 'src_dir)
-	       :user-path-recursive nil
-	       :ignore-function nil)))
-    (apply-partially #'uniq-file-completion-table iter)
-    ))
+  (cond
+   ((fboundp 'uniq-file-get-data-string)
+    ;; elpa package
+    (let ((iter (make-path-iterator
+		 :user-path-non-recursive (ada-prj-get 'src_dir)
+		 :user-path-recursive nil
+		 :ignore-function nil)))
+      ;; FIXME: exclude .exe
+      (apply-partially #'uniq-file-completion-table iter)
+      ))
+
+   ((fboundp 'uniq-file-uniquify)
+    ;; emacs 27
+    (let* ((iter (make-path-iterator
+		:user-path-non-recursive (ada-prj-get 'src_dir)
+		:user-path-recursive nil
+		:ignore-function nil))
+	   (files
+	    (path-iter-all-files
+	     iter
+	     (lambda (abs-file-name)
+	       (not (string-equal "exe" (file-name-extension abs-file-name))))))
+	   (alist (uniq-file-uniquify files)))
+      (apply-partially #'uniq-file-completion-table alist)
+      ))
+   ))
 
 (cl-defmethod project-select :after ((prj ada-project))
   ;; :after ensures env-project project-select is run first, setting env vars.

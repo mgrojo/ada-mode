@@ -111,15 +111,8 @@
 ;;
 ;; `wisi-forward-token' relies on syntax properties, so
 ;; `syntax-propertize' must be called on the text to be lexed before
-;; wisi-forward-token is called.
-;;
-;; Emacs >= 25 calls syntax-propertize transparently in the low-level
-;; lexer functions.
-;;
-;; In Emacs < 25, we call syntax-propertize in wisi-setup, and in
-;; `wisi--post-change'.
-;;
-;;;;;
+;; wisi-forward-token is called. Emacs >= 25 calls syntax-propertize
+;; transparently in the low-level lexer functions.
 
 ;;; Code:
 
@@ -469,9 +462,6 @@ Used to ignore whitespace changes in before/after change hooks.")
   "Update wisi text properties for changes in region BEG END."
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
-  ;; see comments above on syntax-propertize
-  (when (< emacs-major-version 25) (syntax-propertize end))
-
   (save-excursion
     (let ((need-invalidate t)
 	  (done nil)
@@ -526,10 +516,20 @@ Used to ignore whitespace changes in before/after change hooks.")
 	  (setq need-invalidate nil))
 
 	 ((and
-	   (nth 4 begin-state) ; in comment
+	   (nth 4 begin-state) ;; in comment
 	   (nth 4 end-state)
 	   (= (nth 8 begin-state) (nth 8 end-state))) ;; no intervening non-comment
-	  (setq need-invalidate nil))
+
+	  (if (and
+	       (= 11 (car (syntax-after begin)))
+	       (progn (goto-char begin)
+		      (skip-syntax-backward "<")
+		      (not (= (point) begin))))
+
+	      ;; Either inserted last char of a multi-char comment
+	      ;; start, or inserted extra comment-start chars.
+	      (setq need-invalidate begin)
+	    (setq need-invalidate nil)))
 
 	 ((and
 	   (or
@@ -617,9 +617,12 @@ Used to ignore whitespace changes in before/after change hooks.")
       (setq wisi-error-buffer (get-buffer-create wisi-error-buffer-name))
 
       (let ((lexer-errs (nreverse (cl-copy-seq (wisi-parser-lexer-errors wisi--parser))))
-	    (parse-errs (nreverse (cl-copy-seq (wisi-parser-parse-errors wisi--parser)))))
+	    (parse-errs (nreverse (cl-copy-seq (wisi-parser-parse-errors wisi--parser))))
+	    (dir default-directory))
 	(with-current-buffer wisi-error-buffer
 	  (compilation-mode)
+	  (setq-local compilation-search-path (list dir))
+	  (setq default-directory dir)
 	  (setq next-error-last-buffer (current-buffer))
 	  (setq buffer-read-only nil)
 	  (erase-buffer)

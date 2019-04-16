@@ -719,7 +719,12 @@ grammar action as:
 
 	    (setq i (1+ i))
 
-	    (unless (seq-contains wisi-class-list class)
+	    (unless
+		(cond
+		 ((fboundp 'seq-contains)  ;; emacs < 27
+		    (seq-contains wisi-class-list class))
+		 ((fboundp 'seq-contains-p) ;; emacs >= 27
+		  (seq-contains-p wisi-class-list class)))
 	      (error "%s not in wisi-class-list" class))
 
 	    (if region

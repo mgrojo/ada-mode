@@ -472,11 +472,10 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))),
-         (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, 0)), (Simple, (Int,
-         Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int, Ada_Indent)),
-         (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
-         0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int,
+         Ada_Indent)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent_Broken))),
+         (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))),
+         (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end asynchronous_select_0;
 
@@ -562,10 +561,10 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 0)),
-         (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (True,
-         (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int,
-         Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
+         (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (True, (Simple,
+         (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
+         (False, (Simple, (Int, 0)))));
       end case;
    end block_statement_0;
 
@@ -598,9 +597,9 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 0)),
-         (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False,
-         (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
+         (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end block_statement_1;
 
@@ -692,9 +691,8 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
-         Ada_Indent_Broken))), (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent_When))), (True, (Simple, (Int,
-         Ada_Indent_When)), (Simple, (Int, Ada_Indent_When))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
-         0))), (False, (Simple, (Int, 0)))));
+         Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent_When)), (Simple, (Int,
+         Ada_Indent_When))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end case_statement_0;
 
@@ -885,10 +883,10 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))),
-         (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, 0)), (Simple, (Int,
-         Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))),
-         (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int,
+         Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)),
+         (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         0)))));
       end case;
    end conditional_entry_call_0;
 
@@ -1369,9 +1367,9 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))),
-         (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (True,
-         (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
-         0))), (False, (Simple, (Int, 0)))));
+         (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)),
+         (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         0)))));
       end case;
    end extended_return_statement_0;
 
@@ -1712,9 +1710,9 @@ package body Ada_Process_Actions is
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 3, 2)));
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int,
-         Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int, Ada_Indent_Broken)),
-         (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))),
-         (False, (Simple, (Int, 0)))));
+         Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int,
+         Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0)))));
       end case;
    end full_type_declaration_0;
 
@@ -1968,8 +1966,8 @@ package body Ada_Process_Actions is
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (2, 3, 0)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Simple, (Int, Ada_Indent_Label)), (Simple, (Int,
-         0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Label))), (False,
+         (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end goto_label_0;
 
@@ -2137,11 +2135,10 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Hanging_1, (Int,
-         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int,
-         0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False,
-         (Simple, (Int, 0))), (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int,
-         Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False,
-         (Simple, (Int, 0)))));
+         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int,
+         0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int,
+         0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end if_statement_0;
 
@@ -2166,10 +2163,10 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Hanging_1, (Int,
-         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int,
-         0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (True,
-         (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int,
-         Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int,
+         0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (True,
+         (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         0))), (False, (Simple, (Int, 0)))));
       end case;
    end if_statement_1;
 
@@ -2193,9 +2190,9 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Hanging_1, (Int,
-         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int,
-         0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False,
-         (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int,
+         0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end if_statement_2;
 
@@ -2217,9 +2214,9 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Hanging_1, (Int,
-         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int,
-         0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False,
-         (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Ada_Indent_Broken), (Int, 2 * Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int,
+         0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end if_statement_3;
 
@@ -2409,9 +2406,8 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
-         (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int,
-         Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False,
-         (Simple, (Int, 0)))));
+         (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False,
+         (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end loop_statement_0;
 
@@ -2443,9 +2439,9 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, 0)),
-         (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False,
-         (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))),
+         (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end loop_statement_1;
 
@@ -4075,9 +4071,9 @@ package body Ada_Process_Actions is
          null;
       when Indent =>
          Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))),
-         (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, 0)), (Simple, (Int,
-         Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))),
-         (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (True, (Simple, (Int,
+         Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False,
+         (Simple, (Int, 0)))));
       end case;
    end selective_accept_0;
 
@@ -4932,10 +4928,10 @@ package body Ada_Process_Actions is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))),
-         (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (True, (Simple, (Int, 0)), (Simple, (Int,
-         Ada_Indent))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))),
-         (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Tree, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int,
+         Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)),
+         (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int,
+         0)))));
       end case;
    end timed_entry_call_0;
 
