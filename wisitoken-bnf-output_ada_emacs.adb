@@ -40,6 +40,7 @@ with WisiToken.Generate.Packrat;
 with WisiToken_Grammar_Runtime;
 procedure WisiToken.BNF.Output_Ada_Emacs
   (Input_Data            :         in WisiToken_Grammar_Runtime.User_Data_Type;
+   Elisp_Tokens          :         in WisiToken.BNF.Tokens;
    Output_File_Name_Root :         in String;
    Generate_Data         : aliased in WisiToken.BNF.Generate_Utils.Generate_Data;
    Packrat_Data          :         in WisiToken.Generate.Packrat.Data;
@@ -1077,7 +1078,9 @@ is
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
 
-      Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
+      if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
+         Put_Line ("with " & Actions_Package_Name & "; use " & Actions_Package_Name & ";");
+      end if;
 
       case Common_Data.Lexer is
       when None | Elisp_Lexer =>
@@ -1238,6 +1241,15 @@ is
 
       Output_Elisp_Common.Indent_Name_Table
         (Output_File_Name_Root, "process-face-table", Input_Data.Tokens.Faces);
+      New_Line;
+
+      --  We need the elisp lexer for some operations
+      Output_Elisp_Common.Indent_Keyword_Table
+        (Output_File_Name_Root, "elisp", Elisp_Tokens.Keywords, Ada.Strings.Unbounded.To_String'Access);
+      New_Line;
+      Output_Elisp_Common.Indent_Token_Table
+        (Output_File_Name_Root, "elisp", Elisp_Tokens.Tokens, Ada.Strings.Unbounded.To_String'Access);
+      New_Line;
 
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);
@@ -1474,7 +1486,10 @@ begin
          when Module  => "_Module") &
         Gen_Alg_Name & "_Main";
    begin
-      Create_Ada_Actions_Body (Generate_Data.Action_Names, Generate_Data.Check_Names, Actions_Package_Name);
+      if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
+         --  We typically have no actions when just getting started with a new language.
+         Create_Ada_Actions_Body (Generate_Data.Action_Names, Generate_Data.Check_Names, Actions_Package_Name);
+      end if;
 
       Create_Ada_Actions_Spec
         (Output_File_Name => Output_File_Name_Root &

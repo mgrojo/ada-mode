@@ -129,6 +129,7 @@ is
 
    Trace          : aliased WisiToken.Text_IO_Trace.Trace (Wisitoken_Grammar_Actions.Descriptor'Access);
    Input_Data     : aliased WisiToken_Grammar_Runtime.User_Data_Type;
+   Elisp_Tokens   : WisiToken.BNF.Tokens;
    Grammar_Parser : WisiToken.Parse.LR.Parser_No_Recover.Parser;
 
    Do_Time : Boolean := False;
@@ -403,10 +404,15 @@ begin
             begin
                if not Lexer_Done (Input_Data.User_Lexer) then
                   Lexer_Done (Input_Data.User_Lexer) := True;
-                  if Input_Data.User_Lexer = re2c_Lexer then
+                  case Input_Data.User_Lexer is
+                  when re2c_Lexer =>
                      WisiToken.BNF.Output_Ada_Common.Create_re2c
                        (Input_Data, Tuple, Generate_Data, -Output_File_Name_Root);
-                  end if;
+                  when Elisp_Lexer =>
+                     Elisp_Tokens := Input_Data.Tokens;
+                  when others =>
+                     null;
+                  end case;
                end if;
 
                if WisiToken.Trace_Generate = 0 and Tuple.Gen_Alg /= External then
@@ -530,8 +536,8 @@ begin
 
                when Ada_Emacs_Lang =>
                   WisiToken.BNF.Output_Ada_Emacs
-                    (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple, Test_Main,
-                     Multiple_Tuples, -Language_Name);
+                    (Input_Data, Elisp_Tokens, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple,
+                     Test_Main, Multiple_Tuples, -Language_Name);
 
                when Elisp_Lang =>
                   WisiToken.BNF.Output_Elisp (Input_Data, -Output_File_Name_Root, Generate_Data, Packrat_Data, Tuple);

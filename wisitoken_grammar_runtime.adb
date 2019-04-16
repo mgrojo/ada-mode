@@ -778,7 +778,7 @@ package body WisiToken_Grammar_Runtime is
       Right_Hand_Sides : WisiToken.BNF.RHS_Lists.List;
       Labels           : WisiToken.BNF.String_Arrays.Vector;
    begin
-      if Data.Phase = Meta then
+      if Data.Phase = Meta or Data.Ignore_Lines then
          return;
       end if;
 
