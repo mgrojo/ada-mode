@@ -139,7 +139,8 @@ package body Subprograms_Process_Packrat_Gen_Main is
       Memo_0_5 : Memo_Entry;
       Pos_0_6  : Token_Index;
       Pos_1_1  : Token_Index;
-      Pos_1_2  : Token_Index;
+      Memo_1_2 : Memo_Entry;
+      Pos_1_3  : Token_Index;
    begin
       if Pos = Parser.Terminals.Last_Index then
          return (State => Failure);
@@ -218,7 +219,7 @@ package body Subprograms_Process_Packrat_Gen_Main is
       end if;
       <<RHS_0_Fail>>
 
-      --  21.1: block <= BEGIN END
+      --  21.1: block <= BEGIN loop_statement END
       Pos := Last_Pos;
       if Parser.Terminals (Pos + 1).ID = 3 then
          Pos := Pos + 1;
@@ -226,18 +227,26 @@ package body Subprograms_Process_Packrat_Gen_Main is
       else
          goto RHS_1_Fail;
       end if;
+      Memo_1_2 := Parse_loop_statement (Parser, Pos);
+      case Result_States'(Memo_1_2.State) is
+      when Success =>
+         Pos := Memo_1_2.Last_Token;
+      when Failure =>
+         goto RHS_1_Fail;
+      end case;
       if Parser.Terminals (Pos + 1).ID = 4 then
          Pos := Pos + 1;
-         Pos_1_2 := Pos;
+         Pos_1_3 := Pos;
          Parser.Derivs (21).Replace_Element
            (Start_Pos,
             (State              => Success,
              Result             => Parser.Tree.Add_Nonterm
                (Production      => (21, 1),
-                Action          => null,
+                Action          => block_1'Access,
                 Children        =>
                  (Tree_Index (Pos_1_1),
-                  Tree_Index (Pos_1_2)),
+                  Memo_1_2.Result,
+                  Tree_Index (Pos_1_3)),
                 Default_Virtual => False),
              Last_Token      => Pos));
          goto Succeed;
@@ -840,7 +849,7 @@ package body Subprograms_Process_Packrat_Gen_Main is
          when Success =>
             return Parser.Derivs (28)(Start_Pos);
          when Failure =>
-            goto RHS_2_Fail;
+            goto RHS_1_Fail;
          when No_Result =>
             if Memo.Recursive then
                raise Recursive with Image (28, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
@@ -912,20 +921,6 @@ package body Subprograms_Process_Packrat_Gen_Main is
       end if;
       <<RHS_1_Fail>>
 
-      --  28.2: parameter_list <=
-      Pos := Last_Pos;
-      Parser.Derivs (28).Replace_Element
-        (Start_Pos,
-         (State              => Success,
-          Result             => Parser.Tree.Add_Nonterm
-            (Production      => (28, 2),
-             Action          => null,
-             Children        => (1 .. 0 => Syntax_Trees.Invalid_Node_Index),
-             Default_Virtual => False),
-          Last_Token      => Pos));
-      goto Succeed;
-      <<RHS_2_Fail>>
-
       Parser.Derivs (28).Replace_Element (Start_Pos, (State => Failure));
       return Parser.Derivs (28)(Start_Pos);
 
@@ -953,8 +948,12 @@ package body Subprograms_Process_Packrat_Gen_Main is
       Memo_1_2 : Memo_Entry;
       Memo_1_3 : Memo_Entry;
       Pos_1_4  : Token_Index;
-      Memo_1_5 : Memo_Entry;
-      Pos_1_6  : Token_Index;
+      Pos_2_1  : Token_Index;
+      Memo_2_2 : Memo_Entry;
+      Memo_2_3 : Memo_Entry;
+      Pos_2_4  : Token_Index;
+      Memo_2_5 : Memo_Entry;
+      Pos_2_6  : Token_Index;
    begin
       if Pos = Parser.Terminals.Last_Index then
          return (State => Failure);
@@ -966,7 +965,7 @@ package body Subprograms_Process_Packrat_Gen_Main is
          when Success =>
             return Parser.Derivs (29)(Start_Pos);
          when Failure =>
-            goto RHS_1_Fail;
+            goto RHS_2_Fail;
          when No_Result =>
             if Memo.Recursive then
                raise Recursive with Image (29, Descriptor) & Token_Index'Image (Start_Pos) & ": recursive";
@@ -1027,9 +1026,9 @@ package body Subprograms_Process_Packrat_Gen_Main is
       end if;
       <<RHS_0_Fail>>
 
-      --  29.1: subprogram <= PROCEDURE name parameter_list END name SEMICOLON
+      --  29.1: subprogram <= FUNCTION name block SEMICOLON
       Pos := Last_Pos;
-      if Parser.Terminals (Pos + 1).ID = 10 then
+      if Parser.Terminals (Pos + 1).ID = 7 then
          Pos := Pos + 1;
          Pos_1_1 := Pos;
       else
@@ -1042,29 +1041,16 @@ package body Subprograms_Process_Packrat_Gen_Main is
       when Failure =>
          goto RHS_1_Fail;
       end case;
-      Memo_1_3 := Parse_parameter_list (Parser, Pos);
+      Memo_1_3 := Parse_block (Parser, Pos);
       case Result_States'(Memo_1_3.State) is
       when Success =>
          Pos := Memo_1_3.Last_Token;
       when Failure =>
          goto RHS_1_Fail;
       end case;
-      if Parser.Terminals (Pos + 1).ID = 4 then
-         Pos := Pos + 1;
-         Pos_1_4 := Pos;
-      else
-         goto RHS_1_Fail;
-      end if;
-      Memo_1_5 := Parse_name (Parser, Pos);
-      case Result_States'(Memo_1_5.State) is
-      when Success =>
-         Pos := Memo_1_5.Last_Token;
-      when Failure =>
-         goto RHS_1_Fail;
-      end case;
       if Parser.Terminals (Pos + 1).ID = 17 then
          Pos := Pos + 1;
-         Pos_1_6 := Pos;
+         Pos_1_4 := Pos;
          Parser.Derivs (29).Replace_Element
            (Start_Pos,
             (State              => Success,
@@ -1075,9 +1061,7 @@ package body Subprograms_Process_Packrat_Gen_Main is
                  (Tree_Index (Pos_1_1),
                   Memo_1_2.Result,
                   Memo_1_3.Result,
-                  Tree_Index (Pos_1_4),
-                  Memo_1_5.Result,
-                  Tree_Index (Pos_1_6)),
+                  Tree_Index (Pos_1_4)),
                 Default_Virtual => False),
              Last_Token      => Pos));
          goto Succeed;
@@ -1085,6 +1069,65 @@ package body Subprograms_Process_Packrat_Gen_Main is
          goto RHS_1_Fail;
       end if;
       <<RHS_1_Fail>>
+
+      --  29.2: subprogram <= PROCEDURE name parameter_list END name SEMICOLON
+      Pos := Last_Pos;
+      if Parser.Terminals (Pos + 1).ID = 10 then
+         Pos := Pos + 1;
+         Pos_2_1 := Pos;
+      else
+         goto RHS_2_Fail;
+      end if;
+      Memo_2_2 := Parse_name (Parser, Pos);
+      case Result_States'(Memo_2_2.State) is
+      when Success =>
+         Pos := Memo_2_2.Last_Token;
+      when Failure =>
+         goto RHS_2_Fail;
+      end case;
+      Memo_2_3 := Parse_parameter_list (Parser, Pos);
+      case Result_States'(Memo_2_3.State) is
+      when Success =>
+         Pos := Memo_2_3.Last_Token;
+      when Failure =>
+         goto RHS_2_Fail;
+      end case;
+      if Parser.Terminals (Pos + 1).ID = 4 then
+         Pos := Pos + 1;
+         Pos_2_4 := Pos;
+      else
+         goto RHS_2_Fail;
+      end if;
+      Memo_2_5 := Parse_name (Parser, Pos);
+      case Result_States'(Memo_2_5.State) is
+      when Success =>
+         Pos := Memo_2_5.Last_Token;
+      when Failure =>
+         goto RHS_2_Fail;
+      end case;
+      if Parser.Terminals (Pos + 1).ID = 17 then
+         Pos := Pos + 1;
+         Pos_2_6 := Pos;
+         Parser.Derivs (29).Replace_Element
+           (Start_Pos,
+            (State              => Success,
+             Result             => Parser.Tree.Add_Nonterm
+               (Production      => (29, 2),
+                Action          => subprogram_2'Access,
+                Children        =>
+                 (Tree_Index (Pos_2_1),
+                  Memo_2_2.Result,
+                  Memo_2_3.Result,
+                  Tree_Index (Pos_2_4),
+                  Memo_2_5.Result,
+                  Tree_Index (Pos_2_6)),
+                Default_Virtual => False),
+             Last_Token      => Pos));
+         goto Succeed;
+      else
+         goto RHS_2_Fail;
+      end if;
+      <<RHS_2_Fail>>
 
       Parser.Derivs (29).Replace_Element (Start_Pos, (State => Failure));
       return Parser.Derivs (29)(Start_Pos);

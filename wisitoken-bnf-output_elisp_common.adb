@@ -153,7 +153,6 @@ package body WisiToken.BNF.Output_Elisp_Common is
       end loop;
       Indent_Line ("])");
       Indent := Indent - 3;
-      New_Line;
    end Indent_Name_Table;
 
 end WisiToken.BNF.Output_Elisp_Common;

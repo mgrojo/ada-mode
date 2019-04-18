@@ -250,7 +250,7 @@ package body WisiToken.BNF.Generate_Utils is
 
          Result.Descriptor.Last_Lookahead       :=
            (case (Input_Data.User_Parser) is
-            when None                                  => raise SAL.Programmer_Error,
+            when None                                  => Invalid_Token_ID,
             when LR1                                   => Result.Descriptor.Last_Terminal,
             when LALR                                  => Result.Descriptor.First_Nonterminal,
             when Packrat_Generate_Algorithm | External => Invalid_Token_ID);

@@ -54,6 +54,7 @@ is
    Default_Language_Runtime_Package : constant String := "Wisi." & Language_Name;
 
    Blank_Set : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set (" ");
+   Numeric   : constant Ada.Strings.Maps.Character_Set := Ada.Strings.Maps.To_Set ("0123456789");
 
    Common_Data : Output_Ada_Common.Common_Data := WisiToken.BNF.Output_Ada_Common.Initialize
      (Input_Data, Tuple, Output_File_Name_Root, Check_Interface => True);
@@ -157,6 +158,7 @@ is
      (Name          : in String;
       RHS           : in RHS_Type;
       Unsplit_Lines : in Ada.Strings.Unbounded.Unbounded_String;
+      Labels        : in String_Arrays.Vector;
       Check         : in Boolean)
    is
       --  Create Action (if Check = False; Lines must be RHS.Action) or
@@ -181,9 +183,51 @@ is
       Indent_Action_Line : Unbounded_String;
       Check_Line         : Unbounded_String;
 
+      Label_Needed : array (Labels.First_Index .. Labels.Last_Index) of Boolean := (others => False);
+
+      function Label_Used (Label : in String) return Boolean
+      is
+         Found : Boolean := False;
+      begin
+         for Tok of RHS.Tokens loop
+            if -Tok.Label = Label then
+               Found := True;
+               exit;
+            end if;
+         end loop;
+
+         if not Found then
+            return False;
+         end if;
+
+         for I in Labels.First_Index .. Labels.Last_Index loop
+            if Label = Labels (I) then
+               Label_Needed (I) := True;
+               return True;
+            end if;
+         end loop;
+         raise SAL.Programmer_Error;
+      end Label_Used;
+
+      function Find_Token_Index (I : in Base_Identifier_Index) return SAL.Base_Peek_Type
+      is
+         Rule_Label : constant String := -Labels (I);
+      begin
+         for I in RHS.Tokens.First_Index .. RHS.Tokens.Last_Index loop
+            if Length (RHS.Tokens (I).Label) > 0 and then
+              -RHS.Tokens (I).Label = Rule_Label
+            then
+               return I;
+            end if;
+         end loop;
+         return SAL.Base_Peek_Type'First;
+      end Find_Token_Index;
+
       function Statement_Params (Params : in String) return String
       is
          --  Input looks like: [1 function 2 other ...]
+         --  Numbers can be token labels.
+
          Last       : Integer := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Second     : Integer;
@@ -196,20 +240,27 @@ is
             Second := Index (Params, Blank_Set, First);
             exit when Second = 0;
 
-            Count := Count + 1;
-            Last  := Index (Params, Space_Paren_Set, Second + 1);
+            Last := Index (Params, Space_Paren_Set, Second + 1);
 
-            Result := Result & (if Need_Comma then ", " else "") &
-              "(" & Params (First .. Second - 1) & ", " &
-              Elisp_Name_To_Ada (Params (Second + 1 .. Last - 1), Append_ID => False, Trim => 0) & ")";
+            declare
+               Label : constant String := Params (First .. Second - 1);
+            begin
+               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  Count := Count + 1;
+                  Result := Result & (if Need_Comma then ", " else "") &
+                    "(" & Label & ", " &
+                    Elisp_Name_To_Ada (Params (Second + 1 .. Last - 1), Append_ID => False, Trim => 0) & ")";
 
-            Need_Comma := True;
+                  Need_Comma := True;
+               --  else skip
+               end if;
+            end;
          end loop;
-         if Count = 1 then
-            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
-         else
-            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
-         end if;
+         return " (Parse_Data, Tree, Nonterm, Tokens, " &
+           (case Count is
+            when 0 => "(1 .. 0 => (1, 1)))",
+            when 1 => "(1 => " & (-Result) & "))",
+            when others =>  "(" & (-Result) & "))");
       end Statement_Params;
 
       function Containing_Params (Params : in String) return String
@@ -291,6 +342,8 @@ is
       function Face_Apply_Params (Params : in String) return String
       is
          --  Params is a vector of triples: [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face ...]
+         --  Each triple is <token_number> <prefix-face> <suffix-face>.
+         --  The token_number can be a label; faces are "nil" or an elisp name.
          --  Result: ((1, 3, 1), (3, 3, 2), ...)
          use Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
@@ -300,6 +353,24 @@ is
          Result     : Unbounded_String;
          Need_Comma : Boolean          := False;
          Count      : Integer          := 0;
+
+         procedure Elisp_Param (Skip : in Boolean)
+         is begin
+            if Params (Last) = ']' then
+               Put_Error
+                 (Error_Message
+                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-apply argument"));
+               return;
+            end if;
+
+            First  := Index_Non_Blank (Params, Last + 1);
+            Last   := Index (Params, Delim, First);
+            if not Skip then
+               Result := Result & ',' & Integer'Image
+                 (Find_Elisp_ID (Input_Data.Tokens.Faces, Params (First .. Last - 1)));
+            end if;
+         end Elisp_Param;
+
       begin
          loop
             Last := Index_Non_Blank (Params, Last + 1);
@@ -309,33 +380,20 @@ is
             Count  := Count + 1;
             First  := Last;
             Last   := Index (Params, Delim, First);
-            Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
-
-            if Params (Last) = ']' then
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-apply argument"));
-               exit;
-            end if;
-
-            First  := Index_Non_Blank (Params, Last + 1);
-            Last   := Index (Params, Delim, First);
-            Result := Result & ',' & Integer'Image
-              (Find_Elisp_ID (Input_Data.Tokens.Faces, Params (First .. Last - 1)));
-
-            if Params (Last) = ']' then
-               Put_Error
-                 (Error_Message
-                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid wisi-face-apply argument"));
-               exit;
-            end if;
-
-            First  := Index_Non_Blank (Params, Last + 1);
-            Last   := Index (Params, Delim, First);
-            Result := Result & ',' &
-              Integer'Image (Find_Elisp_ID (Input_Data.Tokens.Faces, Params (First .. Last - 1))) & ")";
-
-            Need_Comma := True;
+            declare
+               Label : constant String := Params (First .. Last - 1);
+            begin
+               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  Result := Result & (if Need_Comma then ", (" else "(") & Label;
+                  Need_Comma := True;
+                  Elisp_Param (Skip => False);
+                  Elisp_Param (Skip => False);
+                  Result := Result  & ")";
+               else
+                  Elisp_Param (Skip => True);
+                  Elisp_Param (Skip => True);
+               end if;
+            end;
          end loop;
          if Count = 1 then
             return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
@@ -354,25 +412,36 @@ is
       function Face_Mark_Params (Params : in String) return String
       is
          --  Params is a vector of pairs: [1 prefix 3 suffix ...]
+         --  The token_number can be a label; faces are "nil" or an elisp name.
          --  Result: ((1, Prefix), (3, Suffix), ...)
          use Ada.Strings.Maps;
          Delim : constant Character_Set := To_Set ("]") or Blank_Set;
 
-         Last       : Integer          := Index_Non_Blank (Params); -- skip [
+         Last       : Integer := Index_Non_Blank (Params); -- skip [
          First      : Integer;
          Result     : Unbounded_String;
-         Need_Comma : Boolean          := False;
-         Count      : Integer          := 0;
+         Need_Comma : Boolean := False;
+         Count      : Integer := 0;
+         Skip       : Boolean;
       begin
          loop
             Last := Index_Non_Blank (Params, Last + 1);
 
             exit when Params (Last) = ']' or Params (Last) = ')';
 
-            Count  := Count + 1;
-            First  := Last;
-            Last   := Index (Params, Delim, First);
-            Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
+            First := Last;
+            Last  := Index (Params, Delim, First);
+            declare
+               Label : constant String := Params (First .. Last - 1);
+            begin
+               if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  Count  := Count + 1;
+                  Skip   := False;
+                  Result := Result & (if Need_Comma then ", (" else "(") & Label;
+               else
+                  Skip := True;
+               end if;
+            end;
 
             if Params (Last) = ']' then
                Put_Error
@@ -383,15 +452,16 @@ is
 
             First  := Index_Non_Blank (Params, Last + 1);
             Last   := Index (Params, Delim, First);
-            Result := Result & ", " & Elisp_Name_To_Ada (Params (First .. Last - 1), False, 0) & ")";
-
-            Need_Comma := True;
+            if not Skip then
+               Result := Result & ", " & Elisp_Name_To_Ada (Params (First .. Last - 1), False, 0) & ")";
+               Need_Comma := True;
+            end if;
          end loop;
-         if Count = 1 then
-            return " (Parse_Data, Tree, Nonterm, Tokens, (1 => " & (-Result) & "))";
-         else
-            return " (Parse_Data, Tree, Nonterm, Tokens, (" & (-Result) & "))";
-         end if;
+         return " (Parse_Data, Tree, Nonterm, Tokens, " &
+           (case Count is
+            when 0 => "(1 .. 0 => (1, Prefix))",
+            when 1 => "(1 => " & (-Result) & "))",
+            when others => "(" & (-Result) & "))");
       exception
       when E : others =>
          Put_Error
@@ -453,6 +523,8 @@ is
          --  - a lisp function call with arbitrary args; convert to Indent_Param type
          --
          --  - a vector with two elements [code_indent comment_indent]; convert to Indent_Pair.
+         --
+         --  - a cons of a token label with any of the above.
 
          use Ada.Strings.Maps;
          use Ada.Containers;
@@ -467,7 +539,7 @@ is
          Need_Comma    : Boolean         := False;
          Param_Count   : Count_Type      := 0;            -- in Params
 
-         function Indent_Label (Elisp_Name : in String) return String
+         function Indent_Function (Elisp_Name : in String) return String
          is begin
             if    Elisp_Name = "wisi-anchored"   then return "Anchored_0";
             elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_1";
@@ -484,7 +556,20 @@ is
                     Elisp_Name & "'"));
                return "";
             end if;
-         end Indent_Label;
+         end Indent_Function;
+
+         function Check_Cons return Integer
+         is
+            --  Params (Last) = '('; check for "(label .", return label'last
+            Blank : constant Integer := Index (Params, " ", Last);
+         begin
+            if Blank = 0 then return 0; end if;
+            if Params'Last > Blank + 1 and then Params (Blank + 1) = '.' then
+               return Blank - 1;
+            else
+               return 0;
+            end if;
+         end Check_Cons;
 
          function Ensure_Simple_Indent (Item : in String) return String
          is begin
@@ -600,7 +685,7 @@ is
 
                else
                   --  wisi lisp function call
-                  Function_Name := +Indent_Label (-Function_Name);
+                  Function_Name := +Indent_Function (-Function_Name);
                   if Length (Function_Name) = 0 then
                      --  not a recognized function
                      Last := 1 + Index (Params, ")", Last);
@@ -635,6 +720,14 @@ is
             return "";
          end Expression;
 
+         procedure Skip_Expression
+         is
+            Junk : constant String := Expression (Last);
+            pragma Unreferenced (Junk);
+         begin
+            null;
+         end Skip_Expression;
+
          function Ensure_Indent_Param (Item : in String) return String
          is begin
             --  Return an aggregate for Indent_Param. Item can be anything
@@ -656,28 +749,66 @@ is
             end if;
          end Ensure_Indent_Param;
 
-      begin
-         loop
-            if Params (Last) /= ']' then
-               Last := Index_Non_Blank (Params, Last + 1);
-            end if;
-
-            exit when Params (Last) = ']';
-
-            if Need_Comma then
-               Result := Result & ", ";
-            else
-               Need_Comma := True;
-            end if;
-
+         procedure One_Param (Prefix : in Boolean := False; Skip : in Boolean := False)
+         is
+            procedure Comma
+            is begin
+               if Need_Comma then
+                  if not Prefix then
+                     Result := Result & ", ";
+                  end if;
+               else
+                  Need_Comma := True;
+               end if;
+            end Comma;
+         begin
             case Params (Last) is
             when '(' =>
-               Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
+               --  cons or function
+               declare
+                  Label_Last : constant Integer := Check_Cons;
+               begin
+                  if Label_Last > 0 then
+                     declare
+                        Label : constant String := Params (Last + 1 .. Label_Last);
+                     begin
+                        Last := Index_Non_Blank (Params, Label_Last + 3);
+                        if Label_Used (Label) then
+                           Comma;
+                           Result := Result & Label & " => ";
+                           One_Param (Prefix => True);
+                        else
+                           --  This token is not present in this RHS; skip this param
+                           One_Param (Skip => True);
+                        end if;
+                        if Params (Last) /= ')' then
+                           Put_Error
+                             (Error_Message
+                                (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "invalid indent syntax"));
+                        end if;
+                        Last := Last + 1;
+                     end;
+                  else
+                     if Skip then
+                        Skip_Expression;
+                     else
+                        Comma;
+                        Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
+                     end if;
+                  end if;
+               end;
 
             when '[' =>
                --  vector
-               Result := Result & "(True, " & Ensure_Indent_Param (Expression (Last + 1));
-               Result := Result & ", " & Ensure_Indent_Param (Expression (Last + 1)) & ')';
+               if Skip then
+                  Skip_Expression;
+                  Last := Index_Non_Blank (Params, Last + 1);
+                  Skip_Expression;
+               else
+                  Comma;
+                  Result := Result & "(True, " & Ensure_Indent_Param (Expression (Last + 1));
+                  Result := Result & ", " & Ensure_Indent_Param (Expression (Last + 1)) & ')';
+               end if;
                if Params (Last) /= ']' then
                   Put_Error
                     (Error_Message
@@ -687,13 +818,33 @@ is
 
             when others =>
                --  integer or symbol
-               Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
-
+               if Skip then
+                  Skip_Expression;
+               else
+                  Comma;
+                  Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
+               end if;
             end case;
+         end One_Param;
+
+      begin
+         loop
+            if Params (Last) /= ']' then
+               Last := Index_Non_Blank (Params, Last + 1);
+            end if;
+
+            exit when Params (Last) = ']';
+
+            One_Param;
+
             Param_Count := Param_Count + 1;
          end loop;
 
-         if Param_Count /= RHS.Tokens.Length then
+         --  In translated EBNF, token counts vary in each RHS; require each
+         --  parameter to be labeled.
+         if Param_Count /= RHS.Tokens.Length and
+           Param_Count /= Labels.Length
+         then
             Put_Error
               (Error_Message
                  (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "indent parameters count of" & Count_Type'Image
@@ -712,11 +863,27 @@ is
       function Merge_Names_Params (Params : in String) return String
       is
          --  Input looks like "1 2)"
-         First  : constant Integer := Index_Non_Blank (Params);
-         Second : constant Integer := Index (Params, Blank_Set, First);
+         First             : constant Integer := Index_Non_Blank (Params);
+         Second            : constant Integer := Index (Params, Blank_Set, First);
+         Label_First       : constant String  := Params (First .. Second - 1);
+         Label_Used_First  : constant Boolean := 0 = Index (Label_First, Numeric, Outside) or else
+           Label_Used (Label_First);
+         Label_Second      : constant String  := Params (Second + 1 .. Params'Last - 1);
+         Label_Used_Second : constant Boolean := 0 = Index (Label_Second, Numeric, Outside) or else
+           Label_Used (Label_Second);
       begin
-         return " (Nonterm, Tokens, " & Params (First .. Second - 1) & ',' &
-           Params (Second .. Params'Last);
+         if Label_Used_First and Label_Used_Second then
+            return " (Nonterm, Tokens, " & Label_First & ", " & Label_Second & ")";
+
+         elsif (not Label_Used_First) and Label_Used_Second then
+            --  A copied EBNF RHS; see subprograms.wy Name
+            return " (Nonterm, Tokens, " & Label_Second & ")";
+         else
+            Put_Error
+              (Error_Message
+                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "merge_names token label error"));
+            return " (Nonterm, Tokens)";
+         end if;
       end Merge_Names_Params;
 
       function Match_Names_Params (Params : in String) return String
@@ -733,7 +900,7 @@ is
             else "False") & ")";
       end Match_Names_Params;
 
-      procedure Translate_Line (Line : in String)
+      procedure Translate_Sexp (Line : in String)
       is
          Last       : constant Integer := Index (Line, Blank_Set);
          Elisp_Name : constant String  := Line (Line'First + 1 .. (if Last = 0 then Line'Last else Last) - 1);
@@ -785,37 +952,37 @@ is
 
          elsif Elisp_Name = "wisi-face-apply-action" then
             Assert_Face_Empty;
-               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
+            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+              Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-face-apply-list-action" then
             Assert_Face_Empty;
-               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
+            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+              Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-face-mark-action" then
             Assert_Face_Empty;
-               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Face_Mark_Params (Line (Last + 1 .. Line'Last)) & ";";
+            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+              Face_Mark_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-face-remove-action" then
             Assert_Face_Empty;
-               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Face_Remove_Params (Line (Last + 1 .. Line'Last)) & ";";
+            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+              Face_Remove_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-indent-action" then
             Assert_Indent_Empty;
-               Indent_Action_Line := +"Indent_Action_0" &
-                 Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
+            Indent_Action_Line := +"Indent_Action_0" &
+              Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-indent-action*" then
             Assert_Indent_Empty;
-               declare
-                  Temp : constant Integer := Index (Line, Blank_Set, Last + 1);
-               begin
-                  Indent_Action_Line := +"Indent_Action_1" &
-                    Indent_Params (Line (Temp + 1 .. Line'Last), Line (Last + 1 .. Temp - 1) & ", ") & ";";
-               end;
+            declare
+               Temp : constant Integer := Index (Line, Blank_Set, Last + 1);
+            begin
+               Indent_Action_Line := +"Indent_Action_1" &
+                 Indent_Params (Line (Temp + 1 .. Line'Last), Line (Last + 1 .. Temp - 1) & ", ") & ";";
+            end;
 
          elsif Elisp_Name = "wisi-propagate-name" then
             Assert_Check_Empty;
@@ -843,12 +1010,12 @@ is
                  (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "unrecognized elisp action: '" &
                     Elisp_Name & "'"));
          end if;
-      end Translate_Line;
+      end Translate_Sexp;
 
    begin
       for Sexp of Sexps loop
          begin
-            Translate_Line (Sexp);
+            Translate_Sexp (Sexp);
          exception
          when E : Not_Found =>
             Put_Error
@@ -870,21 +1037,44 @@ is
             Unref_Nonterm : constant Boolean := 0 = Index (Check_Line, "Nonterm");
             Unref_Tokens  : constant Boolean := 0 = Index (Check_Line, "Tokens");
             Unref_Recover : constant Boolean := 0 = Index (Check_Line, "Recover_Active");
+            Need_Comma    : Boolean          := False;
          begin
-            if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
+            if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover or
+              (for some I of Label_Needed => I)
+            then
                Indent_Line ("is");
-               if Unref_Lexer then
-                  Indent_Line ("   pragma Unreferenced (Lexer);");
+
+               Indent := Indent + 3;
+               if Unref_Lexer or Unref_Nonterm or Unref_Tokens or Unref_Recover then
+                  Indent_Start ("pragma Unreferenced (");
+
+                  if Unref_Lexer then
+                     Put ((if Need_Comma then ", " else "") & "Lexer");
+                     Need_Comma := True;
+                  end if;
+                  if Unref_Nonterm then
+                     Put ((if Need_Comma then ", " else "") & "Nonterm");
+                     Need_Comma := True;
+                  end if;
+                  if Unref_Tokens then
+                     Put ((if Need_Comma then ", " else "") & "Tokens");
+                     Need_Comma := True;
+                  end if;
+                  if Unref_Recover then
+                     Put ((if Need_Comma then ", " else "") & "Recover_Active");
+                     Need_Comma := True;
+                  end if;
+                  Put_Line (");");
                end if;
-               if Unref_Nonterm then
-                  Indent_Line ("   pragma Unreferenced (Nonterm);");
-               end if;
-               if Unref_Tokens then
-                  Indent_Line ("   pragma Unreferenced (Tokens);");
-               end if;
-               if Unref_Recover then
-                  Indent_Line ("   pragma Unreferenced (Recover_Active);");
-               end if;
+
+               for I in Label_Needed'Range loop
+                  if Label_Needed (I) then
+                     Indent_Line
+                       (-Labels (I) & " : constant SAL.Peek_Type :=" &
+                          SAL.Peek_Type'Image (Find_Token_Index (I)) & ";");
+                  end if;
+               end loop;
+               Indent := Indent - 3;
 
                Indent_Line ("begin");
             else
@@ -901,8 +1091,19 @@ is
          Indent_Line ("  Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;");
          Indent_Line ("  Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array)");
          Indent_Line ("is");
-         Indent_Start ("   Parse_Data : Wisi.Parse_Data_Type renames");
-         Put_Line (" Wisi.Parse_Data_Type (User_Data);");
+
+         Indent := Indent + 3;
+         Indent_Line ("Parse_Data : Wisi.Parse_Data_Type renames Wisi.Parse_Data_Type (User_Data);");
+
+         for I in Label_Needed'Range loop
+            if Label_Needed (I) then
+               Indent_Line
+                 (-Labels (I) & " : constant SAL.Peek_Type :=" &
+                    SAL.Peek_Type'Image (Find_Token_Index (I)) & ";");
+            end if;
+         end loop;
+
+         Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
 
@@ -966,6 +1167,7 @@ is
    procedure Create_Ada_Actions_Body
      (Action_Names : not null access WisiToken.Names_Array_Array;
       Check_Names  : not null access WisiToken.Names_Array_Array;
+      Label_Count  : in              Ada.Containers.Count_Type;
       Package_Name : in              String)
    is
       use Ada.Strings.Unbounded;
@@ -989,6 +1191,10 @@ is
       Put_File_Header (Ada_Comment, Use_Tuple => True, Tuple => Tuple);
       Put_Raw_Code (Ada_Comment, Input_Data.Raw_Code (Copyright_License));
       New_Line;
+
+      if Label_Count > 0 then
+         Put_Line ("with SAL;");
+      end if;
 
       Put_Line ("with Wisi; use Wisi;");
       if Input_Data.Language_Params.Use_Language_Runtime then
@@ -1039,7 +1245,7 @@ is
                   declare
                      Name : constant String := Action_Names (LHS_ID)(Prod_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, RHS.Action, Check => False);
+                     Create_Ada_Action (Name, RHS, RHS.Action, Rule.Labels, Check => False);
                   end;
                end if;
 
@@ -1047,7 +1253,7 @@ is
                   declare
                      Name : constant String := Check_Names (LHS_ID)(Prod_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, RHS.Check, Check => True);
+                     Create_Ada_Action (Name, RHS, RHS.Check, Rule.Labels, Check => True);
                   end;
                end if;
                Prod_Index := Prod_Index + 1;
@@ -1241,16 +1447,20 @@ is
 
       Output_Elisp_Common.Indent_Name_Table
         (Output_File_Name_Root, "process-face-table", Input_Data.Tokens.Faces);
-      New_Line;
 
       --  We need the elisp lexer for some operations
-      Output_Elisp_Common.Indent_Keyword_Table
-        (Output_File_Name_Root, "elisp", Elisp_Tokens.Keywords, Ada.Strings.Unbounded.To_String'Access);
-      New_Line;
-      Output_Elisp_Common.Indent_Token_Table
-        (Output_File_Name_Root, "elisp", Elisp_Tokens.Tokens, Ada.Strings.Unbounded.To_String'Access);
-      New_Line;
+      if Elisp_Tokens.Keywords.Length > 0 then
+         New_Line;
+         Output_Elisp_Common.Indent_Keyword_Table
+           (Output_File_Name_Root, "elisp", Elisp_Tokens.Keywords, Ada.Strings.Unbounded.To_String'Access);
+      end if;
+      if Elisp_Tokens.Tokens.Length > 0 then
+         New_Line;
+         Output_Elisp_Common.Indent_Token_Table
+           (Output_File_Name_Root, "elisp", Elisp_Tokens.Tokens, Ada.Strings.Unbounded.To_String'Access);
+      end if;
 
+      New_Line;
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);
       Close (File);
@@ -1488,7 +1698,8 @@ begin
    begin
       if Input_Data.Action_Count > 0 or Input_Data.Check_Count > 0 then
          --  We typically have no actions when just getting started with a new language.
-         Create_Ada_Actions_Body (Generate_Data.Action_Names, Generate_Data.Check_Names, Actions_Package_Name);
+         Create_Ada_Actions_Body
+           (Generate_Data.Action_Names, Generate_Data.Check_Names, Input_Data.Label_Count, Actions_Package_Name);
       end if;
 
       Create_Ada_Actions_Spec

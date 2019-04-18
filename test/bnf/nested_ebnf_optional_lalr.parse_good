@@ -16,14 +16,14 @@ statement_0: (statement, (14 . 18)) <= ( 4:(GOTO, (14 . 17)),  5:(SEMICOLON, (18
  0: 8:  9:(END, (32 . 34)) : reduce 2 tokens to statement
 statement_0: (statement, (26 . 30)) <= ( 7:(GOTO, (26 . 29)),  8:(SEMICOLON, (30 . 30)))
  ... goto state 13
- 0: 13:  9:(END, (32 . 34)) : reduce 2 tokens to nonterminal_016
-nonterminal_016_1: (nonterminal_016, (20 . 30)) <= ( 6:(ELSIF, (20 . 24)), (statement, (26 . 30)))
+ 0: 13:  9:(END, (32 . 34)) : reduce 2 tokens to nonterminal_015
+nonterminal_015_1: (nonterminal_015, (20 . 30)) <= ( 6:(ELSIF, (20 . 24)), (statement, (26 . 30)))
  ... goto state 11
  0: 11:  9:(END, (32 . 34)) : shift and goto state 14
  0: 14:  10:(IF, (36 . 37)) : shift and goto state 18
  0: 18:  11:(SEMICOLON, (38 . 38)) : shift and goto state 20
  0: 20:  12:(Wisi_EOI, (39 . 38)) : reduce 8 tokens to if_statement
-if_statement_0: (if_statement, (1 . 38)) <= ( 1:(IF, (1 . 2)), (expression, (4 . 7)),  3:(THEN, (9 . 12)), (statement, (14 . 18)), (nonterminal_016, (20 . 30)),  9:(END, (32 . 34)),  10:(IF, (36 . 37)),  11:(SEMICOLON, (38 . 38)))
+if_statement_0: (if_statement, (1 . 38)) <= ( 1:(IF, (1 . 2)), (expression, (4 . 7)),  3:(THEN, (9 . 12)), (statement, (14 . 18)), (nonterminal_015, (20 . 30)),  9:(END, (32 . 34)),  10:(IF, (36 . 37)),  11:(SEMICOLON, (38 . 38)))
  ... goto state 2
  0: 2:  12:(Wisi_EOI, (39 . 38)) : accept it
 wisitoken_accept_0: (wisitoken_accept, (1 . 38)) <= ((if_statement, (1 . 38)))

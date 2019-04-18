@@ -92,4 +92,10 @@ interfaceMethodDeclaration
     : interfaceMethodModifier* (typeTypeOrVoid | typeParameters annotation* typeTypeOrVoid)
       IDENTIFIER formalParameters ('[' ']')* (THROWS qualifiedNameList)? methodBody
     ;
+
+;; trailing optional with multiple tokens
+typeParameter
+    : annotation* IDENTIFIER (EXTENDS typeBound)?
+    ;
+
 ;; end of file

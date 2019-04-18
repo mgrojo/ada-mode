@@ -21,6 +21,12 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+labels in ada_emacs actions
+    doing java_wisi actions; may find more test cases
+
+
+use First to compute String_ID_Set?
+
 java
     c:/Projects/org.emacs.java-wisi/source/java_antlr.wy
     done with syntax

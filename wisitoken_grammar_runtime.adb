@@ -913,6 +913,11 @@ package body WisiToken_Grammar_Runtime is
          return Node;
       end List_Root;
 
+      function List_Singleton (Root : in Valid_Node_Index) return Boolean
+      is begin
+         return Tree.RHS_Index (Root) = 0;
+      end List_Singleton;
+
       function First_List_Element (Root : in Valid_Node_Index; Element_ID : in WisiToken.Token_ID) return Node_Index
       is
          List_ID : constant WisiToken.Token_ID := Tree.ID (Root);
@@ -1115,66 +1120,6 @@ package body WisiToken_Grammar_Runtime is
          end if;
       end Append_Element;
 
-      procedure Append_List
-        (Tail_Element_A : in Valid_Node_Index;
-         Head_Element_B : in Valid_Node_Index;
-         Separator_ID   : in WisiToken.Token_ID := Invalid_Token_ID)
-      with Pre => Tree.ID (Tail_Element_A) = Tree.ID (Head_Element_B) and
-        Tree.ID (Tree.Parent (Tail_Element_A)) = Tree.ID (Tree.Parent (Head_Element_B))
-      is
-         --  Current tree is one of:
-         --
-         --  list A:
-         --  case a: odd number list
-         --  element_list:
-         --  | element: Tail_Element_A
-         --
-         --  case b: even number list
-         --  element_list:
-         --  | element_list:
-         --  | | element: prev_element_A
-         --  | [separator]
-         --  | element: Tail_Element_A
-         --
-         --  list B:
-         --  element_list: parent_B
-         --  | element: Head_Element_B
-
-         --  New tree:
-         --
-         --  case a:
-         --  element_list: keep parent_b
-         --  | element_list: keep parent_a
-         --  ..|
-         --  | | Tail_Element_A
-         --  | element: keep; Head_Element_B
-         --  ...
-         --  | [separator] ; new
-         --  | element:
-         --
-         --  case b:
-         --  element_list:
-         --  | element_list: keep parent_a
-         --  | | element_list: new
-         --  | | | element_list: keep parent_b
-         --  | | | | element: keep head_element_b
-         --  ...
-         --  | | [separator]: keep
-         --  | | element: keep prev_element_a
-         --  | [separator]: new
-         --  | element: Tail_Element_A
-
-         Parent_A : constant Valid_Node_Index   := Tree.Parent (Tail_Element_A);
-         List_ID  : constant WisiToken.Token_ID := Tree.ID (Parent_A);
-         Parent_B : constant Valid_Node_Index   := Tree.Parent (Head_Element_B);
-      begin
-         if Separator_ID = Invalid_Token_ID then
-            Tree.Set_Children (Parent_B, (List_ID, 1), (Parent_A, Head_Element_B));
-         else
-            Tree.Set_Children (Parent_B, (List_ID, 1), (Parent_A, Tree.Add_Terminal (Separator_ID), Head_Element_B));
-         end if;
-      end Append_List;
-
       procedure Insert_Optional_RHS (B : in Valid_Node_Index)
       is
          --  B is an optional item in an rhs_item_list :
@@ -1283,9 +1228,16 @@ package body WisiToken_Grammar_Runtime is
                   then Add_Actions (New_RHS_Item_List_C)
                   else New_RHS_Item_List_C);
             else
-               Append_List
-                 (Tail_Element_A => Last_List_Element (New_RHS_Item_List_A),
-                  Head_Element_B => First_List_Element (New_RHS_Item_List_C, +rhs_element_ID));
+               declare
+                  Tail_Element_A : constant Valid_Node_Index := Last_List_Element (New_RHS_Item_List_A);
+                  Head_Element_B : constant Valid_Node_Index := First_List_Element
+                    (New_RHS_Item_List_C, +rhs_element_ID);
+               begin
+                  Tree.Set_Children
+                    (Tree.Parent (Head_Element_B),
+                     (+rhs_item_list_ID, 1),
+                     (Tree.Parent (Tail_Element_A), Head_Element_B));
+               end;
 
                New_RHS_AC :=
                  (if Tree.ID (Container) = +rhs_ID
@@ -2009,10 +1961,7 @@ package body WisiToken_Grammar_Runtime is
                   --  : LEFT_BRACKET rhs_alternative_list RIGHT_BRACKET
                   --  | LEFT_PAREN rhs_alternative_list RIGHT_PAREN QUESTION
 
-                  --  See if we've already created a nonterminal for this. To be fully
-                  --  accurate, we would need to translate the rhs_alternative_list and
-                  --  compare all the nodes in the subtree. We take a shortcut, and
-                  --  compare buffer text.
+                  --  See if we've already created a nonterminal for this.
                   declare
                      New_Text  : constant String := Get_Text (Data, Tree, Tree.Child (Node, 2));
                      Temp      : Node_Index      := First_List_Element
@@ -2045,13 +1994,79 @@ package body WisiToken_Grammar_Runtime is
                      Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Name_Ident);
                      Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
                   else
-                     declare
-                        Nonterm_B : constant Identifier_Index := Next_Nonterm_Name ("");
-                     begin
-                        New_Nonterminal (Nonterm_B, Tree.Child (Node, 2));
-                        Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Nonterm_B);
+                     if List_Singleton (Tree.Child (Node, 2)) then
+                        --  No separate nonterminal, so token labels stay in the same RHS for
+                        --  actions. Splice together rhs_item_lists a, b, c
+                        declare
+                           Root_List_A    : constant Valid_Node_Index := Tree.Child (Tree.Parent (Node, 3), 1);
+                           Tail_Element_A : constant Node_Index       :=
+                             (if Root_List_A = Tree.Parent (Node, 2)
+                              then Invalid_Node_Index -- a is empty
+                              else Last_List_Element (Root_List_A));
+                           Root_List_B    : constant Valid_Node_Index := Tree.Child (Tree.Child (Node, 2), 1);
+                           Head_Element_B : constant Valid_Node_Index := First_List_Element
+                             (Root_List_B, +rhs_element_ID);
+                           Tail_Element_B : constant Valid_Node_Index := Last_List_Element (Root_List_B);
+                           Root_List_C    : constant Valid_Node_Index := List_Root (Tree.Parent (Node, 3));
+                           Head_Element_C : constant Node_Index       := Next_List_Element
+                             (Tree.Parent (Node, 2), +rhs_item_list_ID);
+                           RHS            : constant Valid_Node_Index := Tree.Parent (Root_List_C);
+                           RHS_Children   : Valid_Node_Index_Array    := Tree.Children (RHS);
+                        begin
+                           if Tail_Element_A = Invalid_Node_Index and Head_Element_C = Invalid_Node_Index then
+                              --  A, C both empty
+                              RHS_Children (1) := Tree.Child (Root_List_B, 1);
+                              Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
+
+                           elsif Tail_Element_A = Invalid_Node_Index then
+                              --  A empty, C not empty
+                              declare
+                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Tail_Element_B);
+                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Head_Element_C);
+                              begin
+                                 Tree.Set_Children (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Head_Element_C));
+                                 --  Head_Element_C remains the list root.
+                              end;
+
+                           elsif Head_Element_C = Invalid_Node_Index then
+                              --  A not empty, C empty.
+                              declare
+                                 Parent_A : constant Valid_Node_Index := Tree.Parent (Tail_Element_A);
+                                 Parent_B : constant Valid_Node_Index := Tree.Parent (Head_Element_B);
+                              begin
+                                 Tree.Set_Children (Parent_B, (+rhs_item_list_ID, 1), (Parent_A, Head_Element_B));
+                                 RHS_Children (1) := Root_List_B;
+                                 Tree.Set_Children (RHS, Tree.Production_ID (RHS), RHS_Children);
+                              end;
+                           else
+                              --  A, C both not empty
+                              declare
+                                 Parent_A  : constant Valid_Node_Index := Tree.Parent (Tail_Element_A);
+                                 Parent_B1 : constant Valid_Node_Index := Tree.Parent (Head_Element_B);
+                                 Parent_B2 : constant Valid_Node_Index := Tree.Parent (Tail_Element_B);
+                                 Parent_C  : constant Valid_Node_Index := Tree.Parent (Head_Element_C);
+                              begin
+                                 Tree.Set_Children (Parent_B1, (+rhs_item_list_ID, 1), (Parent_A, Head_Element_B));
+                                 Tree.Set_Children (Parent_C, (+rhs_item_list_ID, 1), (Parent_B2, Head_Element_C));
+                                 --  Head_Element_C remains the list root.
+                              end;
+                           end if;
+
+                           if Trace_Generate > Extra then
+                              Ada.Text_IO.New_Line;
+                              Ada.Text_IO.Put_Line ("edited rhs:");
+                              Tree.Print_Tree (Wisitoken_Grammar_Actions.Descriptor, RHS);
+                           end if;
+                        end;
+                     else
+                        declare
+                           Nonterm_B : constant Identifier_Index := Next_Nonterm_Name ("");
+                        begin
+                           New_Nonterminal (Nonterm_B, Tree.Child (Node, 2));
+                           Tree.Set_Node_Identifier (Node, +IDENTIFIER_ID, Nonterm_B);
+                        end;
                         Tree.Set_Children (Tree.Parent (Node), (+rhs_item_ID, 0), (1 => Node));
-                     end;
+                     end if;
                   end if;
 
                when 2 =>

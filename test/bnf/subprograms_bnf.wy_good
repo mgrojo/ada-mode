@@ -1,3 +1,5 @@
+;;; generated from subprograms.wy
+;;;
 ;; Grammar has no conflicts; test wisi cache actions in Emacs
 ;; (ediff "subprograms.wy" "../../../org.wisitoken.stephe-1/wisi/test/subprograms.wy")
 
@@ -18,10 +20,10 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 }%
 
-%meta_syntax EBNF
+%meta_syntax BNF
 
-%generate LALR         Ada_Emacs re2c Process
-%generate Packrat_Gen  Ada_Emacs re2c Process
+%generate LALR Ada_Emacs re2c Process
+%generate Packrat_Gen Ada_Emacs re2c Process
 %generate Packrat_Proc Ada_Emacs re2c Process
 
 %keyword BEGIN "begin"
@@ -66,11 +68,15 @@
 %elisp_indent subp-indent-function Function_1
 
 block
-  : beg=BEGIN T2=loop_statement [T3=EXCEPTION whe=WHEN T5=name] T6=END
+  : beg=BEGIN T2=loop_statement T3=EXCEPTION whe=WHEN T5=name T6=END
     %((progn
       (wisi-statement-action [T2 motion T3 motion whe motion])
       (wisi-indent-action [(beg . 0) (T2 . subp-indent) (T3 . 0) (whe . subp-indent) (T5 . 0) (T6 . 0)])))%
-;
+  | beg=BEGIN T2=loop_statement T6=END
+    %((progn
+      (wisi-statement-action [T2 motion T3 motion whe motion])
+      (wisi-indent-action [(beg . 0) (T2 . subp-indent) (T3 . 0) (whe . subp-indent) (T5 . 0) (T6 . 0)])))%
+  ;
 
 compilation_unit
   : declarations
@@ -96,7 +102,10 @@ loop_statement
   ;
 
 name
-  : [pre=name DOT] suf=SYMBOL
+  : pre=name DOT suf=SYMBOL
+    %((wisi-face-mark-action [pre prefix suf suffix]))%
+    %((wisi-merge-names pre suf))%
+  | suf=SYMBOL
     %((wisi-face-mark-action [pre prefix suf suffix]))%
     %((wisi-merge-names pre suf))%
   ;
@@ -107,14 +116,18 @@ name_list
   ;
 
 parameter_list
-  : lef=LEFT_PAREN nam=SYMBOL? rig=RIGHT_PAREN
+  : lef=LEFT_PAREN nam=SYMBOL rig=RIGHT_PAREN
+    %((progn
+      (wisi-statement-action [nam misc])
+      (wisi-indent-action [(lef . 0) (nam . (wisi-anchored 1 1)) (rig . (wisi-anchored 1 0))])))%
+  | lef=LEFT_PAREN rig=RIGHT_PAREN
     %((progn
       (wisi-statement-action [nam misc])
       (wisi-indent-action [(lef . 0) (nam . (wisi-anchored 1 1)) (rig . (wisi-anchored 1 0))])))%
   ;
 
 subprogram
-  : fun=FUNCTION nam=name par=parameter_list? blo=block sem=SEMICOLON
+  : fun=FUNCTION nam=name par=parameter_list blo=block sem=SEMICOLON
     %((progn
         ;; an example of each supported action, with somewhat complex parameter syntax
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
@@ -127,7 +140,20 @@ subprogram
                              (par . (subp-indent-function (* 2 subp-indent-broken)))
                              (blo . 0)
                              (sem . 0)])))%
-  ;; No token labels (and thus parameter_list is not optional), to test that flavor
+;; No token labels (and thus parameter_list is not optional), to test that flavor
+  | fun=FUNCTION nam=name blo=block sem=SEMICOLON
+    %((progn
+        ;; an example of each supported action, with somewhat complex parameter syntax
+        (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
+        (wisi-containing-action fun nam)
+        (wisi-containing-action fun blo)
+        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
+        (wisi-indent-action [(fun . 0)
+                             (nam . [subp-indent-broken subp-indent-broken])
+                             (par . (subp-indent-function (* 2 subp-indent-broken)))
+                             (blo . 0)
+                             (sem . 0)])))%
   | PROCEDURE name parameter_list END name SEMICOLON
     %((progn
         (wisi-statement-action [1 statement-start 2 name 6 statement-end])
@@ -149,3 +175,4 @@ use_clause
   ;
 
 ;; end of file
+

@@ -57,14 +57,14 @@ statement
 
 ;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
 enumDeclaration
-  : ENUM IDENTIFIER nonterminal_013 LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_013 LBRACE enumConstants COMMA RBRACE
-  | ENUM IDENTIFIER nonterminal_013 LBRACE enumConstants enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_013 LBRACE enumConstants RBRACE
-  | ENUM IDENTIFIER nonterminal_013 LBRACE COMMA enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_013 LBRACE COMMA RBRACE
-  | ENUM IDENTIFIER nonterminal_013 LBRACE enumBodyDeclarations RBRACE
-  | ENUM IDENTIFIER nonterminal_013 LBRACE RBRACE
+  : ENUM IDENTIFIER IMPLEMENTS typeList LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER IMPLEMENTS typeList LBRACE enumConstants COMMA RBRACE
+  | ENUM IDENTIFIER IMPLEMENTS typeList LBRACE enumConstants enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER IMPLEMENTS typeList LBRACE enumConstants RBRACE
+  | ENUM IDENTIFIER IMPLEMENTS typeList LBRACE COMMA enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER IMPLEMENTS typeList LBRACE COMMA RBRACE
+  | ENUM IDENTIFIER IMPLEMENTS typeList LBRACE enumBodyDeclarations RBRACE
+  | ENUM IDENTIFIER IMPLEMENTS typeList LBRACE RBRACE
   | ENUM IDENTIFIER LBRACE enumConstants COMMA enumBodyDeclarations RBRACE
   | ENUM IDENTIFIER LBRACE enumConstants COMMA RBRACE
   | ENUM IDENTIFIER LBRACE enumConstants enumBodyDeclarations RBRACE
@@ -77,13 +77,13 @@ enumDeclaration
 
 ;; Duplicate '(IMPLEMENTS typeList)?'
 classDeclaration
-  : CLASS IDENTIFIER typeParameters nonterminal_016 nonterminal_013 classBody
-  | CLASS IDENTIFIER typeParameters nonterminal_016 classBody
-  | CLASS IDENTIFIER typeParameters nonterminal_013 classBody
+  : CLASS IDENTIFIER typeParameters EXTENDS typeType IMPLEMENTS typeList classBody
+  | CLASS IDENTIFIER typeParameters EXTENDS typeType classBody
+  | CLASS IDENTIFIER typeParameters IMPLEMENTS typeList classBody
   | CLASS IDENTIFIER typeParameters classBody
-  | CLASS IDENTIFIER nonterminal_016 nonterminal_013 classBody
-  | CLASS IDENTIFIER nonterminal_016 classBody
-  | CLASS IDENTIFIER nonterminal_013 classBody
+  | CLASS IDENTIFIER EXTENDS typeType IMPLEMENTS typeList classBody
+  | CLASS IDENTIFIER EXTENDS typeType classBody
+  | CLASS IDENTIFIER IMPLEMENTS typeList classBody
   | CLASS IDENTIFIER classBody
   ;
 
@@ -103,11 +103,11 @@ forControl
 ;; labeled STRING_LITERAL_2, non-trivial rhs_alternative_list, labeled rhs_group_item, rhs_attribute
 expression
   : primary
-  | expression bop=DOT nonterminal_020
-  | expression postfix=nonterminal_023
+  | expression bop=DOT nonterminal_018
+  | expression postfix=nonterminal_021
 
 ;; attribute with more than one item following
-  | expression bop=nonterminal_036 expression
+  | expression bop=nonterminal_034 expression
 
 ;; attribute with one item following
   | expression
@@ -115,20 +115,28 @@ expression
 
 ;; non-trivial group item
 arrayCreatorRest
-  : LBRACK nonterminal_050
+  : LBRACK nonterminal_048
   ;
 
 ;; another non-trivial group item, and lots of copies
 interfaceMethodDeclaration
-  : nonterminal_051_list nonterminal_053 IDENTIFIER formalParameters nonterminal_041_list nonterminal_056 methodBody
-  | nonterminal_051_list nonterminal_053 IDENTIFIER formalParameters nonterminal_041_list methodBody
-  | nonterminal_051_list nonterminal_053 IDENTIFIER formalParameters nonterminal_056 methodBody
-  | nonterminal_051_list nonterminal_053 IDENTIFIER formalParameters methodBody
-  | nonterminal_053 IDENTIFIER formalParameters nonterminal_041_list nonterminal_056 methodBody
-  | nonterminal_053 IDENTIFIER formalParameters nonterminal_041_list methodBody
-  | nonterminal_053 IDENTIFIER formalParameters nonterminal_056 methodBody
-  | nonterminal_053 IDENTIFIER formalParameters methodBody
+  : nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list THROWS qualifiedNameList methodBody
+  | nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list methodBody
+  | nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | nonterminal_049_list nonterminal_051 IDENTIFIER formalParameters methodBody
+  | nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list THROWS qualifiedNameList methodBody
+  | nonterminal_051 IDENTIFIER formalParameters nonterminal_039_list methodBody
+  | nonterminal_051 IDENTIFIER formalParameters THROWS qualifiedNameList methodBody
+  | nonterminal_051 IDENTIFIER formalParameters methodBody
   ;
+
+;; trailing optional with multiple tokens
+typeParameter
+  : nonterminal_050_list IDENTIFIER EXTENDS typeBound  | nonterminal_050_list IDENTIFIER
+  | IDENTIFIER EXTENDS typeBound
+  | IDENTIFIER
+  ;
+
 ;; end of file
 nonterminal_004_list
   : importDeclaration
@@ -155,24 +163,18 @@ nonterminal_011_list
   : switchLabel
   | nonterminal_011_list switchLabel
   ;
-nonterminal_013
-  : IMPLEMENTS typeList
-  ;
-nonterminal_016
-  : EXTENDS typeType
-  ;
-nonterminal_020
+nonterminal_018
   : THIS
   | NEW nonWildcardTypeArguments innerCreator
   | NEW innerCreator
   | SUPER superSuffix
   | explicitGenericInvocation
   ;
-nonterminal_023
+nonterminal_021
   : INC
   | DEC
   ;
-nonterminal_036
+nonterminal_034
   : ASSIGN
   | ADD_ASSIGN
   | SUB_ASSIGN
@@ -186,41 +188,38 @@ nonterminal_036
   | LSHIFT_ASSIGN
   | MOD_ASSIGN
   ;
-nonterminal_042
+nonterminal_040
   : LBRACK RBRACK
   ;
-nonterminal_041_list
-  : nonterminal_042
-  | nonterminal_041_list nonterminal_042
+nonterminal_039_list
+  : nonterminal_040
+  | nonterminal_039_list nonterminal_040
   ;
-nonterminal_047
+nonterminal_045
   : LBRACK expression RBRACK
   ;
-nonterminal_046_list
-  : nonterminal_047
-  | nonterminal_046_list nonterminal_047
+nonterminal_044_list
+  : nonterminal_045
+  | nonterminal_044_list nonterminal_045
   ;
-nonterminal_050
-  : RBRACK nonterminal_041_list arrayInitializer
+nonterminal_048
+  : RBRACK nonterminal_039_list arrayInitializer
   | RBRACK arrayInitializer
-  | expression RBRACK nonterminal_046_list nonterminal_041_list
-  | expression RBRACK nonterminal_046_list
-  | expression RBRACK nonterminal_041_list
+  | expression RBRACK nonterminal_044_list nonterminal_039_list
+  | expression RBRACK nonterminal_044_list
+  | expression RBRACK nonterminal_039_list
   | expression RBRACK
   ;
-nonterminal_051_list
+nonterminal_049_list
   : interfaceMethodModifier
-  | nonterminal_051_list interfaceMethodModifier
+  | nonterminal_049_list interfaceMethodModifier
   ;
-nonterminal_052_list
+nonterminal_050_list
   : annotation
-  | nonterminal_052_list annotation
+  | nonterminal_050_list annotation
   ;
-nonterminal_053
+nonterminal_051
   : typeTypeOrVoid
-  | typeParameters nonterminal_052_list typeTypeOrVoid
+  | typeParameters nonterminal_050_list typeTypeOrVoid
   | typeParameters typeTypeOrVoid
-  ;
-nonterminal_056
-  : THROWS qualifiedNameList
   ;
