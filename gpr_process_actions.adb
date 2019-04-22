@@ -170,8 +170,7 @@ package body Gpr_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end identifier_opt_1_check;
@@ -204,8 +203,7 @@ package body Gpr_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 6, End_Names_Optional);
    end package_spec_0_check;
@@ -239,8 +237,7 @@ package body Gpr_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end package_extension_0_check;
@@ -292,8 +289,7 @@ package body Gpr_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end project_extension_0_check;
@@ -383,8 +379,7 @@ package body Gpr_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 6, End_Names_Optional);
    end simple_project_declaration_0_check;

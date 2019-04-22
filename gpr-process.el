@@ -99,7 +99,6 @@
    nil
    ])
 
-
 (defconst gpr-elisp-keyword-table-raw
   '(
    ("abstract" . ABSTRACT)

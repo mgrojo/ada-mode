@@ -911,7 +911,21 @@ package body Wisi is
       Containing_Pos     : Nil_Buffer_Pos := Nil; --  wisi first-keyword-pos
    begin
       for Pair of Params loop
-         if Tree.Byte_Region (Tokens (Pair.Index)) /= Null_Buffer_Region then
+         if not (Pair.Index in Tokens'Range) then
+            declare
+               Nonterm_Tok : constant Aug_Token_Ref      := Get_Aug_Token (Data, Tree, Nonterm);
+            begin
+               raise Fatal_Error with Error_Message
+                 (File_Name => -Data.Source_File_Name,
+                  Line      => Nonterm_Tok.Line,
+                  Column    => Nonterm_Tok.Column,
+                  Message   => "wisi-statement-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) &
+                    " token index" & SAL.Peek_Type'Image (Pair.Index) &
+                    " not in tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
+                    SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
+            end;
+
+         elsif Tree.Byte_Region (Tokens (Pair.Index)) /= Null_Buffer_Region then
             declare
                Token  : constant Aug_Token_Ref      := Get_Aug_Token (Data, Tree, Tokens (Pair.Index));
                Cursor : Navigate_Cache_Trees.Cursor := Navigate_Cache_Trees.Find
@@ -1077,8 +1091,6 @@ package body Wisi is
       Tokens  : in     Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Motion_Param_Array)
    is
-      pragma Unreferenced (Nonterm);
-
       --  [2] wisi-motion-action
       use Navigate_Cache_Trees;
       use all type Ada.Containers.Count_Type;
@@ -1128,8 +1140,9 @@ package body Wisi is
                         Line      => Token.Line,
                         Column    => Token.Column,
                         Message   => "wisi-motion-action: token " &
-                          Token.Image (Data.Descriptor.all) &
-                          " has no cache; add to statement-action.");
+                          WisiToken.Image (Token.ID, Data.Descriptor.all) &
+                          " has no cache; add to statement-action for " &
+                          Trimmed_Image (Tree.Production_ID (Nonterm)) & ".");
                   end if;
                end if;
 

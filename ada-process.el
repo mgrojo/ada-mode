@@ -362,7 +362,6 @@
    nil
    ])
 
-
 (defconst ada-elisp-keyword-table-raw
   '(
    ("abs" . ABS)

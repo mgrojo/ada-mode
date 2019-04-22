@@ -78,8 +78,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end accept_statement_0_check;
@@ -523,8 +522,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end block_label_0_check;
@@ -536,8 +534,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end block_label_opt_0_check;
@@ -575,8 +572,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 1, 7, End_Names_Optional);
    end block_statement_0_check;
@@ -610,8 +606,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 1, 5, End_Names_Optional);
    end block_statement_1_check;
@@ -779,8 +774,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Tokens);
+      pragma Unreferenced (Lexer, Tokens);
    begin
       return Terminate_Partial_Parse (Partial_Parse_Active, Partial_Parse_Byte_Goal, Recover_Active, Nonterm);
    end compilation_unit_list_1_check;
@@ -1081,8 +1075,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 11, End_Names_Optional);
    end entry_body_0_check;
@@ -1743,8 +1736,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 2);
    end function_specification_0_check;
@@ -2017,8 +2009,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end identifier_opt_0_check;
@@ -2418,8 +2409,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 1, 7, End_Names_Optional);
    end loop_statement_0_check;
@@ -2452,8 +2442,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 1, 6, End_Names_Optional);
    end loop_statement_1_check;
@@ -2506,8 +2495,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end name_2_check;
@@ -2537,8 +2525,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end name_5_check;
@@ -2550,8 +2537,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end name_7_check;
@@ -2563,8 +2549,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end name_opt_0_check;
@@ -2930,8 +2915,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 10, End_Names_Optional);
    end package_body_0_check;
@@ -2967,8 +2951,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 8, End_Names_Optional);
    end package_body_1_check;
@@ -3066,8 +3049,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 9, End_Names_Optional);
    end package_specification_0_check;
@@ -3103,8 +3085,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 7, End_Names_Optional);
    end package_specification_1_check;
@@ -3491,8 +3472,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 2);
    end procedure_specification_0_check;
@@ -3528,8 +3508,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 8, End_Names_Optional);
    end protected_body_0_check;
@@ -3582,8 +3561,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 5);
    end protected_definition_0_check;
@@ -3614,8 +3592,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 3);
    end protected_definition_1_check;
@@ -3653,8 +3630,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 10, End_Names_Optional);
    end protected_type_declaration_0_check;
@@ -3691,8 +3667,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 7, End_Names_Optional);
    end protected_type_declaration_1_check;
@@ -3979,8 +3954,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Merge_Names (Nonterm, Tokens, 1, 3);
    end selected_component_0_check;
@@ -4028,8 +4002,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Merge_Names (Nonterm, Tokens, 1, 3);
    end selected_component_2_check;
@@ -4318,8 +4291,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 8, End_Names_Optional);
    end single_protected_declaration_0_check;
@@ -4355,8 +4327,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 5, End_Names_Optional);
    end single_protected_declaration_1_check;
@@ -4394,8 +4365,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 10, End_Names_Optional);
    end single_task_declaration_0_check;
@@ -4431,8 +4401,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 7, End_Names_Optional);
    end single_task_declaration_1_check;
@@ -4491,8 +4460,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 2, 9, End_Names_Optional);
    end subprogram_body_0_check;
@@ -4583,8 +4551,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end subprogram_specification_0_check;
@@ -4596,8 +4563,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Lexer);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Lexer, Recover_Active);
    begin
       return Propagate_Name (Nonterm, Tokens, 1);
    end subprogram_specification_1_check;
@@ -4748,8 +4714,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 10, End_Names_Optional);
    end task_body_0_check;
@@ -4847,8 +4812,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 12, End_Names_Optional);
    end task_type_declaration_0_check;
@@ -4886,8 +4850,7 @@ package body Ada_Process_Actions is
      Recover_Active : in     Boolean)
     return WisiToken.Semantic_Checks.Check_Status
    is
-      pragma Unreferenced (Nonterm);
-      pragma Unreferenced (Recover_Active);
+      pragma Unreferenced (Nonterm, Recover_Active);
    begin
       return Match_Names (Lexer, Descriptor, Tokens, 3, 9, End_Names_Optional);
    end task_type_declaration_1_check;
