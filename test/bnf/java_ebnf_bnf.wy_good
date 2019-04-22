@@ -49,6 +49,7 @@ compilationUnit
 statement
   : blockLabel=block
   | TRY block nonterminal_007
+    %((wisi-statement-action [1 statement-start]))%
   | SWITCH parExpression LBRACE nonterminal_009_list nonterminal_011_list RBRACE
   | SWITCH parExpression LBRACE nonterminal_009_list RBRACE
   | SWITCH parExpression LBRACE nonterminal_011_list RBRACE

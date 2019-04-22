@@ -829,10 +829,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       function String_ID_Set (String_ID : in Token_ID) return Token_ID_Set
       is begin
-         return
-           (if Shared.Language_String_ID_Set = null
-            then (Descriptor.First_Terminal .. Descriptor.Last_Terminal => True)
-            else Shared.Language_String_ID_Set (Descriptor, String_ID));
+         if Shared.Language_String_ID_Set = null then
+            return (String_ID .. String_ID => True);
+         else
+            return Shared.Language_String_ID_Set (Descriptor, String_ID);
+         end if;
       end String_ID_Set;
 
       procedure String_Literal_In_Stack
@@ -1351,7 +1352,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       else
          declare
             Current_Token : Token_ID;
-            Next_Token : Token_ID;
+            Next_Token    : Token_ID;
          begin
             Current_Token_ID_Peek_2
               (Shared.Terminals.all, Config.Current_Shared_Token, Config.Insert_Delete, Config.Current_Insert_Delete,

@@ -1,5 +1,5 @@
 ;;; subprograms-process.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;  command line: wisitoken-bnf-generate.exe  --generate PACKRAT_PROC Ada_Emacs re2c PROCESS ../Test/bnf/subprograms.wy
+;;  command line: wisitoken-bnf-generate.exe  --generate LALR Ada_Emacs re2c PROCESS ../Test/bnf/subprograms.wy
 
 ;;  Copyright (C) 2013, 2017 - 2019 Stephen Leake.  All Rights Reserved.
 

@@ -27,6 +27,9 @@ labels in ada_emacs actions
 
 use First to compute String_ID_Set?
 
+make "canonical list" compatible with packrat
+    ie swap rhs_index 0, 1
+
 java
     c:/Projects/org.emacs.java-wisi/source/java_antlr.wy
     done with syntax

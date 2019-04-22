@@ -23,8 +23,10 @@
 %meta_syntax BNF
 
 %generate LALR Ada_Emacs re2c Process
-%generate Packrat_Gen Ada_Emacs re2c Process
-%generate Packrat_Proc Ada_Emacs re2c Process
+
+;; FIXME: implement *, ? directly in packrat
+;; %generate Packrat_Gen  Ada_Emacs re2c Process
+;; %generate Packrat_Proc Ada_Emacs re2c Process
 
 %keyword BEGIN "begin"
 %keyword END "end"
@@ -129,7 +131,8 @@ parameter_list
 subprogram
   : fun=FUNCTION nam=name par=parameter_list blo=block sem=SEMICOLON
     %((progn
-        ;; an example of each supported action, with somewhat complex parameter syntax
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
@@ -140,10 +143,94 @@ subprogram
                              (par . (subp-indent-function (* 2 subp-indent-broken)))
                              (blo . 0)
                              (sem . 0)])))%
-;; No token labels (and thus parameter_list is not optional), to test that flavor
+  | fun=FUNCTION nam=name par=parameter_list sem=SEMICOLON
+    %((progn
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
+        (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
+        (wisi-containing-action fun nam)
+        (wisi-containing-action fun blo)
+        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
+        (wisi-indent-action [(fun . 0)
+                             (nam . [subp-indent-broken subp-indent-broken])
+                             (par . (subp-indent-function (* 2 subp-indent-broken)))
+                             (blo . 0)
+                             (sem . 0)])))%
   | fun=FUNCTION nam=name blo=block sem=SEMICOLON
     %((progn
-        ;; an example of each supported action, with somewhat complex parameter syntax
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
+        (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
+        (wisi-containing-action fun nam)
+        (wisi-containing-action fun blo)
+        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
+        (wisi-indent-action [(fun . 0)
+                             (nam . [subp-indent-broken subp-indent-broken])
+                             (par . (subp-indent-function (* 2 subp-indent-broken)))
+                             (blo . 0)
+                             (sem . 0)])))%
+  | fun=FUNCTION nam=name sem=SEMICOLON
+    %((progn
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
+        (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
+        (wisi-containing-action fun nam)
+        (wisi-containing-action fun blo)
+        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
+        (wisi-indent-action [(fun . 0)
+                             (nam . [subp-indent-broken subp-indent-broken])
+                             (par . (subp-indent-function (* 2 subp-indent-broken)))
+                             (blo . 0)
+                             (sem . 0)])))%
+  | fun=FUNCTION par=parameter_list blo=block sem=SEMICOLON
+    %((progn
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
+        (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
+        (wisi-containing-action fun nam)
+        (wisi-containing-action fun blo)
+        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
+        (wisi-indent-action [(fun . 0)
+                             (nam . [subp-indent-broken subp-indent-broken])
+                             (par . (subp-indent-function (* 2 subp-indent-broken)))
+                             (blo . 0)
+                             (sem . 0)])))%
+  | fun=FUNCTION par=parameter_list sem=SEMICOLON
+    %((progn
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
+        (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
+        (wisi-containing-action fun nam)
+        (wisi-containing-action fun blo)
+        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
+        (wisi-indent-action [(fun . 0)
+                             (nam . [subp-indent-broken subp-indent-broken])
+                             (par . (subp-indent-function (* 2 subp-indent-broken)))
+                             (blo . 0)
+                             (sem . 0)])))%
+  | fun=FUNCTION blo=block sem=SEMICOLON
+    %((progn
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
+        (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
+        (wisi-containing-action fun nam)
+        (wisi-containing-action fun blo)
+        (wisi-motion-action [fun [blo EXCEPTION WHEN] sem])
+        (wisi-face-apply-action [fun nil font-lock-keyword-face nam font-lock-type-face font-lock-function-name-face])
+        (wisi-indent-action [(fun . 0)
+                             (nam . [subp-indent-broken subp-indent-broken])
+                             (par . (subp-indent-function (* 2 subp-indent-broken)))
+                             (blo . 0)
+                             (sem . 0)])))%
+  | fun=FUNCTION sem=SEMICOLON
+    %((progn
+        ;; An example of each supported action, with somewhat complex
+        ;; parameter syntax, and an optional token.
         (wisi-statement-action [fun statement-start nam name par misc blo motion sem statement-end])
         (wisi-containing-action fun nam)
         (wisi-containing-action fun blo)
@@ -155,6 +242,7 @@ subprogram
                              (blo . 0)
                              (sem . 0)])))%
   | PROCEDURE name parameter_list END name SEMICOLON
+;; No token labels (and thus parameter_list is not optional), to test that flavor
     %((progn
         (wisi-statement-action [1 statement-start 2 name 6 statement-end])
         (wisi-containing-action 1 2)

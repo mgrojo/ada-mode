@@ -157,6 +157,7 @@ is
    procedure Create_Ada_Action
      (Name          : in String;
       RHS           : in RHS_Type;
+      Prod_ID       : in WisiToken.Production_ID;
       Unsplit_Lines : in Ada.Strings.Unbounded.Unbounded_String;
       Labels        : in String_Arrays.Vector;
       Check         : in Boolean)
@@ -209,6 +210,17 @@ is
          raise SAL.Programmer_Error;
       end Label_Used;
 
+      function Count_Label_Needed return Ada.Containers.Count_Type
+      is
+         use Ada.Containers;
+         Result : Count_Type := 0;
+      begin
+         for B of Label_Needed loop
+            if B then Result := Result + 1; end if;
+         end loop;
+         return Result;
+      end Count_Label_Needed;
+
       function Find_Token_Index (I : in Base_Identifier_Index) return SAL.Base_Peek_Type
       is
          Rule_Label : constant String := -Labels (I);
@@ -258,7 +270,7 @@ is
          end loop;
          return " (Parse_Data, Tree, Nonterm, Tokens, " &
            (case Count is
-            when 0 => "(1 .. 0 => (1, 1)))",
+            when 0 => "(1 .. 0 => (1, Motion)))",
             when 1 => "(1 => " & (-Result) & "))",
             when others =>  "(" & (-Result) & "))");
       end Statement_Params;
@@ -266,11 +278,18 @@ is
       function Containing_Params (Params : in String) return String
       is
          --  Input looks like: 1 2)
-         First  : constant Integer := Index_Non_Blank (Params);
-         Second : constant Integer := Index (Params, Blank_Set, First);
+         First        : constant Integer := Index_Non_Blank (Params);
+         Second       : constant Integer := Index (Params, Blank_Set, First);
+         First_Label  : constant String  := Params (First .. Second - 1);
+         Second_Label : constant String  := Params (Second + 1 .. Params'Last - 1);
       begin
-         return " (Parse_Data, Tree, Nonterm, Tokens, " &
-           Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
+         if (0 = Index (First_Label, Numeric, Outside) or else Label_Used (First_Label)) and
+           (0 = Index (Second_Label, Numeric, Outside) or else Label_Used (Second_Label))
+         then
+            return " (Parse_Data, Tree, Nonterm, Tokens, " & First_Label & ", " & Second_Label & ")";
+         else
+            return "";
+         end if;
       end Containing_Params;
 
       function Motion_Params (Params : in String) return String
@@ -325,14 +344,25 @@ is
                   end;
                end loop;
 
-               Result := Result & (if Need_Comma_1 then " & " else "") & "(" &
-                 Params (Index_First .. Index_Last) & ", " &
-                 (if IDs_Count = 1 then "+" else "") & IDs & ")";
+               declare
+                  Label : constant String := Params (Index_First .. Index_Last);
+               begin
+                  if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                     Result := Result & (if Need_Comma_1 then " & " else "") & "(" &
+                       Label & ", " &
+                       (if IDs_Count = 1 then "+" else "") & IDs & ")";
+                  end if;
+               end;
             else
                First  := Index_Non_Blank (Params, Last);
                Last   := Index (Params, Delim, First);
-               Result := Result & (if Need_Comma_1 then " & " else "") &
-                 "(" & Params (First .. Last - 1) & ", Empty_IDs)";
+               declare
+                  Label : constant String := Params (First .. Last - 1);
+               begin
+                  if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                     Result := Result & (if Need_Comma_1 then " & " else "") & "(" & Label & ", Empty_IDs)";
+                  end if;
+               end;
             end if;
             Need_Comma_1 := True;
          end loop;
@@ -377,13 +407,13 @@ is
 
             exit when Params (Last) = ']' or Params (Last) = ')';
 
-            Count  := Count + 1;
-            First  := Last;
-            Last   := Index (Params, Delim, First);
+            First := Last;
+            Last  := Index (Params, Delim, First);
             declare
                Label : constant String := Params (First .. Last - 1);
             begin
                if 0 = Index (Label, Numeric, Outside) or else Label_Used (Label) then
+                  Count  := Count + 1;
                   Result := Result & (if Need_Comma then ", (" else "(") & Label;
                   Need_Comma := True;
                   Elisp_Param (Skip => False);
@@ -841,14 +871,26 @@ is
          end loop;
 
          --  In translated EBNF, token counts vary in each RHS; require each
-         --  parameter to be labeled.
-         if Param_Count /= RHS.Tokens.Length and
-           Param_Count /= Labels.Length
-         then
-            Put_Error
-              (Error_Message
-                 (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "indent parameters count of" & Count_Type'Image
-                    (Param_Count) & " /= production token count of" & Count_Type'Image (RHS.Tokens.Length)));
+         --  parameter to be labeled if any are, both for catching errors, and
+         --  becase that would produce mixed positional and named association
+         --  in the Ada action subprogram.
+         if Param_Count /= RHS.Tokens.Length then
+            if Labels.Length = 0 then
+               Put_Error
+                 (Error_Message
+                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Image (Prod_ID) &
+                       ": indent parameters count of" & Count_Type'Image (Param_Count) &
+                       " /= production token count of" & Count_Type'Image (RHS.Tokens.Length)));
+
+            elsif Count_Label_Needed /= RHS.Tokens.Length then
+               Put_Error
+                 (Error_Message
+                    (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, Image (Prod_ID) &
+                       ": indent parameter(s) not labeled"));
+            else
+               --  all parameters labeled
+               null;
+            end if;
          end if;
 
          if Param_Count = 1 then
@@ -936,44 +978,75 @@ is
          --  wisi action/check functions, in same order as typically used in
          --  .wy files; Navigate, Face, Indent, Check.
          if Elisp_Name = "wisi-statement-action" then
-            Navigate_Lines.Append
-              (Elisp_Name_To_Ada (Elisp_Name, False, 5) &
-                 Statement_Params (Line (Last + 1 .. Line'Last)) & ";");
+            declare
+               Params : constant String := Statement_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Navigate_Lines.Append (Elisp_Name_To_Ada (Elisp_Name, False, 5) & Params & ";");
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-containing-action" then
-            Navigate_Lines.Append
-              (Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Containing_Params (Line (Last + 1 .. Line'Last)) & ";");
+            declare
+               Params : constant String := Containing_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Navigate_Lines.Append (Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) & Params & ";");
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-motion-action" then
-            Navigate_Lines.Append
-              (Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-                 Motion_Params (Line (Last + 1 .. Line'Last)) & ";");
+            declare
+               Params : constant String := Motion_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Navigate_Lines.Append (Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) & Params & ";");
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-face-apply-action" then
             Assert_Face_Empty;
-            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
+            declare
+               Params : constant String := Face_Apply_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) & Params & ";";
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-face-apply-list-action" then
             Assert_Face_Empty;
-            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
+            declare
+               Params : constant String := Face_Apply_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) & Params & ";";
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-face-mark-action" then
             Assert_Face_Empty;
-            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              Face_Mark_Params (Line (Last + 1 .. Line'Last)) & ";";
+            declare
+               Params : constant String := Face_Mark_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) & Params & ";";
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-face-remove-action" then
             Assert_Face_Empty;
-            Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
-              Face_Remove_Params (Line (Last + 1 .. Line'Last)) & ";";
+            declare
+               Params : constant String := Face_Remove_Params (Line (Last + 1 .. Line'Last));
+            begin
+               if Params'Length > 0 then
+                  Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) & Params & ";";
+               end if;
+            end;
 
          elsif Elisp_Name = "wisi-indent-action" then
             Assert_Indent_Empty;
-            Indent_Action_Line := +"Indent_Action_0" &
-              Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
+            Indent_Action_Line := +"Indent_Action_0" & Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
 
          elsif Elisp_Name = "wisi-indent-action*" then
             Assert_Indent_Empty;
@@ -1237,26 +1310,26 @@ is
          --  No need for a Token_Cursor here, since we only need the
          --  nonterminals.
          declare
-            LHS_ID     : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
-            Prod_Index : Integer                     := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            LHS_ID    : constant WisiToken.Token_ID := Find_Token_ID (Generate_Data, -Rule.Left_Hand_Side);
+            RHS_Index : Integer                     := 0; -- Semantic_Action defines RHS_Index as zero-origin
          begin
             for RHS of Rule.Right_Hand_Sides loop
                if Length (RHS.Action) > 0 then
                   declare
-                     Name : constant String := Action_Names (LHS_ID)(Prod_Index).all;
+                     Name : constant String := Action_Names (LHS_ID)(RHS_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, RHS.Action, Rule.Labels, Check => False);
+                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Action, Rule.Labels, Check => False);
                   end;
                end if;
 
                if Length (RHS.Check) > 0 then
                   declare
-                     Name : constant String := Check_Names (LHS_ID)(Prod_Index).all;
+                     Name : constant String := Check_Names (LHS_ID)(RHS_Index).all;
                   begin
-                     Create_Ada_Action (Name, RHS, RHS.Check, Rule.Labels, Check => True);
+                     Create_Ada_Action (Name, RHS, (LHS_ID, RHS_Index), RHS.Check, Rule.Labels, Check => True);
                   end;
                end if;
-               Prod_Index := Prod_Index + 1;
+               RHS_Index := RHS_Index + 1;
             end loop;
          end;
       end loop;

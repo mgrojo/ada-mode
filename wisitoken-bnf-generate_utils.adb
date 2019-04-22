@@ -47,7 +47,7 @@ package body WisiToken.BNF.Generate_Utils is
 
    function Name_1 (Cursor : in Token_Cursor) return String
    is begin
-      --   This function is used to compute LR1_descriptor.Image
+      --   This function is used to compute Descriptor.Image
       case Cursor.Kind is
       when Non_Grammar_Kind =>
          declare

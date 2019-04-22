@@ -590,8 +590,8 @@ package body WisiToken.Parse.LR.Parser is
                      use all type Parser_Lists.Cursor;
                      Error_Parser_Count     : Integer := (if Shared_Parser.Lexer.Errors.Length > 0 then 1 else 0);
                      Recover_Ops_Length     : Ada.Containers.Count_Type;
-                     Min_Recover_Ops_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
-                     Min_Recover_Ops_Cur    : Parser_Lists.Cursor;
+                     Max_Recover_Ops_Length : Ada.Containers.Count_Type := Ada.Containers.Count_Type'First;
+                     Max_Recover_Ops_Cur    : Parser_Lists.Cursor;
                   begin
                      Current_Parser := Shared_Parser.Parsers.First;
                      loop
@@ -611,18 +611,20 @@ package body WisiToken.Parse.LR.Parser is
 
                      if Error_Parser_Count > 0 then
                         --  There was at least one error. We assume that caused the ambiguous
-                        --  parse, and we pick the parser with the minimum recover ops length
+                        --  parse, and we pick the parser with the maximum recover ops length
                         --  to allow the parse to succeed. We terminate the other parsers so
-                        --  the first parser executes actions.
+                        --  the first parser executes actions. We pick the maximum recover ops
+                        --  length because it's probably due to Minimal_Complete_Actions
+                        --  finishing a statement/declaration.
                         --
                         --  Note all surviving parsers must have the same error count, or only
                         --  the one with the lowest would get here.
                         Current_Parser := Shared_Parser.Parsers.First;
                         loop
                            Recover_Ops_Length := Current_Parser.Max_Recover_Ops_Length;
-                           if Recover_Ops_Length < Min_Recover_Ops_Length then
-                              Min_Recover_Ops_Length := Recover_Ops_Length;
-                              Min_Recover_Ops_Cur    := Current_Parser;
+                           if Recover_Ops_Length > Max_Recover_Ops_Length then
+                              Max_Recover_Ops_Length := Recover_Ops_Length;
+                              Max_Recover_Ops_Cur    := Current_Parser;
                            end if;
                            Current_Parser.Next;
                            exit when Current_Parser.Is_Done;
@@ -630,7 +632,7 @@ package body WisiToken.Parse.LR.Parser is
 
                         Current_Parser := Shared_Parser.Parsers.First;
                         loop
-                           if Current_Parser = Min_Recover_Ops_Cur then
+                           if Current_Parser = Max_Recover_Ops_Cur then
                               Current_Parser.Next;
                            else
                               Temp := Current_Parser;
