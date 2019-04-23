@@ -157,6 +157,7 @@ package body Test_Ada_Lite_Terminal_Sequence is
       Item_Sets : constant Generate.LR1_Items.Item_Set_List := Generate.LR.LR1_Generate.LR1_Item_Sets
         (Has_Empty_Production, First_Terminal_Sequence, Generate_Data.Grammar, Generate_Data.Descriptor.all);
 
+      Conflict_Counts   : Generate.LR.Conflict_Count_Lists.List;
       Unknown_Conflicts : Generate.LR.Conflict_Lists.List;
 
       Table : Parse.LR.Parse_Table
@@ -224,8 +225,8 @@ package body Test_Ada_Lite_Terminal_Sequence is
 
    begin
       Generate.LR.LR1_Generate.Add_Actions
-        (Item_Sets, Generate_Data.Grammar, Has_Empty_Production, First_Nonterm_Set, Unknown_Conflicts, Table,
-         Generate_Data.Descriptor.all);
+        (Item_Sets, Generate_Data.Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Unknown_Conflicts,
+         Table, Generate_Data.Descriptor.all);
 
       Trace_Generate := Save_Trace_Generate;
 

@@ -391,8 +391,8 @@ State 41:
 
    Minimal_Complete_Action => (generic_instantiation)
 
-States with conflicts: 7
+States with conflicts: 7 17
 
- 0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts
+ 0 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts
 
  6 rules, 0 user actions, 0 checks, 42 states, 86 parse actions

@@ -456,6 +456,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       Has_Empty_Production    : in     Token_ID_Set;
       First_Nonterm_Set       : in     Token_Array_Token_Set;
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
+      Conflict_Counts         :    out Conflict_Count_Lists.List;
       Conflicts               :    out Conflict_Lists.List;
       Table                   : in out Parse_Table;
       Descriptor              : in     WisiToken.Descriptor)
@@ -468,7 +469,9 @@ package body WisiToken.Generate.LR.LALR_Generate is
          --  LALR_Goto_Transitions, Fill_In_Lookaheads, and here.
          Closure := LR1_Items.Closure (Kernel, Has_Empty_Production, First_Terminal_Sequence, Grammar, Descriptor);
 
-         Add_Actions (Closure, Table, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
+         Add_Actions
+           (Closure, Table, Grammar, Has_Empty_Production, First_Nonterm_Set,
+            Conflict_Counts, Conflicts, Descriptor);
       end loop;
 
       if Trace_Generate > Detail then
@@ -508,6 +511,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
 
       Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First_Nonterm_Set, Descriptor);
 
+      Conflict_Counts      : Conflict_Count_Lists.List;
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
@@ -556,8 +560,8 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end if;
 
       Add_Actions
-        (Kernels, Grammar, Has_Empty_Production, First_Nonterm_Set, First_Terminal_Sequence, Unknown_Conflicts,
-         Table.all, Descriptor);
+        (Kernels, Grammar, Has_Empty_Production, First_Nonterm_Set, First_Terminal_Sequence, Conflict_Counts,
+         Unknown_Conflicts, Table.all, Descriptor);
 
       --  Set Table.States.Productions, Minimal_Complete_Actions for McKenzie_Recover
       for State in Table.States'Range loop
@@ -571,8 +575,7 @@ package body WisiToken.Generate.LR.LALR_Generate is
       end loop;
 
       if Put_Parse_Table then
-         WisiToken.Generate.LR.Put_Parse_Table
-           (Table, "LALR", Grammar, Kernels, Unknown_Conflicts, Descriptor);
+         WisiToken.Generate.LR.Put_Parse_Table (Table, "LALR", Grammar, Kernels, Conflict_Counts, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
