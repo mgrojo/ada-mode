@@ -506,6 +506,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                New_Config.Ops.Append ((Push_Back, Token.ID, Token.Min_Terminal_Index));
                New_Config.Current_Shared_Token := Token.Min_Terminal_Index;
             end if;
+            New_Config.Strategy_Counts (Explore_Table) := New_Config.Strategy_Counts (Explore_Table) + 1;
 
             Local_Config_Heap.Add (New_Config);
 
@@ -930,7 +931,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end if;
          end if;
 
-         Config.Strategy_Counts (String_Quote) := Config.Strategy_Counts (String_Quote) + 1;
+         New_Config.Strategy_Counts (String_Quote) := New_Config.Strategy_Counts (String_Quote) + 1;
 
          if Trace_McKenzie > Detail then
             Base.Put ("insert missing quote " & Label & " ", Super, Shared, Parser_Index, New_Config);
@@ -1140,6 +1141,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
             New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (ID);
+            New_Config.Strategy_Counts (Explore_Table) := Config.Strategy_Counts (Explore_Table) + 1;
 
             if Match_Since_FF (Config.Ops, (Push_Back, ID, Config.Current_Shared_Token))
             then

@@ -233,7 +233,7 @@ package body Subprograms_Process_Actions is
          Motion), (sem, Statement_End)));
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, fun, nam);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, fun, blo);
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 5 & 11) & (sem, Empty_IDs)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 6 & 12) & (sem, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, 3, 0), (nam, 1, 2)));
       when Indent =>
@@ -289,7 +289,7 @@ package body Subprograms_Process_Actions is
          (sem, Statement_End)));
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, fun, nam);
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, fun, blo);
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 5 & 11) & (sem, Empty_IDs)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 6 & 12) & (sem, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, 3, 0), (nam, 1, 2)));
       when Indent =>
@@ -342,7 +342,7 @@ package body Subprograms_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Statement_Start), (par, Misc), (blo, Motion),
          (sem, Statement_End)));
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, fun, blo);
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 5 & 11) & (sem, Empty_IDs)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 6 & 12) & (sem, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (fun, 3, 0)));
       when Indent =>
@@ -392,7 +392,7 @@ package body Subprograms_Process_Actions is
          Statement_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Statement_Start), (blo, Motion), (sem,
          Statement_End)));
          Containing_Action (Parse_Data, Tree, Nonterm, Tokens, fun, blo);
-         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 5 & 11) & (sem, Empty_IDs)));
+         Motion_Action (Parse_Data, Tree, Nonterm, Tokens, ((fun, Empty_IDs) & (blo, 6 & 12) & (sem, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Tree, Nonterm, Tokens, (1 => (fun, 3, 0)));
       when Indent =>

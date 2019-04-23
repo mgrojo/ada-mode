@@ -21,9 +21,13 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
-labels in ada_emacs actions
-    doing java_wisi actions; may find more test cases
+doing java_wisi actions; may find more test cases
 
+descriptor.left_paren_id only used in ada-mode wisi.adb
+    new_line also
+    move to wisi.data_type?
+        needs a generic param?
+        set in language-specific initialize?
 
 use First to compute String_ID_Set?
 

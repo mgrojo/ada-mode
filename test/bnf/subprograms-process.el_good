@@ -21,7 +21,8 @@
 (defconst subprograms-process-token-table
   [WHITESPACE
    NEW_LINE
-   COMMENT
+   COMMENT_1
+   COMMENT_2
    BEGIN
    END
    EXCEPTION

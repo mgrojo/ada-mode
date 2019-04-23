@@ -209,6 +209,7 @@ package body BNF_WY_Test is
             null;
 
          when Ada_Emacs_Lang =>
+            Diff_One (Root_Name & Int_Kind & "_actions.ads", Skip => (1 => 2));
             Diff_One (Root_Name & Int_Kind & "_actions.adb", Skip => (1 => 2));
             Diff_One (Root_Name & Int_Kind & Gen_Alg  & "_main.adb");
             Diff_One (Root_Name & "-process.el");

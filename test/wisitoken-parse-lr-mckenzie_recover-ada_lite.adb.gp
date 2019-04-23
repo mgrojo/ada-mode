@@ -40,7 +40,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    Descriptor : WisiToken.Descriptor renames Actions.Descriptor;
 
    subtype Grammar_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal);
-   subtype Terminal_Token_ID_Set is WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal);
 
    --  From ada_lite.wy, <begin_name_token>, <end_name_token> are one of:
    --  block_label_opt           identifier_opt in block_statement
@@ -54,10 +53,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
    End_Name_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
      (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
       (+identifier_opt_ID & (+name_opt_ID)));
-
-   End_Keyword_IDs : constant Terminal_Token_ID_Set := To_Token_ID_Set
-     (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-      +IF_ID & (+CASE_ID) & (+LOOP_ID));
 
    Nonterm_IDs : constant Grammar_Token_ID_Set := To_Token_ID_Set
      (Descriptor.First_Terminal, Descriptor.Last_Nonterminal,
@@ -200,6 +195,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                begin
                   --  This is a not a guess, so it has zero cost.
 
+                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
@@ -301,6 +298,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
 
                New_Config.Cost := New_Config.Cost + 1;
 
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
                Push_Back_Check
                  (New_Config,
                   (+SEMICOLON_ID,
@@ -347,6 +346,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                New_Config.Check_Status   := (Label => Ok);
 
                New_Config.Cost := New_Config.Cost + 1;
+
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                Push_Back_Check
                  (New_Config,
@@ -430,6 +431,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   Ops        : Config_Op_Arrays.Vector renames New_Config.Ops;
                begin
                   --  We don't increase the cost, because this is not a guess.
+                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
+
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
 
@@ -461,6 +464,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config : Configuration := Config;
                begin
                   --  We don't increase the cost, because this is not a guess.
+                  New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
 
                   New_Config.Error_Token.ID := Invalid_Token_ID;
                   New_Config.Check_Status   := (Label => Ok);
@@ -557,6 +561,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   New_Config_2 := New_Config_1;
                   Insert (New_Config_2, (+END_ID, +SEMICOLON_ID));
 
+                  New_Config_2.Strategy_Counts (Language_Fix) := New_Config_2.Strategy_Counts (Language_Fix) + 1;
+
                   if Trace_McKenzie > Detail then
                      Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor),
                           New_Config_2);
@@ -582,6 +588,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   return;
                end case;
 
+               New_Config_1.Strategy_Counts (Language_Fix) := New_Config_1.Strategy_Counts (Language_Fix) + 1;
+
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor),
                        New_Config_1);
@@ -592,159 +600,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                Local_Config_Heap.Add (New_Config_1);
             end;
          end if;
-
-      elsif -Config.Error_Token.ID in IDENTIFIER_ID | SEMICOLON_ID and Config.Stack (1).Token.ID = +END_ID then
-         --  Encountered 'end <name>;' or 'end;' when expecting 'end <keyword>;'
-         --
-         --  The input looks like
-         --
-         --  "<begin_name_token> ... <keyword> ... end <end_name_token> ;"
-         --
-         --  where <keyword> is any of End_Keyword_IDs. 'end <keyword> ;' is
-         --  missing before 'end'. See test/slow_recover_3.adb,
-         --  test/ada_mode-recover_end_1.adb.
-         --
-         --  The solution is to insert 'end <keyword>;' before the 'end'. We
-         --  can find the keyword on the stack.
-         declare
-            Label         : constant String := "end keyword 1";
-            New_Config    : Configuration   := Config;
-            Keyword_Index : SAL.Peek_Type   := 2;
-         begin
-            Find_ID (Config, End_Keyword_IDs, Keyword_Index);
-
-            if Keyword_Index = Config.Stack.Depth then
-               --  not found
-               if Trace_McKenzie > Outline then
-                  Put ("Language_Fixes " & Label & " keyword not found " &
-                         Image (Config.Error_Token.ID, Descriptor), New_Config);
-                  Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
-               end if;
-               raise Bad_Config;
-            end if;
-
-            New_Config.Error_Token.ID := Invalid_Token_ID;
-
-            Push_Back_Check (New_Config, +END_ID);
-
-            Insert (New_Config, (+END_ID, Config.Stack (Keyword_Index).Token.ID, +SEMICOLON_ID));
-
-            Local_Config_Heap.Add (New_Config);
-
-            if Trace_McKenzie > Detail then
-               Put ("Language_Fixes " & Label & " " & Image (Config.Error_Token.ID, Descriptor), New_Config);
-               if Trace_McKenzie > Extra then
-                  Trace.Put_Line ("config stack: " & Image (New_Config.Stack, Descriptor));
-               end if;
-            end if;
-         exception
-         when Bad_Config =>
-            null;
-         end;
-
-      elsif End_Keyword_IDs (Config.Error_Token.ID) and Config.Stack (1).Token.ID = +END_ID then
-         --  Encountered 'end <keyword>;' when expecting 'end <different keyword>;' or 'end <name>;'
-         --
-         --  The input looks like one of:
-         --
-         --  a. <matching_begin_keyword> ... <other_begin_keyword> ... end <keyword> ;
-         --
-         --     where <begin_keyword> matches the error keyword. The solution
-         --     is to insert an 'end <keyword>;' matching <other_begin_keyword>
-         --     before the 'end'. See test/ada_mode_recover_12.adb
-         --
-         --  b. <other_begin> ... end <keyword> ;
-         --
-         --     where the matching keyword is missing. The solution is to
-         --     insert a matching <begin_keyword> before the '...'
-         --     sequence_of_statements.
-         --
-         --  c. 'end <keyword>;' could be in the wrong place;
-         --
-         --      see test_mckenzie_recover.adb/error_during_resume_2. Best
-         --      solution there is to replace the wrong keyword with the right one,
-         --      so we enqueue that solution also.
-         declare
-            Label             : constant String := "end keyword 2";
-            New_Config        : Configuration   := Config;
-            Matching_Index    : SAL.Peek_Type   := 2;
-            Other_Begin_Index : SAL.Peek_Type   := 2;
-         begin
-            Find_ID (Config, Config.Error_Token.ID, Matching_Index);
-
-            New_Config.Error_Token.ID := Invalid_Token_ID;
-            Push_Back_Check (New_Config, +END_ID);
-
-            if Matching_Index = Config.Stack.Depth then
-               --  matching keyword not found; case b
-               case Actions.Token_Enum_ID'(-New_Config.Stack (1).Token.ID) is
-               when sequence_of_statements_ID =>
-                  Push_Back_Check (New_Config, +sequence_of_statements_ID);
-
-               when handled_sequence_of_statements_ID =>
-                  Push_Back_Check (New_Config, +handled_sequence_of_statements_ID);
-
-               when others =>
-                  if Trace_McKenzie > Outline then
-                     Put ("Language_Fixes " & Label & " unrecognized nonterm", New_Config);
-                  end if;
-               end case;
-
-               Insert (New_Config, (1 => Config.Error_Token.ID));
-
-               if Trace_McKenzie > Detail then
-                  Put ("Language_Fixes " & Label & "b " & Image (Config.Error_Token.ID, Descriptor), New_Config);
-               end if;
-            else
-               --  Matching keyword found; case a. Look for the <other_begin_keyword>.
-               Find_ID (Config, End_Keyword_IDs & (+BEGIN_ID), Other_Begin_Index);
-
-               if Other_Begin_Index = Config.Stack.Depth then
-                  if Trace_McKenzie > Outline then
-                     Put (Label & " other_begin_keyword not found", Config);
-                  end if;
-                  return;
-               end if;
-
-               if Config.Stack.Peek (Other_Begin_Index).Token.ID = (+BEGIN_ID) then
-                  Insert (New_Config, (+END_ID, +SEMICOLON_ID));
-               else
-                  Insert (New_Config, (+END_ID, Config.Stack.Peek (Other_Begin_Index).Token.ID, +SEMICOLON_ID));
-               end if;
-
-               if Trace_McKenzie > Detail then
-                  Put ("Language_Fixes " & Label & "a " & Image (Config.Error_Token.ID, Descriptor), New_Config);
-               end if;
-            end if;
-
-            Local_Config_Heap.Add (New_Config);
-         exception
-         when Bad_Config =>
-            null;
-         end;
-
-         declare
-            Label      : constant String := "end keyword 2c ";
-            New_Config : Configuration   := Config;
-         begin
-            Delete (New_Config, New_Config.Error_Token.ID); -- wrong keyword
-
-            --  It's not easy to tell what the right keyword to insert is; the
-            --  normal explore mechanism will find it.
-
-            New_Config.Error_Token.ID := Invalid_Token_ID;
-
-            --  Inserting the replacement is likely to cost 2, so make this cost 0.
-            New_Config.Cost := New_Config.Cost + 0;
-
-            if Trace_McKenzie > Detail then
-               Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor), New_Config);
-            end if;
-            Local_Config_Heap.Add (New_Config);
-         exception
-         when Bad_Config =>
-            null;
-         end;
 
       elsif Actions.Token_Enum_ID'(-Config.Error_Token.ID) in ELSE_ID | ELSIF_ID then
          declare
@@ -778,6 +633,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.$ADA_LITE is
                   end case;
                end if;
                Insert (New_Config, (+IF_ID, +THEN_ID));
+               New_Config.Strategy_Counts (Language_Fix) := New_Config.Strategy_Counts (Language_Fix) + 1;
                Local_Config_Heap.Add (New_Config);
                if Trace_McKenzie > Detail then
                   Put ("Language_Fixes " & Label & Image (Config.Error_Token.ID, Descriptor), New_Config);

@@ -193,7 +193,8 @@ private
       Parser_Label : in     Natural;
       Terminals    : in     Base_Token_Arrays.Vector;
       Config       : in     Configuration;
-      Task_ID      : in     Boolean := True);
+      Task_ID      : in     Boolean := True;
+      Strategy     : in     Boolean := False);
    --  Put Message and an image of Config to Trace.
 
    procedure Put_Line

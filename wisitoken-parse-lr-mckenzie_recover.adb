@@ -330,7 +330,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
                                 Trimmed_Image (Cur.Label) & " (" & Trimmed_Image (Integer (Parsers.Count)) &
                                 " active)");
                            Put ("", Trace, Parsers.First.Label, Shared_Parser.Terminals,
-                                Data.Results.Peek, Task_ID => False);
+                                Data.Results.Peek, Task_ID => False, Strategy => True);
                         end if;
 
                         State_Ref (Parsers.First).Recover.Results.Add (Data.Results.Remove);
@@ -340,7 +340,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
 
                   if Trace_McKenzie > Outline or Trace_Parse > Outline then
                      Put ("", Trace, Cur.State_Ref.Label, Shared_Parser.Terminals, Data.Results.Peek,
-                          Task_ID => False);
+                          Task_ID => False, Strategy => True);
                   end if;
                else
                   if Trace_McKenzie > Outline then
@@ -1049,7 +1049,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
       Parser_Label : in     Natural;
       Terminals    : in     Base_Token_Arrays.Vector;
       Config       : in     Configuration;
-      Task_ID      : in     Boolean := True)
+      Task_ID      : in     Boolean := True;
+      Strategy     : in     Boolean := False)
    is
       --  For debugging output
 
@@ -1066,7 +1067,16 @@ package body WisiToken.Parse.LR.McKenzie_Recover is
         Integer'Image (Parser_Label) & ": " &
         (if Message'Length > 0 then Message & ":" else "");
    begin
-      Result := Result & Natural'Image (Config.Cost) & ", ";
+      Result := Result & Natural'Image (Config.Cost);
+      if Strategy or Trace_McKenzie > Extra then
+         Result := Result & ", (";
+         for C of Config.Strategy_Counts loop
+            Result := Result & Integer'Image (C);
+         end loop;
+         Result := Result & "), ";
+      else
+         Result := Result & ", ";
+      end if;
       if Config.Check_Status.Label /= Ok then
          Result := Result & Semantic_Checks.Check_Status_Label'Image (Config.Check_Status.Label) & " ";
       elsif Config.Error_Token.ID /= Invalid_Token_ID then

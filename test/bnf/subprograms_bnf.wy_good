@@ -50,7 +50,8 @@
 
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\n] ]%
-%non_grammar <comment> COMMENT %[ "--"[^\n]* ]%
+%non_grammar <comment> COMMENT_1 %[ "--"[^\n]* ]%
+%non_grammar <comment> COMMENT_2 %[ "//"[^\n]* ]%
 
 %start compilation_unit
 
