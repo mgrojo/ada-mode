@@ -660,6 +660,10 @@ is
          loop
             if Params (Last) /= ']' then
                Last := Index_Non_Blank (Params, Last + 1);
+               if Last = 0 then
+                  Put_Error (Error_Message (Input_Data.Grammar_Lexer.File_Name, RHS.Source_Line, "missing ']'"));
+                  return -Result;
+               end if;
             end if;
 
             exit when Params (Last) = ']';
