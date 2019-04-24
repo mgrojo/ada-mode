@@ -986,6 +986,10 @@ is
                end if;
             end;
 
+         elsif Elisp_Name = "wisi-name-action" then
+            Navigate_Lines.Append
+              ("Name_Action (Parse_Data, Tree, Nonterm, Tokens, " & Line (Last + 1 .. Line'Last) & ";");
+
          elsif Elisp_Name = "wisi-containing-action" then
             declare
                Params : constant String := Containing_Params (Line (Last + 1 .. Line'Last));
