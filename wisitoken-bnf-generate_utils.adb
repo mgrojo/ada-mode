@@ -45,9 +45,29 @@ package body WisiToken.BNF.Generate_Utils is
       return Invalid_Token_ID;
    end Find_Kind;
 
+   procedure Find_First_Last_Kind
+     (Data        : aliased in     Generate_Data;
+      Target_Kind :         in     String;
+      First       :            out Token_ID;
+      Last        :            out Token_ID)
+   is
+   begin
+      First := Invalid_Token_ID;
+      Last := Invalid_Token_ID;
+      for Cursor in All_Tokens (Data).Iterate loop
+         if Kind (Cursor) = Target_Kind then
+            if First = Invalid_Token_ID then
+               First := ID (Cursor);
+            else
+               Last := ID (Cursor);
+            end if;
+         end if;
+      end loop;
+   end Find_First_Last_Kind;
+
    function Name_1 (Cursor : in Token_Cursor) return String
    is begin
-      --   This function is used to compute LR1_descriptor.Image
+      --   This function is used to compute Descriptor.Image
       case Cursor.Kind is
       when Non_Grammar_Kind =>
          declare
@@ -236,7 +256,8 @@ package body WisiToken.BNF.Generate_Utils is
       do
          Result.Descriptor.Case_Insensitive := Input_Data.Language_Params.Case_Insensitive;
          Result.Descriptor.New_Line_ID      := Find_Kind (Result, "new-line");
-         Result.Descriptor.Comment_ID       := Find_Kind (Result, "comment");
+         Find_First_Last_Kind
+           (Result, "comment", Result.Descriptor.First_Comment_ID, Result.Descriptor.Last_Comment_ID);
          Result.Descriptor.Left_Paren_ID    := Find_Kind (Result, "left-paren");
          Result.Descriptor.Right_Paren_ID   := Find_Kind (Result, "right-paren");
          Result.Descriptor.String_1_ID      := Find_Kind (Result, "string-single");
@@ -250,7 +271,7 @@ package body WisiToken.BNF.Generate_Utils is
 
          Result.Descriptor.Last_Lookahead       :=
            (case (Input_Data.User_Parser) is
-            when None                                  => raise SAL.Programmer_Error,
+            when None                                  => Invalid_Token_ID,
             when LR1                                   => Result.Descriptor.Last_Terminal,
             when LALR                                  => Result.Descriptor.First_Nonterminal,
             when Packrat_Generate_Algorithm | External => Invalid_Token_ID);

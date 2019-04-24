@@ -56,6 +56,15 @@ package WisiToken.Parse.LR.AUnit is
 
    procedure Check is new Config_Op_Arrays.Gen_AUnit (SAL.AUnit.Check, Check);
 
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Strategies);
+
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Array
+     (Item_Type   => Natural,
+      Index_Type  => Strategies,
+      Array_Type  => Strategy_Counts,
+      Check_Index => Check,
+      Check_Item  => Standard.AUnit.Checks.Check);
+
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Parse_Error_Label);
 
    procedure Check

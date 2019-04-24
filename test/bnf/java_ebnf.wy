@@ -38,10 +38,11 @@ compilationUnit
     ;
 
 statement
-    : blockLabel=block
-    | TRY block (catchClause+ finallyBlock? | finallyBlock)
-    | SWITCH parExpression '{' switchBlockStatementGroup* switchLabel* '}'
-    ;
+  : blockLabel=block
+  | TRY block (catchClause+ finallyBlock? | finallyBlock)
+    %((wisi-statement-action [1 statement-start]))%
+  | SWITCH parExpression '{' switchBlockStatementGroup* switchLabel* '}'
+  ;
 
 ;; rhs_group_item QUESTION | STRING_LITERAL_2 QUESTION
 enumDeclaration
@@ -92,4 +93,10 @@ interfaceMethodDeclaration
     : interfaceMethodModifier* (typeTypeOrVoid | typeParameters annotation* typeTypeOrVoid)
       IDENTIFIER formalParameters ('[' ']')* (THROWS qualifiedNameList)? methodBody
     ;
+
+;; trailing optional with multiple tokens
+typeParameter
+    : annotation* IDENTIFIER (EXTENDS typeBound)?
+    ;
+
 ;; end of file

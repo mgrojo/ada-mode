@@ -76,6 +76,7 @@ package WisiToken.Generate.LR.LALR_Generate is
       Has_Empty_Production    : in     Token_ID_Set;
       First_Nonterm_Set       : in     Token_Array_Token_Set;
       First_Terminal_Sequence : in     Token_Sequence_Arrays.Vector;
+      Conflict_Counts         :    out Conflict_Count_Lists.List;
       Conflicts               :    out Conflict_Lists.List;
       Table                   : in out Parse_Table;
       Descriptor              : in     WisiToken.Descriptor);

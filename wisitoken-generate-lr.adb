@@ -211,6 +211,7 @@ package body WisiToken.Generate.LR is
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First_Nonterm_Set    : in     Token_Array_Token_Set;
+      Conflict_Counts      : in out Conflict_Count_Lists.List;
       Conflicts            : in out Conflict_Lists.List;
       Descriptor           : in     WisiToken.Descriptor)
    is
@@ -252,7 +253,52 @@ package body WisiToken.Generate.LR is
                     (Closure, Action_B, Symbol, Grammar, Has_Empty_Production, First_Nonterm_Set, Descriptor),
                   State_Index => Closure.State,
                   On          => Symbol);
+
+               Counts : Conflict_Count_Lists.Cursor;
             begin
+               for Cur in Conflict_Counts.Iterate loop
+                  if Conflict_Counts (Cur).State = Closure.State then
+                     Counts := Cur;
+                     exit;
+                  end if;
+               end loop;
+
+               if not Conflict_Count_Lists.Has_Element (Counts) then
+                  Conflict_Counts.Append ((Closure.State, others => 0));
+                  Counts := Conflict_Counts.Last;
+               end if;
+
+               declare
+                  use Conflict_Count_Lists;
+                  Counts_Ref : constant Reference_Type := Reference (Conflict_Counts, Counts);
+               begin
+                  case Action_A.Verb is
+                  when Shift =>
+                     case Action_B.Verb is
+                     when Shift | Accept_It | WisiToken.Parse.LR.Error =>
+                        raise SAL.Programmer_Error;
+                     when Reduce =>
+                        Counts_Ref.Shift_Reduce := Counts_Ref.Shift_Reduce + 1;
+                     end case;
+                  when Reduce =>
+                     case Action_B.Verb is
+                     when Shift | Accept_It | WisiToken.Parse.LR.Error =>
+                        raise SAL.Programmer_Error;
+                     when Reduce =>
+                        Counts_Ref.Reduce_Reduce := Counts_Ref.Reduce_Reduce + 1;
+                     end case;
+                  when Accept_It =>
+                     case Action_B.Verb is
+                     when Shift | Accept_It | WisiToken.Parse.LR.Error =>
+                        raise SAL.Programmer_Error;
+                     when Reduce =>
+                        Counts_Ref.Accept_Reduce := Counts_Ref.Accept_Reduce + 1;
+                     end case;
+                  when WisiToken.Parse.LR.Error =>
+                     raise SAL.Programmer_Error;
+                  end case;
+               end;
+
                if not Is_Present (New_Conflict, Conflicts) then
                   --  The same conflict may occur in a different
                   --  item set. Only add it to conflicts once.
@@ -285,6 +331,7 @@ package body WisiToken.Generate.LR is
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First_Nonterm_Set    : in     Token_Array_Token_Set;
+      Conflict_Counts      : in out Conflict_Count_Lists.List;
       Conflicts            : in out Conflict_Lists.List;
       Descriptor           : in     WisiToken.Descriptor)
    is
@@ -302,7 +349,7 @@ package body WisiToken.Generate.LR is
 
             Add_Lookahead_Actions
               (Item, Table.States (State).Action_List, Grammar, Has_Empty_Production, First_Nonterm_Set,
-               Conflicts, Closure, Descriptor);
+               Conflict_Counts, Conflicts, Closure, Descriptor);
 
          elsif Element (Item.Dot) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
@@ -326,7 +373,7 @@ package body WisiToken.Generate.LR is
                         --  EOF is not pushed on stack in parser, because the action for EOF
                         --  is Accept, not Shift.
                         Table.States (State).Action_List, Closure,
-                        Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
+                        Grammar, Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
                   end;
                else
                   if Goto_State /= Unknown_State then
@@ -334,7 +381,8 @@ package body WisiToken.Generate.LR is
                        (Dot_ID,
                         (Shift, Goto_State),
                         Table.States (State).Action_List,
-                        Closure, Grammar, Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
+                        Closure, Grammar, Has_Empty_Production, First_Nonterm_Set,
+                        Conflict_Counts, Conflicts, Descriptor);
                   end if;
                end if;
             end;
@@ -405,6 +453,7 @@ package body WisiToken.Generate.LR is
       Grammar              : in     WisiToken.Productions.Prod_Arrays.Vector;
       Has_Empty_Production : in     Token_ID_Set;
       First_Nonterm_Set    : in     Token_Array_Token_Set;
+      Conflict_Counts      : in out Conflict_Count_Lists.List;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Descriptor           : in     WisiToken.Descriptor)
@@ -425,7 +474,7 @@ package body WisiToken.Generate.LR is
             else
                Add_Action
                  (Lookahead, Action, Action_List, Closure, Grammar,
-                  Has_Empty_Production, First_Nonterm_Set, Conflicts, Descriptor);
+                  Has_Empty_Production, First_Nonterm_Set, Conflict_Counts, Conflicts, Descriptor);
             end if;
          end if;
       end loop;
@@ -1171,7 +1220,7 @@ package body WisiToken.Generate.LR is
       Title      : in String;
       Grammar    : in WisiToken.Productions.Prod_Arrays.Vector;
       Kernels    : in LR1_Items.Item_Set_List;
-      Conflicts  : in Conflict_Lists.List;
+      Conflicts  : in Conflict_Count_Lists.List;
       Descriptor : in WisiToken.Descriptor)
    is
       use all type Ada.Containers.Count_Type;
@@ -1210,40 +1259,16 @@ package body WisiToken.Generate.LR is
       if Conflicts.Length > 0 then
          declare
             use Ada.Strings.Unbounded;
-            Last_State    : Unknown_State_Index := Unknown_State;
-            Line          : Unbounded_String    := +"States with conflicts:";
-            Accept_Reduce : Integer             := 0;
-            Shift_Reduce  : Integer             := 0;
-            Reduce_Reduce : Integer             := 0;
+            Line          : Unbounded_String := +"States with conflicts:";
+            Accept_Reduce : Integer          := 0;
+            Shift_Reduce  : Integer          := 0;
+            Reduce_Reduce : Integer          := 0;
          begin
-            for Conflict of Conflicts loop
-               if Conflict.State_Index /= Last_State then
-                  Append (Line, State_Index'Image (Conflict.State_Index));
-                  Last_State := Conflict.State_Index;
-               end if;
-               case Conflict.Action_A is
-               when Shift =>
-                  case Conflict.Action_B is
-                  when Shift | Accept_It =>
-                     raise SAL.Programmer_Error;
-                  when Reduce =>
-                     Shift_Reduce := Shift_Reduce + 1;
-                  end case;
-               when Reduce =>
-                  case Conflict.Action_B is
-                  when Shift | Accept_It =>
-                     raise SAL.Programmer_Error;
-                  when Reduce =>
-                     Reduce_Reduce := Reduce_Reduce + 1;
-                  end case;
-               when Accept_It =>
-                  case Conflict.Action_B is
-                  when Shift | Accept_It =>
-                     raise SAL.Programmer_Error;
-                  when Reduce =>
-                     Accept_Reduce := Accept_Reduce + 1;
-                  end case;
-               end case;
+            for Count of Conflicts loop
+               Line          := Line & State_Index'Image (Count.State);
+               Accept_Reduce := Accept_Reduce + Count.Accept_Reduce;
+               Shift_Reduce  := Shift_Reduce + Count.Shift_Reduce;
+               Reduce_Reduce := Reduce_Reduce + Count.Reduce_Reduce;
             end loop;
 
             New_Line;

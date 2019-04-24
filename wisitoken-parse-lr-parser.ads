@@ -59,13 +59,16 @@ package WisiToken.Parse.LR.Parser is
       Config               : in     Configuration;
       Use_Complete         :    out Boolean;
       Matching_Begin_Token :    out Token_ID);
-   --  Set Use_Complete True if using Minimal_Complete_Actions is
-   --  appropriate. Set Matching_Begin_Token to token that starts a production
-   --  matching Next_Token (and following tokens, if any).
+   --  Current_Token caused a parse error; Next_Token is the token
+   --  following that (Invalid_Token_ID if none). Set Use_Complete True
+   --  if using Minimal_Complete_Actions is appropriate. Set
+   --  Matching_Begin_Token to token that starts a production matching
+   --  Next_Token (and following tokens, if any).
    --
-   --  For example, if Next_Token is a block end, return True to complete
-   --  the current statement/declaration as quickly as possible, and
-   --  Matching_Begin_Token to the corresponding block begin.
+   --  For example, if Next_Token is a block end, Set Use_Complete True
+   --  to complete the current statement/declaration as quickly as
+   --  possible, and set Matching_Begin_Token to the corresponding block
+   --  begin.
 
    type Language_String_ID_Set_Access is access function
      (Descriptor        : in WisiToken.Descriptor;
@@ -73,7 +76,7 @@ package WisiToken.Parse.LR.Parser is
      return Token_ID_Set;
    --  Return a Token_ID_Set containing String_Literal_ID and
    --  nonterminals that can contain String_Literal_ID as part of an
-   --  expression.
+   --  expression. Used in placing a missing string quote.
 
    type Post_Recover_Access is access procedure;
 

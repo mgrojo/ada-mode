@@ -78,8 +78,9 @@ package body Subprograms_Process_Packrat_Proc_Main is
             RHS : Right_Hand_Side;
          begin
             RHS.Tokens.Set_First (1);
-            RHS.Tokens.Set_Last (2);
-            To_Vector ((3, 4), RHS.Tokens);
+            RHS.Tokens.Set_Last (3);
+            To_Vector ((3, 25, 4), RHS.Tokens);
+            RHS.Action     := block_1'Access;
             Prod.RHSs (1) := RHS;
          end;
          Grammar (21) := Prod;
@@ -220,7 +221,7 @@ package body Subprograms_Process_Packrat_Proc_Main is
       begin
          Prod.LHS := 28;
          Prod.RHSs.Set_First (0);
-         Prod.RHSs.Set_Last (2);
+         Prod.RHSs.Set_Last (1);
          declare
             RHS : Right_Hand_Side;
          begin
@@ -239,11 +240,6 @@ package body Subprograms_Process_Packrat_Proc_Main is
             RHS.Action     := parameter_list_1'Access;
             Prod.RHSs (1) := RHS;
          end;
-         declare
-            RHS : Right_Hand_Side;
-         begin
-            Prod.RHSs (2) := RHS;
-         end;
          Grammar (28) := Prod;
       end;
       declare
@@ -251,7 +247,7 @@ package body Subprograms_Process_Packrat_Proc_Main is
       begin
          Prod.LHS := 29;
          Prod.RHSs.Set_First (0);
-         Prod.RHSs.Set_Last (1);
+         Prod.RHSs.Set_Last (2);
          declare
             RHS : Right_Hand_Side;
          begin
@@ -265,10 +261,19 @@ package body Subprograms_Process_Packrat_Proc_Main is
             RHS : Right_Hand_Side;
          begin
             RHS.Tokens.Set_First (1);
-            RHS.Tokens.Set_Last (6);
-            To_Vector ((10, 26, 28, 4, 26, 17), RHS.Tokens);
+            RHS.Tokens.Set_Last (4);
+            To_Vector ((7, 26, 21, 17), RHS.Tokens);
             RHS.Action     := subprogram_1'Access;
             Prod.RHSs (1) := RHS;
+         end;
+         declare
+            RHS : Right_Hand_Side;
+         begin
+            RHS.Tokens.Set_First (1);
+            RHS.Tokens.Set_Last (6);
+            To_Vector ((10, 26, 28, 4, 26, 17), RHS.Tokens);
+            RHS.Action     := subprogram_2'Access;
+            Prod.RHSs (2) := RHS;
          end;
          Grammar (29) := Prod;
       end;

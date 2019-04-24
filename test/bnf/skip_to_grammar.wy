@@ -1,4 +1,4 @@
-;; Small grammar for testing lexer 'skip_to' function
+;; Small grammar for testing lexer 'skip_to' function, and two comment tokens.
 ;;
 ;; Tests run by test_skip_to.ads
 
@@ -9,7 +9,8 @@
 %token <symbol> IDENTIFIER %[ [a-zA-Z][0-9a-zA-Z_-]* ]%
 %non_grammar <non-reporting> WHITESPACE %[ [ \t] ]%
 %non_grammar <new-line> NEW_LINE %[ [\x0a]|[\x0d][\x0a] ]%
-%non_grammar <comment> COMMENT %[ ";;"[^\x0a\x04]* ]%
+%non_grammar <comment> COMMENT_1 %[ ";;"[^\x0a\x04]* ]%
+%non_grammar <comment> COMMENT_2 %[ "--"[^\x0a\x04]* ]%
 
 %start compilation_unit_list
 

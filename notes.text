@@ -21,6 +21,19 @@ update-wisitoken_grammar
    ("../org.wisitoken.stephe-2"        . "../org.wisitoken")))
 
  current work
+doing java_wisi actions; may find more test cases
+
+descriptor.left_paren_id only used in ada-mode wisi.adb
+    new_line also
+    move to wisi.data_type?
+        needs a generic param?
+        set in language-specific initialize?
+
+use First to compute String_ID_Set?
+
+make "canonical list" compatible with packrat
+    ie swap rhs_index 0, 1
+
 java
     c:/Projects/org.emacs.java-wisi/source/java_antlr.wy
     done with syntax

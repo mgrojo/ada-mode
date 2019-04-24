@@ -506,6 +506,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
                New_Config.Ops.Append ((Push_Back, Token.ID, Token.Min_Terminal_Index));
                New_Config.Current_Shared_Token := Token.Min_Terminal_Index;
             end if;
+            New_Config.Strategy_Counts (Explore_Table) := New_Config.Strategy_Counts (Explore_Table) + 1;
 
             Local_Config_Heap.Add (New_Config);
 
@@ -829,10 +830,11 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
       function String_ID_Set (String_ID : in Token_ID) return Token_ID_Set
       is begin
-         return
-           (if Shared.Language_String_ID_Set = null
-            then (Descriptor.First_Terminal .. Descriptor.Last_Terminal => True)
-            else Shared.Language_String_ID_Set (Descriptor, String_ID));
+         if Shared.Language_String_ID_Set = null then
+            return (String_ID .. String_ID => True);
+         else
+            return Shared.Language_String_ID_Set (Descriptor, String_ID);
+         end if;
       end String_ID_Set;
 
       procedure String_Literal_In_Stack
@@ -929,7 +931,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             end if;
          end if;
 
-         Config.Strategy_Counts (String_Quote) := Config.Strategy_Counts (String_Quote) + 1;
+         New_Config.Strategy_Counts (String_Quote) := New_Config.Strategy_Counts (String_Quote) + 1;
 
          if Trace_McKenzie > Detail then
             Base.Put ("insert missing quote " & Label & " ", Super, Shared, Parser_Index, New_Config);
@@ -1139,6 +1141,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
             New_Config.Check_Status   := (Label => WisiToken.Semantic_Checks.Ok);
 
             New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (ID);
+            New_Config.Strategy_Counts (Explore_Table) := Config.Strategy_Counts (Explore_Table) + 1;
 
             if Match_Since_FF (Config.Ops, (Push_Back, ID, Config.Current_Shared_Token))
             then
@@ -1351,7 +1354,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       else
          declare
             Current_Token : Token_ID;
-            Next_Token : Token_ID;
+            Next_Token    : Token_ID;
          begin
             Current_Token_ID_Peek_2
               (Shared.Terminals.all, Config.Current_Shared_Token, Config.Insert_Delete, Config.Current_Insert_Delete,

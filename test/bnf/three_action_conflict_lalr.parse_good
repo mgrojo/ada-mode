@@ -149,7 +149,7 @@ lambdaParameters_0: (lambdaParameters, (142 . 146)) <= ( 18:(LPAREN, (142 . 142)
  1: 15: expecting: LBRACE
  1: zombie
 recover
- 1:  4, (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((INSERT, LBRACE, 22))
+ 1:  4, ( 0 0 0 1 0), (1 : (LBRACE))| 22:(IDENTIFIER, (150 . 152))|((INSERT, LBRACE, 22))
 recover: succeed, parser count 3
  6: Current_Token  21:(ARROW, (147 . 148)) Shared_Token  21:(ARROW, (147 . 148))
  6: resume_active: True, token goal 0

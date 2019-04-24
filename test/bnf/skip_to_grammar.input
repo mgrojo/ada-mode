@@ -1,6 +1,8 @@
 %{
 %}
 
+-- other comment
+
 %token RANGE range
 
 ;; end of file
