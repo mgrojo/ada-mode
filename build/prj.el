@@ -103,9 +103,7 @@
       (find-file abs-file)
       (search-forward subprogram-name))))
 
-(defun wisitoken-compilation-next ()
-  (interactive)
-  (search-forward "FAIL")
+(defun wisitoken-compilation-finish ()
   (forward-line)
   (back-to-indentation)
   (unless (looking-at "[0-9a-z-_]+\\.[a-z_]+:[0-9]+") ;; a file diff failed
@@ -113,7 +111,21 @@
     (forward-word 2)) ;; an AUnit test failed
   )
 
+(defun wisitoken-compilation-prev ()
+  (interactive)
+  (forward-line -2)
+  (search-backward "FAIL")
+  (wisitoken-compilation-finish)
+  )
+
+(defun wisitoken-compilation-next ()
+  (interactive)
+  (search-forward "FAIL")
+  (wisitoken-compilation-finish)
+  )
+
 (define-key compilation-mode-map "e" #'wisitoken-ediff-good)
 (define-key compilation-mode-map "n" #'wisitoken-compilation-next)
+(define-key compilation-mode-map "p" #'wisitoken-compilation-prev)
 (define-key compilation-mode-map "g" #'wisitoken-goto-aunit-fail)
 ;; end of file
