@@ -732,13 +732,6 @@ TOKEN-TEXT; move point to just past token."
   (concat ada-wisi-partial-begin-regexp
 	  "\\|;"))
 
-(defun ada-wisi-search-backward-skip (regexp skip-p)
-  (let ((maybe-found-p (search-backward-regexp regexp nil t)))
-    (while (and maybe-found-p
-		(funcall skip-p)
-		(setq maybe-found-p (search-backward-regexp regexp nil t))))
-    maybe-found-p))
-
 (defun ada-wisi-find-begin ()
   "Starting at current point, search backward for a parse start point."
 
@@ -763,7 +756,7 @@ TOKEN-TEXT; move point to just past token."
   ;; This is handled by the set of keywords in
   ;; ada-wisi-partial-begin-regexp.
   (cond
-   ((ada-wisi-search-backward-skip
+   ((wisi-search-backward-skip
      ada-wisi-partial-begin-regexp
      (lambda ()
        (or (ada-in-string-or-comment-p)
@@ -869,15 +862,6 @@ Point must have been set by `ada-wisi-find-begin'."
 
 	))
     result))
-
-(defun ada-wisi-show-expanded-region ()
-  "For debugging. Expand currently selected region."
-  (interactive)
-  (let ((region (wisi-parse-expand-region wisi--parser (region-beginning) (region-end))))
-    (message "pre (%d . %d) post %s" (region-beginning) (region-end) region)
-    (set-mark (car region))
-    (goto-char (cdr region))
-    ))
 
 (cl-defmethod wisi-parse-adjust-indent ((_parser ada-wisi-parser) indent repair)
   (cond
