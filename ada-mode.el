@@ -635,7 +635,7 @@ Placeholders are defined by the skeleton backend."
      (valid   . (lambda () (ada-align-valid)))
      (modes   . '(ada-mode)))
     (ada-at
-     (regexp . "\\(\\s-+\\)\\(at\\)\\>")
+     (regexp . "\\(\\s-+\\)\\(at\\)\\_>")
      (valid   . (lambda () (ada-align-valid)))
      (modes . '(ada-mode))))
   "Rules to use to align different lines.")
@@ -668,7 +668,7 @@ Placeholders are defined by the skeleton backend."
      "return\\|"
      "type\\|"
      "when"
-     "\\)\\>[^_]\\)")) ;; in case "_" has punctuation syntax
+     "\\)\\_>\\)"))
   "See the variable `align-region-separate' for more information.")
 
 (defun ada-align ()
@@ -2124,7 +2124,6 @@ other file.")
 
 (defun ada-which-function (&optional include-type)
   "See `ada-which-function' variable."
-  (interactive "P")
   (when ada-which-function
     (funcall ada-which-function include-type)))
 
@@ -2871,7 +2870,7 @@ The paragraph is indented on the first line."
    ;; Grammar actions set `font-lock-face' property for all
    ;; non-keyword tokens that need it.
   (list
-   (list (concat "\\<" (regexp-opt ada-keywords t) "\\>") '(0 font-lock-keyword-face))
+   (list (concat "\\_<" (regexp-opt ada-keywords t) "\\_>") '(0 font-lock-keyword-face))
    ))
 
 ;;;; ada-mode
@@ -2961,7 +2960,7 @@ The paragraph is indented on the first line."
 		 (modes   . '(ada-mode))))
   (add-to-list 'align-exclude-rules-list
 	       '(ada-solo-use
-		 (regexp  . "^\\(\\s-*\\)\\<use\\>")
+		 (regexp  . "^\\(\\s-*\\)\\_<use\\_>")
 		 (modes   . '(ada-mode))))
 
   (setq align-mode-rules-list ada-align-rules)

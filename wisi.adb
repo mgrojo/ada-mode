@@ -648,16 +648,16 @@ package body Wisi is
          then
             --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
             declare
-               First_Unset_Line : Line_Number_Type;
+               First_Set_Line : Line_Number_Type;
             begin
                for Line in reverse Data.Line_Begin_Pos.First_Index .. Token.Line - 1 loop
                   if Data.Line_Begin_Pos (Line) /= Invalid_Buffer_Pos then
-                     First_Unset_Line := Line;
+                     First_Set_Line := Line;
                      exit;
                   end if;
                end loop;
-               for Line in First_Unset_Line .. Token.Line - 1 loop
-                  Data.Line_Begin_Pos (Line) := Data.Line_Begin_Pos (First_Unset_Line); -- good enough
+               for Line in First_Set_Line + 1 .. Token.Line - 1 loop
+                  Data.Line_Begin_Pos (Line) := Data.Line_Begin_Pos (First_Set_Line); -- good enough
                end loop;
             end;
          end if;
@@ -1558,6 +1558,9 @@ package body Wisi is
       function Get_Last_Line return Line_Number_Type
       is begin
          for I in Data.Line_Begin_Pos.First_Index .. Data.Line_Begin_Pos.Last_Index loop
+            if Data.Line_Begin_Pos (I) = Invalid_Buffer_Pos then
+               raise SAL.Programmer_Error with "line_begin_pos" & Line_Number_Type'Image (I) & " invalid";
+            end if;
             if Data.Line_Begin_Pos (I) > Last_Char_Pos then
                if I > Line_Number_Type'First then
                   return I - 1;

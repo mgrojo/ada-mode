@@ -31,12 +31,13 @@
   (unless (fboundp 'refresh-project)
   ;; In emacs 27
 
-  (cl-defgeneric project-refresh (prj)
-    "Refresh all cached data in PRJ.")
+  (cl-defgeneric project-refresh (prj full)
+    "Refresh all cached data in PRJ.
+If FULL is non-nil, very slow refresh operations may be skipped.")
 
-  (defun refresh-project ()
-    (interactive)
-    (project-refresh (project-current)))
+  (defun refresh-project (full)
+    (interactive "P")
+    (project-refresh (project-current) full))
 
   (cl-defgeneric project-select (prj)
     "User has selected PRJ as the active project; take actions to make that so."

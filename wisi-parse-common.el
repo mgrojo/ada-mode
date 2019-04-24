@@ -66,6 +66,35 @@ contains END, and ends at a point the parser can handle
 gracefully."
   (cons begin end))
 
+(defun wisi-search-backward-skip (regexp skip-p)
+  "Search backward for REGEXP. If SKIP-P returns non-nil, search again.
+SKIP-P is a function taking no parameters.
+Return nil if no match found before bob."
+  (let ((maybe-found-p (search-backward-regexp regexp nil t)))
+    (while (and maybe-found-p
+		(funcall skip-p)
+		(setq maybe-found-p (search-backward-regexp regexp nil t))))
+    maybe-found-p))
+
+(defun wisi-search-forward-skip (regexp skip-p)
+  "Search forward for REGEXP. If SKIP-P returns non-nil, search again.
+SKIP-P is a function taking no parameters.
+Return nil if no match found before eob."
+  (let ((maybe-found-p (search-forward-regexp regexp nil t)))
+    (while (and maybe-found-p
+		(funcall skip-p)
+		(setq maybe-found-p (search-forward-regexp regexp nil t))))
+    maybe-found-p))
+
+(defun wisi-show-expanded-region ()
+  "For debugging. Expand currently selected region."
+  (interactive)
+  (let ((region (wisi-parse-expand-region wisi--parser (region-beginning) (region-end))))
+    (message "pre (%d . %d) post %s" (region-beginning) (region-end) region)
+    (set-mark (car region))
+    (goto-char (cdr region))
+    ))
+
 (cl-defgeneric wisi-parse-adjust-indent ((parser wisi-parser) indent _repair)
   "Adjust INDENT for REPAIR (a wisi--parse-error-repair struct). Return new indent."
   indent)

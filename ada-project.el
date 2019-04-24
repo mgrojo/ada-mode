@@ -89,9 +89,11 @@
   ;; :before ensures env vars are not erased before we are done with them.
   (ada-deselect-prj (ada-project-ada-prj prj)))
 
-(cl-defmethod project-refresh ((_prj ada-project))
+(cl-defmethod project-refresh ((_prj ada-project) full)
   ;; assume prj is current
-  (ada-refresh-prj-file))
+  (ada-refresh-prj-file)
+  (ada-xref-refresh full))
+
 (provide 'ada-project)
 
 ;; end of file

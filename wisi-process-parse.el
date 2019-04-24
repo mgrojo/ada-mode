@@ -569,6 +569,9 @@ Send BEGIN thru SEND-END to external parser."
 
 		     ((equal 'parse_error (car response))
 		      ;; Parser detected some other error non-fatal error, so signal it.
+		      (push
+			 (make-wisi--parse-error :pos 0 :message (cadr response))
+			 (wisi-parser-parse-errors parser))
 		      (signal 'wisi-parse-error (cdr response)))
 
 		     ((and (eq 'error (car response))
