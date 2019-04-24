@@ -96,6 +96,13 @@ package Wisi is
       Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
       Params  : in     Statement_Param_Array);
 
+   procedure Name_Action
+     (Data    : in out Parse_Data_Type;
+      Tree    : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Name    : in     WisiToken.Positive_Index_Type);
+
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
       Tree       : in     WisiToken.Syntax_Trees.Tree;
@@ -442,15 +449,15 @@ private
    Nil : constant Nil_Buffer_Pos := (Set => False);
 
    type Navigate_Cache_Type is record
-      Pos            : WisiToken.Buffer_Pos;          -- implicit in wisi-cache
-      Statement_ID   : WisiToken.Token_ID;  -- wisi-cache-nonterm
-      ID             : WisiToken.Token_ID;  -- wisi-cache-token
-      Length         : Natural;             -- wisi-cache-last
-      Class          : Navigate_Class_Type; -- wisi-cache-class; one of wisi-class-list
-      Containing_Pos : Nil_Buffer_Pos;      -- wisi-cache-containing
-      Prev_Pos       : Nil_Buffer_Pos;      -- wisi-cache-prev
-      Next_Pos       : Nil_Buffer_Pos;      -- wisi-cache-next
-      End_Pos        : Nil_Buffer_Pos;      -- wisi-cache-end
+      Pos            : WisiToken.Buffer_Pos; -- implicit in wisi-cache
+      Statement_ID   : WisiToken.Token_ID;   -- wisi-cache-nonterm
+      ID             : WisiToken.Token_ID;   -- wisi-cache-token
+      Length         : Natural;              -- wisi-cache-last
+      Class          : Navigate_Class_Type;  -- wisi-cache-class
+      Containing_Pos : Nil_Buffer_Pos;       -- wisi-cache-containing
+      Prev_Pos       : Nil_Buffer_Pos;       -- wisi-cache-prev
+      Next_Pos       : Nil_Buffer_Pos;       -- wisi-cache-next
+      End_Pos        : Nil_Buffer_Pos;       -- wisi-cache-end
    end record;
 
    function Key (Cache : in Navigate_Cache_Type) return WisiToken.Buffer_Pos is (Cache.Pos);
@@ -462,6 +469,11 @@ private
 
    package Navigate_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
      (Navigate_Cache_Type, WisiToken.Buffer_Pos);
+
+   function Key (Cache : in WisiToken.Buffer_Region) return WisiToken.Buffer_Pos is (Cache.First);
+
+   package Name_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees
+     (WisiToken.Buffer_Region, WisiToken.Buffer_Pos);
 
    type Nil_Integer (Set : Boolean := False) is record
       case Set is
@@ -548,6 +560,7 @@ private
       Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
       Post_Parse_Action : Post_Parse_Action_Type;
       Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
+      Name_Caches       : Name_Cache_Trees.Tree;      -- Set by Navigate.
       End_Positions     : Navigate_Cursor_Lists.List; -- Dynamic data for Navigate.
       Face_Caches       : Face_Cache_Trees.Tree;      -- Set by Face.
       Indents           : Indent_Vectors.Vector;      -- Set by Indent.

@@ -31,7 +31,8 @@ package Ada_Process_Actions is
       Accept_ID                     => 108,
       Case_Insensitive              => True,
       New_Line_ID                   => 1,
-      Comment_ID                    => 2,
+      First_Comment_ID              => 2,
+      Last_Comment_ID               => 2147483647,
       Left_Paren_ID                 => 76,
       Right_Paren_ID                => 77,
       String_1_ID                   => 106,
@@ -1179,6 +1180,11 @@ package Ada_Process_Actions is
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
      Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
    procedure identifier_list_0
+    (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
+     Tree      : in out WisiToken.Syntax_Trees.Tree;
+     Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;
+     Tokens    : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array);
+   procedure identifier_list_1
     (User_Data : in out WisiToken.Syntax_Trees.User_Data_Type'Class;
      Tree      : in out WisiToken.Syntax_Trees.Tree;
      Nonterm   : in     WisiToken.Syntax_Trees.Valid_Node_Index;

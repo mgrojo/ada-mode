@@ -255,6 +255,17 @@ complete."
 	)))
     ))
 
+(defun wisi-process-parse--Name_Property (parser sexp)
+  ;; sexp is [Name_Property first-pos last-pos]
+  ;; see ‘wisi-process-parse--execute’
+  ;; implements wisi-name-action
+  (with-silent-modifications
+    (add-text-properties
+     (aref sexp 1)
+     (1+ (aref sexp 2))
+     '(wisi-name t)
+     )))
+
 (defun wisi-process-parse--Face_Property (parser sexp)
   ;; sexp is [Face_Property first-pos last-pos face-index]
   ;; see ‘wisi-process-parse--execute’
@@ -380,6 +391,8 @@ complete."
   ;;    length        : integer character count
   ;;    class         : integer index into wisi-class-list
   ;;
+  ;; [Name_Property first-pos last-pos]
+  ;;
   ;; [Face_Property first-pos last-pos face-index]
   ;;    Set a font-lock-face text-property
   ;;    face-index: integer index into parser-elisp-face-table
@@ -431,6 +444,7 @@ complete."
     (6  (wisi-process-parse--Check_Error parser sexp))
     (7  (wisi-process-parse--Recover parser sexp))
     (8  (wisi-process-parse--End parser sexp))
+    (9  (wisi-process-parse--Name_Property parser sexp))
     ))
 
 ;;;;; main
@@ -597,12 +611,13 @@ Send BEGIN thru SEND-END to external parser."
 		       (push (make-wisi--parse-error :pos (point) :message (cadr err)) (wisi-parser-parse-errors parser))
 		       (signal (car err) (cdr err)))
 
-		      (error ;; ie from [C:\Windows\system32\KERNEL32.DLL]
+		      (error ;; ie from [C:\Windows\system32\KERNEL32.DLL], or bug in action code above.
 		       (set-buffer response-buffer)
 		       (let ((content (buffer-substring-no-properties (point-min) (point-max)))
 			     (buf-name (concat (buffer-name) "-save-error")))
 			 (set-buffer (get-buffer-create buf-name))
 			 (insert content)
+			 (insert (format "%s" err))
 			 (error "parser failed; error messages in %s" buf-name)))
 		      ))
 		   )

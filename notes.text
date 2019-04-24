@@ -54,6 +54,14 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
+use 'wisi-name in which-function, log-function-name
+
+need wisi-containing-action?
+    not in Ada; check elisp
+
+need wisi-statement-action?
+    motion-action could take same args, except for []
+
 process protocol changed
     check protocol version in process start
 

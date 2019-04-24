@@ -123,6 +123,7 @@
 (require 'wisi-parse-common)
 (require 'wisi-elisp-lexer)
 (require 'wisi-fringe)
+(require 'xref)
 
 (defcustom wisi-size-threshold most-positive-fixnum
   "Max size (in characters) for using wisi parser results for anything."
@@ -1319,6 +1320,75 @@ If non-nil, only repair errors in BEG END region."
 		     (<= (wisi--parse-error-pos data) end)))
 	(wisi-repair-error-1 data)))
     ))
+
+;;; xref integration
+(defun wisi-xref-ident-make (identifier other-function)
+  (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
+	 ;; If t-prop is non-nil: identifier is from
+	 ;; identifier-at-point, the desired location is the ’other’
+	 ;; (spec/body).
+	 ;;
+	 ;; If t-prop is nil: identifier is from prompt/completion,
+	 ;; the line number may be included in the identifier
+	 ;; wrapped in <>, and the desired file is the current file.
+	 (ident
+	  (if t-prop
+	      (substring-no-properties identifier 0 nil)
+	    (string-match "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?" identifier)
+	    (match-string 1 identifier)
+	    ))
+	 (file
+	  (if t-prop
+	      (plist-get t-prop ':file)
+	    (buffer-file-name)))
+	 (line
+	  (if t-prop
+	      (plist-get t-prop ':line)
+	    (when (match-string 2 identifier)
+	      (string-to-number (match-string 2 identifier)))))
+	 (column
+	  (if t-prop
+	      (plist-get t-prop ':column)
+	    0))
+	 )
+
+    (if t-prop
+	(funcall other-function ident file line column)
+
+      (list (xref-make ident (xref-make-file-location file line column)))
+      )))
+
+(defun wisi-xref-identifier-at-point ()
+  (let ((ident (thing-at-point 'symbol)))
+    (when ident
+      (put-text-property
+       0 1
+       'xref-identifier
+       (list ':file (buffer-file-name)
+	     ':line (line-number-at-pos)
+	     ':column (current-column))
+       ident)
+      ident)))
+
+(defun wisi-xref-identifier-completion-table ()
+  (wisi-validate-cache (point-min) (point-max) t 'navigate)
+  (let ((table nil)
+	(pos (point-min))
+	end-pos)
+    (while (setq pos (next-single-property-change pos 'wisi-name))
+      ;; We can’t store location data in a string text property -
+      ;; it does not survive completion. So we include the line
+      ;; number in the identifier string. This also serves to
+      ;; disambiguate overloaded identifiers.
+      (setq end-pos (next-single-property-change pos 'wisi-name))
+      (push
+       (format "%s<%d>"
+	       (buffer-substring-no-properties pos end-pos)
+	       (line-number-at-pos pos))
+       table)
+      (setq pos end-pos)
+      )
+    table))
 
 ;;;; debugging
 

@@ -781,6 +781,22 @@ grammar action as:
 	    ))
 	))))
 
+(defun wisi-name-action (name)
+  ;; Not wisi-elisp-parse--name-action to simplify grammar files
+  "NAME is a token number; mark that token with the 'wisi-name text property.
+Intended as a grammar action."
+  (when (eq wisi--parse-action 'navigate)
+    (let ((region (wisi-tok-region (aref wisi-tokens (1- name)))))
+      (when region
+	;; region can be null on an optional or virtual token
+	(with-silent-modifications
+	  (put-text-property
+	   (car region)
+	   (cdr region)
+	   '(wisi-name t)
+	   ))
+	))))
+
 (defun wisi-containing-action (containing-token contained-token)
   ;; Not wisi-elisp-parse--containing-action to match existing grammar files
   "Set containing marks in all tokens in CONTAINED-TOKEN

@@ -485,7 +485,7 @@ package body Ada_Process_LR1_Main is
             Set_RHS (Prods (218), 1, (1 => 300), null, null);
             Set_Production (Prods (219), 219, 1);
             Set_RHS (Prods (219), 0, (219, 83, 104), identifier_list_0'Access, null);
-            Set_RHS (Prods (219), 1, (1 => 104), null, null);
+            Set_RHS (Prods (219), 1, (1 => 104), identifier_list_1'Access, null);
             Set_Production (Prods (220), 220, 1);
             Set_RHS (Prods (220), 0, (1 => 104), null, identifier_opt_0_check'Access);
             Set_RHS (Prods (220), 1, (1 .. 0 => <>), null, null);

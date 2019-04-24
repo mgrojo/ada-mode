@@ -25,14 +25,15 @@ with WisiToken.Semantic_Checks;
 package body Wisi is
    use WisiToken;
 
-   Navigate_Cache_Code : constant String := "1 ";
-   Face_Property_Code  : constant String := "2 ";
-   Indent_Code         : constant String := "3 ";
+   Navigate_Cache_Code : constant String := "1";
+   Face_Property_Code  : constant String := "2";
+   Indent_Code         : constant String := "3";
    Lexer_Error_Code    : constant String := "4";
    Parser_Error_Code   : constant String := "5";
    Check_Error_Code    : constant String := "6";
    Recover_Code        : constant String := "7 ";
    End_Code            : constant String := "8";
+   Name_Property_Code  : constant String := "9";
 
    Chars_Per_Int : constant Integer := Integer'Width;
 
@@ -310,6 +311,12 @@ package body Wisi is
       Ada.Text_IO.Put_Line (To_String (Line));
    end Put;
 
+   procedure Put (Cache : in WisiToken.Buffer_Region)
+   is begin
+      Ada.Text_IO.Put_Line
+        ("[" & Name_Property_Code & Buffer_Pos'Image (Cache.First) & Buffer_Pos'Image (Cache.Last) & "]");
+   end Put;
+
    procedure Put (Cache : in Face_Cache_Type)
    is
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 2 + 4 * Chars_Per_Int);
@@ -343,7 +350,7 @@ package body Wisi is
             Ind : constant Integer := Integer'Max (0, Item.Int_Indent);
          begin
             Ada.Text_IO.Put_Line
-              ('[' & Indent_Code & Trimmed_Image (Integer (Line_Number)) & Integer'Image (Ind) & ']');
+              ('[' & Indent_Code & Line_Number_Type'Image (Line_Number) & Integer'Image (Ind) & ']');
          end;
 
       when Anchor | Anchored | Anchor_Anchored =>
@@ -613,6 +620,9 @@ package body Wisi is
       Data.Navigate_Caches.Initialize;
       Data.End_Positions.Clear;
 
+      Data.Name_Caches.Finalize;
+      Data.Name_Caches.Initialize;
+
       Data.Face_Caches.Finalize;
       Data.Face_Caches.Initialize;
 
@@ -648,16 +658,16 @@ package body Wisi is
          then
             --  Previous token contains multiple lines; ie %code in wisitoken_grammar.wy
             declare
-               First_Unset_Line : Line_Number_Type;
+               First_Set_Line : Line_Number_Type;
             begin
                for Line in reverse Data.Line_Begin_Pos.First_Index .. Token.Line - 1 loop
                   if Data.Line_Begin_Pos (Line) /= Invalid_Buffer_Pos then
-                     First_Unset_Line := Line;
+                     First_Set_Line := Line;
                      exit;
                   end if;
                end loop;
-               for Line in First_Unset_Line .. Token.Line - 1 loop
-                  Data.Line_Begin_Pos (Line) := Data.Line_Begin_Pos (First_Unset_Line); -- good enough
+               for Line in First_Set_Line + 1 .. Token.Line - 1 loop
+                  Data.Line_Begin_Pos (Line) := Data.Line_Begin_Pos (First_Set_Line); -- good enough
                end loop;
             end;
          end if;
@@ -682,7 +692,10 @@ package body Wisi is
                     Containing_Token.Non_Grammar
                       (Containing_Token.Non_Grammar.Last_Index).ID = Data.Descriptor.New_Line_ID);
             begin
-               if Lexer.First and (Token.ID = Data.Descriptor.Comment_ID or Trailing_Blank) then
+               if Lexer.First and
+                 (Token.ID in Data.Descriptor.First_Comment_ID .. Data.Descriptor.Last_Comment_ID or
+                    Trailing_Blank)
+               then
                   if Containing_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
                      Containing_Token.First_Trailing_Comment_Line := Token.Line;
                   end if;
@@ -913,7 +926,7 @@ package body Wisi is
       for Pair of Params loop
          if not (Pair.Index in Tokens'Range) then
             declare
-               Nonterm_Tok : constant Aug_Token_Ref      := Get_Aug_Token (Data, Tree, Nonterm);
+               Nonterm_Tok : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Nonterm);
             begin
                raise Fatal_Error with Error_Message
                  (File_Name => -Data.Source_File_Name,
@@ -977,6 +990,52 @@ package body Wisi is
          end if;
       end loop;
    end Statement_Action;
+
+   procedure Name_Action
+     (Data    : in out Parse_Data_Type;
+      Tree    : in     WisiToken.Syntax_Trees.Tree;
+      Nonterm : in     Syntax_Trees.Valid_Node_Index;
+      Tokens  : in     WisiToken.Syntax_Trees.Valid_Node_Index_Array;
+      Name    : in     WisiToken.Positive_Index_Type)
+   is
+      use all type WisiToken.Syntax_Trees.Node_Label;
+   begin
+      if not (Name in Tokens'Range) then
+         declare
+            Token : constant Aug_Token_Ref := Get_Aug_Token (Data, Tree, Tokens (Tokens'First));
+         begin
+            raise Fatal_Error with Error_Message
+              (File_Name => -Data.Source_File_Name,
+               Line      => Token.Line,
+               Column    => Token.Column,
+               Message   => "wisi-name-action: " & Trimmed_Image (Tree.Production_ID (Nonterm)) & " name (" &
+                 Trimmed_Image (Name) & ") not in Tokens range (" & SAL.Peek_Type'Image (Tokens'First) & " .." &
+                    SAL.Peek_Type'Image (Tokens'Last) & "); bad grammar action.");
+         end;
+      end if;
+
+      if Tree.Label (Tokens (Name)) = Syntax_Trees.Virtual_Terminal then
+         return;
+      end if;
+
+      declare
+         use Name_Cache_Trees;
+         Name_Token : constant Aug_Token_Ref           := Get_Aug_Token (Data, Tree, Tokens (Name));
+         Cursor     : constant Name_Cache_Trees.Cursor := Find
+           (Data.Name_Caches.Iterate, Name_Token.Char_Region.First,
+            Direction => Name_Cache_Trees.Unknown);
+      begin
+         if Has_Element (Cursor) then
+               raise Fatal_Error with Error_Message
+                 (File_Name => -Data.Source_File_Name,
+                  Line      => Name_Token.Line,
+                  Column    => Name_Token.Column,
+                  Message   => "wisi-name-action: name set twice.");
+         else
+            Data.Name_Caches.Insert (Name_Token.Char_Region);
+         end if;
+      end;
+   end Name_Action;
 
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
@@ -1571,6 +1630,9 @@ package body Wisi is
       function Get_Last_Line return Line_Number_Type
       is begin
          for I in Data.Line_Begin_Pos.First_Index .. Data.Line_Begin_Pos.Last_Index loop
+            if Data.Line_Begin_Pos (I) = Invalid_Buffer_Pos then
+               raise SAL.Programmer_Error with "line_begin_pos" & Line_Number_Type'Image (I) & " invalid";
+            end if;
             if Data.Line_Begin_Pos (I) > Last_Char_Pos then
                if I > Line_Number_Type'First then
                   return I - 1;
@@ -1595,6 +1657,9 @@ package body Wisi is
       case Data.Post_Parse_Action is
       when Navigate =>
          for Cache of Data.Navigate_Caches loop
+            Put (Cache);
+         end loop;
+         for Cache of Data.Name_Caches loop
             Put (Cache);
          end loop;
 
@@ -2033,7 +2098,7 @@ package body Wisi is
                if Data.Line_Begin_Token.all (Line - 1) /= Augmented_Token_Arrays.No_Index then
                   for Tok of Data.Terminals (Data.Line_Begin_Token.all (Line - 1)).Non_Grammar loop
                      if Tok.Line = Line and then
-                       Tok.ID = Data.Descriptor.Comment_ID and then
+                       Tok.ID in Data.Descriptor.First_Comment_ID .. Data.Descriptor.Last_Comment_ID and then
                        Tok.Column = 0
                      then
                         Indent := False;

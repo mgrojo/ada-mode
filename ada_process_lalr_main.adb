@@ -675,9 +675,9 @@ package body Ada_Process_LALR_Main is
             (245, 2)));
             Add_Action (Table.States (32), 76, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
             Add_Action (Table.States (32), 81, 223);
-            Add_Conflict (Table.States (32), 81, (219, 1), 1, null, null);
+            Add_Conflict (Table.States (32), 81, (219, 1), 1, identifier_list_1'Access, null);
             Add_Action (Table.States (32), 82, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
-            Add_Action (Table.States (32), 83, Reduce, (219, 1), 1, null, null);
+            Add_Action (Table.States (32), 83, Reduce, (219, 1), 1, identifier_list_1'Access, null);
             Add_Action (Table.States (32), 84, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
             Add_Action (Table.States (32), 96, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
             Add_Action (Table.States (32), 101, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
@@ -1914,7 +1914,7 @@ package body Ada_Process_LALR_Main is
             Add_Goto (Table.States (163), 312, 327);
             Table.States (163).Minimal_Complete_Action := (Shift, 50, 18);
             Table.States (164).Productions := WisiToken.To_Vector ((1 => (219, 1)));
-            Add_Action (Table.States (164), (81, 83), (219, 1), 1, null, null);
+            Add_Action (Table.States (164), (81, 83), (219, 1), 1, identifier_list_1'Access, null);
             Table.States (164).Minimal_Complete_Action := (Reduce, 219, 1);
             Table.States (165).Productions := WisiToken.To_Vector ((1 => (212, 0)));
             Add_Action (Table.States (165), (29, 47, 48, 50, 69, 71, 74, 104), (212, 0), 1, null, null);
@@ -2046,8 +2046,8 @@ package body Ada_Process_LALR_Main is
             Table.States (184).Minimal_Complete_Action := (Shift, 104, 119);
             Table.States (185).Productions := WisiToken.To_Vector (((219, 1), (245, 0), (245, 1), (245, 2)));
             Add_Action (Table.States (185), 81, 343);
-            Add_Conflict (Table.States (185), 81, (219, 1), 1, null, null);
-            Add_Action (Table.States (185), 83, Reduce, (219, 1), 1, null, null);
+            Add_Conflict (Table.States (185), 81, (219, 1), 1, identifier_list_1'Access, null);
+            Add_Action (Table.States (185), 83, Reduce, (219, 1), 1, identifier_list_1'Access, null);
             Add_Error (Table.States (185));
             Table.States (185).Minimal_Complete_Action := (Reduce, 219, 1);
             Table.States (186).Productions := WisiToken.To_Vector ((1 => (142, 2)));
@@ -6256,8 +6256,8 @@ package body Ada_Process_LALR_Main is
             Add_Action (Table.States (492), 77, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
             Add_Action (Table.States (492), 78, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
             Add_Action (Table.States (492), 79, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
-            Add_Action (Table.States (492), 81, Reduce, (219, 1), 1, null, null);
-            Add_Action (Table.States (492), 83, Reduce, (219, 1), 1, null, null);
+            Add_Action (Table.States (492), 81, Reduce, (219, 1), 1, identifier_list_1'Access, null);
+            Add_Action (Table.States (492), 83, Reduce, (219, 1), 1, identifier_list_1'Access, null);
             Add_Conflict (Table.States (492), 83, (239, 5), 1, name_5'Access, name_5_check'Access);
             Add_Action (Table.States (492), 84, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
             Add_Action (Table.States (492), 85, Reduce, (239, 5), 1, name_5'Access, name_5_check'Access);
