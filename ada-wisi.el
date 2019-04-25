@@ -31,6 +31,10 @@
 (require 'wisi-elisp-lexer)
 (require 'wisi-process-parse)
 
+(defconst ada-wisi-language-protocol-version "1"
+  "Defines language-specific parser parameters.
+Must match wisi-ada.ads Language_Protocol_Version.")
+
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
 INDENT must be indent computed by the normal indentation
@@ -241,10 +245,7 @@ For `wisi-indent-calculate-functions'.
 		      (wisi-forward-cache)))
 
       (when (eq (wisi-cache-nonterm cache) 'subunit)
-	(wisi-forward-find-class 'name (point-max)) ;; parent name
-	(wisi-forward-token)
-	(wisi-forward-find-class 'name (point-max)) ;; subunit name
-	(setq name-pos (point)))
+	(setq name-pos (car (wisi-next-name-region))))
       )
     (when name-pos
       (goto-char name-pos))
@@ -403,10 +404,7 @@ Also return cache at start."
 
   (let* ((begin (point))
 	 (end (wisi-cache-end (wisi-get-cache (point))))
-	 (cache (wisi-forward-find-class 'name end))
-	 (name (buffer-substring-no-properties
-		(point)
-		(+ (point) (wisi-cache-last cache)))))
+	 (name (wisi-next-name)))
     (goto-char end)
     (newline)
     (insert " is begin\n\nend ");; legal syntax; parse does not fail
@@ -533,8 +531,7 @@ Also return cache at start."
 
 (defun ada-wisi-which-function-1 (keyword add-body)
   "Used in `ada-wisi-which-function'."
-  (let* ((cache (wisi-forward-find-class 'name (point-max)))
-         (result (wisi-cache-text cache)))
+  (let* ((result (wisi-next-name)))
 
     ;; See comment in ada-mode.el ada-which-function on why we don't
     ;; overwrite ff-function-name.
@@ -908,6 +905,7 @@ Point must have been set by `ada-wisi-find-begin'."
 	   (wisi-process-parse-get
 	    (make-ada-wisi-parser
 	     :label "Ada"
+	     :language-protocol-version ada-wisi-language-protocol-version
 	     :exec-file ada-process-parse-exec
 	     :exec-opts ada-process-parse-exec-opts
 	     :face-table ada-process-face-table

@@ -34,6 +34,10 @@
   :safe 'floatp)
 (make-variable-buffer-local 'wisi-process-time-out)
 
+(defconst wisi-process-parse-protocol-version "3"
+  "Defines data exchanged between this package and the background process.
+Must match emacs_wisi_common_parse.ads Protocol_Version.")
+
 (defconst wisi-process-parse-prompt "^;;> "
   "Regexp matching executable prompt; indicates previous command is complete.")
 
@@ -54,6 +58,7 @@
 
 (cl-defstruct (wisi-process--parser (:include wisi-parser))
   (label nil)             ;; string uniquely identifying parser
+  language-protocol-version ;; string identifying language-specific params
   (exec-file nil) 	  ;; absolute file name of executable
   (exec-opts nil)         ;; list of process start options for executable
   (token-table nil)       ;; vector of token symbols, indexed by integer
@@ -93,6 +98,24 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
       (wisi-parse-kill parser)
       (setf (wisi-process--parser-exec-file parser) exec-file))))
 
+(defun wisi-process-parse--check-version (parser)
+  "Verify protocol version reported by process."
+  ;; The process has just started; the first non-comment line in the
+  ;; process buffer contains the process and language protocol versions.
+  (with-current-buffer (wisi-process--parser-buffer parser)
+    (goto-char (point-min))
+    (search-forward-regexp "protocol: process version \\([0-9]+\\) language version \\([0-9]+\\)")
+    (unless (and (match-string 1)
+		 (string-equal (match-string 1) wisi-process-parse-protocol-version)
+		 (match-string 2)
+		 (string-equal (match-string 2) (wisi-process--parser-language-protocol-version parser)))
+      (wisi-parse-kill parser)
+      (error "%s parser process protocol version mismatch: elisp %s %s, process %s %s"
+	     (wisi-process--parser-label parser)
+	     wisi-process-parse-protocol-version (wisi-process--parser-language-protocol-version parser)
+	     (match-string 1) (match-string 2)))
+    ))
+
 (defun wisi-process-parse--require-process (parser)
   "Start the process for PARSER if not already started."
   (unless (process-live-p (wisi-process--parser-process parser))
@@ -108,26 +131,17 @@ Otherwise add PARSER to ‘wisi-process--alist’, return it."
 	(erase-buffer)); delete any previous messages, prompt
 
       (setf (wisi-process--parser-process parser)
-	    (if (fboundp 'make-process)
-		;; emacs >= 25
-		(make-process
-		 :name process-name
-		 :buffer (wisi-process--parser-buffer parser)
-		 :command (append (list (wisi-process--parser-exec-file parser))
-				  (wisi-process--parser-exec-opts parser)))
-	      ;; emacs < 25
-	      (start-process
-	       process-name
-	       (wisi-process--parser-buffer parser)
-	       (wisi-process--parser-exec-file parser)
-	       (wisi-process--parser-exec-opts parser)
-	       )))
+	    (make-process
+	     :name process-name
+	     :buffer (wisi-process--parser-buffer parser)
+	     :command (append (list (wisi-process--parser-exec-file parser))
+			      (wisi-process--parser-exec-opts parser))))
 
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
       (setf (wisi-process--parser-busy parser) nil)
 
-      ;; FIXME: check protocol and version numbers
       (wisi-process-parse--wait parser)
+      (wisi-process-parse--check-version parser)
       )))
 
 (defun wisi-process-parse--wait (parser)

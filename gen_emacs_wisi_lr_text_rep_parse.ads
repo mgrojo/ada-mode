@@ -30,6 +30,7 @@ generic
    type Parse_Data_Type  is new Wisi.Parse_Data_Type with private;
 
    Name                                  : in String; --  for Usage, error messages. "_wisi_parse" will be appended
+   Language_Protocol_Version             : in String; --  Defines language-specific parse parameters.
    Descriptor                            : in WisiToken.Descriptor;
    Partial_Parse_Active                  : in out Boolean;
    Language_Fixes                        : in WisiToken.Parse.LR.Parser.Language_Fixes_Access;

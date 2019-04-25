@@ -9,11 +9,15 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi
 
+** parser process protocol version 3
+
 ** New file wisi-xref.el provides a completion table built from tokens
    marked by the new grammar action `wisi-name-action'.
 
 * wisi 2.1.0
 21 Mar 2019
+
+** parser process protocol version 2
 
 ** Add support for partial parsing; useful in very large files. Files
    larger than wisi-partial-parse-threshold (default 100_001) will be
@@ -27,6 +31,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi 2.0.1
 8 Dec 2018
+
+** parser process protocol version 1
 
 ** Assign copyright in Ada files to FSF
 

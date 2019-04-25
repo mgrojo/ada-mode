@@ -1370,6 +1370,20 @@ If non-nil, only repair errors in BEG END region."
        ident)
       ident)))
 
+(defun wisi-next-name-region ()
+  "Return the next region at or after POS with text property 'wisi-name'."
+  (let* ((begin
+	  (if (get-text-property (point) 'wisi-name)
+	      (point)
+	    (next-single-property-change (point) 'wisi-name)))
+	 (end (next-single-property-change begin 'wisi-name)))
+    (cons begin end)))
+
+(defun wisi-next-name ()
+  "Return the next text at or after POS with text property 'wisi-name'."
+  (let ((region (wisi-next-name-region)))
+    (buffer-substring-no-properties (car region) (cdr region))))
+
 (defun wisi-xref-identifier-completion-table ()
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
   (let ((table nil)

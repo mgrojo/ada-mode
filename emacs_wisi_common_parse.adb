@@ -195,12 +195,13 @@ package body Emacs_Wisi_Common_Parse is
    end Get_Parse_Params;
 
    procedure Parse_Stream
-     (Name                 : in     String;
-      Partial_Parse_Active : in out Boolean;
-      Params               : in     Process_Start_Params;
-      Parser               : in out WisiToken.Parse.LR.Parser.Parser;
-      Parse_Data           : in out Wisi.Parse_Data_Type'Class;
-      Descriptor           : in     WisiToken.Descriptor)
+     (Name                      : in     String;
+      Language_Protocol_Version : in     String;
+      Partial_Parse_Active      : in out Boolean;
+      Params                    : in     Process_Start_Params;
+      Parser                    : in out WisiToken.Parse.LR.Parser.Parser;
+      Parse_Data                : in out Wisi.Parse_Data_Type'Class;
+      Descriptor                : in     WisiToken.Descriptor)
    is
       use Ada.Text_IO;
       use WisiToken; -- "+", "-" Unbounded_string
@@ -231,7 +232,8 @@ package body Emacs_Wisi_Common_Parse is
 
       Parser.Trace.Set_Prefix (";; "); -- so debug messages don't confuse Emacs.
 
-      Put_Line (Name & " " & Version & ", protocol version " & Protocol_Version);
+      Put_Line
+        (Name & " protocol: process version " & Protocol_Version & " language version " & Language_Protocol_Version);
 
       --  Read commands and tokens from standard_input via GNAT.OS_Lib,
       --  send results to standard_output.

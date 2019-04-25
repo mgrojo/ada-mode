@@ -54,18 +54,7 @@ run test from emacs -Q using source:
    ("../org.emacs.ada-mode.stephe-2"   . "../org.emacs.ada-mode")))
 
  current work
-use 'wisi-name in which-function, log-function-name
-
-need wisi-containing-action?
-    not in Ada; check elisp
-
-need wisi-statement-action?
-    motion-action could take same args, except for []
-
-process protocol changed
-    check protocol version in process start
-
-gpr_query needs to close some xref object to all 'rm ./obj'?
+gpr_query needs to close some xref object to allow 'rm ./obj'?
 
 doc jit-lock-context-time
 
@@ -1526,7 +1515,9 @@ bump versions
 
     emacs_wisi_common_parse.ads
         Protocol_Version ; integer; bump if wisi-process-parse would break with old version
-        Version          ; ?
+
+    wisi-process-parse.el
+        wisi-process-parse-protocol-version match Protocol_Version
 
     build/Makefile
         run uninstall-elpa with old values before changing!
