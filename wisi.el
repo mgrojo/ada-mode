@@ -1065,6 +1065,7 @@ the comment on the previous line."
 
 (defun wisi-indent-statement ()
   "Indent region given by `wisi-goto-start', `wisi-cache-end'."
+  (interactive)
   (wisi-validate-cache (point-min) (point-max) t 'navigate)
 
   (save-excursion
@@ -1322,7 +1323,10 @@ If non-nil, only repair errors in BEG END region."
     ))
 
 ;;; xref integration
-(defun wisi-xref-ident-make (identifier other-function)
+(defconst wisi-xref-ident-regexp "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?"
+  "Match line number encoded into identifier by `wisi-xref-identifier-at-point'.")
+
+(defun wisi-xref-ident-make (identifier &optional other-function)
   (let* ((t-prop (get-text-property 0 'xref-identifier identifier))
 	 ;; If t-prop is non-nil: identifier is from
 	 ;; identifier-at-point, the desired location is the ’other’
@@ -1334,7 +1338,7 @@ If non-nil, only repair errors in BEG END region."
 	 (ident
 	  (if t-prop
 	      (substring-no-properties identifier 0 nil)
-	    (string-match "\\([^<]*\\)\\(?:<\\([0-9]+\\)>\\)?" identifier)
+	    (string-match wisi-xref-ident-regexp identifier)
 	    (match-string 1 identifier)
 	    ))
 	 (file
@@ -1533,12 +1537,13 @@ If non-nil, only repair errors in BEG END region."
   (message "%s" (get-text-property (1- (line-beginning-position)) 'wisi-indent)))
 
 (defun wisi-show-cache ()
-  "Show navigation cache, and applied faces, at point."
+  "Show wisi text properties at point."
   (interactive)
-  (message "%s:%s:%s"
+  (message "%s:%s:%s:%s"
 	   (wisi-get-cache (point))
 	   (get-text-property (point) 'face)
 	   (get-text-property (point) 'font-lock-face)
+	   (get-text-property (point) 'wisi-name)
 	   ))
 
 (defun wisi-show-containing-or-previous-cache ()

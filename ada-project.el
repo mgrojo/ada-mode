@@ -42,14 +42,8 @@
   ;; project-id is experimental
   (ada-project-ada-prj prj))
 
-(cl-defmethod project-library-roots ((_prj ada-project))
-  ;; Called from project-find-file; result is passed to
-  ;; project--file-completion-table, where it is ignored.
-  nil)
-
 (cl-defmethod project-roots ((_prj ada-project))
-  ;; Called from project-find-file; result is passed to
-  ;; project--file-completion-table, where it is ignored.
+  ;; Not meaningful
   nil)
 
 (cl-defmethod project-file-completion-table ((_prj ada-project) _dirs)
@@ -72,7 +66,7 @@
 		:user-path-recursive nil
 		:ignore-function nil))
 	   (files
-	    (path-iter-all-files
+	    (path-iter-files
 	     iter
 	     (lambda (abs-file-name)
 	       (not (string-equal "exe" (file-name-extension abs-file-name))))))

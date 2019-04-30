@@ -27,31 +27,33 @@
 (require 'cl-generic)
 (require 'project)
 
-(eval-and-compile
-  (unless (fboundp 'refresh-project)
-  ;; In emacs 27
-
-  (cl-defgeneric project-refresh (prj full)
-    "Refresh all cached data in PRJ.
+(cl-defgeneric project-refresh (prj full)
+  "Refresh all cached data in PRJ.
 If FULL is non-nil, very slow refresh operations may be skipped.")
 
-  (defun refresh-project (full)
-    (interactive "P")
-    (project-refresh (project-current) full))
+(defun refresh-project (full)
+  (interactive "P")
+  (project-refresh (project-current) full))
 
-  (cl-defgeneric project-select (prj)
-    "User has selected PRJ as the active project; take actions to make that so."
-    (setq compilation-search-path
-	  (append (project-roots prj)
-		  (project-external-roots prj)))
-    )
+(cl-defgeneric project-select (prj)
+  "User has selected PRJ as the active project; take actions to make that so."
+  (setq compilation-search-path
+	(append (project-roots prj)
+		(project-external-roots prj)))
+  )
 
-  (cl-defgeneric project-deselect (_prj)
-    "PRJ is the current project; user has selected another project.
+(cl-defgeneric project-deselect (_prj)
+  "PRJ is the current project; user has selected another project.
 Undo actions done in `project-select'."
-    (setq compilation-search-path nil)
-    )
-  ))
+  (setq compilation-search-path nil)
+  )
+
+(defun project-remove-hook (fn hook mode)
+  "Remove FN from buffer-local HOOK in all buffers with `major-mode' MODE."
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (eq major-mode mode)
+	(setq hook (delq fn hook))))))
 
 (cl-defstruct env-project
   env-vars ;; a list of (NAME . VALUE)
