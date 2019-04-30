@@ -78,7 +78,7 @@ with WisiToken_Grammar_Runtime; use WisiToken_Grammar_Runtime;
 %token <punctuation> SLASH "/"
 %token <punctuation> STAR "*" ;; for ()* same as {}
 
-%token <number> NUMERIC_LITERAL %[ [0-9][0-9_]* ]%
+%token <number> NUMERIC_LITERAL %[ [0-9-][0-9_]* ]%
 %token <symbol> IDENTIFIER %[ [a-zA-Z\x80-\U0010FFFF][-0-9a-zA-Z_\x80-\U0010FFFF]* ]%
 
 ;; In re2c regexps, '...' indicates a case-insensitive match.

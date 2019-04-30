@@ -222,6 +222,9 @@ package WisiToken.Parse.LR is
       Push_Back : Token_ID_Array_Natural (First_Terminal .. Last_Nonterminal);
       --  Cost of operations on config stack, input.
 
+      Minimal_Complete_Cost_Delta : Integer;
+      --  Reduction in cost due to using Minimal_Complete_Action.
+
       Ignore_Check_Fail : Natural;
       --  Cost of ignoring a semantic check failure. Should be at least the
       --  cost of a typical fix for such a failure.
@@ -244,6 +247,7 @@ package WisiToken.Parse.LR is
       Insert            => (others => 0),
       Delete            => (others => 0),
       Push_Back         => (others => 0),
+      Minimal_Complete_Cost_Delta => -1,
       Ignore_Check_Fail => 0,
       Task_Count        => System.Multiprocessors.CPU_Range'Last,
       Cost_Limit        => Natural'Last,

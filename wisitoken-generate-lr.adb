@@ -1203,16 +1203,15 @@ package body WisiToken.Generate.LR is
       end loop;
 
       New_Line;
-      Put ("   Minimal_Complete_Action => (");
+      Put ("   Minimal_Complete_Action => ");
       case State.Minimal_Complete_Action.Verb is
       when Pause =>
          null;
       when Shift =>
-         Put (Image (State.Minimal_Complete_Action.ID, Descriptor));
+         Put_Line (Image (State.Minimal_Complete_Action.ID, Descriptor));
       when Reduce =>
-         Put (Image (State.Minimal_Complete_Action.Nonterm, Descriptor));
+         Put_Line (Image (State.Minimal_Complete_Action.Nonterm, Descriptor));
       end case;
-      Put_Line (")");
    end Put;
 
    procedure Put_Parse_Table

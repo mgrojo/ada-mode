@@ -2,7 +2,7 @@
 --
 --  Config parsing subprograms.
 --
---  Copyright (C) 2018 Free Software Foundation, Inc.
+--  Copyright (C) 2018 - 2019 Free Software Foundation, Inc.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -62,9 +62,11 @@ private package WisiToken.Parse.LR.McKenzie_Recover.Parse is
       All_Conflicts     : in              Boolean;
       Trace_Prefix      : in              String)
      return Boolean;
-   --  Attempt to parse Config until Config.Inserted is all shifted, and
+   --  Attempt to parse Config and any conflict configs. If not
+   --  All_Conflicts, return when Config.Inserted is all shifted, and
    --  either Shared_Token_Goal = Invalid_Token_Index or
-   --  Shared_Token_Goal is shifted.
+   --  Shared_Token_Goal is shifted. If All_Conflicts, return when all
+   --  conflict configs have been parsed.
    --
    --  Parsed configs are in Parse_Items; there is more than one if a
    --  conflict is encountered. Parse returns True if at least one

@@ -193,17 +193,18 @@ package WisiToken.BNF is
       --  Of the %mckenzie_cost_default declaration; we assume the others
       --  are near.
 
-      Default_Insert          : Natural               := 0;
-      Default_Delete_Terminal : Natural               := 0;
-      Default_Push_Back       : Natural               := 0;
-      Delete                  : String_Pair_Lists.List;
-      Insert                  : String_Pair_Lists.List;
-      Push_Back               : String_Pair_Lists.List;
-      Ignore_Check_Fail       : Natural               := 0;
-      Cost_Limit              : Natural               := Integer'Last;
-      Check_Limit             : WisiToken.Token_Index := WisiToken.Token_Index'Last;
-      Check_Delta_Limit       : Natural               := Integer'Last;
-      Enqueue_Limit           : Natural               := Integer'Last;
+      Default_Insert              : Natural               := 0;
+      Default_Delete_Terminal     : Natural               := 0;
+      Default_Push_Back           : Natural               := 0;
+      Delete                      : String_Pair_Lists.List;
+      Insert                      : String_Pair_Lists.List;
+      Push_Back                   : String_Pair_Lists.List;
+      Minimal_Complete_Cost_Delta : Integer               := -1;
+      Ignore_Check_Fail           : Natural               := 0;
+      Cost_Limit                  : Natural               := Integer'Last;
+      Check_Limit                 : WisiToken.Token_Index := WisiToken.Token_Index'Last;
+      Check_Delta_Limit           : Natural               := Integer'Last;
+      Enqueue_Limit               : Natural               := Integer'Last;
    end record;
 
    type Token_Kind_Type is record

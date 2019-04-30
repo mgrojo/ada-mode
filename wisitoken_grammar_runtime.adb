@@ -727,6 +727,11 @@ package body WisiToken_Grammar_Runtime is
                   Data.Language_Params.Error_Recover := True;
                   Data.McKenzie_Recover.Enqueue_Limit := Natural'Value (Get_Text (Data, Tree, Tokens (3)));
 
+               elsif Kind = "mckenzie_minimal_complete_cost_delta" then
+                  Data.Language_Params.Error_Recover := True;
+                  Data.McKenzie_Recover.Minimal_Complete_Cost_Delta :=
+                    Integer'Value (Get_Text (Data, Tree, Tokens (3)));
+
                elsif Kind = "meta_syntax" then
                   --  not in Other phase
                   null;
@@ -1650,14 +1655,15 @@ package body WisiToken_Grammar_Runtime is
 
                procedure Check_Canonical_List
                is
-                  --  A canonical list in EBNF looks like:
+                  --  In EBNF, a canonical list with a separator looks like:
                   --
                   --  enumConstants
                   --      : enumConstant (',' enumConstant)*
                   --      ;
                   --
-                  --  Doing this eliminates a conflict between reducing to enumConstants
-                  --  and reducing to the introduced nonterm list.
+                  --  Handling this case specially this eliminates a conflict between
+                  --  reducing to enumConstants and reducing to the introduced nonterm
+                  --  list.
                   --
                   --  With no separator, this is:
                   --

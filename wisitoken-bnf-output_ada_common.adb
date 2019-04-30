@@ -462,6 +462,8 @@ package body WisiToken.BNF.Output_Ada_Common is
       Put ("Insert", Table.McKenzie_Param.Insert);
       Put ("Delete", Table.McKenzie_Param.Delete);
       Put ("Push_Back", Table.McKenzie_Param.Push_Back);
+      Indent_Line
+        ("Minimal_Complete_Cost_Delta => " & Integer'Image (Table.McKenzie_Param.Minimal_Complete_Cost_Delta) & ",");
       Indent_Line ("Ignore_Check_Fail  =>" & Integer'Image (Table.McKenzie_Param.Ignore_Check_Fail) & ",");
       Indent_Line ("Task_Count  =>" & System.Multiprocessors.CPU_Range'Image
                      (Table.McKenzie_Param.Task_Count) & ",");

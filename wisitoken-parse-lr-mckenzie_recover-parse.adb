@@ -277,8 +277,8 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
    is
       Trace : WisiToken.Trace'Class renames Super.Trace.all;
 
-      Last_Index : Positive;
-      Success    : Boolean;
+      Last_Parsed : Natural;
+      Success     : Boolean;
    begin
       Parse_Items.Clear;
       Parse_Items.Append ((Config, Action => null, Parsed => False, Shift_Count => 0));
@@ -287,17 +287,17 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Parse is
       Parse_Items (Parse_Items.First_Index).Config.Error_Token.ID := Invalid_Token_ID;
       Parse_Items (Parse_Items.First_Index).Config.Check_Status   := (Label => Semantic_Checks.Ok);
 
+      Last_Parsed := Parse_Items.First_Index;
       loop
          --  Loop over initial config and any conflicts.
-         Last_Index := Parse_Items.Last_Index;
-
          Success := Parse_One_Item
-           (Super, Shared, Parser_Index, Parse_Items, Last_Index, Shared_Token_Goal, Trace_Prefix);
+           (Super, Shared, Parser_Index, Parse_Items, Last_Parsed, Shared_Token_Goal, Trace_Prefix);
 
-         exit when Parse_Items.Last_Index = Last_Index;
+         exit when Parse_Items.Last_Index = Last_Parsed;
 
          exit when Success and not All_Conflicts;
 
+         Last_Parsed := Last_Parsed + 1;
          if Trace_McKenzie > Detail then
             Put_Line (Trace, Super.Label (Parser_Index), Trace_Prefix & ": parse conflict");
          end if;

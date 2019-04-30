@@ -34,14 +34,18 @@ use First to compute String_ID_Set?
 make "canonical list" compatible with packrat
     ie swap rhs_index 0, 1
 
-java
-    c:/Projects/org.emacs.java-wisi/source/java_antlr.wy
-    done with syntax
-    lalr: 0 accept/reduce conflicts, 127 shift/reduce conflicts, 88 reduce/reduce conflicts
-        9 states with more than two actions in a conflict
-    lr1:  0 accept/reduce conflicts, 127 shift/reduce conflicts, 88 reduce/reduce conflicts
-        => no conflicts due to LALR
-    reviewing conflicts; all in language
+c:/Projects/org.emacs.java-wisi/test/recover_001.java
+    don't delete next if minimal_c_a inserted
+
+    minimal_complete_actions isn't globally minimal
+        state 245 could use
+            classOrInterfaceType <= IDENTIFIER
+            lambdaParameters <= IDENTIFIER
+            primary <= IDENTIFIER
+            classType <= IDENTIFIER
+
+            picks first = classOrInterfaceType => inserts .class,  reduces to primary
+            find that in a post-optimize step?
 
 Python
     c:/Projects/org.emacs.python-wisi/python.wy

@@ -635,8 +635,6 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
       Descriptor   : WisiToken.Descriptor renames Super.Trace.Descriptor.all;
       Insert_Count : Integer := 0;
 
-      Cost_Delta : constant Integer := -1;
-
       New_Config      : Configuration  := Orig_Config;
       Complete_Action : Minimal_Action := Table.States (New_Config.Stack.Peek.State).Minimal_Complete_Action;
 
@@ -671,7 +669,7 @@ package body WisiToken.Parse.LR.McKenzie_Recover.Explore is
 
             Do_Shift
               (Super, Shared, Parser_Index, Local_Config_Heap, New_Config, Complete_Action.State, Complete_Action.ID,
-               Cost_Delta,
+               Table.McKenzie_Param.Minimal_Complete_Cost_Delta,
                Strategy   => Minimal_Complete);
          end if;
       end Minimal_Do_Shift;

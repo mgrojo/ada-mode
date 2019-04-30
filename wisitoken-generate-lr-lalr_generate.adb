@@ -542,19 +542,20 @@ package body WisiToken.Generate.LR.LALR_Generate is
       if McKenzie_Param = Default_McKenzie_Param then
          --  Descriminants in Default are wrong
          Table.McKenzie_Param :=
-           (First_Terminal    => Descriptor.First_Terminal,
-            Last_Terminal     => Descriptor.Last_Terminal,
-            First_Nonterminal => Descriptor.First_Nonterminal,
-            Last_Nonterminal  => Descriptor.Last_Nonterminal,
-            Insert            => (others => 0),
-            Delete            => (others => 0),
-            Push_Back         => (others => 0),
-            Ignore_Check_Fail => Default_McKenzie_Param.Ignore_Check_Fail,
-            Task_Count        => Default_McKenzie_Param.Task_Count,
-            Cost_Limit        => Default_McKenzie_Param.Cost_Limit,
-            Check_Limit       => Default_McKenzie_Param.Check_Limit,
-            Check_Delta_Limit => Default_McKenzie_Param.Check_Delta_Limit,
-            Enqueue_Limit     => Default_McKenzie_Param.Enqueue_Limit);
+           (First_Terminal              => Descriptor.First_Terminal,
+            Last_Terminal               => Descriptor.Last_Terminal,
+            First_Nonterminal           => Descriptor.First_Nonterminal,
+            Last_Nonterminal            => Descriptor.Last_Nonterminal,
+            Insert                      => (others => 0),
+            Delete                      => (others => 0),
+            Push_Back                   => (others => 0),
+            Minimal_Complete_Cost_Delta => Default_McKenzie_Param.Minimal_Complete_Cost_Delta,
+            Ignore_Check_Fail           => Default_McKenzie_Param.Ignore_Check_Fail,
+            Task_Count                  => Default_McKenzie_Param.Task_Count,
+            Cost_Limit                  => Default_McKenzie_Param.Cost_Limit,
+            Check_Limit                 => Default_McKenzie_Param.Check_Limit,
+            Check_Delta_Limit           => Default_McKenzie_Param.Check_Delta_Limit,
+            Enqueue_Limit               => Default_McKenzie_Param.Enqueue_Limit);
       else
          Table.McKenzie_Param := McKenzie_Param;
       end if;

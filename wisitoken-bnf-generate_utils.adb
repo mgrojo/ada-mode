@@ -752,15 +752,16 @@ package body WisiToken.BNF.Generate_Utils is
          Data.Descriptor.Last_Terminal,
          Data.Descriptor.First_Nonterminal,
          Data.Descriptor.Last_Nonterminal,
-         Insert            => (others => Item.Default_Insert),
-         Delete            => (others => Item.Default_Delete_Terminal),
-         Push_Back         => (others => Item.Default_Push_Back),
-         Ignore_Check_Fail => Item.Ignore_Check_Fail,
-         Task_Count        => 0,
-         Cost_Limit        => Item.Cost_Limit,
-         Check_Limit       => Item.Check_Limit,
-         Check_Delta_Limit => Item.Check_Delta_Limit,
-         Enqueue_Limit     => Item.Enqueue_Limit);
+         Insert                      => (others => Item.Default_Insert),
+         Delete                      => (others => Item.Default_Delete_Terminal),
+         Push_Back                   => (others => Item.Default_Push_Back),
+         Minimal_Complete_Cost_Delta => Item.Minimal_Complete_Cost_Delta,
+         Ignore_Check_Fail           => Item.Ignore_Check_Fail,
+         Task_Count                  => 0,
+         Cost_Limit                  => Item.Cost_Limit,
+         Check_Limit                 => Item.Check_Limit,
+         Check_Delta_Limit           => Item.Check_Delta_Limit,
+         Enqueue_Limit               => Item.Enqueue_Limit);
 
       ID : Token_ID;
    begin
