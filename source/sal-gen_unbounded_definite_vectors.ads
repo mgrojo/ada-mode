@@ -223,5 +223,6 @@ private
    --  Visible for child package
 
    function To_Peek_Type (Item : in Extended_Index) return Base_Peek_Type with Inline;
+   function To_Index_Type (Item : in Base_Peek_Type) return Extended_Index;
 
 end SAL.Gen_Unbounded_Definite_Vectors;
